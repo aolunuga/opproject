@@ -3,6 +3,7 @@
  */
 package onepoint.project.modules.report;
 
+import net.sf.jasperreports.engine.*;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;

@@ -20,6 +20,7 @@ import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManage
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.*;
 import onepoint.util.XEnvironment;
 
 import java.sql.Connection;
