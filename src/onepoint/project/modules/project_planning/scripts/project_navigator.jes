@@ -1,0 +1,61 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Event-script for projects.oxf.xml
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+
+function changeProject(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectNavigatorDataSet");
+   //this can happen if you start a dragging from the main frame and drop on one of the projects in the navigation frame
+   if (project_data_set == null) {
+      return;
+   }
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.project_id = selected_rows[0].getStringValue();
+      icon_index = XValidator.choiceIconIndex(parameters.project_id);
+      // only update project status if user selected a project or template (not a portfolio)
+      if ((icon_index == 2) || (icon_index == 1)) {
+
+         contentFrame = XDisplay.findFrame("ProjectContentFrame");
+         
+         // *** Check if content frame contains planning tool
+         // ==> If yes: Trigger auto-save using invokeFunction(...)
+         form = contentFrame.currentForm();
+         
+         if (form.getID() != null) {
+            if (form.getID().equals("ActivitiesForm")) {
+               Console.println("   ***ActivitiesForm: Trigger auto-save");
+               // Patch event source form
+               event.sourceForm = form;
+               arguments[0] = event;
+               form.invokeFunction("autoSave", arguments);
+            }
+         }
+         
+         Console.println("==> PROJECT NAVIGATOR refresh content form");
+         contentFrame.refreshForm(parameters);
+         Console.println("<== after PROJECT NAVIGATOR refresh content form");
+      }
+   }
+   return;
+}
+
+function expandDivision(event){
+   contentFrame = XDisplay.findFrame("ProjectNavigatorFrame");
+   panel = contentFrame.getParent();
+   panel.doLayout();
+   panel.getParent().repaint();
+}
+
+function collapseDivision(event){
+   contentFrame = XDisplay.findFrame("ProjectNavigatorFrame");
+   panel = contentFrame.getParent();
+   panel.doLayout();
+   panel.getParent().repaint();
+}
+

@@ -1,0 +1,32 @@
+// Event-script for header.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function signOff(event) {
+   clearResourceCache(event);
+   XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml");
+}
+
+function clearResourceCache(event){
+   XDisplay.clearResourceCache();
+   request = new XMessage;
+   request.setAction("Express.clearResourceCache");
+   XDisplay.getClient().invokeMethod(request);
+
+}
+
+function clearImageCache(event){
+   XDisplay.clearImageCache();
+   XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml");
+}
+
+function enablePopUp(event){
+   //filter pop up menu if resource cache size is disabled
+   resource_cache_size = XDisplay.getResourceCacheSize();
+   if (resource_cache_size == 0){
+      pop_up_menu = event.popUp;
+      pop_up_menu.getChild(0).setEnabled(false);//ClearResourceCache
+   }
+   XDisplay.closeAllPopUps();
+}

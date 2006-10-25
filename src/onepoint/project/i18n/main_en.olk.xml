@@ -1,0 +1,34 @@
+<language-kit locale="en">
+   <resource-map id="main.login">
+      <resource id="Login">Login</resource>
+      <resource id="Password">Password</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="main.levels">
+      <resource id="runLevel0">Could not load configuration file</resource>
+      <resource id="runLevel1">Could not load registered modules</resource>
+      <resource id="runLevel2">Could not connect to database instance: Please check if database user, password and instance name are correct</resource>
+      <resource id="runLevel3">Repository structure could not be set up</resource>
+      <resource id="runLevel4">Could not update database schema</resource>
+      <resource id="runLevel5">Could not start registered modules</resource>
+   </resource-map>
+   <resource-map id="main.header">
+      <resource id="ClearResourceCache">Clear Resource Cache</resource>
+      <resource id="ClearImageCache">Clear Image Cache</resource>
+      <resource id="SignOff">Sign off</resource>
+   </resource-map>
+   <resource-map id="main.dock">
+      <resource id="ToolDock">TOOL DOCK</resource>
+   </resource-map>
+   <resource-map id="main.error">
+      <resource id="Error">Error</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Warning">Warning</resource>
+      <resource id="SessionExpired">Your user session has expired. Please log in again.</resource>
+   </resource-map>
+   <resource-map id="main.db_configuration.error">
+      <resource id="DatabaseDriverMissing">The database driver is not specified</resource>
+      <resource id="DatabaseUrlMissing">The database url is not specified</resource>
+      <resource id="DatabaseLoginMissing">The login name is not specified</resource>
+   </resource-map>
+</language-kit>

@@ -1,0 +1,41 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for move_project_chooser.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   /*selected project node */
+   project_node_id = form.findComponent("ProjectNodeIdField").getStringValue();
+   /*filtered project data set */
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      project_choice = selected_rows[0].getStringValue();
+      target_project_node_id = XValidator.choiceID(project_choice);
+
+      request = new XMessage;
+      request.setAction("ProjectService.moveProjectNode");
+      request.setArgument("project_id", project_node_id);
+      request.setArgument("portfolio_id", target_project_node_id);
+      response = XDisplay.getClient().invokeMethod(request);
+
+      if (handleError(form, response, "ErrorLabel") == true) {
+         XDisplay.getActiveWindow().close();
+         XDisplay.findFrame("MainFrame").refreshForm();
+      }
+   }
+
+
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

@@ -1,0 +1,34 @@
+<language-kit locale="de">
+   <resource-map id="main.login">
+      <resource id="Login">Benutzername</resource>
+      <resource id="Password">Passwort</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="main.levels">
+      <resource id="runLevel0">Konfigurationsdatei konnte nicht geladen werden</resource>
+      <resource id="runLevel1">Registrierte Module konnten nicht geladen werden</resource>
+      <resource id="runLevel2">Keine Verbindung zur Datenbankinstanz: Bitte Datenbankbenutzer, Passwort und Instanzname uberprufen</resource>
+      <resource id="runLevel3">Ablagestruktur konnte nicht eingerichtet werden</resource>
+      <resource id="runLevel4">Datenbankschema konnte nicht auf den neuesten Stand gebracht werden</resource>
+      <resource id="runLevel5">Registerierte Module konnten nicht gestartet werden</resource>
+   </resource-map>
+   <resource-map id="main.header">
+      <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>
+      <resource id="ClearImageCache">Bilder-Cache leeren</resource>
+      <resource id="SignOff">Abmelden</resource>
+   </resource-map>
+   <resource-map id="main.dock">
+      <resource id="ToolDock">TOOL-DOCK</resource>
+   </resource-map>
+   <resource-map id="main.error">
+      <resource id="Error">Fehler</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Warning">Warnung</resource>
+      <resource id="SessionExpired">Ihre Benutzersitzung ist abgelaufen. Bitte melden Sie sich neu an.</resource>
+   </resource-map>
+    <resource-map id="main.db_configuration.error">
+      <resource id="DatabaseDriverMissing">The database driver is not specified</resource>
+      <resource id="DatabaseUrlMissing">The database url is not specified</resource>
+      <resource id="DatabaseLoginMissing">The login name is not specified</resource>
+   </resource-map>
+</language-kit>

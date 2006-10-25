@@ -1,0 +1,75 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for db_configuration_wizard.oxf.xml
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function showForm(event) {
+   XDisplay.requestViewerFocus();
+}
+
+function connect(event) {
+   // Gather -data
+   form = XDisplay.getActiveForm();
+   config.database_type = XValidator.choiceCaption(form.findComponent("DatabaseTypeChoiceField").getStringValue());
+   config.database_url = form.findComponent("DatabaseUrlTextField").getStringValue();
+   config.database_login = form.findComponent("DatabaseLoginTextField").getStringValue();
+   config.database_password = form.findComponent("DatabasePasswordTextField").getStringValue();
+   //save configuration file
+   request = new XMessage;
+   request.setAction("DBConfigurationWizard.writeDatabaseConfigurationFile");
+   request.setArgument("parameters", config);
+   response = XDisplay.getClient().invokeMethod(request);
+
+    if (handleError(form, response, "ErrorLabel") == true) {
+       params = response.getArgument("initParams");
+       //show login form
+       XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml",params);
+    }
+
+}
+
+function dbTypeChanged(event) {
+   form = XDisplay.getActiveForm();
+   /*get needed text fields */
+   db_url = form.findComponent("DatabaseUrlTextField");
+   db_login = form.findComponent("DatabaseLoginTextField");
+   db_password = form.findComponent("DatabasePasswordTextField");
+
+   db_type = form.findComponent("DatabaseTypeChoiceField");
+   database_type = XValidator.choiceCaption(db_type.getStringValue());
+
+   if (database_type.equals("HSQLDB")) {
+      Console.println("HSQLDB selected");
+      /*get the default values */
+      default_db_url = form.findComponent("DefaultDbURLDataField").getStringValue();
+      default_db_login = form.findComponent("DefaultDbLoginDataField").getStringValue();
+      default_db_password = form.findComponent("DefaultDbPasswordDataField").getStringValue();
+
+      db_url.setStringValue(default_db_url);
+      db_login.setStringValue(default_db_login);
+      db_password.setStringValue(default_db_password);
+      /*disable fields */
+      db_url.setEnabled(false);
+      db_login.setEnabled(false);
+      db_password.setEnabled(false);
+   }
+   else {
+      /*set default values and enable text fields*/
+      db_url.setStringValue(null);
+      db_login.setStringValue("opproject");
+      db_password.setStringValue("opproject");
+
+      db_url.setEnabled(true);
+      db_login.setEnabled(true);
+      db_password.setEnabled(true);
+   }
+   form.doLayout();
+   form.repaint();
+}

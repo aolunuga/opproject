@@ -1,0 +1,105 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for new_resource.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+function ok(event) {
+
+   // Gather resource-data
+   form = XDisplay.getActiveForm();
+   resource_data.PoolID = form.findComponent("PoolID").getStringValue();
+   resource_data.Name = form.findComponent("Name").getStringValue();
+   resource_data.Description = form.findComponent("Description").getStringValue();
+   resource_data.Available = form.findComponent("Available").getDoubleValue();
+   resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
+   resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
+   resource_data.UserID = form.findComponent("SelectedUserDataField").getStringValue();
+
+   assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
+   i = 0;
+   while (i < assigned_project_data_set.getChildCount()) {
+      assigned_projects[i] = assigned_project_data_set.getChild(i).getStringValue();
+      i++;
+   }
+   resource_data.Projects = assigned_projects;
+
+   resource_data.PermissionSet = form.findComponent("PermissionSet");
+
+   request = new XMessage;
+   request.setAction("ResourceService.insertResource");
+   request.setArgument("resource_data", resource_data);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      // Expand pool row
+      mainFrame = XDisplay.findFrame("MainFrame");
+      poolIndex = form.findComponent("PoolIndexField").getIntValue();
+      if (poolIndex != -1) {
+         poolRow = mainFrame.currentForm().findComponent("ResourceDataSet").getChild(poolIndex);
+         if (poolRow != null) {
+            poolRow.setExpanded(true);
+         }
+      }
+      XDisplay.getActiveWindow().close();
+      mainFrame.refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function selectUser(event) {
+   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addResourceSubject", true, false, null, false);
+}
+
+function addResourceSubject(subject) {
+   form = XDisplay.getActiveForm();
+   selected_user_data_field = form.findComponent("SelectedUserDataField");
+   selected_user_data_field.setStringValue(subject);
+   user_name_field = form.findComponent("UserName");
+   user_name_field.setStringValue(XValidator.choiceCaption(subject));
+}
+
+function addProject(event) {
+   form = XDisplay.getActiveForm();
+   parameters.AssignedProjectDataSet = form.findComponent("AssignedProjectDataSet");
+   dialog = XComponent.newDialog();
+   dialog.setText("Project hinzuf??gen");
+   dialog.open("/modules/resource/forms/add_project.oxf.xml", parameters);
+   XDisplay.findFrame("MainFrame").repaint();
+   // *** How could we reuse project-chooser?
+   // ==> Maybe via client-variables (transfer to client in every response?)
+}
+
+function removeProject(event) {
+   form = XDisplay.getActiveForm();
+   assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
+   selected_rows = assigned_project_data_set.selectedRows();
+   assigned_project_data_set.removeDataRows(selected_rows);
+   // Update assigned project list
+   assigned_project_list_box = form.findComponent("AssignedProjectListBox");
+   assigned_project_list_box.update();
+}
+
+function inheritPoolRate(event) {
+   form = XDisplay.getActiveForm();
+   source = event.event_source;
+   shouldInherit = source.getValue();
+   if (shouldInherit == true) {
+      form.findComponent("HourlyRate").setEnabled(false);
+   }
+   else {
+      form.findComponent("HourlyRate").setEnabled(true);
+   }
+   form.update();
+}

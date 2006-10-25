@@ -1,0 +1,9 @@
+<language-kit locale="en">
+   <resource-map id="configuration_wizard.main">
+      <resource id="DatabaseType">Database</resource>
+      <resource id="DatabaseUrl">Connect String</resource>
+      <resource id="DatabaseLogin">User Name</resource>
+      <resource id="DatabasePassword">Password</resource>
+      <resource id="Connect">Connect</resource>
+   </resource-map>
+</language-kit>

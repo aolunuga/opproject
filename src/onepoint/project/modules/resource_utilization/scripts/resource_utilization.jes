@@ -1,0 +1,55 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for resource_utilization.oxf.xml
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function timeUnitChanged(event) {
+   // *** Get current choice from choice-field
+   choice_field = XDisplay.getActiveForm().findComponent("TimeUnitChooser");
+   choice_id = XValidator.choiceID(choice_field.getStringValue());
+   // *** Find component gantt-box via ID
+   gantt_box = XDisplay.getActiveForm().findComponent("UtilizationBox");
+   // *** Invoke setTimeUnit(time_unit) on gantt-box
+   if (choice_id.equals("d")) {
+      gantt_box.setTimeUnit(2); // XDuration.DAYS);
+   }
+   if (choice_id.equals("w")) {
+      gantt_box.setTimeUnit(3); // XDuration.WEEKS);
+   }
+   if (choice_id.equals("m")) {
+      gantt_box.setTimeUnit(4); // XDuration.MONTHS);
+   }
+
+   gantt_box.resetCalendar();
+   gantt_box.doLayout();
+   gantt_box.repaint();
+
+}
+
+function UtilizationTable_onLayoutChanged(event) {
+   // *** TODO: Relayout utilization box
+   Console.println("ACTION: on-layout-changed");
+   utilization_box = XDisplay.getActiveForm().findComponent("UtilizationBox");
+   utilization_box.doLayout();
+   utilization_box.repaint();
+}
+
+function UtilizationBox_onScroll(event) {
+   // *** TODO: Scroll UtilizationTable for the same amount (note: Only vertically)
+}
+
+function saveUtilizationImage(event) {
+   XDisplay.getActiveForm().findComponent("UtilizationBox").saveAsImage("Save Utilization");
+}
+
+function print(event){
+   printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
+   component = XDisplay.getActiveForm().findComponent("UtilizationBox");
+   component.print(printTitle);
+}

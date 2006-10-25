@@ -1,0 +1,36 @@
+<form layout="border" provider-class="onepoint.project.modules.configuration_wizard.forms.OpDbConfigurationWizardFormProvider"
+      resource-map-ref="configuration_wizard.main"
+      default-button-ref="okButton"
+      start-focus-ref="DatabaseUrlTextField"
+      script="/modules/configuration_wizard/scripts/configuration_wizard.jes"
+      on-show="showForm">
+   <data-set id="DBTypeDataSet"/>
+   <data-field id ="DefaultDbURLDataField"/>
+   <data-field id ="DefaultDbLoginDataField"/>
+   <data-field id ="DefaultDbPasswordDataField"/>
+	
+   <panel layout="border" style-ref="login-background-panel-default">
+      <panel layout="border" icon="/icons/wizard.png" flexible="false">
+
+         <panel layout="table" style-ref="login-panel-default">
+            <label y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+            <label x="0" y="1" width="2" text="{$DatabaseType}" style-ref="label-emphasized-default"/>
+            <choice-field x="2" y="1" width="3" id="DatabaseTypeChoiceField" data-set-ref="DBTypeDataSet" on-value-changed="dbTypeChanged"/>
+
+            <label x="0" y="3" width="2" text="{$DatabaseUrl}" style-ref="label-emphasized-default"/>
+            <text-field x="2" y="3" width="3" id="DatabaseUrlTextField"/>
+
+            <label x="0" y="4" width="2" text="{$DatabaseLogin}" style-ref="label-emphasized-default"/>
+            <text-field x="2" y="4" width="3" id="DatabaseLoginTextField" value="opproject"/>
+
+            <label x="0" y="5" width="2" text="{$DatabasePassword}"/>
+            <text-field x="2" y="5" width="3" id="DatabasePasswordTextField" value="opproject" secret="true"/>
+
+            <button x="3" y="7" id="okButton" text="{$Connect}" on-button-pressed="connect"/>
+         
+         </panel>		  
+		  
+   </panel>
+   </panel>
+	
+</form>

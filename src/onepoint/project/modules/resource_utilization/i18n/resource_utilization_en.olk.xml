@@ -1,0 +1,33 @@
+<language-kit locale="en">
+   <resource-map id="resource_utilization.module">
+      <resource id="UtilizationTool">Utilization</resource>
+   </resource-map>
+   <resource-map id="resource_utilization.overview">
+      <resource id="FrameTitle">Resource Utilization</resource>
+      <resource id="Print">Print</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+      <resource id="ChangeTimeUnit">Time unit</resource>
+      <resource id="Days">Days</resource>
+      <resource id="Weeks">Weeks</resource>
+      <resource id="Months">Months</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+      <resource id="PrintTitle">Resource Utilization</resource>
+
+      <resource id="HighlyUnderused">Highly underutilized (&lt; 0.5)</resource>
+      <resource id="Underused">Underutilized (&lt; 0.8)</resource>
+      <resource id="Normalused">Good utilization (0.8 - 1.0)</resource>
+      <resource id="Overused">Overutilized (&gt; 1.0)</resource>
+      <resource id="HighlyOverused">Highly Overutilized (&gt; 1.2)</resource>
+   </resource-map>
+
+   <resource-map id="resource_utilization.details">
+      <resource id="ProjectName">Project</resource>
+      <resource id="ActivityName">Activity</resource>
+      <resource id="ActivitySequence">Nr.</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Assigned">% Assigned</resource>
+      <resource id="Effort">Effort (h)</resource>
+      <resource id="Total">TOTAL</resource>
+   </resource-map>
+</language-kit>

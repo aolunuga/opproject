@@ -1,0 +1,134 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Event-handling script for report.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function selectQuery(event) {
+   // Query navigation
+   query_set = XDisplay.getActiveForm().findComponent("QuerySet");
+   selected_rows = query_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      enableButtonsOnSelection();
+
+      queryFormName = XValidator.choiceID(selected_rows[0].getStringValue());
+      queryFormName = queryFormName.concat(".oxf.xml");
+      Console.println("+++ selecting query");
+      Console.println(queryFormName);
+      //set up session variable
+      request = new XMessage;
+      request.setAction("ReportService.setSessionReportQueryType");
+      request.setArgument("reportQueryType", XValidator.choiceCaption(selected_rows[0].getStringValue()));
+      response = XDisplay.getClient().invokeMethod(request);
+      //show selected form
+      XDisplay.findFrame("QueryFrame").showForm(queryFormName);
+   }
+}
+
+function enableButtonsOnSelection() {
+   button = XDisplay.getActiveForm().findComponent("CreateReportButton");
+   button.setEnabled(true);
+   button.update();
+}
+
+function runQuery(event) {
+   Console.println("REPORT.runQuery(e)");
+   queryFrame = XDisplay.findFrame("QueryFrame");
+   if (queryFrame.getChildCount() > 0) {
+      queryForm = queryFrame.getChild(0);
+      queryForm.invokeFunction("runQuery");
+   }
+}
+
+function createReport(event) {
+   Console.println("REPORT.createReport(e)");
+   queryFrame = XDisplay.findFrame("QueryFrame");
+   if (queryFrame.getChildCount() > 0) {
+      queryForm = queryFrame.getChild(0);
+
+      request = queryForm.invokeFunction("createRequest");
+      if (request == null) {
+         return;
+      }
+      //set the action name
+      request.setAction("ReportService.createReport");
+
+      //invoke request
+      response = invokeReportRequest(request, queryForm);
+
+      reportUrl = response.getArgument("GeneratedReportPath");
+      XDisplay.showDocument(reportUrl, null);
+   }
+}
+
+/**
+ * Generates the server request that will result in the creation of a report.
+ */
+function invokeReportRequest(request, queryForm) {
+   //get the report query - must be a map with: [queryString:String, queryParams:List]
+   query = queryForm.invokeFunction("getReportQuery");
+   request.setArgument("query", query);
+
+   //get the report fields - must be a map with [fieldName:String, fieldIndex]
+   fields = queryForm.invokeFunction("getReportFields");
+   request.setArgument("fields", fields);
+
+   //the id of the resource map id that the report may use
+   resourceMapId = queryForm.invokeFunction("getResourceMapId");
+   request.setArgument("resourceMapId", resourceMapId);
+
+   //the subreport data - if any. This function is not mandatory. Only reports with subreports should implement it.
+   //The expected return type should be a map with the following structure:
+   //
+   //subReportData - Map<String,                    Map<String, Object>>
+   //                      |- subreportDasourceName  |
+   //                                                |-- "query", String
+   //                                                |-- "fields", Map
+   //                                                |-- "resourceMapId", String
+
+   subReportData = queryForm.invokeFunction("getSubreportData");
+   request.setArgument("subReportData", subReportData);
+
+   response = XDisplay.getClient().invokeMethod(request);
+   return response;
+}
+
+function print(event) {
+   // *** Print query and result preview (above each other, similar to screen)
+   // ==> Note: Maybe have a single form for query and result for this -- a lot easier
+
+   // *** Attention: If just a single form then we need a parameter "runQuery=true"
+   // ==> Single frame should probably be called "ReportQueryFrame"
+   //XDisplay.findFrame("QueryFrame").getChild(0).invokeFunction("print");
+   reportForm = XDisplay.findFrame("QueryFrame").getChild(0);
+   table = reportForm.findComponent("ResultTable");
+   if (table != null) {
+      printTitle = reportForm.findComponent("PrintTitle").getStringValue();
+      table.print(printTitle);
+   }
+}
+
+function resetQuery(event) {
+   selectQuery(event);
+}
+
+function cleanUp(event) {
+   Console.println("Cleaning up reports...");
+   request = new XMessage;
+   request.setAction("ReportService.reportsCleanUp");
+   response = XDisplay.getClient().invokeMethod(request);
+}
+
+function prepareForm(event) {
+   previousQueryFormName = event.event_source.findComponent("PreviousQueryForm").getStringValue();
+   if (previousQueryFormName != null) {
+      queryFrame = XDisplay.findFrame("QueryFrame");
+      queryForm = queryFrame.loadForm(previousQueryFormName);
+      queryFrame.doLayout();
+      queryFrame.repaint();
+   }
+}

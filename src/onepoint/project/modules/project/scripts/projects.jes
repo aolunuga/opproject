@@ -1,0 +1,209 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+function newPortfolio(event) {
+   // Check if portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      if (is_portfolio) {
+         parameters.super_portfolio_id = selected_rows[0].getStringValue();
+         parameters.super_portfolio_index = selected_rows[0].getIndex();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/new_portfolio.oxf.xml", parameters);
+}
+
+function getNewProjectParameters() {
+   parameters = null;
+   // Check if portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      if (is_portfolio) {
+         parameters.portfolio_id = selected_rows[0].getStringValue();
+         parameters.portfolio_index = selected_rows[0].getIndex();
+      }
+   }
+   return parameters;
+}
+
+/**
+ * @IsOverridden
+ */
+function newProject(event) {
+   parameters = getNewProjectParameters();
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/new_project.oxf.xml", parameters);
+}
+
+function move(event) {
+   // Check if a project/portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      parameters.project_node_id = selected_rows[0].getStringValue();
+
+      dialog = XComponent.newDialog();
+      form = dialog.loadForm("/modules/project/forms/move_project_chooser.oxf.xml", parameters);
+
+      project_data_set = form.findComponent("ProjectDataSet");
+      if (project_data_set.getChildCount() > 0) {
+         dialog.open();
+      }
+   }
+}
+
+function editPortfolio(portfolioId, editMode) {
+   parameters.edit_mode = editMode;
+   parameters.portfolio_id = portfolioId;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/edit_portfolio.oxf.xml", parameters);
+}
+
+/**
+ * @IsOverridden
+ */
+function editProject(projectId, editMode) {
+   parameters.edit_mode = editMode;
+   parameters.project_id = projectId;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/edit_project.oxf.xml", parameters);
+}
+
+/**
+ * @IsOverridden
+ */
+function info(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      is_project = descriptor.equals("p");
+
+      if (is_portfolio) {
+         editPortfolio(selected_rows[0].getStringValue(), false);
+      }
+
+      if (is_project) {
+         editProject(selected_rows[0].getStringValue(), false);
+      }
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function edit(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+
+      is_portfolio = descriptor.equals("f");
+      is_project = descriptor.equals("p");
+
+      if (is_portfolio) {
+         editPortfolio(selected_rows[0].getStringValue(), true);
+      }
+
+      if (is_project) {
+         editProject(selected_rows[0].getStringValue(), true);
+      }
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function delete(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.rows = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/project/forms/confirm_project_delete.oxf.xml", parameters);
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function selectionChanged(event) {
+   //project form
+   form = XDisplay.getActiveForm();
+   //toolbar
+   toolbar = form.findComponent("ProjectToolbar");
+
+   //toolbar buttons
+   newProjectButton = form.findComponent("NewProjectButton");
+   newProjectButton.setEnabled(true);
+   newPortfolioButton = form.findComponent("NewPortfolioButton");
+   newPortfolioButton.setEnabled(true);
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(true);
+   moveButton = form.findComponent("MoveButton");
+   moveButton.setEnabled(true);
+   editButton = form.findComponent("EditButton");
+   editButton.setEnabled(true);
+   deleteButton = form.findComponent("DeleteButton");
+   deleteButton.setEnabled(true);
+
+   //permissions
+   rootPortfolioPermission = form.findComponent("RootPortfolioPermission").getByteValue();
+   managerPermission = form.findComponent("ManagerPermission").getByteValue();
+
+   tableRow = event.event_source;
+   dataRow = tableRow.getDataComponent();
+   if (dataRow != null) {
+      descriptor = dataRow.getChild(0).getStringValue();
+      effectiveProjectNodePermission = dataRow.getChild(5).getByteValue();
+      if (descriptor.equals("f")) {
+         //portfolio was selected
+         if (effectiveProjectNodePermission < managerPermission) {
+            //the user isn't at least manager on the selected node
+            newProjectButton.setEnabled(false);
+            newPortfolioButton.setEnabled(false);
+         }
+      }
+      else {
+         //project was selected
+         if (rootPortfolioPermission < managerPermission) {
+            //the user isn't at least manager on the root portfolio
+            newProjectButton.setEnabled(false);
+            newPortfolioButton.setEnabled(false);
+         }
+      }
+
+      //these buttons apply to all types of project nodes
+      if (effectiveProjectNodePermission < managerPermission) {
+         //the user isn't at least manager on the selected node
+         moveButton.setEnabled(false);
+         editButton.setEnabled(false);
+         deleteButton.setEnabled(false);
+      }
+      else {
+         //for the delete button we must also check parent permissions
+         parentRow = dataRow.getParentInDataSet();
+         effectiveParentPermission = parentRow.getChild(5).getByteValue();
+         if (effectiveParentPermission < managerPermission) {
+            deleteButton.setEnabled(false);
+         }
+      }
+   }
+   toolbar.doLayout();
+   toolbar.repaint();
+}

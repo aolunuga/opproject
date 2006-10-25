@@ -1,0 +1,40 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for add_group.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+
+   assignable_group_data_set = XDisplay.getActiveForm().findComponent("AssignableGroupDataSet");
+   selected_rows = assignable_group_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      this_dialog = XDisplay.getActiveWindow();
+      previous_dialog = XDisplay.getDefaultDisplay().previousLayer(this_dialog);
+      // *** Probably DIALOG.getContent() would be "nicer" than getChild(1)
+      assigned_group_data_set = previous_dialog.getChild(1).findComponent("AssignedGroupDataSet");
+      i = 0;
+      while (i < selected_rows.size()) {
+         choice = selected_rows[i].getStringValue();
+         data_row = assigned_group_data_set.newDataRow();
+         data_row.setStringValue(choice);
+         assigned_group_data_set.addChild(data_row);
+         i++;
+      }
+      // Update assigned user list
+      assigned_group_list_box = previous_dialog.getChild(1).findComponent("AssignedGroupListBox");
+      assigned_group_list_box.update();
+      XDisplay.getActiveWindow().close();
+   }
+   // *** Else: Error no selection
+
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+

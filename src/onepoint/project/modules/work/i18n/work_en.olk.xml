@@ -1,0 +1,90 @@
+<language-kit locale="en">
+	<resource-map id="work.module">
+		<resource id="WorkTool">Work Slips</resource>
+	</resource-map>
+	<resource-map id="work.work_slips">
+		<resource id="NewWorkSlip">New Work Slip</resource>
+		<resource id="Info">Properties</resource>
+		<resource id="Edit">Edit</resource>
+		<resource id="Delete">Delete</resource>
+		<resource id="Number">Number</resource>
+		<resource id="Resource">Resource</resource>
+        <resource id="Date">Date</resource>
+		
+      <resource id="NewWorkSlipTooltip">Create new work slip</resource>
+      <resource id="InfoTooltip">View meta information for the selected work slip</resource>
+      <resource id="EditTooltip">Edit meta information for the selected work slip</resource>
+      <resource id="DeleteTooltip">Delete selected work slips</resource>
+		
+	</resource-map>
+   <resource-map id="work.new_work_slip">
+      <resource id="NewWorkSlip">New Work Slip</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Task">Task</resource>
+      <resource id="Project">Project</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Costs</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Remaining</resource>
+      <resource id="Material">Material</resource>
+      <resource id="Travel">Travel</resource>
+      <resource id="External">External</resource>
+      <resource id="Misc">Miscellaneous</resource>
+      <resource id="Comment">Comment</resource>
+      <resource id="Completed">Com.</resource>
+
+      <resource id="StartBefore">Time period</resource>
+      <resource id="All">All</resource>
+      <resource id="Project">Project</resource>
+      <resource id="NextWeek">Next Week</resource>
+      <resource id="Next2Weeks">Next 2 Weeks</resource>
+      <resource id="NextMonth">Next Month</resource>
+      <resource id="Next2Months">Next 2 Months</resource>
+
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="work.edit_work_slip">
+      <resource id="EditWorkSlip">Edit Work Slip</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Task">Task</resource>
+      <resource id="Project">Project</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Costs</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Remaining</resource>
+      <resource id="Material">Material</resource>
+      <resource id="Travel">Travel</resource>
+      <resource id="External">External</resource>
+      <resource id="Misc">Miscellaneous</resource>
+      <resource id="Comment">Comment</resource>
+      <resource id="Completed">Com.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="AddWorkSlipActivity">Choose Activities to Add</resource>
+   </resource-map>
+  <resource-map id="work.Info">
+    <resource id="WorkInfo">Work Slip Info</resource>
+  </resource-map>
+  <resource-map id="work.error">
+    <resource id="DateMissing">The work slip date was not specified</resource>
+    <resource id="DuplicateDate">A work slip for the specified date exists already</resource>
+    <resource id="IncorrectActualEffort">Incorrect Actual Effort</resource>
+    <resource id="IncorrectRemainingEffort">Incorrect Remaining Effort</resource>
+    <resource id="IncorrectMaterialCosts">Incorrect Material Costs</resource>
+    <resource id="IncorrectTravelCosts">Incorrect Travel Costs</resource>
+    <resource id="IncorrectExternalCosts">Incorrect External Costs</resource>
+    <resource id="IncorrectMiscellaneousCosts">Incorrect Miscellaneous Costs</resource>
+  </resource-map>
+   <resource-map id="work.delete">
+      <resource id="ConfirmDelete">Delete Work Slips</resource>
+      <resource id="NoSelectionMessage">Please select one or more work slips which should be deleted.</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected work slip?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected work slips?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+</language-kit>

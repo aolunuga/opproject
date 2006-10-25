@@ -1,0 +1,115 @@
+<form id="MyTasksForm" layout="border" resource-map-ref="my_tasks.my_tasks"
+      provider-class="onepoint.project.modules.my_tasks.forms.OpMyTasksFormProvider"
+      script="/modules/my_tasks/scripts/my_tasks.jes">
+
+   <data-set id="ActivitySet" validator-class="onepoint.project.modules.project.components.OpIncrementalValidator"/>
+   <data-set id="CategoryColorDataSet"/>
+   <data-field id="EditModeField" boolean-value="false"/>
+   <data-field id="PrintTitle"/>
+
+
+   <pop-up-menu id="ActivityTablePopupMenu">
+      <pop-up-item text="{$SaveCSV}" on-item-selected="saveActivityTableCSV"/>
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveActivityTableImage"/>
+   </pop-up-menu>
+
+   <pop-up-menu id="ActivityChartPopupMenu">
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveActivityChartImage"/>
+   </pop-up-menu>
+
+   <data-set id="IndicatorIconSet">
+      <data-row/>
+      <data-row/>
+      <data-row icon="/modules/project_planning/icons/attachment.png"/>
+      <data-row icon="/modules/project_planning/icons/comment.png"/>
+   </data-set>
+
+   <data-set id="TimeUnitSet">
+      <data-row string-value="d['{$Days}']"/>
+      <data-row string-value="w['{$Weeks}']"/>
+      <data-row string-value="m['{$Months}']"/>
+   </data-set>
+
+   <data-set id ="StartBeforeSet">
+      <data-row string-value="all['{$All}']"/>
+      <data-row string-value="nw['{$NextWeek}']"/>
+      <data-row string-value="n2w['{$Next2Weeks}']"/>
+      <data-row string-value="nm['{$NextMonth}']"/>
+      <data-row string-value="n2m['{$Next2Months}']"/>
+   </data-set>
+
+   <data-set id="ProjectSet">
+       <data-row string-value="all['{$All}']"/>
+   </data-set>
+
+    <panel layout="border" style-ref="compact-panel-default">
+		
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+      <tool-bar x="-1">
+         <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
+                      disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
+                      on-button-pressed="addComment"
+                      tooltip="{$NewCommentTooltip}"/>
+         <tool-button id="InfoButton" text="{$Info}" icon="/icons/info.png"
+                      disabled-icon="/icons/info_disabled.png" on-button-pressed="editActivity"
+                      tooltip="{$InfoTooltip}"/>
+         <tool-button id="PrintButton" text="{$Print}" icon="/icons/print.png"
+                      disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="{$PrintTooltip}"/>
+      </tool-bar>
+		
+	 <panel x="1" layout="border" style-ref="compact-panel-default">
+      <panel layout="table" flexible="false">
+         <label x="0" width="2" text="{$Project}"/>
+         <choice-field x="2" width="3" id="ProjectChooser" data-set-ref="ProjectSet" on-value-changed="filterChanged"  stateful="true" selected-index="0"/>
+         <label x="5" width="2" text="{$StartBefore}"/>
+         <choice-field x="7" width="3" id="StartTimeChooser" data-set-ref="StartBeforeSet" on-value-changed="filterChanged"  stateful="true" selected-index="0"/>
+      </panel>
+     </panel>
+		
+   </panel>
+	
+   <!-- filter (drop-down) on activities: Activities, milestones, open/closed? -->
+      <tab-box id="MyTabBox" stateful="true" flexible="true">
+         <tab layout="border" text="{$Tasklist}" id="TasklistTab">
+            <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1" on-double-click="editActivity" flexible="true" pop-up-menu-ref="ActivityTablePopupMenu">
+               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+               <table-column text="" width="0" hidden="true" data-column-index="1"
+                             row-font-styles="plain;bold;bold+italic;italic;italic"/>
+               <table-column text="" width="35" data-column-index="18" value-type="IndicatorList" icon-set-ref="IndicatorIconSet"/>
+               <table-column text="{$Name}" sortable="true" width="200" data-column-index="0"/>
+               <table-column text="{$Project}" width="100" data-column-index="27" value-type="Choice"/>
+               <table-column text="{$PercentageFinished}" width="65" sortable="true" data-column-index="3"
+                             value-type="Double" decimals="0"/>
+               <table-column text="{$Start}" width="65" sortable="true" data-column-index="4" value-type="Date"/>
+               <table-column text="{$End}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
+               <table-column text="{$Effort}" width="65" sortable="true" data-column-index="7" value-type="Duration"
+                             display-unit="Hours"/>
+               <table-column text="{$Resources}" width="80" data-column-index="26" value-type="ChoiceList"
+                             data-set-ref="AssignmentSet"/>
+               <table-column text="{$Priority}" width="40" sortable="true" data-column-index="23"
+                             value-type="Byte"/>
+
+			</table-box>
+            <!-- Tool-bar should have attribute decorated="true" for borders -->
+            <!-- OR, maybe nicer: Have a button-group in addition to tool-bar -->
+         </tab>
+         <tab layout="border" text="{$GanttDiagram}" id="$GanttDiagramTab">
+		     <panel y="-1" layout="border" style-ref="compact-panel-default">
+		        <panel x="1" layout="table" flexible="false">
+		           <label x="0" width="2" text="{$ChangeTimeUnit}"/>
+			       <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
+				                 on-value-changed="timeUnitChanged" selected-index="0" stateful="true"/>
+				</panel>
+			</panel>
+            <gantt-box id="ActivityGanttChart" data-set-ref="ActivitySet" time-unit="days" 
+                       caption-left="ActivityName" caption-right="ResourceNames"  on-activity-details="editActivity" stateful="true"
+					             category-color-set-ref="CategoryColorDataSet" details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml" pop-up-menu-ref="ActivityChartPopupMenu"/>
+            <!-- gantt-map gantt-box-ref="ActivityGanttChart"/ -->
+         </tab>
+      </tab-box>
+	
+	<status-bar y="1"/>
+		
+	</panel>
+
+</form>

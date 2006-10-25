@@ -1,0 +1,19 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Utitility function for opening a generic subject chooser
+
+import onepoint.express.XComponent;
+
+function openSubjectChooser(callingFrameID, actionHandler, showUsers, showGroups, excluded, multipleSelection) {
+   // Open subject chooser dialog w/calling frame and action handler (callback) as arguments
+   dialog = XComponent.newDialog();
+   parameters.CallingFrameID = callingFrameID;
+   parameters.ActionHandler = actionHandler;
+   parameters.ShowUsers = showUsers;
+   parameters.ShowGroups = showGroups;
+   parameters.Excluded = excluded;
+   parameters.MultipleSelection = multipleSelection;
+   dialog.open("/modules/user/forms/subject_chooser.oxf.xml", parameters);
+}

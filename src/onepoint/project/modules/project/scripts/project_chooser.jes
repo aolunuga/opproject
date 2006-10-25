@@ -1,0 +1,50 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for project_chooser.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   callingFrameID = form.findComponent("CallingFrameID").getStringValue();
+   projectLocatorFieldID = form.findComponent("ProjectLocatorFieldID").getStringValue();
+   projectNameFieldID = form.findComponent("ProjectNameFieldID").getStringValue();
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      projectChoice = selected_rows[0].getStringValue();
+      projectLocator = XValidator.choiceID(projectChoice);
+      projectName = XValidator.choiceCaption(projectChoice);
+      
+      callingFrame = XDisplay.findFrame(callingFrameID);
+      projectLocatorField = callingFrame.currentForm().findComponent(projectLocatorFieldID);
+      if (projectLocatorField != null) {
+         projectLocatorField.setStringValue(projectLocator);
+      }
+      projectNameField = callingFrame.currentForm().findComponent(projectNameFieldID);
+      if (projectNameField != null) {
+         projectNameField.setStringValue(projectName);
+      }
+
+      if (actionHandler != null) {
+         arguments[0] = selected_rows[0].getStringValue();
+         // Note: It is important to close the window first because callback might use getActiveForm()
+         XDisplay.getActiveWindow().close();
+         callingFrame.currentForm().invokeFunction(actionHandler, arguments);
+      }
+      else {
+         callingFrame.getForm().repaint();
+      }
+   }
+   XDisplay.getActiveWindow().close();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+

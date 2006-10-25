@@ -1,0 +1,42 @@
+<language-kit locale="en">
+   <resource-map id="my_tasks.module">
+      <resource id="TasksTool">Tasks</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.my_tasks">
+      <resource id="NewComment">New Comment</resource>
+      <resource id="Info">Properties</resource>
+      <resource id="Print">Print</resource>
+
+      <resource id="NewCommentTooltip">Create new comment</resource>
+      <resource id="InfoTooltip">View activity properties</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+
+      <resource id="Tasklist">Task List</resource>
+      <resource id="Name">Name</resource>
+      <resource id="PercentageFinished">% Com.</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Resources">Resources</resource>
+      <resource id="Priority">Pri.</resource>
+      <resource id="Project">Project</resource>
+
+      <resource id="GanttDiagram">Schedule</resource>
+      <resource id="ChangeTimeUnit">Time unit</resource>
+      <resource id="Days">Days</resource>
+      <resource id="Weeks">Weeks</resource>
+      <resource id="Months">Months</resource>
+
+      <resource id="StartBefore">Time period</resource>
+      <resource id="All">All</resource>
+      <resource id="Project">Project</resource>
+      <resource id="NextWeek">Next Week</resource>
+      <resource id="Next2Weeks">Next 2 Weeks</resource>
+      <resource id="NextMonth">Next Month</resource>
+      <resource id="Next2Months">Next 2 Months</resource>
+
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+   </resource-map>
+</language-kit>

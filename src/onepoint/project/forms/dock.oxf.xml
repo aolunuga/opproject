@@ -1,0 +1,6 @@
+<form layout="border" resource-map-ref="main.dock" provider-class="onepoint.project.forms.OpDockFormProvider" script="/scripts/dock.jes">
+   <collapsible-box text="{$ToolDock}">
+      <navigation-box id="ToolDock">
+      </navigation-box>
+   </collapsible-box>
+</form>

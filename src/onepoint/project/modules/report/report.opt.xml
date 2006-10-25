@@ -1,0 +1,3 @@
+<prototype name="OpReport" instance-class="onepoint.project.modules.report.OpReport" super-type="OpDocument">
+   <relationship name="Type" type="OpReportType" back-relationship="Reports"/>
+</prototype>

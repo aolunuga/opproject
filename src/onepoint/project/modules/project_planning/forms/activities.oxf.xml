@@ -1,0 +1,237 @@
+<form id="ActivitiesForm" layout="border" on-unload="autoSave" resource-map-ref="project_planning.activities"
+      provider-class="onepoint.project.modules.project_planning.forms.OpActivitiesFormProvider"
+      error-label-ref = "ValidationErrorLabel" script="/modules/project_planning/scripts/activities.jes">
+   <data-field id="ProjectIDField"/>
+   <data-field id="WorkingPlanVersionIDField"/>
+   <data-field id="EditModeField"/>
+   <data-field id="LoopException" text="{$LoopErrorMessage}"/>
+   <data-field id="MandatoryException" text="{$MandatoryErrorMessage}"/>
+   <data-field id="RangeException" text="{$RangeErrorMessage}"/>
+   <data-field id="InvalidCostException" text="{$InvalidCostErrorMessage}"/>
+   <data-field id="MilestoneCollectionException" text="{$MilestoneCollectionErrorMessage}"/>
+   <data-field id="ScheduledMixedException" text="{$ScheduledMixedErrorMessage}"/>
+   <data-field id="AssignmentException" text="{$AssignmentErrorMessage}"/>
+   <data-field id="ResourceNameException" text="{$ResourcesErrorMessage}"/>
+   <data-field id="NotEqualEffortsException" text="{$NotEqualEffortsErrorMessage}"/>
+   <data-field id="WorkRecordsExistException" text="{$WorkRecordsExistErrorMessage}"/>
+   <data-field id="TaskExtraResourceException" text="{$TaskExtraResourceErrorMessage}"/>
+   <data-field id="ImportProjectTitle" text="{$ImportProjectTitle}"/>
+   <data-field id="ExportProjectTitle" text="{$ExportProjectTitle}"/>
+   <data-field id="FileWriteError" text="{$FileWriteError}"/>
+   <data-field id="ProjectStartField"/>
+   <data-field id="ProjectFinishField"/>
+   <data-field id="PrintTitle"/>
+   <data-field id="ShowResourceHours"/>
+   <data-set id="ProjectNameSet"/>
+   <data-set id="AssignmentSet" on-choice-editor-compare="compareChoiceResources"/>
+   <data-set id="ProjectSettingsDataSet"/>
+   <data-set id="ActivitySet" validator-class="onepoint.project.modules.project.components.OpIncrementalValidator"/>
+
+   <data-set id="IndicatorIconSet">
+      <data-row/>
+      <data-row/>
+      <data-row icon="/modules/project_planning/icons/attachment.png"/>
+      <data-row icon="/modules/project_planning/icons/comment.png"/>
+   </data-set>
+
+   <pop-up-menu id="activitiesPopupMenu">
+      <pop-up-item text="{$Cut}" on-item-selected="cutActivities"/>
+      <pop-up-item text="{$Copy}" on-item-selected="copyActivities"/>
+      <pop-up-item text="{$Paste}" on-item-selected="pasteActivities"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$AddBefore}" on-item-selected="addActivityBefore"/>
+      <pop-up-item text="{$AddAfter}" on-item-selected="addActivityAfter"/>
+      <pop-up-item text="{$Delete}" on-item-selected="removeActivities"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$Edit}" on-item-selected="editActivity"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$SaveCSV}" on-item-selected="saveActivitiesCSVFile"/>
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveActivitiesImage"/>
+   </pop-up-menu>
+
+   <pop-up-menu id="costsPopupMenu">
+      <pop-up-item text="{$Cut}" on-item-selected="cutActivities"/>
+      <pop-up-item text="{$Copy}" on-item-selected="copyActivities"/>
+      <pop-up-item text="{$Paste}" on-item-selected="pasteActivities"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$AddBefore}" on-item-selected="addActivityBefore"/>
+      <pop-up-item text="{$AddAfter}" on-item-selected="addActivityAfter"/>
+      <pop-up-item text="{$Delete}" on-item-selected="removeActivities"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$Edit}" on-item-selected="editActivity"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$SaveCSV}" on-item-selected="saveCostsCSVFile"/>
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveCostsImage"/>
+   </pop-up-menu>
+
+   <pop-up-menu id="ganttChartPopupMenu">
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveGanttImage"/>
+   </pop-up-menu>
+
+   <panel layout="border" style-ref="compact-panel-default">
+
+   <!-- we try to do it without a second data set for dependencies (instead: list-column) -->
+   <!-- choice-field y="0" id="ProjectNameField" data-set-ref="ProjectNameSet"/ -->
+   <!-- OR some kind of button-like "info-box" similar to Apple iTunes -->
+   <!-- should be to the right of tool-bar: Again, styles missing -->
+
+   <panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar>
+      <tool-button id="EditButton" enabled="false" text="{$EditPlan}" icon="/icons/edit.png"
+                   disabled-icon="/icons/edit_disabled.png" on-button-pressed="editActivities"
+                   tooltip="{$EditTooltip}"/>
+      <tool-button id="SaveButton" enabled="false" text="{$Save}" icon="/icons/save.png"
+                   disabled-icon="/icons/save_disabled.png" on-button-pressed="saveActivities"
+                   tooltip="{$SaveTooltip}"/>
+      <tool-button id="CheckInButton" enabled="false" text="{$CheckIn}" icon="/icons/checkin.png"
+                   disabled-icon="/icons/checkin_disabled.png" on-button-pressed="checkInActivities"
+                   tooltip="{$CheckInTooltip}"/>
+      <tool-button id="RevertButton" enabled="false" text="{$Revert}" icon="/modules/project_planning/icons/revert.png"
+                   disabled-icon="/modules/project_planning/icons/revert_disabled.png" on-button-pressed="revertActivities"
+                   tooltip="{$RevertTooltip}"/>
+      <tool-button id="ImportButton" enabled="false" text="{$ImportProject}" icon="/icons/import.png"
+                   disabled-icon="/icons/import_disabled.png" on-button-pressed="importActivities"
+                   tooltip="{$ImportProjectTooltip}"/>
+      <tool-button id="ExportButton" enabled="false" text="{$ExportProject}" icon="/icons/export.png"
+                   disabled-icon="/icons/export_disabled.png" on-button-pressed="exportActivities"
+                   tooltip="{$ExportProjectTooltip}"/>
+      <tool-button id="PrintButton" enabled="false" text="{$Print}" icon="/icons/print.png"
+                   disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="{$PrintTooltip}"/>
+      <!-- info/details/properties for activities? -->
+   </tool-bar>
+	</panel>
+   <!-- search action-field -->
+   <!-- next choice captions should be language resource references -->
+   <data-set id="TimeUnitSet">
+      <data-row string-value="d['{$Days}']"/>
+      <data-row string-value="w['{$Weeks}']"/>
+      <data-row string-value="m['{$Months}']"/>
+   </data-set>
+   <!-- filter (drop-down) on activities: Activities, milestones, open/closed? -->
+   <panel y="0" flexible="true" layout="border" style-ref="layout-panel-default">
+      <label y="-1" id="ValidationErrorLabel" visible="false" style-ref="label-error-default"/>
+      <tab-box id="MyTabBox" stateful="true">
+         <tab layout="border" text="{$Tasklist}" id="TasklistTab">
+            <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="3" sidebar-width="0"
+                       pop-up-menu-ref="activitiesPopupMenu" on-open-pop-up-menu="enableActivitiesPopUp" flexible="true" stateful="true" on-double-click="editActivity"
+                       on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities">
+               <table-column text="" width="0" hidden="true" data-column-index="1"
+                             row-font-styles="plain;bold;bold+italic;italic;italic;plain"/>
+               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+               <table-column text="" sortable="true" width="20" value-type="Index"/>
+               <table-column text="" width="35" data-column-index="18" value-type="IndicatorList" icon-set-ref="IndicatorIconSet"/>
+               <table-column text="{$Name}" sortable="true" width="180" data-column-index="0"/>
+               <!-- category column should define row-foregrounds -->
+               <!-- note: Both columns should be hidden by default; special zero-width handling or hidden columns -->
+               <table-column id="PercentCompleteColumn" text="{$PercentageFinished}" width="65" sortable="true" data-column-index="3"
+                             value-type="Double" decimals="0"/>
+               <table-column text="{$Start}" width="65" sortable="true" data-column-index="4" value-type="Date"/>
+               <table-column text="{$End}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
+               <table-column id="Duration" text="{$Duration}" width="65" sortable="true" data-column-index="6" value-type="Duration"
+                             display-unit="Days"/>
+               <table-column text="{$Effort}" width="65" sortable="true" data-column-index="7" value-type="Duration"
+                             display-unit="Hours"/>
+               <!-- table-column text="{$Successor}" width="50" data-column-index="9" value-type="IntList" index-based="true"/ -->
+               <table-column id="ResourcesColumn" auto-complete="true" text="{$Resources}" width="80" data-column-index="26" value-type="ChoiceList"
+                             data-set-ref="AssignmentSet"/>
+               <table-column text="{$Priority}" width="40" sortable="true" data-column-index="23"
+                             value-type="Byte"/>
+               <table-column text="{$Predecessor}" width="35" data-column-index="8" value-type="IndexList"
+                             index-based="true"/>
+            </table-box>
+            <!-- Tool-bar should have attribute decorated="true" for borders -->
+            <!-- OR, maybe nicer: Have a button-group in addition to tool-bar -->
+            <panel id="ActivityTableToolBar" y="1" layout="flow" direction="east" visible="false">
+               <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addActivityBefore" tooltip="{$AddActivityToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeActivities"
+                       tooltip="{$RemoveActivityToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_up_s.png" on-button-pressed="moveActivitiesUp" tooltip="{$MoveUpToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_down_s.png" on-button-pressed="moveActivitiesDown"
+                       tooltip="{$MoveDownToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_left_s.png" on-button-pressed="moveActivitiesOut" tooltip="{$MoveOut}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_right_s.png" on-button-pressed="moveActivitiesIn" tooltip="{$MoveIn}"/>
+               <button style-ref="icon-button-default" icon="/icons/edit_s.png" on-button-pressed="editActivity" tooltip="{$EditActivity}"/>
+               <button style-ref="icon-button-default" icon="/icons/cut_s.png" on-button-pressed="cutActivities" tooltip="{$CutActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/copy_s.png" on-button-pressed="copyActivities" tooltip="{$CopyActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/paste_s.png" on-button-pressed="pasteActivities" tooltip="{$PasteActivities}"/>
+               <button style-ref="icon-button-default" id="activityUndoButton" undo="true" icon="/icons/undo.png" disabled-icon="/icons/undo_disabled.png" on-button-pressed="undo" tooltip="{$Undo}" enabled="false"/>
+               <button style-ref="icon-button-default" id="activityRedoButton" redo="true" icon="/icons/redo.png" disabled-icon="/icons/redo_disabled.png" on-button-pressed="redo" tooltip="{$Redo}" enabled="false"/>
+            </panel>
+         </tab>
+         <tab layout="border" text="{$GanttDiagram}" id="GanttDiagramTab">
+            <panel y="-1" layout="border">
+               <panel layout="border" style-ref="compact-panel-default">
+                  <panel x="1" layout="table" flexible="false">
+                     <label x="0" width="2" text="{$ChangeTimeUnit}"/>
+                     <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
+                                   on-value-changed="timeUnitChanged"
+                                   stateful="true" selected-index="0"/>
+                  </panel>
+               </panel>
+            </panel>
+            <gantt-box id="ActivityGanttChart" data-set-ref="ActivitySet" time-unit="days"
+                       on-activity-details="editActivity"
+                       details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml" caption-left="ActivityName"
+                       caption-right="ResourceNames" stateful="true"
+                       on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities"
+                       pop-up-menu-ref="ganttChartPopupMenu"/>
+            <panel id="GanttToolBar" y="1" layout="flow" direction="east" visible="false">
+               <toggle-bar id="GanttToggleBar" int-value="0" visible="true" stateful="true">
+                  <toggle-button style-ref="icon-button-default" id="NormalCursor" icon="/icons/select_s.png"
+                                 on-button-pressed="changeGanttTool" tooltip="{$DefaultCursorTooltip}"/>
+                  <toggle-button style-ref="icon-button-default" id="ActivityDrawItem" icon="/modules/project_planning/icons/activity_s.png"
+                                 on-button-pressed="changeGanttTool" tooltip="{$ActivityTooltip}"/>
+                  <toggle-button style-ref="icon-button-default" id="MilestoneDrawItem"
+                                 icon="/modules/project_planning/icons/milestone_s.png" on-button-pressed="changeGanttTool"
+                                 tooltip="{$MilestoneTooltip}"/>
+                  <toggle-button style-ref="icon-button-default" id="DependencyDrawItem"
+                                 icon="/modules/project_planning/icons/connection_s.png"
+                                 on-button-pressed="changeGanttTool" tooltip="{$LinkTooltip}"/>
+               </toggle-bar>
+               <button style-ref="icon-button-default" icon="/icons/cut_s.png" on-button-pressed="cutActivities" tooltip="{$CutActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/copy_s.png" on-button-pressed="copyActivities" tooltip="{$CopyActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/paste_s.png" on-button-pressed="pasteActivities" tooltip="{$PasteActivities}"/>
+               <button style-ref="icon-button-default" id="ganttUndoButton" undo="true" icon="/icons/undo.png" disabled-icon="/icons/undo_disabled.png" on-button-pressed="undo" tooltip="{$Undo}" enabled="false"/>
+               <button style-ref="icon-button-default" id="ganttRedoButton" redo="true" icon="/icons/redo.png" disabled-icon="/icons/redo_disabled.png" on-button-pressed="redo" tooltip="{$Redo}" enabled="false"/>
+            </panel>
+            <!-- gantt-map gantt-box-ref="ActivityGanttChart"/ -->
+         </tab>
+         <tab layout="border" text="{$CostsProjection}" id="CostsProjectionTab">
+            <table-box id="CostTable" data-set-ref="ActivitySet" tree-column-index="2" sidebar-width="0" stateful="true"
+                       on-double-click="editActivity" pop-up-menu-ref="costsPopupMenu" on-open-pop-up-menu="enableActivitiesPopUp"
+                 on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities">
+               <table-column text="" width="0" hidden="true" data-column-index="1"
+                             row-font-styles="plain;bold;bold+italic;italic;italic"/>
+               <table-column text="" sortable="true" width="20" value-type="Index"/>
+               <table-column text="{$Activity}" width="180" sortable="true" data-column-index="0" decimals="2"/>
+               <table-column text="{$Personnel}" width="80" sortable="true" data-column-index="11" value-type="Double" decimals="2"/>
+               <table-column text="{$Travel}" width="80" sortable="true" data-column-index="12" value-type="Double" decimals="2"/>
+               <table-column text="{$Material}" width="80" sortable="true" data-column-index="13" value-type="Double" decimals="2"/>
+               <table-column text="{$External}" width="80" sortable="true" data-column-index="14" value-type="Double" decimals="2"/>
+               <table-column text="{$Misc}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2"/>
+            </table-box>
+            <panel id="CostTableToolBar" y="1" layout="flow" direction="east" visible="false">
+               <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addActivityBefore" tooltip="{$AddActivityToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeActivities"
+                       tooltip="{$RemoveActivityToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_up_s.png" on-button-pressed="moveActivitiesUp" tooltip="{$MoveUpToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_down_s.png" on-button-pressed="moveActivitiesDown"
+                       tooltip="{$MoveDownToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_left_s.png" on-button-pressed="moveActivitiesOut" tooltip="{$MoveOut}"/>
+               <button style-ref="icon-button-default" icon="/icons/arrow_right_s.png" on-button-pressed="moveActivitiesIn" tooltip="{$MoveIn}"/>
+               <button style-ref="icon-button-default" icon="/icons/edit_s.png" on-button-pressed="editActivity" tooltip="{$EditActivity}"/>
+               <button style-ref="icon-button-default" icon="/icons/cut_s.png" on-button-pressed="cutActivities" tooltip="{$CutActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/copy_s.png" on-button-pressed="copyActivities" tooltip="{$CopyActivities}"/>
+               <button style-ref="icon-button-default" icon="/icons/paste_s.png" on-button-pressed="pasteActivities" tooltip="{$PasteActivities}"/>
+               <button style-ref="icon-button-default" id="costUndoButton" icon="/icons/undo.png" disabled-icon="/icons/undo_disabled.png" on-button-pressed="undo" tooltip="{$Undo}" enabled="false" undo="true"/>
+               <button style-ref="icon-button-default" id="costRedoButton" icon="/icons/redo.png" disabled-icon="/icons/redo_disabled.png" on-button-pressed="redo" tooltip="{$Redo}" enabled="false" redo="true"/>
+            </panel>
+         </tab>
+      </tab-box>
+   </panel>
+
+   <status-bar y="1"/>
+	   
+   </panel>
+	   
+</form>

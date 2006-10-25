@@ -1,0 +1,42 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for add_project.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      this_dialog = XDisplay.getActiveWindow();
+      previous_dialog = XDisplay.getDefaultDisplay().previousLayer(this_dialog);
+      // *** Probably DIALOG.getContent() would be "nicer" than getChild(1)
+      assigned_project_data_set = previous_dialog.getChild(1).findComponent("AssignedProjectDataSet");
+      i = 0;
+      while (i < selected_rows.size()) {
+         choice = selected_rows[i].getStringValue();
+         data_row = assigned_project_data_set.newDataRow();
+         data_row.setStringValue(choice);
+         assigned_project_data_set.addChild(data_row);
+         i++;
+      }
+      // Update assigned user list
+      assigned_project_list_box = previous_dialog.getChild(1).findComponent("AssignedProjectListBox");
+      assigned_project_list_box.update();
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").repaint();
+   }
+   // *** Else: Error no selection
+
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+   XDisplay.findFrame("MainFrame").repaint();
+}
+

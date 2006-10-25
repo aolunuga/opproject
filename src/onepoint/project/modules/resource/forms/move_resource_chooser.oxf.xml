@@ -1,0 +1,27 @@
+<form width="240" height="144" layout="border" text="{$SelectPool}" default-button-ref="OkButton" resource-map-ref="resource.ResourceChooser"
+      provider-class="onepoint.project.modules.resource.forms.OpMoveResourceChooserFormProvider"
+      script="/modules/resource/scripts/move_resource_chooser.jes">
+
+   <data-set id="PoolDataSet"/>
+   <data-field id="EntityIdField"/>
+   <data-field id="DescriptorField"/>
+
+   <data-set id="IconSet">
+      <data-row icon="/modules/resource/icons/pool.png"/>
+      <data-row icon="/modules/resource/icons/resource.png"/>
+   </data-set>
+
+   <panel y="0" layout="border">
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      <list-box id="PoolList" tree="true" data-set-ref="PoolDataSet" icon-set-ref="IconSet"/>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="OkButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+
+   </panel>
+
+</form>

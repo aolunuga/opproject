@@ -1,0 +1,61 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for new_group.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   // Gather group-data
+   form = XDisplay.getActiveForm();
+   group_data.Name = form.findComponent("Name").getStringValue();
+   group_data.Description = form.findComponent("Description").getStringValue();
+   
+   assigned_group_data_set = form.findComponent("AssignedGroupDataSet");
+   i = 0;
+   while (i < assigned_group_data_set.getChildCount()) {
+      assigned_groups[i] = assigned_group_data_set.getChild(i).getStringValue();
+      i++;
+   }
+   group_data.assigned_groups = assigned_groups;
+
+   request = new XMessage;
+   request.setAction("UserService.insertGroup");
+   request.setArgument("group_data", group_data);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function addGroup(event) {
+   assignedGroupDataSet = XDisplay.getActiveForm().findComponent("AssignedGroupDataSet");
+   parameters.AssignedGroupsDataSet =  assignedGroupDataSet;
+   dialog = XComponent.newDialog();
+   dialog.setText("Gruppe hinzufügen");
+   dialog.open("/modules/user/forms/add_group.oxf.xml", parameters);
+   // *** How could we reuse group-chooser?
+   // ==> Maybe via client-variables (transfer to client in every response?)
+}
+
+function removeGroup(event) {
+   form = XDisplay.getActiveForm();
+   assigned_group_data_set = form.findComponent("AssignedGroupDataSet");
+   selected_rows = assigned_group_data_set.selectedRows();
+   assigned_group_data_set.removeDataRows(selected_rows);
+   // Update assigned user list
+   assigned_group_list_box = form.findComponent("AssignedGroupListBox");
+   assigned_group_list_box.update();
+}
+

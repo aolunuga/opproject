@@ -1,0 +1,16 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Utitility function for opening a generic resource chooser
+
+import onepoint.express.XComponent;
+
+function openResourceChooser(callingFrameID, resourceLocatorFieldID, resourceNameFieldID) {
+	// Open resource chooser dialog w/calling frame and resource field as parameters
+	dialog = XComponent.newDialog();
+   	parameters.CallingFrameID = callingFrameID;
+   	parameters.ResourceLocatorFieldID = resourceLocatorFieldID;
+   	parameters.ResourceNameFieldID = resourceNameFieldID;
+  	dialog.open("/modules/resource/forms/resource_chooser.oxf.xml", parameters);
+}

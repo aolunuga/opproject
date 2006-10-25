@@ -1,0 +1,8 @@
+<prototype name="OpContent" instance-class="onepoint.project.modules.documents.OpContent">
+   <field name="RefCount" type="Integer"/>
+   <field name="MediaType" type="String"/>
+   <field name="Size" type="Long"/>
+   <field name="Bytes" type="Content"/>
+   <relationship name="Attachments" collection-type="Set" type="OpAttachment" back-relationship="Content" inverse="true"/>
+   <relationship name="AttachmentVersions" collection-type="Set" type="OpAttachmentVersion" back-relationship="Content" inverse="true"/>
+</prototype>

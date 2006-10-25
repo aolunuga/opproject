@@ -1,0 +1,37 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for resource_chooser.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   callingFrameID = form.findComponent("CallingFrameID").getStringValue();
+   resourceLocatorFieldID = form.findComponent("ResourceLocatorFieldID").getStringValue();
+   resourceNameFieldID = form.findComponent("ResourceNameFieldID").getStringValue();
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      resourceChoice = selected_rows[0].getStringValue();
+      resourceLocator = XValidator.choiceID(resourceChoice);
+      resourceName = XValidator.choiceCaption(resourceChoice);
+      
+      callingFrame = XDisplay.findFrame(callingFrameID);
+      resourceLocatorField = callingFrame.currentForm().findComponent(resourceLocatorFieldID);
+      resourceLocatorField.setStringValue(resourceLocator);
+      resourceNameField = callingFrame.currentForm().findComponent(resourceNameFieldID);
+      resourceNameField.setStringValue(resourceName);
+      
+      callingFrame.getForm().repaint();
+   }
+   XDisplay.getActiveWindow().close();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+

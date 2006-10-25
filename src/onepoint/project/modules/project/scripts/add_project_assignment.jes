@@ -1,0 +1,32 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for add_project_assignment.oxf.xml
+
+import onepoint.express.XDisplay;
+
+function ok(event) {
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   //the assigned resource data set for the project
+   assigned_resource_data_set = previous_dialog.getChild(1).findComponent("AssignedResourceDataSet");
+   //get the selected resource from the choice field
+   form = XDisplay.getActiveForm();
+   resource_data_set = form.findComponent("ResourceDataSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      resource_id = form.findComponent("ResourceList").getStringValue();
+      data_row = assigned_resource_data_set.newDataRow();
+      data_row.setStringValue(resource_id);
+      assigned_resource_data_set.addDataRow(data_row);
+
+      resource_list_box = previous_dialog.getChild(1).findComponent("AssignedResourcesListBox");
+      resource_list_box.update();
+      dialog.close();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
