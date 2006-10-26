@@ -30,6 +30,13 @@ public class OpClientLauncherStartup {
    /*logger for this class */
    private static XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
 
+
+   /**
+    * This is not to be instantiated
+    */
+   private OpClientLauncherStartup() {
+   }
+
    public static void main(String[] args) {
       logger.info("Launcher viewer initialization started...");
       // get ONEPOINT_HOME environment variable
@@ -56,25 +63,26 @@ public class OpClientLauncherStartup {
       application.getServer().setSessionClass(OpProjectSession.class);
 
       // Start must be called *after* overriding session class
-      application.start(configuration.getHost(), configuration.getPort(), configuration.getPath(), configuration.getSecure());
+      application.start(configuration.getHost(), configuration.getPort(), configuration.getPath(), configuration.getSecure(),
+           OpProjectConstants.DEFAULT_START_FORM);
 
       // Request for run level
       XMessage request = new XMessage();
       request.setAction("GetRunLevel");
       logger.info("Request for the remote application run level...");
       XMessage response = application.getClient().invokeMethod(request);
-      String runLevel = (String) response.getArgument("runLevel");
+      String runLevel = (String) response.getArgument(OpProjectConstants.RUN_LEVEL);
       logger.info("Run level is:" + runLevel);
       // Show GUI
       application.setVisible(true);
       if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
-         application.getDisplay().showForm("/modules/configuration_wizard/forms/configuration_wizard.oxf.xml");
+         application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM);
       }
       else {
          // the params used for loading the login.oxf.xml form
          HashMap params = new HashMap(1);
          params.put(OpProjectConstants.RUN_LEVEL, runLevel);
-         application.getDisplay().showForm("/forms/login.oxf.xml", params);
+         application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM, params);
       }
    }
 

@@ -9,6 +9,7 @@ import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
 
@@ -52,7 +53,6 @@ public class OpProjectServlet extends XExpressServlet {
     * String that indicates whether secure comunication should be used (https)
     */
    private static String secureService = null;
-   private static final String DEFAULT_START_FORM = "/forms/login.oxf.xml";
    private static final String PARAMETERS_ARGUMENT = "parameters";
 
    /**
@@ -123,7 +123,7 @@ public class OpProjectServlet extends XExpressServlet {
       // parse query string
       String start_form = request.getParameter("start_form");
       if (start_form == null || start_form.equals("")) {
-         start_form = DEFAULT_START_FORM;
+         start_form = OpProjectConstants.DEFAULT_START_FORM;
       }
       else {
          try {
@@ -308,7 +308,7 @@ public class OpProjectServlet extends XExpressServlet {
    protected XMessage processRequest(XMessage request, boolean sessionExpired, HttpServletRequest http_request, XSession session) {
       if (request.getAction().equalsIgnoreCase(GET_RUN_LEVEL_ACTION)) {
          XMessage response = new XMessage();
-         response.setArgument("runLevel", Byte.toString(OpInitializer.getRunLevel()));
+         response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(OpInitializer.getRunLevel()));
          return response;
       }
       else {

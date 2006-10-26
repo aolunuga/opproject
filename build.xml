@@ -5,23 +5,24 @@
    <property name="op.src.dir" value="src"/>
    <property name="op.build.dir" value="build"/>
    <property name="op.dist.dir" value="dist"/>
+   <property name="op.release.dir" value="release"/>
    <property name="op.lib.dir" value="lib"/>
    <property name="op.applet.dir" value="applet"/>
    <property name="op.jars.dir" value="jars"/>
    <property name="op.reportsjar.dir" value="reportjars"/>
    <property name="op.calendars.dir" value="calendars"/>
    <property name="op.rootpackage.name" value="onepoint"/>
-   <property name="tests.dir" value="tests"/>
-
-   <property name="op.keystore" value="security/onePoint.ks"/>
+   <property name="op.tests.dir" value="tests"/>
+   <property name="op.security.dir" value="security"/>
+   <property name="op.keystore" value="${op.security.dir}/onePoint.ks"/>
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
-
    <property name="op.reports.dir" value="onepoint/project/reports"/>
    <property name="project.jarname" value="opproject-06.jar"/>
    <property name="project.client.jarname" value="opproject-client-06.1-beta.jar"/>
    <property name="op.warname" value="opproject"/>
    <property name="express.client.jarname" value="express4j-client.jar"/>
+   <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
    <property name="applet.dir" value="${op.build.dir}/${op.applet.dir}"/>
@@ -114,6 +115,7 @@
    <!-- Pattern set for the lib files of the web application -->
    <patternset id="webapp.lib.pathid">
       <include name="*.jar"/>
+      <include name="*.txt"/>
       <exclude name="*servlet*.jar"/>
       <exclude name="*mysql*.jar"/>
       <exclude name="*postgresql*.jar"/>
@@ -142,8 +144,9 @@
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
       <delete dir="${op.build.dir}"/>
-      <delete dir="${tests.dir}"/>
+      <delete dir="${op.tests.dir}"/>
       <delete dir="${op.dist.dir}"/>
+      <delete dir="${op.release.dir}"/>
    </target>
 
    <!-- Compiles the source code of the application, excluding the unit tests -->
@@ -196,7 +199,6 @@
       <!--copy to dist dir registry.xml and configuration-->
       <copy todir="${op.dist.dir}">
          <fileset dir="${op.src.dir}/onepoint/project" includes="registry.oxr.xml"/>
-         <fileset dir="${op.src.dir}/onepoint/project" includes="configuration.oxc.xml"/>
       </copy>
 
    </target>
@@ -266,7 +268,6 @@
             <fileset dir="${op.build.dir}" includes="${op.applet.dir}/**/*.*"/>
             <fileset dir="${op.build.dir}" includes="${webimages.dir}/**/*.*"/>
             <fileset dir="${op.src.dir}/onepoint/project" includes="registry.oxr.xml"/>
-            <fileset dir="${op.src.dir}/onepoint/project" includes="configuration.oxc.xml"/>
             <fileset dir="${op.dist.dir}" includes="${op.reportsjar.dir}/*.jar"/>
             <fileset dir="${op.dist.dir}" includes="${op.calendars.dir}/*.xml"/>
             <lib dir="${op.lib.dir}">
@@ -440,16 +441,16 @@
       <compile/>
 
       <!--creates the test dir-->
-      <mkdir dir="${tests.dir}"/>
+      <mkdir dir="${op.tests.dir}"/>
 
       <!-- Compiles the tests source code of the application -->
-      <copy todir="${tests.dir}">
+      <copy todir="${op.tests.dir}">
          <fileset dir="${op.src.dir}">
             <patternset refid="resources.test.pathid"/>
          </fileset>
       </copy>
 
-      <javac sourcepath="" srcdir="${op.src.dir}" destdir="${tests.dir}"
+      <javac sourcepath="" srcdir="${op.src.dir}" destdir="${op.tests.dir}"
              classpathref="op.tests.classpath" debug="true"
              target="${op.jdk.target}" deprecation="on"
            >
@@ -462,10 +463,10 @@
          <classpath >
             <path refid="op.classpath"/>
             <pathelement location="${build.dir}"/>
-            <pathelement location="${tests.dir}"/>
+            <pathelement location="${op.tests.dir}"/>
          </classpath>
-         <batchtest fork="true" todir="${tests.dir}">
-            <fileset dir="${tests.dir}">
+         <batchtest fork="true" todir="${op.tests.dir}">
+            <fileset dir="${op.tests.dir}">
                <include name="**/*Test.class"/>
                <exclude name="**/OpServiceAbstractTest.class"/>
             </fileset>
@@ -474,12 +475,45 @@
 
       <!--generate html test reports-->
       <junitreport>
-         <fileset dir="${tests.dir}">
+         <fileset dir="${op.tests.dir}">
             <include name="TEST-*.xml"/>
          </fileset>
-         <report format="frames" todir="${tests.dir}/html-report"/>
+         <report format="frames" todir="${op.tests.dir}/html-report"/>
       </junitreport>
 
+   </target>
+
+   <target name="release" description="Packages the project sources into a release archive.">
+
+      <mkdir dir="${op.release.dir}"/>
+
+      <!--src release-->
+      <zip zipfile="${op.release.dir}/opproject.06.1-beta-src.zip" >
+         <zipfileset dir="${op.src.dir}" prefix="${op.zip.root.dir}/${op.src.dir}"/>
+         <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
+         <zipfileset dir="META-INF" prefix="${op.zip.root.dir}/META-INF"/>
+         <zipfileset file="build.xml"  prefix="${op.zip.root.dir}"/>
+         <zipfileset dir="WEB-INF" prefix="${op.zip.root.dir}/WEB-INF"/>
+         <zipfileset dir="${op.security.dir}" prefix="${op.zip.root.dir}/${op.security.dir}"/>
+      </zip>
+
+      <!--war release [for applet version] -->
+      <antcall target="dist.applet"/>
+      <zip zipfile="${op.release.dir}/opproject.06.1-beta-applet.zip">
+         <fileset dir="${op.dist.dir}">
+            <include name="${op.warname}.war"/>
+         </fileset>
+      </zip>
+      <delete dir="${op.dist.dir}"/>
+
+      <!--standalone release -->
+      <antcall target="dist.standalone"/>
+      <zip zipfile="${op.release.dir}/opproject.06.1-beta-standalone.zip">
+         <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
+         <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
+      </zip>
+      <delete dir="${op.dist.dir}"/>
+      
    </target>
 
 </project>

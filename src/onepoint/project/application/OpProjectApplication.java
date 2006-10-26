@@ -155,10 +155,10 @@ public class OpProjectApplication {
             if (OpInitializer.getRunLevel() == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
                HashMap params = new HashMap();
                params.put("localApplication", Boolean.TRUE);
-               application.getDisplay().showForm("/modules/configuration_wizard/forms/configuration_wizard.oxf.xml", params);
+               application.getDisplay().showForm(OpProjectConstants.CONFIGURATION_FORM, params);
             }
             else {
-               application.getDisplay().showForm("/forms/login.oxf.xml", new HashMap(initParams));
+               application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM, new HashMap(initParams));
             }
       }
    }
