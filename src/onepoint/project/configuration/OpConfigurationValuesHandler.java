@@ -68,7 +68,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
 
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
       if (name == DATABASE_TYPE) {
-         String value = ((StringBuffer) node).toString().trim();
+         String value = node.toString().trim();
          if (value.equals(DERBY_DB_TYPE)) {
             ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.DERBY);
          }
@@ -96,20 +96,20 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
          // TODO: Better error handling for unknown database type
       }
       else if (name == DATABASE_DRIVER) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(node.toString());
       }
       else if (name == DATABASE_URL) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseUrl(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseUrl(node.toString());
       }
       else if (name == DATABASE_LOGIN) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(node.toString());
       }
       else if (name == DATABASE_PATH) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabasePath(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabasePath(node.toString());
       }
       else if (name == DATABASE_PASSWORD) {
          String encryptedValue = (String) context.getVariable(ENCRYPTED_ATTRIBUTE);
-         String databasePassword = ((StringBuffer) node).toString();
+         String databasePassword = node.toString();
          OpConfiguration.DatabaseConfiguration databaseConfiguration = ((OpConfiguration) parent).getDatabaseConfiguration();
          if (encryptedValue == null || !Boolean.valueOf(encryptedValue).booleanValue()) {
             databaseConfiguration.setNeedsPasswordEncryption(true);
@@ -121,38 +121,38 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
          }
       }
       else if (name == CONNECTION_POOL_MINSIZE) {
-         String value = ((StringBuffer) node).toString();
+         String value = node.toString();
          ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMinSize(value);
       }
       else if (name == CONNECTION_POOL_MAXSIZE) {
-         String value = ((StringBuffer) node).toString();
+         String value = node.toString();
          ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMaxSize(value);
       }
       else if (name == CACHE_SIZE) {
-         String value = ((StringBuffer) node).toString();
+         String value = node.toString();
          ((OpConfiguration) parent).getCacheConfiguration().setCacheSize(value);
       }
       else if (name == BROWSER) {
-         ((OpConfiguration) parent).setBrowserApplication(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).setBrowserApplication(node.toString());
       }
       else if (name == SMTP_SERVER) {
-         ((OpConfiguration) parent).setSMTPServer(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).setSMTPServer(node.toString());
       }
       else if (name == LOG_FILE) {
-         ((OpConfiguration) parent).setLogFile(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).setLogFile(node.toString());
       }
       else if (name == LOG_LEVEL) {
-         ((OpConfiguration) parent).setLogLevel(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).setLogLevel(node.toString());
       }
       else if (name == SECURE_SERVICE) {
-         ((OpConfiguration) parent).setSecureService(((StringBuffer) node).toString());
+         ((OpConfiguration) parent).setSecureService(node.toString());
       }
       else if (name == JES_DEBUGGING) {
-         boolean jessDebugging = Boolean.valueOf(((StringBuffer) node).toString()).booleanValue();
+         boolean jessDebugging = Boolean.valueOf(node.toString()).booleanValue();
          ((OpConfiguration) parent).setSourceDebugging(jessDebugging);
       }
       else if (name == RESOURCE_CACHE_SIZE) {
-         String value = ((StringBuffer) node).toString();
+         String value = node.toString();
          ((OpConfiguration) parent).getCacheConfiguration().setResourceCacheSize(value);
       }
    }

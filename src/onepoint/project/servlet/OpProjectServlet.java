@@ -215,7 +215,7 @@ public class OpProjectServlet extends XExpressServlet {
    public void generateContentPage(String contentId, HttpServletResponse http_response, XSession s) {
       OpProjectSession session = (OpProjectSession) s;
 
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
       byte[] content = null;

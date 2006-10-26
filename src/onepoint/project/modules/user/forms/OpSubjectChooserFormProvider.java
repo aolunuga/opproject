@@ -58,7 +58,7 @@ public class OpSubjectChooserFormProvider implements XFormProvider {
 
       // Put all subject names into project data-set (values are IDs)
       XComponent data_set = form.findComponent(SUBJECT_SET);
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
 
       Collection excludedGroups = new HashSet();
       if (excluded != null) {
@@ -123,7 +123,7 @@ public class OpSubjectChooserFormProvider implements XFormProvider {
          query.setCollection("userIds",userIds);
          Iterator assignedGroupsIds = broker.iterate(query);
          while (assignedGroupsIds.hasNext()){
-            notAssignableGroupIds.add((Long)assignedGroupsIds.next());
+            notAssignableGroupIds.add(assignedGroupsIds.next());
          }
       }
       return notAssignableGroupIds;

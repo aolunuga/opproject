@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 public class OpUsersFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpUsersFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpUsersFormProvider.class,true);
 
    public final static String GROUP_DESCRIPTOR = "g";
    public final static String USER_DESCRIPTOR = "u";

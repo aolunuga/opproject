@@ -23,10 +23,6 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
 
    public final static String WORK_SLIP_SET = "WorkSlipSet";
 
-   public final static int NUMBER_COLUMN_INDEX = 0;
-   public final static int RESOURCE_COLUMN_INDEX = 1;
-   public final static int DATE_COLUMN_INDEX = 2;
-
    public final static String WORK_SLIPS_QUERY = "select workSlip from OpWorkSlip as workSlip where workSlip.Creator.ID = ? order by workSlip.Date desc";
 
    /* form button ids */

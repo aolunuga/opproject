@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 public class OpDockFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpDockFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpDockFormProvider.class,true);
 
    public final static String TOOL_DOCK = "ToolDock";
 

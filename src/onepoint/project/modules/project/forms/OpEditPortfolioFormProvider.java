@@ -37,7 +37,7 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
       Boolean edit_mode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
 
       logger.debug("OpEditPortfolioFormProvider.prepareForm(): " + id_string);
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
       OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
 
       // Downgrade edit mode to view mode if no manager access

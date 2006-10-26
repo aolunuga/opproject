@@ -49,7 +49,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       logger.debug("OpEditProjectFormProvider.prepareForm(): " + id_string);
 
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
 
       //disable templates related stuff

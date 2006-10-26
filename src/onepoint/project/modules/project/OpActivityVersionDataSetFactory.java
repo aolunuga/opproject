@@ -345,7 +345,7 @@ public abstract class OpActivityVersionDataSetFactory {
          while (it.hasNext()) {
             OpAssignment assignment = (OpAssignment) it.next();
             String resourceLocator = assignment.getResource().locator();
-            Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? new Boolean(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
+            Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? Boolean.valueOf(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
             data.put(resourceLocator, hasWorkRecords);
          }
       }

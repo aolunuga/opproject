@@ -37,7 +37,7 @@ public class OpProjectsFormProvider implements XFormProvider {
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
 
       //set the value of the manager permission
       form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);

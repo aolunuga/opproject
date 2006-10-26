@@ -2597,7 +2597,6 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
             return stringBuffer.append("Mocks the behaviour of listing the schedules");
          }
       });
-      ;
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 

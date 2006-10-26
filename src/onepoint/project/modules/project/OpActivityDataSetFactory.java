@@ -307,7 +307,7 @@ public abstract class OpActivityDataSetFactory {
          whereBuffer.append(" and ");
       whereBuffer.append("activity.Deleted = false and activity.Template = :template");
       argumentNames.add("template");
-      argumentValues.add(new Boolean(filter.getTemplates()));
+      argumentValues.add(Boolean.valueOf(filter.getTemplates()));
 
       StringBuffer queryBuffer = new StringBuffer("select  activity from ");
       queryBuffer.append(fromBuffer);
@@ -663,7 +663,7 @@ public abstract class OpActivityDataSetFactory {
       while (it.hasNext()) {
          OpAssignment assignment = (OpAssignment) it.next();
          String resourceLocator = assignment.getResource().locator();
-         Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? new Boolean(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
+         Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? Boolean.valueOf(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
          data.put(resourceLocator, hasWorkRecords);
       }
       dataCell.setValue(data);

@@ -120,7 +120,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          languageField.setEnabled(false);
          levelField.setEnabled(false);
          form.findComponent("Cancel").setVisible(false);
-         String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoUser")
+         String title = session.getLocale().getResourceMap("user.Info").getResource("InfoUser")
               .getText();
          form.setText(title);
       }

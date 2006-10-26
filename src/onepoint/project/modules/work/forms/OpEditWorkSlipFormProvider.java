@@ -24,7 +24,6 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
 
    private static XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class,true);
 
-   public final static String WORK_SLIP_ID_FIELD = "WorkSlipIDField";
    public final static String WORK_RECORD_SET = "WorkRecordSet";
    public final static String DATE_FIELD = "DateField";
    public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";

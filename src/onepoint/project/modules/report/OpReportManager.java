@@ -21,7 +21,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -595,7 +594,7 @@ public class OpReportManager implements XResourceInterceptor {
       if (currReport != null) {
          Iterator cacheEntries = ((HashMap) currReport.get(REPORTJAR_ENTRY_CACHEENTRIES)).keySet().iterator();
          while (cacheEntries.hasNext()) {
-            expressFilePathCache.remove((String) cacheEntries.next());
+            expressFilePathCache.remove(cacheEntries.next());
          }
       }
       // now delete the old stuff...
@@ -741,7 +740,7 @@ public class OpReportManager implements XResourceInterceptor {
          }
          Iterator reportAttributesIterator = reportAttributes.keySet().iterator();
          while (reportAttributesIterator.hasNext()) {
-            String repKey = ((Name) reportAttributesIterator.next()).toString();
+            String repKey = reportAttributesIterator.next().toString();
             reportDescription.put(repKey, reportAttributes.getValue(repKey));
          }
 

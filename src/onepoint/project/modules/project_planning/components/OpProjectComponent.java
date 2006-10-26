@@ -970,7 +970,7 @@ public class OpProjectComponent extends XComponent {
             XComponent component = (XComponent) getParent();
             while (component != null) {
                if ((component instanceof OpProjectComponent)
-                    && (((OpProjectComponent) component).getComponentType() == GANTT_BOX)) {
+                    && (component.getComponentType() == GANTT_BOX)) {
                   return component;
                }
                component = (XComponent) (component.getParent());
@@ -983,7 +983,7 @@ public class OpProjectComponent extends XComponent {
             component = (XComponent) getParent();
             while (component != null) {
                if ((component instanceof OpProjectComponent)
-                    && (((OpProjectComponent) component).getComponentType() == UTILIZATION_BOX)) {
+                    && (component.getComponentType() == UTILIZATION_BOX)) {
                   return component;
                }
                component = (XComponent) (component.getParent());
@@ -2500,7 +2500,7 @@ public class OpProjectComponent extends XComponent {
       projectFinish += XCalendar.MILLIS_PER_DAY; // add one day => draw the end line at the end of the previous day
       x = (int) ((projectFinish - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
       g.setColor(XStyle.DEFAULT_RED);
-      g.fillRect((int) x, 0, 2, bounds.height);
+      g.fillRect(x, 0, 2, bounds.height);
    }
 
    /**

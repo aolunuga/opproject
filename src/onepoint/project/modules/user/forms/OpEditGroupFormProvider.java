@@ -34,7 +34,7 @@ public class OpEditGroupFormProvider implements XFormProvider {
 
       String id_string = (String) (parameters.get("group_id"));
       Boolean edit_mode = (Boolean) (parameters.get("edit_mode"));
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
 
       OpGroup group = (OpGroup) (broker.getObject(id_string));
       // Fill edit-group form with group data
@@ -54,7 +54,7 @@ public class OpEditGroupFormProvider implements XFormProvider {
          desc.setEnabled(false);
          form.findComponent("GroupToolPanel").setVisible(false);
          form.findComponent("Cancel").setVisible(false);
-         String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoGroup")
+         String title = session.getLocale().getResourceMap("user.Info").getResource("InfoGroup")
                .getText();
          form.setText(title);
       }

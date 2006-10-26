@@ -1676,7 +1676,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       // 1 Type
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setEnabled(true);
-      data_cell.setByteValue((byte) type);
+      data_cell.setByteValue(type);
       data_row.addChild(data_cell);
       // 2 Default category - default null
       data_cell = new XComponent(XComponent.DATA_CELL);

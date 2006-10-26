@@ -10,7 +10,7 @@ import onepoint.log.XLogFactory;
 import onepoint.project.util.OpRSASecurity;
 
 /**
- * Test Class for the security implemented usin RSA keys.
+ * Test Class for the security implemented using RSA keys.
  *
  * @author : mihai.costin
  */

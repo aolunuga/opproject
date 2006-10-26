@@ -8,6 +8,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleException;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.module.OpModuleRegistryLoader;
+import onepoint.resource.*;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironment;
@@ -15,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.jmock.Mock;
 import org.jmock.cglib.CGLIBCoreMock;
 import org.jmock.cglib.MockObjectTestCase;
+import org.jmock.core.*;
 
 import java.util.*;
 

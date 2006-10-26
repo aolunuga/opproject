@@ -512,7 +512,7 @@ public class OpGanttValidator extends XValidator {
       ArrayList predecessors = getPredecessors(data_row);
       if (predecessors != null) {
          for (int i = 0; i < predecessors.size(); i++) {
-            if (((String) (predecessors.get(i))).equals(resource)) {
+            if (predecessors.get(i).equals(resource)) {
                predecessors.remove(i);
                return;
             }
@@ -1988,7 +1988,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
-    * @throws ValidationException if all the removed rows are mandatory
+    * @throws XValidationException if all the removed rows are mandatory
     * @see XValidator#removeDataRows(java.util.List)
     */
    public boolean removeDataRows(List data_rows) {
@@ -2008,7 +2008,7 @@ public class OpGanttValidator extends XValidator {
     * Performes a suite of checks that must be done before the actual remove action
     *
     * @param data_rows data rows that will be removed.
-    * @throws ValidationException MANDATORY_EXCEPTION if all "to be removed" activities are mandatory
+    * @throws XValidationException MANDATORY_EXCEPTION if all "to be removed" activities are mandatory
     */
    protected void preCheckRemoveDataRows(List data_rows) {
       boolean allMandatory = true;

@@ -60,7 +60,7 @@ public class OpReportListFormProvider implements XFormProvider {
       while (reportEnum.hasNext()) {
          resultRow = new XComponent(XComponent.DATA_ROW);
          String reportName = (String) reportEnum.next();
-         String jesname = (String) xrm.getJesName(reportName);
+         String jesname = xrm.getJesName(reportName);
          String localizedReportName = xrm.getLocalizedJasperFileName(reportName, currLocale);
          resultRow.setStringValue(jesname.concat("['").concat(localizedReportName).concat("']"));
          XComponent sortValue = new XComponent(XComponent.DATA_CELL);
@@ -102,7 +102,7 @@ public class OpReportListFormProvider implements XFormProvider {
     */
    protected void prepareQueryFormPresent(XComponent form, String queryFormName) {
       XComponent previousQueryFrameField = form.findComponent(PREVIOUS_QUERY_FORM);
-      previousQueryFrameField.setStringValue(queryFormName.toString());
+      previousQueryFrameField.setStringValue(queryFormName);
       form.findComponent(CREATE_REPORT_BUTTON).setEnabled(true);
    }
 }

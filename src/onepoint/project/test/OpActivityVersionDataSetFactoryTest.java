@@ -23,21 +23,21 @@ import java.util.*;
  * @author ovidiu.lupas
  */
 public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
-   /*project plan */
+   //project plan
    private OpProjectPlan projectPlan;
-   /*project plan version */
+   //project plan version
    private OpProjectPlanVersion projectPlanVersion;
-   /*activity */
+   //activity
    private OpActivity activity;
-   /* activity version */
+   // activity version
    private OpActivityVersion activityVersion;
-   /*session broker */
+   //session broker
    private OpBroker broker;
-   /*assignment version */
+   //assignment version
    private OpAssignmentVersion assignmentVersion;
-   /*work phase version */
+   //work phase version
    private OpWorkPeriodVersion workPeriodVersion;
-   /*resources */
+   //resources
    private OpResource resource1;
    private OpResource resource2;
 
@@ -57,12 +57,10 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
    private static final String FIRST_ACTIVITY_LOCATOR = "OpActivity." + FIRST_ACTIVITY_ID + ".xid";
    private static final String SECOND_ACTIVITY_LOCATOR = "OpActivity." + SECOND_ACTIVITY_ID + ".xid";
 
-
-   private final int ACTIVITY_VERSION_ID = 10;
    private final int PROJECT_PLAN_ID = 1;
    private final int PROJECT_PLAN_VERSION_NUMBER = 2;
-   private final String ACTIVITY_VERSION_LOCATOR = "OpActivityVersion." + ACTIVITY_VERSION_ID + ".xid";
-   /*attachment content ref count */
+
+   //attachment content ref count
    private int CONTENT_REF_COUNT = 1;
 
    public void setUp() {

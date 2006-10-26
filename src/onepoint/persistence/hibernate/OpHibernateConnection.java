@@ -428,7 +428,7 @@ public class OpHibernateConnection extends OpConnection {
 
    protected String _convertExpression(String alias, OpAbstractExpression expression) {
       // Perform an inorder tree walk through the expression tree
-      String sql_where = new String();
+      String sql_where = "";
       logger.debug("OpHibernateConnection._convertExpression:" + expression.toString());
       if (expression instanceof OpOperatorExpression) {
          logger.debug("OPERATOR_EXP");

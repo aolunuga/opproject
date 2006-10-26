@@ -44,14 +44,12 @@
    </path>
 
    <!-- Pattern sets used for the different tasks -->
-   <patternset id="remote.compile.pathid">
-      <exclude name="**/exchange/*.java"/>
+   <patternset id="compile.pathid">
       <exclude name="**/*Test.java"/>
-      <exclude name="**/*_test.java"/>
       <exclude name="**/*_test.java"/>
    </patternset>
 
-   <patternset id="remote.compiletests.pathid">
+   <patternset id="compile.tests.pathid">
       <include name="**/*Test.java"/>
    </patternset>
 
@@ -156,7 +154,7 @@
                 classpathref="op.classpath" debug="true"
                 target="${op.jdk.target}" deprecation="on"
               >
-            <patternset refid="remote.compile.pathid"/>
+            <patternset refid="compile.pathid"/>
          </javac>
       </sequential>
    </macrodef>
@@ -455,7 +453,7 @@
              classpathref="op.tests.classpath" debug="true"
              target="${op.jdk.target}" deprecation="on"
            >
-         <patternset refid="remote.compiletests.pathid"/>
+         <patternset refid="compile.tests.pathid"/>
       </javac>
 
       <!--Executes OnePoint unit tests-->

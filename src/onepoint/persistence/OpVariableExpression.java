@@ -26,7 +26,7 @@ public class OpVariableExpression extends OpAbstractExpression {
 	}
 
 	public String toString() {
-		return new String("child::" + _variable);
+		return "child::" + _variable;
 	}
 
 }

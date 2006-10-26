@@ -10,7 +10,7 @@ public class OpValueExpression extends OpAbstractExpression {
 	Object _value;
 
 	public OpValueExpression(boolean b) {
-		_value = new Boolean(b);
+		_value = Boolean.valueOf(b);
 	}
 
 	public OpValueExpression(int i) {
