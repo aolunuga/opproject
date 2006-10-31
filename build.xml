@@ -1,4 +1,4 @@
-<project name="opproject" basedir="." default="dist.standalone">
+<project name="opproject" basedir="." default="dist.applet">
 
    <!-- Sets property references that are used throught the build file -->
    <property name="op.jdk.target" value="1.4"/>
@@ -14,6 +14,9 @@
    <property name="op.rootpackage.name" value="onepoint"/>
    <property name="op.tests.dir" value="tests"/>
    <property name="op.security.dir" value="security"/>
+   <property name="op.demodata.dir" value="demodata"/>
+   <property name="op.license.file" value="license.txt"/>
+   <property name="op.readme.file" value="readme.txt"/>
    <property name="op.keystore" value="${op.security.dir}/onePoint.ks"/>
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
@@ -117,8 +120,8 @@
       <include name="*.jar"/>
       <include name="*.txt"/>
       <exclude name="*servlet*.jar"/>
-      <exclude name="*mysql*.jar"/>
-      <exclude name="*postgresql*.jar"/>
+      <exclude name="*mysql*.*"/>
+      <exclude name="*postgresql*.*"/>
       <exclude name="*junit*.jar"/>
       <exclude name="*jmock*.jar"/>
       <exclude name="*jcookie*.jar"/>
@@ -196,7 +199,7 @@
       <!--build reports-->
       <jar.reports/>
 
-      <!--copy to dist dir registry.xml and configuration-->
+      <!--copy to dist dir registry.xml-->
       <copy todir="${op.dist.dir}">
          <fileset dir="${op.src.dir}/onepoint/project" includes="registry.oxr.xml"/>
       </copy>
@@ -495,6 +498,9 @@
          <zipfileset file="build.xml"  prefix="${op.zip.root.dir}"/>
          <zipfileset dir="WEB-INF" prefix="${op.zip.root.dir}/WEB-INF"/>
          <zipfileset dir="${op.security.dir}" prefix="${op.zip.root.dir}/${op.security.dir}"/>
+         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
+         <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset file="${op.readme.file}" prefix="${op.zip.root.dir}"/>
       </zip>
 
       <!--war release [for applet version] -->
@@ -503,6 +509,9 @@
          <fileset dir="${op.dist.dir}">
             <include name="${op.warname}.war"/>
          </fileset>
+         <zipfileset dir="${op.demodata.dir}" prefix="${op.demodata.dir}"/>
+         <zipfileset file="${op.license.file}"/>
+         <zipfileset file="${op.readme.file}"/>
       </zip>
       <delete dir="${op.dist.dir}"/>
 
@@ -511,6 +520,9 @@
       <zip zipfile="${op.release.dir}/opproject.06.1-beta-standalone.zip">
          <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
          <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
+         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
+         <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset file="${op.readme.file}" prefix="${op.zip.root.dir}"/>
       </zip>
       <delete dir="${op.dist.dir}"/>
       
