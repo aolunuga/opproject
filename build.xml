@@ -36,6 +36,8 @@
    <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
    <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
+   <property name="release.root.filename" value="opproject-06.1-beta"/>
+
    <!-- Classpath reference -->
    <path id="op.classpath">
       <fileset dir="${op.lib.dir}" includes="*.jar"/>
@@ -491,7 +493,7 @@
       <mkdir dir="${op.release.dir}"/>
 
       <!--src release-->
-      <zip zipfile="${op.release.dir}/opproject.06.1-beta-src.zip" >
+      <zip zipfile="${op.release.dir}/${release.root.filename}-src.zip" >
          <zipfileset dir="${op.src.dir}" prefix="${op.zip.root.dir}/${op.src.dir}"/>
          <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
          <zipfileset dir="META-INF" prefix="${op.zip.root.dir}/META-INF"/>
@@ -505,7 +507,7 @@
 
       <!--war release [for applet version] -->
       <antcall target="dist.applet"/>
-      <zip zipfile="${op.release.dir}/opproject.06.1-beta-applet.zip">
+      <zip zipfile="${op.release.dir}/${release.root.filename}-applet.zip">
          <fileset dir="${op.dist.dir}">
             <include name="${op.warname}.war"/>
          </fileset>
@@ -517,7 +519,7 @@
 
       <!--standalone release -->
       <antcall target="dist.standalone"/>
-      <zip zipfile="${op.release.dir}/opproject.06.1-beta-standalone.zip">
+      <zip zipfile="${op.release.dir}/${release.root.filename}-standalone.zip">
          <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
          <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
