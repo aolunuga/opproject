@@ -211,6 +211,7 @@ public class OpPermissionSetFactory {
             }
          }
       }
+      permissionSet.synchronizeExpanded();
    }
 
 

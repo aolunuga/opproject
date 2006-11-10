@@ -26,7 +26,7 @@ public class OpGraph {
    /**
     * Matrix view of the graph
     */
-   int[][] matrixGraph;
+   private int[][] matrixGraph;
 
    /**
     * @param key key that is linked to a node in the graph
@@ -80,7 +80,7 @@ public class OpGraph {
     *
     * @return matrix representing the graph
     */
-   public int[][] graphToMatrix() {
+   private int[][] graphToMatrix() {
       int size = nodes.size();
       int[][] matrix = new int[size + 1][size];
 

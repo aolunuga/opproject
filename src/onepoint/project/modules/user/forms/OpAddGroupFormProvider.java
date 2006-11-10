@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpAddGroupFormProvider implements XFormProvider {
    /* logger for this class*/
-   private static XLog logger = XLogFactory.getLogger(OpAddGroupFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpAddGroupFormProvider.class,true);
    /* groups that can be assigned for subject*/
    public final static String ASSIGNABLE_GROUP_DATA_SET = "AssignableGroupDataSet";
    /* groups that are already assigned*/

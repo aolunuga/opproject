@@ -18,16 +18,16 @@ import java.util.HashMap;
 
 public class OpNewProjectFormProvider implements XFormProvider {
 
-   public final static String PORTFOLIO_ID = "PortfolioID";
-   public final static String PORTFOLIO_INDEX_FIELD = "PortfolioIndexField";
+   private final static String PORTFOLIO_ID = "PortfolioID";
+   private final static String PORTFOLIO_INDEX_FIELD = "PortfolioIndexField";
 
-   public final static String PERMISSION_SET = "PermissionSet";
+   private final static String PERMISSION_SET = "PermissionSet";
    
-   public final static String PORTFOLIO_INDEX = "portfolio_index";
+   private final static String PORTFOLIO_INDEX = "portfolio_index";
    
-   public final static String PROJECT_NEW_PROJECT = "project.NewProject";
-   public final static String NOT_SELECTED = "NotSelected";
-   public final static String TEMPLATE_FIELD = "TemplateField";
+   protected final static String PROJECT_NEW_PROJECT = "project.NewProject";
+   protected final static String NOT_SELECTED = "NotSelected";
+   protected final static String TEMPLATE_FIELD = "TemplateField";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;

@@ -5,9 +5,10 @@
 // Controller script for new_project.oxf.xml
 
 require "onepoint/project/scripts/error.jes";
-
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
 
+import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
 import onepoint.service.XMessage;
@@ -130,19 +131,11 @@ function addProjectAssignment(event){
    assigned_resource_data_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
    i = 0;
    while (i < assigned_resource_data_set.getChildCount()) {
-      resource_ids[i] = assigned_resource_data_set.getChild(i).getStringValue();
+      resource_ids[i] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
       i++;
    }
 
-   params.resource_ids = resource_ids;
-   dialog = XComponent.newDialog();
-   form = dialog.loadForm("/modules/project/forms/add_project_assignment.oxf.xml",params);
-
-   resource_data_set = form.findComponent("ResourceDataSet");
-   if (resource_data_set.getChildCount() > 0){
-      dialog.open();
-   }
-
+   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
 }
 
 function removeProjectAssignment(event){

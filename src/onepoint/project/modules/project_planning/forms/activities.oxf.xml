@@ -45,6 +45,8 @@
       <pop-up-separator/>
       <pop-up-item text="{$Edit}" on-item-selected="editActivity"/>
       <pop-up-separator/>
+      <pop-up-item text="{$Validate}" on-item-selected="validateActivities"/>
+      <pop-up-separator/>
       <pop-up-item text="{$SaveCSV}" on-item-selected="saveActivitiesCSVFile"/>
       <pop-up-item text="{$SaveImage}" on-item-selected="saveActivitiesImage"/>
    </pop-up-menu>
@@ -59,6 +61,8 @@
       <pop-up-item text="{$Delete}" on-item-selected="removeActivities"/>
       <pop-up-separator/>
       <pop-up-item text="{$Edit}" on-item-selected="editActivity"/>
+      <pop-up-separator/>
+      <pop-up-item text="{$Validate}" on-item-selected="validateActivities"/>
       <pop-up-separator/>
       <pop-up-item text="{$SaveCSV}" on-item-selected="saveCostsCSVFile"/>
       <pop-up-item text="{$SaveImage}" on-item-selected="saveCostsImage"/>

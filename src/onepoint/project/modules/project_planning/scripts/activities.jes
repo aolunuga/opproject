@@ -457,6 +457,7 @@ function enableActivitiesPopUp(event){
       pop_up_menu.getChild(5).setEnabled(false);//addActivityAfter
       pop_up_menu.getChild(6).setEnabled(false);//removeActivities
       pop_up_menu.getChild(8).setEnabled(false);//editActivity
+      pop_up_menu.getChild(10).setEnabled(false);//validateActivities
   }
 
 }
@@ -499,3 +500,8 @@ function compareChoiceResources(dataCaption, editValue) {
    return result;
 }
 
+function validateActivities(event){
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   validator = activity_data_set.validator();
+   validator.validateDataSet();
+}

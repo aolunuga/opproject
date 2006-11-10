@@ -48,10 +48,10 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
    private final String WORK_SLIP_ID = "WorkSlip.id 1686";
    private final String NON_EXISTENT_WORK_SLIP_ID = "NonExistent_WorkSlip.id 1890";
 
-   private static String SELECT_MAX_WORK_SLIP_NUMBER_BY_RESOURCE_ID = "select max(work_slip.Number) from OpWorkSlip as work_slip where work_slip.Creator.ID = ?";
-   private static String SELECT_EXISTENT_WORK_SLIP_BY_DATE = "select work_slip from OpWorkSlip as work_slip where work_slip.Creator.ID = ? and work_slip.Date = ?";
-   private static String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignmentVer from OpAssignmentVersion assignmentVer  inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer  where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
-   private static String SELECT_WORKING_VERSION_ACTIVITY = "select actVersion from OpActivityVersion actVersion  inner join actVersion.PlanVersion planVer  where actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
+   private static final String SELECT_MAX_WORK_SLIP_NUMBER_BY_RESOURCE_ID = "select max(work_slip.Number) from OpWorkSlip as work_slip where work_slip.Creator.ID = ?";
+   private static final String SELECT_EXISTENT_WORK_SLIP_BY_DATE = "select work_slip from OpWorkSlip as work_slip where work_slip.Creator.ID = ? and work_slip.Date = ?";
+   private static final String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignmentVer from OpAssignmentVersion assignmentVer  inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer  where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
+   private static final String SELECT_WORKING_VERSION_ACTIVITY = "select actVersion from OpActivityVersion actVersion  inner join actVersion.PlanVersion planVer  where actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
    /**
     * Set up the test case
     */

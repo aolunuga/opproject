@@ -6,6 +6,7 @@
 
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -59,7 +60,7 @@ function cancel(event) {
 }
 
 function selectUser(event) {
-   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addResourceSubject", true, false, null, false);
+   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addResourceSubject", true, false, null, false, null);
 }
 
 function addResourceSubject(subject) {
@@ -72,13 +73,14 @@ function addResourceSubject(subject) {
 
 function addProject(event) {
    form = XDisplay.getActiveForm();
-   parameters.AssignedProjectDataSet = form.findComponent("AssignedProjectDataSet");
-   dialog = XComponent.newDialog();
-   dialog.setText("Project hinzuf??gen");
-   dialog.open("/modules/resource/forms/add_project.oxf.xml", parameters);
-   XDisplay.findFrame("MainFrame").repaint();
-   // *** How could we reuse project-chooser?
-   // ==> Maybe via client-variables (transfer to client in every response?)
+   assignedProjects = form.findComponent("AssignedProjectDataSet");
+   i = 0;
+   while (i < assignedProjects.getChildCount()) {
+      assignedDataRow = assignedProjects.getChild(i);
+      filteredIds[i] = XValidator.choiceID(assignedDataRow.getStringValue());
+      i++;
+   }
+   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true);
 }
 
 function removeProject(event) {

@@ -38,7 +38,7 @@
       <parameter name="target_project_id" instance-class="java.lang.String" mode="input"/>
    </method>
    <method name="moveProjectNode">
-      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="project_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="portfolio_id" instance-class="java.lang.String" mode="input"/>
    </method>
 </service>

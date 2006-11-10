@@ -20,8 +20,8 @@ public class OpProjectApplet extends XExpressApplet {
    /**
     * Various applet constants.
     */
-   public final static String APPLET_LOADED = "OnePoint Applet already loaded in another browser window. Please close it and try again.";
-   public final static String WAR_NAME = "opproject";
+   private final static String APPLET_LOADED = "OnePoint Applet already loaded in another browser window. Please close it and try again.";
+   private final static String WAR_NAME = "opproject";
 
    /**
     * Registers project proxies.

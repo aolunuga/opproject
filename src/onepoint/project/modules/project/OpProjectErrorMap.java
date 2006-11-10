@@ -8,7 +8,7 @@ import onepoint.error.XErrorMap;
 
 public class OpProjectErrorMap extends XErrorMap {
 
-   public final static String RESOURCE_MAP_ID = "project.error";
+   private final static String RESOURCE_MAP_ID = "project.error";
 
    OpProjectErrorMap() {
 

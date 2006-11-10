@@ -217,6 +217,115 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
 
    }
 
+   public void testAddWorkPhases(){
+      
+      OpGanttValidator validator = new OpGanttValidator();
+      validator.setProgressTracked(Boolean.FALSE);
+      validator.setProjectTemplate(Boolean.FALSE);
+      validator.setProjectStart(new Date(0));
+      validator.setCalculationMode(new Byte(OpGanttValidator.EFFORT_BASED));
+      validator.setAbsencesStart(new Date(0));
+      validator.setAbsencesSet(new HashMap());
+      validator.setAssignmentSet(new XComponent(XComponent.DATA_SET));
+      validator.setHourBasedResourceView(false);
+
+      XComponent testedDataRow = validator.newDataRow();
+      Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+      calendar.set(2006, 0, 3); //3 jan. 2006
+      Date start = new Date(calendar.getTime().getTime());
+      OpGanttValidator.setStart(testedDataRow, start);
+      calendar.add(Calendar.DATE,  OpWorkPeriod.PERIOD_LENGTH * 3);
+      Date end = new Date(calendar.getTime().getTime());
+      OpGanttValidator.setEnd(testedDataRow, end);
+
+      OpGanttValidator.setWorkPhaseStarts(testedDataRow, new ArrayList());
+      OpGanttValidator.setWorkPhaseFinishes(testedDataRow, new ArrayList());
+
+      long workPeriodValue;
+      double effort = 8.0;
+
+      calendar.setTime(start);
+      workPeriodValue = 0;
+      for (int i = 0; i < 10; i++) {
+         workPeriodValue |= 1L << i;
+      }
+      for (int i = 15; i < 30; i++) {
+         workPeriodValue |= 1L << i;
+      }
+      List values;
+      values = new ArrayList();
+      values.add(new Long(workPeriodValue));
+      values.add(new Double(effort));
+      OpActivityDataSetFactory.addWorkPhases(testedDataRow, start, values);
+
+      calendar.setTime(start);
+      calendar.add(Calendar.DAY_OF_MONTH, OpWorkPeriod.PERIOD_LENGTH);
+      Date secondStart = new Date(calendar.getTime().getTime());
+      workPeriodValue = 0;
+      for (int i = 0; i < 5; i++) {
+         workPeriodValue |= 1L << i;
+      }
+      for (int i = 11; i < OpWorkPeriod.PERIOD_LENGTH; i++) {
+         workPeriodValue |= 1L << i;
+      }
+      values = new ArrayList();
+      values.add(new Long(workPeriodValue));
+      values.add(new Double(effort));
+      OpActivityDataSetFactory.addWorkPhases(testedDataRow, secondStart, values);
+
+
+      calendar.setTime(start);
+      calendar.add(Calendar.DAY_OF_MONTH, 2 * OpWorkPeriod.PERIOD_LENGTH);
+      Date thirdStart = new Date(calendar.getTime().getTime());
+      workPeriodValue = 0;
+      for (int i = OpWorkPeriod.PERIOD_LENGTH - 5; i < OpWorkPeriod.PERIOD_LENGTH; i++) {
+         workPeriodValue |= 1L << i;
+      }
+      values = new ArrayList();
+      values.add(new Long(workPeriodValue));
+      values.add(new Double(effort));
+      OpActivityDataSetFactory.addWorkPhases(testedDataRow, thirdStart, values);
+
+      List starts = OpGanttValidator.getWorkPhaseStarts(testedDataRow);
+      List ends = OpGanttValidator.getWorkPhaseFinishes(testedDataRow);
+
+      System.out.println(starts.toString());
+      System.out.println(ends.toString());
+      
+      assertEquals("Wrong number of work phase starts. ", 5, starts.size());
+      assertEquals("Wrong number of work phase ends. " , 5, ends.size());
+
+      calendar.setTime(start);
+      assertEquals("1.Wrong start date", calendar.getTime(), starts.get(0));
+      calendar.add(Calendar.DAY_OF_MONTH, 9);
+      assertEquals("1.Wrong end date", calendar.getTime(), ends.get(0));
+
+      calendar.setTime(start);
+      calendar.add(Calendar.DAY_OF_MONTH, 15);
+      assertEquals("2.Wrong start date", calendar.getTime(), starts.get(1));
+      calendar.add(Calendar.DAY_OF_MONTH, 14);
+      assertEquals("2.Wrong end date", calendar.getTime(), ends.get(1));
+
+
+      calendar.setTime(secondStart);
+      assertEquals("3.Wrong start date", calendar.getTime(), starts.get(2));
+      calendar.add(Calendar.DAY_OF_MONTH, 4);
+      assertEquals("3.Wrong end date", calendar.getTime(), ends.get(2));
+
+      calendar.setTime(secondStart);
+      calendar.add(Calendar.DAY_OF_MONTH, 11);
+      assertEquals("4.Wrong start date", calendar.getTime(), starts.get(3));
+      calendar.add(Calendar.DAY_OF_MONTH, OpWorkPeriod.PERIOD_LENGTH - 11 - 1);
+      assertEquals("4.Wrong end date", calendar.getTime(), ends.get(3));
+
+      calendar.setTime(thirdStart);
+      calendar.add(Calendar.DAY_OF_MONTH,  OpWorkPeriod.PERIOD_LENGTH - 5);
+      assertEquals("5.Wrong start date", calendar.getTime(), starts.get(4));
+      calendar.add(Calendar.DAY_OF_MONTH, 4);
+      assertEquals("5.Wrong end date", calendar.getTime(), ends.get(4));
+  }
+
+
    public void testGetWorkPeriods() {
       queryResults.clear();
       queryResults.add(opFirstActivity);
@@ -1676,7 +1785,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       // 1 Type
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setEnabled(true);
-      data_cell.setByteValue(type);
+      data_cell.setByteValue((byte) type);
       data_row.addChild(data_cell);
       // 2 Default category - default null
       data_cell = new XComponent(XComponent.DATA_CELL);

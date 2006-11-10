@@ -34,7 +34,7 @@ public class OpEditPoolFormProvider implements XFormProvider {
       String id_string = (String) (parameters.get(OpResourceService.POOL_ID));
       Boolean edit_mode = (Boolean) parameters.get(OpResourceService.EDIT_MODE);
 
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       OpResourcePool pool = (OpResourcePool) (broker.getObject(id_string));
 
       // Downgrade edit mode to view mode if no manager access

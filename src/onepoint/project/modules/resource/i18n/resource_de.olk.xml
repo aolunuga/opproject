@@ -94,7 +94,7 @@
       <resource id="Projects">Projekte</resource>
    </resource-map>
    <resource-map id="resource.ResourceChooser">
-      <resource id="SelectResource">Ressource auswählen</resource>
+      <resource id="SelectResource">Ressource oder Pool auswählen</resource>
       <resource id="SelectPool">Pool auswählen</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>

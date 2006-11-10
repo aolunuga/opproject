@@ -31,7 +31,7 @@ public class OpType { // Maybe an additional sub-class "XBasicType"?
    private Class _class; // Resolved on reading XML-file
    private boolean _collection_type; // True if this is a collection-type
 
-   private XLog logger = XLogFactory.getLogger(OpType.class);
+   private static final XLog logger = XLogFactory.getLogger(OpType.class);
 
    public OpType() {
    }

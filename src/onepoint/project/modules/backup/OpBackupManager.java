@@ -613,7 +613,7 @@ public class OpBackupManager {
     * @see OpBackupManager#restoreRepository(onepoint.project.OpProjectSession, String)
     */
    public void restoreRepository(OpProjectSession session, InputStream input)
-        throws IOException {
+        {
       // Extra path is required for restoring binary content stored in separate files
       OpBroker broker = session.newBroker();
       OpBackupLoader backupLoader = new OpBackupLoader();

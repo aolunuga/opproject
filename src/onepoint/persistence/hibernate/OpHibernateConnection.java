@@ -27,7 +27,7 @@ import java.util.List;
 
 public class OpHibernateConnection extends OpConnection {
 
-   private static XLog logger = XLogFactory.getLogger(OpHibernateConnection.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class,true);
 
    private Session _session;
 
@@ -37,7 +37,16 @@ public class OpHibernateConnection extends OpConnection {
    }
 
    public boolean isValid() {
-      return (_session != null);
+      if (_session == null) {
+         return false;
+      }
+      try {
+         _session.connection().getMetaData();
+      }
+      catch (Exception e) {
+         return false;
+      }
+      return true;
    }
 
    public void executeDDLScript(String[] script) {

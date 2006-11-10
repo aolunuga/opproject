@@ -28,7 +28,7 @@ import java.util.HashMap;
  */
 public class OpClientLauncherStartup {
    /*logger for this class */
-   private static XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
+   private static final XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
 
 
    /**
@@ -68,7 +68,7 @@ public class OpClientLauncherStartup {
 
       // Request for run level
       XMessage request = new XMessage();
-      request.setAction("GetRunLevel");
+      request.setAction(OpProjectConstants.GET_RUN_LEVEL_ACTION);
       logger.info("Request for the remote application run level...");
       XMessage response = application.getClient().invokeMethod(request);
       String runLevel = (String) response.getArgument(OpProjectConstants.RUN_LEVEL);

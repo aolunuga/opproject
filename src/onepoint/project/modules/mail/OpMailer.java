@@ -20,7 +20,7 @@ import java.util.Properties;
 
 public class OpMailer implements Runnable {
 
-   private static XLog log = XLogFactory.getLogger(OpMailer.class,true);
+   private static final XLog log = XLogFactory.getLogger(OpMailer.class,true);
 
 	// *** Maybe more concrete: XSMTPMailer
 

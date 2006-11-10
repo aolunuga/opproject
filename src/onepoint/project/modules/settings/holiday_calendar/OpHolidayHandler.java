@@ -27,9 +27,11 @@ public class OpHolidayHandler implements XNodeHandler {
    }
 
    public void addNodeContent(XContext context, Object node, String content) {
+      //To change body of implemented methods use File | Settings | File Templates.
    }
 
    public void addChildNode(XContext context, Object node, String child_name, Object child) {
+      //To change body of implemented methods use File | Settings | File Templates.
    }
 
    public void nodeFinished(XContext context, String name, Object node, Object parent) {

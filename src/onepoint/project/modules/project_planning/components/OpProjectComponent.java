@@ -22,7 +22,7 @@ import java.util.List;
 
 public class OpProjectComponent extends XComponent {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
 
    public final static byte GANTT_ACTIVITY = 1;
    public final static byte GANTT_DEPENDENCY = 2; // *** "GANTT_CONNECTOR"?
@@ -970,7 +970,7 @@ public class OpProjectComponent extends XComponent {
             XComponent component = (XComponent) getParent();
             while (component != null) {
                if ((component instanceof OpProjectComponent)
-                    && (component.getComponentType() == GANTT_BOX)) {
+                    && (((OpProjectComponent) component).getComponentType() == GANTT_BOX)) {
                   return component;
                }
                component = (XComponent) (component.getParent());
@@ -983,7 +983,7 @@ public class OpProjectComponent extends XComponent {
             component = (XComponent) getParent();
             while (component != null) {
                if ((component instanceof OpProjectComponent)
-                    && (component.getComponentType() == UTILIZATION_BOX)) {
+                    && (((OpProjectComponent) component).getComponentType() == UTILIZATION_BOX)) {
                   return component;
                }
                component = (XComponent) (component.getParent());
@@ -2500,7 +2500,7 @@ public class OpProjectComponent extends XComponent {
       projectFinish += XCalendar.MILLIS_PER_DAY; // add one day => draw the end line at the end of the previous day
       x = (int) ((projectFinish - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
       g.setColor(XStyle.DEFAULT_RED);
-      g.fillRect(x, 0, 2, bounds.height);
+      g.fillRect((int) x, 0, 2, bounds.height);
    }
 
    /**
@@ -3553,7 +3553,7 @@ public class OpProjectComponent extends XComponent {
       if (pc_type == GANTT_ACTIVITY) {
          // *** Note that it should be sufficient to do this with data-set
          // ==> Subsequent call to doLayout() will have to do the "rest"
-         getDataRow().expanded(expanded);
+         getDataRow().expanded(expanded, false);
          /*
           * setVisible(expanded); OpProjectComponent dependency = null; Vector successor_dependencies =
           * getSuccessorDependencies(); if (successor_dependencies != null) { for (int index = 0; index <
@@ -3849,7 +3849,7 @@ public class OpProjectComponent extends XComponent {
                            if (changeExpandedMode) {
                               XComponent data_row = getDataRow();
                               boolean expanded = !(data_row.getExpanded());
-                              data_row.expanded(expanded);
+                              data_row.expanded(expanded, false);
                               OpProjectComponent box = (OpProjectComponent) getContext();
                               OpProjectComponent chart = (OpProjectComponent) box.getBoxContent();
                               chart.resetCached();
@@ -4858,7 +4858,7 @@ public class OpProjectComponent extends XComponent {
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent data = (XComponent) dataSet.getChild(i);
          if (data.expandable()) {
-            data.expanded(true);
+            data.expanded(true, false);
          }
       }
       chart.resetCached();

@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class OpModuleRegistryLoader extends XLoader {
 
-   private static XLog logger = XLogFactory.getLogger(OpModuleRegistryLoader.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpModuleRegistryLoader.class,true);
 
    // Does not use resource loader: Might in the future contain licensing information
 

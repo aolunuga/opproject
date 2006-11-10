@@ -27,11 +27,11 @@ import java.util.*;
  */
 public class OpAddProjectAssignmentFormProvider implements XFormProvider {
    /*logger for this class */
-   private static XLog logger = XLogFactory.getLogger(OpAddProjectAssignmentFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpAddProjectAssignmentFormProvider.class, true);
    /*resource data set to fill */
-   public final static String RESOURCE_DATA_SET = "ResourceDataSet";
+   private final static String RESOURCE_DATA_SET = "ResourceDataSet";
    /* assigned resource ids param*/
-   public final static String ASSIGNED_RESOURCE_IDS = "resource_ids";
+   private final static String ASSIGNED_RESOURCE_IDS = "resource_ids";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;

@@ -31,7 +31,7 @@ public class OpConfigurationLoader extends XLoader {
 
    public final static String CONFIGURATION_FILE_NAME = "configuration.oxc.xml";
 
-   public final static XSchema CONFIGURATION_SCHEMA = new OpConfigurationSchema();
+   private final static XSchema CONFIGURATION_SCHEMA = new OpConfigurationSchema();
 
    /**
     * This class's logger.

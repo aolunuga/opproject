@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditUserFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpEditUserFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditUserFormProvider.class, true);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
    private final static String ADD_TO_GROUP = "AddToGroupButton";
@@ -120,7 +120,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          languageField.setEnabled(false);
          levelField.setEnabled(false);
          form.findComponent("Cancel").setVisible(false);
-         String title = session.getLocale().getResourceMap("user.Info").getResource("InfoUser")
+         String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoUser")
               .getText();
          form.setText(title);
       }

@@ -16,9 +16,9 @@ import java.util.HashMap;
 
 public class OpAddCommentFormProvider implements XFormProvider {
 
-   public final static String ACTIVITY_ID_FIELD = "ActivityIDField";
+   private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
 
-   private static XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 

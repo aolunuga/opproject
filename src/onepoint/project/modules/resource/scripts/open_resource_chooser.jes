@@ -6,11 +6,17 @@
 
 import onepoint.express.XComponent;
 
-function openResourceChooser(callingFrameID, resourceLocatorFieldID, resourceNameFieldID) {
-	// Open resource chooser dialog w/calling frame and resource field as parameters
-	dialog = XComponent.newDialog();
-   	parameters.CallingFrameID = callingFrameID;
-   	parameters.ResourceLocatorFieldID = resourceLocatorFieldID;
-   	parameters.ResourceNameFieldID = resourceNameFieldID;
-  	dialog.open("/modules/resource/forms/resource_chooser.oxf.xml", parameters);
+function openResourceChooser(callingFrameID, actionHandler, filteredOutIds, multipleSelection, enablePools, enableResources) {
+   // Open resource chooser dialog w/calling frame and resource field as parameters
+   dialog = XComponent.newDialog();
+
+   parameters.CallingFrameID = callingFrameID;
+   parameters.ActionHandler = actionHandler;
+   parameters.FilteredOutIds = filteredOutIds;
+   parameters.MultipleSelection = multipleSelection;
+   parameters.EnablePools = enablePools;
+   parameters.EnableResources = enableResources;
+
+   dialog.open("/modules/resource/forms/resource_chooser.oxf.xml", parameters);
+   
 }

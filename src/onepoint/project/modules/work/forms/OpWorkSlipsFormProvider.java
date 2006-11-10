@@ -23,6 +23,10 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
 
    public final static String WORK_SLIP_SET = "WorkSlipSet";
 
+   public final static int NUMBER_COLUMN_INDEX = 0;
+   public final static int RESOURCE_COLUMN_INDEX = 1;
+   public final static int DATE_COLUMN_INDEX = 2;
+
    public final static String WORK_SLIPS_QUERY = "select workSlip from OpWorkSlip as workSlip where workSlip.Creator.ID = ? order by workSlip.Date desc";
 
    /* form button ids */
@@ -32,6 +36,7 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
    private final static String DELETE_WORK_SLIP_BUTTON = "DeleteWorkSlip";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
+
       //disable buttons that require selection
       XComponent editButton = form.findComponent(EDIT_WORK_SLIP_BUTTON);
       editButton.setEnabled(false);
@@ -65,7 +70,8 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
          data_cell.setValue(work_slip.getDate());
          data_row.addChild(data_cell);
       }
-      /*new work slip button enabled by default */
+
+      //new work slip button enabled by default
       XComponent newWorkSlipButton = form.findComponent(NEW_WORK_SLIP_BUTTON);
 
       // find user asociated resources

@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 public class OpProjectComponentHandler extends XDefaultComponentHandler {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectComponentHandler.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectComponentHandler.class, true);
 
    // Element names *** work with namespace onepoint.at/xml/namespaces/project-component?
    public final static String GANTT_BOX = "gantt-box";

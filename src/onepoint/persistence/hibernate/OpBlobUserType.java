@@ -27,7 +27,7 @@ public class OpBlobUserType implements UserType {
    /**
     * Logger for this class
     */
-   private static XLog logger = XLogFactory.getLogger(OpBlobUserType.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpBlobUserType.class, true);
    /**
     * The sql type(s) this type maps to.
     */

@@ -5,10 +5,12 @@
 // Controller script for edit_group.oxf.xml
 
 require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
 import onepoint.service.XMessage;
+import onepoint.express.XValidator;
 
 function ok(event) {
    form = XDisplay.getActiveForm();
@@ -53,13 +55,15 @@ function cancel(event) {
 
 function addGroup(event) {
    form = XDisplay.getActiveForm();
-   parameters.group_id = form.findComponent("GroupID").getStringValue();
-   assignedGroupDataSet = form.findComponent("AssignedGroupDataSet");
-   parameters.AssignedGroupsDataSet =  assignedGroupDataSet;
-   dialog = XComponent.newDialog();
-   dialog.open("/modules/user/forms/add_group.oxf.xml", parameters);
-   // *** How could we reuse group-chooser?
-   // ==> Maybe via client-variables (transfer to client in every response?)
+   assignedGroupsDataSet = form.findComponent("AssignedGroupDataSet");
+   filteredIds = new ArrayList;
+   i = 0;
+   while (i < assignedGroupsDataSet.getChildCount()) {
+      choiceId = XValidator.choiceID(assignedGroupsDataSet.getChild(i).getStringValue());
+      filteredIds[i] = choiceId;
+      i++;
+   }
+   openSubjectChooser("MainFrame", "setSuperGroups_NewEdit", false, true, filteredIds, true, false);
 }
 
 function removeGroup(event) {

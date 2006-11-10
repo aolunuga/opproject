@@ -10,12 +10,12 @@ import onepoint.log.XLogFactory;
 import onepoint.project.util.OpRSASecurity;
 
 /**
- * Test Class for the security implemented using RSA keys.
+ * Test Class for the security implemented usin RSA keys.
  *
  * @author : mihai.costin
  */
 public class OpRSASecurityTest extends TestCase {
-   private static XLog logger = XLogFactory.getLogger(OpRSASecurityTest.class);
+   private static final XLog logger = XLogFactory.getLogger(OpRSASecurityTest.class);
 
    //string representation of the rsa keys as given by the generator tool
    private String publicKeyString = "116238789113458587215212688017563464591464179143939145689261027347724562289824836899520779190012456394523521549475239340476449277819313343109099805604424660613207490514594673755792395718738298348251524586258683588380365543382224782894410610524513430125076743856000434396817041063418509218852913104423392740361#65537";

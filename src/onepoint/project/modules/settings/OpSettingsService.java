@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class OpSettingsService extends OpProjectService {
 
-   private static XLog logger = XLogFactory.getLogger(OpSettingsService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpSettingsService.class, true);
 
    // Form parameters
    public static final String NEW_SETTINGS = "new_settings";

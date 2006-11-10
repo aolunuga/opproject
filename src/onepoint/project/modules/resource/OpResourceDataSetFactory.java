@@ -53,6 +53,7 @@ public final class OpResourceDataSetFactory {
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
       addSubPoolRows(session, broker, dataSet, localizer, -1, 0, poolColumnsSelector, resourceColumnsSelector);
+      dataSet.synchronizeExpanded();
    }
 
    private static void addSubPoolRows(OpProjectSession session, OpBroker broker, XComponent dataSet,

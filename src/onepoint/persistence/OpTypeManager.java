@@ -13,7 +13,7 @@ import java.util.Iterator;
 
 public class OpTypeManager {
 
-   private static XLog logger = XLogFactory.getLogger(OpTypeManager.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpTypeManager.class, true);
 
    private static Hashtable _types;
    private static Hashtable _prototypes;

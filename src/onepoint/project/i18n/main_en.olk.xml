@@ -7,10 +7,11 @@
    <resource-map id="main.levels">
       <resource id="runLevel0">Could not load configuration file</resource>
       <resource id="runLevel1">Could not load registered modules</resource>
-      <resource id="runLevel2">Could not connect to database instance: Please check if database user, password and instance name are correct</resource>
-      <resource id="runLevel3">Repository structure could not be set up</resource>
-      <resource id="runLevel4">Could not update database schema</resource>
-      <resource id="runLevel5">Could not start registered modules</resource>
+      <resource id="runLevel2">No connection to database: Please check the JDBC driver</resource>
+      <resource id="runLevel3">No connection to database: Please check if database user, password and instance name are correct</resource>
+      <resource id="runLevel4">Repository structure could not be set up</resource>
+      <resource id="runLevel5">Could not update database schema</resource>
+      <resource id="runLevel6">Could not start registered modules</resource>
    </resource-map>
    <resource-map id="main.header">
       <resource id="ClearResourceCache">Clear Resource Cache</resource>

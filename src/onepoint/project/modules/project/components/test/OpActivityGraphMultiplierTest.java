@@ -46,7 +46,7 @@ public class OpActivityGraphMultiplierTest extends TestCase {
    /**
     * validator used in OpGanttValidator part of the tests.
     */
-   OpGanttValidator validator;
+   private OpGanttValidator validator;
 
    /**
     * @see junit.framework.TestCase#setUp()

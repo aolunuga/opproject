@@ -115,6 +115,7 @@
    <!-- Pattern set for all test resources of the application -->
    <patternset id="resources.test.pathid">
       <include name="**/*.xml"/>
+      <include name="**/test/*.jes"/>
    </patternset>
 
    <!-- Pattern set for the lib files of the web application -->

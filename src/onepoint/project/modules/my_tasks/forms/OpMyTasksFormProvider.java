@@ -27,17 +27,17 @@ import java.util.*;
 
 public class OpMyTasksFormProvider implements XFormProvider {
 
-   public final static String ACTIVITY_SET = "ActivitySet";
-   public final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
-   public final static String PRINT_TITLE = "PrintTitle";
-   public final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
-   public final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
-   public final static String START_BEFORE_SET = "StartBeforeSet";
-   public final static String PROJECT_SET = "ProjectSet";
+   private final static String ACTIVITY_SET = "ActivitySet";
+   private final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
+   private final static String PRINT_TITLE = "PrintTitle";
+   private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
+   private final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
+   private final static String START_BEFORE_SET = "StartBeforeSet";
+   private final static String PROJECT_SET = "ProjectSet";
 
    /* filters*/
-   public final static String START_BEFORE_ID = "start_before_id";
-   public final static String PROJECT_CHOICE_ID = "project_choice_id";
+   private final static String START_BEFORE_ID = "start_before_id";
+   private final static String PROJECT_CHOICE_ID = "project_choice_id";
    /*start from filter choices */
    private final static String ALL = "all";
    private final static String NEXT_WEEK = "nw";

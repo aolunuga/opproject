@@ -21,15 +21,15 @@ public class OpGanttValidator extends XValidator {
    // *** Note: Also simplification possible for milestones
 
    // Component IDs of additional data holders
-   public final static String ABSENCES_START = "AbsencesStart";
-   public final static String ABSENCES_SET = "AbsencesSet";
+   private final static String ABSENCES_START = "AbsencesStart";
+   private final static String ABSENCES_SET = "AbsencesSet";
    public final static String ASSIGNMENT_SET = "AssignmentSet";
    public final static String PROJECT_START = "ProjectStartField";
-   public final static String PROJECT_FINISH = "ProjectFinishField";
+   private final static String PROJECT_FINISH = "ProjectFinishField";
    public final static String PROJECT_SETTINGS_DATA_SET = "ProjectSettingsDataSet";
-   public final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
+   private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
 
-   private static XLog logger = XLogFactory.getLogger(OpGanttValidator.class);
+   private static final XLog logger = XLogFactory.getLogger(OpGanttValidator.class);
 
    // *** Note that we assume a certain number and order of columns
 
@@ -63,18 +63,18 @@ public class OpGanttValidator extends XValidator {
    public final static int DESCRIPTION_COLUMN_INDEX = 16;
    public final static int ATTACHMENTS_COLUMN_INDEX = 17;
    public final static int MODE_COLUMN_INDEX = 18;
-   public final static int WORK_PHASE_STARTS_COLUMN_INDEX = 19;
-   public final static int WORK_PHASE_FINISHES_COLUMN_INDEX = 20;
-   public final static int WORK_PHASE_BASE_EFFORTS_COLUMN_INDEX = 21;
-   public final static int RESOURCE_BASE_EFFORTS_COLUMN_INDEX = 22;
-   public final static int PRIORITY_COLUMN_INDEX = 23;
-   public final static int WORKRECORDS_COLUMN_INDEX = 24;
-   public final static int ACTUAL_EFFORT_COLUMN_INDEX = 25;
+   private final static int WORK_PHASE_STARTS_COLUMN_INDEX = 19;
+   private final static int WORK_PHASE_FINISHES_COLUMN_INDEX = 20;
+   private final static int WORK_PHASE_BASE_EFFORTS_COLUMN_INDEX = 21;
+   private final static int RESOURCE_BASE_EFFORTS_COLUMN_INDEX = 22;
+   private final static int PRIORITY_COLUMN_INDEX = 23;
+   private final static int WORKRECORDS_COLUMN_INDEX = 24;
+   private final static int ACTUAL_EFFORT_COLUMN_INDEX = 25;
    public final static int VISUAL_RESOURCES_COLUMN_INDEX = 26;
 
    // Assignment set column indexes
-   public final static int AVAILABLE_COLUMN_INDEX = 0;
-   public final static int HOURLY_RATE_COLUMN_INDEX = 1;
+   private final static int AVAILABLE_COLUMN_INDEX = 0;
+   private final static int HOURLY_RATE_COLUMN_INDEX = 1;
 
    // Activity types
    public final static byte STANDARD = 0;
@@ -512,7 +512,7 @@ public class OpGanttValidator extends XValidator {
       ArrayList predecessors = getPredecessors(data_row);
       if (predecessors != null) {
          for (int i = 0; i < predecessors.size(); i++) {
-            if (predecessors.get(i).equals(resource)) {
+            if (((String) (predecessors.get(i))).equals(resource)) {
                predecessors.remove(i);
                return;
             }
@@ -812,6 +812,10 @@ public class OpGanttValidator extends XValidator {
          }
       }
       return null;
+   }
+
+   public void setHourBasedResourceView(boolean hourBasedView){
+      this.hourBasedResources = Boolean.valueOf(hourBasedView);   
    }
 
    public boolean isHourBasedResourceView(){
@@ -1196,7 +1200,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
             // a "new collection" will be expanded.
             if (oldType != COLLECTION) {
-               activity.expanded(true);
+               activity.expanded(true, false);
             }
             setPriority(activity, null);
             setResources(activity, new ArrayList());
@@ -1249,7 +1253,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
             setPriority(activity, null);
             if (activity.expandable()) {
-               activity.expanded(true);
+               activity.expanded(true, false);
             }
             break;
          case SCHEDULED_TASK:
@@ -1271,7 +1275,7 @@ public class OpGanttValidator extends XValidator {
             setResources(activity, new ArrayList());
             setVisualResources(activity, new ArrayList());
             if (activity.expandable()) {
-               activity.expanded(true);
+               activity.expanded(true, false);
             }
             break;
          case COLLECTION_TASK:
@@ -1299,7 +1303,7 @@ public class OpGanttValidator extends XValidator {
             breakAllLinks(activity);
             setPriority(activity, null);
             if (oldType != COLLECTION_TASK) {
-               activity.expanded(true);
+               activity.expanded(true, false);
             }
             break;
          case TASK:
@@ -1478,9 +1482,6 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   // *** Put calendar into member variables?
-   // ==> Anyway reuse is from session, i.e., client-variables?
-
    private void _validateActivity(XComponent activity, XCalendar calendar, Date not_before, boolean child,
         boolean parent) {
       // Recursive validation method: Start time of successor is set to this end
@@ -1499,14 +1500,7 @@ public class OpGanttValidator extends XValidator {
             logger.debug("   duration " + duration);
             if (duration > 0.0) {
                start = calendar.nextWorkDay(not_before);
-               // logger.debug(" Next work day " + start);
-               // end = calendar.addWorkDays(start, (int) (duration /
-               // calendar.getDayWorkTime()));
-               // *** The following is a hack: Assumes that duration is DAYS
 
-               // end = calendar.addWorkDays(start, duration);
-               // TODO: Possible optimization for moving -- check if number of non-working days has changed
-               // (If not it is not necessary to update effort and duration)
                long amount = 0;
                if (workingProjectStart != null && start.before(workingProjectStart)) {
                   amount = workingProjectStart.getTime() - start.getTime();
@@ -1649,7 +1643,7 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void _validateSuperActivity(XComponent activity, XCalendar calendar, Date child_start, Date child_end) {
+   private void _validateSuperActivity(XComponent activity, XCalendar calendar, Date child_start, Date child_end) {
       Date start = getStart(activity);
       Date end = getEnd(activity);
       logger.debug("cs, ce " + child_start + "," + child_end);
@@ -3235,7 +3229,7 @@ public class OpGanttValidator extends XValidator {
          ArrayList collectionParents = getCollectionsForActivity(row);
          for (int i = 0; i < collectionParents.size(); i++) {
             XComponent collectionActivity = (XComponent) collectionParents.get(i);
-            collectionActivity.expanded(true);
+            collectionActivity.expanded(true, false);
          }
       }
    }

@@ -19,6 +19,7 @@
       <resource id="AddAfter">Vorgang einfügen (danach)</resource>
       <resource id="Delete">Vorgänge löschen</resource>
       <resource id="Edit">Vorgang bearbeiten</resource>
+      <resource id="Validate">Projekt neu berechnen</resource>
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>
 

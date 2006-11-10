@@ -28,8 +28,10 @@ public class OpPrototypeHandler implements XNodeHandler {
           */
       }
       value = attributes.get("super-type");
-      if (value instanceof String) {
-         prototype.setSuperTypeName((String) value);
+      if ((value != null) && (value instanceof String)) {
+         if ((value != null) && (value instanceof String)) {
+            prototype.setSuperTypeName((String) value);
+         }
       }
       return prototype;
    }

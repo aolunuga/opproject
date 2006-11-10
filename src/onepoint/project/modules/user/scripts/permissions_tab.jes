@@ -13,7 +13,7 @@ function addSubject(event) {
    // Open subject chooser and add subject to permission set
    // (Note: Needs callback when subject was choosen by chooser, e.g., "addSelectedSubject")
    Console.println("==> addSubject");
-   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addSelectedSubject", true, true, null, true);
+   openSubjectChooser(XDisplay.getActiveWindow().getID(), "addSelectedSubject", true, true, null, true, null);
    XDisplay.findFrame("MainFrame").repaint();
 }
 

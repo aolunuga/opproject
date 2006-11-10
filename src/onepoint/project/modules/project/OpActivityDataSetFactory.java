@@ -178,9 +178,18 @@ public abstract class OpActivityDataSetFactory {
       // Note: Activity comments are not part of the client-side data-set
    }
 
+   /**
+    * Transforms from work periods into work phases on a given activity. Stores the resulting work phases on the given
+    * data row using the mechanism from the validator.
+    *
+    * @param dataRow              row to process
+    * @param workPeriodStart      start of the work period
+    * @param workPeriodListValues the work period values (working days number and base effort)
+    */
    public static void addWorkPhases(XComponent dataRow, Date workPeriodStart, List workPeriodListValues) {
-      long workingDays = ((Long)workPeriodListValues.get(0)).longValue();
-      double periodBaseEffort = ((Double)workPeriodListValues.get(1)).doubleValue();
+
+      long workingDays = ((Long) workPeriodListValues.get(0)).longValue();
+      double periodBaseEffort = ((Double) workPeriodListValues.get(1)).doubleValue();
       Date activityFinish = OpGanttValidator.getEnd(dataRow);
       Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
       calendar.setTime(workPeriodStart);
@@ -466,7 +475,7 @@ public abstract class OpActivityDataSetFactory {
 
    }
 
-   protected static void retrieveAttachments(Set attachments, XComponent dataRow) {
+   private static void retrieveAttachments(Set attachments, XComponent dataRow) {
       // TODO: Bulk-fetch like other parts of the project plan
       ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
       Iterator i = attachments.iterator();
@@ -495,7 +504,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   protected static void retrieveActivityDataRow(OpActivity activity, XComponent dataRow, boolean editable) {
+   private static void retrieveActivityDataRow(OpActivity activity, XComponent dataRow, boolean editable) {
 
       dataRow.setStringValue(activity.locator());
 
@@ -700,7 +709,7 @@ public abstract class OpActivityDataSetFactory {
       return activities;
    }
 
-   public static void mapActivityVersionIDs(OpBroker broker, XComponent dataSet, OpProjectPlanVersion workingPlanVersion) {
+   private static void mapActivityVersionIDs(OpBroker broker, XComponent dataSet, OpProjectPlanVersion workingPlanVersion) {
       // Exchange all activity version IDs contained in data-row values with their respective actual activity IDs
 
       HashMap activityVersionIdMap = new HashMap();
@@ -884,7 +893,7 @@ public abstract class OpActivityDataSetFactory {
 
    }
 
-   protected static OpActivity insertOrUpdateActivity(OpBroker broker, XComponent dataRow, OpActivity activity,
+   private static OpActivity insertOrUpdateActivity(OpBroker broker, XComponent dataRow, OpActivity activity,
          OpProjectPlan projectPlan, OpActivity superActivity) {
 
       String categoryLocator = null;
@@ -1152,7 +1161,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {
+   private static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {
       OpAssignment assignment = null;
       XComponent dataRow = null;
       ArrayList resourceList = null;
@@ -1249,7 +1258,7 @@ public abstract class OpActivityDataSetFactory {
       return reusableAssignments;
    }
 
-   protected static void insertActivityAssignments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
+   private static void insertActivityAssignments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
          OpActivity activity, ArrayList reusableAssignments, HashMap resources) {
       ArrayList resourceList = OpGanttValidator.getResources(dataRow);
       String resourceChoice = null;
@@ -1309,7 +1318,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteWorkPeriods(OpBroker broker, XComponent dataSet, Iterator workPeriodsIt) {
+   private static ArrayList updateOrDeleteWorkPeriods(OpBroker broker, XComponent dataSet, Iterator workPeriodsIt) {
       OpWorkPeriod workPeriod = null;
       XComponent dataRow = null;
       int i = 0;
@@ -1362,7 +1371,7 @@ public abstract class OpActivityDataSetFactory {
       return reusableWorkPeriods;
    }
 
-   protected static void insertActivityWorkPeriods(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
+   private static void insertActivityWorkPeriods(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
         OpActivity activity, ArrayList reusableWorkPeriods) {
 
       Map workPeriods = getWorkPeriods(dataRow);
@@ -1407,7 +1416,14 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   public static Map getWorkPeriods(XComponent dataRow){
+   /**
+    * Transforms from work phases on a given activity into work periods.
+    *
+    * @param dataRow row to get the work periods for.
+    * @return <code>Map</code>0 representing the work period list, where key=period start, value=<code>List</code>
+    *         containing working days as <code>Long</code> and base effort per day as <code>Double</code>
+    */
+   public static Map getWorkPeriods(XComponent dataRow) {
       Map workPeriods = new TreeMap();
 
       List rowStarts = OpGanttValidator.getWorkPhaseStarts(dataRow);
@@ -1417,7 +1433,7 @@ public abstract class OpActivityDataSetFactory {
       }
       //use a tree map in order to sort work phases from validator by start date.
       TreeMap workPhases = new TreeMap();
-      for (int i=0; i<rowStarts.size(); i++) {
+      for (int i = 0; i < rowStarts.size(); i++) {
          Date start = (Date) rowStarts.get(i);
          Date end = (Date) rowEnds.get(i);
          workPhases.put(start, end);
@@ -1435,7 +1451,7 @@ public abstract class OpActivityDataSetFactory {
       double days = OpGanttValidator.getDuration(dataRow) / defaultCalendar.getWorkHoursPerDay();
       double baseEffortPerDay = OpGanttValidator.getBaseEffort(dataRow) / days;
       Date firstStart = (Date) workPhaseStartsSorted.get(0);
-      Date lastEnd = (Date) workPhaseFinishesSorted.get(workPhaseFinishesSorted.size() - 1) ;
+      Date lastEnd = (Date) workPhaseFinishesSorted.get(workPhaseFinishesSorted.size() - 1);
       calendar.setTime(firstStart);
       int index = 0;
       int i = 0;
@@ -1444,8 +1460,8 @@ public abstract class OpActivityDataSetFactory {
 
       Date periodStart = getPeriodStartForDate(calendar.getTime());
       while (calendar.getTime().getTime() <= lastEnd.getTime()) {
-         Date currentStart =  (Date) workPhaseStartsSorted.get(index);
-         Date currentFinish =  (Date) workPhaseFinishesSorted.get(index);
+         Date currentStart = (Date) workPhaseStartsSorted.get(index);
+         Date currentFinish = (Date) workPhaseFinishesSorted.get(index);
 
          //begin the continuous work stage
          if (calendar.getTime().equals(currentStart)) {
@@ -1456,7 +1472,7 @@ public abstract class OpActivityDataSetFactory {
          if (i == 0) {
             periodStart = getPeriodStartForDate(calendar.getTime());
             //adjust the index if current day > period start (this can happen for the fist day of the activity)
-            i = (int) ((calendar.getTime().getTime() - periodStart.getTime())/ XCalendar.MILLIS_PER_DAY);
+            i = (int) ((calendar.getTime().getTime() - periodStart.getTime()) / XCalendar.MILLIS_PER_DAY);
          }
 
          //set state of day in working days
@@ -1498,7 +1514,7 @@ public abstract class OpActivityDataSetFactory {
    }
 
 
-   protected static ArrayList updateOrDeleteAttachments(OpBroker broker, XComponent dataSet, Iterator attachments) {
+   private static ArrayList updateOrDeleteAttachments(OpBroker broker, XComponent dataSet, Iterator attachments) {
       OpAttachment attachment = null;
       XComponent dataRow = null;
       int i = 0;
@@ -1551,7 +1567,7 @@ public abstract class OpActivityDataSetFactory {
       return reusableAttachments;
    }
 
-   protected static void insertActivityAttachments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
+   private static void insertActivityAttachments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
          OpActivity activity, ArrayList reusableAttachments) {
       ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
       ArrayList attachmentElement = null;
@@ -1595,7 +1611,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
+   private static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
       OpDependency dependency = null;
       XComponent predecessorDataRow = null;
       XComponent successorDataRow = null;
@@ -1641,7 +1657,7 @@ public abstract class OpActivityDataSetFactory {
       return reusableDependencys;
    }
 
-   protected static void insertActivityDependencies(OpBroker broker, OpProjectPlan plan, XComponent dataSet,
+   private static void insertActivityDependencies(OpBroker broker, OpProjectPlan plan, XComponent dataSet,
          XComponent dataRow, OpActivity activity, ArrayList activityList, ArrayList reusableDependencys) {
       // Note: We only check for new predecessor indexes
       // (Successors are just the other side of the bi-directional association)

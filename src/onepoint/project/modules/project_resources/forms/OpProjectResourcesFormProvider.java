@@ -20,9 +20,9 @@ import java.util.Iterator;
 
 public class OpProjectResourcesFormProvider implements XFormProvider {
 
-   public final static String RESOURCE_SET = "ResourceSet";
+   private final static String RESOURCE_SET = "ResourceSet";
 
-   public final static String PROJECT_ID = "project_id";
+   protected final static String PROJECT_ID = "project_id";
 
    public final static int ACTIVITY_RESOURCE_COLUMN_INDEX = 0;
    public final static int BASE_COLUMN_INDEX = 1;
@@ -31,8 +31,8 @@ public class OpProjectResourcesFormProvider implements XFormProvider {
    public final static int PREDICTED_COLUMN_INDEX = 4;
    public final static int DEVIATION_COLUMN_INDEX = 5;
    public final static int DEVIATION100_COLUMN_INDEX = 6;
-   public final static String PRINT_TITLE = "PrintTitle";
-   public final static String PRINT_BUTTON = "PrintButton";
+   private final static String PRINT_TITLE = "PrintTitle";
+   private final static String PRINT_BUTTON = "PrintButton";
    // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining
    // (Therefore, deviation = predicted - base)
 

@@ -33,23 +33,23 @@ import java.util.Iterator;
 
 public class OpEditActivityFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
 
-   public final static String ACTIVITY_CATEGORY_DATA_SET = "ActivityCategoryDataSet";
-   public final static String ACTIVITY_CATEGORY_CHOOSER = "Category";
-   public final static String COMMENTS_LABEL = "CommentsLabel";
-   public final static String COMMENTS_PANEL = "CommentsPanel";
-   public final static String ADD_COMMENT_BUTTON = "AddCommentButton";
-   public final static String ACTIVITY_ID_FIELD = "ActivityIDField";
-   public final static String HAS_COMMENTS_FIELD = "HasCommentsField";
+   private final static String ACTIVITY_CATEGORY_DATA_SET = "ActivityCategoryDataSet";
+   private final static String ACTIVITY_CATEGORY_CHOOSER = "Category";
+   private final static String COMMENTS_LABEL = "CommentsLabel";
+   private final static String COMMENTS_PANEL = "CommentsPanel";
+   private final static String ADD_COMMENT_BUTTON = "AddCommentButton";
+   private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
+   private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
    
    public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
    
    /*action that should be performed when a comment is removed */
-   public static final String REMOVE_COMMENT_ACTION = "removeComment";
+   private static final String REMOVE_COMMENT_ACTION = "removeComment";
    /*remove comment button icon */
-   public static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
-   public static final String REMOVE_COMMENT_BUTTON_STYLE_REF = "icon-button-default";
+   private static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
+   private static final String REMOVE_COMMENT_BUTTON_STYLE_REF = "icon-button-default";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -138,7 +138,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       categoryChooser.setEnabled(false);
    }
    
-   protected int addComments(OpProjectSession session, OpBroker broker, OpActivity activity, XComponent commentsPanel, XLanguageResourceMap resourceMap, boolean enableCommentRemoving) {
+   private int addComments(OpProjectSession session, OpBroker broker, OpActivity activity, XComponent commentsPanel, XLanguageResourceMap resourceMap, boolean enableCommentRemoving) {
 
       OpQuery query = broker.newQuery("select comment, creator.DisplayName from OpActivityComment as comment inner join comment.Creator as creator where comment.Activity.ID = ? order by comment.Sequence");
 

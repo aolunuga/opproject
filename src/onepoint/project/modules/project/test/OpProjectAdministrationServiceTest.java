@@ -78,10 +78,10 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
    protected final String PROJECT_ID = "OpProjectNode.1500.xid";
 
 
-   protected final int SESSION_USER_ID_LONG = 666;
-   protected final String SESSION_USED_ID = "OpUser."+SESSION_USER_ID_LONG+".xid";
-   protected final int EVERYONE_ID_LONG = 222;
-   protected final String EVERYONE_GROUP_ID = "OpGroup."+EVERYONE_ID_LONG+".xid";
+   private final int SESSION_USER_ID_LONG = 666;
+   protected final String SESSION_USED_ID = "OpUser." + SESSION_USER_ID_LONG + ".xid";
+   private final int EVERYONE_ID_LONG = 222;
+   protected final String EVERYONE_GROUP_ID = "OpGroup." + EVERYONE_ID_LONG + ".xid";
 
    /**
     * HQL
@@ -115,7 +115,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
    protected void setUp() {
       super.setUp();
       //create the administrationService
-      administrationService =  getTestedService();
+      administrationService = getTestedService();
       //the session user
       sessionUser = new OpUser();
       sessionUser.setID(SESSION_USER_ID_LONG);
@@ -152,7 +152,6 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       project.setToDos(new HashSet());
       project.setPlan(projectPlan);
 
-
       //create a super portfolio
       superPortfolio = new OpProjectNode();
       superPortfolio.setType(OpProjectNode.PORTFOLIO);
@@ -179,7 +178,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
    }
 
    protected OpProjectAdministrationService getTestedService() {
-     return new OpProjectAdministrationService();
+      return new OpProjectAdministrationService();
    }
 
 
@@ -216,7 +215,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       }
       //get everyone group
       else if (methodName.equals(EVERYONE_METHOD)) {
-          return everyone;
+         return everyone;
       }
       //check acces level
       else if (methodName.equals(CHECK_ACCESS_LEVEL_METHOD)) {
@@ -298,8 +297,6 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
    }
 
 
-
-
    /**
     * Creates a goal data component
     *
@@ -359,7 +356,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       checkInsertProjectWrongData("", "projectDescription", XCalendar.today(), XCalendar.today(), 0, goals, toDos);
       checkInsertProjectWrongData("projectName", "projectDescription", null, XCalendar.today(), 0, goals, toDos);
       checkInsertProjectWrongData("projectName", "projectDescription", XCalendar.today(),
-                              new Date(XCalendar.today().getTime() - XCalendar.MILLIS_PER_WEEK), 0, goals, toDos);
+           new Date(XCalendar.today().getTime() - XCalendar.MILLIS_PER_WEEK), 0, goals, toDos);
       //start date before end date
       Date startDate = new Date(XCalendar.today().getTime() + XCalendar.MILLIS_PER_DAY);
       checkInsertProjectWrongData("projectName", "projectDescription", startDate, XCalendar.today(), 0, goals, toDos);
@@ -450,7 +447,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project must be persisted
       mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).with(createProjectNodeConstraint(projectData));
-       //the project plan must be persisted
+      //the project plan must be persisted
       mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).with(isA(OpProjectPlan.class));
       //error must be generated
       mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
@@ -533,7 +530,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project's portfolio is searched for
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PORTFOLIO_ID_BY_PROJECT_ID)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and add a portfolio id
             queryResults.clear();
             queryResults.add(new Long(portfolio.getID()));
@@ -545,7 +543,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
          }
       });
       mockQuery.expects(atLeastOnce()).method(SET_COLLECTION_METHOD);
-      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"),eq(OpProjectNode.PROJECT)});
+      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"), eq(OpProjectNode.PROJECT)});
       //list  results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(methodStub);
       //session accesible portfolio ids
@@ -553,7 +551,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the accessible projects for delete operation
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_ACCESSIBLE_PROJECTS)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and project
             queryResults.clear();
             queryResults.add(project);
@@ -566,7 +565,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       });
       //the project work records count
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PROJECT_WORK_RECORDS)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //no work records for project inside portfolio
             queryResults.clear();
             queryResults.add(new Integer(0));
@@ -611,7 +611,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project's portfolio is searched for
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PORTFOLIO_ID_BY_PROJECT_ID)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and add a portfolio id
             queryResults.clear();
             queryResults.add(new Long(portfolio.getID()));
@@ -623,12 +624,13 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
          }
       });
       mockQuery.expects(atLeastOnce()).method(SET_COLLECTION_METHOD);
-      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"),eq(OpProjectNode.PROJECT)});
+      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"), eq(OpProjectNode.PROJECT)});
       //list  results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(methodStub);
       //session accesible portfolio ids
       mockSession.expects(once()).method(ACCESSIBLE_IDS_METHOD).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new HashSet();
          }
 
@@ -647,6 +649,69 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
+   }
+
+   public void testMoveProjectNodeOk() {
+      XMessage request = new XMessage();
+      //the id of the project that will be deleted
+      List projectIds = new ArrayList();
+      projectIds.add(PROJECT_ID);
+      //set up the request - project to be moved
+      request.setArgument(OpProjectAdministrationService.PROJECT_IDS, projectIds);
+      //portfolio to be moved to
+      request.setArgument(OpProjectAdministrationService.PORTFOLIO_ID, PORTFOLIO_ID);
+
+      //broker must be called
+      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+      //a new transaction will be created
+      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
+
+      //get the portfolio
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(PORTFOLIO_ID)).will(methodStub);
+
+      //get the project
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(PROJECT_ID)).will(methodStub);
+
+      // the check acces level must be performed
+      mockSession.expects(atLeastOnce()).method(CHECK_ACCESS_LEVEL_METHOD).will(methodStub);
+
+      mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(createProjectNodeWithSuperNodeConstraint(project, portfolio));
+
+      //commit & close broker
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
+      mockBroker.expects(once()).method(CLOSE_METHOD);
+
+      XMessage result = administrationService.moveProjectNode((XSession) mockSession.proxy(), request);
+      assertNull("No Error message should have been returned", result.getError());
+   }
+
+   public void testMoveProjectNodeNoRights() {
+      XMessage request = new XMessage();
+      //the id of the project that will be deleted
+      List projectIds = new ArrayList();
+      projectIds.add(PROJECT_ID);
+      //set up the request - project to be moved
+      request.setArgument(OpProjectAdministrationService.PROJECT_IDS, projectIds);
+      //portfolio to be moved to
+      request.setArgument(OpProjectAdministrationService.PORTFOLIO_ID, PORTFOLIO_ID);
+
+      //broker must be called
+      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+      //a new transaction will be created
+      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
+
+      //get the portfolio
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(PORTFOLIO_ID)).will(methodStub);
+
+      // the check acces level must be performed
+      mockSession.expects(once()).method(CHECK_ACCESS_LEVEL_METHOD).will(returnValue(false));
+
+      //commit & close broker
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
+      mockBroker.expects(once()).method(CLOSE_METHOD);
+
+      XMessage result = administrationService.moveProjectNode((XSession) mockSession.proxy(), request);
+      assertNotNull("Error message should have been returned", result.getError());
    }
 
    /**
@@ -884,7 +949,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       mockQuery.expects(once()).method(SET_BYTE_METHOD).with(new Constraint[]{eq(1), eq(OpProjectNode.PORTFOLIO)});
       //list results for super portfolio
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(superPortfolio);
             return queryResults;
@@ -899,7 +965,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //iterate over results for existent portfolio with the same name
       mockBroker.expects(once()).method(ITERATE_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults.iterator();
          }
@@ -982,7 +1049,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       mockQuery.expects(once()).method(SET_BYTE_METHOD).with(new Constraint[]{eq(1), eq(OpProjectNode.PORTFOLIO)});
       //list results for super portfolio
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(superPortfolio);
             return queryResults;
@@ -997,7 +1065,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //iterate over results for existent portfolio with the same name
       mockBroker.expects(once()).method(ITERATE_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(portfolio);
             return queryResults.iterator();
@@ -1065,7 +1134,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       mockQuery.expects(once()).method(SET_BYTE_METHOD).with(new Constraint[]{eq(1), eq(OpProjectNode.PORTFOLIO)});
       //list results for super portfolio
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(superPortfolio);
             return queryResults;
@@ -1242,7 +1312,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project's portfolio is searched for
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_SUPER_PORTFOLIO_ID_BY_PORTFOLIO_ID)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and add the super portfolio id
             queryResults.clear();
             queryResults.add(new Long(superPortfolio.getID()));
@@ -1254,7 +1325,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
          }
       });
       mockQuery.expects(atLeastOnce()).method(SET_COLLECTION_METHOD);
-      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"),eq(OpProjectNode.PORTFOLIO)});
+      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"), eq(OpProjectNode.PORTFOLIO)});
       //list  results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(methodStub);
       //session accesible super portfolio ids
@@ -1262,7 +1333,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the accessible portfolios for delete operation
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_ACCESSIBLE_PORTFOLIOS)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and a portfolio
             queryResults.clear();
             queryResults.add(portfolio);
@@ -1276,7 +1348,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project work records count
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PROJECT_WORK_RECORDS)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //no work records for project inside portfolio
             queryResults.clear();
             queryResults.add(new Integer(0));
@@ -1321,7 +1394,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       //the project's portfolio is searched for
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_SUPER_PORTFOLIO_ID_BY_PORTFOLIO_ID)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and add the super portfolio id
             queryResults.clear();
             queryResults.add(new Long(superPortfolio.getID()));
@@ -1333,12 +1407,13 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
          }
       });
       mockQuery.expects(atLeastOnce()).method(SET_COLLECTION_METHOD);
-      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"),eq(OpProjectNode.PORTFOLIO)});
+      mockQuery.expects(atLeastOnce()).method(SET_BYTE_METHOD).with(new Constraint[]{eq("projectType"), eq(OpProjectNode.PORTFOLIO)});
       //list  results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(methodStub);
       //session accesible super portfolio ids
       mockSession.expects(once()).method(ACCESSIBLE_IDS_METHOD).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new HashSet();
          }
 
@@ -1386,8 +1461,9 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
                return false;
             }
             OpProjectNode portfolio = (OpProjectNode) object;
-            if (portfolio.getType() != OpProjectNode.PORTFOLIO)
+            if (portfolio.getType() != OpProjectNode.PORTFOLIO) {
                return false;
+            }
             if (!portfolioData.get(OpProjectNode.NAME).equals(portfolio.getName())) {
                return false;
             }
@@ -1437,8 +1513,9 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
                return false;
             }
             OpProjectNode project = (OpProjectNode) object;
-            if (project.getType() != OpProjectNode.PROJECT)
+            if (project.getType() != OpProjectNode.PROJECT) {
                return false;
+            }
             if (!projectData.get(OpProjectNode.NAME).equals(project.getName())) {
                return false;
             }
@@ -1459,6 +1536,41 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
          }
       };
    }
+
+
+   /**
+    * Creates a new constraint (anonymous inner class) that can be used to check if a project is the expected one.
+    *
+    * @return <code>Constraint</code> representing a project constraint
+    */
+   protected Constraint createProjectNodeWithSuperNodeConstraint(final OpProjectNode projectNode, final OpProjectNode portfolio) {
+
+      return new Constraint() {
+
+         public boolean eval(Object object) {
+            if (!(object instanceof OpProjectNode)) {
+               return false;
+            }
+            OpProjectNode project = (OpProjectNode) object;
+            if (project.getType() != OpProjectNode.PROJECT) {
+               return false;
+            }
+            if (project != projectNode) {
+               return false;
+            }
+            OpProjectNode superNode = project.getSuperNode();
+            if (superNode != portfolio) {
+               return false;
+            }
+            return true;
+         }
+
+         public StringBuffer describeTo(StringBuffer stringBuffer) {
+            return stringBuffer.append("Will check if a project has the expected super-node");
+         }
+      };
+   }
+
 
    /**
     * Creates a constraint for a OpGoal instance .

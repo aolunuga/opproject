@@ -1,4 +1,7 @@
-<form id="ProjectNavigatorForm" layout="border" resource-map-ref="project_planning.Navigator" provider-class="onepoint.project.modules.project_planning.forms.OpProjectNavigatorFormProvider" script="/modules/project_planning/scripts/project_navigator.jes">
+<form id="ProjectNavigatorForm" layout="border" resource-map-ref="project_planning.Navigator"
+      provider-class="onepoint.project.modules.project_planning.forms.OpProjectNavigatorFormProvider"
+      script="/modules/project_planning/scripts/project_navigator.jes">
+
    <data-set id="IconSet">
       <data-row icon="/modules/project/icons/portfolio.png"/>
       <data-row icon="/modules/project/icons/template.png"/>
@@ -6,7 +9,11 @@
    </data-set>
 
    <data-set id="ProjectNavigatorDataSet"/>
-      <collapsible-box stateful="true" id="NavigationBox" text="{$ProjectNavigator}" orientation="vertical" on-expand="expandDivision" on-collapse="collapseDivision">
-         <list-box list-style-ref="navigator-list-style" stateful="true" id="ProjectNavigatorTree" tree="true" data-set-ref="ProjectNavigatorDataSet" icon-set-ref="IconSet" on-button-pressed="changeProject"/>
-      </collapsible-box>
+
+   <collapsible-box stateful="true" id="NavigationBox" text="{$ProjectNavigator}" orientation="vertical"
+                    on-expand="resizeDivision" on-collapse="resizeDivision">
+      <list-box list-style-ref="navigator-list-style" stateful="true" id="ProjectNavigatorTree" tree="true"
+                data-set-ref="ProjectNavigatorDataSet" icon-set-ref="IconSet" on-button-pressed="changeProject"/>
+   </collapsible-box>
+   
 </form>

@@ -4,8 +4,8 @@
 
 package onepoint.persistence.sql;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Factory class that produces different sql statements, based on the type of the db.

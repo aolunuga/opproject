@@ -2,7 +2,7 @@
    <method name="insertResource">
       <parameter name="resource_data" instance-class="java.util.HashMap" mode="input"/>
    </method>
-   <method name="importResource">
+   <method name="importUser">
       <parameter name="resource_data" instance-class="java.util.HashMap" mode="input"/>
    </method>
    <method name="updateResource">
@@ -30,14 +30,14 @@
    </method>
    <method name="assignToProject">
       <parameter name="resource_ids" instance-class="java.util.ArrayList" mode="input"/>
-      <parameter name="target_project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="project_ids" instance-class="java.util.ArrayList" mode="input"/>
    </method>
    <method name="moveResourceNode">
-      <parameter name="resource_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="resource_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="pool_id" instance-class="java.lang.String" mode="input"/>
    </method>
    <method name="movePoolNode">
-      <parameter name="pool_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="pool_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="super_pool_id" instance-class="java.lang.String" mode="input"/>
    </method>
 </service>

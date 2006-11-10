@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class OpMSProjectManager {
 
-   private static XLog logger = XLogFactory.getLogger(OpMSProjectManager.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpMSProjectManager.class, true);
 
    //utility class
    private OpMSProjectManager() {

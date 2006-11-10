@@ -5,6 +5,7 @@
 // Controller script for import_user.oxf.xml
 
 require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -16,10 +17,15 @@ function ok(event) {
    form = XDisplay.getActiveForm();
 
    resource_data.Available = form.findComponent("Available").getDoubleValue();
-   // *** Next field should be of type double
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
-   resource_data.PoolID = XValidator.choiceID(form.findComponent("PoolList").getStringValue());
+   pool = form.findComponent("PoolList").getStringValue();    
+   if (pool == null) {
+      resource_data.PoolID = null;
+   }
+   else {
+      resource_data.PoolID = XValidator.choiceID(pool);
+   }
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -38,7 +44,7 @@ function ok(event) {
       resource_data.UserID = selected_rows[i].getStringValue();
 
       request = new XMessage;
-      request.setAction("ResourceService.importResource");
+      request.setAction("ResourceService.importUser");
       request.setArgument("resource_data", resource_data);
       response = XDisplay.getClient().invokeMethod(request);
 
@@ -46,11 +52,10 @@ function ok(event) {
       i++;
    }
 
-   if ((selected_rows.size() > 0)&& validate) {
+   if ((selected_rows.size() > 0) && validate) {
       XDisplay.getActiveWindow().close();
       XDisplay.findFrame("MainFrame").refreshForm();
    }
-   // *** Else: Error no selection
 }
 
 function cancel(event) {
@@ -59,12 +64,14 @@ function cancel(event) {
 
 function addProject(event) {
    form = XDisplay.getActiveForm();
-   parameters.AssignedProjectDataSet = form.findComponent("AssignedProjectDataSet");
-   dialog = XComponent.newDialog();
-   dialog.setText("Project hinzufügen");
-   dialog.open("/modules/resource/forms/add_project.oxf.xml", parameters);
-   // *** How could we reuse project-chooser?
-   // ==> Maybe via client-variables (transfer to client in every response?)
+   assignedProjects = form.findComponent("AssignedProjectDataSet");
+   i = 0;
+   while (i < assignedProjects.getChildCount()) {
+      assignedDataRow = assignedProjects.getChild(i);
+      filteredIds[i] = XValidator.choiceID(assignedDataRow.getStringValue());
+      i++;
+   }
+   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true);
 }
 
 function removeProject(event) {

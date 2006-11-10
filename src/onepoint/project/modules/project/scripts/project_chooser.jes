@@ -14,34 +14,54 @@ function ok(event) {
    projectLocatorFieldID = form.findComponent("ProjectLocatorFieldID").getStringValue();
    projectNameFieldID = form.findComponent("ProjectNameFieldID").getStringValue();
    actionHandler = form.findComponent("ActionHandler").getStringValue();
+   multipleSelection = form.findComponent("MultipleSelection").getBooleanValue();
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectSet");
    selected_rows = project_data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      projectChoice = selected_rows[0].getStringValue();
-      projectLocator = XValidator.choiceID(projectChoice);
-      projectName = XValidator.choiceCaption(projectChoice);
-      
-      callingFrame = XDisplay.findFrame(callingFrameID);
-      projectLocatorField = callingFrame.currentForm().findComponent(projectLocatorFieldID);
-      if (projectLocatorField != null) {
-         projectLocatorField.setStringValue(projectLocator);
-      }
-      projectNameField = callingFrame.currentForm().findComponent(projectNameFieldID);
-      if (projectNameField != null) {
-         projectNameField.setStringValue(projectName);
+   selection_size = selected_rows.size();
+   if (selection_size > 0) {
+      i = 0;
+      selectedChoiceIds = new ArrayList;
+      callingFrame = XDisplay.findFrame(callingFrameID);      
+      while (i < selection_size) {
+         projectChoice = selected_rows[i].getStringValue();
+         //only set the project locator and project name for single selection
+         if (selection_size == 1) {
+            projectLocator = XValidator.choiceID(projectChoice);
+            projectName = XValidator.choiceCaption(projectChoice);
+
+            projectLocatorField = callingFrame.currentForm().findComponent(projectLocatorFieldID);
+            if (projectLocatorField != null) {
+               projectLocatorField.setStringValue(projectLocator);
+            }
+            projectNameField = callingFrame.currentForm().findComponent(projectNameFieldID);
+            if (projectNameField != null) {
+               projectNameField.setStringValue(projectName);
+            }
+         }
+
+         selectedChoiceIds[i] = projectChoice;
+         i++;
       }
 
       if (actionHandler != null) {
-         arguments[0] = selected_rows[0].getStringValue();
+         if (multipleSelection == true) {
+            arguments[0] = selectedChoiceIds;
+         }
+         else {
+            arguments[0] = selectedChoiceIds[0];
+         }
          // Note: It is important to close the window first because callback might use getActiveForm()
          XDisplay.getActiveWindow().close();
          callingFrame.currentForm().invokeFunction(actionHandler, arguments);
       }
       else {
+         XDisplay.getActiveWindow().close();
          callingFrame.getForm().repaint();
       }
    }
-   XDisplay.getActiveWindow().close();
+   else {
+      XDisplay.getActiveWindow().close();
+   }
 }
 
 function cancel(event) {

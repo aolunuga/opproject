@@ -24,15 +24,18 @@ public class OpProjectSession extends XExpressSession {
    private long everyoneId = - 1; // Everyone inside the site
 
    public OpProjectSession() {
-      XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
-      super.setLocale(default_locale);
-      // TODO: Look-up IDs for administrator user and group everyone
-      // (Maybe do this also at sign-on time?)
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
+         XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+         super.setLocale(default_locale);
+         // TODO: Look-up IDs for administrator user and group everyone
+         // (Maybe do this also at sign-on time?)
          lookUpAdministratorID(broker);
          lookUpEveryoneID(broker);
          broker.close();
+      }
+      else {
+         super.setLocale(XLocaleManager.getDefaultLocale());
       }
    }
 

@@ -31,8 +31,8 @@ public class OpScheduler {
   private static Map scheduleTimers = new HashMap();
 
   // event map params
-  public static String LAST_EXECUTED_DATE = "last-executed-date";
-  public static String SCHEDULE_NAME = "schedule-name";
+  public static final String LAST_EXECUTED_DATE = "last-executed-date";
+  public static final String SCHEDULE_NAME = "schedule-name";
 
   private OpScheduler(){
   }

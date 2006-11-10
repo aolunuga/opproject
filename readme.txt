@@ -75,7 +75,7 @@ be accessible by using the following URL:
 
    http://localhost:8080/opproject/service
 
-Pleae note that for a totally new installation it can take a couple of minutes
+Please note that for a totally new installation it can take a couple of minutes
 until the repository structure is set up completely.
 
 You can now log in as "administrator", there is no password set as default.
@@ -112,9 +112,9 @@ Appendix A: Creating a New Database and a New Database User in MySQL
 In order to create a new database with the default values you can simply
 execute the following steps after installing MySQL:
 
-   (1) Open a command line window (DOS shell) und change into the "demodata"
+   (1) Open a command line window (DOS shell) and change into the "demodata"
        directory
-   (2) Type "mysql –u root -p" and enter the root password which you specified
+   (2) Type "mysql -u root -p" and enter the root password which you specified
        when installing MySQL
    (3) mysql> \. createdb.sql;
    (4) mysql> quit
@@ -122,7 +122,7 @@ execute the following steps after installing MySQL:
 Alternatively, you can create a new database and a new user in MySQL also
 manually:
 
-   (1) Open a command line window (DOS shell) und type "mysql –u root -p" and
+   (1) Open a command line window (DOS shell) and type "mysql –u root -p" and
        enter the root password which you specified when installing MySQL
    (2) mysql> create database opproject;
    (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
@@ -135,8 +135,8 @@ Appendix B: Executing a SQL file in MySQL
 
 In order to execute a SQL file in MySQL you have to do the following:
 
-   (1) Open a command line window (DOS shell) und type
-       "mysql –u opproject -p opproject" and enter the password you specified
+   (1) Open a command line window (DOS shell) and type
+       "mysql -u opproject -p opproject" and enter the password you specified
        when creating the database user
    (2) mysql> \. demodata061.sql;
    (3) mysql> quit

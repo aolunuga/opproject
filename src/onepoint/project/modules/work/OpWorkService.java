@@ -27,7 +27,7 @@ import java.util.List;
 
 public class OpWorkService extends OpProjectService {
 
-   private static XLog logger = XLogFactory.getLogger(OpWorkService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpWorkService.class, true);
 
    public final static String START = "start";
    public final static String WORK_RECORD_SET = "work_record_set";

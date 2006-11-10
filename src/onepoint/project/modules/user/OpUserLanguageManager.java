@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 
 import java.util.Iterator;
@@ -47,7 +48,7 @@ public final class OpUserLanguageManager {
       int selectedIndex = 0;
       while (it.hasNext()) {
          String key = (String) it.next();
-         String value = XLocaleManager.findLocale(key).getName();
+         String value = ((XLocale) XLocaleManager.findLocale(key)).getName();
          String choice = XValidator.choice(key, value);
          XComponent dataRow = new XComponent(XComponent.DATA_ROW);
          dataRow.setStringValue(choice);

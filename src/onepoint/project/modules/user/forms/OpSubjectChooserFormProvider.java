@@ -9,34 +9,35 @@ import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class OpSubjectChooserFormProvider implements XFormProvider {
-
-   private final static int GROUP_ICON_INDEX = 0;
-   private final static int USER_ICON_INDEX = 1;
 
    // Form parameters and component IDs
    private final static String CALLING_FRAME_ID = "CallingFrameID";
    private final static String ACTION_HANDLER = "ActionHandler";
    private final static String SUBJECT_SET = "SubjectSet";
-   private final static String SHOW_USERS = "ShowUsers";
-   private final static String SHOW_GROUPS = "ShowGroups";
-   private final static String EXCLUDED = "Excluded";
+   private final static String ENABLE_USERS = "EnableUsers";
+   private final static String ENABLE_GROUPS = "EnableGroups";
+   private final static String FILTERED_SUBJECT_IDS = "FilteredSubjectIds";
    private final static String MULTIPLE_SELECTION = "MultipleSelection";
+   private final static String INCLUDE_PARENTS_IN_FILTER = "IncludeParentsInFilter";
    private final static String LIST_BOX_ID = "SubjectList";
 
-   private final static String USER_ASSIGNMENT_QUERY = "select distinct ua.Group.ID from OpUserAssignment as ua where ua.User.ID in (:userIds)";
-   private final static String GROUP_ASSIGNMENT_QUERY = "select distinct ga.SuperGroup.ID from OpGroupAssignment as ga where ga.SubGroup.ID in (:groupIds)";
+   private final static String USER_ASSIGNMENT_QUERY = "select distinct ua.Group from OpUserAssignment as ua where ua.User.ID in (:userIds)";
+   private final static String GROUP_ASSIGNMENT_QUERY = "select distinct ga.SuperGroup from OpGroupAssignment as ga where ga.SubGroup.ID in (:groupIds)";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -44,159 +45,147 @@ public class OpSubjectChooserFormProvider implements XFormProvider {
       // Set calling frame and field IDs from parameters
       String callingFrameID = (String) parameters.get(CALLING_FRAME_ID);
       form.findComponent(CALLING_FRAME_ID).setStringValue(callingFrameID);
+
       String actionHandler = (String) parameters.get(ACTION_HANDLER);
       form.findComponent(ACTION_HANDLER).setStringValue(actionHandler);
+
       Boolean multipleSelection = (Boolean) parameters.get(MULTIPLE_SELECTION);
       if (!multipleSelection.booleanValue()) {
          form.findComponent(LIST_BOX_ID).setSelectionModel(XComponent.SINGLE_ROW_SELECTION);
       }
       form.findComponent(MULTIPLE_SELECTION).setBooleanValue(multipleSelection.booleanValue());
-            
-      boolean showUsers = ((Boolean) parameters.get(SHOW_USERS)).booleanValue();
-      boolean showGroups = ((Boolean) parameters.get(SHOW_GROUPS)).booleanValue();
-      List excluded = ((List) parameters.get(EXCLUDED));
 
-      // Put all subject names into project data-set (values are IDs)
       XComponent data_set = form.findComponent(SUBJECT_SET);
-      OpBroker broker = session.newBroker();
-
-      Collection excludedGroups = new HashSet();
-      if (excluded != null) {
-         excludedGroups = getAlreadyAssignedGroups(excluded, broker);
-      }
-
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
-      if (showGroups) {
-         addSubGroupRows(broker, data_set, localizer, -1, 0, showUsers, excludedGroups);
-      }
-      if (showUsers) {
-         addUserRows(broker, data_set, localizer, -1, 0);
+
+      //retrive subject data-set
+      OpSubjectDataSetFactory.retrieveSimpleSubjectHierarchy(broker, data_set, localizer);
+
+      //filter if necessary
+      Boolean includeParentsInFilter = (Boolean) parameters.get(INCLUDE_PARENTS_IN_FILTER);
+      List filteredSubjectIds = (List) parameters.get(FILTERED_SUBJECT_IDS);
+      if (filteredSubjectIds != null && filteredSubjectIds.size() > 0) {
+         if (includeParentsInFilter != null && includeParentsInFilter.booleanValue()) {
+            filteredSubjectIds = getAlreadyAssignedGroups(filteredSubjectIds, broker);
+         }
+         this.filterSubjectSet(data_set, filteredSubjectIds);
       }
 
-      XComponent subject_row;
-      //collapse all collections
-      for (int i = 0; i < data_set.getChildCount(); i++) {
-         subject_row = (XComponent) data_set.getChild(i);
-         if (subject_row.getOutlineLevel() > 0) {
-            subject_row.setVisible(false);
-         }
-      }
       broker.close();
+
+      //enable/disable items in the hierarchy
+      boolean enableUsers = ((Boolean) parameters.get(ENABLE_USERS)).booleanValue();
+      boolean enableGroups = ((Boolean) parameters.get(ENABLE_GROUPS)).booleanValue();
+      this.enableSubjectHierarchy(data_set, enableUsers, enableGroups);
+
+      //synchronize expansion state
+      data_set.synchronizeExpanded();
    }
 
-   private HashSet getAlreadyAssignedGroups(List subjectLocators, OpBroker broker) {
-      int i;
-      XComponent dataRow;
-      OpLocator locator = null;
-      HashSet notAssignableGroupIds = new HashSet();
+   /**
+    * From the given data set (which represents a subject set), removes the entries which have the value among the filtered ids.
+    *
+    * @param subjectSet  a <code>XComponent(DATA_SET)</code> representing a subject set.
+    * @param filteredIds a <code>List</code> of <code>String</code> representing the ids which are to be filtered.
+    */
+   private void filterSubjectSet(XComponent subjectSet, List filteredIds) {
+      List childrenToRemove = new ArrayList();
+      //first collect the children
+      for (int i = 0; i < subjectSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) subjectSet.getChild(i);
 
-      HashSet groupIds = new HashSet();
-      HashSet userIds = new HashSet();
+         String locator = XValidator.choiceID(dataRow.getStringValue());
+         if (filteredIds.contains(locator)) {
+            //add all the children of the data row
+            List children = dataRow.getSubRows();
+            for (Iterator it = children.iterator(); it.hasNext();) {
+               XComponent childRow = (XComponent) it.next();
+               if (!childrenToRemove.contains(dataRow)) {
+                  childrenToRemove.add(childRow);
+               }
+            }
 
-      for (i = 0; i < subjectLocators.size(); i++) {
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue((String) (subjectLocators.get(i)));
-         locator = OpLocator.parseLocator(dataRow.getStringValue());
+            if (!childrenToRemove.contains(dataRow)) {
+               childrenToRemove.add(dataRow);
+            }
+         }
+      }
+
+      for (Iterator it = childrenToRemove.iterator(); it.hasNext(); ) {
+         XComponent childRow = (XComponent) it.next();
+         subjectSet.removeChild(childRow);
+      }
+   }
+
+   /**
+    * Traverses the subject hierarchy, enabling or disabling different types of subjects.
+    *
+    * @param subjectDataSet a <code>XComponent(DATA_SET)</code> representing the subject data-set.
+    * @param enableUsers    a <code>boolean</code> indicating whether users should be enabled in the hierarchy.
+    * @param enableGroups   a <code>boolean</code> indicating whether group should be enabled in the hierarchy.
+    */
+   private void enableSubjectHierarchy(XComponent subjectDataSet, boolean enableUsers, boolean enableGroups) {
+      for (int i = 0; i < subjectDataSet.getChildCount(); i++) {
+         XComponent subjectRow = (XComponent) subjectDataSet.getChild(i);
+
+         String choice = subjectRow.getStringValue();
+         String choiceId = XValidator.choiceID(choice);
+         OpLocator locator = OpLocator.parseLocator(choiceId);
+         if (locator.getPrototype().getInstanceClass().equals(OpUser.class) && !enableUsers) {
+            subjectRow.setSelectable(false);
+         }
+         else if (locator.getPrototype().getInstanceClass().equals(OpGroup.class) && !enableGroups) {
+            subjectRow.setSelectable(false);
+         }
+      }
+   }
+
+
+   private List getAlreadyAssignedGroups(List filteredSubjectIds, OpBroker broker) {
+      List result = new ArrayList();
+
+      List groupIds = new ArrayList();
+      List userIds = new ArrayList();
+      for (int i = 0; i < filteredSubjectIds.size(); i++) {
+         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+         String choiceId = (String) filteredSubjectIds.get(i);
+         dataRow.setStringValue(choiceId);
+         OpLocator locator = OpLocator.parseLocator(dataRow.getStringValue());
          Long locatorId = new Long(locator.getID());
-         if (locator.getPrototype().getInstanceClass() == OpGroup.class){
+         if (locator.getPrototype().getInstanceClass() == OpGroup.class) {
             //can not assign a group to itself
-            notAssignableGroupIds.add(locatorId);
+            result.add(choiceId);
             groupIds.add(locatorId);
          }
-         if (locator.getPrototype().getInstanceClass() == OpUser.class){
+         if (locator.getPrototype().getInstanceClass() == OpUser.class) {
+            result.add(choiceId);
             userIds.add(locatorId);
          }
       }
-      //add group's already assigned supergroups to notAssignableGroupIds
-      if (groupIds.size() > 0){
+
+      //add group's already assigned supergroups to result
+      if (groupIds.size() > 0) {
          OpQuery query = broker.newQuery(GROUP_ASSIGNMENT_QUERY);
-         query.setCollection("groupIds",groupIds);
-         Iterator assignedSuperGroupsIds = broker.iterate(query);
-         while (assignedSuperGroupsIds.hasNext()){
-            notAssignableGroupIds.add((Long)assignedSuperGroupsIds.next());
+         query.setCollection("groupIds", groupIds);
+         Iterator assignedSuperGroups = broker.iterate(query);
+         while (assignedSuperGroups.hasNext()) {
+            OpGroup group = (OpGroup) assignedSuperGroups.next();
+            result.add(OpLocator.locatorString(group));
          }
       }
-      //add user's already assigned groups to notAssignableGroupIds
-      if (userIds.size() > 0){
+
+      //add user's already assigned groups to result
+      if (userIds.size() > 0) {
          OpQuery query = broker.newQuery(USER_ASSIGNMENT_QUERY);
-         query.setCollection("userIds",userIds);
-         Iterator assignedGroupsIds = broker.iterate(query);
-         while (assignedGroupsIds.hasNext()){
-            notAssignableGroupIds.add(assignedGroupsIds.next());
+         query.setCollection("userIds", userIds);
+         Iterator assignedGroups = broker.iterate(query);
+         while (assignedGroups.hasNext()) {
+            OpGroup group = (OpGroup) assignedGroups.next();
+            result.add(OpLocator.locatorString(group));
          }
       }
-      return notAssignableGroupIds;
+      return result;
    }
-
-
-   private void addSubGroupRows(OpBroker broker, XComponent dataSet, XLocalizer localizer, long groupId, int outlineLevel, boolean showUsers, Collection excludedGroups) {
-
-      OpObjectOrderCriteria groupOrderCriteria = new OpObjectOrderCriteria(OpGroup.GROUP, OpGroup.NAME, OpObjectOrderCriteria.ASCENDING);
-      OpQuery query;
-      if (groupId == -1) {
-         String queryString = "select group from OpGroup as group" + groupOrderCriteria.toHibernateQueryString("group");
-         query = broker.newQuery(queryString);
-      }
-      else {
-         String queryString = "select subGroup from OpGroupAssignment as assignment inner join assignment.SubGroup as subGroup where assignment.SuperGroup.ID = ?";
-         queryString += groupOrderCriteria.toHibernateQueryString("subGroup");
-         query = broker
-               .newQuery(queryString);
-         query.setLong(0, groupId);
-      }
-
-      Iterator subGroups = broker.iterate(query);
-      OpGroup subGroup;
-      XComponent dataRow;
-      while (subGroups.hasNext()) {
-         subGroup = (OpGroup) subGroups.next();
-         int nextOutline;
-         if (!excludedGroups.contains(new Long(subGroup.getID()))){
-            dataRow = new XComponent(XComponent.DATA_ROW);
-            dataRow.setOutlineLevel(outlineLevel);
-            dataRow.setStringValue(XValidator.choice(subGroup.locator(), localizer.localize(subGroup.getDisplayName()), GROUP_ICON_INDEX));
-            dataSet.addChild(dataRow);
-            nextOutline = outlineLevel + 1;
-            // Recursively add sub-groups and users
-            addSubGroupRows(broker, dataSet, localizer, subGroup.getID(), nextOutline, showUsers, excludedGroups);
-         }
-         else{
-            nextOutline = outlineLevel;
-         }
-         if (showUsers) {
-            addUserRows(broker, dataSet, localizer, subGroup.getID(), nextOutline);
-         }
-      }
-   }
-
-   private void addUserRows(OpBroker broker, XComponent dataSet, XLocalizer localizer, long groupId, int outlineLevel) {
-
-      OpQuery query = null;
-      OpObjectOrderCriteria userOrderCriteria = new OpObjectOrderCriteria(OpUser.USER, OpUser.NAME, OpObjectOrderCriteria.ASCENDING);
-      if (groupId == -1) {
-         String userQueryString = "select user from OpUser as user" + userOrderCriteria.toHibernateQueryString("user");
-         query = broker.newQuery(userQueryString);
-      }
-      else {
-         String queryString = "select user from OpUserAssignment as assignment inner join assignment.User as user where assignment.Group.ID = ?";
-         queryString += userOrderCriteria.toHibernateQueryString("user");
-         query = broker
-               .newQuery(queryString);
-         query.setLong(0, groupId);
-      }
-
-      Iterator users = broker.iterate(query);
-      OpUser user = null;
-      XComponent dataRow = null;
-      while (users.hasNext()) {
-         user = (OpUser) users.next();
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setOutlineLevel(outlineLevel);
-         dataRow.setStringValue(XValidator.choice(user.locator(), localizer.localize(user.getDisplayName()), USER_ICON_INDEX));
-         dataSet.addChild(dataRow);
-      }
-
-   }
-
 }

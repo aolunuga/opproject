@@ -99,7 +99,7 @@ function assignToGroup(event) {
          subject_ids[i] = selected_rows[i].getStringValue();
          i++;
       }
-      openSubjectChooser("MainFrame", "assignToGroupOK", false, true, subject_ids, false);
+      openSubjectChooser("MainFrame", "assignToGroupOK", false, true, subject_ids, false, true);
    }
 }
 
@@ -121,6 +121,9 @@ function assignToGroupOK(target_group_id) {
       request.setArgument("target_group_id", target_group_id);
       response = XDisplay.getClient().invokeMethod(request);
       XDisplay.getActiveWindow().close();
+      mainFrame.refreshForm();
+      warning = response.getArgument("warning");
+      showWarning(response, warning);
    }
 }
 
@@ -143,4 +146,39 @@ function selectionChanged(event) {
       assign_button.setEnabled(true);
    }
    form.repaint();
+}
+
+function assignToGroups_NewEdit(groupChoices) {
+   form = XDisplay.getActiveForm();
+   if (form != null) {
+      assignedGroupsDataSet = form.findComponent("AssignedGroupDataSet");
+      i = 0;
+      while (i < groupChoices.size()) {
+         assignedRow = assignedGroupsDataSet.newDataRow();
+         assignedRow.setStringValue(groupChoices[i]);
+         assignedGroupsDataSet.addChild(assignedRow);
+         i++;
+      }
+      assignedGroupsListBox = form.findComponent("AssignedGroupListBox");
+      assignedGroupsListBox.doLayout();
+      assignedGroupsListBox.repaint();
+   }
+}
+
+function setSuperGroups_NewEdit(groupChoices) {
+   //<FIXME author="Horia Chiorean" description="Identical to assignToGroups_NewEdit method, because the xml elements are identical">
+   form = XDisplay.getActiveForm();
+   if (form != null) {
+      assignedGroupsDataSet = form.findComponent("AssignedGroupDataSet");
+      i = 0;
+      while (i < groupChoices.size()) {
+         assignedRow = assignedGroupsDataSet.newDataRow();
+         assignedRow.setStringValue(groupChoices[i]);
+         assignedGroupsDataSet.addChild(assignedRow);
+         i++;
+      }
+      assignedGroupsListBox = form.findComponent("AssignedGroupListBox");
+      assignedGroupsListBox.doLayout();
+      assignedGroupsListBox.repaint();
+   }
 }

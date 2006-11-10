@@ -30,7 +30,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    public final static String PROJECT_ID = "project_id";
 
-   private static XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class,true);
 
 
    private final static String ASSIGNMENT_SET = OpGanttValidator.ASSIGNMENT_SET;

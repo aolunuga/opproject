@@ -23,11 +23,11 @@ import java.util.HashMap;
 
 public class OpEditPortfolioFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class,true);
 
-   public final static String PORTFOLIO_ID = "PortfolioID";
-   public final static String EDIT_MODE = "EditMode";
-   public final static String PERMISSION_SET = "PermissionSet";
+   private final static String PORTFOLIO_ID = "PortfolioID";
+   private final static String EDIT_MODE = "EditMode";
+   private final static String PERMISSION_SET = "PermissionSet";
    
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -37,7 +37,7 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
       Boolean edit_mode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
 
       logger.debug("OpEditPortfolioFormProvider.prepareForm(): " + id_string);
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
 
       // Downgrade edit mode to view mode if no manager access

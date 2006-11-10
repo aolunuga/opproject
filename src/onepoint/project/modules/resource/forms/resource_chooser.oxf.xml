@@ -1,9 +1,8 @@
 <form layout="border" width="240" height="144" text="{$SelectResource}" resource-map-ref="resource.ResourceChooser" provider-class="onepoint.project.modules.resource.forms.OpResourceChooserFormProvider" script="/modules/resource/scripts/resource_chooser.jes">
 
 	<data-field id="CallingFrameID"/>
-	<data-field id="ResourceLocatorFieldID"/>
-	<data-field id="ResourceNameFieldID"/>
-   <data-set id="ResourceSet"/>
+	<data-field id="ActionHandler"/>
+  <data-set id="ResourceSet"/>
 
    <data-set id="IconSet">
       <data-row icon="/modules/resource/icons/pool.png"/>

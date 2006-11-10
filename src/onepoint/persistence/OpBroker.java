@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class OpBroker {
-	private static XLog logger = XLogFactory.getLogger(OpBroker.class,true);
+	private static final XLog logger = XLogFactory.getLogger(OpBroker.class,true);
    
 	private OpConnection _default_connection; // Connection to default-source
 	// Add object-caching here to broker/cursor instead of connection?!

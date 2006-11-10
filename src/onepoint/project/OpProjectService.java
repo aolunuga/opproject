@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class OpProjectService extends XService {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectService.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectService.class,true);
 
    /**
     * Inidicates whether this service is remote or not.

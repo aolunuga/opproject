@@ -32,8 +32,8 @@ public class OpProgressCalculatorTest extends onepoint.project.test.OpServiceAbs
    private OpResource resource1;
    private OpResource resource2;
    /*HSQLs*/
-   private static String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignmentVer from OpAssignmentVersion assignmentVer  inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer  where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
-   private static String SELECT_WORKING_VERSION_ACTIVITY = "select actVersion from OpActivityVersion actVersion  inner join actVersion.PlanVersion planVer  where actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
+   private static final String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignmentVer from OpAssignmentVersion assignmentVer  inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer  where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
+   private static final String SELECT_WORKING_VERSION_ACTIVITY = "select actVersion from OpActivityVersion actVersion  inner join actVersion.PlanVersion planVer  where actVersion.Activity.ID = ? and planVer.VersionNumber = ?";
 
    public Object invocationMatch(Invocation invocation) throws IllegalArgumentException {
       return null;

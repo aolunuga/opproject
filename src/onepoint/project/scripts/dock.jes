@@ -3,39 +3,37 @@
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 
-// *** On button-pressed of tool-button we need to identify the button using its ID
-// ==> Therefore, the event-handling function must make use of the event struct
-
 function ToolDock_onButtonPressed(event) {
-   // *** form_location = event.source.getID();
-   // *** How to load the form into the other (!) frame ("main")?
-   // ==> Probably we need to use a static method of the Display class (findFrame()?)
-   // *** main_frame = Display.[getDefaultDisplay()].findFrame/Component("main");
-   // *** main_frame.showForm(form_location);
    form_location = event.event_source.getStringValue();
    main_frame = XDisplay.findFrame("MainFrame");
    main_frame.showForm(form_location);
 }
 
-/*
-function ToolDock_onGroupChanged(event) {
-   Console.println(event.event_source.getStringValue());
-   dock_group = event.event_source.getStringValue();
-
-   project_frame = XDisplay.findFrame("ProjectFrame");
-
-   if (dock_group.equals("Projekt")) {
-      project_frame.setVisible(true);
-   } else {
-      project_frame.setVisible(false);
-   }
-
-   start_form = XDisplay.findFrame("DockFrame").getParent();
-   start_form.doLayout();
-   start_form.repaint();
-
-   if (project_frame.getVisible() == true){
-      project_frame.refreshForm();
-   }
+function expandDivision(event){
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setIntValue(division.getLastIntValue());
+   division.setResizeable(true);
+   division.doLayout();
+   division.getParent().repaint();
 }
-*/
+
+function collapseDivision(event){
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setLastIntValue(division.getIntValue());
+   division.setResizeable(false);
+   division.setIntValue(20);
+   division.doLayout();
+   division.getParent().repaint();
+}
+
+function resizeDivision(event) {
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setLastIntValue(division.getIntValue());
+   division.setResizeable(false);
+   division.setIntValue(division.getIntValue() + event.modifiers);
+   division.doLayout();
+   division.getParent().repaint();
+}

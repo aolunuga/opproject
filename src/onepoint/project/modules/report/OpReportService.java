@@ -35,7 +35,7 @@ import java.util.*;
 
 public class OpReportService extends OpProjectService {
 
-   private static XLog logger = XLogFactory.getLogger(OpReportService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpReportService.class, true);
 
    public final static String JASPER_REPORTS_PATH = "/modules/report/jasperreports/";
 

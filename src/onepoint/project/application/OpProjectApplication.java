@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class OpProjectApplication {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectApplication.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectApplication.class, true);
 
    // Parse command-line parameters
    public final static int DEFAULT_MODE = 0;

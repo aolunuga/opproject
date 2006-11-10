@@ -30,7 +30,7 @@ import java.util.*;
 
 public class OpProjectAdministrationService extends OpProjectService {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectAdministrationService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectAdministrationService.class, true);
 
    public final static int WORKING_VERSION_NUMBER = -1;
    public final static String PROJECT_DATA = "project_data";
@@ -174,7 +174,6 @@ public class OpProjectAdministrationService extends OpProjectService {
       //allow a template to be set
       this.applyTemplate(broker, project_data, project, projectPlan);
 
-
       // Set template-node relationship and instantiate template plan if template was specified
 //      String templateNodeLocator = (String) project_data.get(OpProjectNode.TEMPLATE_NODE);
 //      if (templateNodeLocator != null) {
@@ -276,10 +275,11 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Template method for setting the template of a project. By default, doesn't do anything.
-    * @param broker an <code>OpBroker</code> used for performing business operations.
+    *
+    * @param broker       an <code>OpBroker</code> used for performing business operations.
     * @param project_data a <code>HashMap</code> representing the parameters.
-    * @param project a <code>OpProjectNode</code> entity representing a project node.
-    * @param projectPlan a <code>OpProjectPlan</code> entity representing a project plan.
+    * @param project      a <code>OpProjectNode</code> entity representing a project node.
+    * @param projectPlan  a <code>OpProjectPlan</code> entity representing a project plan.
     */
    protected void applyTemplate(OpBroker broker, HashMap project_data, OpProjectNode project, OpProjectPlan projectPlan) {
       //do nothing here  
@@ -1082,38 +1082,46 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    public XMessage moveProjectNode(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
-      String projectNodeId = (String) request.getArgument(PROJECT_ID);
+      List projectIds = (List) request.getArgument(PROJECT_IDS);
       String portfolioId = (String) request.getArgument(PORTFOLIO_ID);
 
       XMessage reply = new XMessage();
 
-      if (projectNodeId == null || portfolioId == null) {
+      if (projectIds == null || projectIds.isEmpty() || portfolioId == null) {
          return reply; //NOP
       }
 
       OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
 
-      OpProjectNode projectNode = (OpProjectNode) broker.getObject(projectNodeId);
+      //get the portfolio
       OpProjectNode portfolio = (OpProjectNode) broker.getObject(portfolioId);
-
-      // check manager access for project node portfolio and new selected portfolio
-      if (!session.checkAccessLevel(broker, projectNode.getSuperNode().getID(), OpPermission.MANAGER) ||
-           !session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
+      // check manager access for new selected portfolio
+      if (!session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
          logger.warn("Move access to portfolio denied; ID = " + portfolio.getID());
-         broker.close();
          reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
-         return reply;
+      }
+      else {
+         for (Iterator it = projectIds.iterator(); it.hasNext();) {
+            String projectNodeId = (String) it.next();
+            OpProjectNode projectNode = (OpProjectNode) broker.getObject(projectNodeId);
+
+            // check manager access for project node portfolio
+            if (!session.checkAccessLevel(broker, projectNode.getSuperNode().getID(), OpPermission.MANAGER)) {
+               logger.warn("Move access to portfolio denied; ID = " + projectNode.getSuperNode().getID());
+               reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
+               continue;
+            }
+            projectNode.setSuperNode(portfolio);
+            broker.updateObject(projectNode);
+         }
       }
 
-
-      OpTransaction tx = broker.newTransaction();
-      projectNode.setSuperNode(portfolio);
-      broker.updateObject(projectNode);
       tx.commit();
-
       broker.close();
       return reply;
    }
+
 
    public static OpProjectNode findRootPortfolio(OpBroker broker) {
       OpQuery query = broker
@@ -1142,7 +1150,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return rootPortfolio;
    }
 
-   public static void copyProjectPlan(OpBroker broker, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
+   protected static void copyProjectPlan(OpBroker broker, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
       boolean asTemplate = newProjectPlan.getTemplate();
       // Get minimum activity start date from database (just to be sure)
       OpQuery query = broker
@@ -1176,8 +1184,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       XComponent dataRow;
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
-         if ((OpGanttValidator.getType(dataRow) != OpGanttValidator.TASK) && (OpGanttValidator.getType(dataRow) != OpGanttValidator.COLLECTION_TASK))
-         {
+         if ((OpGanttValidator.getType(dataRow) != OpGanttValidator.TASK) && (OpGanttValidator.getType(dataRow) != OpGanttValidator.COLLECTION_TASK)) {
             OpGanttValidator.setStart(dataRow, new Date(OpGanttValidator.getStart(dataRow).getTime() + newStartOffset));
             OpGanttValidator.setEnd(dataRow, null);
             OpGanttValidator.setResources(dataRow, new ArrayList());
@@ -1186,6 +1193,7 @@ public class OpProjectAdministrationService extends OpProjectService {
             OpGanttValidator.setWorkPhaseStarts(dataRow, null);
             OpGanttValidator.setWorkPhaseFinishes(dataRow, null);
          }
+         OpGanttValidator.setComplete(dataRow, 0);
       }
       // Validate copied and adjusted project plan
       validator.validateDataSet();

@@ -13,7 +13,7 @@ import onepoint.service.XMessage;
 function chooseSubject(event) {
 
 	Console.println("BEFORE openSC");
-  openSubjectChooser("QueryFrame", "addSelectedSubject", true, false, null, false);
+  openSubjectChooser("QueryFrame", "addSelectedSubject", true, false, null, false, null);
 	Console.println("AFTER openSC");
 
 }

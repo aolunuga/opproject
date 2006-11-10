@@ -25,7 +25,7 @@ import java.util.*;
 
 public class OpNewWorkSlipFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class, true);
 
    public final static String WORK_RECORD_SET = "WorkRecordSet";
    public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";
@@ -35,10 +35,11 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    public final static long  ALL_PROJECTS_SELECTION = -1;
    public final static String PROJECT_SET = "ProjectSet";
 
-   /* filters*/
+   // filters
    public final static String START_BEFORE_ID = "start_before_id";
    public final static String PROJECT_CHOICE_ID = "project_choice_id";
-   /*start from filter choices */
+
+   //start from filter choices
    private final static String ALL = "all";
    private final static String NEXT_WEEK = "nw";
    private final static String NEXT_2_WEEKS = "n2w";
@@ -193,7 +194,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       if (remainingEffort < 0.0d) {
          remainingEffort = 0.0d;
       }
-      if (progressTracked && activity.getType() != OpActivity.TASK && activity.getType() != OpActivity.MILESTONE) {
+      if (progressTracked && activity.getType() != OpActivity.MILESTONE) {
          data_cell.setDoubleValue(remainingEffort);
          data_cell.setEnabled(true);
       }

@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditGroupFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpEditGroupFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditGroupFormProvider.class,true);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
 
@@ -34,7 +34,7 @@ public class OpEditGroupFormProvider implements XFormProvider {
 
       String id_string = (String) (parameters.get("group_id"));
       Boolean edit_mode = (Boolean) (parameters.get("edit_mode"));
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
 
       OpGroup group = (OpGroup) (broker.getObject(id_string));
       // Fill edit-group form with group data
@@ -54,7 +54,7 @@ public class OpEditGroupFormProvider implements XFormProvider {
          desc.setEnabled(false);
          form.findComponent("GroupToolPanel").setVisible(false);
          form.findComponent("Cancel").setVisible(false);
-         String title = session.getLocale().getResourceMap("user.Info").getResource("InfoGroup")
+         String title = ((OpProjectSession) session).getLocale().getResourceMap("user.Info").getResource("InfoGroup")
                .getText();
          form.setText(title);
       }

@@ -25,18 +25,18 @@ import java.util.*;
 
 public class OpEditProjectFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpEditProjectFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditProjectFormProvider.class,true);
 
    /**
     * Form field ids and parameter ids.
     */
-   public final static String PROJECT_ID = "ProjectID";
-   public final static String EDIT_MODE = "EditMode";
-   public final static String GOALS_SET = "GoalsSet";
-   public final static String TO_DOS_SET = "ToDosSet";
-   public final static String PERMISSION_SET = "PermissionSet";
-   public final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
-   public final static String TEMPLATE_FIELD = "TemplateField";
+   private final static String PROJECT_ID = "ProjectID";
+   private final static String EDIT_MODE = "EditMode";
+   private final static String GOALS_SET = "GoalsSet";
+   private final static String TO_DOS_SET = "ToDosSet";
+   private final static String PERMISSION_SET = "PermissionSet";
+   private final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
+   protected final static String TEMPLATE_FIELD = "TemplateField";
 
    private final String PROJECT_INFO = "project.Info";
 
@@ -49,7 +49,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       logger.debug("OpEditProjectFormProvider.prepareForm(): " + id_string);
 
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
 
       //disable templates related stuff

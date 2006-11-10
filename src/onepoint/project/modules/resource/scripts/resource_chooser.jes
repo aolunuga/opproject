@@ -11,24 +11,21 @@ import onepoint.service.XMessage;
 function ok(event) {
    form = XDisplay.getActiveForm();
    callingFrameID = form.findComponent("CallingFrameID").getStringValue();
-   resourceLocatorFieldID = form.findComponent("ResourceLocatorFieldID").getStringValue();
-   resourceNameFieldID = form.findComponent("ResourceNameFieldID").getStringValue();
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceSet");
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      resourceChoice = selected_rows[0].getStringValue();
-      resourceLocator = XValidator.choiceID(resourceChoice);
-      resourceName = XValidator.choiceCaption(resourceChoice);
-      
       callingFrame = XDisplay.findFrame(callingFrameID);
-      resourceLocatorField = callingFrame.currentForm().findComponent(resourceLocatorFieldID);
-      resourceLocatorField.setStringValue(resourceLocator);
-      resourceNameField = callingFrame.currentForm().findComponent(resourceNameFieldID);
-      resourceNameField.setStringValue(resourceName);
-      
+      if (actionHandler != null) {
+         arguments[0] = selected_rows;
+         XDisplay.getActiveWindow().close();
+         callingFrame.currentForm().invokeFunction(actionHandler, arguments);
+      }
       callingFrame.getForm().repaint();
    }
-   XDisplay.getActiveWindow().close();
+   else {
+      XDisplay.getActiveWindow().close();   
+   }
 }
 
 function cancel(event) {

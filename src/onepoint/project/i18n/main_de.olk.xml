@@ -7,10 +7,11 @@
    <resource-map id="main.levels">
       <resource id="runLevel0">Konfigurationsdatei konnte nicht geladen werden</resource>
       <resource id="runLevel1">Registrierte Module konnten nicht geladen werden</resource>
-      <resource id="runLevel2">Keine Verbindung zur Datenbankinstanz: Bitte Datenbankbenutzer, Passwort und Instanzname uberprufen</resource>
-      <resource id="runLevel3">Ablagestruktur konnte nicht eingerichtet werden</resource>
-      <resource id="runLevel4">Datenbankschema konnte nicht auf den neuesten Stand gebracht werden</resource>
-      <resource id="runLevel5">Registerierte Module konnten nicht gestartet werden</resource>
+      <resource id="runLevel2">Keine Verbindung zur Datenbank: Bitte JDBC-Treiber überprüfen</resource>
+      <resource id="runLevel3">Keine Verbindung zur Datenbank: Bitte Datenbankbenutzer, Passwort und Instanzname überprüfen</resource>
+      <resource id="runLevel4">Ablagestruktur konnte nicht eingerichtet werden</resource>
+      <resource id="runLevel5">Datenbankschema konnte nicht auf den neuesten Stand gebracht werden</resource>
+      <resource id="runLevel6">Registerierte Module konnten nicht gestartet werden</resource>
    </resource-map>
    <resource-map id="main.header">
       <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>

@@ -41,7 +41,7 @@
 
    </resource-map>
    <resource-map id="project.ProjectChooser">
-      <resource id="SelectProject">Projekt auswählen</resource>
+      <resource id="SelectProject">Projekt oder Portfolio auswählen</resource>
       <resource id="SelectPortfolio">Portfolio auswählen</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>

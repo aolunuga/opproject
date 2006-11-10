@@ -12,7 +12,7 @@ import onepoint.project.modules.project.OpProjectError;
  */
 public class OpProjectPlanningErrorMap extends XErrorMap {
 
-   public final static String RESOURCE_MAP_ID = "project_planning.error";
+   private final static String RESOURCE_MAP_ID = "project_planning.error";
 
    OpProjectPlanningErrorMap() {
       super(RESOURCE_MAP_ID);

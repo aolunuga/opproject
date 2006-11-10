@@ -5,6 +5,7 @@
 package onepoint.project.modules.resource.test;
 
 import onepoint.express.XComponent;
+import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
@@ -78,7 +79,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
         "where pool.ID in (:poolIds) and pool.SuperPool.ID in (:accessibleSuperPoolIds)";
    private static final String SELECT_EXISTENT_PROJECT_ASSIGNMENT = "select assignment.Resource.ID from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ?";
    private static final String SELECT_PROJECT_ASSIGNMENTS_FOR_RESOURCE = "select assignment.ProjectNode.ID from OpProjectNodeAssignment as assignment where assignment.Resource.ID = ?";
-   private static String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignment from OpResource resource inner join resource.AssignmentVersions assignment where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and resource.ID = ?";
+   private static final String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignment from OpResource resource inner join resource.AssignmentVersions assignment where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and resource.ID = ?";
 
    /**
     * @see onepoint.project.test.OpServiceAbstractTest#setUp()
@@ -96,7 +97,6 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       superPool.setDescription("SuperPoolDescription");
       superPool.setHourlyRate(5.0);
       superPool.setResources(new HashSet());
-
 
       //create the pool object
       pool = new OpResourcePool();
@@ -145,7 +145,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
    /**
     * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
     */
-   public Object invocationMatch(Invocation invocation) throws IllegalArgumentException {
+   public Object invocationMatch(Invocation invocation)
+        throws IllegalArgumentException {
       String methodName = invocation.invokedMethod.getName();
 
       if (methodName.equals(GET_OBJECT_METHOD)) {
@@ -208,7 +209,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertNewResource() throws Exception {
+   public void testInsertNewResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
@@ -257,7 +259,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertResourceWrongData() throws Exception {
+   public void testInsertResourceWrongData()
+        throws Exception {
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
       checkInsertResourceWrongData("", "ResourceDescription", 100, 5.0, true, null, permissionSet);
       checkInsertResourceWrongData("ResourceName", "ResourceDescription", -19, 5.0, true, null, permissionSet);
@@ -272,7 +275,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     */
    private void checkInsertResourceWrongData(String resourceName, String resourceDescription, int resourceAvailability,
         double resourceHourlyRate, boolean resourceInheritPoolRate,
-        ArrayList resourceProjects, XComponent permissionSet) throws Exception {
+        ArrayList resourceProjects, XComponent permissionSet) {
 
       //create the request
       XMessage request = new XMessage();
@@ -315,7 +318,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertAlreadyExistentResource() throws Exception {
+   public void testInsertAlreadyExistentResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       //the resource permission set
@@ -368,7 +372,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdateResource() throws Exception {
+   public void testUpdateResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       //set up the resource id
@@ -405,7 +410,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(0), eq(resource.getID())});
       //iterate over query results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).after(SELECT_PROJECT_ASSIGNMENTS_FOR_RESOURCE).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new ArrayList();
          }
 
@@ -435,7 +441,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdateNonExistentResource() throws Exception {
+   public void testUpdateNonExistentResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       //set up the request
@@ -477,7 +484,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdateResourceWrongData() throws Exception {
+   public void testUpdateResourceWrongData()
+        throws Exception {
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
 //     <FIXME author="Ovidiu Lupas" description="check mandatory input fields is not made consecutively">
 //     checkUpdateResourceWrongData("", "ResourceDescription", 100, 5.0, true, null, permissionSet);
@@ -493,7 +501,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     */
    private void checkUpdateResourceWrongData(String resourceName, String resourceDescription, int resourceAvailability,
         double resourceHourlyRate, boolean resourceInheritPoolRate,
-        ArrayList resourceProjects, XComponent permissionSet) throws Exception {
+        ArrayList resourceProjects, XComponent permissionSet) {
       //create the request
       XMessage request = new XMessage();
       //set up the request
@@ -541,12 +549,161 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
 
+   public void testMoveResource() {
+      XMessage request = new XMessage();
+      ArrayList resourcesIds = new ArrayList();
+      resourcesIds.add(RESOURCE_ID);
+      //set up the request
+      request.setArgument(OpResourceService.RESOURCE_IDS, resourcesIds);
+      request.setArgument(OpResourceService.POOL_ID, RESOURCE_POOL_ID);
+
+      //broker must be called
+      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+      //a new transaction will be created
+      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
+
+      //get the selected destination pool
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_POOL_ID)).will(methodStub);
+
+      //check manager access rights
+      mockSession.expects(atLeastOnce()).method(CHECK_ACCESS_LEVEL_METHOD).will(methodStub);
+      
+      //get the selected resource
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_ID)).will(methodStub);
+
+      //update object
+      mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(new Constraint() {
+         public boolean eval(Object object) {
+            if (!(object instanceof OpResource)) {
+               return false;
+            }
+            OpResource paramPool = (OpResource) object;
+            if (paramPool != resource) {
+               return false;
+            }
+            if (paramPool.getPool() != pool) {
+               return false;
+            }
+            return true;
+         }
+
+         public StringBuffer describeTo(StringBuffer stringBuffer) {
+            return null;
+         }
+      });
+
+      //commit & close broker
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
+      mockBroker.expects(once()).method(CLOSE_METHOD);
+
+      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      assertNull("No Error message should have been returned", result.getError());
+   }
+
+   public void testMoveResourceNoRights() {
+      XMessage request = new XMessage();
+      ArrayList resourcesIds = new ArrayList();
+      resourcesIds.add(RESOURCE_ID);
+
+      //set up the request
+      request.setArgument(OpResourceService.RESOURCE_IDS, resourcesIds);
+      request.setArgument(OpResourceService.POOL_ID, RESOURCE_POOL_ID);
+
+      //broker must be called
+      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+      //a new transaction will be created
+      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
+
+      //get the selected destination pool
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_POOL_ID)).will(methodStub);
+
+      //check manager access rights
+      mockSession.expects(once()).method(CHECK_ACCESS_LEVEL_METHOD).will(returnValue(false));
+
+      //commit & close broker
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
+      mockBroker.expects(once()).method(CLOSE_METHOD);
+
+      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      assertNotNull("Error message should have been returned", result.getError());
+   }
+
+   public void testMoveResourceChangeHR() {
+      XMessage request = new XMessage();
+      ArrayList resourcesIds = new ArrayList();
+      resourcesIds.add(RESOURCE_ID);
+      //set up the request
+      request.setArgument(OpResourceService.RESOURCE_IDS, resourcesIds);
+      request.setArgument(OpResourceService.POOL_ID, RESOURCE_POOL_ID);
+      final int hRate = 10;
+      pool.setHourlyRate(hRate);
+
+      //broker must be called
+      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+      //a new transaction will be created
+      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
+
+      //get the selected destination pool
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_POOL_ID)).will(methodStub);
+
+      //check manager access rights
+      mockSession.expects(atLeastOnce()).method(CHECK_ACCESS_LEVEL_METHOD).will(methodStub);
+
+      //get the selected resource
+      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_ID)).will(methodStub);
+
+      //update hr and costs
+      //get assignments
+      StringBuffer queryString = new StringBuffer();
+      queryString.append("select assignment from OpResource resource inner join resource.AssignmentVersions assignment ");
+      queryString.append("where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and resource.ID = ?");
+      mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(queryString.toString())).will(methodStub);
+      mockQuery.expects(once()).method(SET_INTEGER_METHOD).with(new Constraint[]{eq(0), eq(OpProjectAdministrationService.WORKING_VERSION_NUMBER)});
+      mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(1), eq(resource.getID())});
+      mockBroker.expects(once()).method(LIST_METHOD).will(methodStub);
+      //no assignments on the resource...
+
+      //update object
+      mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(new Constraint() {
+         public boolean eval(Object object) {
+            if (!(object instanceof OpResource)) {
+               return false;
+            }
+            OpResource paramPool = (OpResource) object;
+            if (paramPool != resource) {
+               return false;
+            }
+            if (paramPool.getPool() != pool) {
+               return false;
+            }
+            if (paramPool.getHourlyRate() != hRate) {
+               return false;
+            }
+            return true;
+         }
+
+         public StringBuffer describeTo(StringBuffer stringBuffer) {
+            return null;
+         }
+      });
+
+
+      //commit & close broker
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
+      mockBroker.expects(once()).method(CLOSE_METHOD);
+
+      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      assertNull("No Error message should have been returned", result.getError());
+   }
+
+
    /**
     * Tests the behavior of deleteResources for an existing resource.
     *
     * @throws Exception if anything fails.
     */
-   public void testDeleteResource() throws Exception {
+   public void testDeleteResource()
+        throws Exception {
       XMessage request = new XMessage();
       ArrayList resourcesIds = new ArrayList();
       resourcesIds.add(RESOURCE_ID);
@@ -566,7 +723,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
 
       //resources that belong to accessible pools
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_ACCESSIBLE_RESOURCES)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             //will find a resource
             queryResults.add(resource);
@@ -590,7 +748,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(0), eq(resource.getID())});
       //iterate over query results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).after(SELECT_PROJECT_ASSIGNMENTS_FOR_RESOURCE).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new ArrayList();
          }
 
@@ -620,7 +779,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertNewPool() throws Exception {
+   public void testInsertNewPool()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       XComponent permisionSet = new XComponent(XComponent.DATA_SET);
@@ -669,7 +829,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertPoolWrongData() throws Exception {
+   public void testInsertPoolWrongData()
+        throws Exception {
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
       checkInsertPoolWrongData("", "PoolDescription", 5.0, permissionSet);
       checkInsertPoolWrongData("PoolName", "PoolDescription", -5.0, permissionSet);
@@ -681,7 +842,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     * @throws Exception if anything fails.
     */
    private void checkInsertPoolWrongData(String poolName, String poolDescription, double poolHourlyRate,
-        XComponent permissionSet) throws Exception {
+        XComponent permissionSet) {
       //create the request
       XMessage request = new XMessage();
       Map poolData = creatPoolData(poolName, poolDescription, poolHourlyRate, permissionSet);
@@ -715,7 +876,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testInsertAlreadyExistentPool() throws Exception {
+   public void testInsertAlreadyExistentPool()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
@@ -733,7 +895,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
 
       //an already existent pool must be found
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_POOL_ID_BY_NAME)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(new Long(pool.getID()));
             return query;
@@ -776,7 +939,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdatePool() throws Exception {
+   public void testUpdatePool()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       //set up the pool id
@@ -809,10 +973,11 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
 
       //a root resource pool should be found
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_POOL_BY_NAME)).will(methodStub);
-      mockQuery.expects(once()).method(SET_STRING_METHOD).with(new Constraint[]{eq(0),eq(OpResourcePool.ROOT_RESOURCE_POOL_NAME)});
+      mockQuery.expects(once()).method(SET_STRING_METHOD).with(new Constraint[]{eq(0), eq(OpResourcePool.ROOT_RESOURCE_POOL_NAME)});
 
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(superPool);
             return queryResults;
@@ -831,7 +996,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockQuery.expects(once()).method(SET_INTEGER_METHOD);
       //iterate over query results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).after(SELECT_WORKING_VERSION_ASSIGNMENT).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -866,7 +1032,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdateNonExistentPool() throws Exception {
+   public void testUpdateNonExistentPool()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       //set up the request
@@ -909,7 +1076,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testUpdatePoolWrongData() throws Exception {
+   public void testUpdatePoolWrongData()
+        throws Exception {
       XComponent permissionSet = new XComponent(XComponent.DATA_SET);
       checkUpdatePoolWrongData("", "PoolDescription", 5.0, permissionSet);
       //<FIXME author="Ovidiu Lupas" description="check mandatory input fields is not made consecutively">
@@ -923,7 +1091,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     * @throws Exception if anything fails.
     */
    private void checkUpdatePoolWrongData(String poolName, String poolDescription, double poolHourlyRate,
-        XComponent permissionSet) throws Exception {
+        XComponent permissionSet) {
       //create the request
       XMessage request = new XMessage();
       //set up the request
@@ -966,7 +1134,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testDeletePool() throws Exception {
+   public void testDeletePool()
+        throws Exception {
       XMessage request = new XMessage();
       ArrayList poolIds = new ArrayList();
       poolIds.add(RESOURCE_POOL_ID);
@@ -1019,14 +1188,15 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testAssignResourceToProject() throws Exception {
+   public void testAssignResourceToProject()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       ArrayList resourcesIds = new ArrayList();
       resourcesIds.add(RESOURCE_ID);
       //set up the request
       request.setArgument(OpResourceService.RESOURCE_IDS, resourcesIds);
-      request.setArgument(OpResourceService.TARGET_PROJECT_ID, PROJECT_ID);
+      request.setArgument(OpResourceService.PROJECT_IDS, Arrays.asList(new String[]{PROJECT_ID}));
 
       //broker must be called
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
@@ -1049,9 +1219,11 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockQuery.expects(once()).method(SET_LONG_METHOD);
       //iterate over results
       mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new ArrayList(0);
          }
+
          public StringBuffer describeTo(StringBuffer stringBuffer) {
             return stringBuffer.append("Mocks the behaviour of iterator for results of the query ")
                  .append(SELECT_EXISTENT_PROJECT_ASSIGNMENT);
@@ -1071,59 +1243,12 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
    }
 
    /**
-    * Tests the behavior of assignToProject for an resource to an unexistent project.
-    *
-    * @throws Exception if anything fails.
-    */
-   public void testAssignResourceToNonExistentProject() throws Exception {
-      //create the request
-      XMessage request = new XMessage();
-      ArrayList resourcesIds = new ArrayList();
-      resourcesIds.add(RESOURCE_ID);
-      //set up the request
-      request.setArgument(OpResourceService.RESOURCE_IDS, resourcesIds);
-      request.setArgument(OpResourceService.TARGET_PROJECT_ID, NONEXISTENT_PROJECT_ID);
-
-      //broker must be called
-      mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
-
-      // the check acces level must be performed
-      mockSession.expects(once()).method(CHECK_ACCESS_LEVEL_METHOD).will(methodStub);
-
-      //transaction must be created
-      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
-
-      //get object -->project
-      mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(NONEXISTENT_PROJECT_ID)).will(methodStub);
-
-      //error must be generated
-      mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
-
-      //get object -->resource
-      mockBroker.expects(never()).method(GET_OBJECT_METHOD).with(eq(RESOURCE_ID)).will(methodStub);
-
-      //commit
-      mockTransaction.expects(never()).method(COMMIT_METHOD);
-
-      //close broker
-      mockBroker.expects(once()).method(CLOSE_METHOD);
-
-      //<FIXME author="Ovidiu Lupas" description="Fails becouse no error message is returned in case that the project is unexistent">
-      XMessage result = resourceService.assignToProject((XSession) mockSession.proxy(), request);
-      assertNotNull("Error message should have been returned", result);
-      assertNotNull("Error message should have been returned", result.getError());
-      assertEquals("Error should be the one that was set on new error call", error, result.getError());
-      //</FIXME>
-
-   }
-
-
-   /**
     * Tests the behavior of importUser as resource.
     *
     * @throws Exception if anything fails.
     */
-   public void testImportUserAsResource() throws Exception {
+   public void testImportUserAsResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       Map resourceData = createResourceData(USER_ID, "%f[1]%l[1]", 100, 10, false, RESOURCE_POOL_ID);
@@ -1162,7 +1287,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //do commit
       mockTransaction.expects(once()).method(COMMIT_METHOD);
 
-      assertNoError(resourceService.importResource((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.importUser((XSession) mockSession.proxy(), request));
    }
 
 
@@ -1171,7 +1296,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testImportNonExistentUserAsResource() throws Exception {
+   public void testImportNonExistentUserAsResource()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       Map resourceData = createResourceData(null, "%f[1]%l[1]", 100, 10, false, RESOURCE_POOL_ID);
@@ -1189,7 +1315,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //never do commit
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
-      XMessage result = resourceService.importResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -1200,7 +1326,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testImportUserAsExistentResourceName() throws Exception {
+   public void testImportUserAsExistentResourceName()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       Map resourceData = createResourceData(USER_ID, "%f[1]%l[1]", 100, 10, false, RESOURCE_POOL_ID);
@@ -1229,7 +1356,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //never do commit
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
-      XMessage result = resourceService.importResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1239,7 +1366,8 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
     *
     * @throws Exception if anything fails.
     */
-   public void testImportExistentUserInResourcePool() throws Exception {
+   public void testImportExistentUserInResourcePool()
+        throws Exception {
       //create the request
       XMessage request = new XMessage();
       Map resourceData = createResourceData(USER_ID, "%f[1]%l[1]", 100, 10, false, RESOURCE_POOL_ID);
@@ -1280,7 +1408,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.importResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 

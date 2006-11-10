@@ -94,7 +94,7 @@
       <resource id="Cancel">Cancel</resource>
    </resource-map>
    <resource-map id="resource.ResourceChooser">
-      <resource id="SelectResource">Select Resource</resource>
+      <resource id="SelectResource">Select Resource or Pool</resource>
       <resource id="SelectPool">Select Pool</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>

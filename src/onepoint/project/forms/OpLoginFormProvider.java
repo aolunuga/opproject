@@ -6,6 +6,7 @@ package onepoint.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
@@ -59,9 +60,11 @@ public class OpLoginFormProvider implements XFormProvider {
       XService service = XServiceManager.getService("LicenseService");
       if (service != null) {
          XMessage response = service.invokeMethod(session, "checkLicense", new XMessage());
-         if (response.getError() != null) {
-            errorLabel.setText(response.getError().getMessage());
-            errorLabel.setVisible(true);
+         if (response != null) {
+            if (response.getError() != null) {
+               errorLabel.setText(response.getError().getMessage());
+               errorLabel.setVisible(true);
+            }
          }
       }
    }
@@ -93,18 +96,19 @@ public class OpLoginFormProvider implements XFormProvider {
    private void checkRunLevel(HashMap parameters, String localeId, XComponent form) {
       String runLevelParameter = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
       if (runLevelParameter != null) {
-         String resourceMapId = (String) parameters.get(OpProjectConstants.RESOURCE_MAP_ID);
+         String resourceMapId = OpInitializer.getErrorMapId();
          if (resourceMapId == null) {
             resourceMapId = "main.levels";
          }
-         XLocalizer localizer = createLocalizer(resourceMapId, localeId);
+         XLocalizer localizer = createLocalizer(localeId, resourceMapId);
 
          int runLevel = Integer.valueOf(runLevelParameter).intValue();
-         if (runLevel < 6) {
+         int successRunLevel = OpInitializer.getSuccessRunLevel();
+         if (runLevel < successRunLevel) {
             form.findComponent("Login").setEnabled(false);
             form.findComponent("Password").setEnabled(false);
             form.findComponent("okButton").setVisible(false);
-            String resourceId = (String) parameters.get(OpProjectConstants.RESOURCE_ID);
+            String resourceId = OpInitializer.getErrorId();
             if (resourceId == null) {
                resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
             }
@@ -119,11 +123,11 @@ public class OpLoginFormProvider implements XFormProvider {
    /**
     * Creates a localizer object used by the login form to i18n messages.
     *
-    * @param resourceMapId a <code>String</code> representing the id of a resource map.
     * @param localeId      a <code>String</code> representing the id of a locale.
+    * @param resourceMapId a <code>String</code> representing the id of a resource map.
     * @return a <code>XLocalizer</code> object.
     */
-   private XLocalizer createLocalizer(String resourceMapId, String localeId) {
+   private XLocalizer createLocalizer(String localeId, String resourceMapId) {
       XLocalizer localizer = new XLocalizer();
       XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(localeId, resourceMapId);
       localizer.setResourceMap(resourceMap);

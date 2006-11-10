@@ -140,7 +140,7 @@ public abstract class OpActivityVersionDataSetFactory {
 
    }
 
-   protected static void retrieveAttachmentVersionsDataCell(Set attachments, XComponent dataRow) {
+   private static void retrieveAttachmentVersionsDataCell(Set attachments, XComponent dataRow) {
       // TODO: Bulk-fetch like other parts of the project plan
       ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
       Iterator i = attachments.iterator();
@@ -173,7 +173,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
    }
 
-   protected static void retrieveActivityVersionDataRow(OpActivityVersion activityVersion, XComponent dataRow,
+   private static void retrieveActivityVersionDataRow(OpActivityVersion activityVersion, XComponent dataRow,
         boolean editable) {
 
       dataRow.setStringValue(activityVersion.locator());
@@ -385,7 +385,7 @@ public abstract class OpActivityVersionDataSetFactory {
       return activityVersions;
    }
 
-   public static boolean mapActivityIDs(OpBroker broker, XComponent dataSet, OpProjectPlanVersion workingPlanVersion) {
+   private static boolean mapActivityIDs(OpBroker broker, XComponent dataSet, OpProjectPlanVersion workingPlanVersion) {
       // Exchange all activity IDs contained in data-row values with their respective working activity version IDs
 
       HashMap activityIdMap = new HashMap();
@@ -577,7 +577,7 @@ public abstract class OpActivityVersionDataSetFactory {
 
    }
 
-   protected static OpActivityVersion insertOrUpdateActivityVersion(OpBroker broker, XComponent dataRow,
+   private static OpActivityVersion insertOrUpdateActivityVersion(OpBroker broker, XComponent dataRow,
         OpActivityVersion activityVersion, OpProjectPlanVersion planVersion, OpActivityVersion superActivity, HashMap activities) {
 
       String categoryLocator = null;
@@ -795,7 +795,7 @@ public abstract class OpActivityVersionDataSetFactory {
 
    }
 
-   protected static ArrayList updateOrDeleteAssignmentVersions(OpBroker broker, XComponent dataSet, Iterator assignments) {
+   private static ArrayList updateOrDeleteAssignmentVersions(OpBroker broker, XComponent dataSet, Iterator assignments) {
       ArrayList reusableAssignmentVersions = new ArrayList();
       OpAssignmentVersion assignment = null;
       XComponent dataRow = null;
@@ -887,7 +887,7 @@ public abstract class OpActivityVersionDataSetFactory {
       return dataRow;
    }
 
-   protected static void insertActivityAssignmentVersions(OpBroker broker, OpProjectPlanVersion planVersion,
+   private static void insertActivityAssignmentVersions(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataRow, OpActivityVersion activityVersion, ArrayList reusableAssignmentVersions, HashMap resources) {
       ArrayList resourceList = OpGanttValidator.getResources(dataRow);
       String resourceChoice = null;
@@ -933,7 +933,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteWorkPeriodVersions(OpBroker broker, XComponent dataSet, Iterator workPeriodsIt) {
+   private static ArrayList updateOrDeleteWorkPeriodVersions(OpBroker broker, XComponent dataSet, Iterator workPeriodsIt) {
       OpWorkPeriodVersion workPeriod;
       XComponent dataRow;
       double baseEffort;
@@ -983,7 +983,7 @@ public abstract class OpActivityVersionDataSetFactory {
       return reusableWorkPeriodVersions;
    }
 
-   protected static void insertActivityWorkPeriodVersions(OpBroker broker, OpProjectPlanVersion planVersion,
+   private static void insertActivityWorkPeriodVersions(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataRow, OpActivityVersion activityVersion, ArrayList reusableWorkPeriodVersions) {
       
       Map workPeriods = OpActivityDataSetFactory.getWorkPeriods(dataRow);
@@ -1028,7 +1028,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteAttachmentVersions(OpBroker broker, XComponent dataSet, Iterator attachments) {
+   private static ArrayList updateOrDeleteAttachmentVersions(OpBroker broker, XComponent dataSet, Iterator attachments) {
       OpAttachmentVersion attachment = null;
       XComponent dataRow = null;
       int i = 0;
@@ -1078,7 +1078,7 @@ public abstract class OpActivityVersionDataSetFactory {
       return reusableAttachmentVersions;
    }
 
-   protected static void insertActivityAttachmentVersions(OpBroker broker, OpProjectPlanVersion planVersion,
+   private static void insertActivityAttachmentVersions(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataRow, OpActivityVersion activityVersion, ArrayList reusableAttachmentVersions) {
       ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
       ArrayList attachmentElement = null;
@@ -1123,7 +1123,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
    }
 
-   protected static ArrayList updateOrDeleteDependencyVersions(OpBroker broker, XComponent dataSet, Iterator dependencies) {
+   private static ArrayList updateOrDeleteDependencyVersions(OpBroker broker, XComponent dataSet, Iterator dependencies) {
       OpDependencyVersion dependency = null;
       XComponent predecessorDataRow = null;
       XComponent successorDataRow = null;
@@ -1164,7 +1164,7 @@ public abstract class OpActivityVersionDataSetFactory {
       return reusableDependencyVersions;
    }
 
-   protected static void insertActivityDependencyVersions(OpBroker broker, OpProjectPlanVersion planVersion,
+   private static void insertActivityDependencyVersions(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataSet, XComponent dataRow, OpActivityVersion activityVersion, ArrayList activityVersionList,
         ArrayList reusableDependencyVersions) {
       // Note: We only check for new predecessor indexes

@@ -56,10 +56,10 @@ public class OpGanttValidatorTest extends TestCase {
    private static final int DATA_ROW_CHILD_COUNT = 24;
 
    private XComponent projectSettings;
-   public String WORKER1_ID = "OpResource.16.xid";
-   public final String WORKER1 = WORKER1_ID +"['Worker1']";
-   public String WORKER2_ID = "OpResource.18.xid";
-   public final String WORKER2 = WORKER2_ID +"['Worker2']";
+   private String WORKER1_ID = "OpResource.16.xid";
+   private final String WORKER1 = WORKER1_ID +"['Worker1']";
+   private String WORKER2_ID = "OpResource.18.xid";
+   private final String WORKER2 = WORKER2_ID +"['Worker2']";
 
    /**
     * @see junit.framework.TestCase#setUp()
@@ -1573,7 +1573,7 @@ public class OpGanttValidatorTest extends TestCase {
     * @param activity an <code>XComponent</code> repsesenting the activity that should be a <code>COLLECTION</code>
     * @return String representing the name of the collection activity
     */
-   public String assertTestActivityIsCollection(XComponent activity) {
+   private String assertTestActivityIsCollection(XComponent activity) {
       String activityName = OpGanttValidator.getName(activity);
       assertEquals("The activity " + activityName + " is not a collection", OpGanttValidator.getType(activity), OpGanttValidator.COLLECTION);
       return activityName;
@@ -1953,7 +1953,7 @@ public class OpGanttValidatorTest extends TestCase {
     * @param expectedSuccesors   a <code>List<code> of expected successors of the <code>modifiedActivity</code>
     * @param expectedPredecessor a <code>List<code> of expected predecessors of the <code>modifiedActivity</code>
     */
-   public void assertActivitiesEqualAfterCutCopyPaste(XComponent originalActivity, XComponent modifiedActivity,
+   private void assertActivitiesEqualAfterCutCopyPaste(XComponent originalActivity, XComponent modifiedActivity,
         List expectedSuccesors, List expectedPredecessor) {
 
       assertEquals("The 2 activites don't have the same nr of children", originalActivity.getChildCount(),

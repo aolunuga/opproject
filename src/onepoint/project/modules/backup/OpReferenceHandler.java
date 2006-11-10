@@ -50,7 +50,7 @@ public class OpReferenceHandler implements XNodeHandler {
       // Members are always written in the same order as defined in the backup file header
       OpObject object = (OpObject) parent;
       OpBackupMember backupMember = ((OpRestoreContext) context).nextBackupMember();
-      String valueString = node.toString().trim();
+      String valueString = ((StringBuffer) node).toString().trim();
       OpRestoreContext restoreContext = (OpRestoreContext) context;
 
       if (!valueString.equals(OpBackupManager.NULL)) {

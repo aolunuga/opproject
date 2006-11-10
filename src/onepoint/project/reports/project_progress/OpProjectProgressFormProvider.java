@@ -37,7 +37,7 @@ public class OpProjectProgressFormProvider implements XFormProvider {
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
 
       // Execute query and fill result set if RunQuery is true
       if (parameters != null) {

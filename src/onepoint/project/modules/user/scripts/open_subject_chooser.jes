@@ -6,14 +6,18 @@
 
 import onepoint.express.XComponent;
 
-function openSubjectChooser(callingFrameID, actionHandler, showUsers, showGroups, excluded, multipleSelection) {
+function openSubjectChooser(callingFrameID, actionHandler, enableUsers, enableGroups, filteredSubjectIds, multipleSelection,
+                            includeParentsInFilter) {
    // Open subject chooser dialog w/calling frame and action handler (callback) as arguments
    dialog = XComponent.newDialog();
+
    parameters.CallingFrameID = callingFrameID;
    parameters.ActionHandler = actionHandler;
-   parameters.ShowUsers = showUsers;
-   parameters.ShowGroups = showGroups;
-   parameters.Excluded = excluded;
+   parameters.EnableUsers = enableUsers;
+   parameters.EnableGroups = enableGroups;
+   parameters.FilteredSubjectIds = filteredSubjectIds;
    parameters.MultipleSelection = multipleSelection;
+   parameters.IncludeParentsInFilter = includeParentsInFilter;
+   
    dialog.open("/modules/user/forms/subject_chooser.oxf.xml", parameters);
 }

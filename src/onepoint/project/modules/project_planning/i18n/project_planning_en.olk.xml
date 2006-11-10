@@ -20,6 +20,7 @@
       <resource id="AddAfter">Insert Activity (After)</resource>
       <resource id="Delete">Delete Activities</resource>
       <resource id="Edit">Edit Activity</resource>
+      <resource id="Validate">Recalculate Project</resource>
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>
 

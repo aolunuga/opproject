@@ -18,13 +18,13 @@ import java.util.HashMap;
 
 public class OpNewPortfolioFormProvider implements XFormProvider {
 
-   public final static String SUPER_PORTFOLIO_FIELD_ID = "SuperPortfolioID";
-   public final static String SUPER_PORTFOLIO_INDEX_FIELD = "SuperPortfolioIndexField";
+   private final static String SUPER_PORTFOLIO_FIELD_ID = "SuperPortfolioID";
+   private final static String SUPER_PORTFOLIO_INDEX_FIELD = "SuperPortfolioIndexField";
 
-   public final static String PERMISSION_SET = "PermissionSet";
+   private final static String PERMISSION_SET = "PermissionSet";
 
-   public final static String SUPER_PORTFOLIO_INDEX = "super_portfolio_index";
-   public final static String SUPER_PORTFOLIO_ID = "super_portfolio_id";
+   private final static String SUPER_PORTFOLIO_INDEX = "super_portfolio_index";
+   private final static String SUPER_PORTFOLIO_ID = "super_portfolio_id";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;

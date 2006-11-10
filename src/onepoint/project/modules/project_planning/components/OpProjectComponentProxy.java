@@ -16,24 +16,24 @@ import onepoint.script.interpreter.XInterpreterException;
 public class OpProjectComponentProxy extends XExpressProxy {
 
    // Class names
-   public final static String PROJECT_COMPONENT = OpProjectComponent.class.getName().intern();
-   public final static String GANTT_VALIDATOR = OpGanttValidator.class.getName().intern();
-   public final static String SHA1 = OpSHA1.class.getName().intern();
+   private final static String PROJECT_COMPONENT = OpProjectComponent.class.getName().intern();
+   private final static String GANTT_VALIDATOR = OpGanttValidator.class.getName().intern();
+   private final static String SHA1 = OpSHA1.class.getName().intern();
 
-   public final static Class GANTT_VALIDATOR_CLASS = OpGanttValidator.class;
-   public final static Class PROJECT_COMPONENT_CLASS = OpProjectComponent.class;
-   public final static Class SHA1_CLASS = OpSHA1.class;
+   private final static Class GANTT_VALIDATOR_CLASS = OpGanttValidator.class;
+   private final static Class PROJECT_COMPONENT_CLASS = OpProjectComponent.class;
+   private final static Class SHA1_CLASS = OpSHA1.class;
 
 
    // Method names
-   public final static String SET_TIME_UNIT = "setTimeUnit".intern();
-   public final static String PERCENT_ASSIGNED = "percentAssigned".intern();
-   public final static String GET_RESOURCE_NAME = "getResourceName".intern();
-   public final static String CHANGE_TOOL = "changeTool".intern();
-   public final static String RESET_CALENDAR = "resetCalendar".intern();
+   private final static String SET_TIME_UNIT = "setTimeUnit".intern();
+   private final static String PERCENT_ASSIGNED = "percentAssigned".intern();
+   private final static String GET_RESOURCE_NAME = "getResourceName".intern();
+   private final static String CHANGE_TOOL = "changeTool".intern();
+   private final static String RESET_CALENDAR = "resetCalendar".intern();
 
    // Method names: SHA1
-   public final static String CALCULATE_HASH = "calculateHash";
+   private final static String CALCULATE_HASH = "calculateHash";
 
    // Class name array
    private final static String[] _class_names = {PROJECT_COMPONENT, GANTT_VALIDATOR, SHA1};

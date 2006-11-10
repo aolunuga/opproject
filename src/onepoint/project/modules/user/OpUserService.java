@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class OpUserService extends OpProjectService {
 
-   private static XLog logger = XLogFactory.getLogger(OpUserService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpUserService.class, true);
 
    public final static String LOGIN = "login";
    public final static String PASSWORD = "password";
@@ -43,6 +43,8 @@ public class OpUserService extends OpProjectService {
    public final static String SUBJECT_IDS = "subject_ids";
    public final static String SUPER_SUBJECT_IDS = "super_ids";
    public final static String SUB_SUBJECT_IDS = "sub_ids";
+   // public final static String USER_IDS = "user_ids";
+   // public final static String GROUP_IDS = "group_ids";
    public final static String TARGET_GROUP_ID = "target_group_id";
    public final static String CONFIRM = "confirm";
 
@@ -72,6 +74,7 @@ public class OpUserService extends OpProjectService {
         "{$August}", "{$September}", "{$October}", "{$November}", "{$December}"};
    private final static String[] I18N_WEEKDAYS = new String[]{"{$Monday}", "{$Tuesday}", "{$Wednesday}", "{$Thursday}", "{$Friday}",
         "{$Saturday}", "{$Sunday}"};
+   private final static String WARNING = "warning";
 
 
    public XMessage signOn(XSession s, XMessage request) {
@@ -482,7 +485,7 @@ public class OpUserService extends OpProjectService {
       // check if user login is already used
       OpQuery query = broker.newQuery(SELECT_SUBJECT_ID_BY_NAME_QUERY);
       query.setString(0, userName);
-      logger.debug("...before find: login = " + user_data.get(OpSubject.NAME));
+      logger.debug("...before find: login = " + (String) (user_data.get(OpSubject.NAME)));
 
       Iterator userIds = broker.iterate(query);
       while (userIds.hasNext()) {
@@ -910,10 +913,10 @@ public class OpUserService extends OpProjectService {
 
    public XMessage assignToGroup(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
-
+      XMessage reply = null;
       //only the administrator has access right
       if (!session.userIsAdministrator()) {
-         XMessage reply = new XMessage();
+         reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
          reply.setError(error);
          return reply;
@@ -981,10 +984,11 @@ public class OpUserService extends OpProjectService {
                List superGroupsIds = new ArrayList();
                superGroupsIds.add(new Long(targetGroup.getID()));
                if (checkGroupAssignmentsForLoops(broker, group, superGroupsIds)) {
-                  XMessage reply = new XMessage();
+                  reply = new XMessage();
                   XError error = session.newError(ERROR_MAP, OpUserError.LOOP_ASSIGNMENT);
                   reply.setError(error);
-                  return reply;
+                  reply.setArgument(WARNING, Boolean.TRUE);
+                  continue;
                }
 
                groupAssignment = new OpGroupAssignment();
@@ -997,7 +1001,7 @@ public class OpUserService extends OpProjectService {
 
       t.commit();
       broker.close();
-      return null;
+      return reply;
    }
 
    // Helper methods

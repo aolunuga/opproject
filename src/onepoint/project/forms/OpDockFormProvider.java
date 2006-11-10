@@ -26,7 +26,7 @@ public class OpDockFormProvider implements XFormProvider {
 
    private static final XLog logger = XLogFactory.getLogger(OpDockFormProvider.class,true);
 
-   public final static String TOOL_DOCK = "ToolDock";
+   private final static String TOOL_DOCK = "ToolDock";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;

@@ -26,7 +26,7 @@ public class OpProjectsFormProvider implements XFormProvider {
    /**
     * Form component ids.
     */
-   public final static String PROJECT_DATA_SET = "ProjectDataSet";
+   private final static String PROJECT_DATA_SET = "ProjectDataSet";
 
    private static final String NEW_PROJECT_BUTTON = "NewProjectButton";
    private static final String NEW_PORTFOLIO_BUTTON = "NewPortfolioButton";
@@ -37,7 +37,7 @@ public class OpProjectsFormProvider implements XFormProvider {
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
 
       //set the value of the manager permission
       form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);

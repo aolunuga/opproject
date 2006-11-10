@@ -45,14 +45,7 @@ function changeProject(event) {
    return;
 }
 
-function expandDivision(event){
-   contentFrame = XDisplay.findFrame("ProjectNavigatorFrame");
-   panel = contentFrame.getParent();
-   panel.doLayout();
-   panel.getParent().repaint();
-}
-
-function collapseDivision(event){
+function resizeDivision(event){
    contentFrame = XDisplay.findFrame("ProjectNavigatorFrame");
    panel = contentFrame.getParent();
    panel.doLayout();

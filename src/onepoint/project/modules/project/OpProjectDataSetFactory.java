@@ -31,7 +31,7 @@ public final class OpProjectDataSetFactory {
    public final static int PORTFOLIOS = 1;
    public final static int TEMPLATES = 2;
    public final static int PROJECTS = 4;
-   public final static int PROGRAMS = 8;
+   private final static int PROGRAMS = 8;
    public final static int ALL_TYPES = PORTFOLIOS + TEMPLATES + PROJECTS + PROGRAMS;
 
    public final static String PROJECT_OBJECTS = "project.objects";
@@ -48,6 +48,7 @@ public final class OpProjectDataSetFactory {
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
       addSubPortfolioRows(session, broker, dataSet, localizer, -1, 0, types, tabular);
+      dataSet.synchronizeExpanded();
    }
 
    public static void retrieveProjectDataSetFlatStructure(OpProjectSession session, OpBroker broker, XComponent dataSet, int types,

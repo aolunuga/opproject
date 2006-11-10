@@ -12,7 +12,7 @@
       <resource id="General">General</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
-      <resource id="GroupAffiliation">Groups</resource>
+      <resource id="GroupAffiliation">Super Groups</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>

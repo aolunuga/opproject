@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 public class OpHeaderFormProvider implements XFormProvider {
 
-   public final static String USER_DISPLAY_NAME = "UserDisplayName";
+   private final static String USER_DISPLAY_NAME = "UserDisplayName";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;

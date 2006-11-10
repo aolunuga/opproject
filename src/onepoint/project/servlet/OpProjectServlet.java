@@ -38,10 +38,8 @@ public class OpProjectServlet extends XExpressServlet {
    /**
     * This class logger.
     */
-   private static XLog logger = XLogFactory.getLogger(OpProjectServlet.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectServlet.class, true);
 
-
-   private static final String GET_RUN_LEVEL_ACTION = "GetRunLevel";
    /**
     * Servlet init parameters.
     */
@@ -145,13 +143,13 @@ public class OpProjectServlet extends XExpressServlet {
       String codebase = urlBase(request).concat(appletCodebase);
 
       out
-           .println("<applet id=\"onepoint\" name=\"OnePoint Project 06 Team Edition (Client Applet)\" width=\"100%\" height=\"100%\" code=\"onepoint.project.applet.OpProjectApplet.class\" codebase=\""
+           .println("<applet id=\"onepoint\" name=\"Onepoint Project 06 Team Edition (Client Applet)\" width=\"100%\" height=\"100%\" code=\"onepoint.project.applet.OpProjectApplet.class\" codebase=\""
                 + codebase + "\" archive=\"" + appletArchive + "\">");
       out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
       out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
       out.println("<param name=\"path\" value=\"/"+WAR_NAME +"/service\">");
       out.println("<param name=\"start-form\" value=\"" + start_form + "\">");
-      out.println("<param name=\"runLevel\" value=\"" + OpInitializer.getRunLevel() + "\">");
+      out.println("<param name=\"" + OpProjectConstants.RUN_LEVEL + "\" value=\"" + OpInitializer.getRunLevel() + "\">");
       out.println("<param name=\"secure-service\" value=\"" + secureService + "\">");
       String sessionTimeoutSecs = String.valueOf(request.getSession().getMaxInactiveInterval());
       out.println("<param name=\"session-timeout\" value=\"" + sessionTimeoutSecs + "\">");
@@ -215,7 +213,7 @@ public class OpProjectServlet extends XExpressServlet {
    public void generateContentPage(String contentId, HttpServletResponse http_response, XSession s) {
       OpProjectSession session = (OpProjectSession) s;
 
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
 
       byte[] content = null;
@@ -306,7 +304,7 @@ public class OpProjectServlet extends XExpressServlet {
 
 
    protected XMessage processRequest(XMessage request, boolean sessionExpired, HttpServletRequest http_request, XSession session) {
-      if (request.getAction().equalsIgnoreCase(GET_RUN_LEVEL_ACTION)) {
+      if (request.getAction().equalsIgnoreCase(OpProjectConstants.GET_RUN_LEVEL_ACTION)) {
          XMessage response = new XMessage();
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(OpInitializer.getRunLevel()));
          return response;

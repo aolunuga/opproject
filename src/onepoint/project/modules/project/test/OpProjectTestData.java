@@ -26,9 +26,9 @@ import onepoint.util.XEnvironment;
 
 public class OpProjectTestData {
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectTestData.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectTestData.class, true);
 
-   public static void addTestPermissions(OpBroker broker, OpObject object, OpUser cs, OpUser tw, OpGroup everyone) {
+   private static void addTestPermissions(OpBroker broker, OpObject object, OpUser cs, OpUser tw, OpGroup everyone) {
       OpPermission permission = new OpPermission();
       permission.setAccessLevel(OpPermission.ADMINISTRATOR);
       permission.setSubject(cs);

@@ -42,7 +42,7 @@ import java.util.*;
  */
 public class OpProjectPlanningService extends OpProjectService {
 
-   public final static String PROJECT_ID = "project_id";
+   private final static String PROJECT_ID = "project_id";
    public final static String ACTIVITY_ID = "activity_id";
    public final static String ACTIVITY_SET = "activity_set";
 
@@ -64,7 +64,7 @@ public class OpProjectPlanningService extends OpProjectService {
    private final static String WORKING_PLAN_VERSION_ID = "working_plan_version_id";
    private final static OpProjectPlanningErrorMap ERROR_MAP = new OpProjectPlanningErrorMap();
 
-   private static XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
 
    public XMessage importActivities(XSession s, XMessage request) {
 

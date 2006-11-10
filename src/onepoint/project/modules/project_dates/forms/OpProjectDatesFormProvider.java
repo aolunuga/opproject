@@ -24,28 +24,28 @@ import java.util.*;
 public class OpProjectDatesFormProvider implements XFormProvider {
 
    /*form components */
-   public final static String PROJECT_START = "ProjectStartField";
-   public final static String PROJECT_FINISH = "ProjectFinishField";
-   public final static String HISTORY_SET = "HistorySet";
-   public final static String ACTIVITY_SET = "ActivitySet";
-   public final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
+   private final static String PROJECT_START = "ProjectStartField";
+   private final static String PROJECT_FINISH = "ProjectFinishField";
+   private final static String HISTORY_SET = "HistorySet";
+   private final static String ACTIVITY_SET = "ActivitySet";
+   private final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
    public final static String MILESTONE_SET = "MilestoneSet";
    public final static String MILESTONE_TABLE = "MilestoneTable";
    public final static String MILESTONE_CHART = "MilestoneChart";
-   public final static String PRINT_BUTTON = "PrintButton";
-   public final static String RESOURCE_SET = "ResourceSet";
-   public final static String RESOURCE_CHOICE_FIELD = "ResourceChooser";
-   public final static String VERSION_CHOICE_FIELD = "VersionChooser";
+   private final static String PRINT_BUTTON = "PrintButton";
+   private final static String RESOURCE_SET = "ResourceSet";
+   private final static String RESOURCE_CHOICE_FIELD = "ResourceChooser";
+   private final static String VERSION_CHOICE_FIELD = "VersionChooser";
 
-   public final static String PROJECT_ID = "project_id";
-   public final static String PRINT_TITLE = "PrintTitle";
+   protected final static String PROJECT_ID = "project_id";
+   private final static String PRINT_TITLE = "PrintTitle";
    public final static int CURRENT_DATE_COLUMN_INDEX = 1;
 
 
    private final static String FORM_ID = "ProjectDatesForm";
    /*filters */
-   public final static String RESOURCE_ID = "resource_id";
-   public final static String VERSION_ID = "version_id";
+   private final static String RESOURCE_ID = "resource_id";
+   private final static String VERSION_ID = "version_id";
    /*resource filter choices */
    private final static String ALL_RESOURCES = "all";
    /*version filter choices */

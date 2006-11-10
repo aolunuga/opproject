@@ -22,10 +22,10 @@ import java.util.Set;
 
 public class OpProjectCostsFormProvider implements XFormProvider {
 
-   public final static String COST_SET = "CostSet";
-   public final static String PRINT_BUTTON = "PrintButton";
+   private final static String COST_SET = "CostSet";
+   private final static String PRINT_BUTTON = "PrintButton";
 
-   public final static String PROJECT_ID = "project_id";
+   protected final static String PROJECT_ID = "project_id";
 
    public final static int ACTIVITY_COST_TYPE_COLUMN_INDEX = 0;
    public final static int BASE_COLUMN_INDEX = 1;
@@ -36,15 +36,15 @@ public class OpProjectCostsFormProvider implements XFormProvider {
    public final static int DEVIATION100_COLUMN_INDEX = 6;
 
    // Project costs resource map
-   public final static String PROJECT_COSTS_PROJECT_COSTS = "project_costs.project_costs";
+   protected final static String PROJECT_COSTS_PROJECT_COSTS = "project_costs.project_costs";
 
    // Cost types
-   public final static String PERSONNEL = "{$Personnel}";
-   public final static String TRAVEL = "{$Travel}";
-   public final static String MATERIAL = "{$Material}";
-   public final static String EXTERNAL = "{$External}";
-   public final static String MISCELLANEOUS = "{$Miscellaneous}";
-   public final static String PRINT_TITLE = "PrintTitle";
+   protected final static String PERSONNEL = "{$Personnel}";
+   protected final static String TRAVEL = "{$Travel}";
+   protected final static String MATERIAL = "{$Material}";
+   protected final static String EXTERNAL = "{$External}";
+   protected final static String MISCELLANEOUS = "{$Miscellaneous}";
+   private final static String PRINT_TITLE = "PrintTitle";
 
    // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining
    // (Therefore, deviation = predicted - base)
@@ -116,7 +116,7 @@ public class OpProjectCostsFormProvider implements XFormProvider {
       }
    }
 
-   protected void _addActivity(XComponent data_set, OpActivity activity, String personnel, String travel,
+   private void _addActivity(XComponent data_set, OpActivity activity, String personnel, String travel,
          String material, String external, String miscellaneous) {
       // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining
       // (Therefore, deviation = predicted - base)

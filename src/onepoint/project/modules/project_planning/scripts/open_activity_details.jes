@@ -102,7 +102,6 @@ function editActivity(event) {
          hiddenFieldsIds[0] = "Start";
          hiddenFieldsIds[1] = "End";
          hiddenFieldsIds[2] = "Duration";
-         hiddenFieldsIds[3] = "BaseEffort";
 
          hiddenTabsIds[0] = "PredecessorTab";
 
@@ -118,12 +117,12 @@ function editActivity(event) {
          disabledFieldsIds[3] = "MaterialCosts";
          disabledFieldsIds[4] = "MiscellaneousCosts";
          disabledFieldsIds[5] = "ExternalCosts";
+         disabledFieldsIds[6] = "BaseEffort";
 
          hiddenFieldsIds[0] = "Start";
          hiddenFieldsIds[1] = "End";
          hiddenFieldsIds[2] = "Duration";
-         hiddenFieldsIds[3] = "BaseEffort";
-         hiddenFieldsIds[4] = "Priority";
+         hiddenFieldsIds[3] = "Priority";
 
          hiddenTabsIds[0] = "PredecessorTab";
          hiddenTabsIds[1] = "ResourcesTab";

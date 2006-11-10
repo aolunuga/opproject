@@ -16,7 +16,7 @@ import java.util.Iterator;
 
 public class OpModuleLoader extends XLoader {
 
-   private static XLog logger = XLogFactory.getLogger(OpModuleLoader.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpModuleLoader.class,true);
 
    public final static XSchema MODULE_SCHEMA = new OpModuleSchema();
 

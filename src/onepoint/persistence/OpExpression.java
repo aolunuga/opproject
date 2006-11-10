@@ -11,7 +11,7 @@ import java.util.Stack;
 
 public class OpExpression extends OpAbstractExpression {
 
-   private static XLog logger = XLogFactory.getLogger(OpExpression.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpExpression.class,true);
 
   // * Not 100% sure if precedence now works (see AND/OR re-ordering in XSQLConnection._convertExpression)
   //    - Possible simplification: Parsing order of BNF automatically resolves precedence?

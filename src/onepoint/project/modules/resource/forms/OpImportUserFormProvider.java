@@ -23,18 +23,17 @@ import onepoint.service.server.XSession;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class OpSelectUserFormProvider implements XFormProvider {
+public class OpImportUserFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpSelectUserFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpImportUserFormProvider.class, true);
 
-   public final static String USER_DATA_SET = "UserDataSet";
-   public final static String POOL_ID = "PoolID";
-   public final static String POOL_DATA_SET = "PoolDataSet";
-   public final static String POOL_LIST = "PoolList";
-   private final String NOT_ASSIGNED_DISPLAY_NAME = "{$NotAssignedDisplayName}";
-
+   private final static String USER_DATA_SET = "UserDataSet";
+   private final static String POOL_ID = "PoolID";
+   private final static String POOL_DATA_SET = "PoolDataSet";
+   private final static String POOL_LIST = "PoolList";
+   
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
-      logger.debug("OpSelectUserFormProvider.prepareForm()");
+      logger.debug("OpImportUserFormProvider.prepareForm()");
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
       //Localizer is used to localize name of root resource pool and administrator
@@ -42,10 +41,14 @@ public class OpSelectUserFormProvider implements XFormProvider {
 
       OpResourcePool selected_pool = null;
       if (parameters != null) {
-         String poolId = (String) parameters.get(OpResourceService.POOL_ID);
+         String poolId = (String) parameters.get(POOL_ID);
          if (poolId != null) {
             selected_pool = (OpResourcePool) broker.getObject(poolId);
          }
+      }
+
+      if (selected_pool == null) {
+         selected_pool = OpResourceService.findRootPool(broker);
       }
 
       // fill PoolDataSet

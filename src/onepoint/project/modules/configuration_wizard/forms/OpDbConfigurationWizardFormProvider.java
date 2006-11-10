@@ -20,14 +20,14 @@ import java.util.HashMap;
 public class OpDbConfigurationWizardFormProvider implements XFormProvider {
 
    /*form's component ids */
-   public static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
-   public static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
-   public static final String DEFAULT_DB_URL_DATA_FIELD = "DefaultDbURLDataField";
-   public static final String DEFAULT_DB_LOGIN_DATA_FIELD = "DefaultDbLoginDataField";
-   public static final String DEFAULT_DB_PASSWORD_DATA_FIELD = "DefaultDbPasswordDataField";
+   private static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
+   private static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
+   private static final String DEFAULT_DB_URL_DATA_FIELD = "DefaultDbURLDataField";
+   private static final String DEFAULT_DB_LOGIN_DATA_FIELD = "DefaultDbLoginDataField";
+   private static final String DEFAULT_DB_PASSWORD_DATA_FIELD = "DefaultDbPasswordDataField";
 
    /*the request params */
-   public static final String LOCAL_APPLICATION = "localApplication";
+   private static final String LOCAL_APPLICATION = "localApplication";
 
    /**
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)

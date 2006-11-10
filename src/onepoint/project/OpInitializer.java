@@ -41,8 +41,19 @@ public class OpInitializer {
    public static String RESOURCE_CACHE_SIZE = "cacheSize";
    public static String SECURE_SERVICE = "secureService";
 
-   /*run level of the application. */
+   /**
+    * Run level of the application.
+    */
    private static byte runLevel;
+
+   /**
+    * Success Run Level.
+    */
+   private static byte successRunLevel;
+
+   private static String errorId;
+   private static String errorMapId;
+
    /*init params map that will be returned after initialization is performed */
    private static Map initParams = new HashMap();
    /*class logger */
@@ -63,6 +74,23 @@ public class OpInitializer {
    }
 
    /**
+    * Returns the run level of the application
+    *
+    * @return <code>byte</code> run level
+    */
+   public static byte getSuccessRunLevel() {
+      return successRunLevel;
+   }
+
+   public static String getErrorId() {
+      return errorId;
+   }
+
+   public static String getErrorMapId() {
+      return errorMapId;
+   }
+
+   /**
     * Performs application initilization steps.
     *
     * @param projectPath <code>String</code> the absolute path to the folder which contains the configuration files
@@ -71,6 +99,7 @@ public class OpInitializer {
    public static Map init(String projectPath) {
 
       logger.info("Application initialization started");
+      successRunLevel = 7;
       runLevel = 0;
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
@@ -160,23 +189,30 @@ public class OpInitializer {
          runLevel = 3;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
-         //Check repository status
-
          OpBroker broker = OpPersistenceManager.newBroker();
+
+         Connection jdbcConnection = broker.getJDBCConnection();
+         //ping the database
+         jdbcConnection.getMetaData();
+
+         logger.info("Connection to database is OK");
+         runLevel = 4;
+         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
          //if db schema doesn't exist, create it
          if (!defaultSource.existsTable("op_object")) {
             createEmptySchema(broker);
          }
 
          logger.info("Repository status is OK");
-         runLevel = 4;
+         runLevel = 5;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          //update db schema
          updateDBSchema(broker, defaultSource);
 
          logger.info("Updated database schema is OK");
-         runLevel = 5;
+         runLevel = 6;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          //check if the db is empty
@@ -187,13 +223,14 @@ public class OpInitializer {
          OpModuleManager.start();
 
          logger.info("Registered modules started; Application started");
-         runLevel = 6;
+         runLevel = 7;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
       }
       catch(OpModuleException e) {
          if (e.getResourceId() != null && e.getResourceMapId() != null) {
-            initParams.put(OpProjectConstants.RESOURCE_ID, e.getResourceId());
-            initParams.put(OpProjectConstants.RESOURCE_MAP_ID, e.getResourceMapId());
+            logger.error("Cannot load an application module");
+            errorId = e.getResourceId();
+            errorMapId = e.getResourceMapId();
          }
          else {
             logger.error("Cannot load an application module", e);

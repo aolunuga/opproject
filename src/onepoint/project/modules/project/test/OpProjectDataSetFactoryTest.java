@@ -262,7 +262,7 @@ public class OpProjectDataSetFactoryTest extends onepoint.project.test.OpService
     * @param portfolioDataRow  the tested portfolio <code>XComponent.DATA_ROW</code>
     */
 
-   public void assertEqualProjectPortfolios(OpProjectNode expectedPortfolio, XComponent portfolioDataRow) {
+   private void assertEqualProjectPortfolios(OpProjectNode expectedPortfolio, XComponent portfolioDataRow) {
 
       XComponent dataCell = (XComponent) portfolioDataRow.getChild(0);
       //portfolio descriptor
@@ -288,7 +288,7 @@ public class OpProjectDataSetFactoryTest extends onepoint.project.test.OpService
     * @param projectDataRow  the tested project <code>XComponent.DATA_ROW</code>
     */
 
-   public void assertEqualProjects(OpProjectNode expectedProject, XComponent projectDataRow) {
+   private void assertEqualProjects(OpProjectNode expectedProject, XComponent projectDataRow) {
 
       XComponent dataCell = (XComponent) projectDataRow.getChild(0);
       //project descriptor
