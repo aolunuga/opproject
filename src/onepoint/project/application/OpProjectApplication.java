@@ -148,6 +148,7 @@ public class OpProjectApplication {
                   logger.error("ERROR: Restore needs an empty data base");
                }
             }
+            System.exit(0);
             break;
          default:
             // Show GUI
