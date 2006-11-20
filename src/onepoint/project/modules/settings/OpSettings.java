@@ -41,7 +41,7 @@ public class OpSettings {
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
 
    // Global defaults
-   public static final String USER_LOCALE_DEFAULT = "de";
+   public static final String USER_LOCALE_DEFAULT = XCalendar.getDefaultLocale().getLanguage();
 
    public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.MONDAY).toString();
    public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.FRIDAY).toString();
