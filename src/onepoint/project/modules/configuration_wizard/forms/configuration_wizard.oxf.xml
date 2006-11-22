@@ -26,9 +26,9 @@
             <label x="0" y="5" width="2" text="{$DatabasePassword}"/>
             <text-field x="2" y="5" width="3" id="DatabasePasswordTextField" value="opproject" secret="true"/>
 
-            <button x="3" y="7" id="okButton" text="{$Connect}" on-button-pressed="connect"/>
+            <button x="2" y="7" width="2" id="okButton" text="{$Connect}" on-button-pressed="connect"/>
          
-         </panel>		  
+         </panel>
 		  
    </panel>
    </panel>

@@ -7,7 +7,14 @@ package onepoint.project.modules.configuration_wizard.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
+import onepoint.persistence.OpConnectionManager;
+import onepoint.project.OpInitializer;
+import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
+import onepoint.resource.XLanguageResourceMap;
+import onepoint.resource.XLocaleManager;
+import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -25,6 +32,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
    private static final String DEFAULT_DB_URL_DATA_FIELD = "DefaultDbURLDataField";
    private static final String DEFAULT_DB_LOGIN_DATA_FIELD = "DefaultDbLoginDataField";
    private static final String DEFAULT_DB_PASSWORD_DATA_FIELD = "DefaultDbPasswordDataField";
+   private static final String ERROR_LABEL_FIELD = "ErrorLabel";
 
    /*the request params */
    private static final String LOCAL_APPLICATION = "localApplication";
@@ -50,6 +58,38 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
          form.findComponent(DEFAULT_DB_URL_DATA_FIELD).setStringValue(onepoint.project.configuration.OpConfiguration.getHSQLDbUrl());
          form.findComponent(DEFAULT_DB_LOGIN_DATA_FIELD).setStringValue(onepoint.project.configuration.OpConfiguration.HSQL_DB_USER);
          form.findComponent(DEFAULT_DB_PASSWORD_DATA_FIELD).setStringValue(onepoint.project.configuration.OpConfiguration.HSQL_DB_PASSWORD);
+      }
+
+      //check whether an error code should already be displayed
+      int connectionTestCode = OpInitializer.getConnectionTestCode();
+      if (connectionTestCode != OpConnectionManager.SUCCESS) {
+         XLocalizer localizer = new XLocalizer();
+         XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(((OpProjectSession) session).getLocale().getID(), "configuration_wizard.error");
+         localizer.setResourceMap(resourceMap);
+         XComponent errorLabel = form.findComponent(ERROR_LABEL_FIELD);
+         errorLabel.setVisible(true);
+         switch(connectionTestCode) {
+            case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
+            case OpConnectionManager.INVALID_CONNECTION_STRING_EXCEPTION: {
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
+            case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
+            case OpConnectionManager.INVALID_CREDENTIALS_EXCEPTION: {
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CREDENTIALS_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
+         }
       }
    }
 

@@ -6,6 +6,7 @@ package onepoint.project.modules.configuration_wizard;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
@@ -79,13 +80,66 @@ public class OpConfigurationWizardService extends XService {
          response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_LOGIN_MISSING));
          return response;
       }
+
       //password is not a mandatory field
       String databasePassword = (String) parameters.get("database_password");
+
+      int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword);
+      if (errorCode != OpConnectionManager.SUCCESS) {
+         response.setError(session.newError(errorMap, errorCode));
+         return response;
+      }
 
       //the configuration file name
       String projectPath = XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
       String configurationFileName = projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
 
+      writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
+
+      //re-initialize application
+      Map initParams = OpInitializer.init(projectPath);
+      response.setArgument("initParams", initParams);
+      return response;
+   }
+
+   /**
+    * Checks whether the given db connection parameters are ok to establish a db connection.
+    * @param databaseDriver a <code>String</code> representing the database driver class.
+    * @param databaseURL a <code>String</code> representing the db connection url.
+    * @param databaseLogin a <code>String</code> representing the user name of the db connection.
+    * @param databasePassword a <code>String</code> representing the db password.
+    * @return an <code>int</code> representing an error code or 0, representing no error.
+    */
+   private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
+      int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword);
+      switch(testResult) {
+         case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
+            return OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR;
+         }
+         case OpConnectionManager.INVALID_CONNECTION_STRING_EXCEPTION: {
+            return OpDbConfigurationWizardError.INVALID_CONNECTION_STRING;
+         }
+         case OpConnectionManager.INVALID_CREDENTIALS_EXCEPTION: {
+            return OpDbConfigurationWizardError.INVALID_CREDENTIALS;
+         }
+         case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
+            return OpDbConfigurationWizardError.JDBC_DRIVER_ERROR;
+         }
+      }
+      return testResult;
+   }
+
+   /**
+    * Writes the configuration file for the application, based on the information from the configuration wizard.
+    *
+    * @param configurationFileName a <code>String</code> representing the name of the application configuration file.
+    * @param databaseType a <code>String</code> representing the db type.
+    * @param databaseDriver a <code>String</code> representing the path to the db driver.
+    * @param databaseURL a <code>String</code> representing the db connection string.
+    * @param databaseLogin a <code>String</code> representing the user name in the db config.
+    * @param databasePassword a <code>String</code> representing the user password in the db.
+    */
+   private void writeConfigurationFile(String configurationFileName, String databaseType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       try {
          DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
          documentFactory.setValidating(false);
@@ -137,10 +191,6 @@ public class OpConfigurationWizardService extends XService {
       catch (Exception e) {
          logger.error("Error occured while writing configuration file", e);
       }
-      //re-initialize application
-      Map initParams = OpInitializer.init(projectPath);
-      response.setArgument("initParams", initParams);
-      return response;
    }
 
    /**

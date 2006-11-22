@@ -301,9 +301,11 @@ public class OpMSProjectManager {
          String resouceLocator = row.getStringValue();
          String resouceID = XValidator.choiceID(resouceLocator);
          String resourceName = XValidator.choiceCaption(resouceLocator);
-         Resource resource = file.addResource();
-         resource.setName(resourceName);
-         resourceMap.put(resouceID, resource);
+         if (!resourceName.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
+            Resource resource = file.addResource();
+            resource.setName(resourceName);
+            resourceMap.put(resouceID, resource);
+         }
       }
 
       //add activities
@@ -410,25 +412,25 @@ public class OpMSProjectManager {
 
       //11) Resources - List
       List resources = OpGanttValidator.getResources(activity);
-      int i=0;
+      int i = 0;
       for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
          String locator = (String) iterator.next();
          String id = XValidator.choiceID(locator);
          String caption = XValidator.choiceCaption(locator);
-         Resource resource = (Resource) resourceMap.get(id);
-         ResourceAssignment assignments = task.addResourceAssignment();
          String resName = OpGanttValidator.getResourceName(caption, "%");
-
-         assignments.setResourceID(resource.getID());
-         Double resourceBaseEffort = (Double) OpGanttValidator.getResourceBaseEfforts(activity).get(i);
-         Duration workDuration = Duration.getInstance(resourceBaseEffort.doubleValue(), TimeUnit.HOURS);
-         assignments.setWork(workDuration);
-         if (caption.length() > resName.length()) {
-            double assigned = OpGanttValidator.percentageAssigned(locator);
-            assignments.setUnits(new Double(assigned));
+         if (!resName.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
+            Resource resource = (Resource) resourceMap.get(id);
+            ResourceAssignment assignments = task.addResourceAssignment();
+            assignments.setResourceID(resource.getID());
+            Double resourceBaseEffort = (Double) OpGanttValidator.getResourceBaseEfforts(activity).get(i);
+            Duration workDuration = Duration.getInstance(resourceBaseEffort.doubleValue(), TimeUnit.HOURS);
+            assignments.setWork(workDuration);
+            if (caption.length() > resName.length()) {
+               double assigned = OpGanttValidator.percentageAssigned(locator);
+               assignments.setUnits(new Double(assigned));
+            }
+            i++;
          }
-
-         i++;
       }
 
       //Costs are not exported!

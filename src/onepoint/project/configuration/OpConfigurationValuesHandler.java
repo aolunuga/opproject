@@ -10,6 +10,7 @@ import onepoint.xml.XNodeHandler;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 public class OpConfigurationValuesHandler implements XNodeHandler {
 
@@ -40,10 +41,27 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public final static String ORACLE_DB_TYPE = "Oracle";
    public final static String IBM_DB2_DB_TYPE = "IBM DB/2";
    public final static String HSQL_DB_TYPE = "HSQLDB";
+
+   /**
+    * A map from db type name to db type (int constant).
+    */
+   public final static Map DATABASE_TYPES_MAP;
+
    /**
     * Db password encrypted attribute.
     */
    final static String ENCRYPTED_ATTRIBUTE = "encrypted";
+
+   static {
+      DATABASE_TYPES_MAP = new HashMap();
+      DATABASE_TYPES_MAP.put(DERBY_DB_TYPE, new Integer(OpHibernateSource.DERBY));
+      DATABASE_TYPES_MAP.put(MYSQL_DB_TYPE, new Integer(OpHibernateSource.MYSQL));
+      DATABASE_TYPES_MAP.put(MYSQL_INNO_DB_TYPE, new Integer(OpHibernateSource.MYSQL_INNODB));
+      DATABASE_TYPES_MAP.put(POSTGRESQL_DB_TYPE, new Integer(OpHibernateSource.POSTGRESQL));
+      DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, new Integer(OpHibernateSource.ORACLE));
+      DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, new Integer(OpHibernateSource.HSQLDB));
+      DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, new Integer(OpHibernateSource.IBM_DB2));
+   }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       //see whether we have an encrypted password
@@ -69,31 +87,13 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
       if (name == DATABASE_TYPE) {
          String value = ((StringBuffer) node).toString().trim();
-         if (value.equals(DERBY_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.DERBY);
-         }
-         else if (value.equals(MYSQL_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.MYSQL);
-         }
-         else if (value.equals(MYSQL_INNO_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.MYSQL_INNODB);
-         }
-         else if (value.equals(POSTGRESQL_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.POSTGRESQL);
-         }
-         else if (value.equals(ORACLE_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.ORACLE);
-         }
-         else if (value.equals(HSQL_DB_TYPE)) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.HSQLDB);
-         }
-         else if (value.equals(IBM_DB2_DB_TYPE)) {
-        	 ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(OpHibernateSource.IBM_DB2);
+         Integer dbType = (Integer) DATABASE_TYPES_MAP.get(value);
+         if (dbType != null) {
+            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(dbType.intValue());
          }
          else {
             System.err.println("WARNING: Unknown database type specified in configuration: " + value);
          }
-         // TODO: Better error handling for unknown database type
       }
       else if (name == DATABASE_DRIVER) {
          ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(((StringBuffer) node).toString());

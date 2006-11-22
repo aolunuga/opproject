@@ -566,22 +566,17 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          assignmentVersion.setBaseCosts(assignmentVersion.getBaseEffort() * resource.getHourlyRate());
          broker.updateObject(assignmentVersion);
 
-         OpActivityVersion activity = assignmentVersion.getActivityVersion();
-         double oldPersonnelCosts = activity.getBasePersonnelCosts();
-         double baseEffort = activity.getBaseEffort();
+         OpActivityVersion activityVersion = assignmentVersion.getActivityVersion();
+         double oldPersonnelCosts = activityVersion.getBasePersonnelCosts();
+         double baseEffort = activityVersion.getBaseEffort();
 
          double sumAssigned = 0;
-         Iterator it1 = activity.getAssignmentVersions().iterator();
-         //<FIXME> author="Mihai Costin" description="Now the assigned field is double. This can be fixed."
-         //<FIXME author="Horia Chiorean" description="Would've been much nicer with a sum() query, but that overflows the "byte" type range !!!">
-         while (it1.hasNext()) {
-            OpAssignmentVersion assignment = ((OpAssignmentVersion) it1.next());
-            sumAssigned += assignment.getAssigned();
-         }
-         //<FIXME>
-         //<FIXME>
+         OpQuery query = broker.newQuery("select sum(assignment.Assigned) from OpAssignmentVersion assignment where assignment.ActivityVersion.ID=?");
+         query.setLong(0, activityVersion.getID());
+         sumAssigned =  ((Double)broker.list(query).iterator().next()).doubleValue();
+
          double personnelCosts = 0;
-         it1 = activity.getAssignmentVersions().iterator();
+         Iterator it1 = activityVersion.getAssignmentVersions().iterator();
          while (it1.hasNext()) {
             OpAssignmentVersion assignment = ((OpAssignmentVersion) it1.next());
             OpResource assignmentResource = assignment.getResource();
@@ -589,18 +584,18 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             personnelCosts += assignmentProportion * baseEffort * assignmentResource.getHourlyRate();
          }
          //update activity
-         activity.setBasePersonnelCosts(personnelCosts);
+         activityVersion.setBasePersonnelCosts(personnelCosts);
 
          //update all super activities
-         while (activity.getSuperActivityVersion() != null) {
-            OpActivityVersion superActivity = activity.getSuperActivityVersion();
-            double costsDifference = activity.getBasePersonnelCosts() - oldPersonnelCosts;
-            oldPersonnelCosts = superActivity.getBasePersonnelCosts();
-            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + costsDifference);
-            broker.updateObject(activity);
-            activity = superActivity;
+         while (activityVersion.getSuperActivityVersion() != null) {
+            OpActivityVersion superActivityVersion = activityVersion.getSuperActivityVersion();
+            double costsDifference = activityVersion.getBasePersonnelCosts() - oldPersonnelCosts;
+            oldPersonnelCosts = superActivityVersion.getBasePersonnelCosts();
+            superActivityVersion.setBasePersonnelCosts(superActivityVersion.getBasePersonnelCosts() + costsDifference);
+            broker.updateObject(activityVersion);
+            activityVersion = superActivityVersion;
          }
-         broker.updateObject(activity);
+         broker.updateObject(activityVersion);
       }
    }
 

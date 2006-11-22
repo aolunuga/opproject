@@ -194,15 +194,6 @@ public class OpProjectTestData {
 
       // Load and register object source
       // OpSource mysql = XSQLSourceLoader.loadSource("mysql_auto.xml");
-      OpHibernateSource mysql_auto = new OpHibernateSource();
-      /*
-       * mysql_auto.setDatabaseType(OpHibernateSource.DERBY);
-       * mysql_auto.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
-       * mysql_auto.setURL("jdbc:derby:test;create=true");
-       */
-
-      // TODO: Idea --file location defaults to onepoint_home, but could be overridden via a command-line option
-      // Read configuration file
       OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
       onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(project_home + "/"
            + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
@@ -212,19 +203,10 @@ public class OpProjectTestData {
          System.exit(1);
       }
 
-      /*
-       * mysql_auto.setDatabaseType(OpHibernateSource.MYSQL); mysql_auto.setDriverClassName("com.mysql.jdbc.Driver");
-       */
-      mysql_auto.setDatabaseType(configuration.getDatabaseConfiguration().getDatabaseType());
-      mysql_auto.setDriverClassName(configuration.getDatabaseConfiguration().getDatabaseDriver());
-      mysql_auto.setURL(configuration.getDatabaseConfiguration().getDatabaseUrl());
-      mysql_auto.setLogin(configuration.getDatabaseConfiguration().getDatabaseLogin());
-      mysql_auto.setPassword(configuration.getDatabaseConfiguration().getDatabasePassword());
-      mysql_auto.setHsqlDatabasePath(onepoint.project.configuration.OpConfiguration.getHSQLDbPath());
-      mysql_auto.setHsqlDatabaseType(onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE);
-      if (mysql_auto.getDatabaseType() == OpHibernateSource.HSQLDB) {
-         mysql_auto.setEmbeded(true);
-      }
+      OpHibernateSource mysql_auto = new OpHibernateSource(configuration.getDatabaseConfiguration().getDatabaseUrl(),
+           configuration.getDatabaseConfiguration().getDatabaseDriver(), configuration.getDatabaseConfiguration().getDatabasePassword(),
+           configuration.getDatabaseConfiguration().getDatabaseLogin(), configuration.getDatabaseConfiguration().getDatabaseType(),
+           onepoint.project.configuration.OpConfiguration.getHSQLDbPath(), onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE);
 
       logger.info("Registering SQL object source...");
       OpSourceManager.registerSource(mysql_auto);

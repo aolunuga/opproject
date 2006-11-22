@@ -20,6 +20,7 @@ import onepoint.service.server.XSession;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OpProjectsFormProvider implements XFormProvider {
 
@@ -67,6 +68,7 @@ public class OpProjectsFormProvider implements XFormProvider {
       ArrayList activityTypes = new ArrayList();
       activityTypes.add(new Byte(OpActivity.STANDARD));
       activityTypes.add(new Byte(OpActivity.COLLECTION));
+      activityTypes.add(new Byte(OpActivity.SCHEDULED_TASK));
 
       // Gather accessible project IDs
       int i = 0;
@@ -104,14 +106,124 @@ public class OpProjectsFormProvider implements XFormProvider {
          dataRow.addChild(dataCell);
       }
 
+      StringBuffer queryBuffer;
+      OpQuery query;
+      Object[] record;
+
       // Add completed status
       // TODO: (Sum of individual complete * individual duration) / (number * sum of durations)
+      setCompleteValueForProjects(broker, projectIds, projectTypes, activityTypes, dataRowMap, startIndex);
+
+      activityTypes.add(new Byte(OpActivity.TASK));
+      activityTypes.add(new Byte(OpActivity.COLLECTION_TASK));
+      // Add resource status
+      List resources = getProjectResourceValues(broker, projectIds, projectTypes, activityTypes);
+      record = null;
+      for (i = 0; i < resources.size(); i++) {
+         record = (Object[]) resources.get(i);
+         Long projId = (Long) record[0];
+         Double sum1 = (Double) record[1];
+         Double sum2 = (Double) record[2];
+         dataRow = (XComponent) dataRowMap.get(projId);
+         if (sum1 != null && sum2 != null) {
+            double value = Double.MAX_VALUE;
+            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
+               value = 0;
+            }
+            else if (sum2.doubleValue() != 0) {
+               value = sum1.doubleValue() / sum2.doubleValue() * 100;
+            }
+            ((XComponent) dataRow.getChild(startIndex + 1)).setDoubleValue(value);
+         }
+      }
+
+      // Add costs status
+      List costs = getProjectCostsValues(broker, projectIds, projectTypes, activityTypes);
+      record = null;
+      for (i = 0; i < costs.size(); i++) {
+         record = (Object[]) costs.get(i);
+         Long projId = (Long) record[0];
+         Double sum1 = (Double) record[1];
+         Double sum2 = (Double) record[2];
+         dataRow = (XComponent) dataRowMap.get(projId);
+         if (sum1 != null && sum2 != null) {
+            double value = Double.MAX_VALUE;
+            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
+               value = 0;
+            }
+            else if (sum2.doubleValue() != 0) {
+               value = sum1.doubleValue() / sum2.doubleValue() * 100;
+            }
+            ((XComponent) dataRow.getChild(startIndex + 2)).setDoubleValue(value);
+         }
+      }
+
+      broker.close();
+   }
+
+   /**
+    * Retrieves from the DB the list of costs values (Actual & Base effort) for the each project ID from the ones given in the projectIds list.
+    *
+    * @param broker        Broket object to use for db query
+    * @param projectIds    Projects to get the costs values for (will take only those projects that also satisfy the type constraint)
+    * @param projectTypes  Types of projects to include in search
+    * @param activityTypes Types of activities to take into account when calculating the costs values.
+    * @return A List of records arrays. Each array contains the project ID, actual costs sum and base costs sum [in that order !]
+    */
+   public static List getProjectCostsValues(OpBroker broker, List projectIds, List projectTypes, List activityTypes) {
+      StringBuffer queryBuffer;
+      OpQuery query;
+      queryBuffer = new StringBuffer("select project.ID");
+      queryBuffer
+           .append(", sum(activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts)");
+      queryBuffer
+           .append(" , sum(activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts)");
+      queryBuffer
+           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
+      queryBuffer
+           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
+      query = broker.newQuery(queryBuffer.toString());
+      query.setCollection("projectIds", projectIds);
+      query.setCollection("activityTypes", activityTypes);
+      query.setCollection("projectTypes", projectTypes);
+      List costs = broker.list(query);
+      return costs;
+   }
+
+   /**
+    * Retrieves from the DB the list of resource values (Actual & Base effort) for the each project ID from the ones given in the projectIds list.
+    *
+    * @param broker        Broket object to use for db query
+    * @param projectIds    Projects to get the resource values for (will take only those projects that also satisfy the type constraint)
+    * @param projectTypes  Types of projects to include in search
+    * @param activityTypes Types of activities to take into account when calculating the resource values.
+    * @return A List of records arrays. Each array contains the project ID, actual effort sum and base effort sum [in that order !]
+    */
+   public static List getProjectResourceValues(OpBroker broker, List projectIds, List projectTypes, List activityTypes) {
+      StringBuffer queryBuffer;
+      OpQuery query;
+      queryBuffer = new StringBuffer("select project.ID, sum(activity.ActualEffort), sum(activity.BaseEffort)");
+      queryBuffer
+           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
+      queryBuffer
+           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
+      query = broker.newQuery(queryBuffer.toString());
+      query.setCollection("projectIds", projectIds);
+      query.setCollection("projectTypes", projectTypes);
+      query.setCollection("activityTypes", activityTypes);
+      List resources = broker.list(query);
+      return resources;
+   }
+
+   public static void setCompleteValueForProjects(OpBroker broker, List projectIds, List projectTypes, List activityTypes, Map dataRowMap, int completeIndex) {
+      int i;
+      XComponent dataRow;
       StringBuffer queryBuffer = new StringBuffer(
-            "select project.ID, sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
+           "select project.ID, sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
       queryBuffer
-            .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
+           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
       queryBuffer
-            .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
+           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setCollection("projectIds", projectIds);
       query.setCollection("projectTypes", projectTypes);
@@ -132,77 +244,9 @@ public class OpProjectsFormProvider implements XFormProvider {
             else if (sum2.doubleValue() != 0) {
                value = sum1.doubleValue() / sum2.doubleValue();
             }
-            ((XComponent) dataRow.getChild(startIndex)).setDoubleValue(value);
+            ((XComponent) dataRow.getChild(completeIndex)).setDoubleValue(value);
          }
       }
-
-      // Add resource status
-      queryBuffer = new StringBuffer("select project.ID, sum(activity.ActualEffort), sum(activity.BaseEffort)");
-      queryBuffer
-            .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer
-            .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
-      query = broker.newQuery(queryBuffer.toString());
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("projectTypes", projectTypes);
-      query.setCollection("activityTypes", activityTypes);
-      List resources = broker.list(query);
-      record = null;
-      for (i = 0; i < resources.size(); i++) {
-         record = (Object[]) resources.get(i);
-         dataRow = (XComponent) dataRowMap.get((Long) record[0]);
-         Long projId = (Long) record[0];
-         Double sum1 = (Double) record[1];
-         Double sum2 = (Double) record[2];
-         dataRow = (XComponent) dataRowMap.get(projId);
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue() * 100;
-            }
-            ((XComponent) dataRow.getChild(startIndex + 1)).setDoubleValue(value);
-         }
-      }
-
-      // Add costs status
-      queryBuffer = new StringBuffer("select project.ID");
-      queryBuffer
-            .append(", sum(activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts)");
-      queryBuffer
-            .append(" , sum(activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts)");
-      queryBuffer
-            .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer
-            .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
-      query = broker.newQuery(queryBuffer.toString());
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("activityTypes", activityTypes);
-      query.setCollection("projectTypes", projectTypes);
-      List costs = broker.list(query);
-      record = null;
-      for (i = 0; i < costs.size(); i++) {
-         record = (Object[]) costs.get(i);
-         dataRow = (XComponent) dataRowMap.get((Long) record[0]);
-         Long projId = (Long) record[0];
-         Double sum1 = (Double) record[1];
-         Double sum2 = (Double) record[2];
-         dataRow = (XComponent) dataRowMap.get(projId);
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue() * 100;
-            }
-            ((XComponent) dataRow.getChild(startIndex + 2)).setDoubleValue(value);
-         }
-      }
-
-      broker.close();
    }
 
    /**

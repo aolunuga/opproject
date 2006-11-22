@@ -89,6 +89,21 @@ public class OpHibernateSource extends OpSource {
    private String hsqlDatabasePath;
    private String hsqlDatabaseType;
 
+
+   public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type, String hsqlDatabasePath, String hsqlDatabaseType) {
+      this._url = _url;
+      this._driver_class_name = _driver_class_name;
+      this._password = _password;
+      this._login = _login;
+      this._database_type = _database_type;
+      this.hsqlDatabasePath = hsqlDatabasePath;
+      this.hsqlDatabaseType = hsqlDatabaseType;
+
+      if (_database_type == HSQLDB) {
+         this.setEmbeded(true);
+      }
+   }
+
    final Configuration getConfiguration() {
       return _configuration;
    }

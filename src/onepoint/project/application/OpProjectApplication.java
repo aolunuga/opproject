@@ -171,7 +171,7 @@ public class OpProjectApplication {
     */
    private static XExpressApplication createStartupApplication() {
       // Startup application
-      XExpressApplication application = new XExpressApplication("OnePoint Project", 1024, 720);
+      XExpressApplication application = new XExpressApplication("Onepoint Project", 1024, 720);
       // set the application-icon
       URL imgURL = Thread.currentThread().getContextClassLoader().getResource(
            "onepoint/project/application/opp_icon16.png");

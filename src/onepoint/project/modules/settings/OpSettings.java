@@ -37,7 +37,7 @@ public class OpSettings {
    public static final String REPORT_REMOVE_TIME_PERIOD = "Report_RemoveTimePeriod";
    public static final String MILESTONE_CONTROLLING_INTERVAL = "Milestone_ControllingInterval";
    public static final String RESOURCE_MAX_AVAILABYLITY = "Resource_MaxAvailability";
-   /*schedule names */
+   //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
 
    // Global defaults

@@ -1566,13 +1566,13 @@ public class OpProjectComponent extends XComponent {
       int half_grid_y = chart.getGridY() / 2;
       Point target_point = new Point(target_x, target_y);
       // Start routing at the right/middle boundary of the source shape
-      Vector route = new Vector();
+      List route = new ArrayList();
       double x = source_x;
       int y = source_y;
-      route.addElement(new Point((int) x, y));
+      route.add(new Point((int) x, y));
       // Always go one half-grid to to right
       x += half_day_w;
-      route.addElement(new Point((int) x, y));
+      route.add(new Point((int) x, y));
       // There are two possible (sub-)routes: Around the source component and
       // directly down
       if (x > target_point.x - half_day_w) {
@@ -1583,20 +1583,20 @@ public class OpProjectComponent extends XComponent {
          else {
             y -= half_grid_y;
          }
-         route.addElement(new Point((int) x, y));
+         route.add(new Point((int) x, y));
          x = target_point.x - half_day_w;
-         route.addElement(new Point((int) x, y));
+         route.add(new Point((int) x, y));
          y = target_point.y;
-         route.addElement(new Point((int) x, y));
+         route.add(new Point((int) x, y));
       }
       else {
          // We can go "directly" up or down
          y = target_point.y;
-         route.addElement(new Point((int) x, y));
+         route.add(new Point((int) x, y));
          x = target_point.x - half_day_w;
-         route.addElement(new Point((int) x, y));
+         route.add(new Point((int) x, y));
       }
-      route.addElement(target_point);
+      route.add(target_point);
       // Calculate bounding box of route
       Rectangle chart_bounds = chart.getBounds();
       // Rectangle bounding_box = new Rectangle(bounds.width, bounds.height, 0,
@@ -1609,7 +1609,7 @@ public class OpProjectComponent extends XComponent {
       Point point = null;
       int index = 0;
       for (index = 0; index < path.length; index++) {
-         point = (Point) (route.elementAt(index));
+         point = (Point) (route.get(index));
          path[index] = point;
          x = point.x;
          y = point.y;

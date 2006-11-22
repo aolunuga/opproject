@@ -8,6 +8,7 @@ import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpConnectionManager;
 import onepoint.persistence.OpPersistenceManager;
 import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
@@ -53,6 +54,7 @@ public class OpInitializer {
 
    private static String errorId;
    private static String errorMapId;
+   private static int connectionTestCode = OpConnectionManager.SUCCESS;
 
    /*init params map that will be returned after initialization is performed */
    private static Map initParams = new HashMap();
@@ -99,7 +101,7 @@ public class OpInitializer {
    public static Map init(String projectPath) {
 
       logger.info("Application initialization started");
-      successRunLevel = 7;
+      successRunLevel = 6;
       runLevel = 0;
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
@@ -141,6 +143,23 @@ public class OpInitializer {
             return initParams; //show db configuration wizard frame
          }
 
+         //get the db connection parameters
+         String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
+         String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
+         String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
+         String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
+         int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
+         String hsqlDbPath = OpConfiguration.getHSQLDbPath();
+
+         //test the db connection
+         int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword);
+         if (testResult != OpConnectionManager.SUCCESS) {
+            logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+            OpConfigurationWizardManager.loadConfigurationWizardModule();
+            connectionTestCode = testResult;
+            return initParams;
+         }
+         
          // the resource cache max size
          initParams.put(RESOURCE_CACHE_SIZE, configuration.getCacheConfiguration().getResourceCacheSize());
 
@@ -167,22 +186,10 @@ public class OpInitializer {
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          // Load and register default source
-         OpHibernateSource defaultSource = new OpHibernateSource();
-         defaultSource.setDatabaseType(configuration.getDatabaseConfiguration().getDatabaseType());
-         defaultSource.setDriverClassName(configuration.getDatabaseConfiguration().getDatabaseDriver());
-         defaultSource.setURL(configuration.getDatabaseConfiguration().getDatabaseUrl());
-         defaultSource.setLogin(configuration.getDatabaseConfiguration().getDatabaseLogin());
-         defaultSource.setPassword(configuration.getDatabaseConfiguration().getDatabasePassword());
-         defaultSource.setCacheCapacity(configuration.getCacheConfiguration().getCacheSize());
-         defaultSource.setHsqlDatabaseType(onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE);
-         defaultSource.setHsqlDatabasePath(onepoint.project.configuration.OpConfiguration.getHSQLDbPath());
-         if (defaultSource.getDatabaseType() == OpHibernateSource.HSQLDB) {
-            defaultSource.setEmbeded(true);
-         }
-
+         OpHibernateSource defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword,
+              databaseLogin, databaseType, onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE, hsqlDbPath);
          OpSourceManager.registerSource(defaultSource);
          OpSourceManager.setDefaultSource(defaultSource);
-         // Must be called before creating the schema (Hibernate)
          defaultSource.open();
 
          logger.info("Access to database is OK");
@@ -191,28 +198,20 @@ public class OpInitializer {
 
          OpBroker broker = OpPersistenceManager.newBroker();
 
-         Connection jdbcConnection = broker.getJDBCConnection();
-         //ping the database
-         jdbcConnection.getMetaData();
-
-         logger.info("Connection to database is OK");
-         runLevel = 4;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
          //if db schema doesn't exist, create it
          if (!defaultSource.existsTable("op_object")) {
             createEmptySchema(broker);
          }
 
          logger.info("Repository status is OK");
-         runLevel = 5;
+         runLevel = 4;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          //update db schema
          updateDBSchema(broker, defaultSource);
 
          logger.info("Updated database schema is OK");
-         runLevel = 6;
+         runLevel = 5;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          //check if the db is empty
@@ -223,7 +222,7 @@ public class OpInitializer {
          OpModuleManager.start();
 
          logger.info("Registered modules started; Application started");
-         runLevel = 7;
+         runLevel = 6;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
       }
       catch(OpModuleException e) {
@@ -293,6 +292,11 @@ public class OpInitializer {
          logger.info("Upgrading modules....");
          OpModuleManager.upgrade(dbVersion);
       }
+   }
+
+
+   public static int getConnectionTestCode() {
+      return connectionTestCode;
    }
 
    /**

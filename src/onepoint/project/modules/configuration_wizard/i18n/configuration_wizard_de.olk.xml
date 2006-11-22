@@ -6,4 +6,12 @@
        <resource id="DatabasePassword">Passwort</resource>
        <resource id="Connect">Verbinden</resource>
    </resource-map>
+   <resource-map id="configuration_wizard.error">
+      <resource id="DatabaseUrlMissing">Der Datenbank Connect-String wurde nicht angegeben</resource>
+      <resource id="DatabaseLoginMissing">Der Benutzername wurde nicht angegeben</resource>
+      <resource id="InvalidCredentials">Benutzername oder Passwort sind ungültig</resource>
+      <resource id="InvalidConnectionString">Der Connect-String ist ungültig</resource>
+      <resource id="GeneralConnectionError">Keine Verbindung zur Datenbank</resource>
+      <resource id="JDBCDriverError">Der JDBC-Treiber für die ausgewählte Datenbank kann nicht geladen werden</resource>
+   </resource-map>
 </language-kit>

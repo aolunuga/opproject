@@ -22,7 +22,7 @@
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
    <property name="project.jarname" value="opproject-06.jar"/>
-   <property name="project.client.jarname" value="opproject-client-06.1-beta.jar"/>
+   <property name="project.client.jarname" value="opproject-client-06.1.jar"/>
    <property name="op.warname" value="opproject"/>
    <property name="express.client.jarname" value="express4j-client.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
@@ -36,7 +36,7 @@
    <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
    <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
-   <property name="release.root.filename" value="opproject-06.1-beta"/>
+   <property name="release.root.filename" value="opproject-06.1"/>
 
    <!-- Classpath reference -->
    <path id="op.classpath">
@@ -508,7 +508,7 @@
 
       <!--war release [for applet version] -->
       <antcall target="dist.applet"/>
-      <zip zipfile="${op.release.dir}/${release.root.filename}-applet.zip">
+      <zip zipfile="${op.release.dir}/${release.root.filename}-open.zip">
          <fileset dir="${op.dist.dir}">
             <include name="${op.warname}.war"/>
          </fileset>
@@ -520,7 +520,7 @@
 
       <!--standalone release -->
       <antcall target="dist.standalone"/>
-      <zip zipfile="${op.release.dir}/${release.root.filename}-standalone.zip">
+      <zip zipfile="${op.release.dir}/${release.root.filename}-basic.zip">
          <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
          <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
