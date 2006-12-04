@@ -1,3 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
 package onepoint.project.application;
 
 import onepoint.express.XComponent;
@@ -22,9 +26,9 @@ import java.util.Map;
 
 public class OpProjectApplication {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectApplication.class, true);
-
-   // Parse command-line parameters
+   /**
+    * Command line parameters.
+    */
    public final static int DEFAULT_MODE = 0;
    public final static int SETUP_MODE = 1;
    public final static int EXPORT_MODE = 2;
@@ -32,12 +36,23 @@ public class OpProjectApplication {
    public final static int BACKUP_MODE = 4;
    public final static int RESTORE_MODE = 5;
 
+   /**
+    * This class's logger.
+    */
+   private static final XLog logger = XLogFactory.getLogger(OpProjectApplication.class, true);
+
+
+   /**
+    * This is the main application class.
+    */
+   private OpProjectApplication() {
+   }
 
    public static void main(String[] arguments) {
       int mode = DEFAULT_MODE;
 
-      String exchangeFileName = null;
       String project_home = OpEnvironmentManager.getEnvironmentVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+      String exchangeFileName = null;
       if (arguments.length > 0) {
          if ((arguments.length == 1) && (arguments[0].equals("setup"))) {
             mode = SETUP_MODE;
@@ -113,44 +128,41 @@ public class OpProjectApplication {
                e.printStackTrace();
             }
             break;
-         case BACKUP_MODE:
-         case RESTORE_MODE:
+         case BACKUP_MODE: {
             OpBackupManager backupManager = OpBackupManager.getBackupManager();
-
-            // Invoke backup/restore action
-            if (mode == BACKUP_MODE) {
-               try {
-                  if (exchangeFileName == null) {
-                     exchangeFileName = application.getDisplay().showFileDialog("Backup respository", Boolean.FALSE);
-                     application.dispose();
-                  }
-                  backupManager.backupRepository((OpProjectSession) application.getSession(), exchangeFileName);
+            try {
+               if (exchangeFileName == null) {
+                  exchangeFileName = application.getDisplay().showFileDialog("Backup respository", Boolean.FALSE);
+                  application.dispose();
                }
-               catch (IOException e) {
-                  logger.error("ERROR: Could not backup repository: " + e);
-               }
+               backupManager.backupRepository((OpProjectSession) application.getSession(), exchangeFileName);
             }
-            else if (mode == RESTORE_MODE) {
-               //check for "empty" DB
-               if (OpInitializer.isEmptyDB()) {
-                  try {
-                     if (exchangeFileName == null) {
-                        exchangeFileName = application.getDisplay().showFileDialog("Restore repository", Boolean.TRUE);
-                        application.dispose();
-                     }
-                     backupManager.restoreRepository((OpProjectSession) application.getSession(), exchangeFileName);
-                  }
-                  catch (IOException e) {
-                     logger.error("ERROR: Could not restore repository: " + e);
-                  }
-               }
-               else {
-                  logger.error("ERROR: Restore needs an empty data base");
-               }
+            catch (IOException e) {
+               logger.error("ERROR: Could not backup repository: " + e);
             }
             System.exit(0);
-            break;
-         default:
+         }
+         case RESTORE_MODE: {
+            OpBackupManager backupManager = OpBackupManager.getBackupManager();
+            //check for "empty" DB
+            if (OpInitializer.isEmptyDB()) {
+               try {
+                  if (exchangeFileName == null) {
+                     exchangeFileName = application.getDisplay().showFileDialog("Restore repository", Boolean.TRUE);
+                     application.dispose();
+                  }
+                  backupManager.restoreRepository((OpProjectSession) application.getSession(), exchangeFileName);
+               }
+               catch (IOException e) {
+                  logger.error("ERROR: Could not restore repository: " + e);
+               }
+            }
+            else {
+               logger.error("ERROR: Restore needs an empty data base");
+            }
+            System.exit(0);
+         }
+         default: {
             // Show GUI
             application.setVisible(true);
             if (OpInitializer.getRunLevel() == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
@@ -161,6 +173,7 @@ public class OpProjectApplication {
             else {
                application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM, new HashMap(initParams));
             }
+         }
       }
    }
 

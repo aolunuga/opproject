@@ -12,6 +12,8 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
@@ -30,15 +32,21 @@ public class OpEditProjectFormProvider implements XFormProvider {
    /**
     * Form field ids and parameter ids.
     */
+   protected final static String TEMPLATE_FIELD = "TemplateField";
+
+   private final static String PROJECT_EDIT_PROJECT = "project.EditProject";
+
    private final static String PROJECT_ID = "ProjectID";
    private final static String EDIT_MODE = "EditMode";
    private final static String GOALS_SET = "GoalsSet";
    private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
-   protected final static String TEMPLATE_FIELD = "TemplateField";
-
-   private final String PROJECT_INFO = "project.Info";
+   private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
+   private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
+   private final static String PROJECT_INFO = "project.Info";
+   private final static String NO_STATUS = "NoStatus";
+   private final static String NULL_ID = "null";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -86,6 +94,39 @@ public class OpEditProjectFormProvider implements XFormProvider {
       end.setDateValue(project.getFinish());
       XComponent budget = form.findComponent(OpProjectNode.BUDGET);
       budget.setDoubleValue(project.getBudget());
+
+      //Fill status data set
+      Iterator statusIterator = getProjectStatusIterator(broker);
+      XComponent statusDataSet = form.findComponent(PROJECT_STATUS_DATA_SET);
+      OpProjectStatus projectStatus = project.getStatus();
+      String nullChoice = XValidator.choice(NULL_ID, session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(NO_STATUS).getText());
+      XComponent row = new XComponent(XComponent.DATA_ROW);
+      row.setStringValue(nullChoice);
+      statusDataSet.addChild(row);
+      int selectedIndex = -1;
+      while (statusIterator.hasNext()) {
+         OpProjectStatus status = (OpProjectStatus) statusIterator.next();
+         row = new XComponent(XComponent.DATA_ROW);
+         row.setStringValue(XValidator.choice(String.valueOf(status.locator()), status.getName()));
+         statusDataSet.addChild(row);
+         if (projectStatus != null && (projectStatus.getID() == status.getID())) {
+            selectedIndex = row.getIndex();
+         }
+      }
+
+      XComponent statusChoice = form.findComponent(PROJECT_STATUS_CHOICE);
+      if (selectedIndex != -1) {
+         statusChoice.setSelectedIndex(new Integer(selectedIndex));
+      }
+      else {
+         if (projectStatus != null) {
+            row = new XComponent(XComponent.DATA_ROW);
+            row.setStringValue(XValidator.choice(String.valueOf(projectStatus.locator()), projectStatus.getName()));
+            statusDataSet.addChild(row);
+            statusChoice.setSelectedIndex(new Integer(row.getIndex()));
+         }
+      }
+      statusChoice.setEnabled(edit_mode.booleanValue());
 
       // Fill in goals
       XComponent data_set = form.findComponent(GOALS_SET);
@@ -197,6 +238,19 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       broker.close();
    }
+
+   //<FIXME author="Mihai Costin" description="Should be moved from this class"
+   public static Iterator getProjectStatusIterator(OpBroker broker) {
+      //configure project status sort order
+      Map sortOrder = new HashMap(1);
+      sortOrder.put(OpProjectStatus.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
+      OpObjectOrderCriteria categoryOrderCriteria = new OpObjectOrderCriteria(OpProjectStatus.PROJECT_STATUS, sortOrder);
+      OpQuery query = broker.newQuery("select status from OpProjectStatus as status where status.Active=true " + categoryOrderCriteria.toHibernateQueryString("status"));
+      Iterator projectStatusItr = broker.iterate(query);
+      return projectStatusItr;
+   }
+   //</FIXME>
+
 
 
    /**

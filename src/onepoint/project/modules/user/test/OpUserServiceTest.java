@@ -553,7 +553,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       Constraint testUserAssignment = createUserAssignmentConstraint(newUserLogin, null);
       //assigned group not found
-      mockBroker.expects(never()).method(MAKE_PERSISTENT_METHOD).with(isA(OpUserAssignment.class));
+
 
       //transaction must be commited
       mockTransaction.expects(once()).method(COMMIT_METHOD);
@@ -2243,17 +2243,12 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //don't broker.makePersistent(userAssignment) for unexistent user;
       mockBroker.expects(never()).method(MAKE_PERSISTENT_METHOD);
 
-      //do not commit and try and close broker
-      mockTransaction.expects(never()).method(COMMIT_METHOD);
+      mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      //<FIXME author="Ovidiu Lupas" description="check if user does exists is not performed  ">
       XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
-      //</FIXME>
-
-
    }
 
    /**

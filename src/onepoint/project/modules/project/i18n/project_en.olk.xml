@@ -82,7 +82,9 @@
 
       <resource id="CalculationMode">Effort-based planning</resource>
       <resource id="ProgressTracked">Enable progress tracking</resource>
-
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(No Status)</resource>
+      
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -118,6 +120,8 @@
       <resource id="ProgressTracked">Enable progress tracking</resource>
 
       <resource id="Resources">Resources</resource>
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(No Status)</resource>
 
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>

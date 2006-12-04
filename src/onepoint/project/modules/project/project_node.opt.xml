@@ -13,4 +13,5 @@
    <relationship name="Assignments" type="OpProjectNodeAssignment" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
    <relationship name="Goals" type="OpGoal" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
    <relationship name="ToDos" type="OpToDo" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
+   <relationship name="Status" type="OpProjectStatus" back-relationship="Projects"/>
 </prototype>

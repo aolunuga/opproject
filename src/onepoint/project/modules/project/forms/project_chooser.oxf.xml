@@ -5,7 +5,11 @@
    <data-field id="ProjectLocatorFieldID"/>
    <data-field id="ProjectNameFieldID"/>
    <data-field id="MultipleSelection"/>
-   <data-set id="ProjectSet"/>
+   <data-field id="EnableProjects"/>
+   <data-field id="EnablePortfolios"/>
+   <data-field id="EnableTemplates"/>
+   <data-field id="FilteredOutIds"/>
+   <data-set id="ProjectSet" on-expand="retrieveChildren"/>
 
    <data-set id="IconSet">
       <data-row icon="/modules/project/icons/portfolio.png"/>

@@ -3,6 +3,7 @@
  */
 require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
 require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
 
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
@@ -345,5 +346,15 @@ function addProjectResourceOk(selectedResources){
    }
    resource_list_box = dialog.findComponent("AssignedResourcesListBox");
    resource_list_box.update();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectNode");
+   request.setArgument("project_row", dataRow);
+
+   expandNode(dataRow, 9, request);
 }
 

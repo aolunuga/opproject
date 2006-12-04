@@ -33,11 +33,11 @@ import java.util.Set;
  * @author ovidiu.lupas
  */
 public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTest {
-   /*the instance of OpWorkService*/
+   //the instance of OpWorkService
    protected OpWorkService workService;
-   /*the user session */
+   //the user session
    private OpUser sessionUser;
-   /*the assignment project plan*/
+   //the assignment project plan
    private OpProjectPlan projectPlan;
 
    private List workSlipNumbers;
@@ -377,8 +377,10 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
     * Tests that a OpWorkService correctely deletes a non existing work slip.
     */
    public void testDeleteNonExistentWorkSlip() {
-      /*create the request */
+
+      //create the request
       XMessage request = new XMessage();
+
       //create the work slips ids array
       ArrayList workSlipIds = new ArrayList();
       workSlipIds.add(NON_EXISTENT_WORK_SLIP_ID);
@@ -530,13 +532,9 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
 
       //mock broker expectations
-      mockBroker.expects(once()).method(NEW_TRANSACTION_METHOD).will(methodStub);
       mockBroker.expects(atLeastOnce()).method(GET_OBJECT_METHOD).with(isA(String.class)).will(methodStub);
       mockBroker.expects(never()).method(UPDATE_OBJECT_METHOD).with(isA(OpObject.class));
       mockBroker.expects(once()).method(CLOSE_METHOD);
-
-      //mock transaction expectations
-      mockTransaction.expects(never()).method(COMMIT_METHOD);
 
       XMessage result = workService.editWorkSlip((XSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);

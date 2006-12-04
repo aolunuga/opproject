@@ -1,7 +1,7 @@
 /*
- * (c) 2005 OnePoint Software GmbH (Graz/Austria)
- * All rights reserved
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
+
 package onepoint.project.configuration;
 
 import onepoint.project.util.OpBase64;
@@ -23,7 +23,7 @@ public class OpConfiguration {
    //Name of Windows OS environment variable
    public static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
-   //hard-coded db schema version numer
+   //hard-coded db schema version number
    public static final int SCHEMA_VERSION = 2;
 
    /**

@@ -3,6 +3,7 @@
  */
 
 // Controller script for project_chooser.oxf.xml
+require "onepoint/project/scripts/lazyLoad.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XValidator;
@@ -68,3 +69,22 @@ function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
 
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   form = XDisplay.getActiveForm();
+   enableProjects = form.findComponent("EnableProjects").getBooleanValue();
+   enablePortfolios = form.findComponent("EnablePortfolios").getBooleanValue();
+   enableTemplates = form.findComponent("EnableTemplates").getBooleanValue();
+   filteredOutIds = form.findComponent("FilteredOutIds").getListValue();
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectChooserNode");
+   request.setArgument("project_row", dataRow);
+   request.setArgument("EnableProjects", enableProjects);
+   request.setArgument("EnablePortfolios", enablePortfolios);
+   request.setArgument("EnableTemplates", enableTemplates);
+   request.setArgument("FilteredOutIds", filteredOutIds);
+
+   expandNode(dataRow, 0, request);   
+}

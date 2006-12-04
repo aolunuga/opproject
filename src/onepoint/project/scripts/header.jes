@@ -4,7 +4,9 @@ import onepoint.express.XDisplay;
 import onepoint.service.XMessage;
 
 function signOff(event) {
-   clearResourceCache(event);
+   request = new XMessage;
+   request.setAction("UserService.signOff");
+   XDisplay.getClient().invokeMethod(request);
    XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml");
 }
 

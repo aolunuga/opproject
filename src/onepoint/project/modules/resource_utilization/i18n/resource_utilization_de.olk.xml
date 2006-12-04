@@ -13,11 +13,11 @@
       <resource id="SaveImage">Als Bild speichern...</resource>
       <resource id="PrintTitle">Ressourcenauslastung</resource>
 
-      <resource id="HighlyUnderused">Sehr unterlastet (&lt; 0.5)</resource>
-      <resource id="Underused">Nicht ausgelastet (&lt; 0.8)</resource>
-      <resource id="Normalused">Gute Auslastung (0.8 - 1.0)</resource>
-      <resource id="Overused">Überlastet (&gt; 1.0)</resource>
-      <resource id="HighlyOverused">Stark überlastet (&gt; 1.2)</resource>
+      <resource id="HighlyUnderused">Sehr unterlastet (&lt; 0,5)</resource>
+      <resource id="Underused">Nicht ausgelastet (&lt; 0,8)</resource>
+      <resource id="Normalused">Gute Auslastung (0,8 - 1,0)</resource>
+      <resource id="Overused">Überlastet (&gt; 1,0)</resource>
+      <resource id="HighlyOverused">Stark überlastet (&gt; 1,2)</resource>
    </resource-map>
 
    <resource-map id="resource_utilization.details">

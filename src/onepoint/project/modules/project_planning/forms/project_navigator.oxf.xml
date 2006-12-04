@@ -8,7 +8,7 @@
       <data-row icon="/modules/project/icons/project.png"/>
    </data-set>
 
-   <data-set id="ProjectNavigatorDataSet"/>
+   <data-set id="ProjectNavigatorDataSet" stateful="true" on-expand="retrieveChildren"/>
 
    <collapsible-box stateful="true" id="NavigationBox" text="{$ProjectNavigator}" orientation="vertical"
                     on-expand="resizeDivision" on-collapse="resizeDivision">

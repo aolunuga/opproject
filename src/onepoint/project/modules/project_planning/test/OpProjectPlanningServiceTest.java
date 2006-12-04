@@ -179,6 +179,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //empty list of queryResults
       queryResults = new ArrayList();
    }
+
    /**
     * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
     */
@@ -239,7 +240,6 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //no such method was found
       throw new IllegalArgumentException("Invalid method name:" + methodName + " for this stub");
    }
-
 
 
    /**
@@ -342,7 +342,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       //find project Plan Version
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PLAN_VERSION_FOR_PROJECT)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list and add a projectPlanVersion
             queryResults.add(projectPlanVersion);
             return query;
@@ -369,7 +370,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       //list resources and activities for plan version
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -425,11 +427,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
       XMessage result = planningService.saveActivities((XSession) mockSession.proxy(), request);
-      //<FIXME author="Mihai Costin" description="No error message is returned">
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
-      //</FIXME>
-
    }
 
    /**
@@ -452,12 +451,10 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
       XMessage result = planningService.saveActivities((XSession) mockSession.proxy(), request);
-      //<FIXME author="Mihai Costin" description="No error message is returned">
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
-      //</FIXME>
-
    }
+
    /**
     * Tests the checkIn action for a new version of the project with one activity.
     */
@@ -503,7 +500,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -529,6 +527,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
 
    }
+
    /**
     * Tests the checkIn action for a new version of the project with one activity.
     */
@@ -573,7 +572,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -653,7 +653,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -681,6 +682,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests if a work phase on an existing activity is checked in ok.
     */
@@ -735,7 +737,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -763,6 +766,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests if an work phase of a new activity is checked in ok.
     */
@@ -809,7 +813,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -874,7 +879,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(resource);
             return queryResults;
@@ -905,6 +911,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests if an assignment given by the resources attached to an existing project's activity is persisted ok.
     */
@@ -954,7 +961,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(resource);
             return queryResults;
@@ -988,6 +996,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests if a dependency between two new activities is persisted at check in time for a project.
     */
@@ -1033,7 +1042,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -1060,6 +1070,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests if a new dependency between two existing activities is persisted
     */
@@ -1127,7 +1138,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -1155,6 +1167,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
    }
+
    /**
     * Tests the "happy-flow" of project check in action. No activities are associated with this project
     */
@@ -1179,7 +1192,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(createProjectPlanConstraint(project));
       //list resources
       mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }
@@ -1194,6 +1208,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
+
    /**
     * Tests that an already checked in project can't be checked in again.
     */
@@ -1205,13 +1220,12 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(once()).method(CLOSE_METHOD);
       mockBroker.expects(never()).method(NEW_TRANSACTION_METHOD);
 
-      //<FIXME author="Mihai Costin" description="Fails because if the project has no working version
-      // it can not be checked in!">
       XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
-      //</FIXME>
+
       assertNotNull("There should be errors on the response, because the project is already checked in !", response);
       assertNotNull("There should be errors on the response, because the project is already checked in !", response.getError());
    }
+
    /**
     * Tests that an error is returned if a non-exitent project is being checked in.
     *
@@ -1223,14 +1237,13 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //method expectencies
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
       mockBroker.expects(once()).method(GET_OBJECT_METHOD).will(methodStub);
-      mockSession.expects(once()).method(GET_USER_ID_METHOD).will(methodStub);
-      mockSession.expects(once()).method(GET_LOCALE_METHOD).will(methodStub);
       mockBroker.expects(once()).method(CLOSE_METHOD);
       XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
 
       assertNotNull("There should be errors on the response because the project does not exist !", response);
       assertNotNull("Error message should have been returned because the project does not exist !", response.getError());
    }
+
    /**
     * Tests that the project administrationService cannot be checked in if it is locked by someone else than the user
     * trying to do the checkin.
@@ -1252,7 +1265,6 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       assertNotNull("There should be errors on the response, because the project is locked by someone else !", response.getError());
       assertEquals("Error should be the one that was set on new error call", error, response.getError());
    }
-
 
    /**
     * Creates a new "request" containing the input parameters that will be received by a project administrationService.
@@ -1355,7 +1367,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
    private void expectPostProjectCheckIn() {
       //find project Plan Version
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PLAN_VERSION_FOR_PROJECT)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             //clear the list
             queryResults.clear();
             return query;
@@ -1450,7 +1463,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
             if (!workPeriod.getActivity().equals(expectedActivity)) {
                return false;
             }
-            Double expectedEffort = new Double(expectedActivity.getBaseEffort()/(expectedActivity.getDuration()/XCalendar.getDefaultCalendar().getWorkHoursPerDay()));
+            Double expectedEffort = new Double(expectedActivity.getBaseEffort() / (expectedActivity.getDuration() / XCalendar.getDefaultCalendar().getWorkHoursPerDay()));
             return new Double(workPeriod.getBaseEffort()).equals(expectedEffort);
          }
 
@@ -1459,6 +1472,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
          }
       };
    }
+
    /**
     * Creates a new constraint for a lock.
     *
@@ -1725,7 +1739,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       // 23 Priority
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setEnabled(true);
-      data_cell.setByteValue((byte)0);
+      data_cell.setByteValue((byte) 0);
       data_row.addChild(data_cell);
 
       return data_row;

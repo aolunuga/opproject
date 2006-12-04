@@ -20,6 +20,7 @@ public class OpWorkErrorMap extends XErrorMap {
       registerErrorCode(OpWorkError.INCORRECT_MISCELLANEOUS_COSTS, OpWorkError.INCORRECT_MISCELLANEOUS_COSTS_NAME);
       registerErrorCode(OpWorkError.INCORRECT_REMAINING_EFFORT, OpWorkError.INCORRECT_REMAINING_EFFORT_NAME);
       registerErrorCode(OpWorkError.INCORRECT_TRAVEL_COSTS, OpWorkError.INCORRECT_TRAVEL_COSTS_NAME);
+      registerErrorCode(OpWorkError.WORK_SLIP_NOT_FOUND, OpWorkError.WORK_SLIP_NOT_FOUND_NAME);
    }
 
 }

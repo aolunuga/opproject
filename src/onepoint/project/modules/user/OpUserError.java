@@ -31,6 +31,8 @@ public abstract class OpUserError {
    public final static int LOOP_ASSIGNMENT = 17;
    public final static int INVALID_USER_LEVEL = 18;
 
+   public final static int SUPER_GROUP_NOT_FOUND = 19;   
+
    // Error names
    public final static String PASSWORD_MISMATCH_NAME = "PasswordMismatch";
    public final static String USER_UNKNOWN_NAME = "UserUnknown";
@@ -56,5 +58,6 @@ public abstract class OpUserError {
    public final static String EVERYONE_GROUP_NAME = "EveryoneGroup";
    public final static String LOOP_ASSIGNMENT_NAME = "LoopAssignment";
    public final static String INVALID_USER_LEVEL_NAME = "InvalidUserLevel";
+   public final static String SUPER_GROUP_NOT_FOUND_NAME = "SuperGroupNotFound";
 
 }

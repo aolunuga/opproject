@@ -46,7 +46,6 @@ public class OpWorkService extends OpProjectService {
    private final int ACTIVITY_TYPE_COLUMN_INDEX = 11;
    private final int ACTIVITY_INSERT_MODE = 12;
 
-
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
    private static final String WARNING = "warning";
 
@@ -128,7 +127,10 @@ public class OpWorkService extends OpProjectService {
       OpWorkSlip work_slip = (OpWorkSlip) broker.getObject(work_slip_id);
 
       if (work_slip == null) {
-         return null;
+         reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_FOUND));
+         broker.close();
+         return reply;
       }
 
       OpTransaction t = broker.newTransaction();
@@ -148,10 +150,11 @@ public class OpWorkService extends OpProjectService {
       return null;
    }
 
-   public XMessage deleteWorkSlips(XSession session, XMessage request) {
+   public XMessage deleteWorkSlips(XSession s, XMessage request) {
       ArrayList id_strings = (ArrayList) (request.getArgument(WORK_SLIP_IDS));
       logger.info("OpWorkService.deleteWorkSlip(): workslip_ids = " + id_strings);
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpProjectSession session = (OpProjectSession) s;
+      OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
       for (int i = 0; i < id_strings.size(); i++) {
@@ -161,7 +164,10 @@ public class OpWorkService extends OpProjectService {
          OpWorkSlip work_slip = (OpWorkSlip) broker.getObject(id_string);
          if (work_slip == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
-            return null;
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_FOUND));
+            broker.close();
+            return reply;
          }
          // Use progress calculator to update progress information in associated project plan
          OpProgressCalculator.removeWorkRecords(broker, work_slip.getRecords().iterator());

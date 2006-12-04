@@ -100,4 +100,13 @@ public class OpHibernateQuery implements OpQuery {
    public void setParameter(int index, Object o) {
       _query.setParameter(index, o);
    }
+
+
+   public void setFirstResult(int objectIndex) {
+      _query.setFirstResult(objectIndex);
+   }
+
+   public void setMaxResults(int count) {
+      _query.setMaxResults(count);
+   }
 }

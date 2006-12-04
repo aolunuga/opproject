@@ -17,11 +17,11 @@ public class OpProjectSession extends XExpressSession {
 
    // TODO: The default locale setting should be read from system settings
    // (Note: System settings -- in contrast to configuration -- reside in DB)
-
-   private long userId = -1;
+   private static final long NO_ID = -1;
+   private long userId = NO_ID;
    private ArrayList subjectIds = new ArrayList();
-   private long administratorId = -1 ; // Site administrator
-   private long everyoneId = - 1; // Everyone inside the site
+   private long administratorId = NO_ID ; // Site administrator
+   private long everyoneId = NO_ID; // Everyone inside the site
 
    public OpProjectSession() {
       OpBroker broker = newBroker();
@@ -60,7 +60,7 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpAdministratorID(OpBroker broker) {
-      if (administratorId == -1) {
+      if (administratorId == NO_ID) {
          OpQuery query = broker.newQuery("select user.ID from OpUser as user where user.Name = ?");
          query.setString(0, OpUser.ADMINISTRATOR_NAME);
          Iterator result = broker.iterate(query);
@@ -82,7 +82,7 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpEveryoneID(OpBroker broker) {
-      if (everyoneId == -1) {
+      if (everyoneId == NO_ID) {
          OpQuery query = broker.newQuery("select group.ID from OpGroup as group where group.Name = ?");
          query.setString(0, OpGroup.EVERYONE_NAME);
          Iterator result = broker.iterate(query);
@@ -331,4 +331,22 @@ public class OpProjectSession extends XExpressSession {
       super.clearVariables();
    }
 
+   /**
+    * Clears all the data on the project session.
+    */
+   public void clearSession() {
+      userId = NO_ID;
+      administratorId = NO_ID;
+      everyoneId = NO_ID;
+      subjectIds.clear();
+      this.clearVariables();
+   }
+
+   /**
+    * Checks if the session is empty.
+    * @return a <code>true</code> if the session is empty (i.e there is no current user logged in).
+    */
+   public boolean isEmpty() {
+      return userId == NO_ID;
+   }
 }

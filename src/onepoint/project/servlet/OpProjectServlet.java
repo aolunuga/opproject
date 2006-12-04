@@ -4,12 +4,15 @@ import onepoint.express.servlet.XExpressServlet;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
 
@@ -52,6 +55,12 @@ public class OpProjectServlet extends XExpressServlet {
     */
    private static String secureService = null;
    private static final String PARAMETERS_ARGUMENT = "parameters";
+   private static final String MAIN_ERROR_MAP_ID = "main.error";
+   private static final String CONTENT_ID_PARAM = "contentId";
+   private static final String FILE_PARAM = "file";
+   private static final String INSUFICIENT_VIEW_PERMISSIONS = "InsuficientViewPermissions";
+   private static final String INVALID_SESSION = "InvalidSession";
+   private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    /**
     * @see onepoint.express.servlet.XExpressServlet#onInit()
@@ -85,31 +94,51 @@ public class OpProjectServlet extends XExpressServlet {
 
    public void doGet(HttpServletRequest http_request, HttpServletResponse http_response) throws ServletException,
         IOException {
-
-
+      //don't cache anything for more than 1 sec (posible security issue).
+      http_response.setHeader("Cache-Control", "max-age=1");
+      
       // Get the session context ('true': create new session if necessary)
       HttpSession http_session = http_request.getSession(true);
-      XSession session = getSession(http_session);
+      OpProjectSession session = (OpProjectSession) getSession(http_session);
+
+      //there must be a user on the session for a file request to succed.
+      if (isFileRequest(http_request) && session.isEmpty()) {
+         http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
+         PrintStream ps = new PrintStream(http_response.getOutputStream());
+         generateErrorPage(ps, INVALID_SESSION,session);
+         ps.flush();
+         ps.close();
+         return;
+      }
 
       //search for attachments
-      String attachment = http_request.getParameter("contentId");
+      String attachment = http_request.getParameter(CONTENT_ID_PARAM);
       if (attachment != null && !attachment.trim().equals("")) {
          generateContentPage(attachment, http_response, session);
          return;
       }
 
       //search for any files which need to be uploaded (e.g reports)
-      String filePath = http_request.getParameter("file");
+      String filePath = http_request.getParameter(FILE_PARAM);
       if (filePath != null && !filePath.trim().equals("")) {
          generateFilePage(filePath, http_response);
          return;
       }
+
       //by default generate the applet page
-      http_response.setContentType("text/html");
+      http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
       generateAppletPage(http_response.getOutputStream(), http_request);
 
    }
 
+   /**
+    * Checks if the given request is a file request.
+    * @param request a <code>HttpServletRequest</code>.
+    * @return <code>true</coed> if the request is a request for a file.
+    */
+   private boolean isFileRequest(HttpServletRequest request) {
+      return request.getParameter(FILE_PARAM) != null || request.getParameter(CONTENT_ID_PARAM) != null;
+   }
 
    /**
     * Generates the default response which contains the application applet.
@@ -216,8 +245,21 @@ public class OpProjectServlet extends XExpressServlet {
       OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
 
-      byte[] content = null;
+      //check access level
+      if (!session.checkAccessLevel(broker, OpLocator.parseLocator(contentId).getID(), OpPermission.OBSERVER)) {
+         try {
+            PrintStream ps = new PrintStream(http_response.getOutputStream());
+            generateErrorPage(ps, INSUFICIENT_VIEW_PERMISSIONS, session);
+            ps.flush();
+            ps.close();
+         }
+         catch (IOException e) {
+            logger.error("Cannot generate error response", e);
+         }
+         return;
+      }
 
+      byte[] content = null;
       OpContent cnt = (OpContent) broker.getObject(contentId);
 
       if (cnt != null) {
@@ -312,5 +354,26 @@ public class OpProjectServlet extends XExpressServlet {
       else {
          return super.processRequest(request, sessionExpired, http_request, session);
       }
+   }
+
+   /**
+    * Generates an error page, as a user response to some action.
+    * @param out a <code>PrintStream</code> representing the output stream on which the server response is written.
+    * @param errorMessageId a <code>String</code> representing an error message id from a resource bundle.
+    * @param session a <code>OpProjectSession</code> representing the application user session.
+    */
+   private void generateErrorPage(PrintStream out, String errorMessageId, OpProjectSession session) {
+      XLocalizer localizer = new XLocalizer();
+      localizer.setResourceMap(session.getLocale().getResourceMap(MAIN_ERROR_MAP_ID));
+      if (!(errorMessageId.startsWith("{$") && errorMessageId.endsWith("}"))) {
+         errorMessageId = "{$" + errorMessageId + "}";
+      }
+      String errorMessage = localizer.localize(errorMessageId);
+      out.println("<html>");
+      out.println("<head><title>Onepoint Project Error</title></head>");
+      out.print("<body><h1><font color=\"red\">");
+      out.print(errorMessage);
+      out.println("</font></h1></body>");
+      out.print("</html>");
    }
 }

@@ -41,4 +41,10 @@
       <parameter name="project_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="portfolio_id" instance-class="java.lang.String" mode="input"/>
    </method>
+   <method name="expandProjectNode">
+      <parameter name="project_row" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
+   <method name="expandProjectChooserNode">
+      <parameter name="project_row" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
 </service>

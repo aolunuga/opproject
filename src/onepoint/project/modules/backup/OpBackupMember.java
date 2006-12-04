@@ -40,4 +40,9 @@ public class OpBackupMember {
     * Flag indicating whether the member is recursive.
     */
    boolean recursive;
+
+   /**
+    * The name of the back-relationship (applies only to relationships)
+    */
+   String backRelationshipName = null;
 }

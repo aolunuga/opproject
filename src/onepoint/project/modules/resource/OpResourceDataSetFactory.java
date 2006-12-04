@@ -7,13 +7,15 @@ package onepoint.project.modules.resource;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
-import java.util.Iterator;
+import java.util.*;
 
 public final class OpResourceDataSetFactory {
 
@@ -43,56 +45,140 @@ public final class OpResourceDataSetFactory {
    private OpResourceDataSetFactory() {
    }
 
-   public static void retrieveResourceDataSet(OpProjectSession session, OpBroker broker, XComponent dataSet) {
-      retrieveResourceDataSet(session, broker, dataSet, null, null);
-   }
-
-   public static void retrieveResourceDataSet(OpProjectSession session, OpBroker broker, XComponent dataSet,
-        int[] poolColumnsSelector, int[] resourceColumnsSelector) {
+   /**
+    * Retrieves the sub-resources/pools for the given pool id and sets them as rows in the given data set with the
+    * specifird outline level
+    *
+    * @param session
+    * @param dataSet
+    * @param poolColumnsSelector
+    * @param resourceColumnsSelector
+    * @param poolId                  Parent pool
+    * @param childrenOutlineLevel    Outline level of the sub-rows
+    * @param filteredLocators        List of locators to be removed from the final result
+    */
+   public static void retrieveResourceDataSet(OpProjectSession session, XComponent dataSet, List poolColumnsSelector, List resourceColumnsSelector, long poolId, int childrenOutlineLevel, List filteredLocators) {
       // Localizer is used in order to localize name and description of root resource pool
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
-      addSubPoolRows(session, broker, dataSet, localizer, -1, 0, poolColumnsSelector, resourceColumnsSelector);
-      dataSet.synchronizeExpanded();
+      addSubPoolRows(session, dataSet, localizer, poolId, childrenOutlineLevel, poolColumnsSelector, resourceColumnsSelector, filteredLocators);
    }
 
-   private static void addSubPoolRows(OpProjectSession session, OpBroker broker, XComponent dataSet,
-        XLocalizer localizer, long poolId, int outlineLevel, int[] poolColumnsSelector, int[] resourceColumnsSelector) {
+   /**
+    * Retrieves the first two levels of pools and resources.
+    *
+    * @param session
+    * @param dataSet
+    * @param poolColumnsSelector
+    * @param resourceColumnsSelector
+    * @param filteredLocators
+    */
+   public static void retrieveFirstLevelsResourceDataSet(OpProjectSession session, XComponent dataSet, List poolColumnsSelector, List resourceColumnsSelector, List filteredLocators) {
+      // Localizer is used in order to localize name and description of root resource pool
+      XLocalizer localizer = new XLocalizer();
+      localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
 
+      //retrieve first level root pool
+      addSubPoolRows(session, dataSet, localizer, -1, 0, poolColumnsSelector, resourceColumnsSelector, filteredLocators);
+
+      XComponent resultDataSet = new XComponent(XComponent.DATA_SET);
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         if (row.getOutlineLevel() == 0) {
+            int size = row.getSubRows().size();
+            resultDataSet.addChild(row);
+            if (size > 0) {
+               row.setExpanded(true);
+               XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+               dataCell.setBooleanValue(true);
+               row.addChild(dataCell);
+               String locatorString = row.getStringValue();
+               OpLocator locator = OpLocator.parseLocator((String) (locatorString));
+               //add level 1 rows
+               addSubPoolRows(session, resultDataSet, localizer, locator.getID(), 1, poolColumnsSelector, resourceColumnsSelector, filteredLocators);
+            }
+         }
+      }
+      //set the result
+      dataSet.removeAllChildren();
+      for (int i = 0; i < resultDataSet.getChildCount(); i++) {
+         dataSet.addChild(resultDataSet.getChild(i));
+      }
+   }
+
+
+   /**
+    * @param session
+    * @param dataSet
+    * @param localizer
+    * @param poolId
+    * @param childrenOutlineLevel    Outline level of the sub-rows.
+    * @param poolColumnsSelector
+    * @param resourceColumnsSelector
+    * @param filteredLocators        List of locators to be filtered out by the factory method
+    */
+   private static void addSubPoolRows(OpProjectSession session, XComponent dataSet, XLocalizer localizer, long poolId,
+        int childrenOutlineLevel, List poolColumnsSelector, List resourceColumnsSelector, List filteredLocators) {
+
+      OpBroker broker = session.newBroker();
       OpQuery query = null;
       if (poolId == -1) {
-         query = broker.newQuery("select pool.ID from OpResourcePool as pool where pool.SuperPool.ID is null");
+         String queryString = "select pool.ID, count(pools.ID)+count(resources.ID) from OpResourcePool as pool " +
+              "left join pool.SubPools pools " +
+              "left join pool.Resources resources " +
+              "where pool.SuperPool.ID is null " +
+              "group by pool.ID";
+         query = broker.newQuery(queryString);
       }
       else {
-         query = broker.newQuery("select pool.ID from OpResourcePool as pool where pool.SuperPool.ID = ?");
+         String queryString = "select pool.ID, count(pools.ID)+count(resources.ID) from OpResourcePool as pool " +
+              "left join pool.SubPools pools " +
+              "left join pool.Resources resources " +
+              "where pool.SuperPool.ID = ?" +
+              "group by pool.ID";
+         query = broker.newQuery(queryString);
          query.setLong(0, poolId);
       }
 
+      Map subEntityMap = new HashMap();
+      List poolIds = new ArrayList();
+      List results = broker.list(query);
+      for (int i = 0; i < results.size(); i++) {
+         Object result[] = (Object[]) results.get(i);
+         Long id = (Long) result[0];
+         poolIds.add(id);
+         Integer subEntities = (Integer) result[1];
+         subEntityMap.put(id, subEntities);
+      }
+
       OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpResourcePool.RESOURCE_POOL, OpResourcePool.NAME, OpObjectOrderCriteria.ASCENDING);
-      Iterator subPools = session.accessibleObjects(broker, broker.list(query), OpPermission.OBSERVER, order);
+      Iterator subPools = session.accessibleObjects(broker, poolIds, OpPermission.OBSERVER, order);
       OpResourcePool subPool = null;
       XComponent dataRow = null;
       XComponent dataCell = null;
       int i = 0;
+
       while (subPools.hasNext()) {
          subPool = (OpResourcePool) (subPools.next());
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         // Expand first level automatically (root resource pool)
-         dataRow.setOutlineLevel(outlineLevel);
-         if (outlineLevel == 0) {
-            dataRow.setExpanded(true);
+         long id = subPool.getID();
+         String locator = subPool.locator();
+         if (filteredLocators != null && filteredLocators.contains(locator)) {
+            continue;
          }
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setOutlineLevel(childrenOutlineLevel);
          if (poolColumnsSelector != null) {
             dataRow.setStringValue(subPool.locator());
             // Add data cells
-            for (i = 0; i < poolColumnsSelector.length; i++) {
+            for (i = 0; i < poolColumnsSelector.size(); i++) {
                dataCell = new XComponent(XComponent.DATA_CELL);
-               switch (poolColumnsSelector[i]) {
+               int selector = ((Integer) poolColumnsSelector.get(i)).intValue();
+               switch (selector) {
                   case NULL: {
                      break;
                   }
                   case ID: {
-                     dataCell.setLongValue(subPool.getID());
+                     dataCell.setLongValue(id);
                      break;
                   }
                   case DESCRIPTOR: {
@@ -113,7 +199,7 @@ public final class OpResourceDataSetFactory {
                      break;
                   }
                   case EFFECTIVE_PERMISSIONS: {
-                     dataCell.setByteValue(session.effectiveAccessLevel(broker, subPool.getID()));
+                     dataCell.setByteValue(session.effectiveAccessLevel(broker, id));
                      break;
                   }
                }
@@ -121,21 +207,57 @@ public final class OpResourceDataSetFactory {
             }
          }
          else {
-            dataRow.setStringValue(XValidator.choice(subPool.locator(), localizer.localize(subPool.getName()),
-                 POOL_ICON_INDEX));
+            dataRow.setStringValue(XValidator.choice(subPool.locator(),
+                 localizer.localize(subPool.getName()), POOL_ICON_INDEX));
          }
          dataSet.addChild(dataRow);
-         // Add sub-pools of this pool
-         addSubPoolRows(session, broker, dataSet, localizer, subPool.getID(), outlineLevel + 1, poolColumnsSelector,
-              resourceColumnsSelector);
-         // Add resources of this pool
-         addResourceRows(session, broker, dataSet, localizer, subPool.getID(), outlineLevel + 1,
-              resourceColumnsSelector);
+
+         Integer subCount = ((Integer) subEntityMap.get(new Long(id)));
+         if (subCount != null && subCount.intValue() > 0 && !allChildrenFiltered(subPool, filteredLocators)) {
+            //add dummy child
+            XComponent dummyRow = new XComponent(XComponent.DATA_SET);
+            dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
+            dummyRow.setOutlineLevel(childrenOutlineLevel + 1);
+            dummyRow.setVisible(false);
+            dummyRow.setFiltered(true);
+            dataSet.addChild(dummyRow);
+            dataRow.setExpanded(false);
+         }
       }
+
+      // Add resources of this pool
+      addResourceRows(session, broker, dataSet, localizer, poolId, childrenOutlineLevel, resourceColumnsSelector, filteredLocators);
+
+      broker.close();
+   }
+
+   private static boolean allChildrenFiltered(OpResourcePool subPool, List filteredLocators) {
+
+      if (filteredLocators == null || filteredLocators.isEmpty()) {
+         return false;
+      }
+
+      Set pools = subPool.getSubPools();
+      for (Iterator iterator = pools.iterator(); iterator.hasNext();) {
+         OpResourcePool pool = (OpResourcePool) iterator.next();
+         if (!filteredLocators.contains(pool.locator())) {
+            return false;
+         }
+      }
+
+      Set resources = subPool.getResources();
+      for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
+         OpResource resource = (OpResource) iterator.next();
+         if (!filteredLocators.contains(resource.locator())) {
+            return false;
+         }
+      }
+
+      return true;
    }
 
    private static void addResourceRows(OpProjectSession session, OpBroker broker, XComponent data_set,
-        XLocalizer localizer, long poolId, int outline_level, int[] columnsSelector) {
+        XLocalizer localizer, long poolId, int outline_level, List columnsSelector, List filteredLocators) {
 
       OpQuery query = null;
       if (poolId == -1) {
@@ -154,14 +276,18 @@ public final class OpResourceDataSetFactory {
       int i = 0;
       while (resources.hasNext()) {
          resource = (OpResource) (resources.next());
+         if (filteredLocators != null && filteredLocators.contains(resource.locator())) {
+            continue;
+         }
          dataRow = new XComponent(XComponent.DATA_ROW);
          dataRow.setOutlineLevel(outline_level);
          if (columnsSelector != null) {
             dataRow.setStringValue(resource.locator());
             // Add data cells
-            for (i = 0; i < columnsSelector.length; i++) {
+            for (i = 0; i < columnsSelector.size(); i++) {
                dataCell = new XComponent(XComponent.DATA_CELL);
-               switch (columnsSelector[i]) {
+               int selector = ((Integer) columnsSelector.get(i)).intValue();
+               switch (selector) {
                   case NULL: {
                      break;
                   }
@@ -209,4 +335,30 @@ public final class OpResourceDataSetFactory {
          data_set.addChild(dataRow);
       }
    }
+
+
+   /**
+    * Makes item selectable in the resources data set, based on the value of the given parameters.
+    *
+    * @param dataSet       a <code>XComponent(DATA_SET)</code> representing the resources set.
+    * @param showResources a <code>boolean</code> indicating whether to make resources selectable or not.
+    * @param showPools     a <code>boolean</code> indicating whether to make pools selectable or not.
+    */
+   public static void enableResourcesSet(XComponent dataSet, boolean showResources, boolean showPools) {
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         if (!OpProjectConstants.DUMMY_ROW_ID.equals(dataRow.getStringValue())) {
+            String id = XValidator.choiceID(dataRow.getStringValue());
+            OpLocator locator = OpLocator.parseLocator(id);
+            Class prototypeClass = locator.getPrototype().getInstanceClass();
+            if (prototypeClass.equals(OpResource.class)) {
+               dataRow.setSelectable(showResources);
+            }
+            else if (prototypeClass.equals(OpResourcePool.class)) {
+               dataRow.setSelectable(showPools);
+            }
+         }
+      }
+   }
+
 }

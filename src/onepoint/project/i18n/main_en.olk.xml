@@ -25,5 +25,7 @@
       <resource id="OK">OK</resource>
       <resource id="Warning">Warning</resource>
       <resource id="SessionExpired">Your user session has expired. Please log in again.</resource>
+      <resource id="InsuficientViewPermissions">Your don't have enough permissions to view the file</resource>
+      <resource id="InvalidSession">You must have a valid user session to view files</resource>
    </resource-map>
 </language-kit>

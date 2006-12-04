@@ -32,5 +32,7 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_WARNING,OpProjectError.WORKRECORDS_STILL_EXIST_WARNING_NAME);
       registerErrorCode(OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR, OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME);
       registerErrorCode(OpProjectError.PERMISSIONS_LEVEL_ERROR, OpProjectError.PERMISSIONS_LEVEL_ERROR_NAME);
+      registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
+      registerErrorCode(OpProjectError.PROJECT_CHECKED_IN_ERROR, OpProjectError.PROJECT_CHECKED_IN_ERROR_NAME);
    }
 }

@@ -4,14 +4,20 @@
 
 package onepoint.project.modules.user;
 
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpObjectOrderCriteria;
-import onepoint.persistence.OpQuery;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpQuery;
+import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Class used for creating client-side representations of subject hierarchies.
@@ -29,6 +35,8 @@ public final class OpSubjectDataSetFactory {
    private final static String GROUP_DESCRIPTOR = "g";
    private final static String USER_DESCRIPTOR = "u";
 
+   private final static String USER_ASSIGNMENT_QUERY = "select distinct ua.Group from OpUserAssignment as ua where ua.User.ID in (:userIds)";
+   private final static String GROUP_ASSIGNMENT_QUERY = "select distinct ga.SuperGroup from OpGroupAssignment as ga where ga.SubGroup.ID in (:groupIds)";
 
    /**
     * This is a utility class.
@@ -37,75 +45,125 @@ public final class OpSubjectDataSetFactory {
    }
 
    /**
-    * Retrieves a subject hierarchy having a simple structure.
-    */
-   public static void retrieveSimpleSubjectHierarchy(OpBroker broker, XComponent dataSet, XLocalizer localizer) {
-      retrieveSubjectHierarchy(broker, dataSet, localizer, true);
-   }
-
-   /**
-    * Retrieves a subject hierarchy having a complex structure.
-    */
-   public static void retrieveComplexSubjectHierarchy(OpBroker broker, XComponent dataSet, XLocalizer localizer) {
-      retrieveSubjectHierarchy(broker, dataSet, localizer, false);
-   }
-
-   /**
     * Retrives a hierarchy of subjects, either in simple of complex structure.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
-    * @param dataSet a <code>XComponent(DATA_SET)</code> that will contain the client side structure.
-    * @param localizer a <code>XLocalizer</code> used for i18n.
-    * @param simpleStructure a <code>boolean</code> indicating whether the retrived structure should be simple or complex.
+    *
+    * @param session            a <code>OpProjectSession</code> used for performing business operations.
+    * @param dataSet            a <code>XComponent(DATA_SET)</code> that will contain the client side structure.
+    * @param filteredSubjectIds List of ids to be removed from the final result.
+    * @param groupId
+    * @param outlineLevel
+    * @param simpleStructure    a <code>boolean</code> indicating whether the retrived structure should be simple or complex.
     */
-   private static void retrieveSubjectHierarchy(OpBroker broker, XComponent dataSet, XLocalizer localizer, boolean simpleStructure) {
-      addSubGroupRows(broker, dataSet, localizer, -1, 0, simpleStructure);
-      addUserRows(broker, dataSet, localizer, -1, 0, simpleStructure);      
+   public static void retrieveSubjectHierarchy(OpProjectSession session, XComponent dataSet,
+        List filteredSubjectIds, long groupId, int outlineLevel, boolean simpleStructure) {
+
+      // We are using display name here in order to localize name of group "Everyone"
+      XLocalizer localizer = new XLocalizer();
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+
+      OpBroker broker = session.newBroker();
+      addSubGroupRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
+      addUserRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
+      broker.close();
    }
 
    /**
     * Adds (recursivelly) sub-group rows to the given data-set parameter.
+    *
     * @param broker
     * @param dataSet
     * @param localizer
     * @param groupId
     * @param outlineLevel
     * @param simpleStructure
+    * @param filteredSubjectIds
     */
    private static void addSubGroupRows(OpBroker broker, XComponent dataSet, XLocalizer localizer, long groupId, int outlineLevel,
-        boolean simpleStructure) {
+        boolean simpleStructure, List filteredSubjectIds) {
       // configure group sort order
       OpObjectOrderCriteria groupOrderCriteria = new OpObjectOrderCriteria(OpGroup.GROUP, OpGroup.NAME, OpObjectOrderCriteria.ASCENDING);
       OpQuery query = null;
       if (groupId == -1) {
-         query = broker.newQuery("select group from OpGroup as group" + groupOrderCriteria.toHibernateQueryString("group"));
+         String queryString = "select gr.ID, count(subGroupAssignment.ID)+count(userAssignment.ID) from OpGroup gr " +
+              "left join gr.SubGroupAssignments subGroupAssignment " +
+              "left join gr.UserAssignments userAssignment " +
+              "group by gr.ID " +
+              groupOrderCriteria.toHibernateQueryString("gr");
+         query = broker.newQuery(queryString);
       }
       else {
-         String queryString = "select subGroup from OpGroupAssignment as assignment inner join assignment.SubGroup as subGroup where assignment.SuperGroup.ID = ?";
-         queryString += groupOrderCriteria.toHibernateQueryString("subGroup");
+         String queryString =
+              "select subGroup.ID, count(subGroupAssignment.ID)+count(userAssignment.ID) " +
+                   "from OpGroupAssignment assignment " +
+                   "inner join assignment.SubGroup subGroup " +
+                   "left join subGroup.SubGroupAssignments subGroupAssignment " +
+                   "left join subGroup.UserAssignments userAssignment " +
+                   "where assignment.SuperGroup.ID = ?" +
+                   "group by subGroup.ID " +
+                   groupOrderCriteria.toHibernateQueryString("subGroup");
          query = broker.newQuery(queryString);
          query.setLong(0, groupId);
       }
 
-      Iterator subGroups = broker.iterate(query);
-      OpGroup subGroup = null;
-      while (subGroups.hasNext()) {
-         subGroup = (OpGroup) subGroups.next();
-         retrieveSubjectRow(dataSet, subGroup, outlineLevel, localizer, simpleStructure);
-
-         // Recursively add sub-groups and users
-         addSubGroupRows(broker, dataSet, localizer, subGroup.getID(), outlineLevel + 1, simpleStructure);
-         addUserRows(broker, dataSet, localizer, subGroup.getID(), outlineLevel + 1, simpleStructure);
+      Iterator results = broker.list(query).iterator();
+      OpGroup subGroup;
+      while (results.hasNext()) {
+         Object[] record = (Object[]) results.next();
+         Long subGroupID = (Long) record[0];
+         subGroup = (OpGroup) broker.getObject(OpGroup.class, subGroupID.longValue());
+         if (filteredSubjectIds != null && filteredSubjectIds.contains(subGroup.locator())) {
+            continue;
+         }
+         Integer subRowsNr = (Integer) record[1];
+         XComponent row = retrieveSubjectRow(subGroup, outlineLevel, localizer, simpleStructure);
+         dataSet.addChild(row);
+         if (subRowsNr.intValue() != 0 && !allChildrenFiltered(subGroup, filteredSubjectIds)) {
+            row.setExpanded(false);
+            //add dummy row
+            XComponent dummyRow = new XComponent(XComponent.DATA_ROW);
+            dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
+            dummyRow.setOutlineLevel(outlineLevel + 1);
+            dummyRow.setFiltered(true);
+            dummyRow.setVisible(true);
+            dataSet.addChild(dummyRow);
+         }
       }
+   }
+
+   private static boolean allChildrenFiltered(OpGroup group, List filteredLocators) {
+
+      if (filteredLocators == null || filteredLocators.isEmpty()) {
+         return false;
+      }
+
+      Set groupAssignments = group.getSubGroupAssignments();
+      for (Iterator iterator = groupAssignments.iterator(); iterator.hasNext();) {
+         OpGroupAssignment assignment = (OpGroupAssignment) iterator.next();
+         if (!filteredLocators.contains(assignment.getSubGroup().locator())) {
+            return false;
+         }
+      }
+
+      Set userAssignments = group.getUserAssignments();
+      for (Iterator iterator = userAssignments.iterator(); iterator.hasNext();) {
+         OpUserAssignment assignment = (OpUserAssignment) iterator.next();
+         if (!filteredLocators.contains(assignment.getUser().locator())) {
+            return false;
+         }
+      }
+
+      return true;
    }
 
    /**
     * Adds user rows to the given data-set.
     */
    private static void addUserRows(OpBroker broker, XComponent dataSet, XLocalizer localizer, long groupId, int outlineLevel,
-        boolean simpleStructure) {
+        boolean simpleStructure, List filteredSubjectIds) {
+
       // configure user sort order
       OpObjectOrderCriteria userOrderCriteria = new OpObjectOrderCriteria(OpUser.USER, OpUser.NAME, OpObjectOrderCriteria.ASCENDING);
-      OpQuery query = null;
+      OpQuery query;
       if (groupId == -1) {
          query = broker.newQuery("select user from OpUser as user" + userOrderCriteria.toHibernateQueryString("user"));
       }
@@ -115,25 +173,28 @@ public final class OpSubjectDataSetFactory {
          query = broker.newQuery(queryBuffer.toString());
          query.setLong(0, groupId);
       }
-
       Iterator users = broker.iterate(query);
-      OpUser user = null;
+      OpUser user;
       while (users.hasNext()) {
          user = (OpUser) users.next();
-         retrieveSubjectRow(dataSet, user, outlineLevel, localizer, simpleStructure);
+         if (filteredSubjectIds != null && filteredSubjectIds.contains(user.locator())) {
+            continue;
+         }
+         XComponent row = retrieveSubjectRow(user, outlineLevel, localizer, simpleStructure);
+         dataSet.addChild(row);
       }
    }
 
    /**
     * Retrieves a data row containing client-side information for a subject.
     *
-    * @param dataSet         a <code>XComponent(DATA_SET)</code> to which a data row will be added.
     * @param subject         a <code>OpSubject</code> representing the subject whose data will be retrieved.
     * @param outlineLevel    an <code>int</code> representing the outline level of the data row to be added.
     * @param localizer       a <code>XLocalizer</code> used for i18n-ing the display name of a subject.
     * @param simpleStructure a <code>boolean</code> which indicates the type of structure the data-row will contain.
+    * @return Data row with the subject information.
     */
-   private static void retrieveSubjectRow(XComponent dataSet, OpSubject subject, int outlineLevel, XLocalizer localizer, boolean simpleStructure) {
+   private static XComponent retrieveSubjectRow(OpSubject subject, int outlineLevel, XLocalizer localizer, boolean simpleStructure) {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setOutlineLevel(outlineLevel);
       String subjectChoice = XValidator.choice(subject.locator(), localizer.localize(subject.getDisplayName()),
@@ -160,7 +221,7 @@ public final class OpSubjectDataSetFactory {
          dataCell.setStringValue(localizer.localize(subject.getDescription()));
          dataRow.addChild(dataCell);
       }
-      dataSet.addChild(dataRow);
+      return dataRow;
    }
 
    /**
@@ -194,4 +255,84 @@ public final class OpSubjectDataSetFactory {
       }
       return -1;
    }
+
+
+   /**
+    * Traverses the subject hierarchy, enabling or disabling different types of subjects.
+    *
+    * @param subjectDataSet a <code>XComponent(DATA_SET)</code> representing the subject data-set.
+    * @param enableUsers    a <code>boolean</code> indicating whether users should be enabled in the hierarchy.
+    * @param enableGroups   a <code>boolean</code> indicating whether group should be enabled in the hierarchy.
+    */
+   public static void enableSubjectHierarchy(XComponent subjectDataSet, boolean enableUsers, boolean enableGroups) {
+      for (int i = 0; i < subjectDataSet.getChildCount(); i++) {
+         XComponent subjectRow = (XComponent) subjectDataSet.getChild(i);
+
+         String choice = subjectRow.getStringValue();
+         if (!OpProjectConstants.DUMMY_ROW_ID.equals(choice)) {
+            String choiceId = XValidator.choiceID(choice);
+            OpLocator locator = OpLocator.parseLocator(choiceId);
+            if (locator.getPrototype().getInstanceClass().equals(OpUser.class) && !enableUsers) {
+               subjectRow.setSelectable(false);
+            }
+            else if (locator.getPrototype().getInstanceClass().equals(OpGroup.class) && !enableGroups) {
+               subjectRow.setSelectable(false);
+            }
+         }
+      }
+   }
+
+   /**
+    * @param session            OpProjectSession to be used for querying the db.
+    * @param filteredSubjectIds List of already filtered ids.
+    * @return A list containing the given filteredSubjectIds and the user's/group's super groups.
+    */
+   public static List getAlreadyAssignedGroups(OpProjectSession session, List filteredSubjectIds) {
+      List result = new ArrayList();
+
+      List groupIds = new ArrayList();
+      List userIds = new ArrayList();
+      for (int i = 0; i < filteredSubjectIds.size(); i++) {
+         String choiceId = (String) filteredSubjectIds.get(i);
+         OpLocator locator = OpLocator.parseLocator(choiceId);
+         Long locatorId = new Long(locator.getID());
+         if (locator.getPrototype().getInstanceClass() == OpGroup.class) {
+            //can not assign a group to itself
+            result.add(choiceId);
+            groupIds.add(locatorId);
+         }
+         if (locator.getPrototype().getInstanceClass() == OpUser.class) {
+            result.add(choiceId);
+            userIds.add(locatorId);
+         }
+      }
+
+      OpBroker broker = session.newBroker();
+      //add group's already assigned supergroups to result
+      if (groupIds.size() > 0) {
+         OpQuery query = broker.newQuery(GROUP_ASSIGNMENT_QUERY);
+         query.setCollection("groupIds", groupIds);
+         Iterator assignedSuperGroups = broker.iterate(query);
+         while (assignedSuperGroups.hasNext()) {
+            OpGroup group = (OpGroup) assignedSuperGroups.next();
+            result.add(OpLocator.locatorString(group));
+         }
+      }
+
+      //add user's already assigned groups to result
+      if (userIds.size() > 0) {
+         OpQuery query = broker.newQuery(USER_ASSIGNMENT_QUERY);
+         query.setCollection("userIds", userIds);
+         Iterator assignedGroups = broker.iterate(query);
+         while (assignedGroups.hasNext()) {
+            OpGroup group = (OpGroup) assignedGroups.next();
+            result.add(OpLocator.locatorString(group));
+         }
+      }
+      broker.close();
+
+      return result;
+   }
+
+
 }

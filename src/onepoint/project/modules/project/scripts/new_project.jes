@@ -25,6 +25,10 @@ function ok(event) {
    project_data.Budget = form.findComponent("Budget").getDoubleValue();
    project_data.CalculationMode = form.findComponent("CalculationMode").getBooleanValue();
    project_data.ProgressTracked = form.findComponent("ProgressTracked").getBooleanValue();
+   choice = form.findComponent("StatusChoice").getStringValue();
+   if (choice != null) {
+      project_data.Status = XValidator.choiceID(choice);
+   }
 
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");

@@ -6,6 +6,8 @@ package onepoint.project.modules.project_planning;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormLoader;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
@@ -13,8 +15,6 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 
 import java.util.*;
 
@@ -196,10 +196,10 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void updateActivitiesAndChildren(long projectPlanId, OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      StringBuffer queryBuffer = new StringBuffer("select activity, count(subActivity) from OpProjectPlan projectPlan ");
+      StringBuffer queryBuffer = new StringBuffer("select activity.ID, count(subActivity) from OpProjectPlan projectPlan ");
       queryBuffer.append(" inner join projectPlan.Activities activity inner join activity.SubActivities subActivity ");
       queryBuffer.append(" where projectPlan.ID=? and activity.Deleted=false and subActivity.Deleted=false and (subActivity.Type=? or subActivity.Type=?)");
-      queryBuffer.append(" group by activity");
+      queryBuffer.append(" group by activity.ID");
       queryBuffer.append(" having count(subActivity) > 0");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong(0, projectPlanId);
@@ -210,7 +210,9 @@ public class OpProjectPlanningModule extends OpModule {
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();
 
-         OpActivity activity = (OpActivity) result[0];
+
+         Long activityId = (Long) result[0];
+         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId.longValue());
          int activityType = activity.getType();
          int totalChildCount = activity.getSubActivities().size();
          int subTasksCount = ((Number) result[1]).intValue();
@@ -256,10 +258,10 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void updateActivityVersionsAndChildren(long projectPlanVersionId, OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      StringBuffer queryBuffer = new StringBuffer("select activityVersion, count(subActivityVersion) from OpProjectPlanVersion projectPlanVersion ");
+      StringBuffer queryBuffer = new StringBuffer("select activityVersion.ID, count(subActivityVersion) from OpProjectPlanVersion projectPlanVersion ");
       queryBuffer.append(" inner join projectPlanVersion.ActivityVersions activityVersion inner join activityVersion.SubActivityVersions subActivityVersion ");
       queryBuffer.append(" where projectPlanVersion.ID=? and activityVersion.Activity.Deleted=false and subActivityVersion.Activity.Deleted=false and (subActivityVersion.Type=? or subActivityVersion.Type=?)");
-      queryBuffer.append(" group by activityVersion");
+      queryBuffer.append(" group by activityVersion.ID");
       queryBuffer.append(" having count(subActivityVersion) > 0");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong(0, projectPlanVersionId);
@@ -270,7 +272,8 @@ public class OpProjectPlanningModule extends OpModule {
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();
 
-         OpActivityVersion activityVersion = (OpActivityVersion) result[0];
+         Long activityVersionId = (Long) result[0];
+         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId.longValue());
          int activityVersionType = activityVersion.getType();
          int totalChildCount = activityVersion.getSubActivityVersions().size();
          int subTaskVersionsCount = ((Number) result[1]).intValue();

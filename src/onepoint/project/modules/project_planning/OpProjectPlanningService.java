@@ -173,7 +173,9 @@ public class OpProjectPlanningService extends OpProjectService {
       if (project.getLocks().size() > 0) {
          logger.error("Project is already locked");
          broker.close();
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         return reply;
       }
       XMessage reply = setEditLock(broker, session, project);
 
@@ -323,15 +325,17 @@ public class OpProjectPlanningService extends OpProjectService {
       if (project.getLocks().size() == 0) {
          logger.error("Project is currently not being edited");
          broker.close();
-         // TODO: Error handling
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_CHECKED_IN_ERROR));
+         return reply;
       }
       OpLock lock = (OpLock) project.getLocks().iterator().next();
       if (lock.getOwner().getID() != session.getUserID()) {
          logger.error("Project is locked by another user");
          broker.close();
-         // TODO: Error handling
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         return reply;
       }
 
       OpTransaction t = broker.newTransaction();
@@ -394,24 +398,27 @@ public class OpProjectPlanningService extends OpProjectService {
       OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
       
       if (project == null) {
-         // TODO: Error handling
          broker.close();
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
+         return reply;
       }
 
       // Check if project is locked and current user owns the lock
       if (project.getLocks().size() == 0) {
          logger.error("Project is currently not being edited");
          broker.close();
-         // TODO: Error handling
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_CHECKED_IN_ERROR));
+         return reply;
       }
       OpLock lock = (OpLock) project.getLocks().iterator().next();
       if (lock.getOwner().getID() != session.getUserID()) {
          logger.error("Project is locked by another user");
          broker.close();
-         // TODO: Error handling
-         return null;
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         return reply;
       }
 
       OpTransaction t = broker.newTransaction();
@@ -430,11 +437,11 @@ public class OpProjectPlanningService extends OpProjectService {
       OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
       query.setLong(0, project.getID());
       Integer maxVersionNumber = (Integer) broker.iterate(query).next();
-      /*first version for project plan */
+      //first version for project plan
       int versionNumber = 1;
-      /* a version exists and it's not WORKING VERSION NUMBER*/
-      if (maxVersionNumber != null && maxVersionNumber.intValue() != OpProjectAdministrationService.WORKING_VERSION_NUMBER)
-      {
+      // a version exists and it's not WORKING VERSION NUMBER
+      if (maxVersionNumber != null && 
+           maxVersionNumber.intValue() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
          versionNumber = maxVersionNumber.intValue() + 1;
       }
       OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);

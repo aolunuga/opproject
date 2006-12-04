@@ -6,7 +6,6 @@ package onepoint.project.modules.resource.test;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
@@ -17,6 +16,7 @@ import org.jmock.core.Invocation;
 import org.jmock.core.Stub;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test case class for OpResourceDataSetFactory. Will test the functionality of the helper class using mock objects
@@ -191,14 +191,14 @@ public class OpResourceDataSetFactoryTest extends onepoint.project.test.OpServic
          }
       });
 
-      int[] columnsSelector = new int[3];
-      columnsSelector[0] = OpResourceDataSetFactory.DESCRIPTOR;
-      columnsSelector[1] = OpResourceDataSetFactory.NAME;
-      columnsSelector[2] = OpResourceDataSetFactory.DESCRIPTION;
+      List columnsSelector = new ArrayList();
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTOR));
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.NAME));
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTION));
 
       /*the expected data set */
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpResourceDataSetFactory.retrieveResourceDataSet(((OpProjectSession) mockSession.proxy()), ((OpBroker) mockBroker.proxy()), dataSet, columnsSelector, columnsSelector);
+      OpResourceDataSetFactory.retrieveResourceDataSet(((OpProjectSession) mockSession.proxy()), dataSet, columnsSelector, columnsSelector, -1, 0, null);
 
       assertEquals("Wrong number of children in the data set", 4, dataSet.getChildCount());
       //assert equality for resource pools

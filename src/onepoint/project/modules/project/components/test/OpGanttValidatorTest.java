@@ -1,6 +1,7 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
+
 package onepoint.project.modules.project.components.test;
 
 import junit.framework.TestCase;
@@ -67,6 +68,12 @@ public class OpGanttValidatorTest extends TestCase {
    public void setUp()
         throws Exception {
       super.setUp();
+
+      XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
+      Map calendarSettings = defaultCalendar.getCalendarSettings();
+      calendarSettings.put(XCalendar.LOCALE_KEY, Locale.GERMANY);
+      defaultCalendar.configure(calendarSettings);
+
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
       XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);

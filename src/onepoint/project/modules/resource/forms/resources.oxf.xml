@@ -1,11 +1,13 @@
 <form id="ResourcesForm" layout="border" resource-map-ref="resource.resources" provider-class="onepoint.project.modules.resource.forms.OpResourcesFormProvider" script="/modules/resource/scripts/resources.jes">
    <data-field id="ManagerPermission"/>
    <data-field id="RootPoolPermission"/>
+   <data-field id="poolColumnsSelector"/>
+   <data-field id="resourceColumnsSelector"/>
    <data-set id="IconSet">
       <data-row icon="/modules/resource/icons/pool.png"/>
       <data-row icon="/modules/resource/icons/resource.png"/>
    </data-set>
-   <data-set id="ResourceDataSet" stateful="true"/>
+   <data-set id="ResourceDataSet" stateful="true" on-expand="expandDataSet"/>
 	
     <panel layout="border" style-ref="compact-panel-default">
 		

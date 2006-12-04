@@ -4,6 +4,7 @@
 
 package onepoint.project.modules.user;
 
+import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
@@ -15,11 +16,9 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.project.util.OpSHA1;
-import onepoint.resource.XLanguageResourceMap;
-import onepoint.resource.XLocale;
-import onepoint.resource.XLocaleManager;
-import onepoint.resource.XLocalizer;
+import onepoint.resource.*;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
@@ -43,10 +42,15 @@ public class OpUserService extends OpProjectService {
    public final static String SUBJECT_IDS = "subject_ids";
    public final static String SUPER_SUBJECT_IDS = "super_ids";
    public final static String SUB_SUBJECT_IDS = "sub_ids";
-   // public final static String USER_IDS = "user_ids";
-   // public final static String GROUP_IDS = "group_ids";
    public final static String TARGET_GROUP_ID = "target_group_id";
-   public final static String CONFIRM = "confirm";
+
+   private final static String SOURCE_GROUP_LOCATOR = "source_group_locator";
+   private final static String OUTLINE_LEVEL = "outlineLevel";
+   private final static String ENABLE_USERS = "EnableUsers";
+   private final static String ENABLE_GROUPS = "EnableGroups";
+   private final static String FILTERED_SUBJECT_IDS = "FilteredSubjectIds";
+   private final static String INCLUDE_PARENTS_IN_FILTER = "IncludeParentsInFilter";
+
 
    // User data
    public final static String ASSIGNED_GROUPS = "assigned_groups";
@@ -146,9 +150,6 @@ public class OpUserService extends OpProjectService {
          //<FIXME author="Horia Chiorean" description="In the remote case, this means that always the last signed in user will have his settings...">
          XCalendar.getDefaultCalendar().configure(userCalendarSettings);
          //<FIXME>
-
-         //as we potentially reuse the session, we clear the variable.
-         session.clearVariables();
       }
       else {
          XError error = session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN);
@@ -335,16 +336,17 @@ public class OpUserService extends OpProjectService {
          for (int i = 0; i < assigned_groups.size(); i++) {
             choice = (String) (assigned_groups.get(i));
             group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
-            // TODO: Error if group does not exist?
-            // (Should not happen via UI, but could happen in the future via API/Web-Service-call)
-
-            if (group != null) {
+            if (group == null) {
+               error = session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND);
+               reply.setError(error);
+               reply.setArgument(WARNING, Boolean.TRUE);
+            }
+            else {
                assignment = new OpUserAssignment();
                assignment.setUser(user);
                assignment.setGroup(group);
                broker.makePersistent(assignment);
             }
-
          }
       }
 
@@ -433,15 +435,17 @@ public class OpUserService extends OpProjectService {
          for (int i = 0; i < assigned_groups.size(); i++) {
             choice = (String) (assigned_groups.get(i));
             superGroup = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
-            // TODO: Return error if super group does not exist?
-
-            if (superGroup != null) {
+            if (superGroup == null) {
+               error = session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND);
+               reply.setError(error);
+               reply.setArgument(WARNING, Boolean.TRUE);
+            }
+            else {
                assignment = new OpGroupAssignment();
                assignment.setSubGroup(group);
                assignment.setSuperGroup(superGroup);
                broker.makePersistent(assignment);
             }
-
          }
       }
 
@@ -553,8 +557,7 @@ public class OpUserService extends OpProjectService {
 
       if (validatePasswords(password, token)) {
          //check actual user password match only if user enters something in retype password field
-         if (!validatePasswords(retypedPassword, NULL_PASSWORD) && !validatePasswords(user.getPassword(), retypedPassword))
-         {
+         if (!validatePasswords(retypedPassword, NULL_PASSWORD) && !validatePasswords(user.getPassword(), retypedPassword)) {
             error = session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH);
             reply.setError(error);
             broker.close();
@@ -612,13 +615,18 @@ public class OpUserService extends OpProjectService {
          for (int i = 0; i < updatedGroupIds.size(); i++) {
             groupId = new Long(OpLocator.parseLocator((String) (updatedGroupIds.get(i))).getID());
             if (!storedGroupIds.remove(groupId)) {
-               // TODO: Check if group exists (optimistic locking -- someone deleted it meanwhile)?
                group = (OpGroup) broker.getObject(OpGroup.class, groupId.longValue());
-               // Assignment not yet persistent: Create new user assignment
-               assignment = new OpUserAssignment();
-               assignment.setGroup(group);
-               assignment.setUser(user);
-               broker.makePersistent(assignment);
+               if (group == null) {
+                  reply.setError(session.newError(ERROR_MAP, OpUserError.USER_NOT_FOUND));
+                  reply.setArgument(WARNING, Boolean.TRUE);
+               }
+               else {
+                  // Assignment not yet persistent: Create new user assignment
+                  assignment = new OpUserAssignment();
+                  assignment.setGroup(group);
+                  assignment.setUser(user);
+                  broker.makePersistent(assignment);
+               }
             }
          }
       }
@@ -737,10 +745,14 @@ public class OpUserService extends OpProjectService {
          for (int i = 0; i < updatedSuperGroupIds.size(); i++) {
             groupId = new Long(OpLocator.parseLocator((String) (updatedSuperGroupIds.get(i))).getID());
             if (!storedSuperGroupIds.remove(groupId)) {
-               // TODO: Check if super group exists (optimistic locking -- someone deleted it meanwhile)?
                superGroup = (OpGroup) broker.getObject(OpGroup.class, groupId.longValue());
                // Assignment not yet persistent: Create new user assignment
-               if (superGroup != null) {
+               if (superGroup == null) {
+                  error = session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND);
+                  reply.setError(error);
+                  reply.setArgument(WARNING, Boolean.TRUE);
+               }
+               else {
                   assignment = new OpGroupAssignment();
                   assignment.setSuperGroup(superGroup);
                   assignment.setSubGroup(group);
@@ -913,10 +925,10 @@ public class OpUserService extends OpProjectService {
 
    public XMessage assignToGroup(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
-      XMessage reply = null;
+      XMessage reply = new XMessage();
+
       //only the administrator has access right
       if (!session.userIsAdministrator()) {
-         reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
          reply.setError(error);
          return reply;
@@ -936,8 +948,9 @@ public class OpUserService extends OpProjectService {
       OpGroup targetGroup = (OpGroup) (broker.getObject(targetGroupLocator));
       if (targetGroup == null) {
          logger.warn("ERROR: Could not find object with ID " + targetGroupLocator);
+         reply.setError(session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
          broker.close();
-         return null;
+         return reply;
       }
 
       OpTransaction t = broker.newTransaction();
@@ -961,9 +974,12 @@ public class OpUserService extends OpProjectService {
             userAssignmentQuery.setLong(1, targetGroup.getID());
             result = broker.iterate(userAssignmentQuery);
             if (!result.hasNext()) {
-               // TODO: Check if user does (still) exist?
                user = (OpUser) broker.getObject(OpUser.class, subjectLocator.getID());
-               if (user != null) {
+               if (user == null) {
+                  reply.setError(session.newError(ERROR_MAP, OpUserError.USER_NOT_FOUND));
+                  reply.setArgument(WARNING, Boolean.TRUE);
+               }
+               else {
                   userAssignment = new OpUserAssignment();
                   userAssignment.setUser(user);
                   userAssignment.setGroup(targetGroup);
@@ -977,24 +993,27 @@ public class OpUserService extends OpProjectService {
             groupAssignmentQuery.setLong(1, targetGroup.getID());
             result = broker.iterate(groupAssignmentQuery);
             if (!result.hasNext()) {
-               // TODO: Check if user does (still) exist?
                group = (OpGroup) broker.getObject(OpGroup.class, subjectLocator.getID());
-
-               //loop check
-               List superGroupsIds = new ArrayList();
-               superGroupsIds.add(new Long(targetGroup.getID()));
-               if (checkGroupAssignmentsForLoops(broker, group, superGroupsIds)) {
-                  reply = new XMessage();
-                  XError error = session.newError(ERROR_MAP, OpUserError.LOOP_ASSIGNMENT);
-                  reply.setError(error);
+               if (group == null) {
+                  reply.setError(session.newError(ERROR_MAP, OpUserError.GROUP_NOT_FOUND));
                   reply.setArgument(WARNING, Boolean.TRUE);
-                  continue;
                }
-
-               groupAssignment = new OpGroupAssignment();
-               groupAssignment.setSubGroup(group);
-               groupAssignment.setSuperGroup(targetGroup);
-               broker.makePersistent(groupAssignment);
+               else {
+                  //loop check
+                  List superGroupsIds = new ArrayList();
+                  superGroupsIds.add(new Long(targetGroup.getID()));
+                  if (checkGroupAssignmentsForLoops(broker, group, superGroupsIds)) {
+                     reply = new XMessage();
+                     XError error = session.newError(ERROR_MAP, OpUserError.LOOP_ASSIGNMENT);
+                     reply.setError(error);
+                     reply.setArgument(WARNING, Boolean.TRUE);
+                     continue;
+                  }
+                  groupAssignment = new OpGroupAssignment();
+                  groupAssignment.setSubGroup(group);
+                  groupAssignment.setSuperGroup(targetGroup);
+                  broker.makePersistent(groupAssignment);
+               }
             }
          }
       }
@@ -1004,7 +1023,77 @@ public class OpUserService extends OpProjectService {
       return reply;
    }
 
-   // Helper methods
+   /**
+    * Loads the children of the given group based on the filter and enable rules given as parameters.
+    * Used for lazy loading, simple structure & filtering.
+    *
+    * @param s
+    * @param request
+    * @return
+    */
+   public XMessage expandFilteredGroup(XSession s, XMessage request) {
+
+      XMessage reply = new XMessage();
+      OpProjectSession session = (OpProjectSession) s;
+
+      //filter for groups/users
+      Boolean includeParentsInFilter = (Boolean) request.getArgument(INCLUDE_PARENTS_IN_FILTER);
+      List filteredSubjectIds = (List) request.getArgument(FILTERED_SUBJECT_IDS);
+      if (includeParentsInFilter != null && includeParentsInFilter.booleanValue()) {
+         filteredSubjectIds = OpSubjectDataSetFactory.getAlreadyAssignedGroups(session, filteredSubjectIds);
+      }
+      XComponent resultSet = expandGroupStructure(session, request, true, filteredSubjectIds);
+
+      if (resultSet != null) {
+
+         boolean enableUsers = ((Boolean) request.getArgument(ENABLE_USERS)).booleanValue();
+         boolean enableGroups = ((Boolean) request.getArgument(ENABLE_GROUPS)).booleanValue();
+         OpSubjectDataSetFactory.enableSubjectHierarchy(resultSet, enableUsers, enableGroups);
+
+         List resultList = new ArrayList();
+         for (int i = 0; i < resultSet.getChildCount(); i++) {
+            resultList.add(resultSet.getChild(i));
+         }
+         reply.setArgument(OpProjectConstants.CHILDREN, resultList);
+      }
+
+      return reply;
+
+   }
+
+   /**
+    * Loads the children of the given group (used for lazy loading/ complex structure)
+    *
+    * @param s
+    * @param request
+    * @return
+    */
+   public XMessage expandGroup(XSession s, XMessage request) {
+      XMessage reply = new XMessage();
+      OpProjectSession session = (OpProjectSession) s;
+      XComponent resultSet = expandGroupStructure(session, request, false, null);
+      if (resultSet != null) {
+         List resultList = new ArrayList();
+         for (int i = 0; i < resultSet.getChildCount(); i++) {
+            resultList.add(resultSet.getChild(i));
+         }
+         reply.setArgument(OpProjectConstants.CHILDREN, resultList);
+      }
+      return reply;
+   }
+
+   private XComponent expandGroupStructure(OpProjectSession session, XMessage request, boolean simpleStructure, List filteredSubjectIds) {
+      OpBroker broker = session.newBroker();
+      XComponent resultSet = new XComponent(XComponent.DATA_SET);
+      String targetGroupLocator = (String) (request.getArgument(SOURCE_GROUP_LOCATOR));
+      Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
+      if (targetGroupLocator != null && outline != null) {
+         OpLocator locator = OpLocator.parseLocator(targetGroupLocator);
+         OpSubjectDataSetFactory.retrieveSubjectHierarchy(session, resultSet, filteredSubjectIds, locator.getID(), outline.intValue() + 1, simpleStructure);
+      }
+      broker.close();
+      return resultSet;
+   }
 
    public static OpUser createAdministrator(OpBroker broker) {
       OpTransaction t = broker.newTransaction();
@@ -1068,6 +1157,18 @@ public class OpUserService extends OpProjectService {
       return reply;
    }
 
+   /**
+    * Performs the necessary operation to sign-off a user.
+    * @param s a <code>XSession</code> representing the application server session.
+    * @param request a <code>XMessage</code> representing the client request.
+    * @return an <code>XMessage</code> representing the response.
+    */
+   public XMessage signOff(XSession s, XMessage request) {
+      OpProjectSession projectSession = (OpProjectSession) s;
+      projectSession.clearSession();
+      XResourceCache.clearCache();
+      return null;
+   }
 
    /**
     * Gets the display name for a user.

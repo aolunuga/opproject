@@ -40,4 +40,13 @@
       <parameter name="pool_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="super_pool_id" instance-class="java.lang.String" mode="input"/>
    </method>
+   <method name="expandResourcePool">
+      <parameter name="source_pool_locator" instance-class="java.lang.String" mode="input"/>
+      <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
+      <parameter name="poolColumnsSelector" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="resourceColumnsSelector" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="FilteredOutIds" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="EnablePools" instance-class="java.lang.Boolean" mode="input"/>
+      <parameter name="EnableResources" instance-class="java.lang.Boolean" mode="input"/>
+   </method>
 </service>

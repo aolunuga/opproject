@@ -8,6 +8,7 @@ import onepoint.express.*;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.util.XCalendar;
 
 import java.awt.*;
@@ -1055,31 +1056,33 @@ public class OpProjectComponent extends XComponent {
          // for Gantt
          for (int index = 0; index < data_set.getChildCount(); index++) {
             data_row = (XComponent) (data_set._getChild(index));
-            if (pc_type == GANTT_CHART) {
-               if (OpGanttValidator.getStart(data_row) == null ||
-                    OpGanttValidator.getEnd(data_row) == null) {
-                  continue;
+            if (!OpProjectConstants.DUMMY_ROW_ID.equals(data_row.getStringValue())) {
+               if (pc_type == GANTT_CHART) {
+                  if (OpGanttValidator.getStart(data_row) == null ||
+                       OpGanttValidator.getEnd(data_row) == null) {
+                     continue;
+                  }
+                  start_time = OpGanttValidator.getStart(data_row).getTime();
+                  end_time = OpGanttValidator.getEnd(data_row).getTime();
+                  logger.debug("---START: " + OpGanttValidator.getStart(data_row));
                }
-               start_time = OpGanttValidator.getStart(data_row).getTime();
-               end_time = OpGanttValidator.getEnd(data_row).getTime();
-               logger.debug("---START: " + OpGanttValidator.getStart(data_row));
-            }
-            else if (((XComponent) (data_row.getChild(UTILIZATION_DESCRIPTOR_COLUMN_INDEX))).getStringValue()
-                 .equals(UTILIZATION_RESOURCE_DESCRIPTOR)) {
+               else if (((XComponent) (data_row.getChild(UTILIZATION_DESCRIPTOR_COLUMN_INDEX))).getStringValue()
+                    .equals(UTILIZATION_RESOURCE_DESCRIPTOR)) {
 
-               XComponent utilizationStart = ((XComponent) (data_row.getChild(UTILIZATION_START_COLUMN_INDEX)));
-               if (utilizationStart != null && utilizationStart.getDateValue() != null) {
-                  start_time = utilizationStart.getDateValue().getTime();
-               }
-               else {
-                  start_time = chart_start_time;
-               }
-               XComponent utilizationEnd = ((XComponent) (data_row.getChild(UTILIZATION_END_COLUMN_INDEX)));
-               if (utilizationEnd != null && utilizationEnd.getDateValue() != null) {
-                  end_time = utilizationEnd.getDateValue().getTime();
-               }
-               else {
-                  end_time = chart_end_time;
+                  XComponent utilizationStart = ((XComponent) (data_row.getChild(UTILIZATION_START_COLUMN_INDEX)));
+                  if (utilizationStart != null && utilizationStart.getDateValue() != null) {
+                     start_time = utilizationStart.getDateValue().getTime();
+                  }
+                  else {
+                     start_time = chart_start_time;
+                  }
+                  XComponent utilizationEnd = ((XComponent) (data_row.getChild(UTILIZATION_END_COLUMN_INDEX)));
+                  if (utilizationEnd != null && utilizationEnd.getDateValue() != null) {
+                     end_time = utilizationEnd.getDateValue().getTime();
+                  }
+                  else {
+                     end_time = chart_end_time;
+                  }
                }
             }
 

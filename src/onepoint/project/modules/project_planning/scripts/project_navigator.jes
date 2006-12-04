@@ -3,10 +3,12 @@
  */
 
 // Event-script for projects.oxf.xml
+require "onepoint/project/scripts/lazyLoad.jes";
 
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.XValidator;
+import onepoint.service.XMessage;
 
 function changeProject(event) {
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectNavigatorDataSet");
@@ -50,5 +52,16 @@ function resizeDivision(event){
    panel = contentFrame.getParent();
    panel.doLayout();
    panel.getParent().repaint();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectNode");
+   request.setArgument("project_row", dataRow);
+   //not tabular
+   request.setArgument("tabular", false);      
+   expandNode(dataRow, 0, request);
 }
 

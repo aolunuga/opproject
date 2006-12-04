@@ -20,6 +20,7 @@ import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpSubject;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
@@ -42,6 +43,7 @@ public class OpProjectAdministrationService extends OpProjectService {
    public final static String GOALS_SET = "goals_set";
    public final static String TO_DOS_SET = "to_dos_set";
    public final static String EDIT_MODE = "edit_mode";
+   public final static String NULL_ID = "null";
 
    protected final static OpProjectErrorMap ERROR_MAP = new OpProjectErrorMap();
 
@@ -53,6 +55,9 @@ public class OpProjectAdministrationService extends OpProjectService {
    private final static String RESOURCE_LIST = "resource_list";
    private final static String VERSIONS_SET = "versions_set";
    private final static String PORTFOLIO_LOCATOR = "PortfolioID";
+   private final static String PROJECT_ROW_PARAMETER = "project_row";
+   private final static String TYPES_PARAMETER = "project_types";
+   private final static String TABULAR_PARAMETER = "tabular";
 
    public XMessage insertProject(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
@@ -135,6 +140,14 @@ public class OpProjectAdministrationService extends OpProjectService {
          broker.close();
          reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
          return reply;
+      }
+
+      //project status
+      String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+      OpProjectStatus status = null;
+      if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
+         status = (OpProjectStatus) (broker.getObject(statusLocator));
+         project.setStatus(status);
       }
 
       OpTransaction t = broker.newTransaction();
@@ -334,12 +347,11 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
 
-      // *** We could check if the fields have been modified (does this help or
-      // not)?
       if (project == null) {
          logger.warn("ERROR: Could not find object with ID " + id_string);
          broker.close();
-         return null;
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
+         return reply;
       }
 
       // Check manager access
@@ -369,6 +381,17 @@ public class OpProjectAdministrationService extends OpProjectService {
       project.setStart(start_date);
       project.setFinish(end_date);
       project.setBudget(budget);
+
+      //project status
+      String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+      OpProjectStatus status = null;
+      if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
+         status = (OpProjectStatus) (broker.getObject(statusLocator));
+         project.setStatus(status);
+      }
+      else {
+         project.setStatus(null);
+      }
 
       OpProjectPlan projectPlan = project.getPlan();
       Boolean calculationMode = (Boolean) project_data.get(OpProjectPlan.CALCULATION_MODE);
@@ -933,6 +956,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       if (portfolio == null) {
          logger.warn("ERROR: Could not find object with ID " + id_string);
          broker.close();
+         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
          return reply;
       }
 
@@ -1232,4 +1256,48 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
       }
    }
+
+   /**
+    * Expands a project node, for the project administration view.
+    * @param session a <code>XSession</code> representing the application session.
+    * @param request a <code>XMessage</code> representing the client request.
+    * @return a <code>XMessage</code> representing the server response.
+    */
+   public XMessage expandProjectNode(XSession session, XMessage request) {
+      XComponent dataRow = (XComponent) request.getArgument(PROJECT_ROW_PARAMETER);
+
+      Integer requestedTypes = (Integer) request.getArgument(TYPES_PARAMETER);
+      int types = (requestedTypes != null) ? requestedTypes.intValue() : OpProjectDataSetFactory.ALL_TYPES;
+
+      Boolean requestedTabular = (Boolean) request.getArgument(TABULAR_PARAMETER);
+      boolean tabular = (requestedTabular == null) || requestedTabular.booleanValue();
+
+      OpProjectSession projectSession  = (OpProjectSession) session;
+      List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, types, tabular, null);
+
+      XMessage reply = new XMessage();
+      reply.setArgument(OpProjectConstants.CHILDREN, children);
+      return reply;
+   }
+
+   /**
+    * Expands a project node, for the project chooser view.
+    * @param session a <code>XSession</code> representing the application session.
+    * @param request a <code>XMessage</code> representing the client request.
+    * @return a <code>XMessage</code> representing the server response.
+    */
+   public XMessage expandProjectChooserNode(XSession session, XMessage request) {
+      XComponent dataRow = (XComponent) request.getArgument(PROJECT_ROW_PARAMETER);
+      List filteredOutIds = (List) request.getArgument(OpProjectDataSetFactory.FILTERED_OUT_IDS);
+
+      OpProjectSession projectSession  = (OpProjectSession) session;
+      List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, OpProjectDataSetFactory.ALL_TYPES, false, filteredOutIds);
+
+      OpProjectDataSetFactory.enableNodes(request.getArgumentsMap(), children);
+
+      XMessage reply = new XMessage();
+      reply.setArgument(OpProjectConstants.CHILDREN, children);
+      return reply;
+   }
+
 }

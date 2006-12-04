@@ -205,4 +205,10 @@ public class OpTypeManager {
       return (OpPrototype) (_class_names.get(class_name));
    }
 
+   public static int getMaxLength(int type) {
+      if (type == OpType.TEXT) {
+         return 2500;
+      }
+      return Integer.MAX_VALUE;
+   }
 }

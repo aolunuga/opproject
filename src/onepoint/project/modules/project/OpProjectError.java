@@ -40,6 +40,9 @@ public class OpProjectError {
    public final static int FILE_WRITE_ERROR = 29;
    public final static int PERMISSIONS_LEVEL_ERROR = 30;
 
+   public final static int PROJECT_LOCKED_ERROR = 31;
+   public final static int PROJECT_CHECKED_IN_ERROR = 32;
+
 
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
@@ -74,4 +77,7 @@ public class OpProjectError {
    public final static String FILE_READ_ERROR_NAME = "FileReadError";
    public final static String FILE_WRITE_ERROR_NAME = "FileWriteError";
    public final static String PERMISSIONS_LEVEL_ERROR_NAME = "PermissionsLevelError";
+
+   public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
+   public final static String PROJECT_CHECKED_IN_ERROR_NAME = "ProjectCheckedInError";
 }

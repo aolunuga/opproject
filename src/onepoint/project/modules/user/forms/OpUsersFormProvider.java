@@ -6,11 +6,8 @@ package onepoint.project.modules.user.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
-import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
-import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -31,16 +28,12 @@ public class OpUsersFormProvider implements XFormProvider {
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      OpBroker broker = session.newBroker();
 
       XComponent dataSet = form.findComponent(USER_DATA_SET);
 
-      // Attention: We are using display name here in order to localize name of group "Everyone"
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
       //retrieve the subject structure
-      OpSubjectDataSetFactory.retrieveComplexSubjectHierarchy(broker, dataSet, localizer);
+      OpSubjectDataSetFactory.retrieveSubjectHierarchy(session, dataSet, null, -1, 0, false);
 
       //disable buttons that require selection
       form.findComponent(INFO_BUTTON).setEnabled(false);
@@ -52,7 +45,5 @@ public class OpUsersFormProvider implements XFormProvider {
       form.findComponent(NEW_USER_BUTTON).setEnabled(isAdminRole);
       form.findComponent(NEW_GROUP_BUTTON).setEnabled(isAdminRole);
       form.findComponent(IS_ADMIN_ROLE_DATA_FIELD).setBooleanValue(isAdminRole);
-
-      broker.close();
    }
 }

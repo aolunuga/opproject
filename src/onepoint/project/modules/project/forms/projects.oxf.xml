@@ -6,7 +6,7 @@
       <data-row icon="/modules/project/icons/template.png"/>
       <data-row icon="/modules/project/icons/project.png"/>
    </data-set>
-   <data-set id="ProjectDataSet" stateful="true"/>
+   <data-set id="ProjectDataSet" stateful="true" on-expand="retrieveChildren"/>
 	
     <panel layout="border" style-ref="compact-panel-default">
 		

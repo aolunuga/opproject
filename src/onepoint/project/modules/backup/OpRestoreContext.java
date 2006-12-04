@@ -16,7 +16,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 100;
+   private final static int MAX_INSERTS_PER_TRANSACTION = 1000;
 
    /**
     * This class's logger.
@@ -215,13 +215,16 @@ public class OpRestoreContext extends XContext {
     */
    void commitRestoredObjects() {
       if (objectsToAdd.size() > 0) {
+         logger.info("Inserting objects into db...");
          OpTransaction t = broker.newTransaction();
          Iterator it = objectsToAdd.iterator();
          while (it.hasNext()) {
             broker.makePersistent((OpObject) it.next());
          }
          t.commit();
+         logger.info("Objects persisted");
          objectsToAdd.clear();
+         insertCount = 0;
       }
    }
 }

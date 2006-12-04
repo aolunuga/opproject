@@ -21,7 +21,7 @@ public class OpProjectNavigatorFormProvider implements XFormProvider {
       XComponent dataSet = form.findComponent("ProjectNavigatorDataSet");
 
       OpBroker broker = session.newBroker();
-      OpProjectDataSetFactory.retrieveProjectDataSet(session, broker, dataSet, OpProjectDataSetFactory.ALL_TYPES, false);
+      OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, OpProjectDataSetFactory.ALL_TYPES, false, null);
       broker.close();
    }
 

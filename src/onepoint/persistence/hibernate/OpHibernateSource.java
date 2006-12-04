@@ -601,7 +601,8 @@ public class OpHibernateSource extends OpSource {
             }
 
             if (field.getTypeID() == OpType.TEXT) {
-               buffer.append(" length=\"2500\"");
+               int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
+               buffer.append(" length=\"").append(maxLen).append("\"");
             }
 
             buffer.append("/></property>\n");

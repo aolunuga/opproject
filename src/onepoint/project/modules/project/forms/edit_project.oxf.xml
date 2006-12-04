@@ -6,6 +6,8 @@
    <tab-box y="0">
    <tab text="{$General}" layout="table" id="GeneralTab">
 
+      <data-set id="ProjectStatusDataSet"/>
+
       <label x="0" y="0" width="2" text="{$Name}" style-ref="label-emphasized-default"/><text-field x="2" y="0" width="3" id="Name"/>
       <label x="0" y="1" width="2" text="{$Template}"/><choice-field x="2" y="1" width="3" id="TemplateField" string-value="{$NotSelected}" enabled="false"/>
       <label x="0" y="2" width="2" text="{$Description}"/><text-box x="2" y="2" width="3" id="Description"/>
@@ -16,6 +18,9 @@
       <label x="0" y="5" width="2" text="{$Budget}"/><double-field x="2" y="5" width="3" id="Budget" decimals="2"/>
       <check-box x="2" y="6" width="3" id="CalculationMode" text="{$CalculationMode}"/>
       <check-box x="2" y="7" width="3" id="ProgressTracked" text="{$ProgressTracked}"/>
+
+      <label x="0" y="8" width="2" text="{$Status}" id="StatusLabel"/>
+      <choice-field x="2" y="8" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice"/>
 
    </tab>
 

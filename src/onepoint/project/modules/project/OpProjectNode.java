@@ -27,6 +27,7 @@ public class OpProjectNode extends OpObject {
    public final static String ASSIGNMENTS = "Assignments";
    public final static String GOALS = "Goals";
    public final static String TO_DOS = "ToDos";
+   public final static String STATUS = "Status";
 
    // Project types are ordered in default sort order
    public final static byte PORTFOLIO = 1;
@@ -54,6 +55,7 @@ public class OpProjectNode extends OpObject {
    private Set assignments;
    private Set goals;
    private Set toDos;
+   private OpProjectStatus status;
 
    public void setName(String name) {
       this.name = name;
@@ -167,4 +169,11 @@ public class OpProjectNode extends OpObject {
       return toDos;
    }
 
+   public void setStatus(OpProjectStatus status) {
+      this.status = status;
+   }
+
+   public OpProjectStatus getStatus() {
+      return status;
+   }
 }

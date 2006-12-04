@@ -1,0 +1,34 @@
+<language-kit locale="en">
+   
+   <resource-map id="my_projects.module">
+      <resource id="ProjectsTool">Projects</resource>
+   </resource-map>
+
+   <resource-map id="my_projects.my_projects">
+
+      <resource id="Print">Print</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+
+      <resource id="ContribM">Contributor &amp; Manager</resource>
+      <resource id="Manager">Manager</resource>
+      <resource id="Contrib">Contributor</resource>
+      <resource id="Observer">Observer</resource>
+      <resource id="All">All</resource>
+
+      <resource id="ProjectList">Project List</resource>
+      <resource id="Role">Role</resource>
+      <resource id="Project">Project</resource>
+      <resource id="Status">Status</resource>
+      <resource id="Complete">% Complete</resource>
+      <resource id="BaseEffort">Effort (B/h)</resource>
+      <resource id="ActualEffort">Effort (A/h)</resource>
+      <resource id="BaseCosts">Costs (B/€)</resource>
+      <resource id="ActualCosts">Costs (A/€)</resource>
+      <resource id="Projected">Expected (€)</resource>
+      <resource id="Deviation">Deviation (€)</resource>
+      <resource id="PercentageDeviation">Deviation (%)</resource>
+
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+   </resource-map>
+</language-kit>

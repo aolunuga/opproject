@@ -13,6 +13,8 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpType;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.project.components.OpActivityLoopException;
@@ -162,7 +164,12 @@ public class OpMSProjectManager {
          //material costs
          //misc costs
 
-         OpGanttValidator.setDescription(activityRow, msTask.getNotes());
+         String description = msTask.getNotes();
+         int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
+         if (description.length() > maxLen) {
+            description = description.substring(0, maxLen - 1);
+         }
+         OpGanttValidator.setDescription(activityRow, description);
          //attachments
          //mode
          //work phase begin - validation will take care of this

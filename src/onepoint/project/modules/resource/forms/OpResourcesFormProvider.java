@@ -14,7 +14,9 @@ import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.service.server.XSession;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class OpResourcesFormProvider implements XFormProvider {
 
@@ -32,6 +34,8 @@ public class OpResourcesFormProvider implements XFormProvider {
    private static final String DELETE_BUTTON = "DeleteButton";
    private static final String ASSIGN_TO_PROJECT_BUTTON = "AssignToProjectButton";
    private static final String IMPORT_USER_BUTTON = "ImportUserButton";
+   private final static String POOL_SELECTOR = "poolColumnsSelector";
+   private final static String RESOURCE_SELECTOR = "resourceColumnsSelector";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -46,6 +50,7 @@ public class OpResourcesFormProvider implements XFormProvider {
       //set the effective permissions of the root resource pool
       OpResourcePool rootResourcePool = OpResourceService.findRootPool(broker);
       byte rootPoolPermission = session.effectiveAccessLevel(broker, rootResourcePool.getID());
+      broker.close();
       form.findComponent("RootPoolPermission").setByteValue(rootPoolPermission);
 
       //disable the selection buttons
@@ -58,15 +63,16 @@ public class OpResourcesFormProvider implements XFormProvider {
          form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
       }
 
-      int[] columnsSelector = new int[4];
-      columnsSelector[0] = OpResourceDataSetFactory.DESCRIPTOR;
-      columnsSelector[1] = OpResourceDataSetFactory.NAME;
-      columnsSelector[2] = OpResourceDataSetFactory.DESCRIPTION;
-      columnsSelector[3] = OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS;
+      List columnsSelector = new ArrayList();
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTOR));
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.NAME));
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTION));
+      columnsSelector.add(new Integer(OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS));
 
-      OpResourceDataSetFactory.retrieveResourceDataSet(session, broker, dataSet, columnsSelector, columnsSelector);
+      form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
+      form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
 
-      broker.close();
+      OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, columnsSelector, columnsSelector, null);
    }
 
    /**

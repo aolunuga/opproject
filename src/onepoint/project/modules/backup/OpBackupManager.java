@@ -61,6 +61,11 @@ public class OpBackupManager {
    private static final XLog logger = XLogFactory.getLogger(OpBackupManager.class, true);
 
    /**
+    * The size of a page, when performing backup.
+    */
+   private static final int BACKUP_PAGE_SIZE = 1000;
+
+   /**
     * Date format used for importing/exporting date values.
     */
    final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd 'GMT'");
@@ -94,6 +99,7 @@ public class OpBackupManager {
 
    /**
     * Returns a backup manager instance.
+    *
     * @return a <code>OpBackupManager</code> instance.
     */
    public static OpBackupManager getBackupManager() {
@@ -115,6 +121,7 @@ public class OpBackupManager {
 
    /**
     * Checks whether the manager has registed the given prototype or not.
+    *
     * @param prototype a <code>OpPrototype</code> representing the prototype to register.
     * @return a <code>boolean</code> indicating whether the prototype has been registered or not.
     */
@@ -170,6 +177,7 @@ public class OpBackupManager {
 
    /**
     * Return a backup member for the given field.
+    *
     * @param field a <code>OpField</code> instance, representing a field.
     * @return a <code>XBackupMemeber</code> instance.
     */
@@ -186,6 +194,7 @@ public class OpBackupManager {
 
    /**
     * Return a backup member for the given field.
+    *
     * @param relationship a <code>XRelationShip</code> instance, representing a relationship.
     * @return a <code>XBackupMemeber</code> instance.
     */
@@ -196,6 +205,8 @@ public class OpBackupManager {
       backupMember.relationship = true;
       backupMember.ordered = false;
       backupMember.recursive = relationship.getRecursive();
+      OpRelationship backRelationShip = relationship.getBackRelationship();
+      backupMember.backRelationshipName = backRelationShip != null ? backRelationShip.getName() : null;
 
       return backupMember;
    }
@@ -291,13 +302,14 @@ public class OpBackupManager {
 
    /**
     * Writes the given field (backup member) to the given writer, including its value.
+    *
     * @param member a <code>OpBackupMember</code> representing a field of an entity.
     * @param writer a <code>XDocumentWriter</code> that writes out the field with its value.
-    * @param value a <code>Object</code> representing the value of the field.
+    * @param value  a <code>Object</code> representing the value of the field.
     * @throws IOException if the field cannot be written.
     */
    private void writeFieldMember(OpObject object, OpBackupMember member, XDocumentWriter writer, Object value)
-         throws IOException {
+        throws IOException {
       writer.writeStartElement(P, null, false);
       if (value == null) {
          writer.writeContent(NULL);
@@ -359,7 +371,7 @@ public class OpBackupManager {
     * Writes the value of a relationship member.
     *
     * @param writer a <code>XDocumentWriter</code> that will write the output.
-    * @param value a <code>Object</code> representing the value of the relation ship.
+    * @param value  a <code>Object</code> representing the value of the relation ship.
     */
    private void writeRelationshipMember(XDocumentWriter writer, Object value)
         throws IOException {
@@ -375,63 +387,71 @@ public class OpBackupManager {
    }
 
    /**
-    * @see OpBackupManager#exportObjects(onepoint.persistence.OpBroker, onepoint.xml.XDocumentWriter, String, OpBackupMember[], java.util.Map)
-    *
-    * @param orderedBy a <code>String</code> representing the name of the member field after which to order by.
+    * @param orderedBy   a <code>String</code> representing the name of the member field after which to order by.
     * @param recursiveBy a <code>String</code> representing the name of the member relationship which is recursive.
-    * @param superIds a <code>List</code> of <code>Long</code> representing super ids in case of a recursive backup.
+    * @param objects    a <code>List</code> of <code>OpObject</code> representing child objects in case of a recursive backup.
+    * @see OpBackupManager#exportObjects(onepoint.project.OpProjectSession, onepoint.xml.XDocumentWriter, String, OpBackupMember[], java.util.Map)
     */
-   private void exportSubObjects(OpBroker broker, XDocumentWriter writer, String prototypeName,
-        OpBackupMember[] members, String orderedBy, String recursiveBy, List superIds, Map systemIdMap)
+   private void exportSubObjects(OpProjectSession session, XDocumentWriter writer, String prototypeName,
+        OpBackupMember[] members, String orderedBy, String recursiveBy, List objects, Map systemIdMap)
         throws IOException {
-      // Here we could do additional filtering for partial backups
+      int pageSize = BACKUP_PAGE_SIZE;
+      int startIndex = 0;
 
-      StringBuffer queryBuffer = new StringBuffer("select xobject from ");
-      queryBuffer.append(prototypeName);
-      queryBuffer.append(" as xobject");
-
-      // Handle recursive export (query string)
-      if (recursiveBy != null) {
-         queryBuffer.append(" where xobject.");
-         queryBuffer.append(recursiveBy);
-         if (superIds == null) {
-            // Retrieve root level
-            queryBuffer.append(" is null");
+      OpBroker broker = session.newBroker();
+      Iterator result = null;
+      if (objects != null) {
+         result = objects.iterator();
+      }
+      else {
+         int count = getObjectsToBackupCount(prototypeName, recursiveBy, broker);
+         logger.info("Backing up " + count + " " + prototypeName);
+         if (count > pageSize) {
+            while (startIndex < count) {
+               logger.info("Backing up objects between " +  startIndex + " and " + (startIndex + BACKUP_PAGE_SIZE));
+               OpBroker pagingBroker = session.newBroker();
+               result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, BACKUP_PAGE_SIZE);
+               startIndex += pageSize;
+               if (startIndex >= count) {
+                  break;
+               }
+               if (startIndex + pageSize > count) {
+                  pageSize = count - startIndex;
+               }
+               //export each object
+               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker,  prototypeName);
+               if ((recursiveBy != null) && (childObjects.size() > 0)) {
+                  exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
+               }
+               pagingBroker.close();
+            }
+            return;
          }
          else {
-            // Retrieve sub-objects of specified super-IDs
-            queryBuffer.append(".ID in (:superIds)");
+            result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, broker, 0, count);
          }
       }
 
-      // Handle ordered export
-      if (orderedBy != null) {
-         queryBuffer.append(" order by xobject.");
-         queryBuffer.append(orderedBy);
+      //export each object
+      List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker, prototypeName);
+
+      // Check for next recursion
+      if ((recursiveBy != null) && (childObjects.size() > 0)) {
+         exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
       }
+      broker.close();      
+   }
 
-      logger.debug("***QUERY: " + queryBuffer);
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-
-      // Handle recursive export (query parameters)
-      if ((recursiveBy != null) && (superIds != null)) {
-         logger.debug("SUPER-IDS " + superIds);
-         query.setCollection("superIds", superIds);
-      }
-
-      Iterator result = broker.iterate(query);
-
-      List ids = (recursiveBy != null) ? new ArrayList() : null;
+   private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
+        String recursiveBy, OpBroker broker, String prototypeName)
+        throws IOException {
+      List childObjects = (recursiveBy != null) ? new ArrayList() : null;
       try {
          HashMap attributes = new HashMap();
-         int j = 0;
          while (result.hasNext()) {
             OpObject object = (OpObject) result.next();
             //object id
             Long id = new Long(object.getID());
-            if (recursiveBy != null) {
-               ids.add(id);
-            }
             //check whether the object is a system object
             attributes.put(ID, String.valueOf(object.getID()));
             String systemObjectName = (String) systemIdMap.get(id);
@@ -443,9 +463,9 @@ public class OpBackupManager {
 
             // Iterate and call accessors to write field and relationship values
             OpBackupMember member = null;
-            for (j = 0; j < members.length; j++) {
+            for (int i = 0; i < members.length; i++) {
                // Null-members indicate a back-relationship (which are ignored) or a field with unknown type
-               member = members[j];
+               member = members[i];
                if (member == null) {
                   continue;
                }
@@ -453,6 +473,18 @@ public class OpBackupManager {
                Object value = member.accessor.invoke(object, null);
                if (member.relationship) {
                   this.writeRelationshipMember(writer, value);
+                  if (recursiveBy != null && recursiveBy.equals(member.name)) {
+                     try {
+                        Method m = object.getClass().getMethod("get" + member.backRelationshipName, null);
+                        Object backReturnValue = m.invoke(object, null);
+                        if (backReturnValue != null && (backReturnValue instanceof Collection)) {
+                           childObjects.addAll((Collection) backReturnValue);
+                        }
+                     }
+                     catch (NoSuchMethodException e) {
+                        logger.error("Cannot invoke back-relationship method " + member.backRelationshipName);
+                     }
+                  }
                }
                else {
                   this.writeFieldMember(object, member, writer, value);
@@ -467,28 +499,88 @@ public class OpBackupManager {
       catch (InvocationTargetException e) {
          logger.error(e);
       }
+      return childObjects;
+   }
 
-      // Check for next recursion
-      if ((recursiveBy != null) && (ids.size() > 0)) {
-         exportSubObjects(broker, writer, prototypeName, members, orderedBy, recursiveBy, ids, systemIdMap);
+   /**
+    * Gets a list of objects to back-up.
+    * @param prototypeName a <code>String</code> representing the name of a prototype.
+    * @param recursiveBy a <code>String</code> indicating the name of the recursive relationship.
+    * @param orderedBy a <code>String</code> representing the name of the field after which to order the objects.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @return an <code>Iterator</code> over <code>OpObjects</code>. 
+    */
+   private Iterator getObjectsToBackup(String prototypeName, String recursiveBy, String orderedBy, OpBroker broker,
+        int startIndex, int count) {
+      StringBuffer queryBuffer = new StringBuffer("select xobject from ");
+      queryBuffer.append(prototypeName);
+      queryBuffer.append(" as xobject");
+
+      // Handle recursive export (query string)
+      if (recursiveBy != null) {
+         queryBuffer.append(" where xobject.");
+         queryBuffer.append(recursiveBy);
+         // Retrieve root level
+         queryBuffer.append(" is null");
       }
+
+      queryBuffer.append(" order by xobject.");
+      // Handle ordered export
+      if (orderedBy != null) {
+         queryBuffer.append(orderedBy);
+      }
+      else {
+         queryBuffer.append("ID");
+      }
+
+      logger.debug("***QUERY: " + queryBuffer);
+
+      OpQuery query = broker.newQuery(queryBuffer.toString());
+      query.setFirstResult(startIndex);
+      query.setMaxResults(count);
+      return broker.list(query).iterator();
+   }
+
+   /**
+    * Gets the number of objects to back-up from the db.
+    * @param prototypeName a <code>String</code> representing the name of a prototype.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @return an <code>Iterator</code> over <code>OpObjects</code>.
+    */
+   private int getObjectsToBackupCount(String prototypeName, String recursiveBy, OpBroker broker) {
+      StringBuffer queryBuffer = new StringBuffer("select count(xobject.ID) from ");
+      queryBuffer.append(prototypeName);
+      queryBuffer.append(" as xobject");
+
+      // Handle recursive export (query string)
+      if (recursiveBy != null) {
+         queryBuffer.append(" where xobject.");
+         queryBuffer.append(recursiveBy);
+         // Retrieve root level
+         queryBuffer.append(" is null");
+      }
+
+      logger.debug("***QUERY: " + queryBuffer);
+      OpQuery query = broker.newQuery(queryBuffer.toString());
+
+      int count = ((Number) broker.iterate(query).next()).intValue();
+      return count;
    }
 
    /**
     * For the given proptotype and members of the prototype exports all current db values.
     *
-    * @param broker a <code>OpBroker</code> used for performing db operations.
-    * @param writer a <code>XDocumentWriter</code> that is used to output xml.
+    * @param session        a <code>OpProjectSession</code> used for creating brokers that perform db operations.
+    * @param writer        a <code>XDocumentWriter</code> that is used to output xml.
     * @param prototypeName a <code>String</code> representing the name of the prototype.
-    * @param members a <code>OpBackupMember[]</code> representing the members to be exported for the given prototype.
-    * @param systemIdMap a <code>Map</code> of <code>[String,Long]</code> representing the system objects.
+    * @param members       a <code>OpBackupMember[]</code> representing the members to be exported for the given prototype.
+    * @param systemIdMap   a <code>Map</code> of <code>[String,Long]</code> representing the system objects.
     * @throws IOException if anything fails.
     */
-   private void exportObjects(OpBroker broker, XDocumentWriter writer, String prototypeName,
+   private void exportObjects(OpProjectSession session, XDocumentWriter writer, String prototypeName,
         OpBackupMember[] members, Map systemIdMap)
         throws IOException {
-      logger.info("Backing up " + prototypeName);
-
+      logger.info("Backing up ******** " + prototypeName + " ********");
       HashMap attributes = new HashMap();
       attributes.put(TYPE, prototypeName);
       writer.writeStartElement(OBJECTS, attributes, false);
@@ -496,36 +588,34 @@ public class OpBackupManager {
 
       // Check for first occurence of "ordered" field
       String orderedBy = null;
+      String recursiveBy = null;
       for (int i = 0; i < members.length; i++) {
          if (members[i] != null) {
             logger.info("Backing up member " + members[i].name);
-            if (!members[i].relationship && members[i].ordered) {
+            if (!members[i].relationship && members[i].ordered && orderedBy == null) {
                orderedBy = members[i].name;
+            }
+            else if (members[i].relationship && members[i].recursive && recursiveBy == null) {
+               recursiveBy = members[i].name;
+            }
+
+            if (recursiveBy != null && orderedBy != null) {
                break;
             }
          }
       }
 
-      // Check for first occurence of "recursive" field
-      String recursiveBy = null;
-      for (int i = 0; i < members.length; i++) {
-         if ((members[i] != null) && members[i].relationship && members[i].recursive) {
-            recursiveBy = members[i].name;
-            break;
-         }
-      }
-
-      exportSubObjects(broker, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
+      exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
       writer.writeEndElement(OBJECTS);
    }
 
 
    /**
     * Backs up an existent repository under an xml file with the given path.
-    * @param session an <code>OpProjectSession</code> representing an application session.
-    * @param path a <code>String</code> representing the path to the file where the backup should be generated.
     *
-    * @throws IOException if the operation fails and the backup cannot be written.
+    * @param session an <code>OpProjectSession</code> representing an application session.
+    * @param path    a <code>String</code> representing the path to the file where the backup should be generated.
+    * @throws IOException              if the operation fails and the backup cannot be written.
     * @throws IllegalArgumentException if the given path is invalid.
     */
    public final void backupRepository(OpProjectSession session, String path)
@@ -536,6 +626,7 @@ public class OpBackupManager {
 
    /**
     * Initializes the path to the binary files directory, from the given backup path.
+    *
     * @param path a <code>String</code> representing the backup path.
     * @throws IllegalArgumentException if the given path is invalid.
     */
@@ -559,10 +650,12 @@ public class OpBackupManager {
    }
 
    /**
-    * @see OpBackupManager#backupRepository(onepoint.project.OpProjectSession, String)
+    * @see OpBackupManager#backupRepository(onepoint.project.OpProjectSession,String)
     */
    public void backupRepository(OpProjectSession session, OutputStream output)
         throws IOException {
+      long startTime = System.currentTimeMillis();
+      logger.info("Starting repository backup....");
       XDocumentWriter writer = new XDocumentWriter(output);
 
       // Write XML header
@@ -574,34 +667,36 @@ public class OpBackupManager {
       writer.writeStartElement(OPP_BACKUP, attributes, false);
       attributes.clear();
 
-      OpBroker broker = session.newBroker();
 
       // Export prototype order
       List allMembers = exportPrototypes(writer);
 
       // Query system object ID ids and names before exporting objects
+      OpBroker broker = session.newBroker();
       Map systemIdMap = querySystemObjectIdMap(broker);
+      broker.close();
 
       int memberIndex = 0;
       Iterator it = prototypes.values().iterator();
       while (it.hasNext()) {
          OpPrototype prototype = (OpPrototype) it.next();
-         exportObjects(broker, writer, prototype.getName(), (OpBackupMember[]) allMembers.get(memberIndex), systemIdMap);
-         memberIndex ++;
+         exportObjects(session, writer, prototype.getName(), (OpBackupMember[]) allMembers.get(memberIndex), systemIdMap);
+         memberIndex++;
       }
-      broker.close();
 
       writer.writeEndElement(OPP_BACKUP);
 
       // Important: Flushes and closes output stream
       writer.close();
+      long elapsedTimeSecs = (System.currentTimeMillis() - startTime) / 1000;
+      logger.info("Repository backup completed in " + elapsedTimeSecs + " seconds");
    }
 
    /**
     * Restores a repository from the given path.
     *
     * @param session a <code>OpProjectSession</code> representing an application session.
-    * @param path a <code>String</code> representing a path to the backup file.
+    * @param path    a <code>String</code> representing a path to the backup file.
     * @throws IOException if the repository cannot be restored.
     */
    public final void restoreRepository(OpProjectSession session, String path)
@@ -610,21 +705,25 @@ public class OpBackupManager {
    }
 
    /**
-    * @see OpBackupManager#restoreRepository(onepoint.project.OpProjectSession, String)
+    * @see OpBackupManager#restoreRepository(onepoint.project.OpProjectSession,String)
     */
-   public void restoreRepository(OpProjectSession session, InputStream input)
-        {
+   public void restoreRepository(OpProjectSession session, InputStream input) {
+      long start = System.currentTimeMillis();
+      logger.info("Restoring repository...");
       // Extra path is required for restoring binary content stored in separate files
       OpBroker broker = session.newBroker();
       OpBackupLoader backupLoader = new OpBackupLoader();
       backupLoader.loadBackup(broker, input);
       broker.close();
+      long elapsedTimeSecs = (System.currentTimeMillis() - start) / 1000;
+      logger.info("Repository restore completed in " + elapsedTimeSecs + " seconds");
    }
 
 
    /**
     * Generates a string that represents a path to the file that will be written with the binary content.
-    * @param id a <code>long</code> representing the id of the object that has the content.
+    *
+    * @param id               a <code>long</code> representing the id of the object that has the content.
     * @param backupMemberName a <code>String</code> representing the name of the object's property which has the content.
     * @return a <code>String</code> representing the name of the binary file.
     */
@@ -640,9 +739,10 @@ public class OpBackupManager {
 
    /**
     * Writes a binary file under the given path, in a special directory.
-    * @param id a <code>long</code> representing the if of the object which contains the written content.
+    *
+    * @param id               a <code>long</code> representing the if of the object which contains the written content.
     * @param backupMemberName a <code>String</code> representing the name of the backup member which has the content.
-    * @param content a <code>byte[]</code> representing the actual content.
+    * @param content          a <code>byte[]</code> representing the actual content.
     * @return the path to the newly written binary file.
     */
    private String writeBinaryFile(long id, String backupMemberName, byte[] content) {
@@ -666,10 +766,11 @@ public class OpBackupManager {
 
    /**
     * Reads the contents of a binary file from the given path.
+    *
     * @param path a <code>String</code> representing the path to a binary file.
     * @return a <code>byte[]</code> with the file's content.
     */
-    static byte[] readBinaryFile(String path) {
+   static byte[] readBinaryFile(String path) {
       try {
          FileInputStream fileInput = new FileInputStream(path);
          ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();

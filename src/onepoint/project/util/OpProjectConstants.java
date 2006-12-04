@@ -19,4 +19,6 @@ public interface OpProjectConstants {
    public Byte CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL = new Byte((byte) 0);
    public String CONFIGURATION_FORM = "/modules/configuration_wizard/forms/configuration_wizard.oxf.xml";
    public String DEFAULT_START_FORM = "/forms/login.oxf.xml";
+   public String CHILDREN = "children";
+   public String DUMMY_ROW_ID = "DummyChildId";
 }

@@ -3,7 +3,11 @@
 	<data-field id="CallingFrameID"/>
 	<data-field id="ActionHandler"/>
 	<data-field id="MultipleSelection"/>
-	<data-set id="SubjectSet"/>
+	<data-field id="EnableUsers"/>
+	<data-field id="EnableGroups"/>
+	<data-field id="IncludeParentsInFilter"/>
+	<data-field id="FilteredSubjectIds"/>
+	<data-set id="SubjectSet" on-expand="expandDataSet"/>
 
    <data-set id="IconSet">
       <data-row icon="/modules/user/icons/group.png"/>

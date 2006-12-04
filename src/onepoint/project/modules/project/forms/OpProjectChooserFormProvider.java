@@ -5,14 +5,14 @@
 package onepoint.project.modules.project.forms;
 
 import onepoint.express.XComponent;
-import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.service.server.XSession;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class OpProjectChooserFormProvider implements XFormProvider {
 
@@ -23,10 +23,6 @@ public class OpProjectChooserFormProvider implements XFormProvider {
    private final static String PROJECT_NAME_FIELD_ID = "ProjectNameFieldID";
    private final static String PROJECT_SET = "ProjectSet";
    private final static String PROJECTS_LIST_BOX = "ProjectList";
-   private final static String ENABLE_PROJECTS = "EnableProjects";
-   private final static String ENABLE_PORTFOLIOS = "EnablePortfolios";
-   private final static String ENABLE_TEMPLATES = "EnableTemplates";
-   private final static String FILTERED_OUT_IDS = "FilteredOutIds";
    private final static String MULTIPLE_SELECTION = "MultipleSelection";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -61,81 +57,28 @@ public class OpProjectChooserFormProvider implements XFormProvider {
       }
       form.findComponent(MULTIPLE_SELECTION).setBooleanValue(multipleSelection != null && multipleSelection.booleanValue());
 
+      Boolean enableProjects = (Boolean) parameters.get(OpProjectDataSetFactory.ENABLE_PROJECTS);
+      form.findComponent(OpProjectDataSetFactory.ENABLE_PROJECTS).setBooleanValue(enableProjects.booleanValue());
+
+      Boolean enablePortfolios = (Boolean) parameters.get(OpProjectDataSetFactory.ENABLE_PORTFOLIOS);
+      form.findComponent(OpProjectDataSetFactory.ENABLE_PORTFOLIOS).setBooleanValue(enablePortfolios.booleanValue());
+
+      Boolean enableTemplates = (Boolean) parameters.get(OpProjectDataSetFactory.ENABLE_TEMPLATES);
+      form.findComponent(OpProjectDataSetFactory.ENABLE_TEMPLATES).setBooleanValue(enableTemplates.booleanValue());      
+
+      //filter out any nodes if necessary
+      ArrayList filteredIds = (ArrayList) parameters.get(OpProjectDataSetFactory.FILTERED_OUT_IDS);
+      form.findComponent(OpProjectDataSetFactory.FILTERED_OUT_IDS).setListValue(filteredIds);
+
       // *** Put all project names into project data-set (values are IDs)
       XComponent dataSet = form.findComponent(PROJECT_SET);
 
       OpBroker broker = session.newBroker();
       int types = OpProjectDataSetFactory.PROJECTS + OpProjectDataSetFactory.PORTFOLIOS + OpProjectDataSetFactory.TEMPLATES;
-      OpProjectDataSetFactory.retrieveProjectDataSet(session, broker, dataSet, types, false);
+      OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, types, false, filteredIds);
       broker.close();
 
-      //filter out any nodes if necessary
-      List filteredIds = (List) parameters.get(FILTERED_OUT_IDS);
-      filterOutIds(dataSet, filteredIds);
-
       //enable or disable any nodes
-      enableNodes(parameters, dataSet);
-   }
-
-   /**
-    * Performs enabling or disabling (selection wise) of various project nodes, based on the request parameters.
-    * @param parameters a <code>Map</code> of String,Object pairs representing the request parameters.
-    * @param dataSet a <code>XComponent(DATA_SET)</code> representing the project node structure.
-    */
-   private void enableNodes(Map parameters, XComponent dataSet) {
-      boolean enablePortfolios = ((Boolean) parameters.get(ENABLE_PORTFOLIOS)).booleanValue();
-      boolean enableTemplates = ((Boolean) parameters.get(ENABLE_TEMPLATES)).booleanValue();
-      boolean enableProjects = ((Boolean) parameters.get(ENABLE_PROJECTS)).booleanValue();
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         XComponent dataRow = (XComponent) dataSet.getChild(i);
-         String choice = dataRow.getStringValue();
-         //<FIXME author="Horia Chiorean" description="Using the icon index as a denominator is not the best choice">
-         int iconIndex = XValidator.choiceIconIndex(choice);
-         //<FIXME>
-         switch(iconIndex) {
-            case OpProjectDataSetFactory.PROJECT_ICON_INDEX: {
-               if (!enableProjects) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
-            case OpProjectDataSetFactory.PORTFOLIO_ICON_INDEX: {
-               if (!enablePortfolios) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
-            case OpProjectDataSetFactory.TEMPLATE_ICON_INDEX: {
-               if (!enableTemplates) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
-         }
-      }
-   }
-
-   /**
-    * Removes the data rows that have the string value among the list of given ids.
-    * @param dataSet a <code>XComponent(DATA_SET)</code> representing a set of data rows.
-    * @param ids a <code>List</code> of <code>String</code> representing ids to filter out.
-    */
-   private void filterOutIds(XComponent dataSet, List ids) {
-      if (ids != null) {
-         List childrenToRemove = new ArrayList();
-         for (int i = 0; i < dataSet.getChildCount(); i++) {
-            XComponent dataRow = (XComponent) dataSet.getChild(i);
-            String choice = dataRow.getStringValue();
-            String projectNodeChoiceId = XValidator.choiceID(choice);
-            if (ids.contains(projectNodeChoiceId)) {
-               childrenToRemove.add(dataRow);
-            }
-         }
-
-         for (Iterator it = childrenToRemove.iterator(); it.hasNext(); ) {
-            XComponent child = (XComponent) it.next();
-            dataSet.removeChild(child);
-         }
-      }
+      OpProjectDataSetFactory.enableNodes(parameters, dataSet);
    }
 }

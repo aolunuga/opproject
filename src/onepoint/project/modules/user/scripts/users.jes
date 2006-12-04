@@ -5,6 +5,7 @@
 // Controller script for users.oxf.xml
 
 require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
 require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
 
 
@@ -181,4 +182,19 @@ function setSuperGroups_NewEdit(groupChoices) {
       assignedGroupsListBox.doLayout();
       assignedGroupsListBox.repaint();
    }
+}
+
+function expandDataSet(event) {
+
+   sourceGroup = event.expand_source;
+   outlineLevel = sourceGroup.getOutlineLevel();
+   dataSet = sourceGroup.getParent();
+   locator = sourceGroup.getStringValue();
+
+   request = new XMessage;
+   request.setAction("UserService.expandGroup");
+   request.setArgument("source_group_locator", locator);
+   request.setArgument("outlineLevel", outlineLevel);
+   
+   expandNode(sourceGroup, 3, request);
 }

@@ -12,6 +12,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
 
@@ -36,7 +37,16 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    public final static String PROJECT_IDS = "project_ids";
 
    public final static OpResourceErrorMap ERROR_MAP = new OpResourceErrorMap();
-   public final String HAS_ASSIGNMENTS = "Assignments";
+   public final static String HAS_ASSIGNMENTS = "Assignments";
+
+   private final static String OUTLINE_LEVEL = "outlineLevel";
+   private final static String POOL_LOCATOR = "source_pool_locator";
+   private final static String POOL_SELECTOR = "poolColumnsSelector";
+   private final static String RESOURCE_SELECTOR = "resourceColumnsSelector";
+   private final static String FILTERED_OUT_IDS = "FilteredOutIds";
+   private static final String ENABLE_POOLS = "EnablePools";
+   private static final String ENABLE_RESOURCES = "EnableResources";
+
 
    public XMessage insertResource(XSession s, XMessage request) {
       logger.debug("OpResourceService.insertResource()");
@@ -50,7 +60,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpResource resource = new OpResource();
       resource.setName((String) (resource_data.get(OpResource.NAME)));
       resource.setDescription((String) (resource_data.get(OpResource.DESCRIPTION)));
-      resource.setAvailable(((Double)resource_data.get(OpResource.AVAILABLE)).doubleValue());
+      resource.setAvailable(((Double) resource_data.get(OpResource.AVAILABLE)).doubleValue());
       resource.setHourlyRate(((Double) (resource_data.get(OpResource.HOURLY_RATE))).doubleValue());
       resource.setInheritPoolRate(((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE))).booleanValue());
 
@@ -92,7 +102,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          broker.close();
          return reply;
       }
-      
+
       double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       // check valid availability range [0..maxAvailability]
       int availability = ((Double) resource_data.get(OpResource.AVAILABLE)).intValue();
@@ -203,15 +213,18 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       resource.setName(name);
       StringBuffer description = new StringBuffer();
-      if ((contact.getFirstName() != null) && (contact.getFirstName().length() > 0))
+      if ((contact.getFirstName() != null) && (contact.getFirstName().length() > 0)) {
          description.append(contact.getFirstName());
+      }
       if ((contact.getLastName() != null) && (contact.getLastName().length() > 0)) {
-         if (description.length() > 0)
+         if (description.length() > 0) {
             description.append(' ');
+         }
          description.append(contact.getLastName());
       }
-      if (description.length() > 0)
+      if (description.length() > 0) {
          resource.setDescription(description.toString());
+      }
 
       // check valid availability range [0..system.maxAvailable]
       double availability = ((Double) resource_data.get(OpResource.AVAILABLE)).doubleValue();
@@ -359,7 +372,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       boolean hourlyRateChanged = (oldHourlyRate != hourlyRate);
-      
+
       double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       // check valid availability range [0..maxAvailability]
       double availability = ((Double) resource_data.get(OpResource.AVAILABLE)).doubleValue();
@@ -422,9 +435,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
                      query.setBoolean("systemManaged", true);
                      List permissions = broker.list(query);
                      for (int i = 0; i < permissions.size(); i++) {
-                        broker.deleteObject((OpPermission)permissions.get(i));
+                        broker.deleteObject((OpPermission) permissions.get(i));
                         OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
-                    }
+                     }
                   }
                }
             }
@@ -439,7 +452,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       //update resource assignments
       ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
-      reply = updateProjectAssignments(session,assigned_projects, broker, resource);
+      reply = updateProjectAssignments(session, assigned_projects, broker, resource);
       if (reply.getError() != null) {
          broker.close();
          return reply;
@@ -473,7 +486,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    /**
     * Gets all the assignments for a given resource from the project plans which are checked-out.
     *
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @param broker     a <code>OpBroker</code> used for performing business operations.
     * @param resourceId a <code>long</code> representing the id of a resource.
     * @return a <code>Iterator</code> over the assignments of the resource.
     */
@@ -491,19 +504,20 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    /**
     * Return a not null message if the resource has any assignments.
+    *
     * @param s
     * @param request
-    * @return  null if resource has no assignments
+    * @return null if resource has no assignments
     */
-   public XMessage hasAssignments(XSession s, XMessage request){
+   public XMessage hasAssignments(XSession s, XMessage request) {
       String id_string = (String) (request.getArgument(RESOURCE_ID));
-      OpBroker broker = ((OpProjectSession)s).newBroker();
+      OpBroker broker = ((OpProjectSession) s).newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
       boolean hasAssignments = false;
-      if (resource.getAssignmentVersions().size() != 0){
+      if (resource.getAssignmentVersions().size() != 0) {
          hasAssignments = true;
       }
-      if (resource.getActivityAssignments().size() != 0){
+      if (resource.getActivityAssignments().size() != 0) {
          hasAssignments = true;
       }
       XMessage xMessage = new XMessage();
@@ -513,22 +527,23 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    /**
     * Return a not null message if the pool has any resources with any assignments.
+    *
     * @param s
     * @param request
-    * @return  null if pool has no resources with assignments
+    * @return null if pool has no resources with assignments
     */
-   public XMessage hasResourceAssignments(XSession s, XMessage request){
+   public XMessage hasResourceAssignments(XSession s, XMessage request) {
       String id_string = (String) (request.getArgument(POOL_ID));
       boolean hasAssignments = false;
-      OpBroker broker = ((OpProjectSession)s).newBroker();
+      OpBroker broker = ((OpProjectSession) s).newBroker();
       OpResourcePool pool = (OpResourcePool) broker.getObject(id_string);
       for (Iterator iterator = pool.getResources().iterator(); iterator.hasNext();) {
          OpResource resource = (OpResource) iterator.next();
-         if (resource.getAssignmentVersions().size() != 0){
+         if (resource.getAssignmentVersions().size() != 0) {
             hasAssignments = true;
             break;
          }
-         if (resource.getActivityAssignments().size() != 0){
+         if (resource.getActivityAssignments().size() != 0) {
             hasAssignments = true;
          }
       }
@@ -539,7 +554,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    /**
     * Updates the resource availibility for the checked out projects.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    *
+    * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param resource a <code>OpResource</code> representing the resource being edited.
     */
    private void updateAvailability(OpBroker broker, OpResource resource) {
@@ -556,7 +572,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    /**
     * Updates the base personnel costs of the assignemnts of the activities that are checked out at the moment when the
     * resource is updated.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    *
+    * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param resource a <code>OpResource</code> representing the resource that has been updated.
     */
    private void updatePersonnelCosts(OpBroker broker, OpResource resource) {
@@ -573,7 +590,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          double sumAssigned = 0;
          OpQuery query = broker.newQuery("select sum(assignment.Assigned) from OpAssignmentVersion assignment where assignment.ActivityVersion.ID=?");
          query.setLong(0, activityVersion.getID());
-         sumAssigned =  ((Double)broker.list(query).iterator().next()).doubleValue();
+         sumAssigned = ((Double) broker.list(query).iterator().next()).doubleValue();
 
          double personnelCosts = 0;
          Iterator it1 = activityVersion.getAssignmentVersions().iterator();
@@ -608,7 +625,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * @param resource          a <code>OpResource</code> representing the resource which was edited.
     * @return <code>XMessage</code>
     */
-   private XMessage updateProjectAssignments(OpProjectSession session,List assigned_projects, OpBroker broker, OpResource resource) {
+   private XMessage updateProjectAssignments(OpProjectSession session, List assigned_projects, OpBroker broker, OpResource resource) {
       OpQuery query = null;
       //the reply message
       XMessage reply = new XMessage();
@@ -680,9 +697,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       List resourceIds = new ArrayList();
       XMessage reply = new XMessage();
 
-      if (id_strings.size() == 0){
+      if (id_strings.size() == 0) {
          return new XMessage();
-          // TODO: Return error (nothing to delete)
+         // TODO: Return error (nothing to delete)
       }
       for (int i = 0; i < id_strings.size(); i++) {
          resourceIds.add(new Long(OpLocator.parseLocator((String) id_strings.get(i)).getID()));
@@ -693,7 +710,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       Set accessiblePoolIds = session.accessibleIds(broker, poolIds, OpPermission.MANAGER);
 
       if (accessiblePoolIds.size() == 0) {
-         logger.warn("Manager access to pool "+poolIds+" denied");
+         logger.warn("Manager access to pool " + poolIds + " denied");
          reply.setError(session.newError(ERROR_MAP, OpResourceError.MANAGER_ACCESS_DENIED));
          broker.close();
          return reply;
@@ -705,13 +722,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       broker.execute(query);
       */
       query = broker.newQuery("select resource from OpResource as resource where resource.ID in (:resourceIds) and resource.Pool.ID in (:accessiblePoolIds) " +
-                              "and size(resource.ActivityAssignments) = 0 and size(resource.AssignmentVersions) = 0");
+           "and size(resource.ActivityAssignments) = 0 and size(resource.AssignmentVersions) = 0");
       query.setCollection("resourceIds", resourceIds);
       query.setCollection("accessiblePoolIds", accessiblePoolIds);
       List resources = broker.list(query);
       /*size of persistent resources list without activityAssignments and assignmentVersions should be equal with selected resources size*/
-      if (resources.size() != resourceIds.size()){
-         logger.warn("Resource from "+resources+" are used in project assignments");
+      if (resources.size() != resourceIds.size()) {
+         logger.warn("Resource from " + resources + " are used in project assignments");
          reply.setError(session.newError(ERROR_MAP, OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED));
          broker.close();
          return reply;
@@ -944,7 +961,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       Set accessibleSuperPoolIds = session.accessibleIds(broker, superPoolIds, OpPermission.MANAGER);
 
       if (accessibleSuperPoolIds.size() == 0) {
-         logger.warn("Manager access to super pools "+superPoolIds+" denied");
+         logger.warn("Manager access to super pools " + superPoolIds + " denied");
          reply.setError(session.newError(ERROR_MAP, OpResourceError.MANAGER_ACCESS_DENIED));
          broker.close();
          return reply;
@@ -1004,7 +1021,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       // *** Retrieve target project
       OpTransaction t = broker.newTransaction();
-      for (Iterator it = projectIds.iterator(); it.hasNext(); ) {
+      for (Iterator it = projectIds.iterator(); it.hasNext();) {
          String projectId = (String) it.next();
          OpProjectNode targetProjectNode = (OpProjectNode) (broker.getObject(projectId));
          if (targetProjectNode == null) {
@@ -1021,7 +1038,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Set resourceIds = new HashSet();
          for (int i = 0; i < resource_id_strings.size(); i++) {
             String resourceID = (String) resource_id_strings.get(i);
-            OpObject object =  broker.getObject(resourceID);
+            OpObject object = broker.getObject(resourceID);
             collectResources(object, resourceIds);
          }
 
@@ -1051,7 +1068,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
                broker.makePersistent(projectNodeAssignment);
                OpProjectAdministrationService.insertContributorPermission(broker, targetProjectNode, resource);
             }
-            accesibleResourcesSize ++;
+            accesibleResourcesSize++;
          }
 
          // check if we should return a warning
@@ -1072,7 +1089,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    private void collectResources(OpObject object, Set resourceIds) {
       if (object.getPrototype().getName().equals(OpResourcePool.RESOURCE_POOL)) {
          //add all its sub-resources
-         OpResourcePool pool = (OpResourcePool)object;
+         OpResourcePool pool = (OpResourcePool) object;
          Set resources = pool.getResources();
          for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
             OpObject entity = (OpObject) iterator.next();
@@ -1084,7 +1101,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
    }
 
-   public XMessage moveResourceNode(XSession s, XMessage request){
+   public XMessage moveResourceNode(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
       /*get needed args from request */
       List resourceIds = (List) request.getArgument(RESOURCE_IDS);
@@ -1100,7 +1117,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpTransaction tx = broker.newTransaction();
 
       OpResourcePool pool = (OpResourcePool) broker.getObject(poolId);
-      
+
       //check manager access for selected pool
       if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
          reply.setError(session.newError(ERROR_MAP, OpResourceError.MANAGER_ACCESS_DENIED));
@@ -1133,7 +1150,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage movePoolNode(XSession s, XMessage request){
+   public XMessage movePoolNode(XSession s, XMessage request) {
       OpProjectSession session = (OpProjectSession) s;
       /*get needed args from request */
       List poolIds = (List) request.getArgument(POOL_IDS);
@@ -1168,6 +1185,55 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       tx.commit();
       broker.close();
       return reply;
+   }
+
+
+   /**
+    * Retrieves the children for the given pool id and returns them as a list argument on the reply.
+    * It will also filter and enable/disable the rows if the required request params are present.
+    *
+    * @param s
+    * @param request
+    * @return
+    */
+   public XMessage expandResourcePool(XSession s, XMessage request) {
+      XMessage reply = new XMessage();
+      OpProjectSession session = (OpProjectSession) s;
+
+      String targetPoolLocator = (String) request.getArgument(POOL_LOCATOR);
+      Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      List poolSelector = (List) request.getArgument(POOL_SELECTOR);
+      List resourceSelector = (List) request.getArgument(RESOURCE_SELECTOR);
+      List resultList = null;
+      if (targetPoolLocator != null && outline != null) {
+         OpLocator locator = OpLocator.parseLocator((String) (targetPoolLocator));
+         //get filter
+         List filteredIds = (List) request.getArgument(FILTERED_OUT_IDS);
+         OpResourceDataSetFactory.retrieveResourceDataSet(session, dataSet, poolSelector, resourceSelector, locator.getID(), outline.intValue() + 1, filteredIds);
+         //enable/disable rows
+         enableRows(request, dataSet);
+         //set result
+         resultList = new ArrayList();
+         for (int i = 0; i < dataSet.getChildCount(); i++) {
+            resultList.add(dataSet.getChild(i));
+         }
+         reply.setArgument(OpProjectConstants.CHILDREN, resultList);
+      }
+
+      return reply;
+   }
+
+   private void enableRows(XMessage request, XComponent dataSet) {
+
+      //disable pools/resources
+      Boolean enablePools = (Boolean) request.getArgument(ENABLE_POOLS);
+      Boolean enableResources = (Boolean) request.getArgument(ENABLE_RESOURCES);
+      if (enablePools != null && enableResources != null) {
+         boolean showPools = enablePools.booleanValue();
+         boolean showResources = enableResources.booleanValue();
+         OpResourceDataSetFactory.enableResourcesSet(dataSet, showResources, showPools);
+      }
    }
 
    // Helper methods

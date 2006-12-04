@@ -19,6 +19,7 @@ public abstract class OpWorkError {
    public final static int INCORRECT_MISCELLANEOUS_COSTS = 6;
    public final static int DATE_MISSING = 7;
    public final static int DUPLICATE_DATE = 8;
+   public final static int WORK_SLIP_NOT_FOUND = 9;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";
@@ -29,4 +30,5 @@ public abstract class OpWorkError {
    public final static String INCORRECT_MISCELLANEOUS_COSTS_NAME = "IncorrectMiscellaneousCosts";
    public final static String DATE_MISSING_NAME = "DateMissing";
    public final static String DUPLICATE_DATE_NAME = "DuplicateDate";
+   public final static String WORK_SLIP_NOT_FOUND_NAME = "WorkSlipNotFound";
 }
