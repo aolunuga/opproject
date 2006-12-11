@@ -16,15 +16,16 @@
    <property name="op.security.dir" value="security"/>
    <property name="op.demodata.dir" value="demodata"/>
    <property name="op.license.file" value="license.txt"/>
-   <property name="op.readme.file" value="readme.txt"/>
+   <property name="op.readme.open.file" value="readme_open.txt"/>
+   <property name="op.readme.basic.file" value="readme_basic.txt"/>
    <property name="op.keystore" value="${op.security.dir}/onePoint.ks"/>
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="project.jarname" value="opproject-06.jar"/>
-   <property name="project.client.jarname" value="opproject-client-06.1.jar"/>
+   <property name="project.jarname" value="opproject-06.1-be.jar"/>
+   <property name="project.client.jarname" value="opproject-client-06.1-be.jar"/>
    <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client.jar"/>
+   <property name="express.client.jarname" value="express4j-client-06.1.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
@@ -125,8 +126,8 @@
       <exclude name="*servlet*.jar"/>
       <exclude name="*mysql*.*"/>
       <exclude name="*postgresql*.*"/>
-      <exclude name="*junit*.jar"/>
-      <exclude name="*jmock*.jar"/>
+      <exclude name="*junit*.*"/>
+      <exclude name="*jmock*.*"/>
       <exclude name="*jcookie*.jar"/>
    </patternset>
 
@@ -503,29 +504,34 @@
          <zipfileset dir="${op.security.dir}" prefix="${op.zip.root.dir}/${op.security.dir}"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
          <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
-         <zipfileset file="${op.readme.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset file="${op.readme.basic.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset file="${op.readme.open.file}" prefix="${op.zip.root.dir}"/>
       </zip>
 
       <!--war release [for applet version] -->
       <antcall target="dist.applet"/>
+      <copy file="${op.readme.open.file}" tofile="${op.release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${op.release.dir}/${release.root.filename}-open.zip">
          <fileset dir="${op.dist.dir}">
             <include name="${op.warname}.war"/>
          </fileset>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.demodata.dir}"/>
          <zipfileset file="${op.license.file}"/>
-         <zipfileset file="${op.readme.file}"/>
+         <zipfileset file="${op.release.dir}/readme.txt}"/>
       </zip>
       <delete dir="${op.dist.dir}"/>
 
       <!--standalone release -->
       <antcall target="dist.standalone"/>
+      <copy file="${op.readme.basic.file}" tofile="${op.release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${op.release.dir}/${release.root.filename}-basic.zip">
          <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
-         <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
+         <zipfileset dir="${op.lib.dir}"
+                     excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *jmock*, *junit*, *servlet*"
+                     prefix="${op.zip.root.dir}/${op.lib.dir}"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
          <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
-         <zipfileset file="${op.readme.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset file="${op.release.dir}/readme.txt" prefix="${op.zip.root.dir}"/>
       </zip>
       <delete dir="${op.dist.dir}"/>
       
