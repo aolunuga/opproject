@@ -10,7 +10,6 @@ import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.resource.forms.OpNewPoolFormProvider;
 import onepoint.project.modules.user.OpContact;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
@@ -80,6 +79,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
    private static final String SELECT_EXISTENT_PROJECT_ASSIGNMENT = "select assignment.Resource.ID from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ?";
    private static final String SELECT_PROJECT_ASSIGNMENTS_FOR_RESOURCE = "select assignment.ProjectNode.ID from OpProjectNodeAssignment as assignment where assignment.Resource.ID = ?";
    private static final String SELECT_WORKING_VERSION_ASSIGNMENT = "select assignment from OpResource resource inner join resource.AssignmentVersions assignment where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and resource.ID = ?";
+   private final String SUPER_POOL_ID_PARAM = "SuperPoolID";
 
    /**
     * @see onepoint.project.test.OpServiceAbstractTest#setUp()
@@ -1449,7 +1449,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
         XComponent permissionSet) {
       Map poolValues = new HashMap();
       poolValues.put(OpResourcePool.NAME, poolName);
-      poolValues.put(OpNewPoolFormProvider.SUPER_POOL_ID, RESOURCE_POOL_ID);
+      poolValues.put(SUPER_POOL_ID_PARAM, RESOURCE_POOL_ID);
       poolValues.put(OpResourcePool.DESCRIPTION, poolDescription);
       poolValues.put(OpResourcePool.HOURLY_RATE, new Double(poolHourlyRate));
       poolValues.put(OpPermissionSetFactory.PERMISSION_SET, permissionSet);

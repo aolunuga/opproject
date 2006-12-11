@@ -26,19 +26,19 @@ public class OpModuleRegistryLoader extends XLoader {
       setUseResourceLoader(false);
    }
 
-   public OpModuleRegistry loadModuleRegistry(InputStream input_stream) throws OpModuleException {
+   public OpModuleRegistry loadModuleRegistry(InputStream input_stream) {
       OpModuleRegistry module_registry = (OpModuleRegistry) (loadObject(input_stream, null));
       _loadModules(module_registry);
       return module_registry;
    }
 
-   public OpModuleRegistry loadModuleRegistry(String filename) throws OpModuleException {
+   public OpModuleRegistry loadModuleRegistry(String filename) {
       OpModuleRegistry module_registry = (OpModuleRegistry) (loadObject(filename, null));
       _loadModules(module_registry);
       return module_registry;
    }
 
-   protected static void _loadModules(OpModuleRegistry module_registry) throws OpModuleException {
+   protected static void _loadModules(OpModuleRegistry module_registry) {
       logger.info("Loading registered modules...");
       Iterator module_files = module_registry.getModuleFiles();
       OpModuleFile module_file = null;

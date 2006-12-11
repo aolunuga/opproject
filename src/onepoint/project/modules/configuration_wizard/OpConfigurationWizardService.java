@@ -7,6 +7,7 @@ package onepoint.project.modules.configuration_wizard;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpConnectionManager;
+import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
@@ -15,6 +16,7 @@ import onepoint.service.XMessage;
 import onepoint.service.server.XService;
 import onepoint.service.server.XSession;
 import onepoint.util.XEnvironment;
+import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -49,6 +51,11 @@ public class OpConfigurationWizardService extends XService {
    private static final String PARAMETERS = "parameters";
 
    /**
+    * The name of the default HSQLDB file. 
+    */
+   private static final String HSQLDB_DEFAULT_FILENAME = "/opproject";
+
+   /**
     * Writes the db configuration file, with the db settings.
     *
     * @param s a <code>XSession</code> representing the server session.
@@ -63,6 +70,9 @@ public class OpConfigurationWizardService extends XService {
       //error map
       OpDbConfigurationWizardErrorMap errorMap = new OpDbConfigurationWizardErrorMap();
 
+      Boolean isStandaloneParameter = (Boolean) parameters.get("is_standalone");
+      boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter.booleanValue();
+
       String databaseType = (String) parameters.get("database_type");
       String databaseDriver = (String) onepoint.project.configuration.OpConfiguration.DATABASE_DRIVERS.get(databaseType);
 
@@ -72,9 +82,27 @@ public class OpConfigurationWizardService extends XService {
       //perform fields validation
       String databaseURL = (String) parameters.get("database_url");
       if (databaseURL == null) {
-         response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_URL_MISSING));
+         if (!isStandalone) {
+            response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_URL_MISSING));
+         }
+         else {
+            response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_PATH_MISSING));
+         }
          return response;
       }
+      else if (isStandalone) {
+         File dbRootDir = new File(databaseURL);
+         if (!dbRootDir.exists()) {
+            logger.info("Creating parent dir for HSQLDB");
+            dbRootDir.mkdir();
+         }
+
+         StringBuffer dbUrl = new StringBuffer(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX);
+         dbUrl.append(XEnvironmentManager.convertPathToSlash(databaseURL));
+         dbUrl.append(HSQLDB_DEFAULT_FILENAME);
+         databaseURL = dbUrl.toString();
+      }
+
       String databaseLogin = (String) parameters.get("database_login");
       if (databaseLogin == null) {
          response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_LOGIN_MISSING));
@@ -97,7 +125,9 @@ public class OpConfigurationWizardService extends XService {
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
       //re-initialize application
-      Map initParams = OpInitializer.init(projectPath);
+      boolean isMultiUser = ((Boolean) parameters.get("is_multi_user")).booleanValue();
+
+      Map initParams = OpInitializer.init(projectPath, isMultiUser);
       response.setArgument("initParams", initParams);
       return response;
    }

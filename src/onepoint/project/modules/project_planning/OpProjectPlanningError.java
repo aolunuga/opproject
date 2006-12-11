@@ -16,8 +16,9 @@ public class OpProjectPlanningError {
    public final static int HOURLY_RATES_MODIFIED_WARNING = 4;
    public final static int AVAILIBILITY_MODIFIED_WARNING = 5;
    public final static int AVAILIBILITY_AND_RATES_MODIFIED_WARNING = 6;
-   public final static int FILE_READ_ERROR = 7;
-   public final static int FILE_WRITE_ERROR = 8;
+   public final static int MSPROJECT_FILE_READ_ERROR = 7;
+   public final static int MSPROJECT_FILE_WRITE_ERROR = 8;
+   public final static int INSUFICIENT_ATTACHMENT_PERMISSIONS = 9;
 
    // Error names
    public final static String COMMENT_NAME_MISSING_NAME = "CommentNameMissing";
@@ -26,6 +27,8 @@ public class OpProjectPlanningError {
    public final static String HOURLY_RATES_MODIFIED_WARNING_NAME = "HourlyRatesModifiedWarning";
    public final static String AVAILIBILITY_MODIFIED_WARNING_NAME = "AvailabilityModifiedWarning";
    public final static String AVAILIBILITY_AND_RATES_MODIFIED_WARNING_NAME = "AvailabilityAndRatesModifiedWarning";
-   public final static String FILE_READ_ERROR_NAME = "FileReadError";
-   public final static String FILE_WRITE_ERROR_NAME = "FileWriteError";
+   public final static String MSPROJECT_FILE_READ_ERROR_NAME = "MsProjectFileReadError";
+   public final static String MSPROJECT_FILE_WRITE_ERROR_NAME = "MsProjectFileWriteError";
+   public final static String INSUFICIENT_ATTACHMENT_PERMISSIONS_NAME = "InsuficientAttachmentPermissions";
+
 }

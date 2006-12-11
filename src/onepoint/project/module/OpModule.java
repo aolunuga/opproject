@@ -193,12 +193,4 @@ public class OpModule {
    public void upgrade(OpProjectSession session, int dbVersion) {
    }
 
-   /**
-    * Performs custom operations after the module parts have been loaded.
-    *
-    * @throws OpModuleException if something should fail in the post-load operation.
-    */
-   public void postLoad()
-        throws OpModuleException {
-   }
 }

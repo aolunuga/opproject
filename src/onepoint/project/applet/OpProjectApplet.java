@@ -59,7 +59,7 @@ public class OpProjectApplet extends XExpressApplet {
    protected void showStartForm(String start_form, HashMap parameters) {
       String runLevel = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
       if (runLevel != null && Byte.parseByte(runLevel)== OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
-         getDisplay().showForm(OpProjectConstants.CONFIGURATION_FORM);
+         getDisplay().showForm(OpProjectConstants.CONFIGURATION_WIZARD_FORM, parameters);
       }
       else {
          getDisplay().showForm(start_form, parameters);

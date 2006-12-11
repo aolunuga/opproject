@@ -418,4 +418,30 @@ public class OpPermissionSetFactory {
       }
    }
 
+   /**
+    * Copies permissions from one object to another.
+    * @param broker a <code>OpBroker</code> used for persisting data.
+    * @param from an <code>OpObject</code> representing the source object (where to copy the permissions from)
+    * @param to an <code>OpObject</code> representing the destination object (where to copy the permissions to)
+    */
+   public static void copyPermissions(OpBroker broker, OpObject from, OpObject to) {
+      Set fromPermissions = from.getPermissions();
+      if (fromPermissions == null || fromPermissions.isEmpty()) {
+         return;
+      }
+      Set newPermissions = new HashSet(fromPermissions.size());
+      for (Iterator it = fromPermissions.iterator(); it.hasNext(); ) {
+         OpPermission fromPermission = (OpPermission) it.next();
+
+         OpPermission toPermission = new OpPermission();
+         toPermission.setObject(to);
+         toPermission.setSubject(fromPermission.getSubject());
+         toPermission.setSystemManaged(fromPermission.getSystemManaged());
+         toPermission.setAccessLevel(fromPermission.getAccessLevel());
+         broker.makePersistent(toPermission);
+
+         newPermissions.add(toPermission);
+      }
+      to.setPermissions(newPermissions);
+   }
 }

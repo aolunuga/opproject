@@ -8,11 +8,9 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project.OpProjectModule;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectStatus;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.service.server.XSession;
 
@@ -32,21 +30,24 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String PORTFOLIO_INDEX = "portfolio_index";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
+   private final static String PERMISSIONS_TAB = "PermissionsTab";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
       String portfolioLocator = (String) (parameters.get(OpProjectAdministrationService.PORTFOLIO_ID));
-      
+
       OpBroker broker = session.newBroker();
 
-      if (portfolioLocator == null)
+      if (portfolioLocator == null) {
          portfolioLocator = OpProjectAdministrationService.findRootPortfolio(broker).locator();
+      }
       form.findComponent(PORTFOLIO_ID).setStringValue(portfolioLocator);
       Integer portfolioIndex = (Integer) parameters.get(PORTFOLIO_INDEX);
-      if (portfolioIndex != null)
+      if (portfolioIndex != null) {
          form.findComponent(PORTFOLIO_INDEX_FIELD).setIntValue(portfolioIndex.intValue());
-      
+      }
+
       OpProjectNode portfolio = (OpProjectNode) broker.getObject(portfolioLocator);
       if (portfolio == null) {
          broker.close();
@@ -60,7 +61,7 @@ public class OpNewProjectFormProvider implements XFormProvider {
       XComponent row = new XComponent(XComponent.DATA_ROW);
       row.setStringValue(nullChoice);
       statusDataSet.addChild(row);
-      Iterator statusIterator = OpEditProjectFormProvider.getProjectStatusIterator(broker);
+      Iterator statusIterator = OpProjectDataSetFactory.getProjectStatusIterator(broker);
       while (statusIterator.hasNext()) {
          OpProjectStatus status = (OpProjectStatus) statusIterator.next();
          row = new XComponent(XComponent.DATA_ROW);
@@ -71,14 +72,17 @@ public class OpNewProjectFormProvider implements XFormProvider {
       //disable templates related stuff
       form.findComponent(TEMPLATE_FIELD).setEnabled(false);
 
-      // Locate permission data set in form
-      XComponent permissionSet = form.findComponent(PERMISSION_SET);
-
-      // Retrieve permission set of portfolio -- inheritance of permissions
-      OpPermissionSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
-            OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
-      OpPermissionSetFactory.administratePermissionTab(form, true, portfolioAccesssLevel);
-      
+      if (OpInitializer.isMultiUser()) {
+         // Locate permission data set in form
+         XComponent permissionSet = form.findComponent(PERMISSION_SET);
+         // Retrieve permission set of portfolio -- inheritance of permissions
+         OpPermissionSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
+              OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
+         OpPermissionSetFactory.administratePermissionTab(form, true, portfolioAccesssLevel);
+      }
+      else {
+         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      }
       broker.close();
 
    }

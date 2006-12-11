@@ -18,6 +18,7 @@ public class OpToolHandler implements XNodeHandler {
    public final static String START_FORM = "start-form";
    public final static String GROUP_REF = "group-ref";
    public final static String SEQUENCE = "sequence";
+   public final static String MULTI_USER = "multi-user-only";
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       OpTool tool = new OpTool();
@@ -44,6 +45,10 @@ public class OpToolHandler implements XNodeHandler {
       value = attributes.get(SEQUENCE);
       if ((value != null) && (value instanceof String)) {
          tool.setSequence(Integer.parseInt((String) value));
+      }
+      value = attributes.get(MULTI_USER);
+      if ((value != null) && (value instanceof String)) {
+         tool.setMultiUserOnly(Boolean.valueOf((String) value));
       }
       return tool;
    }

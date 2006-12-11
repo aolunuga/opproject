@@ -4,10 +4,9 @@ import onepoint.express.servlet.XExpressServlet;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpInitializer;
-import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.user.OpPermission;
@@ -27,13 +26,15 @@ import java.net.FileNameMap;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
-public class OpProjectServlet extends XExpressServlet {
+public class OpOpenServlet extends XExpressServlet {
 
    /**
-    *  Application constants.
+    * Application constants.
     */
    public final static String WEBPAGEICON = "opp_windows.ico";
    public final static String WAR_NAME = "opproject";
@@ -41,7 +42,7 @@ public class OpProjectServlet extends XExpressServlet {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpProjectServlet.class, true);
+   private static final XLog logger = XLogFactory.getLogger(OpOpenServlet.class, true);
 
    /**
     * Servlet init parameters.
@@ -61,6 +62,18 @@ public class OpProjectServlet extends XExpressServlet {
    private static final String INSUFICIENT_VIEW_PERMISSIONS = "InsuficientViewPermissions";
    private static final String INVALID_SESSION = "InvalidSession";
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
+   private String project_home;
+
+   public String getProjectHome() {
+      if (project_home == null) {
+         project_home = getServletConfig().getInitParameter("onepoint_home");
+         if (project_home == null) {
+            ServletContext context = getServletConfig().getServletContext();
+            project_home = context.getRealPath("");
+         }
+      }
+      return project_home;
+   }
 
    /**
     * @see onepoint.express.servlet.XExpressServlet#onInit()
@@ -75,28 +88,19 @@ public class OpProjectServlet extends XExpressServlet {
       appletArchive = getServletConfig().getInitParameter("applet_archive");
       imagesPath = getServletConfig().getInitParameter("webimages_path");
 
-      String project_home = getServletConfig().getInitParameter("onepoint_home");
-      if (project_home == null) {
-         ServletContext context = getServletConfig().getServletContext();
-         project_home = context.getRealPath("");
-      }
-      Map initParams = OpInitializer.init(project_home);
+      Map initParams = OpInitializer.init(getProjectHome(), true);
       //initialize the security feature
       String secure = (String) initParams.remove(OpInitializer.SECURE_SERVICE);
       secureService = secure != null ? secure : "false";
-
-      //<FIXME author="Horia Chiorean" description="Hack. Should not remain here.">
-      OpProjectService.setRemote(true);
-      //<FIXME>
-
    }
 
 
-   public void doGet(HttpServletRequest http_request, HttpServletResponse http_response) throws ServletException,
+   public void doGet(HttpServletRequest http_request, HttpServletResponse http_response)
+        throws ServletException,
         IOException {
       //don't cache anything for more than 1 sec (posible security issue).
       http_response.setHeader("Cache-Control", "max-age=1");
-      
+
       // Get the session context ('true': create new session if necessary)
       HttpSession http_session = http_request.getSession(true);
       OpProjectSession session = (OpProjectSession) getSession(http_session);
@@ -105,7 +109,7 @@ public class OpProjectServlet extends XExpressServlet {
       if (isFileRequest(http_request) && session.isEmpty()) {
          http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
          PrintStream ps = new PrintStream(http_response.getOutputStream());
-         generateErrorPage(ps, INVALID_SESSION,session);
+         generateErrorPage(ps, INVALID_SESSION, session);
          ps.flush();
          ps.close();
          return;
@@ -133,6 +137,7 @@ public class OpProjectServlet extends XExpressServlet {
 
    /**
     * Checks if the given request is a file request.
+    *
     * @param request a <code>HttpServletRequest</code>.
     * @return <code>true</coed> if the request is a request for a file.
     */
@@ -142,7 +147,8 @@ public class OpProjectServlet extends XExpressServlet {
 
    /**
     * Generates the default response which contains the application applet.
-    * @param sout a <code>ServletOutputStream</code> where the output will be written.
+    *
+    * @param sout    a <code>ServletOutputStream</code> where the output will be written.
     * @param request a <code>HttpServletRequest</code> representing the current request.
     */
    private void generateAppletPage(ServletOutputStream sout, HttpServletRequest request) {
@@ -176,7 +182,7 @@ public class OpProjectServlet extends XExpressServlet {
                 + codebase + "\" archive=\"" + appletArchive + "\">");
       out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
       out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
-      out.println("<param name=\"path\" value=\"/"+WAR_NAME +"/service\">");
+      out.println("<param name=\"path\" value=\"/" + WAR_NAME + "/service\">");
       out.println("<param name=\"start-form\" value=\"" + start_form + "\">");
       out.println("<param name=\"" + OpProjectConstants.RUN_LEVEL + "\" value=\"" + OpInitializer.getRunLevel() + "\">");
       out.println("<param name=\"secure-service\" value=\"" + secureService + "\">");
@@ -217,27 +223,30 @@ public class OpProjectServlet extends XExpressServlet {
 
    /**
     * Gets the base url for the given request.
+    *
     * @param request a <code>HttpServletRequest</code> object.
     * @return a <code>String</code> representing the base url of the request.
     */
    private String urlBase(HttpServletRequest request) {
-     return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/";
+      return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/";
    }
 
    /**
     * Return a string that contains a path to an icon that will displayed for the application.
+    *
     * @param request a <code>HttpServletRequest</code> object.
     * @return a <code>String</code> representing an html snippet of code.
     */
    private String getIconString(HttpServletRequest request) {
-    return "<link rel=\"SHORTCUT ICON\" href=\""+urlBase(request).concat(imagesPath).concat(WEBPAGEICON)+"\" type=\"image/ico\" />";
+      return "<link rel=\"SHORTCUT ICON\" href=\"" + urlBase(request).concat(imagesPath).concat(WEBPAGEICON) + "\" type=\"image/ico\" />";
    }
 
    /**
     * Generates the server response in the case when a persisted contentId is requested.
-    * @param contentId a <code>String</code> representing a content id.
+    *
+    * @param contentId     a <code>String</code> representing a content id.
     * @param http_response a <code>HttpServletResponse</code> representing the server response.
-    * @param s a <code>XSession</code> object representing the server session.
+    * @param s             a <code>XSession</code> object representing the server session.
     */
    public void generateContentPage(String contentId, HttpServletResponse http_response, XSession s) {
       OpProjectSession session = (OpProjectSession) s;
@@ -245,24 +254,24 @@ public class OpProjectServlet extends XExpressServlet {
       OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
 
-      //check access level
-      if (!session.checkAccessLevel(broker, OpLocator.parseLocator(contentId).getID(), OpPermission.OBSERVER)) {
-         try {
-            PrintStream ps = new PrintStream(http_response.getOutputStream());
-            generateErrorPage(ps, INSUFICIENT_VIEW_PERMISSIONS, session);
-            ps.flush();
-            ps.close();
-         }
-         catch (IOException e) {
-            logger.error("Cannot generate error response", e);
-         }
-         return;
-      }
-
-      byte[] content = null;
       OpContent cnt = (OpContent) broker.getObject(contentId);
-
       if (cnt != null) {
+         //check access level
+         if (!hasContentPermissions(session, broker, cnt)) {
+            try {
+               PrintStream ps = new PrintStream(http_response.getOutputStream());
+               generateErrorPage(ps, INSUFICIENT_VIEW_PERMISSIONS, session);
+               ps.flush();
+               ps.close();
+            }
+            catch (IOException e) {
+               logger.error("Cannot generate error response", e);
+            }
+            return;
+         }
+
+         byte[] content = null;
+
          content = cnt.getBytes();
          String mimeType = cnt.getMediaType();
          http_response.setContentType(mimeType);
@@ -293,7 +302,7 @@ public class OpProjectServlet extends XExpressServlet {
    /**
     * Generates a response from the server when a file is requested.
     *
-    * @param filePath a <code>String</code> representing the path to a file in an <code>URL</code> format.
+    * @param filePath     a <code>String</code> representing the path to a file in an <code>URL</code> format.
     * @param httpResponse a <code>HttpServletResponse</code> object representing the response.
     */
    public void generateFilePage(String filePath, HttpServletResponse httpResponse) {
@@ -358,9 +367,10 @@ public class OpProjectServlet extends XExpressServlet {
 
    /**
     * Generates an error page, as a user response to some action.
-    * @param out a <code>PrintStream</code> representing the output stream on which the server response is written.
+    *
+    * @param out            a <code>PrintStream</code> representing the output stream on which the server response is written.
     * @param errorMessageId a <code>String</code> representing an error message id from a resource bundle.
-    * @param session a <code>OpProjectSession</code> representing the application user session.
+    * @param session        a <code>OpProjectSession</code> representing the application user session.
     */
    private void generateErrorPage(PrintStream out, String errorMessageId, OpProjectSession session) {
       XLocalizer localizer = new XLocalizer();
@@ -375,5 +385,33 @@ public class OpProjectServlet extends XExpressServlet {
       out.print(errorMessage);
       out.println("</font></h1></body>");
       out.print("</html>");
+   }
+
+   /**
+    * Checks if the current logged in user has at least view-permissions of the given content.
+    * @param session a <code>OpProjectSession</code> representing the server session.
+    * @param content a <code>OpContent</code> object representing the content the user is trying to view.
+    * @return <code>true</code> if the user has rights to view the content, false otherwise.
+    */
+   private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {
+      Set attachments = content.getAttachments();
+      if (attachments != null) {
+         for (Iterator it = attachments.iterator(); it.hasNext(); ) {
+            OpObject attachment  = (OpObject) it.next();
+            if (session.checkAccessLevel(broker, attachment.getID(), OpPermission.OBSERVER)) {
+               return true;
+            }
+         }
+      }
+      Set documents = content.getDocuments();
+      if (documents != null) {
+         for (Iterator it = documents.iterator(); it.hasNext(); ) {
+            OpObject document  = (OpObject) it.next();
+            if (session.checkAccessLevel(broker, document.getID(), OpPermission.OBSERVER)) {
+               return true;
+            }
+         }
+      }
+      return false;
    }
 }

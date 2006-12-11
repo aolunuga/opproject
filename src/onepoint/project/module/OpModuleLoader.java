@@ -24,20 +24,20 @@ public class OpModuleLoader extends XLoader {
       super(new XDocumentHandler(MODULE_SCHEMA));
    }
 
-   public OpModule loadModule(InputStream input_stream) throws OpModuleException {
+   public OpModule loadModule(InputStream input_stream) {
       OpModule module = (OpModule) (loadObject(input_stream, null));
       _loadModuleParts(module);
       return module;
    }
 
-   public OpModule loadModule(String module_file_name) throws OpModuleException {
+   public OpModule loadModule(String module_file_name) {
       logger.info("Loading module: " + module_file_name);
       OpModule module = (OpModule) (loadObject(module_file_name, null));
       _loadModuleParts(module);
       return module;
    }
 
-   protected static void _loadModuleParts(OpModule module) throws OpModuleException {
+   protected static void _loadModuleParts(OpModule module) {
       // Load prototypes
       logger.info("Loading prototypes of module '" + module.getName() + "'...");
       Iterator prototype_files = module.getPrototypeFiles();
@@ -71,7 +71,6 @@ public class OpModuleLoader extends XLoader {
       }
       module.setLanguageKits(language_kits);
       logger.info("Language-kits of module '" + module.getName() + "' loaded.");
-      module.postLoad();
    }
 
 }

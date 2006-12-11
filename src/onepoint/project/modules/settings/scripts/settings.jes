@@ -38,9 +38,12 @@ function save(event) {
    XDisplay.configureCalendar(calendarSettings);
 
    if (handleError(form, response, "ErrorLabel") == true) {
-      XDisplay.findFrame("MainFrame").refreshForm();
+      XDisplay.clearResourceCache();
+      request = new XMessage;
+      request.setAction("Express.clearResourceCache");
+      XDisplay.getClient().invokeMethod(request);
+      XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml");
    }
-
 }
 
 function updateWeekWorkTime(event) {

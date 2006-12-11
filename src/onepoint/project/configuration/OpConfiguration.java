@@ -1,13 +1,11 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * (c) 2005 OnePoint Software GmbH (Graz/Austria)
+ * All rights reserved
  */
-
 package onepoint.project.configuration;
 
 import onepoint.project.util.OpBase64;
-import onepoint.util.XEnvironmentManager;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,25 +22,17 @@ public class OpConfiguration {
    public static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
    //hard-coded db schema version number
-   public static final int SCHEMA_VERSION = 2;
-
-   /**
-    * Default connection parameters.
-    */
-   public static final String HSQL_DB_TYPE = "file:";
-   public static final String HSQL_DB_USER = "sa";
-   public static final String HSQL_DB_PASSWORD = "";
-   public static final String HSQL_DB_DIR = "/OnePoint Project Data";
-   public static final String HSQL_DB_FILE = "opproject";
+   public static final int SCHEMA_VERSION = 3;
 
    /**
     * Map of database drivers. Contains [database_type,datatabase driver] entries.
     */
    public final static Map DATABASE_DRIVERS = new HashMap();
 
-   static{
+   static {
       initDatabaseDriversMap();
    }
+
    /**
     * Object that holds database related configurations.
     */
@@ -140,6 +130,7 @@ public class OpConfiguration {
 
    /**
     * Gets the value of the secure service attribute that indicates whether the remote comunication should be secure or not.
+    *
     * @return a <code>String</code> representing the value of the secure attribute.
     */
    public String getSecureService() {
@@ -148,6 +139,7 @@ public class OpConfiguration {
 
    /**
     * Sets the value of the secure service attribute that indicates whether the remote comunication should be secure or not.
+    *
     * @param secureService a <code>String</code> representing the value of the secure attribute.
     */
    public void setSecureService(String secureService) {
@@ -157,7 +149,7 @@ public class OpConfiguration {
    /**
     * Class that holds the application cache configuration settings.
     */
-   public final class CacheConfiguration {
+   public class CacheConfiguration {
       /**
        * The size of the cache.
        */
@@ -209,7 +201,7 @@ public class OpConfiguration {
    /**
     * Class that hold database configuration parameters.
     */
-   public final class DatabaseConfiguration {
+   public class DatabaseConfiguration {
 
       /**
        * Database config. parameters.
@@ -382,37 +374,8 @@ public class OpConfiguration {
    }
 
    /**
-    * Returns the path to the default db.
-    * @return a <code>String</code> representing the default db url.
-    */
-   public static String getHSQLDbPath() {
-      String parentDir = XEnvironmentManager.convertPathToSlash(System.getProperty("user.home"));
-      String dbDirPath = parentDir + onepoint.project.configuration.OpConfiguration.HSQL_DB_DIR;
-      return dbDirPath + "/" + onepoint.project.configuration.OpConfiguration.HSQL_DB_FILE;
-   }
-
-   /**
-    * Returns a default database url.
-    * @return a <code>String</code> representing an url the connects to the default db.
-    */
-   public static String getHSQLDbUrl() {
-      String parentDir = XEnvironmentManager.convertPathToSlash(System.getProperty("user.home"));
-      String dbDirPath = parentDir + HSQL_DB_DIR;
-      File dbDir = new File(dbDirPath);
-      if (!dbDir.exists()) {
-         dbDir.mkdir();
-      }
-
-      String defaultDbPath = dbDirPath + "/" + HSQL_DB_FILE;
-      StringBuffer dbUrl = new StringBuffer();
-      dbUrl.append("jdbc:hsqldb:");
-      dbUrl.append(HSQL_DB_TYPE);
-      dbUrl.append(defaultDbPath);
-      return dbUrl.toString();
-   }
-
-   /**
     * Gets an encrypted db password.
+    *
     * @param unencryptedPasswd a <code>String</code> representing the unencrypted password.
     * @return a <code>String</code> representing the encrypted base 64 password.
     */
@@ -424,6 +387,7 @@ public class OpConfiguration {
 
    /**
     * Gets an unencrypted db password.
+    *
     * @param encryptedPasswd a <code>String</code> representing the bae 64 encrypted password.
     * @return a <code>String</code> representing the unencrypted password.
     */

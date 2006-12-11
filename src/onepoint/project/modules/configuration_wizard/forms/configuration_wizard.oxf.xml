@@ -5,10 +5,7 @@
       script="/modules/configuration_wizard/scripts/configuration_wizard.jes"
       on-show="showForm">
    <data-set id="DBTypeDataSet"/>
-   <data-field id ="DefaultDbURLDataField"/>
-   <data-field id ="DefaultDbLoginDataField"/>
-   <data-field id ="DefaultDbPasswordDataField"/>
-	
+
    <panel layout="border" style-ref="login-background-panel-default">
       <panel layout="border" icon="/icons/wizard.png" flexible="false">
 

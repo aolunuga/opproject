@@ -65,7 +65,7 @@
       </panel>
    </tab>
 
-   <tab text="{$Permissions}" layout="border" id="PermissionsTable">
+   <tab text="{$Permissions}" layout="border" id="PermissionsTab">
       <data-set id="PerimssionIconSet">
          <data-row icon="/modules/user/icons/group.png"/>
          <data-row icon="/modules/user/icons/user.png"/>

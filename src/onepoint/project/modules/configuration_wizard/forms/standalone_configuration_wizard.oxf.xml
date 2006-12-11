@@ -1,0 +1,25 @@
+<form layout="border"
+      provider-class="onepoint.project.modules.configuration_wizard.forms.OpStandaloneDbConfigurationWizardFormProvider"
+      resource-map-ref="standalone_configuration_wizard.main"
+      default-button-ref="okButton"
+      start-focus-ref="HSQLDbPathTextField"
+      script="/modules/configuration_wizard/scripts/standalone_configuration_wizard.jes"
+      on-show="showForm">
+   <data-field id ="HSQLDbTypeDataField"/>
+   <data-field id ="HSQLDDbLoginDataField"/>
+   <data-field id ="HSQLDDbPasswordDataField"/>
+   <data-field id ="DefaultLogin"/>
+   <data-field id ="DefaultPassword"/>
+   <panel layout="border" style-ref="login-background-panel-default">
+      <panel layout="border" icon="/icons/login.png" flexible="false">
+         <panel layout="table" width="5" style-ref="login-panel-default">
+            <label x="0" y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+
+            <label x="0" y="1" width="2" text="{$DatabaseLocation}" style-ref="header-label-default"/>
+            <text-field x="2" y="1" width="3" id="HSQLDbPathTextField"/>
+
+            <button x="2" y="3" id="okButton" text="{$OK}" on-button-pressed="connect"/>
+         </panel>
+      </panel>
+   </panel>
+</form>

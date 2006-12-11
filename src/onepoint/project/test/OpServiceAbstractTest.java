@@ -5,7 +5,6 @@ package onepoint.project.test;
 
 import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
-import onepoint.project.module.OpModuleException;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.module.OpModuleRegistryLoader;
 import onepoint.resource.*;
@@ -106,12 +105,7 @@ public abstract class OpServiceAbstractTest extends MockObjectTestCase {
       registryLoader.setUseResourceLoader(true);
       OpModuleManager.setModuleRegistryLoader(registryLoader);
       XResourceBroker.setResourcePath("onepoint/project");
-      try {
-         OpModuleManager.load();
-      }
-      catch (OpModuleException e) {
-         e.printStackTrace();
-      }
+      OpModuleManager.load();
    }
 
    /**

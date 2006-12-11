@@ -10,8 +10,8 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectStatus;
-import onepoint.project.modules.project.forms.OpEditProjectFormProvider;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class OpProjectStatusFormProvider implements XFormProvider {
       form.findComponent(NEW_PROJECT_STATUS_BUTTON).setEnabled(isUserAdministrator);
       form.findComponent(IS_ADMIN_ROLE_DATA_FIELD).setBooleanValue(isUserAdministrator);
 
-      Iterator projectStatusItr = OpEditProjectFormProvider.getProjectStatusIterator(broker);
+      Iterator projectStatusItr = OpProjectDataSetFactory.getProjectStatusIterator(broker);
 
       //fill project status data set
       XComponent dataSet = form.findComponent(PROJECT_STATUS_DATA_SET);

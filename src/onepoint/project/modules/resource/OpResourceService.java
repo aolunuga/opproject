@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
@@ -130,9 +131,15 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       // *** TODO: Currently a work-around (should use choice instead of ID)
-      String user_id_string = (String) (resource_data.get("UserID"));
-      if ((user_id_string != null) && (user_id_string.length() > 0)) {
-         OpUser user = (OpUser) (broker.getObject(user_id_string));
+      if (OpInitializer.isMultiUser()) {
+         String user_id_string = (String) (resource_data.get("UserID"));
+         if ((user_id_string != null) && (user_id_string.length() > 0)) {
+            OpUser user = (OpUser) (broker.getObject(user_id_string));
+            resource.setUser(user);
+         }
+      }
+      else {
+         OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getAdministratorID()));
          resource.setUser(user);
       }
 

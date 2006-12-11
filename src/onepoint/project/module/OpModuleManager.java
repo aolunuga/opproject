@@ -7,6 +7,7 @@ package onepoint.project.module;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpPrototype;
 import onepoint.persistence.OpTypeManager;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.resource.XLanguageKit;
@@ -35,8 +36,7 @@ public final class OpModuleManager {
       opModuleRegistryLoader = moduleLoader;
    }
 
-   public static void load()
-        throws OpModuleException {
+   public static void load() {
       // Read module registry
       // *** Exception/error if module-registry has already been read?
       String path = XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME) + "/" + MODULE_REGISTRY_FILE_NAME;
@@ -106,7 +106,9 @@ public final class OpModuleManager {
             if (tool.getGroupRef() != null) {
                tool.setGroup(OpToolManager.getGroup(tool.getGroupRef()));
             }
-            OpToolManager.registerTool(tool);
+            if (tool.isMultiUserOnly() == null || (tool.isMultiUserOnly().booleanValue() && OpInitializer.isMultiUser())) {
+               OpToolManager.registerTool(tool);
+            }
          }
       }
       initializeBackupManager();

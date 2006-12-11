@@ -1,7 +1,6 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
-
 package onepoint.project.modules.project.components.test;
 
 import junit.framework.TestCase;

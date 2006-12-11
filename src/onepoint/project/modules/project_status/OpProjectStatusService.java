@@ -9,8 +9,8 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectStatus;
-import onepoint.project.modules.project.forms.OpEditProjectFormProvider;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
@@ -285,7 +285,7 @@ public class OpProjectStatusService extends OpProjectService {
       }
 
       //update sequence for the active status items
-      results = OpEditProjectFormProvider.getProjectStatusIterator(broker);
+      results = OpProjectDataSetFactory.getProjectStatusIterator(broker);
       int sequence = 0;
       while (results.hasNext()) {
          OpProjectStatus status = (OpProjectStatus) results.next();

@@ -23,5 +23,6 @@ public class OpDbConfigurationWizardErrorMap extends XErrorMap {
       registerErrorCode(OpDbConfigurationWizardError.INVALID_CONNECTION_STRING, OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME);
       registerErrorCode(OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR, OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME);
       registerErrorCode(OpDbConfigurationWizardError.JDBC_DRIVER_ERROR, OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME);
+      registerErrorCode(OpDbConfigurationWizardError.DATABASE_PATH_MISSING, OpDbConfigurationWizardError.DATABASE_PATH_MISSING_NAME);
    }
 }

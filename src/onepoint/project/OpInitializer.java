@@ -15,7 +15,6 @@ import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.module.OpLanguageKitFile;
-import onepoint.project.module.OpModuleException;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
@@ -38,7 +37,7 @@ import java.util.Map;
  */
 public class OpInitializer {
 
-   /*keys in the initParams map */
+   //keys in the initParams map
    public static String RESOURCE_CACHE_SIZE = "cacheSize";
    public static String SECURE_SERVICE = "secureService";
 
@@ -61,6 +60,11 @@ public class OpInitializer {
    /*class logger */
    private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
    private static boolean emptyDB;
+
+   /**
+    * Flag indicating whether the application is multi-user or not.
+    */
+   private static boolean multiUser = false;
 
    /*this class should not be instantiated */
    private OpInitializer() {
@@ -96,21 +100,25 @@ public class OpInitializer {
     * Performs application initilization steps.
     *
     * @param projectPath <code>String</code> the absolute path to the folder which contains the configuration files
+    * @param isMultiUser
     * @return <code>Map</code> of init parameters
     */
-   public static Map init(String projectPath) {
+   public static Map init(String projectPath, boolean isMultiUser) {
 
       logger.info("Application initialization started");
       successRunLevel = 6;
       runLevel = 0;
+      multiUser = isMultiUser;
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
       try {
 
          XResourceBroker.setResourcePath(OpConfiguration.PROJECT_PACKAGE);
          // Attention: Locale map must be loaded and set before starting up modules
-         XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
-         XLocaleManager.setLocaleMap(locale_map);
+         if (XLocaleManager.getLocaleMap() == null) {
+            XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
+            XLocaleManager.setLocaleMap(locale_map);
+         }
 
          // load language resources for main application forms (e.g. login.oxf)
          OpLanguageKitFile main_en_file = new OpLanguageKitFile();
@@ -149,7 +157,6 @@ public class OpInitializer {
          String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
          String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
          int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
-         String hsqlDbPath = OpConfiguration.getHSQLDbPath();
 
          //test the db connection
          int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword);
@@ -159,7 +166,7 @@ public class OpInitializer {
             connectionTestCode = testResult;
             return initParams;
          }
-         
+
          // the resource cache max size
          initParams.put(RESOURCE_CACHE_SIZE, configuration.getCacheConfiguration().getResourceCacheSize());
 
@@ -186,8 +193,8 @@ public class OpInitializer {
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          // Load and register default source
-         OpHibernateSource defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword,
-              databaseLogin, databaseType, onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE, hsqlDbPath);
+         OpHibernateSource defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+
          OpSourceManager.registerSource(defaultSource);
          OpSourceManager.setDefaultSource(defaultSource);
          defaultSource.open();
@@ -224,16 +231,6 @@ public class OpInitializer {
          logger.info("Registered modules started; Application started");
          runLevel = 6;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-      }
-      catch(OpModuleException e) {
-         if (e.getResourceId() != null && e.getResourceMapId() != null) {
-            logger.error("Cannot load an application module");
-            errorId = e.getResourceId();
-            errorMapId = e.getResourceMapId();
-         }
-         else {
-            logger.error("Cannot load an application module", e);
-         }
       }
       catch (Exception e) {
          logger.fatal("Cannot start the application", e);
@@ -294,14 +291,12 @@ public class OpInitializer {
       }
    }
 
-
    public static int getConnectionTestCode() {
       return connectionTestCode;
    }
 
    /**
     * Creates an empty db schema.
-    *
     */
    private static void createEmptySchema(OpBroker broker) {
       broker.createSchema();
@@ -314,5 +309,44 @@ public class OpInitializer {
 
    public static boolean isEmptyDB() {
       return emptyDB;
+   }
+
+
+   /**
+    * Indicates whether the running mode is multi-user or not.
+    * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
+    */
+   public static boolean isMultiUser() {
+      return multiUser;
+   }
+
+   /**
+    * Checks the run level found in the parameters, and if necessary displays a message to the user.
+    *
+    * @param parameters a <code>HashMap</code> of <code>String,Object</code> pairs, representing form parameters.
+    * @param localeId   a <code>String</code> representing the id of the current locale.
+    * @param mapId The error resource map ID.
+    * @return  A string representing an error message, if any. Null otherwise.
+    */
+   public static String checkRunLevel(HashMap parameters, String localeId, String mapId) {
+      String runLevelParameter = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
+      if (runLevelParameter != null) {
+         String resourceMapId = getErrorMapId();
+         if (resourceMapId == null) {
+            resourceMapId = mapId;
+         }
+         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, resourceMapId);
+
+         int runLevel = Integer.valueOf(runLevelParameter).intValue();
+         int successRunLevel = getSuccessRunLevel();
+         if (runLevel < successRunLevel) {
+            String resourceId = getErrorId();
+            if (resourceId == null) {
+               resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
+            }
+            return localizer.localize(resourceId);
+         }
+      }
+      return null;
    }
 }

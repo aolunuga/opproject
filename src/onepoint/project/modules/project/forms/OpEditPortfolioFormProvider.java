@@ -9,6 +9,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
@@ -23,12 +24,13 @@ import java.util.HashMap;
 
 public class OpEditPortfolioFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class, true);
 
    private final static String PORTFOLIO_ID = "PortfolioID";
    private final static String EDIT_MODE = "EditMode";
    private final static String PERMISSION_SET = "PermissionSet";
-   
+   private final static String PERMISSIONS_TAB = "PermissionsTab";
+
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
@@ -42,8 +44,9 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
 
       // Downgrade edit mode to view mode if no manager access
       byte accessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
-      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER))
+      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
          edit_mode = Boolean.FALSE;
+      }
 
       form.findComponent(PORTFOLIO_ID).setStringValue(id_string);
       form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
@@ -69,13 +72,16 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
          desc.setEnabled(false);
       }
 
-      // Locate permission data set in form
-      XComponent permissionSet = form.findComponent(PERMISSION_SET);
-
-      OpPermissionSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
-            OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
-      OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
-
+      if (OpInitializer.isMultiUser()) {
+         // Locate permission data set in form
+         XComponent permissionSet = form.findComponent(PERMISSION_SET);
+         OpPermissionSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,
+              OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
+         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+      }
+      else {
+         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      }
       broker.close();
    }
 }

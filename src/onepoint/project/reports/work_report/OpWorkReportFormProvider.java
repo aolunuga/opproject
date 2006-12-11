@@ -9,6 +9,7 @@ import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
@@ -23,34 +24,25 @@ import java.util.Iterator;
 public class OpWorkReportFormProvider implements XFormProvider {
 
    public final static String USER_LOCATOR_FIELD = "UserLocatorField";
-
-   public final static String USER_NAME_FIELD = "UserNameField";
-
-   public final static String START_FIELD = "StartField";
-
-   public final static String FINISH_FIELD = "FinishField";
-
-   public final static String RESULT_SET = "ResultSet";
-
-   public final static String TOTAL_HOURS_FIELD = "TotalHoursField";
-
-   public final static String SELECT_USER_BUTTON = "SelectUserButton";
+   private final static String USER_NAME_FIELD = "UserNameField";
+   private final static String USER_NAME_LABEL = "UserLabel";
+   private final static String SELECT_USER_BUTTON = "SelectUserButton";
+   private final static String START_FIELD = "StartField";
+   private final static String FINISH_FIELD = "FinishField";
+   private final static String TOTAL_HOURS_FIELD = "TotalHoursField";
 
    // Form parameters
-   public final static String RUN_QUERY = "RunQuery";
-
-   public final static String USER_LOCATOR = "UserLocator";
-
-   public final static String START = "Start";
-
-   public final static String FINISH = "Finish";
+   private final static String RUN_QUERY = "RunQuery";
+   private final static String USER_LOCATOR = "UserLocator";
+   private final static String START = "Start";
+   private final static String FINISH = "Finish";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
-
+      String displayName;
       OpBroker broker = session.newBroker();
       // default start-finish dates range
       Date defaultStartDate = XCalendar.getDefaultCalendar().getCurrentYearFirstDate();
@@ -58,10 +50,10 @@ public class OpWorkReportFormProvider implements XFormProvider {
 
       // Execute query and fill result set if RunQuery is true
       if (parameters != null) {
-         Boolean runQuery = (Boolean) parameters.get(onepoint.project.reports.work_report.OpWorkReportFormProvider.RUN_QUERY);
+         Boolean runQuery = (Boolean) parameters.get(RUN_QUERY);
          if (runQuery != null && runQuery.booleanValue()) {
 
-            String userLocator = (String) parameters.get(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_LOCATOR);
+            String userLocator = (String) parameters.get(USER_LOCATOR);
             if (userLocator == null) {
                broker.close();
                return; // TODO: Throw exception
@@ -72,23 +64,22 @@ public class OpWorkReportFormProvider implements XFormProvider {
                broker.close();
                return; // TODO: Throw exception
             }
-            String displayName = localizer.localize(user.getDisplayName());
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_NAME_FIELD).setStringValue(displayName);
+            displayName = localizer.localize(user.getDisplayName());
+            form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
 
             // TODO: Use calendar instance of session to set default
             // start/finish dates
-            Date start = (Date) parameters.get(onepoint.project.reports.work_report.OpWorkReportFormProvider.START);
+            Date start = (Date) parameters.get(START);
             if (start == null) {
                start = defaultStartDate;
             }
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.START_FIELD).setDateValue(start);
+            form.findComponent(START_FIELD).setDateValue(start);
 
-            Date finish = (Date) parameters.get(onepoint.project.reports.work_report.OpWorkReportFormProvider.FINISH);
+            Date finish = (Date) parameters.get(FINISH);
             if (finish == null) {
                finish = defaultFinishDate;
             }
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.FINISH_FIELD).setDateValue(finish);
+            form.findComponent(FINISH_FIELD).setDateValue(finish);
 
 
             // Execute query
@@ -136,30 +127,37 @@ public class OpWorkReportFormProvider implements XFormProvider {
                totalHours += ((Double) record[1]).doubleValue();
             }
 
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.TOTAL_HOURS_FIELD).setDoubleValue(totalHours);
+            form.findComponent(TOTAL_HOURS_FIELD).setDoubleValue(totalHours);
 
          }
          else {
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.START_FIELD).setDateValue(defaultStartDate);
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.FINISH_FIELD).setDateValue(defaultFinishDate);
+            form.findComponent(START_FIELD).setDateValue(defaultStartDate);
+            form.findComponent(FINISH_FIELD).setDateValue(defaultFinishDate);
             OpUser user = session.user(broker);
-            String displayName = localizer.localize(user.getDisplayName());
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
-            form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_NAME_FIELD).setStringValue(displayName);
+            displayName = localizer.localize(user.getDisplayName());
+            form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
          }
       }
       else {
-         form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.START_FIELD).setDateValue(defaultStartDate);
-         form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.FINISH_FIELD).setDateValue(defaultFinishDate);
+         form.findComponent(START_FIELD).setDateValue(defaultStartDate);
+         form.findComponent(FINISH_FIELD).setDateValue(defaultFinishDate);
          OpUser user = session.user(broker);
-         String displayName = localizer.localize(user.getDisplayName());
-         form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
-         form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.USER_NAME_FIELD).setStringValue(displayName);
+         displayName = localizer.localize(user.getDisplayName());
+         form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
       }
 
-      //enable select user button if session user is admin
-      if (!session.userIsAdministrator()){
-         form.findComponent(onepoint.project.reports.work_report.OpWorkReportFormProvider.SELECT_USER_BUTTON).setEnabled(false);
+
+      if (OpInitializer.isMultiUser()) {
+         form.findComponent(USER_NAME_FIELD).setStringValue(displayName);
+         //enable select user button if session user is admin
+         if (!session.userIsAdministrator()){
+            form.findComponent(SELECT_USER_BUTTON).setEnabled(false);
+         }
+      }
+      else {
+         form.findComponent(USER_NAME_FIELD).setVisible(false);
+         form.findComponent(SELECT_USER_BUTTON).setVisible(false);
+         form.findComponent(USER_NAME_LABEL).setVisible(false);
       }
 
       broker.close();

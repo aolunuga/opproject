@@ -7,6 +7,7 @@ package onepoint.project.modules.project.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectModule;
@@ -20,11 +21,10 @@ public class OpNewPortfolioFormProvider implements XFormProvider {
 
    private final static String SUPER_PORTFOLIO_FIELD_ID = "SuperPortfolioID";
    private final static String SUPER_PORTFOLIO_INDEX_FIELD = "SuperPortfolioIndexField";
-
    private final static String PERMISSION_SET = "PermissionSet";
-
    private final static String SUPER_PORTFOLIO_INDEX = "super_portfolio_index";
    private final static String SUPER_PORTFOLIO_ID = "super_portfolio_id";
+   private final static String PERMISSIONS_TAB = "PermissionsTab";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -49,13 +49,18 @@ public class OpNewPortfolioFormProvider implements XFormProvider {
       }
       byte superPortfolioAccesssLevel = session.effectiveAccessLevel(broker, superPortfolio.getID());
 
-      // Locate permission data set in form
-      XComponent permissionSet = form.findComponent(PERMISSION_SET);
+      if (OpInitializer.isMultiUser()) {
+         // Locate permission data set in form
+         XComponent permissionSet = form.findComponent(PERMISSION_SET);
+         // Retrieve permission set of portfolio -- inheritance of permissions
+         OpPermissionSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
+              OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
+         OpPermissionSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
+      }
+      else {
+         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      }
 
-      // Retrieve permission set of portfolio -- inheritance of permissions
-      OpPermissionSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
-           OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
-      OpPermissionSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
       broker.close();
 
    }

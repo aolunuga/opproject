@@ -16,6 +16,7 @@
       <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>
       <resource id="ClearImageCache">Bilder-Cache leeren</resource>
       <resource id="SignOff">Abmelden</resource>
+      <resource id="Quit">Beenden</resource>
    </resource-map>
    <resource-map id="main.dock">
       <resource id="ToolDock">TOOL-DOCK</resource>

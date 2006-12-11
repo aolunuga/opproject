@@ -7,6 +7,7 @@
  *
  * @author Horia Chiorean
  */
+require "onepoint/project/scripts/error.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -60,9 +61,11 @@ function view(event) {
             request.setAction("PlanningService.prepareAttachment");
             request.setArgument("attachment_id", id);
             response = XDisplay.getClient().invokeMethod(request);
-            attachmentUrl = response.getArgument("attachmentUrl");
-            contentId = response.getArgument("contentId");
-            XDisplay.showDocument(attachmentUrl, contentId);
+            if (handleError(form, response, "ValidationErrorLabel") == true) {
+               attachmentUrl = response.getArgument("attachmentUrl");
+               contentId = response.getArgument("contentId");
+               XDisplay.showDocument(attachmentUrl, contentId);
+            }
          }
          else {
             content = row.getChild(4).getValue();

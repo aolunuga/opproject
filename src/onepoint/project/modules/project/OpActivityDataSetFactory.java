@@ -15,6 +15,7 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
 import onepoint.util.XCalendar;
 
@@ -1586,6 +1587,7 @@ public abstract class OpActivityDataSetFactory {
          attachment.setLinked(LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0)));
          attachment.setName((String) attachmentElement.get(2));
          attachment.setLocation((String) attachmentElement.get(3));
+         OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);                     
          if (!attachment.getLinked()) {
 
             String contentId = (String) attachmentElement.get(4);
@@ -1593,12 +1595,16 @@ public abstract class OpActivityDataSetFactory {
                byte[] bytes = (byte[]) attachmentElement.get(5);
                OpContent content = OpContentManager.newContent(bytes, null);
                broker.makePersistent(content);
+               content.getAttachments().add(attachment);
                attachment.setContent(content);
+               broker.updateObject(content);
             }
             else {
                OpContent content = (OpContent) broker.getObject(contentId);
                OpContentManager.updateContent(content, broker, true);
                attachment.setContent(content);
+               content.getAttachments().add(attachment);
+               broker.updateObject(content);
             }
          }
 

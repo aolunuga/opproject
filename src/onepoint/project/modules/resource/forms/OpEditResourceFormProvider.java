@@ -10,6 +10,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.resource.OpResource;
@@ -26,13 +27,17 @@ import java.util.Iterator;
 
 public class OpEditResourceFormProvider implements XFormProvider {
 
-   public final static String ASSIGNED_PROJECT_DATA_SET = "AssignedProjectDataSet";
-   public final static String EDIT_MODE = "EditMode";
-   public final static String RESOURCE_ID = "ResourceID";
-   public final static String USER_NAME = "UserName";
-   public final static String PERMISSION_SET = "PermissionSet";
-   public final static String ORIGINAL_AVAILABLE = "OriginalAvailable";
-   public final static String ORIGINAL_HOURLY_RATE = "OriginalHourlyRate";
+   private final static String ASSIGNED_PROJECT_DATA_SET = "AssignedProjectDataSet";
+   private final static String EDIT_MODE = "EditMode";
+   private final static String RESOURCE_ID = "ResourceID";
+   private final static String USER_NAME = "UserName";
+   private final static String PERMISSION_SET = "PermissionSet";
+   private final static String ORIGINAL_AVAILABLE = "OriginalAvailable";
+   private final static String ORIGINAL_HOURLY_RATE = "OriginalHourlyRate";
+   private final static String USER_BUTTON = "SelectUserButton";
+   private final static String USER_FIELD = "UserName";
+   private final static String USER_LABEL = "ResponsibleUserLabel";
+   private final static String PERMISSIONS_TAB = "PermissionsTab";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -123,12 +128,18 @@ public class OpEditResourceFormProvider implements XFormProvider {
          form.setText(title);
       }
 
-      // Locate permission data set in form
-      XComponent permissionSet = form.findComponent(PERMISSION_SET);
-
-      OpPermissionSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
-      OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
-
+      if (!OpInitializer.isMultiUser()) {
+         form.findComponent(USER_BUTTON).setVisible(false);
+         form.findComponent(USER_LABEL).setVisible(false);
+         form.findComponent(USER_FIELD).setVisible(false);
+         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      }
+      else {
+         // Locate permission data set in form
+         XComponent permissionSet = form.findComponent(PERMISSION_SET);
+         OpPermissionSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
+         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+      }
       broker.close();
    }
 

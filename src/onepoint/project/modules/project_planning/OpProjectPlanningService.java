@@ -9,6 +9,7 @@ import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
@@ -84,7 +85,7 @@ public class OpProjectPlanningService extends OpProjectService {
          dataSet = OpMSProjectManager.importActivities(inFile, projectPlan);
       }
       catch (IOException e) {
-         reply.setError(session.newError(ERROR_MAP, OpProjectPlanningError.FILE_READ_ERROR));
+         reply.setError(session.newError(ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
          return reply;
       }
 
@@ -126,7 +127,7 @@ public class OpProjectPlanningService extends OpProjectService {
          fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet);
       }
       catch (IOException e) {
-         response.setError(session.newError(ERROR_MAP, OpProjectPlanningError.FILE_WRITE_ERROR));
+         response.setError(session.newError(ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
          return null;
       }
 
@@ -601,8 +602,13 @@ public class OpProjectPlanningService extends OpProjectService {
          return null;
       }
 
+      XMessage response = new XMessage();
+      if (!session.checkAccessLevel(broker, object.getID(), OpPermission.OBSERVER)) {
+         response.setError(session.newError(ERROR_MAP, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS));
+         return response;
+      }
+
       try {
-         XMessage response = new XMessage();
 
          // <FIXME author="Horia Chiorean" description="This code is here because we can have either OpAttachment or
          // OpAttachmentVersion">
@@ -612,7 +618,8 @@ public class OpProjectPlanningService extends OpProjectService {
          String location = (String) getLocationMethod.invoke(object, null);
          // <FIXME>
 
-         if (isRemote()) {
+         //multi-user means remote
+         if (OpInitializer.isMultiUser()) {
             response.setArgument(ATTACHMENT_URL, null);
             response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
          }

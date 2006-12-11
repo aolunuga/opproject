@@ -48,6 +48,9 @@ public class OpHibernateSource extends OpSource {
    public final static String TABLE_NAME_POSTFIX = "";
    public final static String JOIN_NAME_SEPARATOR = "_";
 
+   public final static String HSQLDB_TYPE = "file:";
+   public final static String HSQLDB_JDBC_CONNECTION_PREFIX = "jdbc:hsqldb:" + HSQLDB_TYPE;
+
    /**
     * Strings representing prototype prefixes
     */
@@ -83,21 +86,13 @@ public class OpHibernateSource extends OpSource {
     */
    private int IBM_DB2_INDEX_NAME_LENGTH = 18;
 
-   /**
-    * Used only for HSQLDB, in order to set the write delay
-    */
-   private String hsqlDatabasePath;
-   private String hsqlDatabaseType;
 
-
-   public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type, String hsqlDatabasePath, String hsqlDatabaseType) {
+   public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type) {
       this._url = _url;
       this._driver_class_name = _driver_class_name;
       this._password = _password;
       this._login = _login;
       this._database_type = _database_type;
-      this.hsqlDatabasePath = hsqlDatabasePath;
-      this.hsqlDatabaseType = hsqlDatabaseType;
 
       if (_database_type == HSQLDB) {
          this.setEmbeded(true);
@@ -151,22 +146,6 @@ public class OpHibernateSource extends OpSource {
 
    public final int getDatabaseType() {
       return _database_type;
-   }
-
-   public String getHsqlDatabasePath() {
-      return hsqlDatabasePath;
-   }
-
-   public void setHsqlDatabasePath(String hsqlDatabasePath) {
-      this.hsqlDatabasePath = hsqlDatabasePath;
-   }
-
-   public String getHsqlDatabaseType() {
-      return hsqlDatabaseType;
-   }
-
-   public void setHsqlDatabaseType(String hsqlDatabaseType) {
-      this.hsqlDatabaseType = hsqlDatabaseType;
    }
 
    /**

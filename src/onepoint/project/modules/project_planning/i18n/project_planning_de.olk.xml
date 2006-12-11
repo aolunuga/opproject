@@ -243,7 +243,8 @@
       <resource id="AdministratorAccessDenied">Sie benötigen Administratorrechte für diese Funktion</resource>
       <resource id="AvailabilityModifiedWarning">Die Personalkosten wurden neu berechnet, da die Verfügbarkeit von in diesem Projektplan verwendeten Ressourcen verändert wurde</resource>
       <resource id="AvailabilityAndRatesModifiedWarning">Die Personalkosten wurden neu berechnet, da die Verfügbarkeit und die Stundensätze von in diesem Projektplan verwendeten Ressourcen verändert wurde</resource>
-      <resource id="FileReadError">File Read Error</resource>
-      <resource id="FileWriteError">File Write Error</resource>
+      <resource id="MsProjectFileReadError">Cannot read Microsoft Project file</resource>
+      <resource id="MsProjectFileWriteError">Cannot export plan to Microsoft Project format</resource>
+      <resource id="InsuficientAttachmentPermissions">You don't have enough permissions to view the attachment</resource>      
    </resource-map>
 </language-kit>

@@ -676,4 +676,14 @@ public final class OpProjectDataSetFactory {
          }
       }
    }
+
+   public static Iterator getProjectStatusIterator(OpBroker broker) {
+      //configure project status sort order
+      Map sortOrder = new HashMap(1);
+      sortOrder.put(OpProjectStatus.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
+      OpObjectOrderCriteria categoryOrderCriteria = new OpObjectOrderCriteria(OpProjectStatus.PROJECT_STATUS, sortOrder);
+      OpQuery query = broker.newQuery("select status from OpProjectStatus as status where status.Active=true " + categoryOrderCriteria.toHibernateQueryString("status"));
+      Iterator projectStatusItr = broker.iterate(query);
+      return projectStatusItr;
+   }
 }

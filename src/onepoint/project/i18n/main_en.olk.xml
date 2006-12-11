@@ -16,6 +16,7 @@
       <resource id="ClearResourceCache">Clear Resource Cache</resource>
       <resource id="ClearImageCache">Clear Image Cache</resource>
       <resource id="SignOff">Sign off</resource>
+      <resource id="Quit">Quit</resource>      
    </resource-map>
    <resource-map id="main.dock">
       <resource id="ToolDock">TOOL DOCK</resource>

@@ -1,0 +1,43 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for db_configuration_wizard.oxf.xml
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/authenticate.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function showForm(event) {
+   XDisplay.requestViewerFocus();
+}
+
+function connect(event) {
+   // Gather -data
+   form = XDisplay.getActiveForm();
+   config.is_standalone = true;
+   config.database_type = form.findComponent("HSQLDbTypeDataField").getStringValue();
+   config.database_url = form.findComponent("HSQLDbPathTextField").getStringValue();
+   config.database_login = form.findComponent("HSQLDDbLoginDataField").getStringValue();
+   config.database_password = form.findComponent("HSQLDDbPasswordDataField").getStringValue();
+   config.is_multi_user = false;
+   
+   //save configuration file
+   request = new XMessage;
+   request.setAction("DBConfigurationWizard.writeDatabaseConfigurationFile");
+   request.setArgument("parameters", config);
+   response = XDisplay.getClient().invokeMethod(request);
+
+    if (handleError(form, response, "ErrorLabel") == true) {
+       params = response.getArgument("initParams");
+       login = form.findComponent("DefaultLogin").getStringValue();
+       password = form.findComponent("DefaultPassword").getStringValue();
+       //perform silent authentication (without login form)
+       authenticate(login, password);
+       //show login form
+       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml",params);
+    }
+}

@@ -7,6 +7,7 @@ package onepoint.project.modules.resource.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResourcePool;
@@ -60,7 +61,9 @@ public class OpResourcesFormProvider implements XFormProvider {
       if (rootPoolPermission < OpPermission.MANAGER) {
          form.findComponent(NEW_POOL_BUTTON).setEnabled(false);
          form.findComponent(NEW_RESOURCE_BUTTON).setEnabled(false);
-         form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
+         if (OpInitializer.isMultiUser()) {
+            form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
+         }
       }
 
       List columnsSelector = new ArrayList();
@@ -71,6 +74,10 @@ public class OpResourcesFormProvider implements XFormProvider {
 
       form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
       form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
+
+      if (!OpInitializer.isMultiUser()) {
+         form.findComponent(IMPORT_USER_BUTTON).setVisible(false);
+      }
 
       OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, columnsSelector, columnsSelector, null);
    }

@@ -12,8 +12,10 @@
       <label x="0" y="2" width="2" text="{$Available}"/><double-field x="2" y="2" width="3" id="Available" double-value="100"/>
       <label x="0" y="3" width="2" text="{$HourlyRate}"/><double-field x="2" y="3" width="3" id="HourlyRate"/>
       <check-box x="2" y="4" width="3" text="{$InheritPoolRate}" id="InheritPoolRate" on-value-changed="inheritPoolRate"/>
-      <!-- next field should be a dialog-field -->
-      <label x="0" y="5" width="2" text="{$ResponsibleUser}"/><data-field id="SelectedUserDataField"/><text-field x="2" y="5" width="2" id="UserName"/><button x="4" y="5" text="{$SelectUser}" on-button-pressed="selectUser" id="SelectUserButton"/>
+      <label id="ResponsibleUserLabel" x="0" y="5" width="2" text="{$ResponsibleUser}"/>
+      <data-field id="SelectedUserDataField"/>
+      <text-field id="UserName" x="2" y="5" width="2"/>
+      <button id="SelectUserButton" x="4" y="5" text="{$SelectUser}" on-button-pressed="selectUser"/>
    </tab>
    <tab text="{$Projects}" layout="border" id="ProjectsTab">
       <data-set id="AssignedProjectDataSet"/>

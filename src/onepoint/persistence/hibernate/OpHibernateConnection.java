@@ -145,7 +145,9 @@ public class OpHibernateConnection extends OpConnection {
       //for hypersonic, we need to switch of the default write delay, or things won't work.
       if (source.getDatabaseType() == OpHibernateSource.HSQLDB) {
          try {
-            org.hsqldb.Session hsqldbSession = DatabaseManager.newSession(source.getHsqlDatabaseType(), source.getHsqlDatabasePath(),
+            String url = source.getURL();
+            String dbPath = url.replaceAll(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, "");
+            org.hsqldb.Session hsqldbSession = DatabaseManager.newSession(OpHibernateSource.HSQLDB_TYPE, dbPath,
                  source.getLogin(), source.getPassword(), null);
             hsqldbSession.sqlExecuteDirectNoPreChecks("SET WRITE_DELAY FALSE");
             hsqldbSession.commit();

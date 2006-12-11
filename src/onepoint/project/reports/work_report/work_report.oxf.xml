@@ -18,9 +18,9 @@
 	<panel layout="border" style-ref="border-panel-default">
 		<panel y="-1" layout="table">
 		    <label x="0" y="0" width="10" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-			<label y="1" width="4" text="{$User}"/>
-			<text-field x="4" y="1" width="4" id="UserNameField" enabled="false"/>
-			<button x="8" y="1" width="2" id="SelectUserButton" text="{$Select}" on-button-pressed="chooseSubject"/>
+			<label id="UserLabel" y="1" width="4" text="{$User}"/>
+			<text-field id="UserNameField" x="4" y="1" width="4" enabled="false"/>
+			<button id="SelectUserButton" x="8" y="1" width="2"  text="{$Select}" on-button-pressed="chooseSubject"/>
 			<label x="0" y="2" width="2" text="{$Start}"/>
 			<date-field x="2" y="2" width="3" id="StartField"/>
 			<label x="5" y="2" width="2" text="{$Finish}"/>

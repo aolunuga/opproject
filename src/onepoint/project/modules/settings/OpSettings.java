@@ -15,6 +15,8 @@ import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarLoader;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.resource.XLocale;
+import onepoint.resource.XLocaleManager;
 import onepoint.util.XCalendar;
 
 import java.io.*;
@@ -104,6 +106,9 @@ public class OpSettings {
       String reportScheduleName =  get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
       OpScheduler.updateScheduleInterval(session,reportScheduleName,reportRemoveInterval);
+
+      XLocale locale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
+      session.setLocale(locale);
    }
 
    /**

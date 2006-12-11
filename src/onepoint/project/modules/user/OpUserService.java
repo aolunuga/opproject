@@ -65,7 +65,7 @@ public class OpUserService extends OpProjectService {
 
    public final static String PASSWORD_TOKEN = "@*1XW9F4";
    private final static String NULL_PASSWORD = null;
-   private final static String BLANK_PASSWORD = new OpSHA1().calculateHash("");
+   public final static String BLANK_PASSWORD = new OpSHA1().calculateHash("");
 
    /**
     * Calendar related i18n settings

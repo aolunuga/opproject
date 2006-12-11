@@ -11,12 +11,12 @@ import onepoint.express.XSplashWindow;
  *
  * @author horia.chiorean
  */
-public final class OpProjectSplasher {
+public final class OpBasicSplasher {
 
    /**
     * This is not a class that should be instantiated.
     */
-   private OpProjectSplasher() {
+   private OpBasicSplasher() {
    }
 
    /**
@@ -24,8 +24,8 @@ public final class OpProjectSplasher {
     * @param args a <code>
     */
    public static void main(String[] args) {
-      XSplashWindow splash = XSplashWindow.splash(OpProjectSplasher.class.getResource("opp_splash_te_06.png"));
-      XSplashWindow.invokeMain(OpProjectApplication.class.getName(), args);
+      XSplashWindow splash = XSplashWindow.splash(OpBasicSplasher.class.getResource("opp_splash_be_061.png"));
+      XSplashWindow.invokeMain(OpBasicApplication.class.getName(), args);
       splash.disposeSplash();
    }
 }

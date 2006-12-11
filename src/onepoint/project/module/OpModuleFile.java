@@ -14,7 +14,7 @@ public class OpModuleFile {
       _file_name = file_name;
    }
 
-   public final OpModule loadModule() throws OpModuleException {
+   public final OpModule loadModule() {
       String module_file_name = onepoint.project.configuration.OpConfiguration.PROJECT_PACKAGE + _file_name;
       OpModuleLoader opModuleLoader = new OpModuleLoader();
       OpModule module = opModuleLoader.loadModule(module_file_name);
@@ -28,10 +28,9 @@ public class OpModuleFile {
     * Tries to load a hierarchy of modules, starting with the given module.
     * @param module a <code>OpModule</code> representing the start module.
     * @param moduleLoader a <code>OpModuleLoader</code> that will load each parent module.
-    * @throws OpModuleException if any of the parent modules can't be loaded.
+    * 
     */
-   private void loadExtendedModules(OpModule module, OpModuleLoader moduleLoader)
-        throws OpModuleException {
+   private void loadExtendedModules(OpModule module, OpModuleLoader moduleLoader) {
       OpModule startModule = module;
       while (startModule.getExtendedModule() != null) {
          String extendedModulePath = module.getExtendedModule();

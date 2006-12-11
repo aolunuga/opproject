@@ -11,10 +11,10 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
+import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
-import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -181,6 +181,7 @@ public class OpSettingsFormProvider implements XFormProvider {
          showHoursCheckBox.setEnabled(false);
          holidays.setEnabled(false);
          saveButton.setEnabled(false);
+         milestoneControllingIntervalField.setEnabled(false);
       }
    }
 

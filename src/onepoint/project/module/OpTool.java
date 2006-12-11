@@ -14,6 +14,7 @@ public class OpTool {
    private String _group_ref;
    private OpToolGroup _group;
    private OpModule _module;
+   private Boolean multiUserOnly;
 
    final public void setName(String name) {
       _name = name;
@@ -80,4 +81,11 @@ public class OpTool {
       return _module;
    }
 
+   public Boolean isMultiUserOnly() {
+      return multiUserOnly;
+   }
+
+   public void setMultiUserOnly(Boolean multiUserOnly) {
+      this.multiUserOnly = multiUserOnly;
+   }
 }

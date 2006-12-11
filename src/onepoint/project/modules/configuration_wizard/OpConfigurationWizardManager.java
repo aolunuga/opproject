@@ -5,7 +5,6 @@
 package onepoint.project.modules.configuration_wizard;
 
 import onepoint.project.module.OpModule;
-import onepoint.project.module.OpModuleException;
 import onepoint.project.module.OpModuleLoader;
 import onepoint.resource.XLanguageKit;
 import onepoint.resource.XLocaleManager;
@@ -30,8 +29,7 @@ public final class OpConfigurationWizardManager {
    /**
     * Loads the configuration wizard module.
     */
-   public static void loadConfigurationWizardModule()
-        throws OpModuleException {
+   public static void loadConfigurationWizardModule() {
       OpModuleLoader moduleLoader = new OpModuleLoader();
       OpModule configModule = moduleLoader.loadModule(OpConfigurationWizardManager.class.getResourceAsStream("module.oxm.xml"));
       Iterator it = configModule.getServices();

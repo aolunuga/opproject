@@ -87,7 +87,7 @@ public final class OpSubjectDataSetFactory {
          String queryString = "select gr.ID, count(subGroupAssignment.ID)+count(userAssignment.ID) from OpGroup gr " +
               "left join gr.SubGroupAssignments subGroupAssignment " +
               "left join gr.UserAssignments userAssignment " +
-              "group by gr.ID " +
+              "group by gr.ID, gr.Name ";
               groupOrderCriteria.toHibernateQueryString("gr");
          query = broker.newQuery(queryString);
       }
@@ -99,7 +99,7 @@ public final class OpSubjectDataSetFactory {
                    "left join subGroup.SubGroupAssignments subGroupAssignment " +
                    "left join subGroup.UserAssignments userAssignment " +
                    "where assignment.SuperGroup.ID = ?" +
-                   "group by subGroup.ID " +
+                   "group by subGroup.ID, subGroup.Name " +
                    groupOrderCriteria.toHibernateQueryString("subGroup");
          query = broker.newQuery(queryString);
          query.setLong(0, groupId);

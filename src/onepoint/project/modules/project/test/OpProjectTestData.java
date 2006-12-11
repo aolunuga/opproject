@@ -205,8 +205,7 @@ public class OpProjectTestData {
 
       OpHibernateSource mysql_auto = new OpHibernateSource(configuration.getDatabaseConfiguration().getDatabaseUrl(),
            configuration.getDatabaseConfiguration().getDatabaseDriver(), configuration.getDatabaseConfiguration().getDatabasePassword(),
-           configuration.getDatabaseConfiguration().getDatabaseLogin(), configuration.getDatabaseConfiguration().getDatabaseType(),
-           onepoint.project.configuration.OpConfiguration.getHSQLDbPath(), onepoint.project.configuration.OpConfiguration.HSQL_DB_TYPE);
+           configuration.getDatabaseConfiguration().getDatabaseLogin(), configuration.getDatabaseConfiguration().getDatabaseType());
 
       logger.info("Registering SQL object source...");
       OpSourceManager.registerSource(mysql_auto);

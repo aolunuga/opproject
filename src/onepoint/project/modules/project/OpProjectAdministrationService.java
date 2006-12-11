@@ -1293,6 +1293,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       OpProjectSession projectSession  = (OpProjectSession) session;
       List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, OpProjectDataSetFactory.ALL_TYPES, false, filteredOutIds);
 
+
       OpProjectDataSetFactory.enableNodes(request.getArgumentsMap(), children);
 
       XMessage reply = new XMessage();

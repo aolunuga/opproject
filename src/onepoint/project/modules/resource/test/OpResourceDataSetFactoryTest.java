@@ -41,9 +41,10 @@ public class OpResourceDataSetFactoryTest extends onepoint.project.test.OpServic
    private long RESOURCE2_ID = 12;
 
    /*queries*/
-   private static final String SELECT_POOL_ID = "select pool.ID from OpResourcePool as pool where pool.SuperPool.ID is null";
+   private static final String SELECT_POOL_ID = "select pool.ID, count(pools.ID)+count(resources.ID) from OpResourcePool as pool left join pool.SubPools pools left join pool.Resources resources where pool.SuperPool.ID is null group by pool.ID";
    private static final String SELECT_POOL_ID_BY_SUPERPOOL_ID = "select pool.ID from OpResourcePool as pool where pool.SuperPool.ID = ?";
    private static final String SELECT_RESOURCE_BY_POOL_ID = "select resource.ID from OpResource as resource where resource.Pool.ID = ?";
+   private static final String SELECT_RESOURCE_FROM_ROOT = "select resource.ID from OpResource as resource where resource.Pool.ID is null";
 
    /**
     * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
@@ -104,23 +105,37 @@ public class OpResourceDataSetFactoryTest extends onepoint.project.test.OpServic
       //get locale method
       mockSession.expects(once()).method(GET_LOCALE_METHOD).will(methodStub);
 
-      //accessible object will return a queryResults iterator
-      mockSession.expects(atLeastOnce()).method(ACCESSIBLE_OBJECTS_METHOD).will(methodStub);
-
-      //list result sets
-      mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(methodStub);
-
       //the rootResourcePool is searched for
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_POOL_ID)).will(new Stub() {
          public Object invoke(Invocation invocation) throws Throwable {
             //add rootResourcePool
             queryResults.clear();
-            queryResults.add(rootResourcePool);
+            Object[] result = new Object[2];
+            result[0] = new Long(rootResourcePool.getID());
+            result[1] = new Integer(0);
+            queryResults.add(result);
             return query;
          }
 
          public StringBuffer describeTo(StringBuffer stringBuffer) {
             return stringBuffer.append("Mocks the behaviour of new query for ").append(SELECT_POOL_ID);
+         }
+      });
+
+      //list result sets
+      mockBroker.expects(atLeastOnce()).method(LIST_METHOD).with(same(query)).will(methodStub);
+
+      //accessible object will return a queryResults iterator
+      mockSession.expects(atLeastOnce()).method(ACCESSIBLE_OBJECTS_METHOD).will(new Stub() {
+         public Object invoke(Invocation invocation) throws Throwable {
+            //add rootResourcePool
+            queryResults.clear();
+            queryResults.add(rootResourcePool);
+            return queryResults.iterator();
+         }
+
+         public StringBuffer describeTo(StringBuffer stringBuffer) {
+            return stringBuffer.append("Mocks the behaviour of accessibleObjects ");
          }
       });
 
@@ -161,20 +176,33 @@ public class OpResourceDataSetFactoryTest extends onepoint.project.test.OpServic
          }
       });
 
-      //search for the resources of rootResourcePool
-      mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(0), eq(ROOT_RESOURCE_POOL_ID)}).
-           after(mockBroker, SELECT_RESOURCE_BY_POOL_ID).will(new Stub() {
+      //the pool resources are searched for
+      mockBroker.expects(atLeastOnce()).method(NEW_QUERY_METHOD).with(eq(SELECT_RESOURCE_FROM_ROOT)).
+           will(new Stub() {
          public Object invoke(Invocation invocation) throws Throwable {
-            //add resource2
+            //clear results
             queryResults.clear();
-            queryResults.add(resource2);
             return null;
          }
 
          public StringBuffer describeTo(StringBuffer stringBuffer) {
             return stringBuffer.append("Mocks the behaviour of new query for ").append(SET_LONG_METHOD);
          }
-      });
+      });      
+//      //search for the resources of rootResourcePool
+//      mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(0), eq(ROOT_RESOURCE_POOL_ID)}).
+//           after(mockBroker, SELECT_RESOURCE_BY_POOL_ID).will(new Stub() {
+//         public Object invoke(Invocation invocation) throws Throwable {
+//            //add resource2
+//            queryResults.clear();
+//            queryResults.add(resource2);
+//            return null;
+//         }
+//
+//         public StringBuffer describeTo(StringBuffer stringBuffer) {
+//            return stringBuffer.append("Mocks the behaviour of new query for ").append(SET_LONG_METHOD);
+//         }
+//      });
 
       //search for the resources of resourcePool
       mockQuery.expects(once()).method(SET_LONG_METHOD).with(new Constraint[]{eq(0), eq(RESOURCE_POOL_ID)}).

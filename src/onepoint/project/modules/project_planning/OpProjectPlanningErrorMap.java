@@ -22,8 +22,9 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING, OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING_NAME);
       registerErrorCode(OpProjectPlanningError.AVAILIBILITY_MODIFIED_WARNING, OpProjectPlanningError.AVAILIBILITY_MODIFIED_WARNING_NAME);
       registerErrorCode(OpProjectPlanningError.AVAILIBILITY_AND_RATES_MODIFIED_WARNING, OpProjectPlanningError.AVAILIBILITY_AND_RATES_MODIFIED_WARNING_NAME);
-      registerErrorCode(OpProjectPlanningError.FILE_READ_ERROR, OpProjectPlanningError.FILE_READ_ERROR_NAME);
-      registerErrorCode(OpProjectPlanningError.FILE_WRITE_ERROR, OpProjectPlanningError.FILE_WRITE_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS_NAME);
       registerErrorCode(OpProjectError.UPDATE_ACCESS_DENIED, OpProjectError.UPDATE_ACCESS_DENIED_NAME);
    }
 }

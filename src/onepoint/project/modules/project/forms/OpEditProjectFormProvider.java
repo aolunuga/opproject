@@ -12,8 +12,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObjectOrderCriteria;
-import onepoint.persistence.OpQuery;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
@@ -27,7 +26,7 @@ import java.util.*;
 
 public class OpEditProjectFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpEditProjectFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpEditProjectFormProvider.class, true);
 
    /**
     * Form field ids and parameter ids.
@@ -47,6 +46,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PROJECT_INFO = "project.Info";
    private final static String NO_STATUS = "NoStatus";
    private final static String NULL_ID = "null";
+   private final static String PERMISSIONS_TAB = "PermissionsTab";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -77,8 +77,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       // Downgrade edit mode to view mode if no manager access
       byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER))
+      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
          edit_mode = Boolean.FALSE;
+      }
 
       // Fill edit-user form with user data
       form.findComponent(PROJECT_ID).setStringValue(id_string);
@@ -96,7 +97,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       budget.setDoubleValue(project.getBudget());
 
       //Fill status data set
-      Iterator statusIterator = getProjectStatusIterator(broker);
+      Iterator statusIterator = OpProjectDataSetFactory.getProjectStatusIterator(broker);
       XComponent statusDataSet = form.findComponent(PROJECT_STATUS_DATA_SET);
       OpProjectStatus projectStatus = project.getStatus();
       String nullChoice = XValidator.choice(NULL_ID, session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(NO_STATUS).getText());
@@ -216,18 +217,22 @@ public class OpEditProjectFormProvider implements XFormProvider {
       }
       form.findComponent("RemoveVersionButton").setVisible(isButtonVisible);
 
-      // Locate permission data set in form
-      XComponent permissionSet = form.findComponent(PERMISSION_SET);
-
-      OpPermissionSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
-            OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
-      OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+      if (OpInitializer.isMultiUser()) {
+         // Locate permission data set in form
+         XComponent permissionSet = form.findComponent(PERMISSION_SET);
+         OpPermissionSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
+              OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
+         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+      }
+      else {
+         form.findComponent(PERMISSIONS_TAB).setHidden(true);
+      }
 
       Iterator assignments = project.getAssignments().iterator();
       data_set = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
       //fill assigned resources set
-      while(assignments.hasNext()){
-         OpProjectNodeAssignment assignment = (OpProjectNodeAssignment)assignments.next();
+      while (assignments.hasNext()) {
+         OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
          OpResource resource = assignment.getResource();
          data_row = new XComponent(XComponent.DATA_ROW);
          data_row.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
@@ -239,24 +244,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
       broker.close();
    }
 
-   //<FIXME author="Mihai Costin" description="Should be moved from this class"
-   public static Iterator getProjectStatusIterator(OpBroker broker) {
-      //configure project status sort order
-      Map sortOrder = new HashMap(1);
-      sortOrder.put(OpProjectStatus.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
-      OpObjectOrderCriteria categoryOrderCriteria = new OpObjectOrderCriteria(OpProjectStatus.PROJECT_STATUS, sortOrder);
-      OpQuery query = broker.newQuery("select status from OpProjectStatus as status where status.Active=true " + categoryOrderCriteria.toHibernateQueryString("status"));
-      Iterator projectStatusItr = broker.iterate(query);
-      return projectStatusItr;
-   }
-   //</FIXME>
-
-
-
    /**
     * Fills a data-set with all the versions of a project.
-    * @param form a <code>XComponent(FORM)</code> representing the current form.
-    * @param projectPlan a <code>OpProjectPlan</code> representing a project's plan.
+    *
+    * @param form                 a <code>XComponent(FORM)</code> representing the current form.
+    * @param projectPlan          a <code>OpProjectPlan</code> representing a project's plan.
     * @param userObjectsLocalizer a <code>XLocalizer</code> representing a localizer that is used to get the i18n display names.
     */
    private void fillVersionsDataSet(XComponent form, OpProjectPlan projectPlan, XLocalizer userObjectsLocalizer) {
