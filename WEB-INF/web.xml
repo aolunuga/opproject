@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!DOCTYPE web-app
-    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-    "http://java.sun.com/dtd/web-app_2_3.dtd">
+     PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+     "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
 
@@ -12,26 +12,26 @@
    </description>
 
    <servlet>
-        <servlet-name>OpProjectServlet</servlet-name>
-        <servlet-class>onepoint.project.servlet.OpProjectServlet</servlet-class>
-        <init-param>
-           <param-name>webimages_path</param-name>
-           <param-value>opproject/images/</param-value>
-        </init-param>
-        <init-param>
-           <param-name>applet_codebase</param-name>
-           <param-value>opproject/applet</param-value>
-        </init-param>
-        <init-param>
-           <param-name>applet_archive</param-name>
-           <param-value>express4j-client.jar,opproject-client-06.1.jar,jcookie-0.8b.jar</param-value>
-        </init-param>
-    </servlet>
+      <servlet-name>OpProjectServlet</servlet-name>
+      <servlet-class>onepoint.project.servlet.OpOpenServlet</servlet-class>
+      <init-param>
+         <param-name>webimages_path</param-name>
+         <param-value>opproject/images/</param-value>
+      </init-param>
+      <init-param>
+         <param-name>applet_codebase</param-name>
+         <param-value>opproject/applet</param-value>
+      </init-param>
+      <init-param>
+         <param-name>applet_archive</param-name>
+         <param-value>express4j-client-06.1.jar,opproject-client-06.1-be.jar,jcookie-0.8b.jar</param-value>
+      </init-param>
+   </servlet>
 
-    <servlet-mapping>
-        <servlet-name>OpProjectServlet</servlet-name>
-        <url-pattern>/service</url-pattern>
-    </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>OpProjectServlet</servlet-name>
+      <url-pattern>/service</url-pattern>
+   </servlet-mapping>
    <session-config>
       <session-timeout>720</session-timeout>
    </session-config>
