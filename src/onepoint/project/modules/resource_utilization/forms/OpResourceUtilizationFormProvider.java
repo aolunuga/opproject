@@ -16,9 +16,8 @@ import onepoint.project.modules.resource_utilization.OpResourceUtilizationDataSe
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 
 public class OpResourceUtilizationFormProvider implements XFormProvider {
@@ -50,7 +49,7 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      
+
       XComponent dataSet = form.findComponent(UTILIZATION_DATA_SET);
       XComponent dataRow;
       XLanguageResourceMap map = session.getLocale().getResourceMap(RESOURCE_MAP);
@@ -58,7 +57,7 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
       //prepare the utilization legend data set
       XComponent legendDataSet = form.findComponent(UTILIZATION_LEGEND_DATA_SET);
       XComponent dataCell;
-      
+
       //HIGHLY_UNDERUSED -> BACKGROUND
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -84,7 +83,7 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setStringValue(map.getResource(NORMALUSE).getText());
       dataRow.addChild(dataCell);
-      dataCell = new XComponent(XComponent.DATA_CELL);      
+      dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setValue(XStyle.DEFAULT_GREEN);
       dataRow.addChild(dataCell);
       legendDataSet.addChild(dataRow);
@@ -98,7 +97,7 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
       dataCell.setValue(XStyle.DEFAULT_ORANGE);
       dataRow.addChild(dataCell);
       legendDataSet.addChild(dataRow);
-      
+
       //HIGHLY_OVERUSED -> RED
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -109,29 +108,33 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
       legendDataSet.addChild(dataRow);
 
+      Integer index;
+      Map poolColumnsSelector = new HashMap();
 
-      List poolColumnsSelector = new ArrayList();
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTOR));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NAME));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      poolColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      List resourceColumnsSelector = new ArrayList();
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTOR));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.NAME));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.AVAILABLE));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.NULL));
-      resourceColumnsSelector.add(new Integer(OpResourceDataSetFactory.ID));
+      index = new Integer(OpProjectComponent.UTILIZATION_DESCRIPTOR_COLUMN_INDEX);
+      poolColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.DESCRIPTOR));
+      index = new Integer(OpProjectComponent.UTILIZATION_NAME_COLUMN_INDEX);
+      poolColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.NAME));
+      index = new Integer(OpProjectComponent.UTILIZATION_ROW_ID);
+      //needed because we want for the pools and resources to have the same nr. of cells
+      poolColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.NULL));
+
+      Map resourceColumnsSelector = new HashMap();
+      index = new Integer(OpProjectComponent.UTILIZATION_DESCRIPTOR_COLUMN_INDEX);
+      resourceColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.DESCRIPTOR));
+      index = new Integer(OpProjectComponent.UTILIZATION_NAME_COLUMN_INDEX);
+      resourceColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.NAME));
+      index = new Integer(OpProjectComponent.UTILIZATION_AVAILABLE_COLUMN_INDEX);
+      resourceColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.AVAILABLE));
+      index = new Integer(OpProjectComponent.UTILIZATION_ROW_ID);
+      resourceColumnsSelector.put(index, new Integer(OpResourceDataSetFactory.ID));
+
       OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, poolColumnsSelector, resourceColumnsSelector, null);
 
       form.findComponent(POOL_SELECTOR).setValue(poolColumnsSelector);
       form.findComponent(RESOURCE_SELECTOR).setValue(resourceColumnsSelector);
 
-      OpResourceUtilizationDataSetFactory.calculateUtilizationValues(dataSet, session);
+      OpResourceUtilizationDataSetFactory.fillUtilizationValues(session, dataSet, null);
 
    }
 

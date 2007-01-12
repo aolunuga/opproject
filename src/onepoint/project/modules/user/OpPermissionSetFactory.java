@@ -9,6 +9,8 @@ import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpQuery;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocale;
@@ -84,7 +86,7 @@ public class OpPermissionSetFactory {
       permission.setAccessLevel(OpPermission.ADMINISTRATOR);
       broker.makePersistent(permission);
    }
-  
+
 
    public static void administratePermissionTab(XComponent form, boolean editMode, byte accessLevel) {
       // Only administrator access allows to edit permission tab
@@ -198,7 +200,7 @@ public class OpPermissionSetFactory {
                permissionRow.setOutlineLevel(1);
                subject = permission.getSubject();
                //don't use s[ubject instance of OpGroup] becouse of Hibernate's "proxy problem" when using polymorphic collections
-               if (subject.getPrototype().getName().equals(OpGroup.GROUP)){
+               if (subject.getPrototype().getName().equals(OpGroup.GROUP)) {
                   iconIndex = GROUP_ICON_INDEX;
                }
                else {
@@ -214,7 +216,7 @@ public class OpPermissionSetFactory {
    }
 
 
-   private static boolean checkPermissionsAgainstLevel(OpBroker broker, XComponent permissionSet){
+   private static boolean checkPermissionsAgainstLevel(OpBroker broker, XComponent permissionSet) {
       XComponent permissionRow = null;
       byte accessLevel = 0;
       String subjectLocator = null;
@@ -259,10 +261,16 @@ public class OpPermissionSetFactory {
     * @param broker        a <code>OpBroker</code>
     * @param object        a <code>XProject</code> or a <code>XProjectPorfolio</code> instance
     * @param permissionSet a <code>XComponent.DATA_SET</code> of permissions
+    * @return true if the permissions were stored ok, false otherwise.
     */
    public static boolean storePermissionSet(OpBroker broker, OpObject object, XComponent permissionSet) {
 
-      if (!checkPermissionsAgainstLevel(broker, permissionSet)){
+      if (!OpInitializer.isMultiUser() && permissionSet.getChildCount() == 0) {
+         //set administrator permission on object (if not set already)
+         return createAdministratorPermissions(object, broker);
+      }
+
+      if (!checkPermissionsAgainstLevel(broker, permissionSet)) {
          return false;
       }
 
@@ -298,7 +306,6 @@ public class OpPermissionSetFactory {
                }
             }
          }
-
       }
       else {
 
@@ -373,6 +380,32 @@ public class OpPermissionSetFactory {
    }
 
    /**
+    * Sets administrator permission on the given object (if not already set).
+    *
+    * @param object Object to set the permissions on.
+    * @param broker Broker object to use for db access.
+    * @return true if the permissions were set on the object (or if the permissions were already on the object).
+    */
+   private static boolean createAdministratorPermissions(OpObject object, OpBroker broker) {
+      Set permissions = object.getPermissions();
+      if (permissions == null || permissions.isEmpty()) {
+         OpQuery query = broker.newQuery(OpUser.ADMINISTRATOR_ID_QUERY);
+         List result = broker.list(query);
+         if (result.size() != 1) {
+            return false;
+         }
+         Long adminId = (Long) result.get(0);
+         OpUser admin = (OpUser) broker.getObject(OpUser.class, adminId.longValue());
+         OpPermission permission = new OpPermission();
+         permission.setObject(object);
+         permission.setSubject(admin);
+         permission.setAccessLevel(OpPermission.ADMINISTRATOR);
+         broker.makePersistent(permission);
+      }
+      return true;
+   }
+
+   /**
     * Removes from the <code>permissionSet</code> all permission rows which have the same locator as <code>permissionRow</code>
     * and access level lower than <code>permissionAccessLevel</code>.The navigation in the <code>permissionSet</code> is
     * performed downwords from the index of the <code>permissionRow</code>.
@@ -392,8 +425,7 @@ public class OpPermissionSetFactory {
             accessLevel = ((XComponent) row.getChild(ACCESS_LEVEL_COLUMN_INDEX)).getByteValue();
          }
          else {
-            if (subjectLocator.equals(XValidator.choiceID(row.getStringValue())) && (permissionAccessLevel >= accessLevel))
-            {
+            if (subjectLocator.equals(XValidator.choiceID(row.getStringValue())) && (permissionAccessLevel >= accessLevel)) {
                removePermissionRows(permissionSet, row, accessLevel);
                permissionSet.removeChild(i);
             }
@@ -408,11 +440,11 @@ public class OpPermissionSetFactory {
     *
     * @param permissionSet <code>XComponent.DATA_SET</code> of permissions
     */
-   private static void removeSystemManagedPermissionRows(XComponent permissionSet){
+   private static void removeSystemManagedPermissionRows(XComponent permissionSet) {
       XComponent permissionRow;
-      for (int i = permissionSet.getChildCount() - 1; i >=0; i--) {
-         permissionRow = (XComponent)permissionSet.getChild(i);
-         if (!permissionRow.getEnabled()){ //system managed
+      for (int i = permissionSet.getChildCount() - 1; i >= 0; i--) {
+         permissionRow = (XComponent) permissionSet.getChild(i);
+         if (!permissionRow.getEnabled()) { //system managed
             permissionSet.removeChild(i);
          }
       }
@@ -420,9 +452,10 @@ public class OpPermissionSetFactory {
 
    /**
     * Copies permissions from one object to another.
+    *
     * @param broker a <code>OpBroker</code> used for persisting data.
-    * @param from an <code>OpObject</code> representing the source object (where to copy the permissions from)
-    * @param to an <code>OpObject</code> representing the destination object (where to copy the permissions to)
+    * @param from   an <code>OpObject</code> representing the source object (where to copy the permissions from)
+    * @param to     an <code>OpObject</code> representing the destination object (where to copy the permissions to)
     */
    public static void copyPermissions(OpBroker broker, OpObject from, OpObject to) {
       Set fromPermissions = from.getPermissions();
@@ -430,7 +463,7 @@ public class OpPermissionSetFactory {
          return;
       }
       Set newPermissions = new HashSet(fromPermissions.size());
-      for (Iterator it = fromPermissions.iterator(); it.hasNext(); ) {
+      for (Iterator it = fromPermissions.iterator(); it.hasNext();) {
          OpPermission fromPermission = (OpPermission) it.next();
 
          OpPermission toPermission = new OpPermission();

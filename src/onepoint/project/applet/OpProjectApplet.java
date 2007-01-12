@@ -21,7 +21,11 @@ public class OpProjectApplet extends XExpressApplet {
     * Various applet constants.
     */
    private final static String APPLET_LOADED = "OnePoint Applet already loaded in another browser window. Please close it and try again.";
-   private final static String WAR_NAME = "opproject";
+
+   /**
+    * Default war name (in case the server doesn't send an explicit one).
+    */
+   private final static String DEFAULT_CONTEXT_PATH = "opproject";
 
    /**
     * Registers project proxies.
@@ -36,7 +40,7 @@ public class OpProjectApplet extends XExpressApplet {
    protected String getAppletPath() {
       String path = super.getAppletPath();
       if (path == null) {
-         path = "/" + WAR_NAME + "/service";
+         path = "/" + DEFAULT_CONTEXT_PATH + "/service";
       }
       return path;
    }

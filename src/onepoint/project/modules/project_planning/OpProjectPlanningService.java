@@ -30,7 +30,6 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -67,14 +66,13 @@ public class OpProjectPlanningService extends OpProjectService {
 
    private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
 
-   public XMessage importActivities(XSession s, XMessage request) {
+   public XMessage importActivities(OpProjectSession session, XMessage request) {
 
       String projectId = (String) (request.getArgument(PROJECT_ID));
       boolean editMode = ((Boolean) (request.getArgument(EDIT_MODE))).booleanValue();
       byte[] file = (byte[]) (request.getArgument(BYTES_ARRAY_FIELD));
 
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
       OpProjectPlan projectPlan = project.getPlan();
@@ -91,7 +89,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       //edit if !edit_mode
       if (!editMode) {
-         reply = editActivities(s, request);
+         reply = editActivities(session, request);
          if (reply.getError() != null) {
             return reply;
          }
@@ -99,14 +97,14 @@ public class OpProjectPlanningService extends OpProjectService {
 
       //save
       request.setArgument(ACTIVITY_SET, dataSet);
-      reply = saveActivities(s, request);
+      reply = saveActivities(session, request);
       if (reply != null && reply.getError() != null) {
          return reply;
       }
 
       //check in if !edit_mode
       if (!editMode) {
-         reply = checkInActivities(s, request);
+         reply = checkInActivities(session, request);
          if (reply != null && reply.getError() != null) {
             return reply;
          }
@@ -115,9 +113,8 @@ public class OpProjectPlanningService extends OpProjectService {
       return reply;
    }
 
-   public XMessage exportActivities(XSession s, XMessage request) {
+   public XMessage exportActivities(OpProjectSession session, XMessage request) {
 
-      OpProjectSession session = (OpProjectSession) s;
       XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
       String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
       XMessage response = new XMessage();
@@ -152,10 +149,8 @@ public class OpProjectPlanningService extends OpProjectService {
       return reply;
    }
 
-   public XMessage editActivities(XSession s, XMessage request) {
+   public XMessage editActivities(OpProjectSession session, XMessage request) {
       // Set persistent lock for current user (working project plan version is created on first save)
-      OpProjectSession session = (OpProjectSession) s;
-
       String project_id_string = (String) (request.getArgument(PROJECT_ID));
       OpBroker broker = session.newBroker();
 
@@ -299,13 +294,11 @@ public class OpProjectPlanningService extends OpProjectService {
    /**
     * Saves the given activity set. Will serialize the activity set and set it as the plan for the working version.
     *
-    * @param s       The session used
+    * @param session       The session used
     * @param request The request that contains the parameters required by the save process
     * @return A message that will contain error messages if something went wrong
     */
-   public XMessage saveActivities(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage saveActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.saveActivities");
       String project_id_string = (String) (request.getArgument(PROJECT_ID));
 
@@ -386,9 +379,7 @@ public class OpProjectPlanningService extends OpProjectService {
       return null;
    }
 
-   public XMessage checkInActivities(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage checkInActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.checkInActivities");
 
       String project_id_string = (String) (request.getArgument(PROJECT_ID));
@@ -426,13 +417,6 @@ public class OpProjectPlanningService extends OpProjectService {
 
       // Check if project plan already exists (create if not)
       OpProjectPlan projectPlan = project.getPlan();
-      if (projectPlan == null) {
-         projectPlan = new OpProjectPlan();
-         projectPlan.setProjectNode(project);
-         projectPlan.setStart(project.getStart());
-         projectPlan.setFinish(project.getFinish());
-         broker.makePersistent(projectPlan);
-      }
 
       // Archive current project plan to new project plan version
       OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
@@ -485,9 +469,7 @@ public class OpProjectPlanningService extends OpProjectService {
       return null;
    }
 
-   public XMessage revertActivities(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage revertActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.revertActivities");
 
       String project_id_string = (String) (request.getArgument(PROJECT_ID));
@@ -536,7 +518,7 @@ public class OpProjectPlanningService extends OpProjectService {
       return null;
    }
 
-   private void sendProjectNotification(XSession session, String projectName, Map resourceMap) {
+   private void sendProjectNotification(OpProjectSession session, String projectName, Map resourceMap) {
       OpMailMessage message = new OpMailMessage();
 
       // Add users email as cc to mail message
@@ -589,10 +571,9 @@ public class OpProjectPlanningService extends OpProjectService {
       OpMailer.sendMessageAsynchronous(message);
    }
 
-   public XMessage prepareAttachment(XSession s, XMessage request) {
+   public XMessage prepareAttachment(OpProjectSession session, XMessage request) {
       String id_string = (String) (request.getArgument(ATTACHMENT_ID));
 
-      OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
 
       OpObject object = broker.getObject(id_string);
@@ -647,11 +628,11 @@ public class OpProjectPlanningService extends OpProjectService {
     * From the given content (on the client-side) creates a temporary file on the server.
     * This method is used to open document attachments for the remote case.
     *
-    * @param s       a <code>XSession</code> representing the application session.
+    * @param s       a <code>OpProjectSession</code> representing the application session.
     * @param request a <code>XMessage</code> representing the client request.
     * @return an <code>XMessage</code> representing the client response.
     */
-   public XMessage createTemporaryFile(XSession s, XMessage request) {
+   public XMessage createTemporaryFile(OpProjectSession s, XMessage request) {
       Map parameters = (Map) request.getArgument("parameters");
       byte[] content = (byte[]) parameters.get(CONTENT);
       String fileName = (String) parameters.get(FILE_NAME);
@@ -701,9 +682,7 @@ public class OpProjectPlanningService extends OpProjectService {
       return null;
    }
 
-   public XMessage insertComment(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage insertComment(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.insertComment()");
       HashMap comment_data = (HashMap) (request.getArgument(COMMENT_DATA));
 
@@ -786,9 +765,7 @@ public class OpProjectPlanningService extends OpProjectService {
       return reply;
    }
 
-   public XMessage deleteComment(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage deleteComment(OpProjectSession session, XMessage request) {
       String comment_id = (String) request.getArgument(COMMENT_ID);
       logger.debug("OpProjectAdministrationService.deleteComments(): comment_ids = " + comment_id);
 

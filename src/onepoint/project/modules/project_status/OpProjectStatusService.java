@@ -13,7 +13,6 @@ import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectStatus;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 
 import java.util.*;
 
@@ -36,9 +35,7 @@ public class OpProjectStatusService extends OpProjectService {
 
    public final static OpProjectStatusErrorMap ERROR_MAP = new OpProjectStatusErrorMap();
 
-   public XMessage insertProjectStatus(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage insertProjectStatus(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectStatusService.insertProjectStatus()");
 
       if (!session.userIsAdministrator()) {
@@ -97,9 +94,7 @@ public class OpProjectStatusService extends OpProjectService {
       return reply;
    }
 
-   public XMessage updateProjectStatus(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updateProjectStatus(OpProjectSession session, XMessage request) {
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
@@ -159,9 +154,8 @@ public class OpProjectStatusService extends OpProjectService {
       return reply;
    }
 
-   public XMessage move(XSession s, XMessage request) {
+   public XMessage move(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
 
       if (!session.userIsAdministrator()) {
          XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
@@ -230,9 +224,7 @@ public class OpProjectStatusService extends OpProjectService {
    }
 
 
-   public XMessage deleteProjectStatus(XSession s, XMessage request) {
-
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage deleteProjectStatus(OpProjectSession session, XMessage request) {
 
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();

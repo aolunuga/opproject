@@ -71,4 +71,30 @@ public final class OpMySqlStatement implements OpSqlStatement {
       result.append(";");
       return result.toString();
    }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getDropFKConstraintStatement(String, String)
+    */
+   public String getDropFKConstraintStatement(String tableName, String fkConstraintName) {
+      StringBuffer result = new StringBuffer();
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append(" DROP FOREIGN KEY ");
+      result.append(fkConstraintName);
+      result.append(";");
+      return result.toString();
+   }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getDropIndexConstraintStatement(String, String)
+    */
+   public String getDropIndexConstraintStatement(String tableName, String indexName) {
+      StringBuffer result = new StringBuffer();
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append(" DROP INDEX ");
+      result.append(indexName);
+      result.append(";");
+      return result.toString();
+   }
 }

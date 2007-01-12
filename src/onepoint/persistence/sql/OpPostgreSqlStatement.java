@@ -45,7 +45,7 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
    }
 
    /**
-    * @see OpSqlStatement#getAlterColumnTypeStatement(String, String, int)
+    * @see OpSqlStatement#getAlterColumnTypeStatement(String,String,int)
     */
    public String getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
       StringBuffer result = new StringBuffer();
@@ -68,6 +68,30 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
       result.append("DROP TABLE ");
       result.append(tableName);
       result.append(";");
+      return result.toString();
+   }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getDropFKConstraintStatement(String,String)
+    */
+   public String getDropFKConstraintStatement(String tableName, String fkConstraintName) {
+      StringBuffer result = new StringBuffer();
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append(" DROP CONSTRAINT ");
+      result.append(fkConstraintName);
+      result.append(" CASCADE;");
+      return result.toString();
+   }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getDropIndexConstraintStatement(String,String)
+    */
+   public String getDropIndexConstraintStatement(String tableName, String indexName) {
+      StringBuffer result = new StringBuffer();
+      result.append("DROP INDEX ");
+      result.append(indexName);
+      result.append(" CASCADE;");
       return result.toString();
    }
 }

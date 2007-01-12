@@ -19,29 +19,19 @@ public class OpGanttValidator extends XValidator {
    // TODO: Efforts of collection activities are to be handled differently
    // (Check for type COLLECTION in update finish, effort und duration)
    // *** Note: Also simplification possible for milestones
+   // *** Note that we assume a certain number and order of columns
 
    // Component IDs of additional data holders
-   private final static String ABSENCES_START = "AbsencesStart";
-   private final static String ABSENCES_SET = "AbsencesSet";
    public final static String ASSIGNMENT_SET = "AssignmentSet";
    public final static String PROJECT_START = "ProjectStartField";
-   private final static String PROJECT_FINISH = "ProjectFinishField";
    public final static String PROJECT_SETTINGS_DATA_SET = "ProjectSettingsDataSet";
+
+   private final static String ABSENCES_START = "AbsencesStart";
+   private final static String ABSENCES_SET = "AbsencesSet";
+   private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
 
    private static final XLog logger = XLogFactory.getLogger(OpGanttValidator.class);
-
-   // *** Note that we assume a certain number and order of columns
-
-   // *** Maybe index-changes go to validator?
-   // ==> Vaidator has to be informed about row-inserts and deletes
-
-   // *** insert/deleteRow: Rewrite all affected index-references
-   // ==> Should be called *before* row is deleted
-   // *** As we use bi-directional references we can find counterparts
-   // ==> Just check for predecessors/successors and update them; validate
-
-   // *** "Counter-idea": Let validator just be an invisible component?
 
    // Activity set column indexes (main data set)
    public final static int NAME_COLUMN_INDEX = 0;
@@ -83,6 +73,7 @@ public class OpGanttValidator extends XValidator {
    public final static byte TASK = 3;
    public final static byte COLLECTION_TASK = 4;
    public final static byte SCHEDULED_TASK = 5;
+   public final static byte ADHOC_TASK = 6;
 
    // Calculation modes
    public static final String CALCULATION_MODE = "CalculationMode";
@@ -120,6 +111,8 @@ public class OpGanttValidator extends XValidator {
    private Date absencesStart;
    private XComponent assignmentSet;
    private Boolean projectTemplate;
+   private Double projectCost;
+   private Double projectEffort;
 
    public final static String LOOP_EXCEPTION = "LoopException";
    public final static String ASSIGNMENT_EXCEPTION = "AssignmentException";
@@ -1143,7 +1136,7 @@ public class OpGanttValidator extends XValidator {
     * @return true if the activity is a task or a collection task
     */
    public static boolean isTaskType(XComponent activity) {
-      return getType(activity) == TASK || getType(activity) == COLLECTION_TASK;
+      return getType(activity) == TASK || getType(activity) == COLLECTION_TASK || getType(activity) == ADHOC_TASK;
    }
 
    /**
@@ -5919,6 +5912,54 @@ public class OpGanttValidator extends XValidator {
          double hourlyRate = ((Double) hourlyRates.get(resourceLocator)).doubleValue();
          setBasePersonnelCosts(task, hourlyRate * getBaseEffort(task));
       }
+   }
+
+   public void setProjectCost(Double cost) {
+      projectCost = cost;
+   }
+
+   public void setProjectEffort(Double effort) {
+      projectEffort = effort;
+   }
+
+   /**
+    * @return The base cost associated with a project (Sum of all the lvl 0 activity costs)
+    */
+   public double getProjectCost() {
+      if (projectCost == null) {
+         double costs = 0;
+         //calculate project costs from data set
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent row = (XComponent) data_set.getChild(i);
+            if (row.getOutlineLevel() == 0) {
+               costs += getBaseExternalCosts(row);
+               costs += getBaseMaterialCosts(row);
+               costs += getBaseMiscellaneousCosts(row);
+               costs += getBasePersonnelCosts(row);
+               costs += getBaseTravelCosts(row);
+            }
+         }
+         projectCost = new Double(costs);
+      }
+      return projectCost.doubleValue();
+   }
+
+   /**
+    * @return The base effort associated with a project (Sum of all the lvl 0 activity efforts)
+    */
+   public double getProjectEffort() {
+      if (projectEffort == null) {
+         double effort = 0;
+         //calculate project effort from data set
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent row = (XComponent) data_set.getChild(i);
+            if (row.getOutlineLevel() == 0) {
+               effort += getBaseEffort(row);
+            }
+         }
+         projectEffort = new Double(effort);
+      }
+      return projectEffort.doubleValue();
    }
 
 }

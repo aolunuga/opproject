@@ -57,7 +57,7 @@ public final class OpResourceDataSetFactory {
     * @param childrenOutlineLevel    Outline level of the sub-rows
     * @param filteredLocators        List of locators to be removed from the final result
     */
-   public static void retrieveResourceDataSet(OpProjectSession session, XComponent dataSet, List poolColumnsSelector, List resourceColumnsSelector, long poolId, int childrenOutlineLevel, List filteredLocators) {
+   public static void retrieveResourceDataSet(OpProjectSession session, XComponent dataSet, Map poolColumnsSelector, Map resourceColumnsSelector, long poolId, int childrenOutlineLevel, List filteredLocators) {
       // Localizer is used in order to localize name and description of root resource pool
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
@@ -73,7 +73,7 @@ public final class OpResourceDataSetFactory {
     * @param resourceColumnsSelector
     * @param filteredLocators
     */
-   public static void retrieveFirstLevelsResourceDataSet(OpProjectSession session, XComponent dataSet, List poolColumnsSelector, List resourceColumnsSelector, List filteredLocators) {
+   public static void retrieveFirstLevelsResourceDataSet(OpProjectSession session, XComponent dataSet, Map poolColumnsSelector, Map resourceColumnsSelector, List filteredLocators) {
       // Localizer is used in order to localize name and description of root resource pool
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(RESOURCE_OBJECTS));
@@ -118,7 +118,7 @@ public final class OpResourceDataSetFactory {
     * @param filteredLocators        List of locators to be filtered out by the factory method
     */
    private static void addSubPoolRows(OpProjectSession session, XComponent dataSet, XLocalizer localizer, long poolId,
-        int childrenOutlineLevel, List poolColumnsSelector, List resourceColumnsSelector, List filteredLocators) {
+        int childrenOutlineLevel, Map poolColumnsSelector, Map resourceColumnsSelector, List filteredLocators) {
 
       OpBroker broker = session.newBroker();
       OpQuery query = null;
@@ -156,7 +156,6 @@ public final class OpResourceDataSetFactory {
       OpResourcePool subPool = null;
       XComponent dataRow = null;
       XComponent dataCell = null;
-      int i = 0;
 
       while (subPools.hasNext()) {
          subPool = (OpResourcePool) (subPools.next());
@@ -170,9 +169,17 @@ public final class OpResourceDataSetFactory {
          if (poolColumnsSelector != null) {
             dataRow.setStringValue(subPool.locator());
             // Add data cells
-            for (i = 0; i < poolColumnsSelector.size(); i++) {
-               dataCell = new XComponent(XComponent.DATA_CELL);
-               int selector = ((Integer) poolColumnsSelector.get(i)).intValue();
+
+            Set keySet = poolColumnsSelector.keySet();
+            Integer max = (Integer) Collections.max(keySet);
+            for (int i = 0; i <= max.intValue(); i++) {
+               dataRow.addChild(new XComponent(XComponent.DATA_CELL));
+            }
+
+            for (Iterator iterator = keySet.iterator(); iterator.hasNext();) {
+               Integer index = (Integer) iterator.next();
+               dataCell = (XComponent) dataRow.getChild(index.intValue());
+               int selector = ((Integer) poolColumnsSelector.get(index)).intValue();
                switch (selector) {
                   case NULL: {
                      break;
@@ -203,7 +210,6 @@ public final class OpResourceDataSetFactory {
                      break;
                   }
                }
-               dataRow.addChild(dataCell);
             }
          }
          else {
@@ -257,9 +263,9 @@ public final class OpResourceDataSetFactory {
    }
 
    private static void addResourceRows(OpProjectSession session, OpBroker broker, XComponent data_set,
-        XLocalizer localizer, long poolId, int outline_level, List columnsSelector, List filteredLocators) {
+        XLocalizer localizer, long poolId, int outline_level, Map columnsSelector, List filteredLocators) {
 
-      OpQuery query = null;
+      OpQuery query;
       if (poolId == -1) {
          query = broker.newQuery("select resource.ID from OpResource as resource where resource.Pool.ID is null");
       }
@@ -270,10 +276,9 @@ public final class OpResourceDataSetFactory {
 
       OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpResource.RESOURCE, OpResource.NAME, OpObjectOrderCriteria.ASCENDING);
       Iterator resources = session.accessibleObjects(broker, broker.list(query), OpPermission.OBSERVER, order);
-      OpResource resource = null;
-      XComponent dataRow = null;
-      XComponent dataCell = null;
-      int i = 0;
+      OpResource resource;
+      XComponent dataRow;
+      XComponent dataCell;
       while (resources.hasNext()) {
          resource = (OpResource) (resources.next());
          if (filteredLocators != null && filteredLocators.contains(resource.locator())) {
@@ -283,10 +288,17 @@ public final class OpResourceDataSetFactory {
          dataRow.setOutlineLevel(outline_level);
          if (columnsSelector != null) {
             dataRow.setStringValue(resource.locator());
-            // Add data cells
-            for (i = 0; i < columnsSelector.size(); i++) {
-               dataCell = new XComponent(XComponent.DATA_CELL);
-               int selector = ((Integer) columnsSelector.get(i)).intValue();
+
+            Set keySet = columnsSelector.keySet();
+            Integer max = (Integer) Collections.max(keySet);
+            for (int i = 0; i <= max.intValue(); i++) {
+               dataRow.addChild(new XComponent(XComponent.DATA_CELL));
+            }
+
+            for (Iterator iterator = keySet.iterator(); iterator.hasNext();) {
+               Integer index = (Integer) iterator.next();
+               dataCell = (XComponent) dataRow.getChild(index.intValue());
+               int selector = ((Integer) columnsSelector.get(index)).intValue();
                switch (selector) {
                   case NULL: {
                      break;
@@ -325,7 +337,6 @@ public final class OpResourceDataSetFactory {
                      break;
                   }
                }
-               dataRow.addChild(dataCell);
             }
          }
          else {

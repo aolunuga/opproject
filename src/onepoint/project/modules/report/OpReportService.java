@@ -18,11 +18,11 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XEnvironment;
 
 import java.io.*;
@@ -73,21 +73,20 @@ public class OpReportService extends OpProjectService {
    public static final String REPORT_NAME = "ReportName";
    public static final String REPORT_QUERY_TYPE = "reportQueryType";
 
-   public XMessage createReport(XSession s, XMessage request) {
+   public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
 
       String name = (String) (request.getArgument(NAME));
       ArrayList formats = (ArrayList) (request.getArgument(FORMATS));
 
-      OpProjectSession session = (OpProjectSession) s;
       StringBuffer pathBuffer = new StringBuffer();
-      OpReportManager xrm = OpReportManager.getReportManager(s);
+      OpReportManager xrm = OpReportManager.getReportManager(session);
 
       try {
          JasperPrint compiledReport = createJasperPrint(session, request);
 
          // TODO: Format ending and location is "too hard-coded"
-         pathBuffer = new StringBuffer(XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME));
+         pathBuffer = new StringBuffer(XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME));
          pathBuffer.append(SAVED_REPORTS_PATH);
          //create the saved reports directory if not exists
          File saveReportsDirectory = new File(pathBuffer.toString());
@@ -124,18 +123,17 @@ public class OpReportService extends OpProjectService {
 
    /**
     * Saves the report content the database.
-    * @param s a <code>XSession</code> representing the current server session.
+    * @param session a <code>OpProjectSession</code> representing the current server session.
     * @param request a <code>XMessage</code> representing the current request.
     * @return a <code>XMessage</code> representing the response.
     */
-   public XMessage saveReport(XSession s, XMessage request) {
+   public XMessage saveReport(OpProjectSession session, XMessage request) {
       String name = (String) (request.getArgument(NAME));
       String reportName = name.substring(0, name.lastIndexOf('.'));
       ArrayList formats = (ArrayList) (request.getArgument(FORMATS));
       String format = (String) formats.get(0);
 
-      OpProjectSession session = (OpProjectSession) s;
-      OpReportManager xrm = OpReportManager.getReportManager(s);
+      OpReportManager xrm = OpReportManager.getReportManager(session);
 
       OpBroker broker = session.newBroker();
       OpTransaction tx = broker.newTransaction();
@@ -496,7 +494,7 @@ public class OpReportService extends OpProjectService {
     * @param s <code>String</code> the session
     * @param request <code>XMessage</code> the request containing as argument the current query type
     */
-   public void setSessionReportQueryType(XSession s, XMessage request){
+   public void setSessionReportQueryType(OpProjectSession s, XMessage request){
       String queryName = (String)request.getArgument(REPORT_QUERY_TYPE);
       s.setVariable(REPORT_QUERY_TYPE,queryName);
 
@@ -507,7 +505,7 @@ public class OpReportService extends OpProjectService {
     * @param s
     * @param request
     */
-   public void reportsCleanUp(XSession s, XMessage request) {
+   public void reportsCleanUp(OpProjectSession s, XMessage request) {
       removeReportFiles();
       OpReportManager manager = OpReportManager.getReportManager(s);
       s.removeResourceInterceptor(manager);
@@ -517,7 +515,7 @@ public class OpReportService extends OpProjectService {
     * Removes all the files in the reports directory
     */
    public static void removeReportFiles() {
-      StringBuffer pathBuffer = new StringBuffer(XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME));
+      StringBuffer pathBuffer = new StringBuffer(XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME));
       pathBuffer.append(SAVED_REPORTS_PATH);
       File saveReportsDirectory = new File(pathBuffer.toString());
       if (saveReportsDirectory.exists()) {

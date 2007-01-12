@@ -61,7 +61,8 @@ function view(event) {
             request.setAction("PlanningService.prepareAttachment");
             request.setArgument("attachment_id", id);
             response = XDisplay.getClient().invokeMethod(request);
-            if (handleError(form, response, "ValidationErrorLabel") == true) {
+            label = form.getErrorLabel();
+            if (handleError(form, response, label) == true) {
                attachmentUrl = response.getArgument("attachmentUrl");
                contentId = response.getArgument("contentId");
                XDisplay.showDocument(attachmentUrl, contentId);

@@ -23,7 +23,6 @@ import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 
 import java.sql.Date;
 import java.util.*;
@@ -59,8 +58,7 @@ public class OpProjectAdministrationService extends OpProjectService {
    private final static String TYPES_PARAMETER = "project_types";
    private final static String TABULAR_PARAMETER = "tabular";
 
-   public XMessage insertProject(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage insertProject(OpProjectSession session, XMessage request) {
 
       // *** TODO: Add start-date of project (maybe also due-date?)
       logger.debug("OpProjectAdministrationService.insertProject()");
@@ -298,9 +296,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       //do nothing here  
    }
 
-   public XMessage updateProject(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updateProject(OpProjectSession session, XMessage request) {
       // *** TODO: Check for other fields that can be updated
       String id_string = (String) (request.getArgument(PROJECT_ID));
       logger.debug("OpProjectAdministrationService.updateProject(): id = " + id_string);
@@ -736,9 +732,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
    }
 
-   public XMessage deleteProjects(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage deleteProjects(OpProjectSession session, XMessage request) {
       ArrayList id_strings = (ArrayList) (request.getArgument(PROJECT_IDS));
       logger.debug("OpProjectAdministrationService.deleteProjects(): project_ids = " + id_strings);
 
@@ -853,9 +847,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return (workRecordNr != null) && (workRecordNr.intValue() > 0);
    }
 
-   public XMessage insertPortfolio(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage insertPortfolio(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.insertPortfolio()");
       HashMap portfolioData = (HashMap) (request.getArgument(PORTFOLIO_DATA));
 
@@ -927,9 +919,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return reply;
    }
 
-   public XMessage updatePortfolio(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updatePortfolio(OpProjectSession session, XMessage request) {
       // *** TODO: Check for other fields that can be updated
       String id_string = (String) (request.getArgument(PORTFOLIO_ID));
       logger.debug("OpProjectAdministrationService.updatePortfolio(): id = " + id_string);
@@ -1008,9 +998,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return reply;
    }
 
-   public XMessage deletePortfolios(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage deletePortfolios(OpProjectSession session, XMessage request) {
       ArrayList id_strings = (ArrayList) (request.getArgument(PORTFOLIO_IDS));
       logger.debug("OpProjectAdministrationService.deletePortfolios(): portfolio_ids = " + id_strings);
 
@@ -1104,8 +1092,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return canDeleteAllProjects;
    }
 
-   public XMessage moveProjectNode(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage moveProjectNode(OpProjectSession session, XMessage request) {
       List projectIds = (List) request.getArgument(PROJECT_IDS);
       String portfolioId = (String) request.getArgument(PORTFOLIO_ID);
 
@@ -1178,7 +1165,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       boolean asTemplate = newProjectPlan.getTemplate();
       // Get minimum activity start date from database (just to be sure)
       OpQuery query = broker
-           .newQuery("select min(activity.Start) from OpActivity as activity where activity.ProjectPlan.ID = ?");
+           .newQuery("select min(activity.Start) from OpActivity as activity where activity.ProjectPlan.ID = ? and activity.Deleted = false");
       query.setLong(0, projectPlan.getID());
       Iterator result = broker.iterate(query);
       if (!result.hasNext()) {
@@ -1259,11 +1246,11 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Expands a project node, for the project administration view.
-    * @param session a <code>XSession</code> representing the application session.
+    * @param projectSession a <code>OpProjectSession</code> representing the application session.
     * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server response.
     */
-   public XMessage expandProjectNode(XSession session, XMessage request) {
+   public XMessage expandProjectNode(OpProjectSession projectSession, XMessage request) {
       XComponent dataRow = (XComponent) request.getArgument(PROJECT_ROW_PARAMETER);
 
       Integer requestedTypes = (Integer) request.getArgument(TYPES_PARAMETER);
@@ -1272,7 +1259,6 @@ public class OpProjectAdministrationService extends OpProjectService {
       Boolean requestedTabular = (Boolean) request.getArgument(TABULAR_PARAMETER);
       boolean tabular = (requestedTabular == null) || requestedTabular.booleanValue();
 
-      OpProjectSession projectSession  = (OpProjectSession) session;
       List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, types, tabular, null);
 
       XMessage reply = new XMessage();
@@ -1282,17 +1268,15 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Expands a project node, for the project chooser view.
-    * @param session a <code>XSession</code> representing the application session.
+    * @param projectSession a <code>OpProjectSession</code> representing the application session.
     * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server response.
     */
-   public XMessage expandProjectChooserNode(XSession session, XMessage request) {
+   public XMessage expandProjectChooserNode(OpProjectSession projectSession, XMessage request) {
       XComponent dataRow = (XComponent) request.getArgument(PROJECT_ROW_PARAMETER);
       List filteredOutIds = (List) request.getArgument(OpProjectDataSetFactory.FILTERED_OUT_IDS);
 
-      OpProjectSession projectSession  = (OpProjectSession) session;
       List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, OpProjectDataSetFactory.ALL_TYPES, false, filteredOutIds);
-
 
       OpProjectDataSetFactory.enableNodes(request.getArgumentsMap(), children);
 

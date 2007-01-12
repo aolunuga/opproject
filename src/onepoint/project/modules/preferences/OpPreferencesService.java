@@ -13,9 +13,11 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.project.util.OpSHA1;
+import onepoint.resource.XLocale;
+import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 
 import java.util.HashMap;
 
@@ -34,12 +36,13 @@ public class OpPreferencesService extends OpProjectService {
    /**
     * Saves the user preferences.
     *
-    * @param s a <code>XSession</code> object representing the current session.
+    * @param session a <code>OpProjectSession</code> object representing the current session.
     * @param request a <code>XMessage</code> representing the current request.
     * @return a response in the form of a <code>XMessage</code> object.
     */
-   public XMessage savePreferences(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage savePreferences(OpProjectSession session, XMessage request) {
+
+      XMessage reply = new XMessage();
 
       HashMap arguments = (HashMap) request.getArgument("preferences");
 
@@ -60,7 +63,14 @@ public class OpPreferencesService extends OpProjectService {
       OpTransaction tx = broker.newTransaction();
       
       //update the language
-      OpUserLanguageManager.updateUserLanguagePreference(broker, currentUser, language);
+      boolean languageChanged = OpUserLanguageManager.updateUserLanguagePreference(broker, currentUser, language);
+      if (languageChanged) {
+         if (!session.getLocale().getID().equals(language)) {
+            XLocale newLocale = XLocaleManager.findLocale(language);
+            session.setLocale(newLocale);
+            reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.valueOf(languageChanged));
+         }
+      }
 
       if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
          //update the password
@@ -86,7 +96,7 @@ public class OpPreferencesService extends OpProjectService {
       tx.commit();
       broker.close();
 
-      return null;
+      return reply;
    }
 
    /**

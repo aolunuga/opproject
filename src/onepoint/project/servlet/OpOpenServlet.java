@@ -14,6 +14,7 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
+import onepoint.util.XEnvironmentManager;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -36,8 +37,8 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * Application constants.
     */
-   public final static String WEBPAGEICON = "opp_windows.ico";
-   public final static String WAR_NAME = "opproject";
+   private final static String WEBPAGEICON = "opp_windows.ico";
+   private final static String DEFAULT_CONTEXT_PATH = "opproject";
 
    /**
     * This class logger.
@@ -50,6 +51,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static String appletCodebase;
    private static String appletArchive;
    private static String imagesPath;
+   private static String servletContextPath;
 
    /**
     * String that indicates whether secure comunication should be used (https)
@@ -64,7 +66,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
    private String project_home;
 
-   public String getProjectHome() {
+   protected String getProjectHome() {
       if (project_home == null) {
          project_home = getServletConfig().getInitParameter("onepoint_home");
          if (project_home == null) {
@@ -84,9 +86,11 @@ public class OpOpenServlet extends XExpressServlet {
       getServer().setSessionClass(OpProjectSession.class);
 
       // Setup environment
-      appletCodebase = getServletConfig().getInitParameter("applet_codebase");
+      initContextPath();
+
+      appletCodebase = servletContextPath + "/" + getServletConfig().getInitParameter("applet_codebase") + "/";
       appletArchive = getServletConfig().getInitParameter("applet_archive");
-      imagesPath = getServletConfig().getInitParameter("webimages_path");
+      imagesPath = servletContextPath + "/" + getServletConfig().getInitParameter("webimages_path") + "/";
 
       Map initParams = OpInitializer.init(getProjectHome(), true);
       //initialize the security feature
@@ -94,6 +98,31 @@ public class OpOpenServlet extends XExpressServlet {
       secureService = secure != null ? secure : "false";
    }
 
+   /**
+    * Initializes the servlet context path
+    */
+   private void initContextPath() {
+      //first check to see whether an explicit value was given via web.xml
+      String contextPathParameter = getServletConfig().getInitParameter("context_path");
+      if (contextPathParameter != null && contextPathParameter.trim().length() > 0) {
+         servletContextPath = contextPathParameter;
+         return;
+      }
+      //if not, attempt to load the value via the real path of the servlet context.
+      String contextPath = this.getServletContext().getRealPath("");
+      if (contextPath == null) {
+         servletContextPath = DEFAULT_CONTEXT_PATH;
+         return;
+      }
+      String separator = XEnvironmentManager.FILE_SEPARATOR;
+      int separatorIndex = contextPath.lastIndexOf(separator);
+      if (separatorIndex != -1) {
+         servletContextPath = contextPath.substring(contextPath.lastIndexOf(separator) + separator.length());
+      }
+      else {
+         servletContextPath = contextPath;
+      }
+   }
 
    public void doGet(HttpServletRequest http_request, HttpServletResponse http_response)
         throws ServletException,
@@ -182,7 +211,7 @@ public class OpOpenServlet extends XExpressServlet {
                 + codebase + "\" archive=\"" + appletArchive + "\">");
       out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
       out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
-      out.println("<param name=\"path\" value=\"/" + WAR_NAME + "/service\">");
+      out.println("<param name=\"path\" value=\"/"+ servletContextPath +"/service\">");
       out.println("<param name=\"start-form\" value=\"" + start_form + "\">");
       out.println("<param name=\"" + OpProjectConstants.RUN_LEVEL + "\" value=\"" + OpInitializer.getRunLevel() + "\">");
       out.println("<param name=\"secure-service\" value=\"" + secureService + "\">");
@@ -391,6 +420,7 @@ public class OpOpenServlet extends XExpressServlet {
     * Checks if the current logged in user has at least view-permissions of the given content.
     * @param session a <code>OpProjectSession</code> representing the server session.
     * @param content a <code>OpContent</code> object representing the content the user is trying to view.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
     * @return <code>true</code> if the user has rights to view the content, false otherwise.
     */
    private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {

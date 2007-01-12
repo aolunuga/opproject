@@ -22,4 +22,7 @@ public interface OpProjectConstants {
    public String DEFAULT_START_FORM = "/forms/login.oxf.xml";
    public String CHILDREN = "children";
    public String DUMMY_ROW_ID = "DummyChildId";
+   public String REFRESH_PARAM = "refresh";
+   //Path to the project package
+   public String PROJECT_PACKAGE = "onepoint/project";
 }

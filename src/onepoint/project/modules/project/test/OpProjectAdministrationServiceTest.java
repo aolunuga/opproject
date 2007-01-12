@@ -5,13 +5,15 @@
 package onepoint.project.modules.project.test;
 
 import onepoint.express.XComponent;
+import onepoint.project.OpInitializer;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.user.OpGroup;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.test.OpServiceAbstractTest;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 import org.jmock.core.Constraint;
 import org.jmock.core.Invocation;
@@ -258,6 +260,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //no projects should be found by find() on broker
       queryResults.clear();
 
+      expectCreateAdminPermission();
+
       // a new broker must be created
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
 
@@ -292,10 +296,20 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(administrationService.insertProject((XSession) mockSession.proxy(), request));
+      assertNoError(administrationService.insertProject((OpProjectSession) mockSession.proxy(), request));
 
    }
 
+   protected void expectCreateAdminPermission() {
+      if (!OpInitializer.isMultiUser()) {
+         mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(OpUser.ADMINISTRATOR_ID_QUERY)).will(methodStub);
+         List adminList = new ArrayList();
+         adminList.add(new Long(SESSION_USER_ID_LONG));
+         mockBroker.expects(once()).method(LIST_METHOD).with(same(query)).will(returnValue(adminList));
+         mockBroker.expects(once()).method(GET_OBJECT_METHOD).will(returnValue(sessionUser));
+         mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).with(isA(OpPermission.class));
+      }
+   }
 
    /**
     * Creates a goal data component
@@ -326,6 +340,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
     * @param complete If the to do was completed
     * @param subject  The subject of this to do
     * @param priority The priority of the to do
+    * @param due
     * @return <code>XComponent<code> representing a DATA_ROW with data for a to do.
     */
    private XComponent createTodoData(boolean complete, String subject, int priority, Date due) {
@@ -407,7 +422,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must not be closed
       mockBroker.expects(never()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.insertProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.insertProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -459,7 +474,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //transaction must not be commited
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
-      XMessage result = administrationService.insertProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.insertProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -506,7 +521,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.insertProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.insertProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -592,7 +607,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.deleteProjects((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.deleteProjects((OpProjectSession) mockSession.proxy(), request);
       assertNull("No Error message should have been returned", result);
    }
 
@@ -645,7 +660,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.deleteProjects((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.deleteProjects((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -681,7 +696,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.moveProjectNode((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.moveProjectNode((OpProjectSession) mockSession.proxy(), request);
       assertNull("No Error message should have been returned", result.getError());
    }
 
@@ -710,7 +725,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.moveProjectNode((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.moveProjectNode((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -739,9 +754,11 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       // a new broker must be created
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+
+      expectCreateAdminPermission();
+
       //get object
       mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(PROJECT_ID)).will(methodStub);
-
       // the check acces level must be performed
       mockSession.expects(once()).method(CHECK_ACCESS_LEVEL_METHOD).will(methodStub);
 
@@ -764,7 +781,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(administrationService.updateProject((XSession) mockSession.proxy(), request));
+      assertNoError(administrationService.updateProject((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -800,11 +817,9 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      //<FIXME author="Ovidiu Lupas" description="Fails becouse error message is missing in case that the project is unexistent">
-      XMessage result = administrationService.updateProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updateProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
-      //</FIXME>
    }
 
    /**
@@ -859,7 +874,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.updateProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updateProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -917,7 +932,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must not be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.updateProject((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updateProject((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -939,6 +954,8 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       // a new broker must be created
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+
+      expectCreateAdminPermission();
 
       //the portfolio is searched for (a portfolio can't be inserted if it's already there)
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_PROJECT_PORTFOLIO_BY_NAME)).will(methodStub);
@@ -991,7 +1008,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(administrationService.insertPortfolio((XSession) mockSession.proxy(), request));
+      assertNoError(administrationService.insertPortfolio((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -1022,7 +1039,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker.close method must not be called
       mockBroker.expects(never()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.insertPortfolio((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.insertPortfolio((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1095,7 +1112,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.insertPortfolio((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.insertPortfolio((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1119,6 +1136,9 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
       // a new broker must be created
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
+
+      expectCreateAdminPermission();
+
       //get object
       mockBroker.expects(once()).method(GET_OBJECT_METHOD).with(eq(PORTFOLIO_ID)).will(methodStub);
 
@@ -1161,7 +1181,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(administrationService.updatePortfolio((XSession) mockSession.proxy(), request));
+      assertNoError(administrationService.updatePortfolio((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -1196,7 +1216,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.updatePortfolio((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updatePortfolio((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1233,7 +1253,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.updatePortfolio((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updatePortfolio((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1289,7 +1309,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.updatePortfolio((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.updatePortfolio((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1377,7 +1397,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(administrationService.deletePortfolios((XSession) mockSession.proxy(), request));
+      assertNoError(administrationService.deletePortfolios((OpProjectSession) mockSession.proxy(), request));
    }
 
    /**
@@ -1427,7 +1447,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = administrationService.deletePortfolios((XSession) mockSession.proxy(), request);
+      XMessage result = administrationService.deletePortfolios((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }

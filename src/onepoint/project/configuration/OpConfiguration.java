@@ -15,15 +15,6 @@ import java.util.Map;
  */
 public class OpConfiguration {
 
-   //Path to the project package
-   public final static String PROJECT_PACKAGE = "onepoint/project";
-
-   //Name of Windows OS environment variable
-   public static final String ONEPOINT_HOME = "ONEPOINT_HOME";
-
-   //hard-coded db schema version number
-   public static final int SCHEMA_VERSION = 3;
-
    /**
     * Map of database drivers. Contains [database_type,datatabase driver] entries.
     */
@@ -54,6 +45,10 @@ public class OpConfiguration {
    private String logFile;
    private String logLevel;
    private String secureService;
+   /**
+    * Name of the default backup directory
+    */
+   private String backupPath = "backup";
 
    /**
     * Flag that indicates whether source debugging should be used or not for script files.
@@ -144,6 +139,25 @@ public class OpConfiguration {
     */
    public void setSecureService(String secureService) {
       this.secureService = secureService;
+   }
+
+
+   /**
+    * Gets the backup path, representing either a relative or an absolute directory name.
+    *
+    * @return a <code>String</code> representing the backup path.
+    */
+   public String getBackupPath() {
+      return backupPath;
+   }
+
+   /**
+    * Sets the backup path.
+    *
+    * @param backupPath a <code>String</code> representing a backup directory.
+    */
+   public void setBackupPath(String backupPath) {
+      this.backupPath = backupPath;
    }
 
    /**

@@ -13,10 +13,9 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
+import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
 import onepoint.service.server.XSession;
-import onepoint.util.XCalendar;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,8 +39,6 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       OpWorkSlip workSlip = (OpWorkSlip) broker.getObject(workSlipLocator);
 
-      int weeks = 8; // TODO: Make #weeks configurable
-      Date start = new Date(System.currentTimeMillis() + XCalendar.MILLIS_PER_WEEK * weeks);      
 
       XComponent data_row;
       OpAssignment assignment;
@@ -59,7 +56,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
 
       //the activities newly added in the data set
       XComponent newActivitiesDataSet = (XComponent) parameters.get(NEW_ACTIVITIES);
-      if (newActivitiesDataSet!= null) {
+      if (newActivitiesDataSet != null) {
          for (int i = 0; i < newActivitiesDataSet.getChildCount(); i++) {
             XComponent dataRow = (XComponent) newActivitiesDataSet.getChild(i);
             long activityId = dataRow.getLongValue();
@@ -88,7 +85,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
 
-      result = OpNewWorkSlipFormProvider.getAssignments(broker, resourceIds, activityTypes, start, OpNewWorkSlipFormProvider.ALL_PROJECTS_SELECTION);
+      result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
 
       while (result.hasNext()) {
          record = (Object[]) result.next();
@@ -106,7 +103,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
          }
 
          //activity name to be displayed
-         data_row = OpNewWorkSlipFormProvider.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
+         data_row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
          String caption = ((XComponent) data_row.getChild(0)).getStringValue();
          data_row.setStringValue(caption);
 

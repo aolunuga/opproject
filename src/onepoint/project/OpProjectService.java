@@ -4,7 +4,10 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
+import onepoint.service.XMessage;
 import onepoint.service.server.XService;
+
+import java.lang.reflect.Method;
 
 public class OpProjectService extends XService {
 
@@ -21,5 +24,20 @@ public class OpProjectService extends XService {
       logger.info("Finalizing session...");
       transaction.rollback();
       broker.close();
+   }
+
+
+   /**
+    * @see onepoint.service.server.XService#findInstanceMethod(String)  
+    */
+   protected Method findInstanceMethod(String methodName)
+        throws NoSuchMethodException {
+      try {
+         Class clazz = this.getClass();
+         return clazz.getMethod(methodName, new Class[] {OpProjectSession.class, XMessage.class});
+      }
+      catch (NoSuchMethodException e) {
+         return super.findInstanceMethod(methodName);
+      }
    }
 }

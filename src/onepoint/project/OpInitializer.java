@@ -16,13 +16,16 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.module.OpModuleManager;
+import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.user.OpUserService;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
 import onepoint.util.XEnvironment;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,6 +37,7 @@ import java.util.Map;
  * Service class responsible for performing application initialization steps
  *
  * @author ovidiu.lupas
+ *         <FIXME author="Horia Chiorean" description="Not very OO-oriented that this class is static...(same as the 'factories')/>
  */
 public class OpInitializer {
 
@@ -41,32 +45,37 @@ public class OpInitializer {
    public static String RESOURCE_CACHE_SIZE = "cacheSize";
    public static String SECURE_SERVICE = "secureService";
 
+   //hard-coded db schema version number
+   private static final int SCHEMA_VERSION = 3;
+
+   //class logger
+   private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
+
    /**
     * Run level of the application.
     */
-   private static byte runLevel;
+   private static byte runLevel = 0;
 
    /**
     * Success Run Level.
     */
-   private static byte successRunLevel;
+   private static byte successRunLevel = 6;
 
-   private static String errorId;
-   private static String errorMapId;
    private static int connectionTestCode = OpConnectionManager.SUCCESS;
 
-   /*init params map that will be returned after initialization is performed */
+   //init params map that will be returned after initialization is performed
    private static Map initParams = new HashMap();
-   /*class logger */
-   private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
-   private static boolean emptyDB;
 
    /**
     * Flag indicating whether the application is multi-user or not.
     */
    private static boolean multiUser = false;
 
-   /*this class should not be instantiated */
+   private static OpConfiguration configuration = null;
+
+   /**
+    * This class should not be instantiated
+    */
    private OpInitializer() {
    }
 
@@ -88,32 +97,22 @@ public class OpInitializer {
       return successRunLevel;
    }
 
-   public static String getErrorId() {
-      return errorId;
-   }
-
-   public static String getErrorMapId() {
-      return errorMapId;
-   }
-
    /**
     * Performs application initilization steps.
     *
     * @param projectPath <code>String</code> the absolute path to the folder which contains the configuration files
-    * @param isMultiUser
+    * @param isMultiUser True if application is in multi-user mode, false if it is single-user (standalone)
     * @return <code>Map</code> of init parameters
     */
    public static Map init(String projectPath, boolean isMultiUser) {
 
       logger.info("Application initialization started");
-      successRunLevel = 6;
-      runLevel = 0;
       multiUser = isMultiUser;
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
       try {
 
-         XResourceBroker.setResourcePath(OpConfiguration.PROJECT_PACKAGE);
+         XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
          // Attention: Locale map must be loaded and set before starting up modules
          if (XLocaleManager.getLocaleMap() == null) {
             XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
@@ -132,7 +131,7 @@ public class OpInitializer {
 
          // environment setup
          if (projectPath != null) {
-            XEnvironment.setVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME, projectPath);
+            XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, projectPath);
          }
          else {
             logger.error("Environment variable ONEPOINT_HOME is not set");
@@ -149,6 +148,9 @@ public class OpInitializer {
             logger.info("Initializing db configuration wizard module...");
             OpConfigurationWizardManager.loadConfigurationWizardModule();
             return initParams; //show db configuration wizard frame
+         }
+         else {
+            OpInitializer.configuration = configuration;
          }
 
          //get the db connection parameters
@@ -193,8 +195,11 @@ public class OpInitializer {
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          // Load and register default source
-         OpHibernateSource defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
-
+         OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+         if (defaultSource != null) {
+            defaultSource.close();
+         }
+         defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
          OpSourceManager.registerSource(defaultSource);
          OpSourceManager.setDefaultSource(defaultSource);
          defaultSource.open();
@@ -221,8 +226,6 @@ public class OpInitializer {
          runLevel = 5;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
-         //check if the db is empty
-         emptyDB = checkForEmptyDB(broker);
          broker.close();
 
          //Start registered modules
@@ -238,24 +241,11 @@ public class OpInitializer {
       return initParams;
    }
 
-   private static boolean checkForEmptyDB(OpBroker broker)
-        throws SQLException {
-
-      Connection jdbcConnection = broker.getJDBCConnection();
-      Statement statement = jdbcConnection.createStatement();
-      ResultSet result = statement.executeQuery("select count(*) from op_projectnode");
-      result.next();
-      int projects = result.getInt(1);
-      statement.close();
-      //just one projectNode (the sys object - root portfolio)
-      return (projects <= 1);
-   }
-
    private static void updateDBSchema(OpBroker broker, OpHibernateSource defaultSource)
         throws SQLException {
 
       Statement statement;
-      int currentVersion = onepoint.project.configuration.OpConfiguration.SCHEMA_VERSION;
+      int currentVersion = SCHEMA_VERSION;
 
       Connection jdbcConnection = broker.getJDBCConnection();
       int dbVersion;
@@ -297,6 +287,8 @@ public class OpInitializer {
 
    /**
     * Creates an empty db schema.
+    *
+    * @param broker Broker used to access db.
     */
    private static void createEmptySchema(OpBroker broker) {
       broker.createSchema();
@@ -307,13 +299,9 @@ public class OpInitializer {
       OpModuleManager.setup();
    }
 
-   public static boolean isEmptyDB() {
-      return emptyDB;
-   }
-
-
    /**
     * Indicates whether the running mode is multi-user or not.
+    *
     * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
     */
    public static boolean isMultiUser() {
@@ -325,28 +313,68 @@ public class OpInitializer {
     *
     * @param parameters a <code>HashMap</code> of <code>String,Object</code> pairs, representing form parameters.
     * @param localeId   a <code>String</code> representing the id of the current locale.
-    * @param mapId The error resource map ID.
-    * @return  A string representing an error message, if any. Null otherwise.
+    * @param mapId      The error resource map ID.
+    * @return A string representing an error message, if any. Null otherwise.
     */
    public static String checkRunLevel(HashMap parameters, String localeId, String mapId) {
       String runLevelParameter = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
       if (runLevelParameter != null) {
-         String resourceMapId = getErrorMapId();
-         if (resourceMapId == null) {
-            resourceMapId = mapId;
-         }
-         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, resourceMapId);
+         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, mapId);
 
          int runLevel = Integer.valueOf(runLevelParameter).intValue();
          int successRunLevel = getSuccessRunLevel();
          if (runLevel < successRunLevel) {
-            String resourceId = getErrorId();
-            if (resourceId == null) {
-               resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
-            }
+            String resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
             return localizer.localize(resourceId);
          }
       }
       return null;
+   }
+
+   /**
+    * Gets the application configuration.
+    *
+    * @return an <code>OpConfiguration</code> object representing the application configuration object.
+    */
+   public static OpConfiguration getConfiguration() {
+      return configuration;
+   }
+
+   public static void resetDbSchema(OpBroker broker)
+        throws SQLException {
+      OpModuleManager.stop();
+      broker.dropSchema();
+      createEmptySchema(broker);
+      updateSchemaVersion(broker);
+      OpModuleManager.start();
+   }
+
+   private static void updateSchemaVersion(OpBroker broker)
+        throws SQLException {
+      logger.info("Updating schema version...");
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      updateDBSchema(broker, hibernateSource);
+   }
+
+   /**
+    * Restores the db schema from the given file, via the backup manager. The restore drops the existent schema
+    * and creates a new one.
+    * @param filePath a <code>String</code> path to an existent backup file.
+    * @param projectSession a <code>OpProjectSession</code> representing an application session.
+    * @throws SQLException if the db schema cannot be droped or created.
+    * @throws IOException
+    */
+   public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
+        throws SQLException, IOException {
+      OpBroker broker = projectSession.newBroker();
+      logger.info("Dropping schema...");
+      broker.dropSchema();
+      logger.info("Creating schema...");
+      broker.createSchema();
+      broker.close();
+      OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
+      broker = projectSession.newBroker();
+      updateSchemaVersion(broker);
+      broker.close();
    }
 }

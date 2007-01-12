@@ -31,4 +31,11 @@
       <resource id="Total">SUMME</resource>
    </resource-map>
 
+   <resource-map id="pool_utilization.details">
+      <resource id="ResourceName">Resource</resource>
+      <resource id="Assigned">% Zugewiesen</resource>
+      <resource id="Effort">Aufwand (h)</resource>
+      <resource id="Total">SUMME</resource>
+   </resource-map>
+
 </language-kit>

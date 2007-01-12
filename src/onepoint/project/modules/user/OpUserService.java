@@ -21,7 +21,6 @@ import onepoint.project.util.OpSHA1;
 import onepoint.resource.*;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
 import java.util.*;
@@ -81,9 +80,8 @@ public class OpUserService extends OpProjectService {
    private final static String WARNING = "warning";
 
 
-   public XMessage signOn(XSession s, XMessage request) {
+   public XMessage signOn(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.signOn()");
-      OpProjectSession session = (OpProjectSession) s;
       String login = (String) (request.getArgument(LOGIN));
       String password = (String) (request.getArgument(PASSWORD));
 
@@ -219,9 +217,8 @@ public class OpUserService extends OpProjectService {
       return calendarSettings;
    }
 
-   public XMessage insertUser(XSession s, XMessage request) {
+   public XMessage insertUser(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.insertUser()");
-      OpProjectSession session = (OpProjectSession) s;
 
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
@@ -367,10 +364,8 @@ public class OpUserService extends OpProjectService {
 
    }
 
-   public XMessage insertGroup(XSession s, XMessage request) {
+   public XMessage insertGroup(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.insertGroup()");
-      OpProjectSession session = (OpProjectSession) s;
-
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
@@ -454,9 +449,7 @@ public class OpUserService extends OpProjectService {
       return reply;
    }
 
-   public XMessage updateUser(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updateUser(OpProjectSession session, XMessage request) {
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
@@ -654,9 +647,7 @@ public class OpUserService extends OpProjectService {
       return reply;
    }
 
-   public XMessage updateGroup(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updateGroup(OpProjectSession session, XMessage request) {
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
@@ -788,14 +779,11 @@ public class OpUserService extends OpProjectService {
    /**
     * Removes the assignments (user to group, group to group) between the given subjects (users/groups).
     *
-    * @param s       the session
+    * @param session       the session
     * @param request map containg all the param required for the method
     * @return an error/success message
     */
-   public XMessage deleteAssignments(XSession s, XMessage request) {
-
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage deleteAssignments(OpProjectSession session, XMessage request) {
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
@@ -851,9 +839,7 @@ public class OpUserService extends OpProjectService {
    }
 
 
-   public XMessage deleteSubjects(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage deleteSubjects(OpProjectSession session, XMessage request) {
       if (!session.userIsAdministrator()) {
          XMessage reply = new XMessage();
          XError error = session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
@@ -861,7 +847,7 @@ public class OpUserService extends OpProjectService {
          return reply;
       }
 
-      XMessage checkUser = checkSubjects(s, request);
+      XMessage checkUser = checkSubjects(session, request);
       if (checkUser.getError() != null) {
          return checkUser;
       }
@@ -923,8 +909,7 @@ public class OpUserService extends OpProjectService {
       return null;
    }
 
-   public XMessage assignToGroup(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage assignToGroup(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
 
       //only the administrator has access right
@@ -1027,14 +1012,13 @@ public class OpUserService extends OpProjectService {
     * Loads the children of the given group based on the filter and enable rules given as parameters.
     * Used for lazy loading, simple structure & filtering.
     *
-    * @param s
+    * @param session
     * @param request
     * @return
     */
-   public XMessage expandFilteredGroup(XSession s, XMessage request) {
+   public XMessage expandFilteredGroup(OpProjectSession session, XMessage request) {
 
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
 
       //filter for groups/users
       Boolean includeParentsInFilter = (Boolean) request.getArgument(INCLUDE_PARENTS_IN_FILTER);
@@ -1064,13 +1048,12 @@ public class OpUserService extends OpProjectService {
    /**
     * Loads the children of the given group (used for lazy loading/ complex structure)
     *
-    * @param s
+    * @param session
     * @param request
     * @return
     */
-   public XMessage expandGroup(XSession s, XMessage request) {
+   public XMessage expandGroup(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
       XComponent resultSet = expandGroupStructure(session, request, false, null);
       if (resultSet != null) {
          List resultList = new ArrayList();
@@ -1124,13 +1107,12 @@ public class OpUserService extends OpProjectService {
    /**
     * Checks if the logged in user or everyone group is the only subject in the array. If so, an error message is returned.
     *
-    * @param s       Session
+    * @param session       Session
     * @param request the request containing all the required parameters
     * @return a message containing an error if the logged in user was found amont the subjects
     */
-   public XMessage checkSubjects(XSession s, XMessage request) {
+   public XMessage checkSubjects(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
       ArrayList subjectLocators = (ArrayList) (request.getArgument(SUBJECT_IDS));
       //get Everyone Group
       OpGroup everyone = session.everyone(session.newBroker());
@@ -1159,12 +1141,11 @@ public class OpUserService extends OpProjectService {
 
    /**
     * Performs the necessary operation to sign-off a user.
-    * @param s a <code>XSession</code> representing the application server session.
+    * @param projectSession a <code>XSession</code> representing the application server session.
     * @param request a <code>XMessage</code> representing the client request.
     * @return an <code>XMessage</code> representing the response.
     */
-   public XMessage signOff(XSession s, XMessage request) {
-      OpProjectSession projectSession = (OpProjectSession) s;
+   public XMessage signOff(OpProjectSession projectSession, XMessage request) {
       projectSession.clearSession();
       XResourceCache.clearCache();
       return null;

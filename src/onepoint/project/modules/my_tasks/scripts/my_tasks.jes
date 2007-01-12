@@ -4,7 +4,7 @@
 
 // Controller script for my_tasks.oxf
 
-require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes";
+require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes" as openDetails;
 require "onepoint/project/modules/project_planning/scripts/comments.jes";
 
 import onepoint.service.XMessage;
@@ -88,4 +88,93 @@ function filterChanged(event){
    parameters.project_choice_id = project_choice_id;
    parameters.start_before_id = start_choice_id;
    XDisplay.findFrame("MainFrame").refreshForm(parameters);
+}
+
+function addAdhoc(event){
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/my_tasks/forms/add_adhoc_task.oxf.xml", parameters);
+}
+
+function editAdhoc(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.selectedRow = selected_rows[0];
+      parameters.EditMode = event.editMode;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/my_tasks/forms/edit_adhoc_task.oxf.xml", parameters);
+   }
+}
+
+function editActivity(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      type = row.getChild(1).getValue();
+      if (type == 6) {
+         editAdhoc(event);
+      }
+      else {
+        openDetails.editActivity(event);
+      }
+   }
+}
+
+function infoActivity(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      type = row.getChild(1).getValue();
+      if (type == 6) {
+         event.editMode = false;
+         editAdhoc(event);
+      }
+      else {
+        openDetails.editActivity(event);
+      }
+   }
+}
+
+function deleteAdhoc(event){
+   
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+
+   request = new XMessage;
+   request.setAction("MyTasksService.deleteAdhocTask");
+   request.setArgument("adhocData", selected_rows);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   XDisplay.getActiveWindow().close();
+   XDisplay.findFrame("MainFrame").refreshForm();
+   
+}
+
+function selectionChanged(event){
+   form = XDisplay.getActiveForm();
+   toolBar = form.findComponent("myTasksToolBar");
+
+   editButton = form.findComponent("EditAdhocButton");
+   deleteButton = form.findComponent("DeleteAdhocButton");
+
+   tableRow = event.event_source;
+   dataRow = tableRow.getDataComponent();
+   typeCell = dataRow.getChild(1);
+   if (typeCell.getValue() == 6) {
+      editButton.setEnabled(true);
+      deleteButton.setEnabled(true);
+   }
+   else {
+      editButton.setEnabled(false);
+      deleteButton.setEnabled(false);      
+   }
+
+   toolBar.doLayout();
+   toolBar.repaint();
 }

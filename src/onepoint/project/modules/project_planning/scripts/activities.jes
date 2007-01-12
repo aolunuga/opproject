@@ -88,7 +88,7 @@ function saveActivities(event) {
 function importActivities(event) {
 
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(importProject, true);
+   fileName = XDisplay.showFileDialog(importProject, true, null);
    if (fileName == null) {
       return;
    }
@@ -108,7 +108,7 @@ function importActivities(event) {
 function exportActivities(event) {
 
    exportProject = XDisplay.getActiveForm().findComponent("ExportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(exportProject, false);
+   fileName = XDisplay.showFileDialog(exportProject, false, null);
    if (fileName == null) {
       return;
    }

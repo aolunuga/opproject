@@ -15,9 +15,8 @@ import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.service.server.XSession;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 public class OpResourcesFormProvider implements XFormProvider {
 
@@ -66,11 +65,22 @@ public class OpResourcesFormProvider implements XFormProvider {
          }
       }
 
-      List columnsSelector = new ArrayList();
-      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTOR));
-      columnsSelector.add(new Integer(OpResourceDataSetFactory.NAME));
-      columnsSelector.add(new Integer(OpResourceDataSetFactory.DESCRIPTION));
-      columnsSelector.add(new Integer(OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS));
+      Map columnsSelector = new HashMap();
+      Integer index;
+      Integer selector;
+
+      index = new Integer(0);
+      selector = new Integer(OpResourceDataSetFactory.DESCRIPTOR);
+      columnsSelector.put(index, selector);
+      index = new Integer(1);
+      selector = new Integer(OpResourceDataSetFactory.NAME);
+      columnsSelector.put(index, selector);
+      index = new Integer(2);
+      selector = new Integer(OpResourceDataSetFactory.DESCRIPTION);
+      columnsSelector.put(index, selector);
+      index = new Integer(3);
+      selector = new Integer(OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS);
+      columnsSelector.put(index, selector);
 
       form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
       form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);

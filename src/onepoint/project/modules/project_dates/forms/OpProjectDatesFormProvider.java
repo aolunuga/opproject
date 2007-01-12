@@ -36,6 +36,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
    private final static String RESOURCE_SET = "ResourceSet";
    private final static String RESOURCE_CHOICE_FIELD = "ResourceChooser";
    private final static String VERSION_CHOICE_FIELD = "VersionChooser";
+   private final static String TIME_CHOICE_FIELD = "TimeUnitChooser";
 
    protected final static String PROJECT_ID = "project_id";
    private final static String PRINT_TITLE = "PrintTitle";
@@ -79,14 +80,17 @@ public class OpProjectDatesFormProvider implements XFormProvider {
          //print title
          form.findComponent(PRINT_TITLE).setStringValue(project.getName());
          form.findComponent(PRINT_BUTTON).setEnabled(true);
+         form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(true);
+         form.findComponent(VERSION_CHOICE_FIELD).setEnabled(true);
+         form.findComponent(TIME_CHOICE_FIELD).setEnabled(true);
 
          //fill resource set for selected project's assignments
          XComponent resourceDataSet = form.findComponent(RESOURCE_SET);
          fillResourcesDataSet(project, resourceDataSet);
 
-         /*selected resource from choice field */
+         //selected resource from choice field
          String filterResourceId = (String) parameters.get(RESOURCE_ID);
-         /*selected version from choice field */
+         //selected version from choice field
          String filterVersionId = (String) parameters.get(VERSION_ID);
          //set up the default selected index
          if (filterResourceId == null && filterVersionId == null) {

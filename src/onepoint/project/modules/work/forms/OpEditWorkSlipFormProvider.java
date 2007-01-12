@@ -59,18 +59,17 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
 
       // Locate time record data set in form
       XComponent work_record_set = form.findComponent(WORK_RECORD_SET);
-      XComponent data_row = null;
-      XComponent data_cell = null;
+      XComponent data_row;
+      XComponent data_cell;
 
       Iterator workRecords = workSlip.getRecords().iterator();
       logger.debug("*** after workRecords");
-      OpWorkRecord workRecord = null;
-      String choice = null;
+      OpWorkRecord workRecord;
+      String choice;
       while (workRecords.hasNext()) {
          workRecord = (OpWorkRecord) (workRecords.next());
          OpActivity activity = workRecord.getAssignment().getActivity();
          logger.debug("   WorkRecord: " + workRecord.getID());
-         data_row = new XComponent(XComponent.DATA_ROW);
          String activityName = workRecord.getAssignment().getActivity().getName();
          if (activityName == null) {
             activityName = "";

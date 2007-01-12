@@ -15,7 +15,6 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 
 import java.util.*;
 
@@ -49,10 +48,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    private static final String ENABLE_RESOURCES = "EnableResources";
 
 
-   public XMessage insertResource(XSession s, XMessage request) {
+   public XMessage insertResource(OpProjectSession session, XMessage request) {
       logger.debug("OpResourceService.insertResource()");
-      OpProjectSession session = (OpProjectSession) s;
-
       HashMap resource_data = (HashMap) (request.getArgument(RESOURCE_DATA));
       // *** More error handling needed (check mandatory fields)
 
@@ -179,9 +176,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage importUser(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage importUser(OpProjectSession session, XMessage request) {
       logger.debug("OpResourceService.importUser()");
       HashMap resource_data = (HashMap) (request.getArgument(RESOURCE_DATA));
       // *** More error handling needed (check mandatory fields)
@@ -306,9 +301,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage updateResource(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updateResource(OpProjectSession session, XMessage request) {
       String id_string = (String) (request.getArgument(RESOURCE_ID));
       logger.debug("OpResourceService.updateResource(): id = " + id_string);
       HashMap resource_data = (HashMap) (request.getArgument(RESOURCE_DATA));
@@ -516,7 +509,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * @param request
     * @return null if resource has no assignments
     */
-   public XMessage hasAssignments(XSession s, XMessage request) {
+   public XMessage hasAssignments(OpProjectSession s, XMessage request) {
       String id_string = (String) (request.getArgument(RESOURCE_ID));
       OpBroker broker = ((OpProjectSession) s).newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
@@ -539,10 +532,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * @param request
     * @return null if pool has no resources with assignments
     */
-   public XMessage hasResourceAssignments(XSession s, XMessage request) {
+   public XMessage hasResourceAssignments(OpProjectSession s, XMessage request) {
       String id_string = (String) (request.getArgument(POOL_ID));
       boolean hasAssignments = false;
-      OpBroker broker = ((OpProjectSession) s).newBroker();
+      OpBroker broker =  s.newBroker();
       OpResourcePool pool = (OpResourcePool) broker.getObject(id_string);
       for (Iterator iterator = pool.getResources().iterator(); iterator.hasNext();) {
          OpResource resource = (OpResource) iterator.next();
@@ -690,11 +683,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage deleteResources(XSession s, XMessage request) {
+   public XMessage deleteResources(OpProjectSession session, XMessage request) {
 
       // Check manager access to pools of resources; delete all accessible resources; return error if not all deleted
-
-      OpProjectSession session = (OpProjectSession) s;
 
       ArrayList id_strings = (ArrayList) (request.getArgument(RESOURCE_IDS));
       logger.debug("OpResourceService.deleteResources(): resource_ids = " + id_strings);
@@ -767,9 +758,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return null;
    }
 
-   public XMessage insertPool(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage insertPool(OpProjectSession session, XMessage request) {
       logger.debug("OpResourceService.insertPool()");
       HashMap pool_data = (HashMap) (request.getArgument(POOL_DATA));
 
@@ -842,9 +831,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage updatePool(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage updatePool(OpProjectSession session, XMessage request) {
       String id_string = (String) (request.getArgument(POOL_ID));
       logger.debug("OpResourceService.updatePool(): id = " + id_string);
       HashMap pool_data = (HashMap) (request.getArgument(POOL_DATA));
@@ -944,13 +931,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage deletePools(XSession s, XMessage request) {
+   public XMessage deletePools(OpProjectSession session, XMessage request) {
 
       // TODO: Maybe add force-flag (like there was before falsely for delete-group)
       // (Deny deletion of not-empty pools if force flag deleteIfNotEmpty is not set)
-
-      OpProjectSession session = (OpProjectSession) s;
-
       ArrayList id_strings = (ArrayList) (request.getArgument(POOL_IDS));
       logger.debug("OpResourceService.deletePools(): pool_ids = " + id_strings);
 
@@ -1011,9 +995,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return null;
    }
 
-   public XMessage assignToProject(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage assignToProject(OpProjectSession session, XMessage request) {
       // TODO: Check read-access to project and manage-permissions of resources (bulk-check IDs)
 
       OpBroker broker = session.newBroker();
@@ -1108,8 +1090,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
    }
 
-   public XMessage moveResourceNode(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage moveResourceNode(OpProjectSession session, XMessage request) {
       /*get needed args from request */
       List resourceIds = (List) request.getArgument(RESOURCE_IDS);
       String poolId = (String) request.getArgument(POOL_ID);
@@ -1157,8 +1138,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   public XMessage movePoolNode(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage movePoolNode(OpProjectSession session, XMessage request) {
       /*get needed args from request */
       List poolIds = (List) request.getArgument(POOL_IDS);
       String superPoolId = (String) request.getArgument(SUPER_POOL_ID);
@@ -1199,19 +1179,18 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * Retrieves the children for the given pool id and returns them as a list argument on the reply.
     * It will also filter and enable/disable the rows if the required request params are present.
     *
-    * @param s
+    * @param session
     * @param request
     * @return
     */
-   public XMessage expandResourcePool(XSession s, XMessage request) {
+   public XMessage expandResourcePool(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-      OpProjectSession session = (OpProjectSession) s;
 
       String targetPoolLocator = (String) request.getArgument(POOL_LOCATOR);
       Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      List poolSelector = (List) request.getArgument(POOL_SELECTOR);
-      List resourceSelector = (List) request.getArgument(RESOURCE_SELECTOR);
+      Map poolSelector = (Map) request.getArgument(POOL_SELECTOR);
+      Map resourceSelector = (Map) request.getArgument(RESOURCE_SELECTOR);
       List resultList = null;
       if (targetPoolLocator != null && outline != null) {
          OpLocator locator = OpLocator.parseLocator((String) (targetPoolLocator));

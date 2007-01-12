@@ -24,5 +24,7 @@ public class OpDbConfigurationWizardErrorMap extends XErrorMap {
       registerErrorCode(OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR, OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME);
       registerErrorCode(OpDbConfigurationWizardError.JDBC_DRIVER_ERROR, OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME);
       registerErrorCode(OpDbConfigurationWizardError.DATABASE_PATH_MISSING, OpDbConfigurationWizardError.DATABASE_PATH_MISSING_NAME);
+      registerErrorCode(OpDbConfigurationWizardError.NONEXISTENT_DEMODATA, OpDbConfigurationWizardError.NONEXISTENT_DEMODATA_NAME);
+      registerErrorCode(OpDbConfigurationWizardError.DEMODATA_IMPORT_FAILURE, OpDbConfigurationWizardError.DEMODATA_IMPORT_FAILURE_NAME);
    }
 }

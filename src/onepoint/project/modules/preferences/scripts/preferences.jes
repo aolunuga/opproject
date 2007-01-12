@@ -25,7 +25,17 @@ function save(event) {
 
    response = XDisplay.getClient().invokeMethod(request);
    if (handleError(form, response, "ErrorLabel")) {
-      XDisplay.findFrame("MainFrame").refreshForm();
+      refresh = response.getArgument("refresh");
+      if (refresh == true) {
+         XDisplay.clearResourceCache();
+         request = new XMessage;
+         request.setAction("Express.clearResourceCache");
+         XDisplay.getClient().invokeMethod(request);
+         XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml");
+      }
+      else {
+         XDisplay.findFrame("MainFrame").refreshForm();
+      }
    }
 }
 

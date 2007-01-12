@@ -99,7 +99,7 @@ public class OpSettings {
       defaults.put(MILESTONE_CONTROLLING_INTERVAL, MILESTONE_CONTROLLING_INTERVAL_DEFALUT);
    }
 
-   public static void applySettings(OpProjectSession session) {
+   public static boolean applySettings(OpProjectSession session) {
       // Apply settings to current environment
       fillWithPlanningSettings(calendarSettings);
 
@@ -107,8 +107,13 @@ public class OpSettings {
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
       OpScheduler.updateScheduleInterval(session,reportScheduleName,reportRemoveInterval);
 
-      XLocale locale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
-      session.setLocale(locale);
+      XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
+      boolean changedLanguage = false;
+      if (!newLocale.getID().equals(session.getLocale().getID())) {
+         changedLanguage = true;
+         session.setLocale(newLocale);
+      }
+      return changedLanguage;
    }
 
    /**
@@ -187,7 +192,7 @@ public class OpSettings {
     * @return a <code>List</code> of <code>String</code> representing the file names of the holiday calendars.
     */
    private static List getAllHolidayCalendarFiles() {
-      String path = OpEnvironmentManager.getEnvironmentVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+      String path = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
       path += "/" + CALENDARS_DIR;
       logger.info("Loading calendars from " + path);
       File calendarDir = new File(path);

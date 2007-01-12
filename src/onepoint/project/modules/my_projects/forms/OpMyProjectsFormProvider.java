@@ -8,14 +8,12 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectStatus;
+import onepoint.project.modules.project.*;
+import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
+import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserAssignment;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -27,27 +25,17 @@ import java.util.*;
  */
 public class OpMyProjectsFormProvider implements XFormProvider {
 
-   private final static String PROJECTS_DATA_SET = "ProjectsSet";
+   protected final static String PROJECTS_DATA_SET = "ProjectsSet";
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
    private final static int DEFAULT_PROJECT_CHOICE_FIELD_INDEX = 0;
 
    //project choice values
-   private final static String ALL = "all";
-   private final static String CONTRIB_M = "contribM";
-   private final static String MANAGER = "manager";
-   private final static String CONTRIB = "contrib";
    private final static String OBSERVER = "observer";
-   private final static String DEFAULT_VALUE = CONTRIB_M;
-   private final static String QUERY_STRING =
-        "select project.ID from OpPermission as permission, OpProjectNode as project " +
-             "where permission.Object.ID = project.ID " +
-             "and permission.Subject.ID in (:subjectIds) " +
-             "and project.Type in (:projectTypes)" +
-             "and permission.AccessLevel in (:levels) " +
-             "group by project.ID";
+   private final static String CONTRIB = "contrib";
+   private final static String MANAGER = "manager";
+   private final static String DEFAULT_VALUE = CONTRIB;
 
-   protected Map projectMap;
    protected final int COMPLETE_INDEX = 2;
    protected final int BASE_EFFORT_INDEX = 3;
    protected final int ACTUAL_EFFORT_INDEX = 4;
@@ -57,6 +45,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    protected final int DEVIATION_INDEX = 8;
    protected final int DEVIATION_PERCENT_INDEX = 9;
 
+   /**
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
+    */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
       XComponent projectsDataSet;
@@ -65,6 +56,53 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
 
+      String projectChoice = getProjectChoice(parameters, form, session);
+      List levels = getLevelsForChoice(projectChoice);
+      List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(broker, user, levels);
+
+      //projectMap = new HashMap();
+      for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {
+         Long id = (Long) iterator.next();
+         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+         XComponent row = createProjectRow(projectNode, broker);
+         projectsDataSet.addChild(row);
+      }
+
+      broker.close();
+   }
+
+   private List getLevelsForChoice(String permission) {
+      List levels = new ArrayList();
+      if (OBSERVER.equals(permission)) {
+         //show all projects the user has at least read access to
+         levels.add(new Byte(OpPermission.OBSERVER));
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+      }
+      else if (CONTRIB.equals(permission)) {
+         //show projects the user has at least contributor permissions to
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+      }
+      else if (MANAGER.equals(permission)) {
+         //show projects the user has at least manager permissions to
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+      }
+      return levels;
+   }
+
+   /**
+    * Gets the project permission choice from the PROJECT_CHOICE_FIELD component.
+    *
+    * @param parameters form parameters
+    * @param form
+    * @param session
+    * @return project permission choice
+    */
+   private String getProjectChoice(HashMap parameters, XComponent form, OpProjectSession session) {
       String projectChoice = (String) parameters.get(PROJECT_CHOICE_ID);
       if (projectChoice == null) {
          //set default value
@@ -89,235 +127,51 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          }
          chooser.setSelectedIndex(new Integer(selectedIndex));
       }
-
-
-      OpQuery query = broker.newQuery(QUERY_STRING);
-      List levels = new ArrayList();
-      List subjectIds = new ArrayList();
-      subjectIds.add(new Long(user.getID()));
-
-      //TODO Author="Mihai Costin" Description="Just the first level groups. Is that enough?"
-      Iterator assignments = user.getAssignments().iterator();
-      OpUserAssignment assignment = null;
-      while (assignments.hasNext()) {
-         assignment = (OpUserAssignment) assignments.next();
-         subjectIds.add(new Long(assignment.getGroup().getID()));
-      }
-
-
-      query.setCollection("subjectIds", subjectIds);
-      List types = new ArrayList();
-      types.add(new Byte(OpProjectNode.PROJECT));
-      query.setCollection("projectTypes", types);
-
-
-      if (ALL.equals(projectChoice)) {
-         //show all projects the user has at least read access to
-         levels.add(new Byte(OpPermission.OBSERVER));
-         levels.add(new Byte(OpPermission.CONTRIBUTOR));
-         levels.add(new Byte(OpPermission.MANAGER));
-         levels.add(new Byte(OpPermission.ADMINISTRATOR));
-      }
-      else if (CONTRIB_M.equals(projectChoice)) {
-         //show projects the user has contributor|manager permissions to
-         levels.add(new Byte(OpPermission.CONTRIBUTOR));
-         levels.add(new Byte(OpPermission.MANAGER));
-      }
-      else if (CONTRIB.equals(projectChoice)) {
-         //show projects the user has contributor permissions to
-         levels.add(new Byte(OpPermission.CONTRIBUTOR));
-      }
-      else if (MANAGER.equals(projectChoice)) {
-         //show projects the user has manager permissions to
-         levels.add(new Byte(OpPermission.MANAGER));
-      }
-      else if (OBSERVER.equals(projectChoice)) {
-         //show projects the user has observer permissions to
-         levels.add(new Byte(OpPermission.OBSERVER));
-      }
-      query.setCollection("levels", levels);
-      List projectNodeIDs = broker.list(query);
-
-      projectMap = new HashMap();
-      for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {
-         Long id = (Long) iterator.next();
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
-         XComponent row = createProjectRow(projectNode);
-         projectsDataSet.addChild(row);
-         projectMap.put(new Long(projectNode.getID()), row);
-      }
-
-      //set complete (index 2 in the data set)
-      List projectIds = new ArrayList();
-      projectIds.addAll(projectMap.keySet());
-
-      if (!projectIds.isEmpty()) {
-         ArrayList activityTypes = new ArrayList();
-         activityTypes.add(new Byte(OpActivity.STANDARD));
-         activityTypes.add(new Byte(OpActivity.COLLECTION));
-
-         this.setCompleteValueForProjects(broker, projectIds, types, activityTypes, projectMap, COMPLETE_INDEX);
-
-         //set resource (effort) values
-         List resources = this.getProjectResourceValues(broker, projectIds, types, activityTypes);
-         Object[] record = null;
-         for (int i = 0; i < resources.size(); i++) {
-            record = (Object[]) resources.get(i);
-            Long projId = (Long) record[0];
-            Double actualEffort = (Double) record[1];
-            Double baseEffort = (Double) record[2];
-            XComponent dataRow = (XComponent) projectMap.get(projId);
-            ((XComponent) dataRow.getChild(BASE_EFFORT_INDEX)).setDoubleValue(baseEffort.doubleValue());
-            ((XComponent) dataRow.getChild(ACTUAL_EFFORT_INDEX)).setDoubleValue(actualEffort.doubleValue());
-         }
-
-         //set cost values
-         setProjectCostValues(broker, projectIds, types, activityTypes);
-      }
-      
-      broker.close();
-   }
-
-   private void setProjectCostValues(OpBroker broker, List projectIds, List types, ArrayList activityTypes) {
-      Object[] record;
-      List costs = this.getProjectCostsValues(broker, projectIds, types, activityTypes);
-      record = null;
-      for (int i = 0; i < costs.size(); i++) {
-         record = (Object[]) costs.get(i);
-         Long projId = (Long) record[0];
-         Double actualCost = (Double) record[1];
-         Double baseCost = (Double) record[2];
-         XComponent dataRow = (XComponent) projectMap.get(projId);
-
-         double base = baseCost.doubleValue();
-         ((XComponent) dataRow.getChild(BASE_COST_INDEX)).setDoubleValue(base);
-
-         double actual = actualCost.doubleValue();
-         ((XComponent) dataRow.getChild(ACTUAL_COST_INDEX)).setDoubleValue(actual);
-
-         double complete = ((XComponent) dataRow.getChild(COMPLETE_INDEX)).getDoubleValue();
-         double predicted;
-         if (actual > 0) {
-            if (complete > 0) {
-               predicted = actual * 100 / complete;
-            }
-            else {
-               predicted = Math.max(actual, base);
-            }
-         }
-         else {
-            predicted = base - (base * complete / 100);
-         }
-         ((XComponent) dataRow.getChild(PREDICTED_INDEX)).setDoubleValue(predicted);
-
-         double deviation = predicted - base;
-         ((XComponent) dataRow.getChild(DEVIATION_INDEX)).setDoubleValue(deviation);
-
-         double percentage;
-         if (base != 0) {
-            percentage = deviation * 100 / base;
-         }
-         else {
-            if (deviation != 0){
-               percentage = Double.MAX_VALUE;
-            }
-            else {
-               percentage = 0;
-            }
-         }
-         ((XComponent) dataRow.getChild(DEVIATION_PERCENT_INDEX)).setDoubleValue(percentage);
-      }
+      return projectChoice;
    }
 
    /**
-    * Retrieves from the DB the list of costs values (Actual & Base effort) for the each project ID from the ones given in the projectIds list.
+    * Sums up the values from the datacell at the given index, data cel taken from the rows in the given dataSet.
     *
-    * @param broker        Broket object to use for db query
-    * @param projectIds    Projects to get the costs values for (will take only those projects that also satisfy the type constraint)
-    * @param projectTypes  Types of projects to include in search
-    * @param activityTypes Types of activities to take into account when calculating the costs values.
-    * @return A List of records arrays. Each array contains the project ID, actual costs sum and base costs sum [in that order !]
+    * @param dataSet DataSet containing the rows with datacell to be summed up
+    * @param index   index of the data cell to use in the sum
+    * @return the resulting sum -> sum(dataRow.getChild(index).value)
     */
-   private List getProjectCostsValues(OpBroker broker, List projectIds, List projectTypes, List activityTypes) {
-      StringBuffer queryBuffer;
-      OpQuery query;
-      queryBuffer = new StringBuffer("select project.ID");
-      queryBuffer
-           .append(", sum(activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts)");
-      queryBuffer
-           .append(" , sum(activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts)");
-      queryBuffer
-           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer
-           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
-      query = broker.newQuery(queryBuffer.toString());
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("activityTypes", activityTypes);
-      query.setCollection("projectTypes", projectTypes);
-      return  broker.list(query);
+   private double sumDataSetValues(XComponent dataSet, int index) {
+      double sum = 0;
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         if (row.getOutlineLevel() == 0 && index < row.getChildCount()) {
+            XComponent dataCell = (XComponent) row.getChild(index);
+            sum += dataCell.getDoubleValue();
+         }
+      }
+      return sum;
    }
 
    /**
-    * Retrieves from the DB the list of resource values (Actual & Base effort) for the each project ID from the ones given in the projectIds list.
+    * Creates a my-project dataRow for a given project node.
     *
-    * @param broker        Broket object to use for db query
-    * @param projectIds    Projects to get the resource values for (will take only those projects that also satisfy the type constraint)
-    * @param projectTypes  Types of projects to include in search
-    * @param activityTypes Types of activities to take into account when calculating the resource values.
-    * @return A List of records arrays. Each array contains the project ID, actual effort sum and base effort sum [in that order !]
+    * @param projectNode Project Node to create the row for.
+    * @param broker      broker use for db operations.
+    * @return the resulting data row.
     */
-   private List getProjectResourceValues(OpBroker broker, List projectIds, List projectTypes, List activityTypes) {
-      StringBuffer queryBuffer;
-      OpQuery query;
-      queryBuffer = new StringBuffer("select project.ID, sum(activity.ActualEffort), sum(activity.BaseEffort)");
-      queryBuffer
-           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer
-           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
-      query = broker.newQuery(queryBuffer.toString());
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("projectTypes", projectTypes);
-      query.setCollection("activityTypes", activityTypes);
-      return broker.list(query);
-   }
+   private XComponent createProjectRow(OpProjectNode projectNode, OpBroker broker) {
 
-   private void setCompleteValueForProjects(OpBroker broker, List projectIds, List projectTypes, List activityTypes, Map dataRowMap, int completeIndex) {
-      int i;
-      XComponent dataRow;
-      StringBuffer queryBuffer = new StringBuffer(
-           "select project.ID, sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
-      queryBuffer
-           .append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer
-           .append(" where project.ID in (:projectIds) and project.Type in (:projectTypes) and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
-      OpQuery query = broker.newQuery(queryBuffer.toString());
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("projectTypes", projectTypes);
-      query.setCollection("activityTypes", activityTypes);
-      List completes = broker.list(query);
-      Object[] record = null;
-      for (i = 0; i < completes.size(); i++) {
-         record = (Object[]) completes.get(i);
-         Long projId = (Long) record[0];
-         Double sum1 = (Double) record[1];
-         Double sum2 = (Double) record[2];
-         dataRow = (XComponent) dataRowMap.get(projId);
-         if (sum1 != null && sum2 != null) {
-            double value = Double.MAX_VALUE;
-            if (sum1.doubleValue() == 0 && sum2.doubleValue() == 0) {
-               value = 0;
-            }
-            else if (sum2.doubleValue() != 0) {
-               value = sum1.doubleValue() / sum2.doubleValue();
-            }
-            ((XComponent) dataRow.getChild(completeIndex)).setDoubleValue(value);
-         }
-      }
-   }
-
-   private XComponent createProjectRow(OpProjectNode projectNode) {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       XComponent dataCell;
+
+      ArrayList activityTypes = new ArrayList();
+      activityTypes.add(new Byte(OpActivity.STANDARD));
+      activityTypes.add(new Byte(OpActivity.COLLECTION));
+
+      double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode.getID(), activityTypes);
+
+      XComponent costDataSet = new XComponent(XComponent.DATA_SET);
+      OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);
+
+      XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
+      OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
 
       //project locator
       dataRow.setStringValue(projectNode.locator());
@@ -338,39 +192,62 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
       //% complete   2
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      dataCell.setDoubleValue(complete);
       dataRow.addChild(dataCell);
       //base effort  3
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double baseEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX);
+      dataCell.setDoubleValue(baseEffort);
       dataRow.addChild(dataCell);
       //acctual effort 4
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double actualEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX);
+      dataCell.setDoubleValue(actualEffort);
       dataRow.addChild(dataCell);
       //base costs  5
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double baseCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX);
+      dataCell.setDoubleValue(baseCost);
       dataRow.addChild(dataCell);
       //acctual costs  6
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double actualCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX);
+      dataCell.setDoubleValue(actualCost);
       dataRow.addChild(dataCell);
-      //predicted
+
+      //predicted costs 7
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double predictedCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX);
+      dataCell.setDoubleValue(predictedCost);
       dataRow.addChild(dataCell);
-      //deviation
+      //costs deviation 8
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      double deviationCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX);
+      dataCell.setDoubleValue(deviationCost);
       dataRow.addChild(dataCell);
-      //deviation %
+      //costs %deviation 9
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(0);
+      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
       dataRow.addChild(dataCell);
+
+
+      //predicted effort 10
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double predictedEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX);
+      dataCell.setDoubleValue(predictedEffort);
+      dataRow.addChild(dataCell);
+      //costs deviation 11
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double deviationEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX);
+      dataCell.setDoubleValue(deviationEffort);
+      dataRow.addChild(dataCell);
+      //costs %deviation 12
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
+      dataRow.addChild(dataCell);
+
 
       return dataRow;
    }
-
 
 }

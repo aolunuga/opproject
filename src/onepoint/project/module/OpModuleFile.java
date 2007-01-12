@@ -4,6 +4,8 @@
 
 package onepoint.project.module;
 
+import onepoint.project.util.OpProjectConstants;
+
 import java.util.Iterator;
 
 public class OpModuleFile {
@@ -15,7 +17,7 @@ public class OpModuleFile {
    }
 
    public final OpModule loadModule() {
-      String module_file_name = onepoint.project.configuration.OpConfiguration.PROJECT_PACKAGE + _file_name;
+      String module_file_name = OpProjectConstants.PROJECT_PACKAGE + _file_name;
       OpModuleLoader opModuleLoader = new OpModuleLoader();
       OpModule module = opModuleLoader.loadModule(module_file_name);
       if (module.getExtendedModule() != null) {
@@ -34,7 +36,7 @@ public class OpModuleFile {
       OpModule startModule = module;
       while (startModule.getExtendedModule() != null) {
          String extendedModulePath = module.getExtendedModule();
-         extendedModulePath =  onepoint.project.configuration.OpConfiguration.PROJECT_PACKAGE + extendedModulePath;
+         extendedModulePath =  OpProjectConstants.PROJECT_PACKAGE + extendedModulePath;
          OpModule extendedModule = moduleLoader.loadModule(extendedModulePath);
          extendModule(extendedModule, module);
          startModule = extendedModule;

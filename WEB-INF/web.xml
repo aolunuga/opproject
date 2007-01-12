@@ -16,11 +16,11 @@
       <servlet-class>onepoint.project.servlet.OpOpenServlet</servlet-class>
       <init-param>
          <param-name>webimages_path</param-name>
-         <param-value>opproject/images/</param-value>
+         <param-value>images</param-value>
       </init-param>
       <init-param>
          <param-name>applet_codebase</param-name>
-         <param-value>opproject/applet</param-value>
+         <param-value>applet</param-value>
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>

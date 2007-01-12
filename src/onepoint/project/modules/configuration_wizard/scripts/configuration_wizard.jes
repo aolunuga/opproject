@@ -16,6 +16,7 @@ function showForm(event) {
 }
 
 function connect(event) {
+   XDisplay.setWaitingCursor();
    // Gather -data
    form = XDisplay.getActiveForm();
    config.database_type = XValidator.choiceCaption(form.findComponent("DatabaseTypeChoiceField").getStringValue());
@@ -30,6 +31,7 @@ function connect(event) {
    request.setArgument("parameters", config);
    response = XDisplay.getClient().invokeMethod(request);
 
+   XDisplay.resetCursor();
    if (handleError(form, response, "ErrorLabel") == true) {
       params = response.getArgument("initParams");
       //show login form

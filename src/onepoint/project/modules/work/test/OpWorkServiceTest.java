@@ -6,6 +6,7 @@ package onepoint.project.modules.work.test;
 
 import onepoint.express.XComponent;
 import onepoint.persistence.OpObject;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectPlan;
@@ -16,7 +17,6 @@ import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkService;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 import org.jmock.core.Invocation;
 import org.jmock.core.Stub;
@@ -270,7 +270,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker close
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(workService.insertWorkSlip((XSession) mockSession.proxy(), request));
+      assertNoError(workService.insertWorkSlip((OpProjectSession) mockSession.proxy(), request));
 
    }
    // TODO: Aditional tests for insert work slips taking into consideration: completed, activity type
@@ -316,7 +316,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //make work record /work slip  persistent
       mockBroker.expects(never()).method(MAKE_PERSISTENT_METHOD);
 
-      XMessage result = workService.insertWorkSlip((XSession) mockSession.proxy(), request);
+      XMessage result = workService.insertWorkSlip((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -346,7 +346,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockTransaction.expects(once()).method(COMMIT_METHOD);
 
 
-      assertNoError(workService.deleteWorkSlips((XSession) mockSession.proxy(), request));
+      assertNoError(workService.deleteWorkSlips((OpProjectSession) mockSession.proxy(), request));
    }
 
    /**
@@ -370,7 +370,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //mock transaction expectations
       mockTransaction.expects(once()).method(COMMIT_METHOD);
 
-      assertNoError(workService.deleteWorkSlips((XSession) mockSession.proxy(), request));
+      assertNoError(workService.deleteWorkSlips((OpProjectSession) mockSession.proxy(), request));
    }
 
    /**
@@ -402,7 +402,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
 
-      XMessage result = workService.deleteWorkSlips((XSession) mockSession.proxy(), request);
+      XMessage result = workService.deleteWorkSlips((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
    }
 
@@ -470,7 +470,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker close
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(workService.editWorkSlip((XSession) mockSession.proxy(), request));
+      assertNoError(workService.editWorkSlip((OpProjectSession) mockSession.proxy(), request));
 
    }
    // TODO: Aditional tests for edit work slips taking into consideration: completed, activity type
@@ -512,7 +512,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //never update the object
       mockBroker.expects(never()).method(UPDATE_OBJECT_METHOD).with(isA(OpObject.class));
 
-      XMessage result = workService.editWorkSlip((XSession) mockSession.proxy(), request);
+      XMessage result = workService.editWorkSlip((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -536,7 +536,7 @@ public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(never()).method(UPDATE_OBJECT_METHOD).with(isA(OpObject.class));
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = workService.editWorkSlip((XSession) mockSession.proxy(), request);
+      XMessage result = workService.editWorkSlip((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());

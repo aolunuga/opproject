@@ -54,7 +54,7 @@ public class OpProjectTestData {
          project_home = arguments[1];
       }
       else {
-         project_home = OpEnvironmentManager.getEnvironmentVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+         project_home = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
          if (project_home == null) {
             logger.fatal("USAGE: OpProjectTestData -onepoint_home <onepoint-home-dir>");
             System.exit(1);
@@ -79,7 +79,7 @@ public class OpProjectTestData {
 //      XLog.setLevel(Level.INFO);
 
       // Setup environment
-      XEnvironment.setVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME, project_home);
+      XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, project_home);
       String modules_path = "onepoint/project/modules/";
       String commercial_modules_path = "onepoint/project/team/modules/";
 

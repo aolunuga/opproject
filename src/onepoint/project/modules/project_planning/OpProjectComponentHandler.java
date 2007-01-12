@@ -28,7 +28,6 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
    // Attribute names
    protected final static String ON_ACTIVITY_DETAILS = "on-activity-details";
    protected final static String CATEGORY_COLOR_SET_REF = "category-color-set-ref";
-   
 
    private final static String GANTT_BOX_REF = "gantt-box-ref";
    private final static String HISTORY_REF = "history-ref";
@@ -36,6 +35,8 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
    private final static String GANTT_CAPTION_LEFT = "caption-left";
    private final static String GANTT_CAPTION_RIGHT = "caption-right";
    private final static String RESOURCE_TABLE_ID = "resource-table";
+
+   private final static String ALTERNATE_DETAILS_FORM_REF = "alternate-details-form-ref";
 
    protected Date _parseDateAttribute(String value) {
       // IETF standard date syntax: "Sat, 12 Aug 1995 13:30:00 GMT"
@@ -124,6 +125,10 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
          value = attributes.get(RESOURCE_TABLE_ID);
          if ((value != null) && (value instanceof String)) {
             component.setResourceTableId((String) value);
+         }
+         value = attributes.get(ALTERNATE_DETAILS_FORM_REF);
+         if ((value != null) && (value instanceof String)) {
+            component.setAlternateDetailsFormRef((String) value);
          }
       }
       parseCommonAttributes(component, attributes); // *** really -- check them!

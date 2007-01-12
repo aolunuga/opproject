@@ -31,6 +31,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public final static String JES_DEBUGGING = "jes-debugging";
    public final static String SECURE_SERVICE = "secure-service";
    public final static String RESOURCE_CACHE_SIZE = "resource-cache-size";
+   public final static String BACKUP_PATH = "backup-path";
    /**
     * Database types
     */
@@ -41,6 +42,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public final static String ORACLE_DB_TYPE = "Oracle";
    public final static String IBM_DB2_DB_TYPE = "IBM DB/2";
    public final static String HSQL_DB_TYPE = "HSQLDB";
+   public final static String SQLSERVER_DB_TYPE = "SQLServer";
 
    /**
     * A map from db type name to db type (int constant).
@@ -61,6 +63,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
       DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, new Integer(OpHibernateSource.ORACLE));
       DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, new Integer(OpHibernateSource.HSQLDB));
       DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, new Integer(OpHibernateSource.IBM_DB2));
+      DATABASE_TYPES_MAP.put(SQLSERVER_DB_TYPE, new Integer(OpHibernateSource.SQLSERVER));
    }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
@@ -154,6 +157,10 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
       else if (name == RESOURCE_CACHE_SIZE) {
          String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).getCacheConfiguration().setResourceCacheSize(value);
+      }
+      else if (name == BACKUP_PATH) {
+         String value = ((StringBuffer) node).toString();
+         ((OpConfiguration) parent).setBackupPath(value);
       }
    }
 }

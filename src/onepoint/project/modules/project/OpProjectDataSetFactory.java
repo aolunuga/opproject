@@ -11,7 +11,10 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpUserAssignment;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
@@ -43,6 +46,15 @@ public final class OpProjectDataSetFactory {
    public final static String ENABLE_TEMPLATES = "EnableTemplates";
    public final static String FILTERED_OUT_IDS = "FilteredOutIds";
 
+   private final static String PROJECT_BY_PERMISSIONS_QUERY =
+        "select project.ID from OpPermission as permission, OpProjectNode as project " +
+             "where permission.Object.ID = project.ID " +
+             "and permission.Subject.ID in (:subjectIds) " +
+             "and project.Type in (:projectTypes)" +
+             "and permission.AccessLevel in (:levels) " +
+             "group by project.ID";
+
+
    /**
     * Utility class.
     */
@@ -51,10 +63,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Retrieves all the project nodes with the given type from the db.
+    *
     * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param broker an <code>OpBroker</code> used for performing business operations.
+    * @param broker  an <code>OpBroker</code> used for performing business operations.
     * @param dataSet a <code>XComponent(DATA_SET)</code> representing the project data.
-    * @param types a <code>int</code> representing a filter that allows to select only certain types of projects.
+    * @param types   a <code>int</code> representing a filter that allows to select only certain types of projects.
     * @param tabular a <code>boolean</code> indicating whether the structure to retrieve should have tabular structure or not.
     */
    public static void retrieveProjectDataSet(OpProjectSession session, OpBroker broker, XComponent dataSet, int types,
@@ -254,10 +267,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Retrieves only the first 2 levels of project nodes from the db. This method is used primarily together with lazy loading.
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param dataSet a <code>XComponent(DATA_SET)</code> representing the data-set which will be populated.
-    * @param types a <code>int</code> representing a filter of project types.
-    * @param tabular a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
+    *
+    * @param session     a <code>OpProjectSession</code> representing the server session.
+    * @param dataSet     a <code>XComponent(DATA_SET)</code> representing the data-set which will be populated.
+    * @param types       a <code>int</code> representing a filter of project types.
+    * @param tabular     a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
     * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should be retrieved).
     */
    public static void retrieveProjectDataSetRootHierarchy(OpProjectSession session, XComponent dataSet, int types,
@@ -304,10 +318,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Retrieves the direct descendants of the given parent project node. This is used with dynamic loading.
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param parentNode a <code>XComponent(DATA_ROW)</code> representing the client-view of a project node.
-    * @param types a <code>int</code> used for filtering project nodes.
-    * @param tabular a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
+    *
+    * @param session     a <code>OpProjectSession</code> representing the server session.
+    * @param parentNode  a <code>XComponent(DATA_ROW)</code> representing the client-view of a project node.
+    * @param types       a <code>int</code> used for filtering project nodes.
+    * @param tabular     a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
     * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should be retrieved).
     * @return a <code>List</code> of <code>XComponent(DATA_ROW)</code> representing the direct descendants of the given data-row.
     */
@@ -351,6 +366,7 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Checks if the given portfolio has any children which aren't filtered.
+    *
     * @param projectNode a <code>OpProjectNode</code> representing the portfolio.
     * @param idsToFilter a <code>List</code> of <code>String</code> representing project locators.
     * @return true if the portfolio has any children which shouldn't be filtered.
@@ -366,13 +382,14 @@ public final class OpProjectDataSetFactory {
          String locatorString = OpLocator.locatorString(child);
          hasNonFilteredChildren |= !idsToFilter.contains(locatorString);
       }
-      return hasNonFilteredChildren;     
+      return hasNonFilteredChildren;
    }
 
    /**
     * Returns a map with all the project nodes of a given type, and their nr. of children.
-    * @param types a <code>int</code> representing the types of project nodes to retrieve.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    *
+    * @param types    a <code>int</code> representing the types of project nodes to retrieve.
+    * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param parentId a <code>long</code> representing the id of parent node, or -1 if top-level projects should be retrieved.
     * @return a <code>Map</code> of <code>Long,Number</code> pairs representing [id,childCount] pairs.
     */
@@ -498,12 +515,13 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Computes the overall complete value for a project, based on its activities.
-    * @param broker a <code>OpBroker</code> used for perfroming business operations.
-    * @param projectId a <code>long</code> representing the id of the project for which the calculations are done.
+    *
+    * @param broker        a <code>OpBroker</code> used for perfroming business operations.
+    * @param projectId     a <code>long</code> representing the id of the project for which the calculations are done.
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> value representing the completness of the project.
     */
-   private static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
+   public static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
       queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 " + "and activity.Type in (:activityTypes) group by project.ID");
@@ -511,7 +529,7 @@ public final class OpProjectDataSetFactory {
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
       List completes = broker.list(query);
-      Object[] record = null;
+      Object[] record;
       for (int i = 0; i < completes.size(); i++) {
          record = (Object[]) completes.get(i);
          Double sum1 = (Double) record[0];
@@ -532,8 +550,9 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Computes the value of the efort for the project, based on the effort of its resources.
-    * @param broker a <code>OpBroker</code> used for perfroming business operations.
-    * @param projectId a <code>long</code> representing the id of the project for which the calculations are done.
+    *
+    * @param broker        a <code>OpBroker</code> used for perfroming business operations.
+    * @param projectId     a <code>long</code> representing the id of the project for which the calculations are done.
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
@@ -565,8 +584,9 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Computes the value of the efort for the project, based on the effort of its resources.
-    * @param broker a <code>OpBroker</code> used for perfroming business operations.
-    * @param projectId a <code>long</code> representing the id of the project for which the calculations are done.
+    *
+    * @param broker        a <code>OpBroker</code> used for perfroming business operations.
+    * @param projectId     a <code>long</code> representing the id of the project for which the calculations are done.
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
@@ -600,8 +620,9 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Checks if a given data-row represents an entity with the required type.
+    *
     * @param dataRow a <code>XComponent(DATA_ROW)</code> representing a portfolio data-row.
-    * @param type a <code>String</code> constant representing possible types of a data-row.
+    * @param type    a <code>String</code> constant representing possible types of a data-row.
     * @return <code>true</code> if the dataRow represents a portfolio.
     */
    private static boolean isOfType(XComponent dataRow, String type) {
@@ -614,6 +635,7 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Creates a dummy data-row for the given parent row.
+    *
     * @param dataRow a <code>XComponent(DATA_ROW)</code> that represents a parent row.
     * @return a <code>XComponent(DATA_ROW)</code> representing a dummy child.
     */
@@ -628,33 +650,35 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Performs enabling or disabling (selection wise) of various project nodes, based on the request parameters.
+    *
     * @param parameters a <code>Map</code> of String,Object pairs representing the request parameters.
-    * @param dataSet a <code>XComponent(DATA_SET)</code> representing the project node structure.
+    * @param dataSet    a <code>XComponent(DATA_SET)</code> representing the project node structure.
     */
    public static void enableNodes(Map parameters, XComponent dataSet) {
       List dataRows = new ArrayList(dataSet.getChildCount());
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRows.add(dataSet.getChild(i));
       }
-      enableNodes(parameters, dataRows);           
+      enableNodes(parameters, dataRows);
    }
 
    /**
     * Performs enabling or disabling (selection wise) of various project nodes, based on the request parameters.
+    *
     * @param parameters a <code>Map</code> of String,Object pairs representing the request parameters.
-    * @param dataRows a <code>List</code> of data rows representing project nodes.
+    * @param dataRows   a <code>List</code> of data rows representing project nodes.
     */
    public static void enableNodes(Map parameters, List dataRows) {
       boolean enablePortfolios = ((Boolean) parameters.get(ENABLE_PORTFOLIOS)).booleanValue();
       boolean enableTemplates = ((Boolean) parameters.get(ENABLE_TEMPLATES)).booleanValue();
       boolean enableProjects = ((Boolean) parameters.get(ENABLE_PROJECTS)).booleanValue();
-      for (Iterator it = dataRows.iterator(); it.hasNext(); ) {
+      for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
          String choice = dataRow.getStringValue();
          //<FIXME author="Horia Chiorean" description="Using the icon index as a denominator is not the best choice">
          int iconIndex = XValidator.choiceIconIndex(choice);
          //<FIXME>
-         switch(iconIndex) {
+         switch (iconIndex) {
             case OpProjectDataSetFactory.PROJECT_ICON_INDEX: {
                if (!enableProjects) {
                   dataRow.setSelectable(false);
@@ -685,5 +709,108 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery("select status from OpProjectStatus as status where status.Active=true " + categoryOrderCriteria.toHibernateQueryString("status"));
       Iterator projectStatusItr = broker.iterate(query);
       return projectStatusItr;
+   }
+
+   /**
+    * Counts the number of project nodes of the given type.
+    *
+    * @param type   a <code>int</code> representing the project node type discriminator.
+    * @param broker a <code>OpBroker</code> user for business operations.
+    * @return a <code>int</code> representing the number of project nodes of the given type.
+    */
+   public static int countProjectNode(byte type, OpBroker broker) {
+      String queryString = "select count(projectNode) from OpProjectNode projectNode where projectNode.Type=?";
+      OpQuery query = broker.newQuery(queryString);
+      query.setByte(0, type);
+      Number result = new Integer(0);
+      Iterator it = broker.list(query).iterator();
+      while (it.hasNext()) {
+         result = (Number) it.next();
+      }
+      return result.intValue();
+   }
+
+
+   /**
+    * Gets the list of project ids for the given user and chosen permission role
+    *
+    * @param broker Broker used for db access.
+    * @param user   User to be taken into account when retrieving projects.
+    * @param levels List of permission levels (Byte) to include in the search
+    * @return List of project ids.
+    */
+   public static List getProjectsByPermissions(OpBroker broker, OpUser user, List levels) {
+      OpQuery query = broker.newQuery(PROJECT_BY_PERMISSIONS_QUERY);
+      List subjectIds = new ArrayList();
+      subjectIds.add(new Long(user.getID()));
+
+      //TODO Author="Mihai Costin" Description="Just the first level groups. Is that enough?"
+      Iterator assignments = user.getAssignments().iterator();
+      OpUserAssignment assignment;
+      while (assignments.hasNext()) {
+         assignment = (OpUserAssignment) assignments.next();
+         subjectIds.add(new Long(assignment.getGroup().getID()));
+      }
+
+      query.setCollection("subjectIds", subjectIds);
+      List types = new ArrayList();
+      types.add(new Byte(OpProjectNode.PROJECT));
+      query.setCollection("projectTypes", types);
+      query.setCollection("levels", levels);
+      return broker.list(query);
+   }
+
+   /**
+    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
+    *
+    * @param session Current project session (used for db access and current user)
+    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
+    */
+   public static Map getProjectToResourceMap(OpProjectSession session) {
+
+      Map projectsMap = new HashMap();
+      OpBroker broker = session.newBroker();
+      long userId = session.getUserID();
+      OpUser user = (OpUser) broker.getObject(OpUser.class, userId);
+      List types = new ArrayList();
+      types.add(new Byte(OpPermission.ADMINISTRATOR));
+      types.add(new Byte(OpPermission.MANAGER));
+
+      //add only the user's responsible resources if he is CONTRIBUTOR
+      types.clear();
+      types.add(new Byte(OpPermission.CONTRIBUTOR));
+      List contributorProjects = getProjectsByPermissions(broker, user, types);
+      for (int i = 0; i < contributorProjects.size(); i++) {
+         Long id = (Long) contributorProjects.get(i);
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+         Set assignments = project.getAssignments();
+         List resources = new ArrayList();
+         for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
+            OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
+            OpResource resource = assignment.getResource();
+            if (resource.getUser().getID() == userId) {
+               resources.add(XValidator.choice(resource.locator(), resource.getName()));
+            }
+         }
+         projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+      }
+
+      //add all project resources if the user is at least MANAGER on the project
+      List managerProjectIds = getProjectsByPermissions(broker, user, types);
+      for (int i = 0; i < managerProjectIds.size(); i++) {
+         Long id = (Long) managerProjectIds.get(i);
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+         Set assignments = project.getAssignments();
+         List resources = new ArrayList();
+         for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
+            OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
+            OpResource resource = assignment.getResource();
+            resources.add(XValidator.choice(resource.locator(), resource.getName()));
+         }
+         projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+      }
+      broker.close();
+
+      return projectsMap;
    }
 }

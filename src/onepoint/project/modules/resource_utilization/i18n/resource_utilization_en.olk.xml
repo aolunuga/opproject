@@ -30,4 +30,12 @@
       <resource id="Effort">Effort (h)</resource>
       <resource id="Total">TOTAL</resource>
    </resource-map>
+
+   <resource-map id="pool_utilization.details">
+      <resource id="ResourceName">Resource</resource>
+      <resource id="Assigned">% Assigned</resource>
+      <resource id="Effort">Effort (h)</resource>
+      <resource id="Total">TOTAL</resource>
+   </resource-map>
+
 </language-kit>

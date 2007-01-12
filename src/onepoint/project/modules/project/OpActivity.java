@@ -11,7 +11,7 @@ import java.sql.Date;
 import java.util.Set;
 
 public class OpActivity extends OpObject {
-   
+
    public final static String ACTIVITY = "OpActivity";
 
    public final static String NAME = "Name";
@@ -52,7 +52,7 @@ public class OpActivity extends OpObject {
    public final static String ATTACHMENTS = "Attachments";
    public final static String VERSIONS = "Versions";
    public final static String COMMENTS = "Comments";
-	
+
    // Activity types
    public final static byte STANDARD = OpGanttValidator.STANDARD;
    public final static byte MILESTONE = OpGanttValidator.MILESTONE;
@@ -60,6 +60,7 @@ public class OpActivity extends OpObject {
    public final static byte TASK = OpGanttValidator.TASK;
    public final static byte COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
    public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+   public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
    // Activity attributes
    public final static int MANDATORY = OpGanttValidator.MANDATORY;
@@ -329,7 +330,7 @@ public class OpActivity extends OpObject {
    public boolean getTemplate() {
       return template;
    }
-   
+
    public void setProjectPlan(OpProjectPlan projectPlan) {
       this.projectPlan = projectPlan;
    }
@@ -345,7 +346,7 @@ public class OpActivity extends OpObject {
    public Set getAssignments() {
       return assignments;
    }
-   
+
    public void setWorkPeriods(Set workPeriods) {
       this.workPeriods = workPeriods;
    }
@@ -393,11 +394,11 @@ public class OpActivity extends OpObject {
    public Set getAttachments() {
       return attachments;
    }
-   
+
    public void setVersions(Set versions) {
       this.versions = versions;
    }
-   
+
    public Set getVersions() {
       return versions;
    }
@@ -405,9 +406,38 @@ public class OpActivity extends OpObject {
    public void setComments(Set comments) {
       this.comments = comments;
    }
-   
+
    public Set getComments() {
       return comments;
    }
+
+   /**
+    * Calculates the actual total costs of this activity.
+    *
+    * @return Total actual cost (Personnel + Travel + Material + External + Misc)
+    */
+   public double calculateActualCost() {
+      double actual = this.getActualPersonnelCosts();
+      actual += this.getActualTravelCosts();
+      actual += this.getActualMaterialCosts();
+      actual += this.getActualExternalCosts();
+      actual += this.getActualMiscellaneousCosts();
+      return actual;
+   }
+
+   /**
+    * Calculates the base total costs of this activity.
+    *
+    * @return Total base cost (Personnel + Travel + Material + External + Misc)
+    */
+   public double calculateBaseCost() {
+      double base = this.getBasePersonnelCosts();
+      base += this.getBaseTravelCosts();
+      base += this.getBaseMaterialCosts();
+      base += this.getBaseExternalCosts();
+      base += this.getBaseMiscellaneousCosts();
+      return base;
+   }
+
 
 }

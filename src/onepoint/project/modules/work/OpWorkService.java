@@ -17,7 +17,6 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
@@ -49,9 +48,8 @@ public class OpWorkService extends OpProjectService {
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
    private static final String WARNING = "warning";
 
-   public XMessage insertWorkSlip(XSession s, XMessage request) {
+   public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.insertWorkSlip()");
-      OpProjectSession session = (OpProjectSession) s;
       Date start = (Date) (request.getArgument(START));
       XComponent workRecordSet = (XComponent) (request.getArgument(WORK_RECORD_SET));
 
@@ -109,9 +107,8 @@ public class OpWorkService extends OpProjectService {
       return null;
    }
 
-   public XMessage editWorkSlip(XSession s, XMessage request) {
+   public XMessage editWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.editWorkSlip()");
-      OpProjectSession session = (OpProjectSession) s;
 
       String work_slip_id = (String) (request.getArgument(WORK_SLIP_ID));
       XComponent work_record_set = (XComponent) (request.getArgument(WORK_RECORD_SET));
@@ -150,10 +147,9 @@ public class OpWorkService extends OpProjectService {
       return null;
    }
 
-   public XMessage deleteWorkSlips(XSession s, XMessage request) {
+   public XMessage deleteWorkSlips(OpProjectSession session, XMessage request) {
       ArrayList id_strings = (ArrayList) (request.getArgument(WORK_SLIP_IDS));
       logger.info("OpWorkService.deleteWorkSlip(): workslip_ids = " + id_strings);
-      OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 

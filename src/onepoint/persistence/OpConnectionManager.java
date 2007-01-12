@@ -44,6 +44,14 @@ public final class OpConnectionManager {
    private OpConnectionManager() {
    }
 
+   /**
+    * Tests that a connection can be established to an underlying database, with the given parameters.
+    * @param databaseDriver a <code>String</code> representing the database driver class name.
+    * @param databaseURL a <code>String</code> representing a connect URL.
+    * @param databaseLogin a <code>String</code> representing the user that attempts to connects.
+    * @param databasePassword a <code>String</code> representing the password of the db connection.
+    * @return a <code>int</code> representing a return code (either success or smth else).
+    */
    public static int testConnection(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       Connection conn = null;
       try {

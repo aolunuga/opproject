@@ -8,10 +8,11 @@ import onepoint.error.XErrorMap;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
 import java.text.ParseException;
@@ -33,11 +34,8 @@ public class OpSettingsService extends OpProjectService {
    // email pattern ex : eXpress@onepoint.at
    public final String emailRegex = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
 
-
-   public XMessage saveSettings(XSession s, XMessage request) {
+   public XMessage saveSettings(OpProjectSession session, XMessage request) {
       logger.debug("OpSettingsService.saveSettings()");
-      OpProjectSession session = (OpProjectSession) s;
-
       Map newSettings = (HashMap) request.getArgument(NEW_SETTINGS);
 
       XMessage reply = new XMessage();
@@ -156,21 +154,20 @@ public class OpSettingsService extends OpProjectService {
       OpSettings.saveSettings(session);
 
       // Apply new settings
-      OpSettings.applySettings(session);
+      boolean changedLanguage = OpSettings.applySettings(session);
 
       Map userCalendarSettings = new HashMap();
       OpSettings.fillWithPlanningSettings(userCalendarSettings);
       reply.setVariable(XCalendar.CALENDAR_SETTINGS, userCalendarSettings);
 
+      if (!OpInitializer.isMultiUser() && changedLanguage) {
+         reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
+      }
       return reply;
    }
 
-   public XMessage loadSettings(XSession s, XMessage request) {
-      OpProjectSession session = (OpProjectSession) s;
-
+   public XMessage loadSettings(OpProjectSession session, XMessage request) {
       OpSettings.loadSettings(session);
-
       return null;
    }
-
 }

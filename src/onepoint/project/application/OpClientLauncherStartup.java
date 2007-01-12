@@ -40,7 +40,7 @@ public class OpClientLauncherStartup {
    public static void main(String[] args) {
       logger.info("Launcher viewer initialization started...");
       // get ONEPOINT_HOME environment variable
-      String projectPath = OpEnvironmentManager.getEnvironmentVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+      String projectPath = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
       if (projectPath == null) {
          logger.fatal("Environment variable ONEPOINT_HOME is not set !");
          System.exit(1);

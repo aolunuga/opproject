@@ -12,7 +12,6 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.project.util.OpSHA1;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import org.jmock.core.Constraint;
 import org.jmock.core.Invocation;
 import org.jmock.core.Stub;
@@ -189,8 +188,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
          if (parameterValues.get(0).equals(OpGroup.class) && parameterValues.get(1).equals(new Long(GROUP_ID_LONG))) {
             return group;
          }
-         if (parameterValues.get(0).equals(OpGroup.class) && parameterValues.get(1).equals(new Long(SUPER_GROUP_ID_LONG)))
-         {
+         if (parameterValues.get(0).equals(OpGroup.class) && parameterValues.get(1).equals(new Long(SUPER_GROUP_ID_LONG))) {
             return superGroup;
          }
          if (parameterValues.get(0).equals(OpUser.class) && parameterValues.get(1).equals(new Long(USER_ID_LONG))) {
@@ -202,6 +200,9 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       else if (invocation.invokedMethod.getName().equals(GET_ADMINISTRATOR_ID_METHOD)) {
          return new Long(ADMINISTRATOR_ID_LONG);
       }
+      else if (invocation.invokedMethod.getName().equals(SET_LOCALE_METHOD)) {
+         return null;
+      }
       else {
          throw new IllegalArgumentException("No such object.method defined in this stub: " + invocation.invokedMethod.getName());
       }
@@ -211,35 +212,22 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
     * Tests that a user with a corect user name and password will be corectly "signed on"
     */
    public void testSignOn() {
-
       applySettingsExpectation();
-
       XMessage request = new XMessage();
       request.setArgument(OpUserService.LOGIN, USER_LOGIN_NAME);
       request.setArgument(OpUserService.PASSWORD, userPassword);
-
       queryResults.add(user);
-
       //a broker must be created and then the user must be found
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
-
       mockBroker.expects(once()).method(NEW_QUERY_METHOD).with(eq(SELECT_USER_BY_NAME)).will(methodStub);
-
       mockQuery.expects(once()).method(SET_STRING_METHOD).with(new Constraint[]{eq(0), eq(USER_LOGIN_NAME)});
-
       mockBroker.expects(once()).method(ITERATE_METHOD).with(eq(query)).will(methodStub);
-
       mockSession.expects(once()).method(AUTHENTICATE_USER_METHOD).with(new Constraint[]{same(mockBroker.proxy()), same(user)});
-
-      mockSession.expects(once()).method(CLEAR_VARIABLES_METHOD);
-
       //also the locale for the user must be set if it's in the prefs.
       mockSession.expects(once()).method(SET_LOCALE_METHOD).with(eq(userLocale));
-
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
-
-      XMessage result = userService.signOn((XSession) mockSession.proxy(), request);
+      XMessage result = userService.signOn((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -270,7 +258,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.signOn((XSession) mockSession.proxy(), request);
+      XMessage result = userService.signOn((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been found ", result.getError());
    }
 
@@ -301,7 +289,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.signOn((XSession) mockSession.proxy(), request);
+      XMessage result = userService.signOn((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been found ", result.getError());
    }
 
@@ -327,7 +315,6 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       Constraint testContact = createUserContactConstraint(userValues);
 
       request.setArgument(OpUserService.USER_DATA, userValues);
-      Constraint testPreference = createLanguageConstraint(userValues);
 
       //no queryResults should be found by find() on broker
       queryResults = new ArrayList();
@@ -363,7 +350,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -387,7 +374,6 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       Constraint testContact = createUserContactConstraint(userValues);
 
       request.setArgument(OpUserService.USER_DATA, userValues);
-      Constraint testPreference = createLanguageConstraint(userValues);
 
       //no queryResults should be found by find() on broker
       queryResults = new ArrayList();
@@ -425,7 +411,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //set up the configuration to allow empty passwords fields
       OpSettings.set(OpSettings.ALLOW_EMPTY_PASSWORD, Boolean.toString(true));
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -457,7 +443,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //set up the configuration not to allow empty passwords
       OpSettings.set(OpSettings.ALLOW_EMPTY_PASSWORD, Boolean.toString(false));
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been found becouse the configuration doesn't allow empty password fields", result.getError());
    }
 
@@ -469,8 +455,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       XMessage request = new XMessage();
 
-      Map userValues = createUserData("userFirstName","userLastName",USER_LOGIN_NAME,"password","password","email@email.com",
-                                     "456879","4578900","450897",null);
+      Map userValues = createUserData("userFirstName", "userLastName", USER_LOGIN_NAME, "password", "password", "email@email.com",
+           "456879", "4578900", "450897", null);
       request.setArgument(OpUserService.USER_DATA, userValues);
 
       //one user should be found by find() on broker
@@ -490,7 +476,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been found ", result.getError());
    }
 
@@ -499,9 +485,9 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
     */
    public void testInsertUserWrongData() {
 
-      insertUserWrongData("first", "last", "", "pass","pass", "email@email.com", "1234", "5678", "90", null);
-      insertUserWrongData("first", "last", "login", "wrongpass","", "email@email.com", "1234", "5678", "90", null);
-      insertUserWrongData("first", "last", "login", "pass","pass", "_+_+#$@%cddf", "1234", "5678", "90", null);
+      insertUserWrongData("first", "last", "", "pass", "pass", "email@email.com", "1234", "5678", "90", null);
+      insertUserWrongData("first", "last", "login", "wrongpass", "", "email@email.com", "1234", "5678", "90", null);
+      insertUserWrongData("first", "last", "login", "pass", "pass", "_+_+#$@%cddf", "1234", "5678", "90", null);
    }
 
    /**
@@ -516,14 +502,13 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       String groupLocator = "OpGroup.54321.xid";
       groups.add(groupLocator);
 
-      Map userValues = createUserData("userFirstName","userLastName",newUserLogin,"password","password","email@email.com",
-                                     "456879","4578900","450897",groups);
+      Map userValues = createUserData("userFirstName", "userLastName", newUserLogin, "password", "password", "email@email.com",
+           "456879", "4578900", "450897", groups);
 
       Constraint testUser = createUserConstraint(userValues);
       Constraint testContact = createUserContactConstraint(userValues);
 
       request.setArgument(OpUserService.USER_DATA, userValues);
-      Constraint testPreference = createLanguageConstraint(userValues);
 
       //no queryResults should be found by find() on broker
       queryResults = new ArrayList();
@@ -551,17 +536,13 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //the user's contact must be persisted
       mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).with(testContact);
 
-      Constraint testUserAssignment = createUserAssignmentConstraint(newUserLogin, null);
-      //assigned group not found
-
-
       //transaction must be commited
       mockTransaction.expects(once()).method(COMMIT_METHOD);
 
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been found. The super group doesn't exist", result.getError());
 
    }
@@ -578,8 +559,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       userGroups.add(GROUP_LOCATOR);
       String newUserLogin = "NewLoginName";
 
-      Map userValues = createUserData("userFirstName","userLastName",newUserLogin,"password","password","email@email.com",
-                                     "456879","4578900","450897",userGroups);
+      Map userValues = createUserData("userFirstName", "userLastName", newUserLogin, "password", "password", "email@email.com",
+           "456879", "4578900", "450897", userGroups);
       //set up the  OpUserService.USER_ID request parameter
       request.setArgument(OpUserService.USER_ID, USER_LOCATOR);
 
@@ -616,7 +597,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -632,8 +613,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       List userGroups = new ArrayList();
       userGroups.add(GROUP_LOCATOR);
 
-      Map userValues = createUserData("userFirstName","userLastName",newUserLogin,OpUserService.PASSWORD_TOKEN,"",
-            "email@email.com","456879","4578900","450897",userGroups);
+      Map userValues = createUserData("userFirstName", "userLastName", newUserLogin, OpUserService.PASSWORD_TOKEN, "",
+           "email@email.com", "456879", "4578900", "450897", userGroups);
 
       //set up the  OpUserService.USER_ID request parameter
       request.setArgument(OpUserService.USER_ID, USER_LOCATOR);
@@ -668,7 +649,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -725,7 +706,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //set up the configuration to allow empty passwords fields
       OpSettings.set(OpSettings.ALLOW_EMPTY_PASSWORD, Boolean.toString(true));
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -779,7 +760,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //set up the configuration in order not to allow empty passwords
       OpSettings.set(OpSettings.ALLOW_EMPTY_PASSWORD, Boolean.toString(false));
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been found becouse the configuration doesn't allow empty password fields", result.getError());
    }
 
@@ -859,7 +840,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -894,7 +875,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been returned ", result.getError());
    }
 
@@ -905,7 +886,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //create the request
       XMessage request = new XMessage();
 
-      Map userValues = createUserData("userFirstName", "userLastName",USER_LOGIN_NAME, "pass", "password", "email@email.com",
+      Map userValues = createUserData("userFirstName", "userLastName", USER_LOGIN_NAME, "pass", "password", "email@email.com",
            "456879", "4578900", "450897", new ArrayList());
 
       //set up the  OpUserService.USER_ID request parameter
@@ -934,7 +915,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been returned ", result.getError());
    }
 
@@ -942,32 +923,32 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
     * Tests the behavior of updateUser for a invalid user data.
     */
    public void testUpdateUserWrongData() {
-      updateUserWrongData(USER_LOCATOR, "first", "last", "", "pass","pass","email@email.com", "1234", "5678", "90", null);
-      updateUserWrongData(USER_LOCATOR, "first", "last", "login", "wrongpasswor","", "email@email.com", "1234", "5678", "90", null);
-      updateUserWrongData(USER_LOCATOR, "first", "last", "login", "pass","pass","cucu_bau#$#$a143.ro", "1234", "5678", "90", null);
+      updateUserWrongData(USER_LOCATOR, "first", "last", "", "pass", "pass", "email@email.com", "1234", "5678", "90", null);
+      updateUserWrongData(USER_LOCATOR, "first", "last", "login", "wrongpasswor", "", "email@email.com", "1234", "5678", "90", null);
+      updateUserWrongData(USER_LOCATOR, "first", "last", "login", "pass", "pass", "cucu_bau#$#$a143.ro", "1234", "5678", "90", null);
    }
 
 
    /**
     * Creates a user data test case based on the given user properties.
     *
-    * @param first  first name of the user
-    * @param last   last name of the user
-    * @param login  login name of the user
-    * @param pass   password for the user
-    * @param retypedPass   retyped password for the user
-    * @param email  email of the user
-    * @param phone  phone number of the user
-    * @param mobile mobile phone number
-    * @param fax    fax number
-    * @param groups assigned groups for the user <code>XArray</code>
+    * @param first       first name of the user
+    * @param last        last name of the user
+    * @param login       login name of the user
+    * @param pass        password for the user
+    * @param retypedPass retyped password for the user
+    * @param email       email of the user
+    * @param phone       phone number of the user
+    * @param mobile      mobile phone number
+    * @param fax         fax number
+    * @param groups      assigned groups for the user <code>XArray</code>
     */
-   private void insertUserWrongData(String first, String last, String login, String pass,String retypedPass, String email,
+   private void insertUserWrongData(String first, String last, String login, String pass, String retypedPass, String email,
         String phone, String mobile, String fax, ArrayList groups) {
 
       XMessage request = new XMessage();
 
-      Map userValues = createUserData(first, last, login, pass, retypedPass, email,phone,mobile,fax,groups);
+      Map userValues = createUserData(first, last, login, pass, retypedPass, email, phone, mobile, fax, groups);
       request.setArgument(OpUserService.USER_DATA, userValues);
 
       //no user should be found by find() on broker
@@ -977,32 +958,35 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //error must be generated
       mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
 
-      XMessage result = userService.insertUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been found ", result.getError());
    }
 
    /**
     * Creates a user data update test case based on the given user properties.
     *
-    * @param first  first name of the user
-    * @param last   last name of the user
-    * @param login  login name of the user
-    * @param pass   password for the user
-    * @param retypedPass   retyped password for the user
-    * @param email  email of the user
-    * @param phone  phone number of the user
-    * @param mobile mobile phone number
-    * @param fax    fax number
-    * @param groups assigned groups for the user <code>XArray</code>
+    * @param first       first name of the user
+    * @param last        last name of the user
+    * @param login       login name of the user
+    * @param pass        password for the user
+    * @param retypedPass retyped password for the user
+    * @param email       email of the user
+    * @param phone       phone number of the user
+    * @param mobile      mobile phone number
+    * @param fax         fax number
+    * @param groups      assigned groups for the user <code>XArray</code>
+    * @param userId
+    * @param userId
+    * @param userId
     */
-   private void updateUserWrongData(String userId, String first, String last, String login, String pass,String retypedPass,
-        String email,String phone, String mobile, String fax, ArrayList groups) {
+   private void updateUserWrongData(String userId, String first, String last, String login, String pass, String retypedPass,
+        String email, String phone, String mobile, String fax, ArrayList groups) {
 
       XMessage request = new XMessage();
 
-      Map userValues = createUserData(first, last, login, pass, retypedPass, email,phone,mobile,fax,groups);
+      Map userValues = createUserData(first, last, login, pass, retypedPass, email, phone, mobile, fax, groups);
       request.setArgument(OpUserService.USER_DATA, userValues);
-       //set up the user id
+      //set up the user id
       request.setArgument(OpUserService.USER_ID, userId);
       //set up updated user data
       request.setArgument(OpUserService.USER_DATA, userValues);
@@ -1026,7 +1010,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateUser((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error should have been returned ", result.getError());
    }
 
@@ -1071,7 +1055,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       mockBroker.expects(once()).method(ITERATE_METHOD).with(eq(query)).after(SELECT_USER_BY_ID).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(user);
             return queryResults.iterator();
@@ -1087,7 +1072,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       mockBroker.expects(once()).method(ITERATE_METHOD).with(eq(query)).after(SELECT_GROUP_BY_ID).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             queryResults.add(group);
             return queryResults.iterator();
@@ -1110,7 +1096,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.deleteSubjects((XSession) mockSession.proxy(), request);
+      XMessage result = userService.deleteSubjects((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -1156,7 +1142,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       mockBroker.expects(once()).method(ITERATE_METHOD).with(eq(query)).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.add(userAssignment);
             return queryResults.iterator();
          }
@@ -1175,7 +1162,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.deleteAssignments((XSession) mockSession.proxy(), request);
+      XMessage result = userService.deleteAssignments((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -1221,7 +1208,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       mockBroker.expects(once()).method(ITERATE_METHOD).with(eq(query)).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.add(groupAssignment);
             return queryResults.iterator();
          }
@@ -1240,7 +1228,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.deleteAssignments((XSession) mockSession.proxy(), request);
+      XMessage result = userService.deleteAssignments((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
 
 
@@ -1271,7 +1259,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       //session user should not be the admin (check subjects)
       mockSession.expects(once()).method(GET_USER_ID_METHOD);
-       //administrator should not delete everyone group (check subjects)
+      //administrator should not delete everyone group (check subjects)
       mockSession.expects(atLeastOnce()).method(EVERYONE_METHOD);
 
       //a new query must be created to look the user
@@ -1299,7 +1287,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(userService.deleteSubjects((XSession) mockSession.proxy(), request));
+      assertNoError(userService.deleteSubjects((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -1318,7 +1306,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //session user should be the admin but he has no privileges to delete itself
       mockSession.expects(once()).method(GET_USER_ID_METHOD).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new Long(ADMINISTRATOR_ID_LONG);
          }
 
@@ -1328,7 +1317,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
 
       });
 
-      XMessage result = userService.deleteSubjects((XSession) mockSession.proxy(), request);
+      XMessage result = userService.deleteSubjects((OpProjectSession) mockSession.proxy(), request);
 
       assertNotNull("Error message should have been returned.The Administrator has no privileges to delete itself", result.getError());
 
@@ -1347,7 +1336,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //administrator tries to delete everyone group
       mockSession.expects(atLeastOnce()).method(EVERYONE_METHOD).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             OpGroup everyone = new OpGroup();
             everyone.setID(EVERYONE_GROUP_ID_LONG);
             return everyone;
@@ -1361,7 +1351,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //session user should be the admin but he has no privileges to delete itself
       mockSession.expects(once()).method(GET_USER_ID_METHOD).will(new Stub() {
 
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             return new Long(USER_ID_LONG);
          }
 
@@ -1372,7 +1363,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       });
 
 
-      XMessage result = userService.deleteSubjects((XSession) mockSession.proxy(), request);
+      XMessage result = userService.deleteSubjects((OpProjectSession) mockSession.proxy(), request);
 
       assertNotNull("Error message should have been returned.The Administrator has no privileges to delete itself", result.getError());
 
@@ -1533,11 +1524,11 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       if (!testedUser.getName().equals(userData.get(OpUser.NAME))) {
          return false;
       }
-      String userDataPassword = (String)userData.get(OpUser.PASSWORD);
+      String userDataPassword = (String) userData.get(OpUser.PASSWORD);
       String testedUserPassword = testedUser.getPassword();
       String token = sha.calculateHash(OpUserService.PASSWORD_TOKEN);
       //password not changed or equal to TOKEN
-      if (userDataPassword != null){
+      if (userDataPassword != null) {
          return testedUserPassword.equals(userDataPassword) || userDataPassword.equals(token);
       }
       return true;
@@ -1584,7 +1575,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -1615,7 +1606,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -1636,7 +1627,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //error must be generated
       mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
 
-      XMessage result = userService.insertGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -1683,7 +1674,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.insertGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.insertGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned. The only given super group is invalid. ", result.getError());
    }
 
@@ -1734,7 +1725,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -1810,7 +1801,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 
@@ -1862,7 +1853,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned. Super group doesn't exist", result.getError());
    }
 
@@ -1894,7 +1885,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -1928,7 +1919,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -1970,7 +1961,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.updateGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.updateGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -2006,7 +1997,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
     * @return a new <code>Map</code> with the user data
     */
    private Map createUserData(String firstName, String lastName, String loginName, String password, String retypedPassword,
-        String email, String phone, String mobile, String fax,List assignedGroups) {
+        String email, String phone, String mobile, String fax, List assignedGroups) {
       Map userValues = new HashMap();
 
       userValues.put(OpContact.FIRST_NAME, firstName);
@@ -2097,7 +2088,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
 
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
 
    }
@@ -2147,7 +2138,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
       // becouse the user is already assigned to target group NOP and no error message is returned
-      assertNoError(userService.assignToGroup((XSession) mockSession.proxy(), request));
+      assertNoError(userService.assignToGroup((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -2192,7 +2183,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockTransaction.expects(never()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned becouse the target group does not exist", result);
       assertNotNull("Error message should have been returned becouse the target group does not exist", result.getError());
 
@@ -2246,7 +2237,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
    }
@@ -2296,7 +2287,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
 
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
 
    }
@@ -2348,7 +2339,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
       // becouse the group is already assigned to target super group NOP and no error message is returned
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
 
    }
@@ -2395,7 +2386,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
 
-      XMessage result = userService.assignToGroup((XSession) mockSession.proxy(), request);
+      XMessage result = userService.assignToGroup((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned becouse the target super group does not exist", result);
       assertNotNull("Error message should have been returned becouse the target super group does not exist ", result.getError());
 
@@ -2438,7 +2429,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockBroker.expects(never()).method(CLOSE_METHOD);
 
 
-      assertNoError(userService.assignToGroup((XSession) mockSession.proxy(), request));
+      assertNoError(userService.assignToGroup((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -2519,7 +2510,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
    private Constraint createAdministratorConstraint(final OpUser administrator) {
       return new Constraint() {
          public boolean eval(Object obj) {
-            if (! (obj instanceof OpUser)) {
+            if (!(obj instanceof OpUser)) {
                return false;
             }
             OpUser admin = (OpUser) obj;
@@ -2551,7 +2542,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
    private Constraint createGroupConstraint(final OpGroup group) {
       return new Constraint() {
          public boolean eval(Object obj) {
-            if (! (obj instanceof OpGroup)) {
+            if (!(obj instanceof OpGroup)) {
                return false;
             }
             OpGroup g = (OpGroup) obj;
@@ -2583,7 +2574,8 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       mockQuery.expects(once()).method(SET_STRING_METHOD);
       //list schedules
       mockBroker.expects(once()).method(LIST_METHOD).with(eq(query)).will(new Stub() {
-         public Object invoke(Invocation invocation) throws Throwable {
+         public Object invoke(Invocation invocation)
+              throws Throwable {
             queryResults.clear();
             return queryResults;
          }

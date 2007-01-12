@@ -16,7 +16,9 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.my_tasks.forms.OpMyTasksFormProvider;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
@@ -32,7 +34,6 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    public final static String RESOURCE_COLUMN_COSTS = "ResourceColumnCosts";
    public final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
    public final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
-   public final static long  ALL_PROJECTS_SELECTION = -1;
    public final static String PROJECT_SET = "ProjectSet";
 
    // filters
@@ -86,13 +87,20 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
 
-      /*fill project set*/
+      //fill project set
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
-      OpMyTasksFormProvider.fillProjectDataSet(broker, resourceIds, activityTypes, projectDataSet);
+      List projectNodes = OpMyTasksFormProvider.getProjects(broker, resourceIds, activityTypes);
+         for (Iterator it = projectNodes.iterator(); it.hasNext();) {
+            OpProjectNode projectNode = (OpProjectNode) it.next();
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            String choice = XValidator.choice(projectNode.locator(), projectNode.getName());
+            row.setStringValue(choice);
+            projectDataSet.addDataRow(row);
+         }
 
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
       long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      result = getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId);
+      result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId);
 
       OpAssignment assignment;
       OpActivity activity;
@@ -110,202 +118,21 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
             continue;
          }
 
-         data_row = createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
+         data_row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
          work_record_set.addChild(data_row);
 
       }
       logger.debug("*** after loop");
-
       broker.close();
-
    }
 
-   public static Iterator getAssignments(OpBroker broker, List resourceIds,List activityTypes, Date start, long projectNodeId) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("select assignment, activity from OpAssignment as assignment inner join assignment.Activity as activity ");
-      buffer.append("where assignment.Resource.ID in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type)");
-      if (start != null){
-         buffer.append(" and activity.Start < :startBefore");
-      }
-      if (projectNodeId != ALL_PROJECTS_SELECTION){
-         buffer.append(" and assignment.ProjectPlan.ProjectNode.ID = :projectNodeId");
-      }
-      OpQuery query = broker.newQuery(buffer.toString());
-      query.setCollection("resourceIds", resourceIds);
-      query.setCollection("type", activityTypes);
-      if (start != null) {
-         query.setDate("startBefore", start);
-      }
-      if (projectNodeId != ALL_PROJECTS_SELECTION) {
-         query.setLong("projectNodeId", projectNodeId);
-      }
-      return broker.iterate(query);
-   }
-
-   public static XComponent createWorkSlipDataRow(OpActivity activity, OpAssignment assignment, boolean progressTracked, HashMap resourceMap) {
-      XComponent data_row;
-      String choice;
-      XComponent data_cell;
-      double remainingEffort;
-      data_row = new XComponent(XComponent.DATA_ROW);
-      // Iterate super-activities and "patch" activity name by adding context
-      // (Note: This and the assignments can be optimized using bulk-queries)
-         String name = activity.getName();
-         StringBuffer activityName = (name != null) ? new StringBuffer(name) : new StringBuffer();
-      OpActivity superActivity = activity.getSuperActivity();
-      if (superActivity != null) {
-         while (superActivity != null) {
-            if (superActivity.getID() == activity.getSuperActivity().getID()) {
-               activityName.append(" (");
-            }
-            else {
-               activityName.append(" - ");
-            }
-               name = superActivity.getName();
-               activityName.append((name != null) ? name : "");
-            superActivity = superActivity.getSuperActivity();
-         }
-         activityName.append(')');
-      }
-
-      choice = XValidator.choice(assignment.locator(), activityName.toString());
-
-      //activity name - 0
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setStringValue(choice);
-      data_cell.setEnabled(false);
-      data_row.addChild(data_cell);
-
-      // New effort - 1
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      if (activity.getType() == OpActivity.MILESTONE) {
-         data_cell.setValue(null);
-         data_cell.setEnabled(false);
-      }
-      else {
-         data_cell.setDoubleValue(0.0);
-         data_cell.setEnabled(true);
-      }
-      data_row.addChild(data_cell);
-
-      // Remaining effort -- default value is current effort minus already booked effort - 2
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      remainingEffort = assignment.getBaseEffort() - assignment.getActualEffort();
-      if (remainingEffort < 0.0d) {
-         remainingEffort = 0.0d;
-      }
-      if (progressTracked && activity.getType() != OpActivity.MILESTONE) {
-         data_cell.setDoubleValue(remainingEffort);
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setEnabled(false);
-         data_cell.setValue(null);
-      }
-      data_row.addChild(data_cell);
-
-      // Material costs - 3
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(0.0);
-      if (activity.getType() != OpActivity.MILESTONE) {
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setEnabled(false);
-         data_cell.setValue(null);
-      }
-      data_row.addChild(data_cell);
-
-      // Travel costs - 4
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(0.0);
-      if (activity.getType() != OpActivity.MILESTONE) {
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setEnabled(false);
-         data_cell.setValue(null);
-      }
-      data_row.addChild(data_cell);
-
-      // External costs - 5
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(0.0);
-      if (activity.getType() != OpActivity.MILESTONE) {
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setEnabled(false);
-         data_cell.setValue(null);
-      }
-      data_row.addChild(data_cell);
-
-      // Miscellaneous costs - 6
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(0.0);
-      if (activity.getType() != OpActivity.MILESTONE) {
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setEnabled(false);
-         data_cell.setValue(null);
-      }
-      data_row.addChild(data_cell);
-
-      // Optional comment - 7
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setEnabled(true);
-      data_row.addChild(data_cell);
-
-      // Resource id - 8
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setEnabled(false);
-      data_cell.setStringValue((String) resourceMap.get(new Long(assignment.getResource().getID())));
-      data_row.addChild(data_cell);
-
-      // Original remainig effort (can be changed from the client side) - 9
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(remainingEffort);
-      data_cell.setEnabled(false);
-      data_row.addChild(data_cell);
-
-      // Completed - 10
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      if (assignment.getProjectPlan().getProgressTracked()) {
-         data_cell.setBooleanValue(false);
-         data_cell.setEnabled(true);
-      }
-      else {
-         data_cell.setValue(null);
-         data_cell.setEnabled(false);
-      }
-      data_row.addChild(data_cell);
-
-      // Activity type - 11
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setIntValue(activity.getType());
-      data_row.addChild(data_cell);
-
-      // Activity created status (newly inerted / edit ) - 12
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setBooleanValue(true);
-      data_row.addChild(data_cell);
-
-      // Activity's project name - 13
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setStringValue(activity.getProjectPlan().getProjectNode().getName());
-      data_row.addChild(data_cell);
-
-      return data_row;
-   }
-
-   private Date getFilteredStartBeforeDate(OpProjectSession session, Map parameters ,XComponent form) {
-     /*get start from choice field or session state*/
-      String filteredStartFromId = (String)parameters.get(START_BEFORE_ID);
+   private Date getFilteredStartBeforeDate(OpProjectSession session, Map parameters, XComponent form) {
+      /*get start from choice field or session state*/
+      String filteredStartFromId = (String) parameters.get(START_BEFORE_ID);
 
       if (filteredStartFromId == null) { //set the default selected index for the time chooser
          Map stateMap = session.getComponentStateMap(form.getID());
-         if (stateMap != null){
+         if (stateMap != null) {
             Integer defaultSelectedIndex = new Integer(0);
             stateMap.put(START_TIME_CHOICE_FIELD, defaultSelectedIndex);
          }
@@ -342,18 +169,18 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       return start;
    }
 
-   private long getFilteredProjectNodeId(OpProjectSession session, Map parameters ,XComponent form) {
-      /*get project from choice field */
+   private long getFilteredProjectNodeId(OpProjectSession session, Map parameters, XComponent form) {
+      //get project from choice field 
       String filteredProjectChoiceId = (String) parameters.get(PROJECT_CHOICE_ID);
       if (filteredProjectChoiceId == null) {
          //set the default selected index for the project chooser
          Map stateMap = session.getComponentStateMap(form.getID());
-         if (stateMap != null){
+         if (stateMap != null) {
             Integer defaultSelectedIndex = new Integer(0);
             stateMap.put(PROJECT_CHOICE_FIELD, defaultSelectedIndex);
          }
-         return ALL_PROJECTS_SELECTION;
+         return OpWorkSlipDataSetFactory.ALL_PROJECTS_ID;
       }
-      return filteredProjectChoiceId.equals(ALL) ? ALL_PROJECTS_SELECTION : OpLocator.parseLocator(filteredProjectChoiceId).getID();
+      return filteredProjectChoiceId.equals(ALL) ? OpWorkSlipDataSetFactory.ALL_PROJECTS_ID : OpLocator.parseLocator(filteredProjectChoiceId).getID();
    }
 }

@@ -78,6 +78,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String COST_TABLE_TOOL_BAR = "CostTableToolBar";
    private final static String GANTT_TOOL_BAR = "GanttToolBar";
    private final static String ACTIVITY_TABLE_TOOL_BAR = "ActivityTableToolBar";
+   private final static String TIME_CHOOSER = "TimeUnitChooser";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -306,6 +307,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    protected void enableComponentsForNoOpenProject(XComponent form) {
       form.findComponent(ACTIVITY_GANTT_CHART).setEditMode(false);
+      form.findComponent(TIME_CHOOSER).setEnabled(false);      
       form.findComponent(ACTIVITY_GANTT_CHART).setPopUpMenuRef(null);
       form.findComponent(ACTIVITY_TABLE).setPopUpMenuRef(null);
       form.findComponent(COSTS_TABLE).setPopUpMenuRef(null);

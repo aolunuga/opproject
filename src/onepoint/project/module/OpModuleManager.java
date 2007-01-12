@@ -10,6 +10,7 @@ import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageKit;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.server.XService;
@@ -39,7 +40,7 @@ public final class OpModuleManager {
    public static void load() {
       // Read module registry
       // *** Exception/error if module-registry has already been read?
-      String path = XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME) + "/" + MODULE_REGISTRY_FILE_NAME;
+      String path = XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME) + "/" + MODULE_REGISTRY_FILE_NAME;
       if (opModuleRegistryLoader == null) {
          opModuleRegistryLoader = new OpModuleRegistryLoader();
       }

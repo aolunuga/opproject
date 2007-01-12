@@ -5,6 +5,7 @@
 package onepoint.project.modules.resource.test;
 
 import onepoint.express.XComponent;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.resource.OpResource;
@@ -14,7 +15,6 @@ import onepoint.project.modules.user.OpContact;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 import org.jmock.core.Constraint;
 import org.jmock.core.Invocation;
@@ -251,7 +251,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.insertResource((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.insertResource((OpProjectSession) mockSession.proxy(), request));
    }
 
    /**
@@ -307,7 +307,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must not be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.insertResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.insertResource((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -362,7 +362,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
 
-      XMessage result = resourceService.insertResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.insertResource((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -432,7 +432,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.updateResource((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.updateResource((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -472,7 +472,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.updateResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.updateResource((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -544,7 +544,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.updateResource((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.updateResource((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -596,7 +596,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.moveResourceNode((OpProjectSession) mockSession.proxy(), request);
       assertNull("No Error message should have been returned", result.getError());
    }
 
@@ -624,7 +624,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.moveResourceNode((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
    }
 
@@ -692,7 +692,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockTransaction.expects(once()).method(COMMIT_METHOD);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.moveResourceNode((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.moveResourceNode((OpProjectSession) mockSession.proxy(), request);
       assertNull("No Error message should have been returned", result.getError());
    }
 
@@ -770,7 +770,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.deleteResources((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.deleteResources((OpProjectSession) mockSession.proxy(), request));
    }
 
 
@@ -820,7 +820,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.insertPool((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.insertPool((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -866,7 +866,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must not be closed
       mockBroker.expects(never()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.insertPool((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.insertPool((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -929,7 +929,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
 
-      XMessage result = resourceService.insertPool((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.insertPool((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1022,7 +1022,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.updatePool((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.updatePool((OpProjectSession) mockSession.proxy(), request);
       assertNull("No error message should have been returned", result.getError());
 
    }
@@ -1065,7 +1065,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.updatePool((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.updatePool((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -1124,7 +1124,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.updatePool((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.updatePool((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1178,7 +1178,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.deletePools((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.deletePools((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -1238,7 +1238,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(resourceService.assignToProject((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.assignToProject((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -1287,7 +1287,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //do commit
       mockTransaction.expects(once()).method(COMMIT_METHOD);
 
-      assertNoError(resourceService.importUser((XSession) mockSession.proxy(), request));
+      assertNoError(resourceService.importUser((OpProjectSession) mockSession.proxy(), request));
    }
 
 
@@ -1315,7 +1315,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //never do commit
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
-      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
 
@@ -1356,7 +1356,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //never do commit
       mockTransaction.expects(never()).method(COMMIT_METHOD);
 
-      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result.getError());
       assertEquals("Error should be the one that was set on new error call", error, result.getError());
    }
@@ -1408,7 +1408,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
       //close broker
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = resourceService.importUser((XSession) mockSession.proxy(), request);
+      XMessage result = resourceService.importUser((OpProjectSession) mockSession.proxy(), request);
       assertNoError(result);
    }
 

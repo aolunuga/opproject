@@ -43,9 +43,21 @@ public final class OpHibernateSchemaUpdater {
    private static final XLog logger = XLogFactory.getLogger(OpHibernateSchemaUpdater.class, true);
 
    /**
+    * Constants used in the various JDBC method calls
+    */
+   private static final String TABLE_PREFIX = OpHibernateSource.TABLE_NAME_PREFIX + "%";
+   private static final String[] TABLE_TYPES = new String[] {"TABLE"};
+   private static final String TABLE_NAME_COLUMN = "TABLE_NAME";
+
+   /**
     * The map of db types.
     */
    private static final Map DB_TYPES_MAP = new HashMap();
+
+   /**
+    * List of predifined indexes
+    */
+   private static final List EXCLUDE_INDEX_NAMES = Arrays.asList(new String[]{"PRIMARY"});
 
    /**
     * The only class instance.
@@ -61,6 +73,11 @@ public final class OpHibernateSchemaUpdater {
     * A map of table metadata.
     */
    private Map tableMetaData = new HashMap();
+
+   /**
+    * The database type constant that represents the underlying database.
+    */
+   private Integer dbType = null;
 
    /**
     * Initialize the db types map.
@@ -88,6 +105,10 @@ public final class OpHibernateSchemaUpdater {
          instance = new OpHibernateSchemaUpdater();
       }
       instance.source = source;
+      instance.dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
+      if (instance.dbType == null) {
+         instance.dbType = new Integer(OpSqlStatementFactory.UNKNOWN); 
+      }
       return instance;
    }
 
@@ -121,6 +142,85 @@ public final class OpHibernateSchemaUpdater {
    }
 
    /**
+    * Generates a list of statements that drop foreign key contraints and index for the tables of the given database.
+    * @param dbMetaData a <code>DatabaseMetaData</code> object representing meta info about a db.
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
+   public List generateDropConstraintScripts(DatabaseMetaData dbMetaData) {
+      try {
+         List dropConstraintScripts = new ArrayList();
+         ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
+         while (rs.next()) {
+            String tableName = rs.getString(TABLE_NAME_COLUMN);
+            List tableFKConstraints = generateDropFKConstraints(tableName, dbMetaData);
+            dropConstraintScripts.addAll(tableFKConstraints);
+            List tableIndexConstraints = generateDropIndexConstraints(tableName, dbMetaData);
+            dropConstraintScripts.addAll(tableIndexConstraints);
+         }
+         return dropConstraintScripts;
+      }
+      catch (SQLException e) {
+         logger.error("Cannot generate the drop constraints scripts", e);
+         return Collections.EMPTY_LIST;
+      }
+   }
+
+   /**
+    * Generates a list of SQL statements for dropping the index constraints of the given table.
+    * @param tableName a <code>String</code> representing a table name.
+    * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
+   private List generateDropIndexConstraints(String tableName, DatabaseMetaData dbMetaData) {
+      try {
+         List dropIndexScripts = new ArrayList();
+         ResultSet rs = dbMetaData.getIndexInfo(null, null, tableName, false, false);
+         while (rs.next()) {
+            String indexName = rs.getString("INDEX_NAME");
+            //<FIXME author="Horia Chiorean" description="Can we be 100% that this way we only get the hibernate generated indexes ?">
+            if (indexName == null || indexName.startsWith(OpHibernateSource.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
+               continue;
+            }
+            //<FIXME>
+            String dropStatement = OpSqlStatementFactory.createSqlStatement(dbType).getDropIndexConstraintStatement(tableName, indexName);
+            if (dropStatement != null) {
+               dropIndexScripts.add(dropStatement);
+            }
+         }
+         return dropIndexScripts;
+      }
+      catch (SQLException e) {
+         logger.error("Cannot get index constraints for table:" + tableName, e);
+         return Collections.EMPTY_LIST;
+      }
+   }
+
+   /**
+    * Generates a list of SQL statements for dropping the FK constraints of the given table.
+    * @param tableName a <code>String</code> representing a table name.
+    * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
+   private List generateDropFKConstraints(String tableName, DatabaseMetaData dbMetaData) {
+      try {
+         List dropFkConstraints = new ArrayList();
+         ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
+         while (rs.next()) {
+            String fkName = rs.getString("FK_NAME");
+            String dropStatement = OpSqlStatementFactory.createSqlStatement(dbType).getDropFKConstraintStatement(tableName, fkName);
+            if (dropStatement != null) {
+               dropFkConstraints.add(dropStatement);
+            }
+         }
+         return dropFkConstraints;
+      }
+      catch (SQLException e) {
+         logger.error("Cannot generate drop fk constraints for table:" + tableName,  e);
+         return Collections.EMPTY_LIST;
+      }
+   }
+
+   /**
     * Creates the list of SQL instructions that drop old tables in order to match the current entity structure.
     *
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
@@ -138,16 +238,16 @@ public final class OpHibernateSchemaUpdater {
             currentTables.add(tableName);
          }
 
-
-         ResultSet rs = dbMetaData.getTables(null, null, OpHibernateSource.TABLE_NAME_PREFIX + "%", new String[]{"TABLE"});
+         ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
          List dropStatements = new ArrayList();
          while (rs.next()) {
-            String tableName = rs.getString("TABLE_NAME");
+            String tableName = rs.getString(TABLE_NAME_COLUMN);
             if (!currentTables.contains(tableName) && !nonPrototypeTables.contains(tableName)) {
-               Integer dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
                OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(dbType);
                String sqlStatement = statement.getDropTableStatement(tableName);
-               dropStatements.add(sqlStatement);
+               if (sqlStatement != null) {
+                  dropStatements.add(sqlStatement);
+               }
             }
          }
          return dropStatements;
@@ -166,9 +266,9 @@ public final class OpHibernateSchemaUpdater {
     */
    private void populateTableMetaData(DatabaseMetaData dbMetaData)
         throws SQLException {
-      ResultSet rs = dbMetaData.getTables(null, null, OpHibernateSource.TABLE_NAME_PREFIX + "%", new String[]{"TABLE"});
+      ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
       while (rs.next()) {
-         String tableName = rs.getString("TABLE_NAME");
+         String tableName = rs.getString(TABLE_NAME_COLUMN);
          ResultSet rs1 = dbMetaData.getColumns(null, null, tableName, OpHibernateSource.COLUMN_NAME_PREFIX + "%");
          Map tableColumnsMetaData = new HashMap();
          while (rs1.next()) {
@@ -222,11 +322,12 @@ public final class OpHibernateSchemaUpdater {
             continue;
          }
          if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
-            Integer dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
-            OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(dbType);
+            OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(this.dbType);
             String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
-            logger.info("XSchemaUpdater: adding update statement: " + sqlStatement);
-            result.add(sqlStatement);
+            if (sqlStatement != null) {
+               logger.info("XSchemaUpdater: adding update statement: " + sqlStatement);
+               result.add(sqlStatement);
+            }
          }
       }
       return result;

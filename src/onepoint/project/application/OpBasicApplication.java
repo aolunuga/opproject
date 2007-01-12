@@ -60,7 +60,7 @@ public class OpBasicApplication {
    protected OpBasicApplication(String title) {
       mode = DEFAULT_MODE;
       this.title = title;
-      project_home = OpEnvironmentManager.getEnvironmentVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+      project_home = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
    }
 
    protected String getProjectHome() {
@@ -105,7 +105,7 @@ public class OpBasicApplication {
             OpBackupManager backupManager = OpBackupManager.getBackupManager();
             try {
                if (exchangeFileName == null) {
-                  exchangeFileName = application.getDisplay().showFileDialog("Backup respository", Boolean.FALSE);
+                  exchangeFileName = application.getDisplay().showFileDialog("Backup respository", Boolean.FALSE, null);
                   application.dispose();
                }
                backupManager.backupRepository((OpProjectSession) application.getSession(), exchangeFileName);
@@ -116,22 +116,15 @@ public class OpBasicApplication {
             System.exit(0);
          }
          case RESTORE_MODE: {
-            OpBackupManager backupManager = OpBackupManager.getBackupManager();
-            //check for "empty" DB
-            if (OpInitializer.isEmptyDB()) {
-               try {
-                  if (exchangeFileName == null) {
-                     exchangeFileName = application.getDisplay().showFileDialog("Restore repository", Boolean.TRUE);
-                     application.dispose();
-                  }
-                  backupManager.restoreRepository((OpProjectSession) application.getSession(), exchangeFileName);
+            try {
+               if (exchangeFileName == null) {
+                  exchangeFileName = application.getDisplay().showFileDialog("Restore repository", Boolean.TRUE, null);
+                  application.dispose();
                }
-               catch (IOException e) {
-                  logger.error("ERROR: Could not restore repository: " + e);
-               }
+               OpInitializer.restoreSchemaFromFile(exchangeFileName, (OpProjectSession) application.getSession());
             }
-            else {
-               logger.error("ERROR: Restore needs an empty data base");
+            catch (Exception e) {
+               logger.error("ERROR: Could not restore repository: " + e);
             }
             System.exit(0);
          }

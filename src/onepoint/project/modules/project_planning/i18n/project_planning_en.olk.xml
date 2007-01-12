@@ -251,9 +251,9 @@
       <resource id="HourlyRatesModifiedWarning">Personnel costs have been recalculated, because hourly rates of resources used in this project plan were modified</resource>
       <resource id="AvailabilityModifiedWarning">Personnel costs have been recalculated, because the availability of resources used in this project plan were modified</resource>
       <resource id="AvailabilityAndRatesModifiedWarning">Personnel costs have been recalculated, because the availability and hourly rates of resources used in this project plan were modified</resource>
-      <resource id="MsProjectFileReadError">Cannot read Microsoft Project file</resource>
-      <resource id="MsProjectFileWriteError">Cannot export plan to Microsoft Project format</resource>
-      <resource id="InsuficientAttachmentPermissions">You don't have enough permissions to view the attachment</resource>
+      <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
+      <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
+      <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
    </resource-map>
 
 </language-kit>

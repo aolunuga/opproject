@@ -6,6 +6,7 @@ package onepoint.project.module;
 
 import onepoint.persistence.OpPrototype;
 import onepoint.persistence.OpPrototypeLoader;
+import onepoint.project.util.OpProjectConstants;
 
 public class OpPrototypeFile {
 
@@ -17,7 +18,7 @@ public class OpPrototypeFile {
    }
 
    public final OpPrototype loadPrototype() {
-      String prototype_file_name = onepoint.project.configuration.OpConfiguration.PROJECT_PACKAGE + _file_name;
+      String prototype_file_name = OpProjectConstants.PROJECT_PACKAGE + _file_name;
       return new OpPrototypeLoader().loadPrototype(prototype_file_name);
    }
 

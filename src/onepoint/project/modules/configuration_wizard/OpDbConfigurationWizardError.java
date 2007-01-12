@@ -18,6 +18,8 @@ public class OpDbConfigurationWizardError {
    public final static int GENERAL_CONNECTION_ERROR = 5;
    public final static int JDBC_DRIVER_ERROR = 6;
    public final static int DATABASE_PATH_MISSING = 7;
+   public final static int NONEXISTENT_DEMODATA = 9;
+   public final static int DEMODATA_IMPORT_FAILURE = 10;
 
    //Error names
    public final static String DATABASE_URL_MISSING_NAME = "DatabaseUrlMissing";
@@ -27,4 +29,6 @@ public class OpDbConfigurationWizardError {
    public final static String GENERAL_CONNECTION_ERROR_NAME = "GeneralConnectionError";
    public final static String JDBC_DRIVER_ERROR_NAME = "JDBCDriverError";
    public final static String DATABASE_PATH_MISSING_NAME = "DatabasePathMissing";
+   public final static String NONEXISTENT_DEMODATA_NAME = "NonExistentDemoData";
+   public final static String DEMODATA_IMPORT_FAILURE_NAME = "DemodataImportFailure";   
 }

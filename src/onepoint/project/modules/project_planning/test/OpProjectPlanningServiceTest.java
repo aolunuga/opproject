@@ -5,6 +5,7 @@
 package onepoint.project.modules.project_planning.test;
 
 import onepoint.express.XComponent;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
@@ -16,7 +17,6 @@ import onepoint.project.modules.user.OpSubject;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.test.OpServiceAbstractTest;
 import onepoint.service.XMessage;
-import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 import org.jmock.core.Constraint;
 import org.jmock.core.Invocation;
@@ -261,7 +261,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = planningService.editActivities((XSession) mockSession.proxy(), request);
+      XMessage result = planningService.editActivities((OpProjectSession) mockSession.proxy(), request);
 
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
@@ -301,7 +301,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      assertNoError(planningService.editActivities((XSession) mockSession.proxy(), request));
+      assertNoError(planningService.editActivities((OpProjectSession) mockSession.proxy(), request));
 
    }
 
@@ -396,7 +396,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = planningService.saveActivities((XSession) mockSession.proxy(), request);
+      XMessage result = planningService.saveActivities((OpProjectSession) mockSession.proxy(), request);
       assertNull("No error message should have been returned", result);
    }
 
@@ -426,7 +426,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = planningService.saveActivities((XSession) mockSession.proxy(), request);
+      XMessage result = planningService.saveActivities((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
    }
@@ -450,7 +450,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //broker must be closed
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage result = planningService.saveActivities((XSession) mockSession.proxy(), request);
+      XMessage result = planningService.saveActivities((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("Error message should have been returned", result);
       assertNotNull("Error message should have been returned", result.getError());
    }
@@ -522,7 +522,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       expectPostProjectCheckIn();
 
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
 
@@ -590,7 +590,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       expectPostProjectCheckIn();
 
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
       //check project if it has the expected values. Project is "detached" but values are the saved ones.
@@ -607,6 +607,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
    public void testCheckInAttachment() {
       //add project plan to project
       project.setPlan(projectPlan);
+      projectPlan.setProjectNode(project);
       //create an activity
       XComponent activitiesDataSet = new XComponent(XComponent.DATA_SET);
       String activityName = "Activity 1";
@@ -670,6 +671,8 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       //an OpAttachment must be created and stored
       mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).
            with(createAttachmentConstraint(activitiesList, activityName, attContent, attName, attLocation));
+      //create the link between attachment and content
+      mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(isA(OpContent.class));
 
       //storeActivityDataSet update project plan
       mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(same(projectPlan));
@@ -677,7 +680,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       expectPostProjectCheckIn();
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -761,7 +764,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       expectPostProjectCheckIn();
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -833,7 +836,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
 
       expectPostProjectCheckIn();
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -906,7 +909,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       expectPostProjectCheckIn();
 
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -991,7 +994,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       expectPostProjectCheckIn();
 
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -1065,7 +1068,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       expectPostProjectCheckIn();
 
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
@@ -1163,7 +1166,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       expectPostProjectCheckIn();
 
       //call the check in method
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       //no error message
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
    }
@@ -1204,7 +1207,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       });
 
       expectPostProjectCheckIn();
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       assertNull("No errors should have been found on the response, because the project has valid data!", response);
 
    }
@@ -1220,7 +1223,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockBroker.expects(once()).method(CLOSE_METHOD);
       mockBroker.expects(never()).method(NEW_TRANSACTION_METHOD);
 
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
 
       assertNotNull("There should be errors on the response, because the project is already checked in !", response);
       assertNotNull("There should be errors on the response, because the project is already checked in !", response.getError());
@@ -1238,7 +1241,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockSession.expects(once()).method(NEW_BROKER_METHOD).will(methodStub);
       mockBroker.expects(once()).method(GET_OBJECT_METHOD).will(methodStub);
       mockBroker.expects(once()).method(CLOSE_METHOD);
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
 
       assertNotNull("There should be errors on the response because the project does not exist !", response);
       assertNotNull("Error message should have been returned because the project does not exist !", response.getError());
@@ -1260,7 +1263,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       mockSession.expects(once()).method(NEW_ERROR_METHOD).will(methodStub);
       mockBroker.expects(once()).method(CLOSE_METHOD);
 
-      XMessage response = planningService.checkInActivities((XSession) mockSession.proxy(), request);
+      XMessage response = planningService.checkInActivities((OpProjectSession) mockSession.proxy(), request);
       assertNotNull("There should be errors on the response, because the project is locked by someone else !", response);
       assertNotNull("There should be errors on the response, because the project is locked by someone else !", response.getError());
       assertEquals("Error should be the one that was set on new error call", error, response.getError());

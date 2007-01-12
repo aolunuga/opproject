@@ -9,12 +9,12 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XMessage;
-import onepoint.service.server.XService;
-import onepoint.service.server.XSession;
 import onepoint.util.XEnvironment;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author horia.chiorean
  */
-public class OpConfigurationWizardService extends XService {
+public class OpConfigurationWizardService extends OpProjectService {
 
    /**
     * This class's logger.
@@ -51,24 +51,26 @@ public class OpConfigurationWizardService extends XService {
    private static final String PARAMETERS = "parameters";
 
    /**
-    * The name of the default HSQLDB file. 
+    * Error map.
     */
-   private static final String HSQLDB_DEFAULT_FILENAME = "/opproject";
+   private static final OpDbConfigurationWizardErrorMap ERROR_MAP = new OpDbConfigurationWizardErrorMap();
+
+   /**
+    * The path and names for the demodata
+    */
+   private static final String DEMODATA_DIR = "demodata";
+   private static final String DEMODATA_FILE = "demodata.opx.xml";
 
    /**
     * Writes the db configuration file, with the db settings.
     *
-    * @param s a <code>XSession</code> representing the server session.
+    * @param session a <code>XSession</code> representing the server session.
     * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the response.
     */
-   public XMessage writeDatabaseConfigurationFile(XSession s, XMessage request) {
-
-      OpProjectSession session = (OpProjectSession) s;
+   public XMessage writeDatabaseConfigurationFile(OpProjectSession session, XMessage request) {
 
       HashMap parameters = (HashMap) (request.getArgument(PARAMETERS));
-      //error map
-      OpDbConfigurationWizardErrorMap errorMap = new OpDbConfigurationWizardErrorMap();
 
       Boolean isStandaloneParameter = (Boolean) parameters.get("is_standalone");
       boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter.booleanValue();
@@ -83,29 +85,22 @@ public class OpConfigurationWizardService extends XService {
       String databaseURL = (String) parameters.get("database_url");
       if (databaseURL == null) {
          if (!isStandalone) {
-            response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_URL_MISSING));
+            response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.DATABASE_URL_MISSING));
          }
          else {
-            response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_PATH_MISSING));
+            response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.DATABASE_PATH_MISSING));
          }
          return response;
       }
       else if (isStandalone) {
-         File dbRootDir = new File(databaseURL);
-         if (!dbRootDir.exists()) {
-            logger.info("Creating parent dir for HSQLDB");
-            dbRootDir.mkdir();
-         }
-
          StringBuffer dbUrl = new StringBuffer(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX);
          dbUrl.append(XEnvironmentManager.convertPathToSlash(databaseURL));
-         dbUrl.append(HSQLDB_DEFAULT_FILENAME);
          databaseURL = dbUrl.toString();
       }
 
       String databaseLogin = (String) parameters.get("database_login");
       if (databaseLogin == null) {
-         response.setError(session.newError(errorMap, OpDbConfigurationWizardError.DATABASE_LOGIN_MISSING));
+         response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.DATABASE_LOGIN_MISSING));
          return response;
       }
 
@@ -114,22 +109,54 @@ public class OpConfigurationWizardService extends XService {
 
       int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword);
       if (errorCode != OpConnectionManager.SUCCESS) {
-         response.setError(session.newError(errorMap, errorCode));
+         response.setError(session.newError(ERROR_MAP, errorCode));
          return response;
       }
 
       //the configuration file name
-      String projectPath = XEnvironment.getVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME);
+      String projectPath = XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME);
       String configurationFileName = projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
 
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
+      Boolean importDemoDataParam = (Boolean) parameters.get("import_demo_data");
+      boolean importDemoData = importDemoDataParam != null && importDemoDataParam.booleanValue();
+      File demodataFile = getDemodataFile();
+
+      //if demodata is to be imported, make sure the file exists
+      if (importDemoData && demodataFile == null) {
+         response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.NONEXISTENT_DEMODATA));
+         return response;
+      }
+
       //re-initialize application
       boolean isMultiUser = ((Boolean) parameters.get("is_multi_user")).booleanValue();
-
       Map initParams = OpInitializer.init(projectPath, isMultiUser);
       response.setArgument("initParams", initParams);
+
+      if (importDemoData) {
+         try {
+            OpInitializer.restoreSchemaFromFile(demodataFile.getCanonicalPath(), session);
+         }
+         catch (Exception e) {
+            logger.error("Cannot import demodata because:" + e.getMessage(), e);
+            return response;
+         }
+      }
       return response;
+   }
+
+   /**
+    * Gets the demodata file.
+    * @return a <code>File</code> object representing the demodata, or null if the demodata doesn't exist.
+    */
+   private File getDemodataFile() {
+      String demodataBackupFilePath = DEMODATA_DIR + "/" + DEMODATA_FILE;
+      File demodataBackupFile = new File(".", demodataBackupFilePath);
+      if (!demodataBackupFile.exists() || demodataBackupFile.isDirectory()) {
+         return null;
+      }
+      return demodataBackupFile;
    }
 
    /**

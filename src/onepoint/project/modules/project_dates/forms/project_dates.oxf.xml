@@ -42,11 +42,11 @@
             <!-- filter (drop-down) on activities: Activities, milestones, open/closed? -->
             <panel y="-1" layout="table">
                <label x="0" width="2" text="{$ResourceFilter}"/>
-               <choice-field x="2" width="3" id="ResourceChooser" data-set-ref="ResourceSet" on-value-changed="filterChanged" stateful="true" selected-index="0"/>
+               <choice-field x="2" width="3" id="ResourceChooser" data-set-ref="ResourceSet" on-value-changed="filterChanged" stateful="true" selected-index="0" enabled="false"/>
                <label x="5" width="2" text="{$VersionFilter}"/>
-               <choice-field x="7" width="3" id="VersionChooser" data-set-ref="VersionSet" on-value-changed="filterChanged" stateful="true" selected-index="0"/>
+               <choice-field x="7" width="3" id="VersionChooser" data-set-ref="VersionSet" on-value-changed="filterChanged" stateful="true" selected-index="0" enabled="false"/>
                <label x="10" width="2" text="{$ChangeTimeUnit}"/>
-               <choice-field x="12" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet" on-value-changed="timeUnitChanged" stateful="true" selected-index="0"/>
+               <choice-field x="12" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet" on-value-changed="timeUnitChanged" stateful="true" selected-index="0" enabled="false"/>
             </panel>
             <gantt-box id="ActivityGanttChart" data-set-ref="ActivitySet" history-ref="HistorySet" time-unit="days"
                        flexible="true" caption-left="ActivityName" caption-right="ResourceNames" category-color-set-ref="CategoryColorDataSet" stateful="true" pop-up-menu-ref="ActivityChartPopupMenu"/>

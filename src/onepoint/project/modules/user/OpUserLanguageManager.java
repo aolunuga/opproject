@@ -79,9 +79,10 @@ public final class OpUserLanguageManager {
     * @param broker      a <code>OpBroker</code> used to perform business operations.
     * @param currentUser a <code>OpUser</code> representing the user for which to perform the operation.
     * @param language    the language code ("en", "de", etc).
+    * @return true if the language was updated (i.e. if the new language preference != old preference)
     */
-   public static void updateUserLanguagePreference(OpBroker broker, OpUser currentUser, String language) {
-      boolean langugageChanged = false;
+   public static boolean updateUserLanguagePreference(OpBroker broker, OpUser currentUser, String language) {
+      boolean languageChanged = false;
 
       if (currentUser.getPreferences() != null) {
          //set the language
@@ -89,7 +90,7 @@ public final class OpUserLanguageManager {
          while (it.hasNext()) {
             OpPreference userPreference = (OpPreference) it.next();
             if (userPreference.getName().equals(OpPreference.LOCALE)) {
-               langugageChanged = true;
+               languageChanged = true;
                userPreference.setValue(language);
                broker.updateObject(userPreference);
                break;
@@ -97,13 +98,15 @@ public final class OpUserLanguageManager {
          }
       }
 
-      if (!langugageChanged) {
+      if (!languageChanged) {
          OpPreference preference = new OpPreference();
          preference.setName(OpPreference.LOCALE);
          preference.setValue(language);
          preference.setUser(currentUser);
          broker.makePersistent(preference);
       }
+
+      return languageChanged;
    }
 
 }

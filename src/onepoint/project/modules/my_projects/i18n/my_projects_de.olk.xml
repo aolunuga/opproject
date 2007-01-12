@@ -23,10 +23,13 @@
       <resource id="BaseEffort">Aufwand (P/h)</resource>
       <resource id="ActualEffort">Aufwand (I/h)</resource>
       <resource id="BaseCosts">Kosten (P/€)</resource>
-      <resource id="ActualCosts">Kosten (P/€)</resource>
-      <resource id="Projected">Erwartet (€)</resource>
-      <resource id="Deviation">Abw. (€)</resource>
-      <resource id="PercentageDeviation">Abw. (%)</resource>
+      <resource id="ActualCosts">Kosten (I/€)</resource>
+      <resource id="ProjectedCosts">Kosten (E/€)</resource>
+      <resource id="DeviationCosts">Kosten (A/€)</resource>
+      <resource id="PercentageDeviationCosts">Kosten (A/%)</resource>
+      <resource id="ProjectedEffort">Aufwand (E/h)</resource>
+      <resource id="DeviationEffort">Aufwand (A/h)</resource>
+      <resource id="PercentageDeviationEffort">Aufwand (A/%)</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>

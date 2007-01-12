@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.SQLServerDialect;
 
 import java.io.*;
 import java.sql.Connection;
@@ -39,6 +40,7 @@ public class OpHibernateSource extends OpSource {
    public final static int ORACLE = 5;
    public final static int HSQLDB = 6;
    public final static int IBM_DB2 = 7;
+   public final static int SQLSERVER = 8;
 
    public final static String INDEX_NAME_PREFIX = "op_";
    public final static String INDEX_NAME_POSTFIX = "_i";
@@ -237,6 +239,8 @@ public class OpHibernateSource extends OpSource {
             return org.hibernate.dialect.HSQLDialect.class;
          case IBM_DB2:
             return org.hibernate.dialect.DB2Dialect.class;
+         case SQLSERVER:
+            return SQLServerDialect.class;
          default:
             throw new IllegalArgumentException("No dialect for this database type " + _database_type);
       }
@@ -265,12 +269,14 @@ public class OpHibernateSource extends OpSource {
          defaultHibernateConfigProperties = new Properties();
          try {
             defaultHibernateConfigProperties.load(input);
-            _configuration.setProperties(defaultHibernateConfigProperties);
          }
          catch (IOException e) {
             logger.error("Cannot load hibernate default properties", e);
          }
       }
+      Properties configurationProperties = new Properties();
+      configurationProperties.putAll(defaultHibernateConfigProperties);
+      _configuration.setProperties(configurationProperties);
    }
 
    public void open() {
@@ -351,6 +357,10 @@ public class OpHibernateSource extends OpSource {
             queryString = "select top 1 * from " + tableName;
             break;
          }
+         case SQLSERVER: {
+            queryString = "select top 1 * from " + tableName;
+            break;
+         }
       }
 
       SQLQuery existsQuery = session.createSQLQuery(queryString);
@@ -366,7 +376,12 @@ public class OpHibernateSource extends OpSource {
       }
    }
 
+   /**
+    * Closes this source, by releasing all resources.
+    */
    public void close() {
+      _session_factory.close();
+      _configuration.getProperties().clear();
    }
 
    public final String newColumnName(String property_name) {

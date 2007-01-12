@@ -349,4 +349,23 @@ public class OpProjectSession extends XExpressSession {
    public boolean isEmpty() {
       return userId == NO_ID;
    }
+
+   /**
+    * Counts the number of entities of the given type in the db.
+    * @param name a <code>String</code> representing the name of the entity to count for.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @return a <code>int</code> representing the number of the entities of the given type.
+    */
+   public int countEntity(String name, OpBroker broker) {
+      StringBuffer queryStringBuffer = new StringBuffer("select count(entity) from ");
+      queryStringBuffer.append(name);
+      queryStringBuffer.append(" as entity");
+      OpQuery query = broker.newQuery(queryStringBuffer.toString());
+      Iterator it = broker.list(query).iterator();
+      Number result = new Integer(0);
+      while (it.hasNext()) {
+         result = (Number) it.next();
+      }
+      return result.intValue();
+   }
 }

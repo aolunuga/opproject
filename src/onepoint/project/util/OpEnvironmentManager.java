@@ -37,6 +37,8 @@ public class OpEnvironmentManager {
     * The environment properties.
     */
    private static Properties envProps = new Properties();
+   //Name of Windows OS environment variable
+   public static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
    static {
       if (OpEnvironmentManager.OS_NAME.equals("Windows NT") || OpEnvironmentManager.OS_NAME.equals("Windows 2000") || OpEnvironmentManager.OS_NAME.equals("Windows XP") || OpEnvironmentManager.OS_NAME.equals("Windows 2003"))
@@ -89,7 +91,7 @@ public class OpEnvironmentManager {
          loadEnvironmentProperties();
       }
       String property;
-      if (name.equals(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME)) {
+      if (name.equals(ONEPOINT_HOME)) {
          File dummy = new File("");
          String path = dummy.getAbsolutePath();
 
@@ -114,6 +116,13 @@ public class OpEnvironmentManager {
       return property;
    }
 
+   /**
+    * Gets the home directory path of the application.
+    * @return a <code>String</code> representing the home directory of the application.
+    */
+   public static String getOnePointHome() {
+      return getEnvironmentVariable(ONEPOINT_HOME);
+   }
 
    /**
     * Reads the process's output stream and performs initialization of the environment variables properties list

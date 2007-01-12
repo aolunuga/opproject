@@ -7,6 +7,7 @@ import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.module.OpModuleRegistryLoader;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.*;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -100,7 +101,7 @@ public abstract class OpServiceAbstractTest extends MockObjectTestCase {
       //Setup environment for all the tests
 
       log.debug("Static set up block for all test cases");
-      XEnvironment.setVariable(onepoint.project.configuration.OpConfiguration.ONEPOINT_HOME, "onepoint/project/test");
+      XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, "onepoint/project/test");
       OpModuleRegistryLoader registryLoader = new OpModuleRegistryLoader();
       registryLoader.setUseResourceLoader(true);
       OpModuleManager.setModuleRegistryLoader(registryLoader);

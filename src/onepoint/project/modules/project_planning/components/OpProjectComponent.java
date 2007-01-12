@@ -111,6 +111,7 @@ public class OpProjectComponent extends XComponent {
    public final static Integer UTILIZATION_VISIBLE_DETAILS_INTERVAL = new Integer(305);
    public final static Integer RESOURCE_TABLE_ID = new Integer(306);
    public final static Integer RESOURCE_TABLE = new Integer(307);
+   public static final Integer ALTERNATE_DETAILS_FORM_REF = new Integer(308);
 
    /*start and finish index in the details time interval list */
    private final static int INTERVAL_START_INDEX = 0;
@@ -143,7 +144,7 @@ public class OpProjectComponent extends XComponent {
    public final static int UTILIZATION_START_COLUMN_INDEX = 3;
    public final static int UTILIZATION_END_COLUMN_INDEX = 4;
    public final static int UTILIZATION_VALUES_COLUMN_INDEX = 5;
-   public final static int UTILIZATION_COLUMNS = 6;
+   public final static int UTILIZATION_ROW_ID = 6;
 
    public final static String UTILIZATION_POOL_DESCRIPTOR = "p";
    public final static String UTILIZATION_RESOURCE_DESCRIPTOR = "r";
@@ -510,6 +511,14 @@ public class OpProjectComponent extends XComponent {
 
    public final XComponent getResourceTable() {
       return (XComponent) getProperty(RESOURCE_TABLE);
+   }
+
+   public final void setAlternateDetailsFormRef(String formRef) {
+      setProperty(ALTERNATE_DETAILS_FORM_REF, formRef);
+   }
+
+   public final String getAlternateDetailsFormRef() {
+      return (String) getProperty(ALTERNATE_DETAILS_FORM_REF);
    }
 
    public final void setDragMode(int drag_mode) {
@@ -1066,8 +1075,7 @@ public class OpProjectComponent extends XComponent {
                   end_time = OpGanttValidator.getEnd(data_row).getTime();
                   logger.debug("---START: " + OpGanttValidator.getStart(data_row));
                }
-               else if (((XComponent) (data_row.getChild(UTILIZATION_DESCRIPTOR_COLUMN_INDEX))).getStringValue()
-                    .equals(UTILIZATION_RESOURCE_DESCRIPTOR)) {
+               else {
 
                   XComponent utilizationStart = ((XComponent) (data_row.getChild(UTILIZATION_START_COLUMN_INDEX)));
                   if (utilizationStart != null && utilizationStart.getDateValue() != null) {
@@ -1910,45 +1918,42 @@ public class OpProjectComponent extends XComponent {
       for (int i = 0; i < data_set.getChildCount(); i++) {
          data_row = (XComponent) (data_set.getChild(i));
          if (data_row.getVisible() && !data_row.getFiltered()) {
-            if (((XComponent) (data_row.getChild(UTILIZATION_DESCRIPTOR_COLUMN_INDEX))).getStringValue().equals(
-                 UTILIZATION_RESOURCE_DESCRIPTOR)) {
 
-               XComponent utilizationStart = ((XComponent) (data_row.getChild(UTILIZATION_START_COLUMN_INDEX)));
-               XComponent utilizationEnd = ((XComponent) (data_row.getChild(UTILIZATION_END_COLUMN_INDEX)));
+            XComponent utilizationStart = ((XComponent) (data_row.getChild(UTILIZATION_START_COLUMN_INDEX)));
+            XComponent utilizationEnd = ((XComponent) (data_row.getChild(UTILIZATION_END_COLUMN_INDEX)));
 
-               // resource has start & end ( has work slips )
-               if (utilizationStart.getDateValue() != null && utilizationEnd.getDateValue() != null) {
+            // resource has start & end ( has work slips )
+            if (utilizationStart.getDateValue() != null && utilizationEnd.getDateValue() != null) {
 
-                  if (getChildCount() > visual_count) {
-                     visual = (OpProjectComponent) _getChild(visual_count);
-                  }
-                  else {
-                     // Extend visuals as needed
-                     visual = new OpProjectComponent(UTILIZATION_ROW);
-                     _addChild(visual);
-                  }
-                  visual_count++;
-                  visual.setDataRow(data_row);
-
-                  start = utilizationStart.getDateValue().getTime();
-                  end = utilizationEnd.getDateValue().getTime();
-                  logger.debug("   dw " + day_width);
-                  logger.debug("   s, e: " + start + ", " + end);
-                  // TODO: Should we support style.gap in x-direction?
-
-                  long startS = start - getStart().getTime();
-                  long endS = end - getStart().getTime();
-                  long startDays = startS / XCalendar.MILLIS_PER_DAY;
-                  long durationDays = (endS - startS) / XCalendar.MILLIS_PER_DAY;
-                  durationDays++;
-                  double unitRatio = getUnitRatio(box.getTimeUnit());
-
-                  x = (int) Math.round((day_width * (double) startDays) / (double) unitRatio);
-                  width = (int) Math.round((day_width * (double) durationDays) / (double) unitRatio);
-
-                  //set bounds 1px inside the utilization line
-                  visual.setBounds(new Rectangle(x, y + 1, width, height - 3));
+               if (getChildCount() > visual_count) {
+                  visual = (OpProjectComponent) _getChild(visual_count);
                }
+               else {
+                  // Extend visuals as needed
+                  visual = new OpProjectComponent(UTILIZATION_ROW);
+                  _addChild(visual);
+               }
+               visual_count++;
+               visual.setDataRow(data_row);
+
+               start = utilizationStart.getDateValue().getTime();
+               end = utilizationEnd.getDateValue().getTime();
+               logger.debug("   dw " + day_width);
+               logger.debug("   s, e: " + start + ", " + end);
+               // TODO: Should we support style.gap in x-direction?
+
+               long startS = start - getStart().getTime();
+               long endS = end - getStart().getTime();
+               long startDays = startS / XCalendar.MILLIS_PER_DAY;
+               long durationDays = (endS - startS) / XCalendar.MILLIS_PER_DAY;
+               durationDays++;
+               double unitRatio = getUnitRatio(box.getTimeUnit());
+
+               x = (int) Math.round((day_width * (double) startDays) / (double) unitRatio);
+               width = (int) Math.round((day_width * (double) durationDays) / (double) unitRatio);
+
+               //set bounds 1px inside the utilization line
+               visual.setBounds(new Rectangle(x, y + 1, width, height - 3));
             }
             y += height;
             y += style.gap;
@@ -4639,7 +4644,6 @@ public class OpProjectComponent extends XComponent {
     * This method updates the start / end date from the header according with the direction of scrolling.
     *
     * @param direction direction of scrolling <code>WEST</code> or <code>EAST</code>
-    * @see OpProjectComponent#updateGantChartDate(int direction,int calendarFied,int value)
     */
    private void updateGanttChartDate(int direction) {
       // view port
@@ -5081,15 +5085,23 @@ public class OpProjectComponent extends XComponent {
       boolean validData = existsValidUtilizationData(detailsTimeInterval);
       if (validData) {
          XComponent.closeTooltips();
-         OpProjectComponent utilizationBox = (OpProjectComponent) getContext();
-         //marked details as visible
-         utilizationBox.setUtilizationVisibleDetailsInterval(detailsTimeInterval);
-         // load it
+         XComponent form;
+         String descriptor = (String) ((XComponent) dataRow.getChild(UTILIZATION_DESCRIPTOR_COLUMN_INDEX)).getValue();
          HashMap params = new HashMap();
          params.put("ResourceId", dataRow.getStringValue());
+         //marked details as visible
          params.put("DetailsTimeInterval", detailsTimeInterval);
 
-         XComponent form = XDisplay.loadForm(utilizationBox.getDetailsFormRef(), params, null, null);
+         OpProjectComponent utilizationBox = (OpProjectComponent) getContext();
+         utilizationBox.setUtilizationVisibleDetailsInterval(detailsTimeInterval);
+         String location;
+         if (UTILIZATION_RESOURCE_DESCRIPTOR.equals(descriptor)) {
+            location = utilizationBox.getDetailsFormRef();
+         }
+         else {
+            location = utilizationBox.getAlternateDetailsFormRef();
+         }
+         form = XDisplay.loadForm(location, params, null, null);
          //show tool tip form
          showToolTipFormForComponent(mouseX, mouseY, form);
       }

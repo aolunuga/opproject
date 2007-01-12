@@ -30,4 +30,22 @@ public interface OpSqlStatement {
     * @return a <code>String</code> representing a statement used to drop a table
     */
    public String getDropTableStatement(String tableName);
+
+   /**
+    * Returns an sql statement that will drop a foreign key constraint on the given table.
+    *
+    * @param tableName a <code>String</code> representing the name of the table on which the constraint will be dropped.
+    * @param fkConstraintName a <code>String</code> representing the name of the foreign key constraint.
+    * @return a <code>String</code> representing a statement used to drop a fk.
+    */
+   public String getDropFKConstraintStatement(String tableName, String fkConstraintName);
+
+  /**
+    * Returns an sql statement that will drop an index constraint from the given table.
+    *
+    * @param tableName a <code>String</code> representing the name of the table on which the constraint will be dropped.
+    * @param indexName a <code>String</code> representing the name of the index.
+    * @return a <code>String</code> representing a statement used to drop a fk.
+    */
+   public String getDropIndexConstraintStatement(String tableName, String indexName);
 }
