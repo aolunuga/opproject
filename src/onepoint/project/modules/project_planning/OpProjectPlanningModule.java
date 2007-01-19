@@ -6,8 +6,6 @@ package onepoint.project.modules.project_planning;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormLoader;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
@@ -15,6 +13,8 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.util.*;
 

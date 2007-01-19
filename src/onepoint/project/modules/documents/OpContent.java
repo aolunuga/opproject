@@ -6,8 +6,8 @@ package onepoint.project.modules.documents;
 
 import onepoint.persistence.OpObject;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.HashSet;
 
 public class OpContent extends OpObject {
    

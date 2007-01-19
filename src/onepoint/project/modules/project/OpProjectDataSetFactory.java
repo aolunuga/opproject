@@ -773,11 +773,8 @@ public final class OpProjectDataSetFactory {
       long userId = session.getUserID();
       OpUser user = (OpUser) broker.getObject(OpUser.class, userId);
       List types = new ArrayList();
-      types.add(new Byte(OpPermission.ADMINISTRATOR));
-      types.add(new Byte(OpPermission.MANAGER));
 
       //add only the user's responsible resources if he is CONTRIBUTOR
-      types.clear();
       types.add(new Byte(OpPermission.CONTRIBUTOR));
       List contributorProjects = getProjectsByPermissions(broker, user, types);
       for (int i = 0; i < contributorProjects.size(); i++) {
@@ -788,14 +785,19 @@ public final class OpProjectDataSetFactory {
          for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
             OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
             OpResource resource = assignment.getResource();
-            if (resource.getUser().getID() == userId) {
+            if (resource.getUser() != null && resource.getUser().getID() == userId) {
                resources.add(XValidator.choice(resource.locator(), resource.getName()));
             }
          }
-         projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+         if (!resources.isEmpty()) {
+            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+         }
       }
 
       //add all project resources if the user is at least MANAGER on the project
+      types.clear();
+      types.add(new Byte(OpPermission.ADMINISTRATOR));
+      types.add(new Byte(OpPermission.MANAGER));
       List managerProjectIds = getProjectsByPermissions(broker, user, types);
       for (int i = 0; i < managerProjectIds.size(); i++) {
          Long id = (Long) managerProjectIds.get(i);
@@ -807,7 +809,9 @@ public final class OpProjectDataSetFactory {
             OpResource resource = assignment.getResource();
             resources.add(XValidator.choice(resource.locator(), resource.getName()));
          }
-         projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+         if (!resources.isEmpty()) {
+            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+         }
       }
       broker.close();
 

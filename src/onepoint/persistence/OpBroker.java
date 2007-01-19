@@ -100,22 +100,6 @@ public class OpBroker {
       logger.debug("/OpBroker.deleteObject()");
    }
 
-   public void delete(OpPath path) {
-      logger.debug("OpBroker.delete()");
-      _default_connection.delete(path);
-      logger.debug("/OpBroker.delete()");
-   }
-
-   public Iterator find(OpPath path) {
-      // Find object in sources specified in query (default is default source)
-      if (_default_connection != null) {
-         return _default_connection.find(path);
-      }
-      else {
-         return null;
-      }
-   }
-
    public List list(OpQuery query) {
       // Find object in sources specified in query (default is default source)
       if (_default_connection != null) {
@@ -143,14 +127,6 @@ public class OpBroker {
       else {
          return 0;
       }
-   }
-
-   public int count(OpPath path) {
-      // Count object in sources specified in query (default is default source)
-      if (_default_connection != null) {
-         return _default_connection.count(path);
-      }
-      return -1;
    }
 
    public Blob newBlob(byte[] bytes) {

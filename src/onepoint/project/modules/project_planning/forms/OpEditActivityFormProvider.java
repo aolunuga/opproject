@@ -42,14 +42,17 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private final static String ADD_COMMENT_BUTTON = "AddCommentButton";
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
    private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
-   
+
    public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
-   
+
    /*action that should be performed when a comment is removed */
    private static final String REMOVE_COMMENT_ACTION = "removeComment";
    /*remove comment button icon */
    private static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
    private static final String REMOVE_COMMENT_BUTTON_STYLE_REF = "icon-button-default";
+   private static final String COMMENT_SO_FAR = "CommentSoFar";
+   private static final String COMMENTS_SO_FAR = "CommentsSoFar";
+   private static final String NO_COMMENTS = "NoCommentsPossible";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -64,13 +67,16 @@ public class OpEditActivityFormProvider implements XFormProvider {
       OpActivity activity = null;
       if (activityLocator != null) {
          OpObject object = broker.getObject(activityLocator);
-         if (object instanceof OpActivity)
+         if (object instanceof OpActivity) {
             activity = (OpActivity) object;
-         else if (object instanceof OpActivityVersion)
+         }
+         else if (object instanceof OpActivityVersion) {
             activity = ((OpActivityVersion) object).getActivity();
+         }
          // Store resolved activity locator in data-field
-         if (activity != null)
+         if (activity != null) {
             form.findComponent(ACTIVITY_ID_FIELD).setStringValue(activity.locator());
+         }
       }
 
       //enable the %complete field if tracking is off
@@ -81,7 +87,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
             form.findComponent("Complete").setEnabled(true);
          }
          else {
-           form.findComponent("Complete").setEnabled(false);  
+            form.findComponent("Complete").setEnabled(false);
          }
       }
 
@@ -92,6 +98,23 @@ public class OpEditActivityFormProvider implements XFormProvider {
       XComponent categoryChooser = form.findComponent(ACTIVITY_CATEGORY_CHOOSER);
       addCategories(broker, categoryChooser, categoryDataSet, resourceMap);
 
+      showComments(form, activity, session, broker, resourceMap, true);
+
+      logger.info("/OpEditActivityFormProvider.prepareForm()");
+      broker.close();
+   }
+
+   /**
+    * Adds to the curent form the comments panel information.
+    *
+    * @param form
+    * @param activity
+    * @param session
+    * @param broker
+    * @param resourceMap
+    * @param enabled
+    */
+   public static void showComments(XComponent form, OpActivity activity, OpProjectSession session, OpBroker broker, XLanguageResourceMap resourceMap, boolean enabled) {
       // Show comments if activity is already persistent
       XComponent commentsLabel = form.findComponent(COMMENTS_LABEL);
       XComponent hasCommentsField = form.findComponent(HAS_COMMENTS_FIELD);
@@ -102,32 +125,30 @@ public class OpEditActivityFormProvider implements XFormProvider {
       if (activity != null) {
          accessLevel = session.effectiveAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID());
          XComponent commentsPanel = form.findComponent(COMMENTS_PANEL);
-         int commentCount = addComments(session, broker, activity, commentsPanel, resourceMap, accessLevel >= OpPermission.ADMINISTRATOR);
+         boolean removeEnabled = (accessLevel >= OpPermission.ADMINISTRATOR) && enabled;
+         int commentCount = addComments(session, broker, activity, commentsPanel, resourceMap, removeEnabled);
          hasCommentsField.setBooleanValue(commentCount > 0);
          StringBuffer commentsBuffer = new StringBuffer();
          commentsBuffer.append(commentCount);
          commentsBuffer.append(' ');
          if (commentCount == 1) {
-            commentsBuffer.append(resourceMap.getResource("CommentSoFar").getText());
+            commentsBuffer.append(resourceMap.getResource(COMMENT_SO_FAR).getText());
          }
          else {
-            commentsBuffer.append(resourceMap.getResource("CommentsSoFar").getText());
+            commentsBuffer.append(resourceMap.getResource(COMMENTS_SO_FAR).getText());
          }
          commentsLabel.setText(commentsBuffer.toString());
       }
       else {
-         commentsLabel.setText(resourceMap.getResource("NoCommentsPossible").getText());
+         commentsLabel.setText(resourceMap.getResource(NO_COMMENTS).getText());
          hasCommentsField.setBooleanValue(false);
       }
 
       XComponent addCommentButton = form.findComponent(ADD_COMMENT_BUTTON);
-      /* check for enable add comment button */
-      if (accessLevel >= OpPermission.CONTRIBUTOR) {
+      // check for enable add comment button
+      if (accessLevel >= OpPermission.CONTRIBUTOR && enabled) {
          addCommentButton.setEnabled(true);
       }
-
-      logger.info("/OpEditActivityFormProvider.prepareForm()");
-      broker.close();
    }
 
    protected void addCategories(OpBroker broker, XComponent categoryChooser, XComponent dataSet, XLanguageResourceMap resourceMap) {
@@ -137,8 +158,8 @@ public class OpEditActivityFormProvider implements XFormProvider {
       dataSet.addChild(dataRow);
       categoryChooser.setEnabled(false);
    }
-   
-   private int addComments(OpProjectSession session, OpBroker broker, OpActivity activity, XComponent commentsPanel, XLanguageResourceMap resourceMap, boolean enableCommentRemoving) {
+
+   private static int addComments(OpProjectSession session, OpBroker broker, OpActivity activity, XComponent commentsPanel, XLanguageResourceMap resourceMap, boolean enableCommentRemoving) {
 
       OpQuery query = broker.newQuery("select comment, creator.DisplayName from OpActivityComment as comment inner join comment.Creator as creator where comment.Activity.ID = ? order by comment.Sequence");
 

@@ -84,6 +84,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.STANDARD));
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
+      activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
 
       result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
 

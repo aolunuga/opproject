@@ -17,7 +17,7 @@ public class OpResourceChooserFormProvider implements XFormProvider {
 
    // Form parameters and component IDs
    private final static String CALLING_FRAME_ID = "CallingFrameID";
-   private final static String FILTERED_OUT_IDS = "FilteredOutIds";
+   private final static String FILTERED_OUT_LOCATORS = "FilteredOutIds";
    private final static String ACTION_HANDLER = "ActionHandler";
    private final static String MULTIPLE_SELECTION = "MultipleSelection";
    private final static String ENABLE_RESOURCES = "EnableResources";
@@ -48,12 +48,12 @@ public class OpResourceChooserFormProvider implements XFormProvider {
       }
 
       //filter
-      List filteredIds = (List) parameters.get(FILTERED_OUT_IDS);
-      form.findComponent(FILTERED_OUT_IDS).setValue(filteredIds);
+      List filteredLocators = (List) parameters.get(FILTERED_OUT_LOCATORS);
+      form.findComponent(FILTERED_OUT_LOCATORS).setValue(filteredLocators);
 
       // Put all resource names into project data-set (values are IDs)
       XComponent dataSet = form.findComponent(RESOURCE_SET);
-      OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, null, null, filteredIds);
+      OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, null, null, filteredLocators);
 
       //disable pools/resources
       boolean showPools = ((Boolean) parameters.get(ENABLE_POOLS)).booleanValue();

@@ -86,6 +86,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.STANDARD));
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
+      activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
 
       //fill project set
       XComponent projectDataSet = form.findComponent(PROJECT_SET);

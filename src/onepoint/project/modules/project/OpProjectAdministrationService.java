@@ -1165,8 +1165,9 @@ public class OpProjectAdministrationService extends OpProjectService {
       boolean asTemplate = newProjectPlan.getTemplate();
       // Get minimum activity start date from database (just to be sure)
       OpQuery query = broker
-           .newQuery("select min(activity.Start) from OpActivity as activity where activity.ProjectPlan.ID = ? and activity.Deleted = false");
+           .newQuery("select min(activity.Start) from OpActivity as activity where activity.ProjectPlan.ID = ? and activity.Deleted = false and activity.Type != ?");
       query.setLong(0, projectPlan.getID());
+      query.setByte(1, OpActivity.ADHOC_TASK);
       Iterator result = broker.iterate(query);
       if (!result.hasNext()) {
          return;

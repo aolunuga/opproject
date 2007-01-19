@@ -321,44 +321,40 @@ public class OpWorkService extends OpProjectService {
          boolean zeroCosts = true;
          if (dataCell.getValue() != null) {
             cost = dataCell.getDoubleValue();
-            if (cost != 0){
+            if (cost != 0) {
                zeroCosts = false;
             }
          }
          dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
          if (dataCell.getValue() != null) {
             cost = dataCell.getDoubleValue();
-            if (cost != 0){
+            if (cost != 0) {
                zeroCosts = false;
             }
          }
          dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
          if (dataCell.getValue() != null) {
             cost = dataCell.getDoubleValue();
-            if (cost != 0){
+            if (cost != 0) {
                zeroCosts = false;
             }
          }
          dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
          if (dataCell.getValue() != null) {
             cost = dataCell.getDoubleValue();
-            if (cost != 0){
+            if (cost != 0) {
                zeroCosts = false;
             }
          }
 
 
          switch (activityType) {
-            case OpActivity.STANDARD: {
-               boolean completed = true;
+            case OpActivity.ADHOC_TASK:
+            case OpActivity.STANDARD:
+            case OpActivity.TASK: {
+               boolean completed;
                dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-               if (dataCell.getValue() != null) {
-                  completed = dataCell.getBooleanValue();
-               }
-               else {
-                  completed = false;
-               }
-
+               completed = (dataCell.getValue() != null && dataCell.getBooleanValue());
                double actualEffort = -1;
                dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
                if (dataCell.getValue() != null) {
@@ -376,23 +372,6 @@ public class OpWorkService extends OpProjectService {
                   if (!complete && zeroCosts) {
                      return false;
                   }
-               }
-               break;
-            }
-            case OpActivity.TASK: {
-               boolean completed = true;
-               dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-               if (dataCell.getValue() != null) {
-                  completed = dataCell.getBooleanValue();
-               }
-               double actualEffort = -1;
-               dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-               if (dataCell.getValue() != null) {
-                  actualEffort = dataCell.getDoubleValue();
-               }
-
-               if (!completed && actualEffort == 0 && zeroCosts) {
-                  return false;
                }
                break;
             }

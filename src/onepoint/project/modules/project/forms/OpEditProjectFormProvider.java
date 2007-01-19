@@ -16,6 +16,7 @@ import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
@@ -47,6 +48,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String NO_STATUS = "NoStatus";
    private final static String NULL_ID = "null";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
+   private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -79,6 +81,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
       byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
       if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
          edit_mode = Boolean.FALSE;
+      }
+
+      if (edit_mode.booleanValue()) {
+         XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
+         OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);
       }
 
       // Fill edit-user form with user data

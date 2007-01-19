@@ -99,29 +99,31 @@ public abstract class OpActivityDataSetFactory {
          assignment = (OpAssignment) assignments.next();
 
          activity = assignment.getActivity();
-         Integer activitySequence = new Integer(activity.getSequence());
-         if (activityAssignmentsSum.get(activitySequence) == null && assignment.getBaseEffort() < activity.getBaseEffort()) {
-            activityAssignmentsSum.put(activitySequence, new Double(assignment.getBaseEffort()));
-         }
-         else if (activityAssignmentsSum.get(activitySequence) != null) {
-            double effortSum = ((Double) activityAssignmentsSum.get(activitySequence)).doubleValue();
-            effortSum += assignment.getBaseEffort();
-            if (effortSum < activity.getBaseEffort()) {
-               activityAssignmentsSum.put(activitySequence, new Double(effortSum));
+         if (activity.getType() != OpActivity.ADHOC_TASK) {
+            Integer activitySequence = new Integer(activity.getSequence());
+            if (activityAssignmentsSum.get(activitySequence) == null && assignment.getBaseEffort() < activity.getBaseEffort()) {
+               activityAssignmentsSum.put(activitySequence, new Double(assignment.getBaseEffort()));
             }
-            else {
-               activityAssignmentsSum.remove(activitySequence);
+            else if (activityAssignmentsSum.get(activitySequence) != null) {
+               double effortSum = ((Double) activityAssignmentsSum.get(activitySequence)).doubleValue();
+               effortSum += assignment.getBaseEffort();
+               if (effortSum < activity.getBaseEffort()) {
+                  activityAssignmentsSum.put(activitySequence, new Double(effortSum));
+               }
+               else {
+                  activityAssignmentsSum.remove(activitySequence);
+               }
             }
-         }
 
-         dataRow = (XComponent) dataSet.getChild(assignment.getActivity().getSequence());
-         resource = assignment.getResource();
-         String caption = resource.getName();
-         String assignedString = String.valueOf(assignment.getAssigned());
-         caption += " " + assignedString + "%";
-         resourceAvailability.put(resource.locator(), new Double(resource.getAvailable()));
-         OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), caption));
-         OpGanttValidator.addResourceBaseEffort(dataRow, assignment.getBaseEffort());
+            dataRow = (XComponent) dataSet.getChild(assignment.getActivity().getSequence());
+            resource = assignment.getResource();
+            String caption = resource.getName();
+            String assignedString = String.valueOf(assignment.getAssigned());
+            caption += " " + assignedString + "%";
+            resourceAvailability.put(resource.locator(), new Double(resource.getAvailable()));
+            OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), caption));
+            OpGanttValidator.addResourceBaseEffort(dataRow, assignment.getBaseEffort());
+         }
       }
 
       //update the resources to take into account invisible resources (independent planning only)
@@ -271,6 +273,16 @@ public abstract class OpActivityDataSetFactory {
          }
          fromBuffer.append(" inner join activity.Assignments as assignment");
          whereBuffer.append("assignment.Resource.ID in (:resourceIds)");
+
+         if (filter.getAssignmentComplete() != null) {
+            if (filter.getAssignmentComplete().booleanValue()) {
+               whereBuffer.append(" and assignment.Complete = 100");
+            }
+            else {
+               whereBuffer.append(" and assignment.Complete < 100");
+            }
+         }
+
          argumentNames.add("resourceIds");
          argumentValues.add(filter.getResourceIds());
       }

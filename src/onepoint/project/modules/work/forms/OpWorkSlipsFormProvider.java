@@ -139,6 +139,7 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
       types.add(new Byte(OpActivity.STANDARD));
       types.add(new Byte(OpActivity.TASK));
       types.add(new Byte(OpActivity.MILESTONE));
+      types.add(new Byte(OpActivity.ADHOC_TASK));
 
       Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, types, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
       if (!result.hasNext()) {

@@ -4,8 +4,8 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
-import onepoint.service.XMessage;
 import onepoint.service.server.XService;
+import onepoint.service.XMessage;
 
 import java.lang.reflect.Method;
 

@@ -102,7 +102,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          // Remaining effort (remaining effort change is calculated after edit) - 2
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setDoubleValue(workRecord.getRemainingEffort());
-         if (progressTracked && activity.getType() != OpActivity.MILESTONE) {
+         if (progressTracked && activity.getType() != OpActivity.MILESTONE && activity.getType() != OpActivity.ADHOC_TASK) {
             data_cell.setEnabled(editMode);
          }
          else {
@@ -185,7 +185,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
             data_row.getChild(2).setEnabled(false);
          }
          data_cell = new XComponent(XComponent.DATA_CELL);
-         if (workRecord.getAssignment().getProjectPlan().getProgressTracked()) {
+         if (workRecord.getAssignment().getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
             data_cell.setEnabled(editMode);
             data_cell.setBooleanValue(complete);
          }

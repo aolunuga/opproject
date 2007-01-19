@@ -84,7 +84,7 @@ public class OpBasicApplication {
       XComponent.registerProxy(new OpProjectComponentProxy());
 
       //perform initialization
-      Map initParams = OpInitializer.init(project_home, false);
+      Map initParams = OpInitializer.init(project_home, true);
       additionalInitialization();
 
       /*set up the resource cache max size */

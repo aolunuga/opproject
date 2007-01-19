@@ -11,7 +11,9 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -40,11 +42,13 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    private static final String ADD_DOC_BUTTON = "AddDocumentButton";
    private static final String ADD_URL_BUTTON = "AddURLButton";
    private static final String REMOVE_BUTTON = "RemoveAttachmentButton";
+   private final static String ADD_COMMENTS_BUTTON = "AddCommentButton";
 
    //parameters
    private static final String SELECTED_ROW = "selectedRow";
    private static final String EDIT_MODE = "EditMode";
    private static final String ATTACHMENT_SET = "AttachmentSet";
+   private static final String ACTIVITY_ROW_INDEX = "ActivityRowIndex";
 
    /**
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -55,6 +59,8 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       XComponent projectToResource = form.findComponent(PROJECT_TO_RESOURCE_MAP);
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
       XComponent adhocRow = (XComponent) parameters.get(SELECTED_ROW);
+      int activityIndex = adhocRow.getIndex();
+      form.findComponent(ACTIVITY_ROW_INDEX).setIntValue(activityIndex);
       Boolean editMode = (Boolean) parameters.get(EDIT_MODE);
       OpProjectSession session = (OpProjectSession) s;
 
@@ -118,6 +124,8 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       //fill attachement tab
       Set attachments = task.getAttachments();
       addAttachments(form, attachments);
+      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap("my_tasks.adhoc_tasks");
+      OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, editMode == null || editMode.booleanValue());
 
       broker.close();
 

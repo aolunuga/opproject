@@ -8,6 +8,7 @@
    <data-set id="ProjectSet"/>
    <data-field id="ProjectToResourceMap"/>
    <data-field id="ActivityLocator"/>
+   <data-field id="ActivityRowIndex"/>   
 
    <panel layout="border" style-ref="compact-panel-default">
 

@@ -1178,7 +1178,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       XComponent activities = new XComponent(XComponent.DATA_SET);
       XMessage request = createProjectRequest(OK_PROJECT_ID, activities);
       //no project plan for project node
-      project.setPlan(null);
+      project.setPlan(projectPlan);
 
       expectPreProjectCheckIn();
 
@@ -1186,7 +1186,6 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       queryResults.clear();
       queryResults.add(null);
       //make a project plan persistent
-      mockBroker.expects(once()).method(MAKE_PERSISTENT_METHOD).with(createProjectPlanConstraint(project));
 
       //iterate over results
       mockBroker.expects(atLeastOnce()).method(ITERATE_METHOD).with(same(query)).will(methodStub);
@@ -1782,16 +1781,16 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
             if (!(object instanceof OpProjectPlan)) {
                return false;
             }
-            OpProjectPlan projectP = (OpProjectPlan) object;
+            OpProjectPlan projectPlan = (OpProjectPlan) object;
 
-            if (projectP.getProjectNode() != project) {
+            if (project.getPlan() != projectPlan) {
                return false;
             }
 
-            if (!project.getStart().equals(projectP.getStart())) {
+            if (!project.getStart().equals(projectPlan.getStart())) {
                return false;
             }
-            return (project.getFinish().equals(projectP.getFinish()));
+            return (project.getFinish().equals(projectPlan.getFinish()));
          }
 
          public StringBuffer describeTo(StringBuffer stringBuffer) {
@@ -1799,5 +1798,4 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
          }
       };
    }
-
 }

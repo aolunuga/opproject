@@ -167,5 +167,6 @@
       <resource id="EveryoneGroup">Die Gruppe "Alle" ist ein System-Objekt und kann nicht gelöscht werden</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>      
       <resource id="InvalidUserLevel">Ungültie Benutzerebene</resource>      
+      <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
    </resource-map>
 </language-kit>

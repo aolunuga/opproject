@@ -87,6 +87,7 @@
       <resource id="InvalidDueDate">Invalid Due Date</resource>
       <resource id="NoProjectError">Missing Project </resource>
       <resource id="NoResourceError">Missing Resource</resource>
+      <resource id="ExistingWorkSlipError">Adhoc Task can't be removed because existing work slips are referencing them.</resource>
    </resource-map>
 
 </language-kit>

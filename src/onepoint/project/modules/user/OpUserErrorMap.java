@@ -30,6 +30,7 @@ public class OpUserErrorMap extends XErrorMap {
       registerErrorCode(OpUserError.EVERYONE_GROUP, OpUserError.EVERYONE_GROUP_NAME);
       registerErrorCode(OpUserError.LOOP_ASSIGNMENT, OpUserError.LOOP_ASSIGNMENT_NAME);
       registerErrorCode(OpUserError.SUPER_GROUP_NOT_FOUND, OpUserError.SUPER_GROUP_NOT_FOUND_NAME);
+      registerErrorCode(OpUserError.DEMOTE_USER_ERROR, OpUserError.DEMOTE_USER_ERROR_NAME);
    }
 
 }

@@ -4904,6 +4904,11 @@ public class OpProjectComponent extends XComponent {
                List detailsTimeInterval = ((OpProjectComponent) getContext()).findTimeInterval(mouseX + getBounds().x);
                showUtilizationRowDetails(mouseX, mouseY, detailsTimeInterval);
                break;
+            default:
+               if (this.getTooltip() != null) {
+                  super.openTooltipPopup(event);
+               }
+               break;
          }
       }
       else {

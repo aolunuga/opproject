@@ -116,19 +116,31 @@ public class OpProgressCalculator {
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() - work_record.getMiscellaneousCosts());
          }
 
-         updateActivityBasedOnTracking(activity, progressTracked);
+         if (activity.getType() != OpActivity.ADHOC_TASK) {
+            updateActivityBasedOnTracking(activity, progressTracked);
+         }
+         else {
+            if (work_record.getCompleted()) {
+               activity.setComplete(100);
+            }
+            else {
+               activity.setComplete(0);
+            }
+         }
          broker.updateObject(activity);
-         updateActivityForWorkingVersion(activity, broker);
-
+         if (activity.getType() != OpActivity.ADHOC_TASK) {
+            updateActivityForWorkingVersion(activity, broker);
+         }
          activity = activity.getSuperActivity();
       }
    }
 
    /**
     * Updates the complete value for an activity assignment of the working version of the project, if that exists.
+    *
     * @param assignment a <code>OpAssignment</code> representing a "real" assignment which has just been modified due to
-    * work records.
-    * @param broker a <code>OpBroker</code> used for performing db operations.
+    *                   work records.
+    * @param broker     a <code>OpBroker</code> used for performing db operations.
     */
    private static void updateAssignmentForWorkingVersion(OpAssignment assignment, OpBroker broker) {
       OpActivity activity = assignment.getActivity();
@@ -153,9 +165,10 @@ public class OpProgressCalculator {
 
    /**
     * Updates the complete value for an activity  of the working version of the project, if that exists.
+    *
     * @param activity a <code>XAactivity</code> representing a "real" activity which has just been modified due to
-    * work records.
-    * @param broker a <code>OpBroker</code> used for performing db operations.
+    *                 work records.
+    * @param broker   a <code>OpBroker</code> used for performing db operations.
     */
    private static void updateActivityForWorkingVersion(OpActivity activity, OpBroker broker) {
       StringBuffer activityVersionQueryString = new StringBuffer();
@@ -185,11 +198,13 @@ public class OpProgressCalculator {
    public static void updateAssignmentBasedOnTracking(OpAssignment assignment, boolean workRecordCompleted, boolean isTrackingOn) {
       byte activityType = assignment.getActivity().getType();
       //tracking on - %Complete is determined based on [Actual, Remaining]
-      if (isTrackingOn) {
+      if (isTrackingOn || activityType == OpActivity.ADHOC_TASK) {
          if (workRecordCompleted) {
             assignment.setComplete(100);
          }
-         else if (activityType == OpActivity.TASK || activityType == OpActivity.MILESTONE) {
+         else if (activityType == OpActivity.TASK ||
+              activityType == OpActivity.MILESTONE ||
+              activityType == OpActivity.ADHOC_TASK) {            
             assignment.setComplete(0);
          }
          else {
@@ -241,7 +256,7 @@ public class OpProgressCalculator {
       }
       else {
          double remaining = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort()
-              ,activity.getComplete());
+              , activity.getComplete());
          activity.setRemainingEffort(remaining);
       }
    }

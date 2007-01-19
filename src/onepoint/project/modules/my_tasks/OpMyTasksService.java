@@ -85,6 +85,7 @@ public class OpMyTasksService extends OpProjectService {
       OpAssignment assignment = new OpAssignment();
       assignment.setActivity(adhocTaks);
       assignment.setResource(resource);
+      assignment.setProjectPlan(adhocTaks.getProjectPlan());
       broker.makePersistent(assignment);
 
       XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
@@ -302,7 +303,19 @@ public class OpMyTasksService extends OpProjectService {
             XComponent row = (XComponent) selectedRows.get(i);
             String locator = row.getStringValue();
             OpActivity activity = (OpActivity) broker.getObject(locator);
-            broker.deleteObject(activity);
+            boolean hasWorkSlips = false;
+            for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
+               OpAssignment assignment = (OpAssignment) iterator.next();
+               if (!assignment.getWorkRecords().isEmpty()) {
+                  hasWorkSlips = true;
+               }
+            }
+            if (!hasWorkSlips) {
+               broker.deleteObject(activity);
+            }
+            else {
+               reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP));
+            }
          }
          transaction.commit();
          broker.close();

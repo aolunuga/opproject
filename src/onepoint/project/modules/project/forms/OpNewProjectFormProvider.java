@@ -11,6 +11,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.service.server.XSession;
 
@@ -31,6 +32,7 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String PORTFOLIO_INDEX = "portfolio_index";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
+   private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -54,6 +56,9 @@ public class OpNewProjectFormProvider implements XFormProvider {
          return; //TODO: Show error on page that portfolio could not be found
       }
       byte portfolioAccesssLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+
+      XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
+      OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);
 
       //Fill status data set
       XComponent statusDataSet = form.findComponent(PROJECT_STATUS_DATA_SET);

@@ -15,21 +15,19 @@ import java.util.*;
 
 public class OpProjectSession extends XExpressSession {
 
-   // TODO: The default locale setting should be read from system settings
-   // (Note: System settings -- in contrast to configuration -- reside in DB)
    private static final long NO_ID = -1;
    private long userId = NO_ID;
-   private ArrayList subjectIds = new ArrayList();
    private long administratorId = NO_ID ; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
+
+   private ArrayList subjectIds = new ArrayList();
 
    public OpProjectSession() {
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
          XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
          super.setLocale(default_locale);
-         // TODO: Look-up IDs for administrator user and group everyone
-         // (Maybe do this also at sign-on time?)
+
          lookUpAdministratorID(broker);
          lookUpEveryoneID(broker);
          broker.close();
@@ -42,9 +40,13 @@ public class OpProjectSession extends XExpressSession {
    public void authenticateUser(OpBroker broker, OpUser user) {
       // Set user ID and
       userId = user.getID();
+
       loadSubjectIds(broker);
       lookUpAdministratorID(broker);
       lookUpEveryoneID(broker);
+
+      //mark the session as valid
+      this.valid = true;
    }
 
    public long getUserID() {
@@ -60,16 +62,14 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpAdministratorID(OpBroker broker) {
-      if (administratorId == NO_ID) {
-         OpQuery query = broker.newQuery("select user.ID from OpUser as user where user.Name = ?");
-         query.setString(0, OpUser.ADMINISTRATOR_NAME);
-         Iterator result = broker.iterate(query);
-         if (result.hasNext()) {
-            administratorId = ((Long) result.next()).longValue();
-         }
-         else {
-            administratorId = 0;
-         }
+      OpQuery query = broker.newQuery("select user.ID from OpUser as user where user.Name = ?");
+      query.setString(0, OpUser.ADMINISTRATOR_NAME);
+      Iterator result = broker.iterate(query);
+      if (result.hasNext()) {
+         administratorId = ((Long) result.next()).longValue();
+      }
+      else {
+         administratorId = NO_ID;
       }
    }
 
@@ -82,16 +82,14 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpEveryoneID(OpBroker broker) {
-      if (everyoneId == NO_ID) {
-         OpQuery query = broker.newQuery("select group.ID from OpGroup as group where group.Name = ?");
-         query.setString(0, OpGroup.EVERYONE_NAME);
-         Iterator result = broker.iterate(query);
-         if (result.hasNext()) {
-            everyoneId = ((Long) result.next()).longValue();
-         }
-         else {
-            everyoneId = 0;
-         }
+      OpQuery query = broker.newQuery("select group.ID from OpGroup as group where group.Name = ?");
+      query.setString(0, OpGroup.EVERYONE_NAME);
+      Iterator result = broker.iterate(query);
+      if (result.hasNext()) {
+         everyoneId = ((Long) result.next()).longValue();
+      }
+      else {
+         everyoneId = NO_ID;
       }
    }
 

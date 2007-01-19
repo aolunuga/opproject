@@ -134,6 +134,7 @@ public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTe
       user.setAssignments(new HashSet());
       user.setResources(new HashSet());
       user.setContact(firstUserContact);
+      user.setLevel(new Byte(OpUser.MANAGER_USER_LEVEL));
 
       //prepare a group from the "db"
       String groupDescription = "groupOneDescription";

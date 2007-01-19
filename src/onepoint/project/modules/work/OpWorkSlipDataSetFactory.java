@@ -127,7 +127,7 @@ public class OpWorkSlipDataSetFactory {
       if (remainingEffort < 0.0d) {
          remainingEffort = 0.0d;
       }
-      if (progressTracked && activity.getType() != OpActivity.MILESTONE) {
+      if (progressTracked && activity.getType() != OpActivity.MILESTONE && activity.getType() != OpActivity.ADHOC_TASK) {
          data_cell.setDoubleValue(remainingEffort);
          data_cell.setEnabled(true);
       }
@@ -204,7 +204,7 @@ public class OpWorkSlipDataSetFactory {
 
       // Completed - 10
       data_cell = new XComponent(XComponent.DATA_CELL);
-      if (assignment.getProjectPlan().getProgressTracked()) {
+      if (assignment.getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
          data_cell.setBooleanValue(false);
          data_cell.setEnabled(true);
       }

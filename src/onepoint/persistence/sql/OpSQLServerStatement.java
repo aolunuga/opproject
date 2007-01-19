@@ -4,19 +4,19 @@
 
 package onepoint.persistence.sql;
 
-import java.sql.Types;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+import java.sql.Types;
 
 /**
- * Class used for obtaining PostgreSQL statements.
+ * Class used for obtaining SQLServer2000 specific statements
  *
  * @author horia.chiorean
  */
-public final class OpPostgreSqlStatement implements OpSqlStatement {
+public final class OpSQLServerStatement implements OpSqlStatement {
 
    /**
-    * The mapping of MySQL specific types.
+    * The mapping of SQLServer specific types.
     */
    private static final Map DB_TYPES = new HashMap();
 
@@ -25,28 +25,22 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
     */
    static {
       DB_TYPES.put(new Integer(Types.VARCHAR), "VARCHAR(255)");
-      DB_TYPES.put(new Integer(Types.BIGINT), "INT8");
-      DB_TYPES.put(new Integer(Types.FLOAT), "FLOAT8");
-      DB_TYPES.put(new Integer(Types.INTEGER), "INTEGER");
-      DB_TYPES.put(new Integer(Types.DOUBLE), "FLOAT8");
-      DB_TYPES.put(new Integer(Types.BIT), "BOOLEAN");
-      DB_TYPES.put(new Integer(Types.BOOLEAN), "BOOLEAN");
-      DB_TYPES.put(new Integer(Types.TINYINT), "SMALLINT");
-      DB_TYPES.put(new Integer(Types.SMALLINT), "SMALLINT");
-      DB_TYPES.put(new Integer(Types.BLOB), "BYTEA");
+      DB_TYPES.put(new Integer(Types.BIGINT), "BIGINT");
+      DB_TYPES.put(new Integer(Types.FLOAT), "FLOAT");
+      DB_TYPES.put(new Integer(Types.INTEGER), "INT");
+      DB_TYPES.put(new Integer(Types.DOUBLE), "FLOAT");
+      DB_TYPES.put(new Integer(Types.BIT), "BIT");
+      DB_TYPES.put(new Integer(Types.BOOLEAN), "BIT");
+      DB_TYPES.put(new Integer(Types.TINYINT), "TINYINT");
+      DB_TYPES.put(new Integer(Types.SMALLINT), "TINYINT");
+      DB_TYPES.put(new Integer(Types.BLOB), "IMAGE");
       DB_TYPES.put(new Integer(Types.TIMESTAMP), "DATETIME");
-      DB_TYPES.put(new Integer(Types.DATE), "DATE");
+      DB_TYPES.put(new Integer(Types.DATE), "DATETIME");
       //... if needed, continue the list
    }
 
    /**
-    * Instances of this class should only be obtained via the <code>OpSqlStatementFactory</code> class.
-    */
-   OpPostgreSqlStatement() {
-   }
-
-   /**
-    * @see OpSqlStatement#getAlterColumnTypeStatement(String,String,int)
+    * @see onepoint.persistence.sql.OpSqlStatement#getAlterColumnTypeStatement(String,String,int)
     */
    public String getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
       StringBuffer result = new StringBuffer();
@@ -54,7 +48,7 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
       result.append(tableName);
       result.append(" ALTER COLUMN ");
       result.append(columnName);
-      result.append(" TYPE ");
+      result.append(" ");
       String columnType = (String) DB_TYPES.get(new Integer(sqlType));
       result.append(columnType);
       result.append(";");
@@ -81,18 +75,20 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
       result.append(tableName);
       result.append(" DROP CONSTRAINT ");
       result.append(fkConstraintName);
-      result.append(" CASCADE;");
+      result.append(";");
       return result.toString();
    }
 
    /**
-    * @see onepoint.persistence.sql.OpSqlStatement#getDropIndexConstraintStatement(String,String)
+    * @see OpSqlStatement#getDropIndexConstraintStatement(String,String)
     */
    public String getDropIndexConstraintStatement(String tableName, String indexName) {
       StringBuffer result = new StringBuffer();
       result.append("DROP INDEX ");
+      result.append(tableName);
+      result.append(".");
       result.append(indexName);
-      result.append(" CASCADE;");
+      result.append(";");
       return result.toString();
    }
 }

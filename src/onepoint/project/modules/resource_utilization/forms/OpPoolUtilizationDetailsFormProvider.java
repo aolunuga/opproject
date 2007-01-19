@@ -109,8 +109,10 @@ public class OpPoolUtilizationDetailsFormProvider implements XFormProvider {
             }
          }
 
-         addUtilizationRow(utilizationDataSet, name, effort, assigned);
-         totalEffort += effort;
+         if (assigned > 0) {
+            addUtilizationRow(utilizationDataSet, name, effort, assigned);
+            totalEffort += effort;
+         }
       }
 
       //add TOTAL line

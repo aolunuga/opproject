@@ -32,6 +32,7 @@ public abstract class OpUserError {
    public final static int INVALID_USER_LEVEL = 18;
 
    public final static int SUPER_GROUP_NOT_FOUND = 19;   
+   public final static int DEMOTE_USER_ERROR = 20;
 
    // Error names
    public final static String PASSWORD_MISMATCH_NAME = "PasswordMismatch";
@@ -59,5 +60,6 @@ public abstract class OpUserError {
    public final static String LOOP_ASSIGNMENT_NAME = "LoopAssignment";
    public final static String INVALID_USER_LEVEL_NAME = "InvalidUserLevel";
    public final static String SUPER_GROUP_NOT_FOUND_NAME = "SuperGroupNotFound";
+   public final static String DEMOTE_USER_ERROR_NAME = "UserDemoteError";
 
 }

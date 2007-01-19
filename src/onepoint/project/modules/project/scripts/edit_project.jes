@@ -152,6 +152,13 @@ function addProjectAssignment(event){
       resource_ids[i] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
       i++;
    }
+   readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
+   index = 0;
+   while (index < readonly_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      i++;
+      index++;
+   }
    openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
 }
 

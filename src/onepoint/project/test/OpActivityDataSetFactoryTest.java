@@ -533,6 +533,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(true);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -576,7 +577,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(true);
-
+      projectPlan.setActivities(Collections.EMPTY_SET);
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       XComponent dataRow1 = newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.COLLECTION, 0, baseEffort);
@@ -610,6 +611,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(true);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -650,6 +652,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(true);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -687,7 +690,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setProjectNode(opProject);
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
-
+      projectPlan.setActivities(Collections.EMPTY_SET);
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       mockBroker.expects(once()).method(UPDATE_OBJECT_METHOD).with(createProjectPlanConstraint(projectPlan));
@@ -709,6 +712,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(true);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -753,6 +757,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(false);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -795,6 +800,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(false);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -841,6 +847,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(false);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);
@@ -892,6 +899,7 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       projectPlan.setStart(XCalendar.today());
       projectPlan.setFinish(XCalendar.today());
       projectPlan.setProgressTracked(false);
+      projectPlan.setActivities(Collections.EMPTY_SET);
       //project plan resources
       HashMap projectPlanResources = new HashMap();
       projectPlanResources.put(new Long(opFirstResource.getID()), opFirstResource);

@@ -4,6 +4,7 @@
 
 // Controller script for my_tasks.oxf
 
+require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes" as openDetails;
 require "onepoint/project/modules/project_planning/scripts/comments.jes";
 
@@ -150,10 +151,8 @@ function deleteAdhoc(event){
    request.setAction("MyTasksService.deleteAdhocTask");
    request.setArgument("adhocData", selected_rows);
    response = XDisplay.getClient().invokeMethod(request);
-
-   XDisplay.getActiveWindow().close();
    XDisplay.findFrame("MainFrame").refreshForm();
-   
+   handleResponse(response); //display error message, if any 
 }
 
 function selectionChanged(event){

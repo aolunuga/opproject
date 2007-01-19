@@ -536,9 +536,25 @@ public class OpUserService extends OpProjectService {
       if (invalidLevel) {
          error = session.newError(ERROR_MAP, OpUserError.INVALID_USER_LEVEL);
          reply.setError(error);
+         broker.close();
          return reply;
       }
-      user.setLevel(new Byte(userLevelId));
+
+      Byte newLevel = new Byte(userLevelId);
+      if (user.getLevel().byteValue() > newLevel.byteValue()) {
+         Iterator ownedPermissions = getAllOwnedPermissions(user).iterator();
+         while (ownedPermissions.hasNext()) {
+            OpPermission permission = (OpPermission) ownedPermissions.next();
+            if (permission.getAccessLevel() >= OpPermission.MANAGER) {
+               error = session.newError(ERROR_MAP, OpUserError.DEMOTE_USER_ERROR);
+               reply.setError(error);
+               broker.close();
+               return reply;
+            }
+         }
+      }
+
+      user.setLevel(newLevel);
 
       user.setName(userName);
       user.setDescription((String) (user_data.get(OpUser.DESCRIPTION)));
@@ -645,6 +661,34 @@ public class OpUserService extends OpProjectService {
       t.commit();
       broker.close();
       return reply;
+   }
+
+   /**
+    * Gets all the permissions for the given user. Goes recursively upwards collecting permissions from groups as well.
+    * @param user user object to gather the permissions for.
+    * @return Set of permissions.
+    */
+   private Set getAllOwnedPermissions(OpUser user) {
+      Set ownedPermissions = new HashSet(user.getOwnedPermissions());
+      for (Iterator iterator = user.getAssignments().iterator(); iterator.hasNext();) {
+         OpUserAssignment assignment = (OpUserAssignment) iterator.next();
+         ownedPermissions.addAll(getAllOwnedPermissions(assignment.getGroup()));
+      }
+      return ownedPermissions;
+   }
+
+   /**
+    * Gets all the owned permissions for the given group and recursivly for its supergoups.
+    * @param group group that is being queried.
+    * @return Set with the collected permissions.
+    */
+   private Collection getAllOwnedPermissions(OpGroup group) {
+      Set ownedPermissions = new HashSet(group.getOwnedPermissions());
+      for (Iterator iterator = group.getSuperGroupAssignments().iterator(); iterator.hasNext();) {
+         OpGroupAssignment assignment = (OpGroupAssignment) iterator.next();
+         ownedPermissions.addAll(getAllOwnedPermissions(assignment.getSuperGroup()));
+      }
+      return ownedPermissions;
    }
 
    public XMessage updateGroup(OpProjectSession session, XMessage request) {
@@ -779,7 +823,7 @@ public class OpUserService extends OpProjectService {
    /**
     * Removes the assignments (user to group, group to group) between the given subjects (users/groups).
     *
-    * @param session       the session
+    * @param session the session
     * @param request map containg all the param required for the method
     * @return an error/success message
     */
@@ -1085,6 +1129,7 @@ public class OpUserService extends OpProjectService {
       administrator.setDisplayName(OpUser.ADMINISTRATOR_DISPLAY_NAME);
       administrator.setDescription(OpUser.ADMINISTRATOR_DESCRIPTION);
       administrator.setPassword(BLANK_PASSWORD);
+      administrator.setLevel(new Byte(OpUser.MANAGER_USER_LEVEL));
       broker.makePersistent(administrator);
       OpContact contact = new OpContact();
       contact.setUser(administrator);
@@ -1107,7 +1152,7 @@ public class OpUserService extends OpProjectService {
    /**
     * Checks if the logged in user or everyone group is the only subject in the array. If so, an error message is returned.
     *
-    * @param session       Session
+    * @param session Session
     * @param request the request containing all the required parameters
     * @return a message containing an error if the logged in user was found amont the subjects
     */
@@ -1141,8 +1186,9 @@ public class OpUserService extends OpProjectService {
 
    /**
     * Performs the necessary operation to sign-off a user.
+    *
     * @param projectSession a <code>XSession</code> representing the application server session.
-    * @param request a <code>XMessage</code> representing the client request.
+    * @param request        a <code>XMessage</code> representing the client request.
     * @return an <code>XMessage</code> representing the response.
     */
    public XMessage signOff(OpProjectSession projectSession, XMessage request) {

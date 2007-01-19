@@ -86,6 +86,7 @@ public final class OpHibernateSchemaUpdater {
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL_INNODB), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.POSTGRESQL), new Integer(OpSqlStatementFactory.POSTGRESQL));
+      DB_TYPES_MAP.put(new Integer(OpHibernateSource.SQLSERVER), new Integer(OpSqlStatementFactory.SQLSERVER));
    }
 
    /**

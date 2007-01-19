@@ -62,8 +62,8 @@ function completedEntered(event) {
    isCompleted = completedCell.getBooleanValue();
    remainigEffortCell = completedCell.getParent().getChild(2);
    activityType = completedCell.getParent().getChild(11).getIntValue();
-   //2 - milestones & 3 - tasks
-   if (activityType != 2) {
+   //2 - milestones & 3 - tasks & 6 - adhoc tasks
+   if (activityType != 2 && activityType != 6) {
       if (isCompleted == true) {
          remainigEffortCell.setDoubleValue(new Double);
          remainigEffortCell.setEnabled(false);

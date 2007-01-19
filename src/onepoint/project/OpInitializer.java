@@ -16,22 +16,22 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.module.OpModuleManager;
-import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.user.OpUserService;
+import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
 import onepoint.util.XEnvironment;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.IOException;
 
 /**
  * Service class responsible for performing application initialization steps
@@ -295,8 +295,6 @@ public class OpInitializer {
       // Create identification-related system objects (helpers supply their own transactions)
       OpUserService.createAdministrator(broker);
       OpUserService.createEveryone(broker);
-      // Setup modules
-      OpModuleManager.setup();
    }
 
    /**
@@ -340,15 +338,6 @@ public class OpInitializer {
       return configuration;
    }
 
-   public static void resetDbSchema(OpBroker broker)
-        throws SQLException {
-      OpModuleManager.stop();
-      broker.dropSchema();
-      createEmptySchema(broker);
-      updateSchemaVersion(broker);
-      OpModuleManager.start();
-   }
-
    private static void updateSchemaVersion(OpBroker broker)
         throws SQLException {
       logger.info("Updating schema version...");
@@ -357,12 +346,32 @@ public class OpInitializer {
    }
 
    /**
+    * Resets the db schema by dropping the existent one and creating a new one.
+    *
+    * @param broker a <code>OpBroker</code> used for performing db operations.
+    * @throws SQLException if the db schema cannot be droped or created.
+    */
+   public static void resetDbSchema(OpBroker broker)
+        throws SQLException {
+      logger.info("Stopping modules");
+      OpModuleManager.stop();
+      logger.info("Dropping schema...");
+      broker.dropSchema();
+      logger.info("Creating schema...");
+      createEmptySchema(broker);
+      logger.info("Starting modules");
+      OpModuleManager.start();
+      logger.info("Updating schema schema...");
+      updateSchemaVersion(broker);
+   }
+
+   /**
     * Restores the db schema from the given file, via the backup manager. The restore drops the existent schema
     * and creates a new one.
     * @param filePath a <code>String</code> path to an existent backup file.
     * @param projectSession a <code>OpProjectSession</code> representing an application session.
     * @throws SQLException if the db schema cannot be droped or created.
-    * @throws IOException
+    * @throws IOException if the repository cannot be restored from the given file.
     */
    public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {

@@ -58,6 +58,7 @@
 
    <tab text="{$Resources}" layout="border" id="ResourcesTab">
       <data-set id="AssignedResourceDataSet"/>
+      <data-set id="ReadOnlyResourceDataSet"/>      
       <list-box y="0" id="AssignedResourcesListBox" data-set-ref="AssignedResourceDataSet" flexible="true"/>
       <panel id="ResourcesToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addProjectAssignment"/>

@@ -372,4 +372,32 @@ public final class OpResourceDataSetFactory {
       }
    }
 
+   /**
+    * Fills the given data set with "read only resources" (access level < MANAGER).
+    * Each row has a string value set on it - choice(resource.locator, name)
+    *
+    * @param broker            Broker to use for db access.
+    * @param session           Current session.
+    * @param readOnlyResources DataSet to fill up.
+    */
+   public static void fillReadOnlyResources(OpBroker broker, OpProjectSession session, XComponent readOnlyResources) {
+      OpQuery query = broker.newQuery("select resource.ID from OpResource as resource ");
+      List resourceIds = broker.list(query);
+      OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpResource.RESOURCE, OpResource.NAME, OpObjectOrderCriteria.ASCENDING);
+      Iterator managerResourcesIt = session.accessibleObjects(broker, resourceIds, OpPermission.MANAGER, order);
+      List managerResources = new ArrayList();
+      while (managerResourcesIt.hasNext()) {
+         OpResource resource = (OpResource) managerResourcesIt.next();
+         managerResources.add(resource);
+      }
+      Iterator allResources = session.accessibleObjects(broker, resourceIds, OpPermission.OBSERVER, order);
+      while (allResources.hasNext()) {
+         OpResource resource = (OpResource) allResources.next();
+         if (!managerResources.contains(resource)) {
+            XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
+            readOnlyResources.addChild(dataRow);
+         }
+      }
+   }
 }

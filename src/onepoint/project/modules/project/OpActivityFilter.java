@@ -18,6 +18,7 @@ public class OpActivityFilter {
    private Date startFrom = null;
    private Date startTo = null;
    private Boolean completed = null;
+   private Boolean assignmentCompleted = null;
 
    public final void setTemplates(boolean templates) {
       this.templates = templates;
@@ -89,5 +90,13 @@ public class OpActivityFilter {
    
    public final Boolean getCompleted() {
       return completed;
+   }
+
+   public void setAssignmentCompleted(Boolean assignmentComplete) {
+      assignmentCompleted = assignmentComplete;
+   }
+
+   public Boolean getAssignmentComplete() {
+      return assignmentCompleted;
    }
 }

@@ -125,6 +125,7 @@
       <include name="*.txt"/>
       <exclude name="*servlet*.jar"/>
       <exclude name="*mysql*.*"/>
+      <exclude name="*jtds*.*"/>
       <exclude name="*postgresql*.*"/>
       <exclude name="*junit*.*"/>
       <exclude name="*jmock*.*"/>

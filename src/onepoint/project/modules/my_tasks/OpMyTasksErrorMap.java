@@ -22,5 +22,6 @@ public class OpMyTasksErrorMap extends XErrorMap {
       registerErrorCode(OpMyTasksError.EMPTY_NAME, OpMyTasksError.EMPTY_NAME_NAME);
       registerErrorCode(OpMyTasksError.NO_PROJECT, OpMyTasksError.NO_PROJECT_NAME);
       registerErrorCode(OpMyTasksError.NO_RESOURCE, OpMyTasksError.NO_RESOURCE_NAME);
+      registerErrorCode(OpMyTasksError.EXISTING_WORKSLIP, OpMyTasksError.EXISTING_WORKSLIP_NAME);
    }
 }

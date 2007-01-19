@@ -39,17 +39,11 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    public abstract void deleteObject(OpObject object);
 
-   public abstract void delete(OpPath query);
-
-   public abstract Iterator find(OpPath path);
-
    public abstract List list(OpQuery query);
 
    public abstract Iterator iterate(OpQuery query);
 
    public abstract int execute(OpQuery query);
-
-   public abstract int count(OpPath query);
 
    public abstract OpTransaction newTransaction();
 

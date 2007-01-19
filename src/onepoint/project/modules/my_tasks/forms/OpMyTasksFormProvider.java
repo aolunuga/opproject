@@ -78,13 +78,6 @@ public class OpMyTasksFormProvider implements XFormProvider {
       Boolean showHours = Boolean.valueOf(showHoursPref);
 
       // Configure activity filter
-      OpActivityFilter filter = new OpActivityFilter();
-      /*get project from choice field or reset session state */
-      String filteredProjectChoiceId = getFilteredProjectChoiceId(session, parameters, form);
-      boolean isAll = filteredProjectChoiceId == null || filteredProjectChoiceId.equals(ALL);
-      if (!isAll) {
-         filter.addProjectNodeID(OpLocator.parseLocator(filteredProjectChoiceId).getID());
-      }
       XComponent dataSet = form.findComponent(ACTIVITY_SET);
       List projectChoices = new ArrayList();
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
@@ -94,12 +87,14 @@ public class OpMyTasksFormProvider implements XFormProvider {
          query.setLong(0, session.getUserID());
          List resourceIds = broker.list(query);
 
+         OpActivityFilter filter = createActivityFilter(session, parameters, form);
          for (int i = 0; i < resourceIds.size(); i++) {
             filter.addResourceID(((Long) resourceIds.get(i)).longValue());
          }
          filter.setDependencies(true);
          //activities which are not completed yet
          filter.setCompleted(Boolean.FALSE);
+         filter.setAssignmentCompleted(Boolean.FALSE);
          //activity types filter
          filter.addType(OpActivity.STANDARD);
          filter.addType(OpActivity.TASK);
@@ -158,6 +153,16 @@ public class OpMyTasksFormProvider implements XFormProvider {
          OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, filter, orderCriteria, dataSet);
       }
 
+      OpActivityFilter filter = createActivityFilter(session, parameters, form);
+      for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
+         List resourcesList = (List) iterator.next();
+         for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
+            String choice = (String) resIt.next();
+            String locatorStr = XValidator.choiceID(choice);
+            OpLocator locator = OpLocator.parseLocator(locatorStr);
+            filter.addResourceID(locator.getID());
+         }
+      }
       filter.getTypes().clear();
       filter.addType(OpActivity.ADHOC_TASK);
       // Configure activity sort order
@@ -199,6 +204,23 @@ public class OpMyTasksFormProvider implements XFormProvider {
       broker.close();
    }
 
+   /**
+    * Creates an activity filter and sets the projects on it using the filter project choice.
+    * @param session Current session. used to obtain the project filter
+    * @param parameters Form parameters.
+    * @param form Current form
+    * @return An activity filter.
+    */
+   private OpActivityFilter createActivityFilter(OpProjectSession session, HashMap parameters, XComponent form) {
+      OpActivityFilter filter = new OpActivityFilter();
+      //get project from choice field or reset session state
+      String filteredProjectChoiceId = getFilteredProjectChoiceId(session, parameters, form);
+      boolean isAll = filteredProjectChoiceId == null || filteredProjectChoiceId.equals(ALL);
+      if (!isAll) {
+         filter.addProjectNodeID(OpLocator.parseLocator(filteredProjectChoiceId).getID());
+      }
+      return filter;
+   }
 
    /**
     * Fills the project data set with the necessary data

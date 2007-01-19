@@ -166,5 +166,6 @@
       <resource id="EveryoneGroup">The group "Everyone" is a system-managed object and cannot be deleted</resource>
       <resource id="LoopAssignment">This assignment would cause a loop</resource>
       <resource id="InvalidUserLevel">Invalid user level</resource>
+      <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
    </resource-map>
 </language-kit>

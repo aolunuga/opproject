@@ -1149,37 +1149,20 @@ public class OpGanttValidatorTest extends TestCase {
 
       Date endDate = new Date(System.currentTimeMillis());
       Calendar endDateCalendar = XCalendar.getDefaultCalendar().getCalendar();
-
       endDateCalendar.setTimeInMillis(endDate.getTime());
+
       /*reset the date hour-minute-second-millisecond*/
       endDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
       endDateCalendar.set(Calendar.MINUTE, 0);
       endDateCalendar.set(Calendar.SECOND, 0);
       endDateCalendar.set(Calendar.MILLISECOND, 0);
       endDate.setTime(endDateCalendar.getTimeInMillis() + DAY_MILLIS);
-
-
       validator.setDataCellValue(activity0, OpGanttValidator.END_COLUMN_INDEX, endDate);
+
       if (!validator.getCalendar().isWorkDay(endDate)) {
-         endDateCalendar.setTimeInMillis(validator.getCalendar().previousWorkDay(endDate).getTime());
-         /*reset the date hour-minute-second-millisecond*/
-         endDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
-         endDateCalendar.set(Calendar.MINUTE, 0);
-         endDateCalendar.set(Calendar.SECOND, 0);
-         endDateCalendar.set(Calendar.MILLISECOND, 0);
-         /*set up the expected date*/
-         endDate.setTime(endDateCalendar.getTimeInMillis());
-
+         endDate = validator.getCalendar().nextWorkDay(endDate);
       }
-      /*get the end date of the row*/
-      endDateCalendar.setTimeInMillis(OpGanttValidator.getEnd(activity0).getTime());
-      /*reset the date hour-minute-second-millisecond*/
-      endDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
-      endDateCalendar.set(Calendar.MINUTE, 0);
-      endDateCalendar.set(Calendar.SECOND, 0);
-      endDateCalendar.set(Calendar.MILLISECOND, 0);
-
-      assertEquals("The end date has not been changed ", endDate.getTime(), endDateCalendar.getTimeInMillis());
+      assertEquals("The end date has not been changed ", endDate, OpGanttValidator.getEnd(activity0));
 
       double baseEffort = 40.5; //will be changed to 48 (roundup)
       OpGanttValidator.setType(activity0, OpGanttValidator.STANDARD);
