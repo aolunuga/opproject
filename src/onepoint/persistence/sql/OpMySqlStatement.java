@@ -29,8 +29,8 @@ public final class OpMySqlStatement implements OpSqlStatement {
       DB_TYPES.put(new Integer(Types.FLOAT), "FLOAT");
       DB_TYPES.put(new Integer(Types.INTEGER), "INTEGER");
       DB_TYPES.put(new Integer(Types.DOUBLE), "DOUBLE");
-      DB_TYPES.put(new Integer(Types.BIT), "TINYINT");
-      DB_TYPES.put(new Integer(Types.BOOLEAN), "TINYINT");
+      DB_TYPES.put(new Integer(Types.BIT), "BIT");
+      DB_TYPES.put(new Integer(Types.BOOLEAN), "BIT");
       DB_TYPES.put(new Integer(Types.TINYINT), "TINYINT");
       DB_TYPES.put(new Integer(Types.SMALLINT), "INTEGER");
       DB_TYPES.put(new Integer(Types.BLOB), "BLOB");

@@ -63,5 +63,6 @@ public class OpPreferencesFormProvider implements XFormProvider {
          showHours = Boolean.valueOf(showAssignInHoursPref);
       }
       form.findComponent(SHOW_HOURS_ID).setBooleanValue(showHours.booleanValue());
+      broker.close();
    }
 }

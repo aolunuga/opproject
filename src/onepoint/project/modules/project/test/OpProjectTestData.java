@@ -54,7 +54,7 @@ public class OpProjectTestData {
          project_home = arguments[1];
       }
       else {
-         project_home = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
+         project_home = OpEnvironmentManager.getOnePointHome();
          if (project_home == null) {
             logger.fatal("USAGE: OpProjectTestData -onepoint_home <onepoint-home-dir>");
             System.exit(1);
@@ -217,12 +217,12 @@ public class OpProjectTestData {
 
       // Test dropping and creating schema
       logger.info("Creating schema in default-source...");
-      OpBroker broker = OpPersistenceManager.newBroker();
-      broker.dropSchema();
-      broker.createSchema();
+      OpPersistenceManager.dropSchema();
+      OpPersistenceManager.createSchema();
       logger.info("Schema successfully created.");
 
       // Create identification-related system objects (helpers supply their own transactions)
+      OpBroker broker = OpPersistenceManager.newBroker();
       OpUserService.createAdministrator(broker);
       OpGroup everyone = OpUserService.createEveryone(broker);
       broker.close();

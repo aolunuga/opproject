@@ -2,6 +2,7 @@
 
 import onepoint.express.XDisplay;
 import onepoint.service.XMessage;
+import onepoint.express.XComponent;
 
 function signOff(event) {
    request = new XMessage;
@@ -35,4 +36,9 @@ function enablePopUp(event){
       pop_up_menu.getChild(0).setEnabled(false);//ClearResourceCache
    }
    XDisplay.closeAllPopUps();
+}
+
+function showAbout(event){
+   dialog = XComponent.newDialog();
+   dialog.open("/forms/about.oxf.xml", parameters);
 }

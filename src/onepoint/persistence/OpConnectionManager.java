@@ -63,6 +63,9 @@ public final class OpConnectionManager {
       catch (SQLException e) {
          logger.error("Invalid db connection parameters (code " + e.getErrorCode() + " )");
          String sqlState = e.getSQLState();
+         if (sqlState == null) {
+            return GENERAL_CONNECTION_EXCEPTION;   
+         }
          if (sqlState.equalsIgnoreCase(INVALID_CREDENTIALS_SQLSTATE)) {
             return INVALID_CREDENTIALS_EXCEPTION;
          }

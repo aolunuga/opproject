@@ -108,6 +108,22 @@ function editAdhoc(event){
    }
 }
 
+function onDoubleClickActivity(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      type = row.getChild(1).getValue();
+      if (type == 6) {
+         infoActivity(event);
+      }
+      else {
+        openDetails.editActivity(event);
+      }
+   }
+}
+
 function editActivity(event){
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");

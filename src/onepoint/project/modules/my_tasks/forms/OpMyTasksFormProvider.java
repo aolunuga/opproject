@@ -172,7 +172,15 @@ public class OpMyTasksFormProvider implements XFormProvider {
       OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
 
       // Retrieve filtered and ordered adhoc tasks
-      OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, filter, orderCriteria, dataSet);
+      XComponent adHocSet = new XComponent(XComponent.DATA_SET);
+      OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, filter, orderCriteria, adHocSet);
+      for (int i = 0; i < adHocSet.getChildCount(); i++) {
+         XComponent row = (XComponent) adHocSet.getChild(i);
+         XComponent effortCell = (XComponent) row.getChild(7); // base effort index
+         effortCell.setValue(null);
+         effortCell.setEnabled(false);
+         dataSet.addChild(row);
+      }
 
       //if dataset is empty, disable all the buttons
       if (dataSet.getChildCount() == 0) {
@@ -206,9 +214,10 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
    /**
     * Creates an activity filter and sets the projects on it using the filter project choice.
-    * @param session Current session. used to obtain the project filter
+    *
+    * @param session    Current session. used to obtain the project filter
     * @param parameters Form parameters.
-    * @param form Current form
+    * @param form       Current form
     * @return An activity filter.
     */
    private OpActivityFilter createActivityFilter(OpProjectSession session, HashMap parameters, XComponent form) {

@@ -1,16 +1,22 @@
 <form layout="border" resource-map-ref="main.header"
       provider-class="onepoint.project.forms.OpHeaderFormProvider"
       script="/scripts/header.jes">
-   
+
    <pop-up-menu id="headerPopupMenu">
       <pop-up-item text="{$ClearResourceCache}" on-item-selected="clearResourceCache"/>
       <pop-up-item text="{$ClearImageCache}" on-item-selected="clearImageCache"/>
    </pop-up-menu>
 
-   <panel style-ref="header-panel-default" layout="border" pop-up-menu-ref="headerPopupMenu" on-open-pop-up-menu="enablePopUp">
+   <panel style-ref="header-panel-default" layout="border" pop-up-menu-ref="headerPopupMenu"
+          on-open-pop-up-menu="enablePopUp">
       <label x="-1" style-ref="label-inverse-default" icon="/icons/opp_header_logo.png"/>
-      <label id="UserDisplayName" style-ref="label-inverse-default" flexible="true"/>
-      <button id="signOff_button" style-ref="header-button-default" x="1" text="{$SignOff}" on-button-pressed="signOff"/>
+      <panel x="0" layout="border">
+         <label x="-1" id="UserDisplayName" style-ref="label-inverse-default" flexible="true"/>
+         <button style-ref="header-button-default" x="1" id="VersionButton" icon="/icons/about.png"
+                 on-button-pressed="showAbout"/>
+      </panel>
+      <button id="signOff_button" style-ref="header-button-default" x="1" text="{$SignOff}"
+              on-button-pressed="signOff"/>
       <button id="quit_button" style-ref="header-button-default" x="1" text="{$Quit}" on-button-pressed="quit"/>
    </panel>
 </form>

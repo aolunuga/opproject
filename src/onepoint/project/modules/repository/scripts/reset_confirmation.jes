@@ -1,0 +1,33 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+import onepoint.project.util.OpSHA1;
+
+function ok(event) {
+   XDisplay.setWaitingCursor();
+   form = XDisplay.getActiveForm();
+   unencryptedAdminPassword = form.findComponent("AdminPasswordField").getStringValue();
+   if (unencryptedAdminPassword == null) {
+      unencryptedAdminPassword = "";
+   }
+   request = new XMessage;
+   request.setAction("RepositoryService.reset");
+   request.setArgument("adminPassword", OpSHA1.calculateHash(unencryptedAdminPassword));
+   response = XDisplay.getClient().invokeMethod(request);
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.resetCursor();
+      successConfirmationText = form.findComponent("ResetSuccessfullMessage").getValue();
+      dialog = XComponent.newDialog();
+      parameters.SuccessConfirmation = successConfirmationText;
+      dialog.open("/modules/repository/forms/success_confirmation.oxf.xml", parameters);      
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();   
+}

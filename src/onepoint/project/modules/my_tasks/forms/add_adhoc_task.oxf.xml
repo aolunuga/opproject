@@ -1,4 +1,4 @@
-<form id="NewAdhocForm" width="600" height="300" layout="border" resource-map-ref="my_tasks.adhoc_tasks"
+<form id="NewAdhocForm" width="600" height="330" layout="border" resource-map-ref="my_tasks.adhoc_tasks"
       start-focus-ref="Name" default-button-ref="okButton" text="{$NewAdhocTitle}"
       provider-class="onepoint.project.modules.my_tasks.forms.OpAddAdhocTaskFormProvider"
       script="/modules/my_tasks/scripts/add_adhocTask.jes">
@@ -9,57 +9,60 @@
 
    <panel layout="border" style-ref="compact-panel-default">
 
-      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      <panel y="-1" layout="border" style-ref="compact-panel-default">
+         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
 
-      <panel y="0" layout="table" flexible="true">
+         <panel y="0" layout="table" flexible="true">
 
-         <tab-box>
-            <tab text="{$General}" layout="table" id="GeneralTab">
-               <label x="0" y="0" width="2" text="{$Name}" id="NameLabel"/>
-               <text-field x="2" y="0" width="3" id="Name"/>
-               <label x="0" y="1" width="2" text="{$Description}" id="DescriptionLabel"/>
-               <text-box x="2" y="1" width="3" id="Description"/>
-               <label x="0" y="2" width="2" text="{$Priority}" id="PriorityLabel"/>
-               <int-field x="2" y="2" width="3" id="Priority"/>
-               <label x="0" y="3" width="2" text="{$DueDate}" id="DueDateLabel"/>
-               <date-field x="2" y="3" width="3" id="DueDate"/>
-               <label x="0" y="4" width="2" text="{$Project}"/>
-               <choice-field x="2" y="4" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
-                             on-value-changed="projectChooserChanged" selected-index="0"/>
-               <label x="0" y="5" width="2" text="{$Resource}"/>
-               <choice-field x="2" y="5" width="3" id="ResourceChooser" data-set-ref="ResourceSet" selected-index="0"/>
-            </tab>
+            <tab-box>
+               <tab text="{$General}" layout="table" id="GeneralTab">
+                  <label x="0" y="0" width="2" text="{$Name}" id="NameLabel"/>
+                  <text-field x="2" y="0" width="3" id="Name"/>
+                  <label x="0" y="1" width="2" text="{$Description}" id="DescriptionLabel"/>
+                  <text-box x="2" y="1" width="3" id="Description"/>
+                  <label x="0" y="2" width="2" text="{$Priority}" id="PriorityLabel"/>
+                  <int-field x="2" y="2" width="3" id="Priority"/>
+                  <label x="0" y="3" width="2" text="{$DueDate}" id="DueDateLabel"/>
+                  <date-field x="2" y="3" width="3" id="DueDate"/>
+                  <label x="0" y="4" width="2" text="{$Project}"/>
+                  <choice-field x="2" y="4" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
+                                on-value-changed="projectChooserChanged" selected-index="0"/>
+                  <label x="0" y="5" width="2" text="{$Resource}"/>
+                  <choice-field x="2" y="5" width="3" id="ResourceChooser" data-set-ref="ResourceSet"
+                                selected-index="0"/>
+               </tab>
 
-            <tab text="{$Attachments}" layout="border" id="AttachmentsTab">
-               <data-set id="AttachmentSet"/>
-               <data-set id="AttachmentIconSet">
-                  <data-row icon="/modules/project_planning/icons/url.png"/>
-                  <data-row icon="/modules/project_planning/icons/document.png"/>
-               </data-set>
-               <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
-                          flexible="true" on-double-click="view">
-                  <table-column id="AttachmentTitle" text="{$Title}" width="200" data-column-index="1"
-                                value-type="Choice"
-                                index-based="true" caption-column-index="1"/>
-                  <table-column id="AttachmentLocation" text="{$Location}" width="200" data-column-index="2"
-                                value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
-               </table-box>
-               <panel y="1" layout="flow" direction="east">
-                  <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png"
-                          on-button-pressed="addDocument" id="AddDocumentButton"
-                          tooltip="{$AddDocumentAttachmentTooltip}"/>
-                  <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png"
-                          on-button-pressed="addURL" id="AddURLButton" tooltip="{$AddLinkAttachmentTooltip}"/>
-                  <button style-ref="icon-button-default" icon="/icons/minus_s.png"
-                          on-button-pressed="remove" id="RemoveAttachmentButton"
-                          tooltip="{$RemoveAttachmentTooltip}"/>
-                  <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="view"
-                          id="ViewAttachmentButton" tooltip="{$ViewAttachmentTooltip}"/>
-               </panel>
-            </tab>
+               <tab text="{$Attachments}" layout="border" id="AttachmentsTab">
+                  <data-set id="AttachmentSet"/>
+                  <data-set id="AttachmentIconSet">
+                     <data-row icon="/modules/project_planning/icons/url.png"/>
+                     <data-row icon="/modules/project_planning/icons/document.png"/>
+                  </data-set>
+                  <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
+                             flexible="true" on-double-click="view">
+                     <table-column id="AttachmentTitle" text="{$Title}" width="200" data-column-index="1"
+                                   value-type="Choice"
+                                   index-based="true" caption-column-index="1"/>
+                     <table-column id="AttachmentLocation" text="{$Location}" width="200" data-column-index="2"
+                                   value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
+                  </table-box>
+                  <panel y="1" layout="flow" direction="east">
+                     <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png"
+                             on-button-pressed="addDocument" id="AddDocumentButton"
+                             tooltip="{$AddDocumentAttachmentTooltip}"/>
+                     <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png"
+                             on-button-pressed="addURL" id="AddURLButton" tooltip="{$AddLinkAttachmentTooltip}"/>
+                     <button style-ref="icon-button-default" icon="/icons/minus_s.png"
+                             on-button-pressed="remove" id="RemoveAttachmentButton"
+                             tooltip="{$RemoveAttachmentTooltip}"/>
+                     <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="view"
+                             id="ViewAttachmentButton" tooltip="{$ViewAttachmentTooltip}"/>
+                  </panel>
+               </tab>
 
-         </tab-box>
+            </tab-box>
 
+         </panel>
       </panel>
 
       <panel y="1" layout="flow" direction="west">

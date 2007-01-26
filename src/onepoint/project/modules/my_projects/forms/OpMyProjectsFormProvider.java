@@ -230,7 +230,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
       dataRow.addChild(dataCell);
 
-
       //predicted effort 10
       dataCell = new XComponent(XComponent.DATA_CELL);
       double predictedEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX);
@@ -246,6 +245,42 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
       dataRow.addChild(dataCell);
 
+      //description 13
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(projectNode.getDescription());
+      dataRow.addChild(dataCell);
+
+      //start & finish  14 & 15
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDateValue(projectNode.getStart());
+      dataRow.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDateValue(projectNode.getFinish());
+      dataRow.addChild(dataCell);
+
+      double resources = OpProjectDataSetFactory.getResourcesValue(broker, projectNode.getID(), activityTypes);
+      double costs = OpProjectDataSetFactory.getCostsValue(broker, projectNode.getID(), activityTypes);
+      //resources  16
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(resources);
+      dataRow.addChild(dataCell);
+      //resources 17
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(costs);
+      dataRow.addChild(dataCell);
+
+
+      //remaining effort (base - actual)  18
+      double remainingEffort = baseEffort - actualEffort;
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(remainingEffort);
+      dataRow.addChild(dataCell);
+
+      //remaining cost (base - actual)  19
+      double remainingCost = baseCost - actualCost;
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(remainingCost);
+      dataRow.addChild(dataCell);
 
       return dataRow;
    }

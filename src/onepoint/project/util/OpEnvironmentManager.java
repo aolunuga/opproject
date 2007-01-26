@@ -86,27 +86,15 @@ public class OpEnvironmentManager {
     * @param name <code>String</code> representing the environment variable
     * @return the value of the specified environment variable
     */
-   public static String getEnvironmentVariable(String name) {
+   private static String getEnvironmentVariable(String name) {
       if (envProps.size() == 0) {
          loadEnvironmentProperties();
       }
       String property;
       if (name.equals(ONEPOINT_HOME)) {
-         File dummy = new File("");
-         String path = dummy.getAbsolutePath();
-
-         if (path != null) {
-            File testRegistry = new File(path + "/" + "registry.oxr.xml");
-            if (!testRegistry.exists()) {
-               path = envProps.getProperty(name);
-               if (path == null) {
-                  logger.fatal("registry.oxr.xml file does not exist");
-                  return null;
-               }
-            }
-         }
-         else {
-            path = envProps.getProperty(name);
+         String path = envProps.getProperty(name);
+         if (path == null) {
+            path = new File("").getAbsolutePath();
          }
          property = XEnvironmentManager.convertPathToSlash(path);
       }

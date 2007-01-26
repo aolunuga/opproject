@@ -36,9 +36,6 @@ public class OpLoginFormProvider implements XFormProvider {
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
       OpProjectSession projectSession = (OpProjectSession) session;
 
-      //for security reasons, clear the session (the login page might've been requested by-passing sign-out)
-      projectSession.clearSession();
-
       String localeId = projectSession.getLocale().getID();
 
       //check the run level

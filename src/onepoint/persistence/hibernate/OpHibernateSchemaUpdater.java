@@ -30,11 +30,15 @@ import java.util.*;
  */
 public final class OpHibernateSchemaUpdater {
 
-   public static List nonPrototypeTables = new ArrayList();
+   /**
+    * A list of tables that don't have matching prototype entities in the application.
+    */
+   private static final List TABLES_WITHOUT_PROTOTYPE = new ArrayList();
+
 
    static {
-      nonPrototypeTables.add("op_schema");
-      nonPrototypeTables.add("op_object");
+      TABLES_WITHOUT_PROTOTYPE.add(OpHibernateSource.SCHEMA_TABLE);
+      TABLES_WITHOUT_PROTOTYPE.add("op_object");
    }
 
    /**
@@ -87,6 +91,8 @@ public final class OpHibernateSchemaUpdater {
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL_INNODB), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.POSTGRESQL), new Integer(OpSqlStatementFactory.POSTGRESQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.SQLSERVER), new Integer(OpSqlStatementFactory.SQLSERVER));
+      DB_TYPES_MAP.put(new Integer(OpHibernateSource.ORACLE), new Integer(OpSqlStatementFactory.ORACLE));
+      DB_TYPES_MAP.put(new Integer(OpHibernateSource.IBM_DB2), new Integer(OpSqlStatementFactory.DB2));
    }
 
    /**
@@ -158,12 +164,23 @@ public final class OpHibernateSchemaUpdater {
             List tableIndexConstraints = generateDropIndexConstraints(tableName, dbMetaData);
             dropConstraintScripts.addAll(tableIndexConstraints);
          }
+         rs.close();
          return dropConstraintScripts;
       }
       catch (SQLException e) {
          logger.error("Cannot generate the drop constraints scripts", e);
          return Collections.EMPTY_LIST;
       }
+   }
+
+   /**
+    * Generates a list of statements that drop predefined tables (tables that are not managed by Hibernate).
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
+   public List generateDropPredefinedTablesScripts() {
+      List dropTableScripts = new ArrayList();
+      dropTableScripts.add(OpSqlStatementFactory.createSqlStatement(dbType).getDropTableStatement(OpHibernateSource.SCHEMA_TABLE));
+      return dropTableScripts;
    }
 
    /**
@@ -243,7 +260,7 @@ public final class OpHibernateSchemaUpdater {
          List dropStatements = new ArrayList();
          while (rs.next()) {
             String tableName = rs.getString(TABLE_NAME_COLUMN);
-            if (!currentTables.contains(tableName) && !nonPrototypeTables.contains(tableName)) {
+            if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
                OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(dbType);
                String sqlStatement = statement.getDropTableStatement(tableName);
                if (sqlStatement != null) {
@@ -326,7 +343,7 @@ public final class OpHibernateSchemaUpdater {
             OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(this.dbType);
             String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
             if (sqlStatement != null) {
-               logger.info("XSchemaUpdater: adding update statement: " + sqlStatement);
+               logger.info("Adding update statement: " + sqlStatement);
                result.add(sqlStatement);
             }
          }

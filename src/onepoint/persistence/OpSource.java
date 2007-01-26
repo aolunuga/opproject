@@ -35,6 +35,8 @@ public abstract class OpSource {
 
    public abstract void close();
 
+   public abstract void clear();
+   
    public abstract OpConnection newConnection();
 
    /**

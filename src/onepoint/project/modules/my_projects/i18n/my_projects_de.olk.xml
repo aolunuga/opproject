@@ -20,16 +20,26 @@
       <resource id="Project">Projekt</resource>
       <resource id="Status">Status</resource>
       <resource id="Complete">% Abg.</resource>
-      <resource id="BaseEffort">Aufwand (P/h)</resource>
-      <resource id="ActualEffort">Aufwand (I/h)</resource>
-      <resource id="BaseCosts">Kosten (P/€)</resource>
-      <resource id="ActualCosts">Kosten (I/€)</resource>
-      <resource id="ProjectedCosts">Kosten (E/€)</resource>
-      <resource id="DeviationCosts">Kosten (A/€)</resource>
-      <resource id="PercentageDeviationCosts">Kosten (A/%)</resource>
-      <resource id="ProjectedEffort">Aufwand (E/h)</resource>
-      <resource id="DeviationEffort">Aufwand (A/h)</resource>
-      <resource id="PercentageDeviationEffort">Aufwand (A/%)</resource>
+      <resource id="Resources">Ressourcen</resource>
+      <resource id="Costs">Kosten</resource>
+      <resource id="Start">Anfang</resource>
+      <resource id="End">Ende</resource>
+
+      <resource id="ProjectResources">Project Resources</resource>
+      <resource id="BaseEffort">Plan (h)</resource>
+      <resource id="ActualEffort">Ist (h)</resource>
+      <resource id="RemainingEffort">Rest (h)</resource>
+      <resource id="ProjectedEffort">Erwartet (h)</resource>
+      <resource id="DeviationEffort">Abw. (h)</resource>
+      <resource id="PercentageDeviationEffort">Abw. (%)</resource>
+
+      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="BaseCosts">Plan (€)</resource>
+      <resource id="ActualCosts">Ist (€)</resource>
+      <resource id="RemainingCosts">Rest (€)</resource>
+      <resource id="ProjectedCosts">Erwartet (€)</resource>
+      <resource id="DeviationCosts">Abw. (€)</resource>
+      <resource id="PercentageDeviationCosts">Abw. (%)</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>

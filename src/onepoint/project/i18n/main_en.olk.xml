@@ -21,6 +21,14 @@
    <resource-map id="main.dock">
       <resource id="ToolDock">TOOL DOCK</resource>
    </resource-map>
+
+   <resource-map id="main.about">
+      <resource id="OK">OK</resource>
+      <resource id="About">About</resource>
+      <resource id="Product">Product Name</resource>
+      <resource id="Version">Version Number</resource>
+   </resource-map>
+
    <resource-map id="main.error">
       <resource id="Error">Error</resource>
       <resource id="OK">OK</resource>

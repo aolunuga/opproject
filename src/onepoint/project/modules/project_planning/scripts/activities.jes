@@ -39,6 +39,8 @@ function timeUnitChanged(event) {
 }
 
 function editActivities(event) {
+
+   XDisplay.setWaitingCursor();
    // *** Check-out project and go into "edit-mode"
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
@@ -49,7 +51,8 @@ function editActivities(event) {
 
    warning = response.getArgument("warning");
    success = true;
-
+   XDisplay.resetCursor();
+   
    if (warning != null) {
       parameters.project_id = project_id;
       XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
@@ -72,12 +75,15 @@ function saveActivities(event) {
    working_plan_version_id = working_plan_version_id_field.getStringValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
 
+   XDisplay.setWaitingCursor();
    request = new XMessage;
    request.setAction("PlanningService.saveActivities");
    request.setArgument("project_id", project_id);
    request.setArgument("working_plan_version_id", working_plan_version_id);
    request.setArgument("activity_set", activity_set);
    response = XDisplay.getClient().invokeMethod(request);
+   XDisplay.resetCursor();
+
    // *** TODO: Check error response and show error message
    // Refresh form
    parameters.project_id = project_id;
@@ -210,6 +216,8 @@ function checkInActivities(event) {
    // *** Optional dialog [check-box: Do not show again] for check-in?
    // ==> Would allow to type in comments for a version and to control number
    // *** In this case, check-in dialog would engage actual check-in method
+
+   XDisplay.setWaitingCursor();
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
    working_plan_version_id_field = XDisplay.getActiveForm().findComponent("WorkingPlanVersionIDField");
@@ -222,6 +230,7 @@ function checkInActivities(event) {
    request.setArgument("activity_set", activity_set);
    response = XDisplay.getClient().invokeMethod(request);
    success = handleResponse(response);
+   XDisplay.resetCursor();
 
    if (success == true) {
       parameters.project_id = project_id;

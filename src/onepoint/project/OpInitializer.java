@@ -16,22 +16,19 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.module.OpModuleManager;
+import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
 import onepoint.util.XEnvironment;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.IOException;
 
 /**
  * Service class responsible for performing application initialization steps
@@ -44,9 +41,6 @@ public class OpInitializer {
    //keys in the initParams map
    public static String RESOURCE_CACHE_SIZE = "cacheSize";
    public static String SECURE_SERVICE = "secureService";
-
-   //hard-coded db schema version number
-   private static final int SCHEMA_VERSION = 3;
 
    //class logger
    private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
@@ -208,25 +202,19 @@ public class OpInitializer {
          runLevel = 3;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
-         OpBroker broker = OpPersistenceManager.newBroker();
-
          //if db schema doesn't exist, create it
-         if (!defaultSource.existsTable("op_object")) {
-            createEmptySchema(broker);
-         }
+         createEmptySchema();
 
          logger.info("Repository status is OK");
          runLevel = 4;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          //update db schema
-         updateDBSchema(broker, defaultSource);
+         updateDBSchema();
 
          logger.info("Updated database schema is OK");
          runLevel = 5;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         broker.close();
 
          //Start registered modules
          OpModuleManager.start();
@@ -241,43 +229,17 @@ public class OpInitializer {
       return initParams;
    }
 
-   private static void updateDBSchema(OpBroker broker, OpHibernateSource defaultSource)
-        throws SQLException {
-
-      Statement statement;
-      int currentVersion = SCHEMA_VERSION;
-
-      Connection jdbcConnection = broker.getJDBCConnection();
-      int dbVersion;
-      if (!defaultSource.existsTable("op_schema")) {
-         statement = jdbcConnection.createStatement();
-         statement.execute("create table op_schema(op_version int)");
-         statement.executeUpdate("insert into op_schema values(0)");
-         statement.close();
-         jdbcConnection.commit();
-         logger.info("Created table op_schema for versioning");
-         dbVersion = 0;
-      }
-      else {
-         statement = jdbcConnection.createStatement();
-         ResultSet result = statement.executeQuery("select * from op_schema");
-         result.next();
-         dbVersion = result.getInt("op_version");
-         statement.close();
-      }
-
-      logger.info("Version in db " + dbVersion + " and current version " + currentVersion);
-
-      if (dbVersion < currentVersion) {
-         logger.info("Updating DB schema to version " + currentVersion + "...");
-         broker.updateSchema();
-         statement = jdbcConnection.createStatement();
-         statement.executeUpdate("update op_schema set op_version=" + currentVersion);
-         statement.close();
-         jdbcConnection.commit();
-         logger.info("Updated OK. Current version is " + currentVersion);
-         logger.info("Upgrading modules....");
-         OpModuleManager.upgrade(dbVersion);
+   /**
+    * Updates the db schema if necessary.
+    */
+   private static void updateDBSchema() {
+      OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      if (defaultSource.needSchemaUpgrading()) {
+         int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
+         logger.info("Updating DB schema from version " + existingVersionNr + "...");
+         OpPersistenceManager.updateSchema();
+         defaultSource.updateSchemaVersionNumber();
+         OpModuleManager.upgrade(existingVersionNr);
       }
    }
 
@@ -286,15 +248,18 @@ public class OpInitializer {
    }
 
    /**
-    * Creates an empty db schema.
-    *
-    * @param broker Broker used to access db.
+    * Creates an empty db schema, if necessary.
     */
-   private static void createEmptySchema(OpBroker broker) {
-      broker.createSchema();
-      // Create identification-related system objects (helpers supply their own transactions)
-      OpUserService.createAdministrator(broker);
-      OpUserService.createEveryone(broker);
+   private static void createEmptySchema() {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      if (!hibernateSource.existsTable("op_object")) {
+         OpPersistenceManager.createSchema();
+         OpBroker broker = OpPersistenceManager.newBroker();
+         // Create identification-related system objects (helpers supply their own transactions)
+         OpUserService.createAdministrator(broker);
+         OpUserService.createEveryone(broker);
+         broker.close();
+      }
    }
 
    /**
@@ -338,31 +303,24 @@ public class OpInitializer {
       return configuration;
    }
 
-   private static void updateSchemaVersion(OpBroker broker)
-        throws SQLException {
-      logger.info("Updating schema version...");
-      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-      updateDBSchema(broker, hibernateSource);
-   }
-
    /**
     * Resets the db schema by dropping the existent one and creating a new one.
     *
-    * @param broker a <code>OpBroker</code> used for performing db operations.
     * @throws SQLException if the db schema cannot be droped or created.
     */
-   public static void resetDbSchema(OpBroker broker)
+   public static void resetDbSchema()
         throws SQLException {
       logger.info("Stopping modules");
       OpModuleManager.stop();
       logger.info("Dropping schema...");
-      broker.dropSchema();
+      OpPersistenceManager.dropSchema();
       logger.info("Creating schema...");
-      createEmptySchema(broker);
+      createEmptySchema();
       logger.info("Starting modules");
+      OpSourceManager.getDefaultSource().clear();
       OpModuleManager.start();
-      logger.info("Updating schema schema...");
-      updateSchemaVersion(broker);
+      logger.info("Updating schema...");
+      updateDBSchema();
    }
 
    /**
@@ -375,15 +333,12 @@ public class OpInitializer {
     */
    public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {
-      OpBroker broker = projectSession.newBroker();
       logger.info("Dropping schema...");
-      broker.dropSchema();
+      OpPersistenceManager.dropSchema();
       logger.info("Creating schema...");
-      broker.createSchema();
-      broker.close();
+      OpPersistenceManager.createSchema();
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
-      broker = projectSession.newBroker();
-      updateSchemaVersion(broker);
-      broker.close();
+      OpSourceManager.getDefaultSource().clear();
+      updateDBSchema();
    }
 }

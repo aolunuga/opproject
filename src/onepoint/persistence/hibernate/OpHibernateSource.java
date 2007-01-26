@@ -17,8 +17,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
 import java.util.*;
 
 public class OpHibernateSource extends OpSource {
@@ -58,6 +57,18 @@ public class OpHibernateSource extends OpSource {
     */
    private static final List PROTOTYPE_PREFIXES = Arrays.asList(new String[]{"X", "Op"});
 
+   /**
+    * Db schema related constants
+    */
+   static final String SCHEMA_TABLE = "op_schema";
+   private static final int SCHEMA_VERSION = 3;
+   private static final String VERSION_COLUMN = "op_version";
+
+   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
+   private static final String INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(0)";
+   private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
+   private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
+
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
 
@@ -86,8 +97,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * IBM DB2 index maximum length is 18 (SQLSTATE=42622)
     */
-   private int IBM_DB2_INDEX_NAME_LENGTH = 18;
-
+   private static final int IBM_DB2_INDEX_NAME_LENGTH = 18;
 
    public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type) {
       this._url = _url;
@@ -95,6 +105,7 @@ public class OpHibernateSource extends OpSource {
       this._password = _password;
       this._login = _login;
       this._database_type = _database_type;
+      OpBlobUserType.setDatabaseType(_database_type);
 
       if (_database_type == HSQLDB) {
          this.setEmbeded(true);
@@ -139,11 +150,6 @@ public class OpHibernateSource extends OpSource {
 
    public final String getDriverClassName() {
       return _driver_class_name;
-   }
-
-   public final void setDatabaseType(int database_type) {
-      _database_type = database_type;
-      OpBlobUserType.setDatabaseType(_database_type);
    }
 
    public final int getDatabaseType() {
@@ -352,6 +358,7 @@ public class OpHibernateSource extends OpSource {
          }
          case ORACLE: {
             queryString += " where ROWNUM < 2";
+            break;
          }
          case HSQLDB: {
             queryString = "select top 1 * from " + tableName;
@@ -575,9 +582,13 @@ public class OpHibernateSource extends OpSource {
 
             // Exception for MySQL: Use mediumblob (otherwise very limited
             // storage capability)
-            if ((field.getTypeID() == OpType.CONTENT)
-                 && ((_database_type == MYSQL) || (_database_type == MYSQL_INNODB))) {
-               buffer.append(" sql-type=\"mediumblob\"");
+            if ((field.getTypeID() == OpType.CONTENT)) {
+               if ((_database_type == MYSQL) || (_database_type == MYSQL_INNODB)) {
+                  buffer.append(" sql-type=\"mediumblob\"");
+               }
+               if ((_database_type == IBM_DB2)) {
+                  buffer.append(" sql-type=\"blob(100M)\"");
+               }
             }
 
             if (field.getMandatory()) {
@@ -787,5 +798,98 @@ public class OpHibernateSource extends OpSource {
          }
       }
       return typeName;
+   }
+
+   /**
+    * Updates the schema version number in the db, to the value of the SCHEMA_VERSION constant.
+    */
+   public void updateSchemaVersionNumber() {
+      Session session = _session_factory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+
+      try {
+         statement = jdbcConnection.createStatement();
+         statement.executeUpdate(UPDATE_SCHEMA_TABLE_STATEMENT);
+         jdbcConnection.commit();
+      }
+      catch (SQLException e) {
+         logger.error("Cannot update db schema number", e);
+      }
+      finally {
+         if (statement != null) {
+            try {
+               statement.close();
+            }
+            catch (SQLException e) {
+               logger.error("Cannot close statement:" + e.getMessage(), e);
+            }
+         }
+         session.close();
+      }
+   }
+
+   /**
+    * Checks whether the db schema needs upgrading or not.
+    *
+    * @return <code>true</code> if the db schema needs upgrading.
+    */
+   public boolean needSchemaUpgrading() {
+      int existingVersionNumber = this.getExistingSchemaVersionNumber();
+      return existingVersionNumber < SCHEMA_VERSION;
+   }
+
+   /**
+    * Queries the database for the schema version number.
+    *
+    * @return a <code>int</code> representing the persisted schema version number, or <code>-1</code> if the version number
+    *         can't be retrieved.
+    */
+   public int getExistingSchemaVersionNumber() {
+      Session session = _session_factory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+      ResultSet rs = null;
+      try {
+         statement = jdbcConnection.createStatement();
+
+         if (!existsTable(SCHEMA_TABLE)) {
+            statement.execute(CREATE_SCHEMA_TABLE_STATEMENT);
+            statement.executeUpdate(INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT);
+            jdbcConnection.commit();
+            logger.info("Created table op_schema for versioning");
+         }
+
+         rs = statement.executeQuery(GET_SCHEMA_VERSION_STATEMENT);
+         rs.next();
+         return rs.getInt(VERSION_COLUMN);
+      }
+      catch (SQLException e) {
+         logger.error("Cannot get version number ", e);
+      }
+      finally {
+         try {
+            if (rs != null) {
+               rs.close();
+            }
+            if (statement != null) {
+               statement.close();
+            }
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close result set and statement", e);
+         }
+         session.close();
+      }
+      return -1;
+   }
+
+   public void clear() {
+      _session_factory.evictQueries();
+      Iterator prototypesIterator = OpTypeManager.getPrototypes();
+      while (prototypesIterator.hasNext()) {
+         OpPrototype prototype = (OpPrototype) prototypesIterator.next();
+         _session_factory.evict(prototype.getInstanceClass());
+      }
    }
 }

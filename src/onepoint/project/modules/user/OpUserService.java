@@ -82,6 +82,10 @@ public class OpUserService extends OpProjectService {
 
    public XMessage signOn(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.signOn()");
+
+      //for security reasons, clear the session (the login page might've been requested by-passing sign-out)
+      session.clearSession();
+
       String login = (String) (request.getArgument(LOGIN));
       String password = (String) (request.getArgument(PASSWORD));
 

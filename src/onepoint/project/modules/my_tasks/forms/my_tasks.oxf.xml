@@ -50,6 +50,13 @@
                          disabled-icon="/modules/my_tasks/icons/add_AdhocTask_disabled.png"
                          on-button-pressed="addAdhoc"
                          tooltip="{$NewAdhocTooltip}"/>
+            <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
+                         disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
+                         on-button-pressed="addComment"
+                         tooltip="{$NewCommentTooltip}"/>
+            <tool-button id="InfoButton" text="{$Info}" icon="/icons/info.png"
+                         disabled-icon="/icons/info_disabled.png" on-button-pressed="infoActivity"
+                         tooltip="{$InfoTooltip}"/>
             <tool-button id="EditAdhocButton" text="{$EditAdhoc}" icon="/icons/edit.png"
                          disabled-icon="/icons/edit_disabled.png"
                          on-button-pressed="editAdhoc" enabled="false"
@@ -58,13 +65,6 @@
                          disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="deleteAdhoc" enabled="false"
                          tooltip="{$DeleteAdhocTooltip}"/>
-            <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
-                         disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
-                         on-button-pressed="addComment"
-                         tooltip="{$NewCommentTooltip}"/>
-            <tool-button id="InfoButton" text="{$Info}" icon="/icons/info.png"
-                         disabled-icon="/icons/info_disabled.png" on-button-pressed="infoActivity"
-                         tooltip="{$InfoTooltip}"/>
             <tool-button id="PrintButton" text="{$Print}" icon="/icons/print.png"
                          disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="{$PrintTooltip}"/>
          </tool-bar>
@@ -86,7 +86,7 @@
       <tab-box id="MyTabBox" stateful="true" flexible="true">
          <tab layout="border" text="{$Tasklist}" id="TasklistTab">
             <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
-                       on-double-click="editActivity"
+                       on-double-click="onDoubleClickActivity"
                        flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
                <!-- The list of columns to show could be editable and dynamic (form-provider) -->
                <table-column text="" width="0" hidden="true" data-column-index="1"

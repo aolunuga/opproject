@@ -4876,7 +4876,7 @@ public class OpGanttValidator extends XValidator {
       ArrayList[] individualAbsences = new ArrayList[individualEffortsPerDay.length];
       double[] assigneds = new double[individualEffortsPerDay.length];
 
-      BigDecimal effort = new BigDecimal(0);
+      BigDecimal effort = new BigDecimal(0.0);
       boolean resourceAbsent;
       boolean workPhase = false;
       double workPhaseEffort = 0;

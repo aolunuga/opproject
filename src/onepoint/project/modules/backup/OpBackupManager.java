@@ -66,6 +66,11 @@ public class OpBackupManager {
    private static final int BACKUP_PAGE_SIZE = 1000;
 
    /**
+    * The name of the directory where binary files (contents) are stored
+    */
+   private static final String BINARY_DIR_NAME = "/binary-files";
+
+   /**
     * Date format used for importing/exporting date values.
     */
    final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd 'GMT'");
@@ -89,7 +94,7 @@ public class OpBackupManager {
    /**
     * The path to the dir where binary files will be stored (is normally relative to the export path)
     */
-   private static String binaryDirPath = "/binary-files";
+   private String binaryDirPath = null;
 
    /**
     * There should be only 1 instance of this class.
@@ -639,20 +644,20 @@ public class OpBackupManager {
       }
       int lastSlashIndex = formattedPath.lastIndexOf("/");
       if (lastSlashIndex != -1 && !filePath.isDirectory()) {
-         binaryDirPath = formattedPath.substring(0, lastSlashIndex) + binaryDirPath;
+         binaryDirPath = formattedPath.substring(0, lastSlashIndex) + BINARY_DIR_NAME;
       }
       else if (filePath.isDirectory()) {
-         binaryDirPath = formattedPath + binaryDirPath;
+         binaryDirPath = formattedPath + BINARY_DIR_NAME;
       }
       else {
-         binaryDirPath = "." + binaryDirPath;
+         binaryDirPath = "." + BINARY_DIR_NAME;
       }
    }
 
    /**
     * @see OpBackupManager#backupRepository(onepoint.project.OpProjectSession,String)
     */
-   public void backupRepository(OpProjectSession session, OutputStream output)
+   private void backupRepository(OpProjectSession session, OutputStream output)
         throws IOException {
       long startTime = System.currentTimeMillis();
       logger.info("Starting repository backup....");
@@ -731,6 +736,8 @@ public class OpBackupManager {
       StringBuffer pathBuffer = new StringBuffer(binaryDirPath);
       pathBuffer.append("/object-");
       pathBuffer.append(id);
+      pathBuffer.append('-');
+      pathBuffer.append(System.currentTimeMillis());
       pathBuffer.append('-');
       pathBuffer.append(backupMemberName);
       pathBuffer.append(".bin");

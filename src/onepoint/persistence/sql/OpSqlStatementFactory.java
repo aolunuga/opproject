@@ -4,8 +4,8 @@
 
 package onepoint.persistence.sql;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Factory class that produces different sql statements, based on the type of the db.
@@ -21,6 +21,8 @@ public final class OpSqlStatementFactory {
    public static final int MYSQL = 1;
    public static final int POSTGRESQL = 2;
    public static final int SQLSERVER = 3;
+   public static final int ORACLE = 4;
+   public static final int DB2 = 5;
 
    /**
     * A cache for the statements.
@@ -57,6 +59,14 @@ public final class OpSqlStatementFactory {
             }
             case UNKNOWN: {
                statement = new OpUnknownSqlStatement();
+               break;
+            }
+            case ORACLE: {
+               statement = new OpOracleStatement();
+               break;
+            }
+            case DB2: {
+               statement = new  OpDB2Statement();
                break;
             }
             default: {

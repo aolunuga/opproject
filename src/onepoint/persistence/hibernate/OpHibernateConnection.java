@@ -24,7 +24,7 @@ import java.util.List;
 
 public class OpHibernateConnection extends OpConnection {
 
-   private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class,true);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class, true);
 
    private Session _session;
 
@@ -48,17 +48,17 @@ public class OpHibernateConnection extends OpConnection {
 
    /**
     * Executes a DDL script directly via JDBC, commiting everything in 1 large transaction.
+    *
     * @param script a <code>String</code> array representing a set of scripts.
     */
    private void executeDDLScript(String[] script) {
       if (script == null || script.length == 0) {
          return;
       }
-      Connection connection = null;
       Statement statement = null;
       OpTransaction t = newTransaction();
       try {
-         connection = _session.connection();
+         Connection connection = _session.connection();
          for (int i = 0; i < script.length; i++) {
             statement = connection.createStatement();
             logger.info("Executing SQL: " + script[i]);
@@ -71,35 +71,37 @@ public class OpHibernateConnection extends OpConnection {
          logger.error("Could not execute DDL script: " + e);
       }
       finally {
-         closeOpenDatabaseObjects(connection, statement);
+         closeStatement(statement);
       }
    }
 
    /**
     * Executes a DDL script directly via JDBC, commiting each statement in a separate transaction.
+    *
     * @param script a <code>String</code> array representing a set of scripts.
     */
    private void softExecuteDDLScript(String[] script) {
       if (script == null || script.length == 0) {
          return;
       }
-      Connection connection = null;
-      Statement statement = null;
-      OpTransaction t = null;
       // Try each drop extra and issues only warnings if tables cannot be dropped
+      Statement statement = null;
       try {
+         Connection connection = _session.connection();
+         OpTransaction t = null;
          for (int i = 0; i < script.length; i++) {
             try {
-               connection = _session.connection();
-               statement = connection.createStatement();
                t = newTransaction();
+               statement = connection.createStatement();
                logger.info("Executing SQL:" + script[i]);
                statement.executeUpdate(script[i]);
+               statement.close();
                t.commit();
             }
             catch (SQLException e) {
-               t.rollback();
                logger.warn("Skipping drop statement because: " + e.getMessage());
+               t.rollback();
+               this.closeStatement(statement);
             }
             catch (Exception e) {
                logger.error("Could not execute drop statement: " + e.getMessage(), e);
@@ -109,24 +111,16 @@ public class OpHibernateConnection extends OpConnection {
          }
       }
       finally {
-         closeOpenDatabaseObjects(connection, statement);
+         closeStatement(statement);
       }
    }
 
    /**
-    * Tries to close a possibly open database connection and statement.
-    * @param connection a <code>Connection</code> representing a database connection.
+    * Tries to close a possibly open database statement.
+    *
     * @param statement a <code>Statement</code> representing a database statement.
     */
-   private void closeOpenDatabaseObjects(Connection connection, Statement statement) {
-      if (connection != null) {
-         try {
-            connection.close();
-         }
-         catch (SQLException e) {
-            logger.error("Cannot close connection:", e);
-         }
-      }
+   private void closeStatement(Statement statement) {
       if (statement != null) {
          try {
             statement.close();
@@ -180,9 +174,11 @@ public class OpHibernateConnection extends OpConnection {
       OpHibernateSchemaUpdater customSchemaUpdater = OpHibernateSchemaUpdater.getInstance(source);
 
       try {
-         //first execute any custom drop statements
-         customDropScripts = customSchemaUpdater.generateDropConstraintScripts(connection.getMetaData());
-         softExecuteDDLScript((String[]) customDropScripts.toArray(new String[]{}));
+         //first execute any custom drop statements (only for MySQL necessary at the moment)
+         if (source.getDatabaseType() == OpHibernateSource.MYSQL || source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
+            customDropScripts = customSchemaUpdater.generateDropConstraintScripts(connection.getMetaData());
+            softExecuteDDLScript((String[]) customDropScripts.toArray(new String[]{}));
+         }
 
          //then execute the hibernate update scripts
          Dialect dialect = source.newHibernateDialect();
@@ -202,16 +198,18 @@ public class OpHibernateConnection extends OpConnection {
    public void dropSchema() {
       // Create drop schema script
       OpHibernateSource source = ((OpHibernateSource) getSource());
+      OpHibernateSchemaUpdater customUpdater = OpHibernateSchemaUpdater.getInstance(source);
       Configuration configuration = source.getConfiguration();
-      String[] script = null;
       try {
-         script = configuration.generateDropSchemaScript(source.newHibernateDialect());
+         String[] hibernateDropScripts = configuration.generateDropSchemaScript(source.newHibernateDialect());
+         softExecuteDDLScript(hibernateDropScripts);
+
+         String[] customDropScripts = (String[]) customUpdater.generateDropPredefinedTablesScripts().toArray(new String[]{});
+         softExecuteDDLScript(customDropScripts);
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not generate drop schema script: " + e);
       }
-      // Execute drop schema script
-      softExecuteDDLScript(script);
    }
 
    // *** alterSchema could use generateUpdateSchemaScript()

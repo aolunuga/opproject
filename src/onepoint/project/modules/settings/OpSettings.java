@@ -192,7 +192,7 @@ public class OpSettings {
     * @return a <code>List</code> of <code>String</code> representing the file names of the holiday calendars.
     */
    private static List getAllHolidayCalendarFiles() {
-      String path = OpEnvironmentManager.getEnvironmentVariable(OpEnvironmentManager.ONEPOINT_HOME);
+      String path = OpEnvironmentManager.getOnePointHome();
       path += "/" + CALENDARS_DIR;
       logger.info("Loading calendars from " + path);
       File calendarDir = new File(path);

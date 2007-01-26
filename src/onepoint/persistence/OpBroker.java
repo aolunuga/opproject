@@ -52,18 +52,6 @@ public class OpBroker {
    }
    */
 
-   public void createSchema() {
-      _default_connection.createSchema();
-   }
-
-   public void updateSchema() {
-      _default_connection.updateSchema();
-   }
-
-   public void dropSchema() {
-      _default_connection.dropSchema();
-   }
-
    public void makePersistent(OpObject object) {
       // Persist object into default source and set creation date and time
       object.setCreated(XCalendar.now());

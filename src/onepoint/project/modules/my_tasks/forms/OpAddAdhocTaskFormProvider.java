@@ -22,6 +22,8 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
    private static final String RESOURCE_SET = "ResourceSet";
    private static final String PROJECT_SET = "ProjectSet";
    private static final String PROJECT_TO_RESOURCE_MAP = "ProjectToResourceMap";
+   private static final String DUE_DATE = "DueDate";
+   private static final String PRIORITY = "Priority";
 
 
    /**
@@ -60,6 +62,10 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
             resourceDataSet.addChild(row);
          }
       }
+
+      //default values
+      form.findComponent(DUE_DATE).setValue(null);
+      form.findComponent(PRIORITY).setIntValue(5);
 
    }
 }

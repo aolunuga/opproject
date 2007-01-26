@@ -556,7 +556,7 @@ public final class OpProjectDataSetFactory {
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
-   private static double getResourcesValue(OpBroker broker, long projectId, List activityTypes) {
+   public static double getResourcesValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.ActualEffort), sum(activity.BaseEffort)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
       queryBuffer.append(" where project.ID = :projectId  and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
@@ -590,7 +590,7 @@ public final class OpProjectDataSetFactory {
     * @param activityTypes a <code>List</code> of <code>int</code> representing the types of activities to take into account.
     * @return a <code>double</code> representing the value of the efforts of the resources assigned on the project.
     */
-   private static double getCostsValue(OpBroker broker, long projectId, List activityTypes) {
+   public static double getCostsValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts)");
       queryBuffer.append(" , sum(activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");

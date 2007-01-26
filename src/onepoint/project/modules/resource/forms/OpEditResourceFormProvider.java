@@ -38,6 +38,9 @@ public class OpEditResourceFormProvider implements XFormProvider {
    private final static String USER_FIELD = "UserName";
    private final static String USER_LABEL = "ResponsibleUserLabel";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
+   private final static String HOURLY_RATE = "HourlyRate";
+   private final static String HOURLY_RATE_LABEL = "HourlyRateLabel";
+   private final static String INHERIT_POOL_RATE = "InheritPoolRate";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -55,6 +58,12 @@ public class OpEditResourceFormProvider implements XFormProvider {
          edit_mode = Boolean.FALSE;
       }
 
+      if ((accessLevel < OpPermission.MANAGER)) {
+         form.findComponent(HOURLY_RATE).setVisible(false);
+         form.findComponent(HOURLY_RATE_LABEL).setVisible(false);
+         form.findComponent(INHERIT_POOL_RATE).setVisible(false);
+      }
+
       // Fill edit-user form with user data
       // *** Use class-constants for text-field IDs?
       form.findComponent(RESOURCE_ID).setStringValue(id_string);
@@ -65,7 +74,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
       desc.setStringValue(resource.getDescription());
       XComponent available = form.findComponent(OpResource.AVAILABLE);
       available.setDoubleValue(resource.getAvailable());
-      XComponent hourly_rate = form.findComponent(OpResource.HOURLY_RATE);
+      XComponent hourly_rate = form.findComponent(HOURLY_RATE);
       hourly_rate.setDoubleValue(resource.getHourlyRate());
 
       //save available and hourly rate for later confirm dialog
@@ -74,7 +83,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
       XComponent originalHourly_rate = form.findComponent(ORIGINAL_HOURLY_RATE);
       originalHourly_rate.setDoubleValue(resource.getHourlyRate());
 
-      XComponent inherit_pool_rate = form.findComponent(OpResource.INHERIT_POOL_RATE);
+      XComponent inherit_pool_rate = form.findComponent(INHERIT_POOL_RATE);
       inherit_pool_rate.setBooleanValue(resource.getInheritPoolRate());
       if (resource.getInheritPoolRate()) {
          hourly_rate.setEnabled(false);

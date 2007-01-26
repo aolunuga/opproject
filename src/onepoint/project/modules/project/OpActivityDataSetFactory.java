@@ -923,6 +923,7 @@ public abstract class OpActivityDataSetFactory {
       plan.setFinish(planFinish);
 
       //add the adhoc tasks at the end of the project plan
+      int dataRowsNr = dataSet.getChildCount();
       Set activitySet = plan.getActivities();
       int maxSeq = 0;
       for (Iterator iterator = activitySet.iterator(); iterator.hasNext();) {
@@ -931,6 +932,10 @@ public abstract class OpActivityDataSetFactory {
             maxSeq = activity.getSequence();
          }
       }
+      if (maxSeq < dataRowsNr) {
+         maxSeq = dataRowsNr;
+      }
+
       int sequence = maxSeq + 1;
       for (Iterator iterator = adhocTasks.iterator(); iterator.hasNext();) {
          activity = (OpActivity) iterator.next();
