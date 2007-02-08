@@ -1,9 +1,9 @@
-Onepoint Project 06.1 Basic Edition (BETA)
-==========================================
+Onepoint Project 07 Basic Edition (BETA)
+========================================
 
 Welcome to the most current release of the Onepoint Project Basic Edition.
-This package contains the Open Source desktop version of Onepoint Project 06.1
-together with a short user tutorial.
+This package contains the Open Source desktop version of Onepoint Project 07
+("Basic Edition") together with a short user tutorial.
 
 
 System Requirements
@@ -52,6 +52,8 @@ In order to start the application on Microsoft Windows, double-click on the
 Demo Data
 ---------
 
-There is no demo data yet available for the beta version of the Basic Edition.
-However, we will include some demo data for the final release.
+On first startup of the application you will be asked whether you want to load
+a demo data set or not. The demo data is stored as an XML backup file located in
+the directory "demodata" inside your Onepoint Project installation -- using the
+repository tool you can also restore it later on if you want to.
 

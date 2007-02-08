@@ -1,35 +1,53 @@
-OnePoint Project 06.1 Open Edition (BETA)
-=========================================
+Onepoint Project 07 Open Edition (BETA)
+=======================================
 
-Welcome to the most current release of the Open Edition of OnePoint Project.
-This package contains the Web application of OnePoint Project 06.1.
+Welcome to the most current release of the Onepoint Project Open Edition. This
+package contains the Web application archive (WAR) of Onepoint Project 06.1
+together with a short user tutorial.
+
+Please note that all installation steps in this document assume that you are
+using Tomcat and MySQL under Windows 2000/XP/2003 Server. If you are using Linux
+or Mac OS X, or a different application server or database you will have to
+adjust the installation steps to your environment.
 
 
 System Requirements
 -------------------
 
-* Microsoft Windows 2000/XP, Linux or Mac OS X
+* Microsoft Windows 2000/XP/2003 Server, Linux or Mac OS X
 
 * Java Runtime Environment (JRE) version 1.4.2 or higher
 
-* MySQL version 5.0.19 (see Appendix C) or PostgreSQL 8.1
+* MySQL 5.0.27 or PostgreSQL 8.1
 
 * MySQL or PostgreSQL JDBC driver
 
 * Apache Tomcat 5.5
 
-Commercial application servers (Websphere) and databases (IBM DB/2) are supported
-by the Team Edition.
+Other application servers and databases are supported by the Team Edition.
+
+
+Documentation
+-------------
+
+The ZIP package contains a tutorial about Onepoint Project which explains
+the most important functions step by step. The tutorial is provided in the
+form of an Acrobat/PDF file -- you can use Adobe's Acrobat Reader or a
+Web browser with the Acrobat Reader plug-in (typically, your Web browser
+already contains such a plug-in). In case you do not have Acrobot Reader
+installed, you can download it for free from the Adobe website:
+
+   hhttp://www.adobe.com ("Get Adobe Reader")
 
 
 Installation
 ------------
 
-If you are upgrading from an earlier release, please move your existing "opproject"
-web application from the "webapps" folder to a different location in the folder
-hierarchy.
+If you are upgrading from Onepoint Project 06.1 Open Edition, please move your
+existing "opproject" web application from the "webapps" folder to a different
+location in the folder hierarchy.
 
-These short instructions assume that OnePoint Project is installed as a Tomcat Web
+These short instructions assume that Onepoint Project is installed as a Tomcat Web
 application:
 
 1. Install Tomcat 5.5 (if an installation does not yet exist)
@@ -45,35 +63,41 @@ inside the webapps folder.
 3. Copy the MySQL JDBC driver (JAR file) into the opproject\WEB-INF\lib folder
 
 4. Install the MySQL database software and create an instance
-   - Use UTF-8/Unicode for the charset/encoding of the instance
+   - Use UTF-8/Unicode as the default charset ("best support for multilingual...")
 
 5. Create the MySQL database user ("opproject") and database ("opproject")
    - See Appendix A if you do not know how to do this in MySQL
 
-6. Adjust the configuration file C:\opproject\configuration.oxc.xml or copy your
-existing configuration file from the previously moved old installation
-   - Database URL (default is "opproject")
-   - Database user (default is "opproject")
-   - Database password (default is "opproject")
+6. If you upgraded from a previous version of Onepoint Project copy your
+configuration file ("configuration.oxc.xml") to the new installation path
 
 ATTENTION: Do not execute the following step if you are upgrading from an existing
 installation!
 
-7. (OPTIONAL) Load the demo data by executing the folling SQL file (see Appendix B):
+7. (OPTIONAL) If you want to start with some demo data load the demo data by
+executing the folling SQL file (see Appendix B):
    - demodata061.sql
 
-8. Stop Tomcat and restart it in order to make sure that the changes in the configuration
-files are applied to your installation (in case of a new installation the repository
-structure is now created in the database which can last a few minutes).
+Note: This step is optional. If you do not upload the demo data a new, plaim
+repository will be created at the first startup of the web application.
+
+8. Stop Tomcat and restart it in order to make sure that the JDBC driver gets loaded
+and your previous configuration file is loaded (in case you provided one).
 
 
 Starting the Application
 ------------------------
 
-If you installed Tomcat using the default settings then OnePoint Project should
+If you installed Tomcat using the default settings then Onepoint Project should
 be accessible by using the following URL:
 
    http://localhost:8080/opproject/service
+
+If you did not upgrade from a previous installation you will now be presented with
+the configuration wizard where you have to choose your database type (e.g., MySQL),
+provide a JDBC connect string for your database instance, a database user and a
+password. If you are not familiar with JDBC connect strings please take a look at
+Appendix C.
 
 Pleae note that for a totally new installation it can take a couple of minutes
 until the repository structure is set up completely.
@@ -97,15 +121,6 @@ permissions on these two projects, otherwise you have to use the
 administrator user.
 
 
-Known Limitations and Problems
-------------------------------
-
-* The tool dock is not yet collapsible
-
-This limitation will be fixed in the final product version (OnePoint Project
-06.1).
-
-
 Appendix A: Creating a New Database and a New Database User in MySQL
 --------------------------------------------------------------------
 
@@ -114,15 +129,15 @@ execute the following steps after installing MySQL:
 
    (1) Open a command line window (DOS shell) und change into the "demodata"
        directory
-   (2) Type "mysql –u root -p" and enter the root password which you specified
+   (2) Type "mysql -u root -p" and enter the root password which you specified
        when installing MySQL
-   (3) mysql> \. createdb.sql;
+   (3) mysql> source createdb.sql;
    (4) mysql> quit
 
 Alternatively, you can create a new database and a new user in MySQL also
 manually:
 
-   (1) Open a command line window (DOS shell) und type "mysql –u root -p" and
+   (1) Open a command line window (DOS shell) und type "mysql -u root -p" and
        enter the root password which you specified when installing MySQL
    (2) mysql> create database opproject;
    (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
@@ -136,9 +151,9 @@ Appendix B: Executing a SQL file in MySQL
 In order to execute a SQL file in MySQL you have to do the following:
 
    (1) Open a command line window (DOS shell) und type
-       "mysql –u opproject -p opproject" and enter the password you specified
+       "mysql -u opproject -p opproject" and enter the password you specified
        when creating the database user
-   (2) mysql> \. demodata061.sql;
+   (2) mysql> source demodata061.sql;
    (3) mysql> quit
 
 Please note that this example assumes that the user and the database you
@@ -147,13 +162,37 @@ If you used a different user name, then you have to specify this user name in
 (1) after the option "-u" and a different database name after "-p".
 
 
-Appendix C: MySQL-Versions
---------------------------
+Appendix C: Example Connect Strings for MySQL and PostgreSQL
+------------------------------------------------------------
 
-In order to ensure a high level of software quality we were forced to limit
-the release to a single MySQL version. The major reason for this is that the
-different MySQL versions are of very different quality levels and that there
-are really versions where even base database functionality does not work.
-We had very good results using MySQL 5.0.19 and this is why we used this
-version to do all our final testing. Please in any case do not use MySQL
-5.0.21 -- here we know that there are a lot of problems.
+A complete discussion about JDBC connect strings is way beyond the scope of
+this document, but we would like to provide you with example connect strings
+for the most simple case (Tomcat and database are installed on the same
+machine using their respective default port numbers).
+
+For MySQL, the most simple connect string is:
+
+	jdbc:mysql:///opproject
+
+For PostgreSQL, the connect string is:
+
+	jdbc:postgresql:opproject
+
+In both cases "opproject" is the name of the database instance to connect to.
+You will find more information about connect strings on the MySQL and
+PostgreSQL web sites (http://www.mysql.com and http://www.postgresql.org)
+
+
+Appendix D: Troubleshooting
+---------------------------
+
+* If the applet does not get loaded, but the Java Virtual Machine of the
+browser is starting, please try to clear your Java cache on the client
+computer. Under Windows, this can be done by going to the control panel,
+selecting "Java" and then pressing the clear cache button
+
+* If you get an error in the login screen saying that the JDBC driver was
+not found then you probably forgot to copy the JDCB driver JAR file into
+the WEB-INF/lib directory of the web application; please do it and restart
+Tomcat afterwards in order to be sure that the JDBC driver JAR file gets
+loaded correctly
