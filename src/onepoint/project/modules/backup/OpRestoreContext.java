@@ -14,6 +14,11 @@ import java.util.*;
 public class OpRestoreContext extends XContext {
 
    /**
+    * Variable representing the working directory.
+    */
+   static final String WORKING_DIRECTORY = "WorkingDir";
+
+   /**
     * The maximum number of operations done per a transaction.
     */
    private final static int MAX_INSERTS_PER_TRANSACTION = 1000;

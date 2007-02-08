@@ -50,6 +50,7 @@ function createReport(event) {
    if (queryFrame.getChildCount() > 0) {
       queryForm = queryFrame.getChild(0);
 
+      XDisplay.setWaitingCursor();
       request = queryForm.invokeFunction("createRequest");
       if (request == null) {
          return;
@@ -62,6 +63,7 @@ function createReport(event) {
 
       reportUrl = response.getArgument("GeneratedReportPath");
       XDisplay.showDocument(reportUrl, null);
+      XDisplay.resetCursor();
    }
 }
 

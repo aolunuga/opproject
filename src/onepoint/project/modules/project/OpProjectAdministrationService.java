@@ -122,15 +122,19 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       String portfolioLocator = (String) project_data.get(PORTFOLIO_LOCATOR);
       logger.debug("PortfolioID='" + portfolioLocator + "'");
+      OpProjectNode portfolio;
       if (portfolioLocator != null) {
-         OpProjectNode portfolio = (OpProjectNode) broker.getObject(portfolioLocator);
-         if (portfolio != null) {
-            project.setSuperNode(portfolio);
-         }
-         else {
-            project.setSuperNode(OpProjectAdministrationService.findRootPortfolio(broker));
+         portfolio = (OpProjectNode) broker.getObject(portfolioLocator);
+         if (portfolio == null) {
+            logger.warn("Portfolio is null. Project will be added to root portfolio");
+            portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
          }
       }
+      else {
+         logger.warn("Given portfolio locator is null. Project will be added to root portfolio");
+         portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
+      }
+      project.setSuperNode(portfolio);
 
       // Check manager access for portfolio
       if (!session.checkAccessLevel(broker, project.getSuperNode().getID(), OpPermission.MANAGER)) {
@@ -372,6 +376,22 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
       }
 
+      //check if the start date is in the future
+      if (start_date.after(project.getStart())) {
+         //if its checked out, throw error
+         if (project.getLocks().size() > 0) {
+            error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
+            reply.setError(error);
+            broker.close();
+            return reply;
+         }
+         reply = this.shiftPlanDates(session, project, start_date);
+         if (reply != null) {
+            broker.close();
+            return reply;
+         }
+      }
+
       project.setName(projectName);
       project.setDescription((String) (project_data.get(OpProjectNode.DESCRIPTION)));
       project.setStart(start_date);
@@ -600,6 +620,35 @@ public class OpProjectAdministrationService extends OpProjectService {
       logger.debug("/OpProjectAdministrationService.updateProject()");
       broker.close();
       return null;
+   }
+
+   /**
+    * Updates the start & end dates of all the activities in a project plan, revalidating the project plan
+    * as a result of a project start date being moved into the future.
+    * @param session a <code>OpProjectSession</code> representing a server session.
+    * @param project a <code>OpProjectNode</code> representing the project node being edited.
+    * @param start_date a <code>Date</code> representing the  
+    */
+   private XMessage shiftPlanDates(OpProjectSession session, OpProjectNode project, Date start_date) {
+      Date originalDate = project.getStart();
+      final long millisDifference = start_date.getTime() - originalDate.getTime();
+      OpProjectPlanValidator.PlanModifier planModifier = new OpProjectPlanValidator.PlanModifier() {
+         public void modifyPlan(OpGanttValidator validator) {
+            XComponent activitiesSet = validator.getDataSet();
+            for (int i = 0; i < activitiesSet.getChildCount(); i++) {
+               XComponent activityRow = (XComponent) activitiesSet.getChild(i);
+
+               //update the start
+               Date originalStart = OpGanttValidator.getStart(activityRow);
+               long newStartTime = originalStart.getTime() + millisDifference;
+               OpGanttValidator.setStart(activityRow, new Date(newStartTime));
+
+               //set the end to null so that it's recalculated in the validation process
+               OpGanttValidator.setEnd(activityRow, null);
+            }
+         }
+      };
+      return new OpProjectPlanValidator(project.getPlan()).validateProjectPlanIntoNewVersion(session, planModifier);
    }
 
    /**

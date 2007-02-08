@@ -93,7 +93,7 @@ public class OpEnvironmentManager {
       String property;
       if (name.equals(ONEPOINT_HOME)) {
          String path = envProps.getProperty(name);
-         if (path == null) {
+         if (path == null || (!new File(path).exists())) {
             path = new File("").getAbsolutePath();
          }
          property = XEnvironmentManager.convertPathToSlash(path);

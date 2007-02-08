@@ -1,6 +1,7 @@
 <form layout="border" width="750" height="450" text="{$EditProject}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" script="/modules/project/scripts/edit_project.jes">
    <data-field id="ProjectID"/>
    <data-field id="EditMode"/>
+   <data-field id="OriginalStartDate"/>
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
    <tab-box y="0">

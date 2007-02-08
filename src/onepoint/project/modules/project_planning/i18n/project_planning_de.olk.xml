@@ -136,6 +136,7 @@
       <resource id="Category">Kategorie</resource>
       <resource id="Priority">Priorität</resource>
       <resource id="Mandatory">Verbindlich</resource>
+      <resource id="ResponsibleResource">Verantwortliche Ressource</resource>
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
@@ -178,6 +179,7 @@
 
 
       <resource id="NoCategory">(Keine)</resource>
+      <resource id="NoResource">(Keine)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>

@@ -103,6 +103,7 @@ public final class OpUserLanguageManager {
          preference.setName(OpPreference.LOCALE);
          preference.setValue(language);
          preference.setUser(currentUser);
+         languageChanged = true;
          broker.makePersistent(preference);
       }
 

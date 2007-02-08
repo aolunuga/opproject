@@ -70,6 +70,7 @@ public class OpBasicApplication {
       //perform initialization
       Map initParams = OpInitializer.init(project_home, false);
       additionalInitialization();
+      OpInitializer.setProductCode(this.getProductCode());
 
       /*set up the resource cache max size */
       String cacheSize = (String) initParams.remove(OpInitializer.RESOURCE_CACHE_SIZE);
@@ -142,5 +143,13 @@ public class OpBasicApplication {
          application.setIconImage(icon);
       }
       return application;
+   }
+
+   /**
+    * Gets this application's product code.
+    * @return a <code>String</code> representing a product code constant.
+    */
+   protected String getProductCode() {
+      return OpProjectConstants.BASIC_EDITION_CODE;
    }
 }

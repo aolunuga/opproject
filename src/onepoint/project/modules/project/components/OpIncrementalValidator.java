@@ -181,6 +181,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
                   }
                }
                setResourceBaseEfforts(data_row, effList);
+               updateResponsibleResource(data_row);
 
                startPoints = new ArrayList();
                startPoints.add(data_row);
@@ -201,6 +202,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
                updateDuration(data_row, getDuration(data_row));
                //construct the resource availability map
                updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
+               updateResponsibleResource(data_row);
 
                startPoints = new ArrayList();
                startPoints.add(data_row);

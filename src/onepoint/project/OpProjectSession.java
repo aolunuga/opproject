@@ -46,7 +46,7 @@ public class OpProjectSession extends XExpressSession {
       lookUpEveryoneID(broker);
 
       //mark the session as valid
-      this.valid = true;
+      validate();
    }
 
    public long getUserID() {
@@ -318,7 +318,7 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public final boolean userIsAdministrator() {
-      return userId == administratorId;
+      return (userId != NO_ID) && (userId == administratorId);
    }
 
    public final boolean userMemberOfGroup(long groupId) {

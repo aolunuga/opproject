@@ -50,7 +50,7 @@ public final class OpHibernateSchemaUpdater {
     * Constants used in the various JDBC method calls
     */
    private static final String TABLE_PREFIX = OpHibernateSource.TABLE_NAME_PREFIX + "%";
-   private static final String[] TABLE_TYPES = new String[] {"TABLE"};
+   private static final String[] TABLE_TYPES = new String[]{"TABLE"};
    private static final String TABLE_NAME_COLUMN = "TABLE_NAME";
 
    /**
@@ -64,11 +64,6 @@ public final class OpHibernateSchemaUpdater {
    private static final List EXCLUDE_INDEX_NAMES = Arrays.asList(new String[]{"PRIMARY"});
 
    /**
-    * The only class instance.
-    */
-   private static OpHibernateSchemaUpdater instance = null;
-
-   /**
     * The Hibernate source that backs up the updater.
     */
    private OpHibernateSource source = null;
@@ -79,9 +74,9 @@ public final class OpHibernateSchemaUpdater {
    private Map tableMetaData = new HashMap();
 
    /**
-    * The database type constant that represents the underlying database.
+    * DB dependent sql statement.
     */
-   private Integer dbType = null;
+   private OpSqlStatement statement = null;
 
    /**
     * Initialize the db types map.
@@ -97,26 +92,15 @@ public final class OpHibernateSchemaUpdater {
 
    /**
     * Creates a new updater instance.
-    */
-   private OpHibernateSchemaUpdater() {
-   }
-
-   /**
-    * Returns an updater instance that uses the given source object for performing the
     *
     * @param source a <code>OpHibernateSource</code> that is used during the update process.
-    * @return a <code>OpHibernateSchemaUpdater</code> instance.
     */
-   public static synchronized OpHibernateSchemaUpdater getInstance(OpHibernateSource source) {
-      if (instance == null) {
-         instance = new OpHibernateSchemaUpdater();
+   public OpHibernateSchemaUpdater(OpHibernateSource source) {
+      this.source = source;
+      Integer dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
+      if (dbType != null) {
+         statement = OpSqlStatementFactory.createSqlStatement(dbType);
       }
-      instance.source = source;
-      instance.dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
-      if (instance.dbType == null) {
-         instance.dbType = new Integer(OpSqlStatementFactory.UNKNOWN); 
-      }
-      return instance;
    }
 
    /**
@@ -150,6 +134,7 @@ public final class OpHibernateSchemaUpdater {
 
    /**
     * Generates a list of statements that drop foreign key contraints and index for the tables of the given database.
+    *
     * @param dbMetaData a <code>DatabaseMetaData</code> object representing meta info about a db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
@@ -175,67 +160,79 @@ public final class OpHibernateSchemaUpdater {
 
    /**
     * Generates a list of statements that drop predefined tables (tables that are not managed by Hibernate).
+    *
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
    public List generateDropPredefinedTablesScripts() {
       List dropTableScripts = new ArrayList();
-      dropTableScripts.add(OpSqlStatementFactory.createSqlStatement(dbType).getDropTableStatement(OpHibernateSource.SCHEMA_TABLE));
+      if (statement != null) {
+         String dropStatement = statement.getDropTableStatement(OpHibernateSource.SCHEMA_TABLE);
+         logger.info("Adding drop statement: " + dropStatement);
+         dropTableScripts.add(dropStatement);
+      }
       return dropTableScripts;
    }
 
    /**
     * Generates a list of SQL statements for dropping the index constraints of the given table.
-    * @param tableName a <code>String</code> representing a table name.
+    *
+    * @param tableName  a <code>String</code> representing a table name.
     * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
    private List generateDropIndexConstraints(String tableName, DatabaseMetaData dbMetaData) {
-      try {
-         List dropIndexScripts = new ArrayList();
-         ResultSet rs = dbMetaData.getIndexInfo(null, null, tableName, false, false);
-         while (rs.next()) {
-            String indexName = rs.getString("INDEX_NAME");
-            //<FIXME author="Horia Chiorean" description="Can we be 100% that this way we only get the hibernate generated indexes ?">
-            if (indexName == null || indexName.startsWith(OpHibernateSource.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
-               continue;
-            }
-            //<FIXME>
-            String dropStatement = OpSqlStatementFactory.createSqlStatement(dbType).getDropIndexConstraintStatement(tableName, indexName);
-            if (dropStatement != null) {
+      if (statement != null) {
+         try {
+            List dropIndexScripts = new ArrayList();
+            ResultSet rs = dbMetaData.getIndexInfo(null, null, tableName, false, false);
+            while (rs.next()) {
+               String indexName = rs.getString("INDEX_NAME");
+               //<FIXME author="Horia Chiorean" description="Can we be 100% that this way we only get the hibernate generated indexes ?">
+               if (indexName == null || indexName.startsWith(OpHibernateSource.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
+                  continue;
+               }
+               //<FIXME>
+               String dropStatement = statement.getDropIndexConstraintStatement(tableName, indexName);
+               logger.info("Adding drop index statement: " + dropStatement);
                dropIndexScripts.add(dropStatement);
             }
+            rs.close();
+            return dropIndexScripts;
          }
-         return dropIndexScripts;
+         catch (SQLException e) {
+            logger.error("Cannot get index constraints for table:" + tableName, e);
+         }
       }
-      catch (SQLException e) {
-         logger.error("Cannot get index constraints for table:" + tableName, e);
-         return Collections.EMPTY_LIST;
-      }
+      return Collections.EMPTY_LIST;
    }
 
    /**
     * Generates a list of SQL statements for dropping the FK constraints of the given table.
-    * @param tableName a <code>String</code> representing a table name.
+    *
+    * @param tableName  a <code>String</code> representing a table name.
     * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
    private List generateDropFKConstraints(String tableName, DatabaseMetaData dbMetaData) {
-      try {
-         List dropFkConstraints = new ArrayList();
-         ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
-         while (rs.next()) {
-            String fkName = rs.getString("FK_NAME");
-            String dropStatement = OpSqlStatementFactory.createSqlStatement(dbType).getDropFKConstraintStatement(tableName, fkName);
-            if (dropStatement != null) {
+      if (statement != null) {
+         try {
+            List dropFkConstraints = new ArrayList();
+            ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
+            while (rs.next()) {
+               String fkName = rs.getString("FK_NAME");
+
+               String dropStatement = statement.getDropFKConstraintStatement(tableName, fkName);
+               logger.info("Adding drop constraint statement: " + dropStatement);
                dropFkConstraints.add(dropStatement);
             }
+            rs.close();
+            return dropFkConstraints;
          }
-         return dropFkConstraints;
+         catch (SQLException e) {
+            logger.error("Cannot generate drop fk constraints for table:" + tableName, e);
+         }
       }
-      catch (SQLException e) {
-         logger.error("Cannot generate drop fk constraints for table:" + tableName,  e);
-         return Collections.EMPTY_LIST;
-      }
+      return Collections.EMPTY_LIST;
    }
 
    /**
@@ -245,35 +242,35 @@ public final class OpHibernateSchemaUpdater {
     * @return a <code>List</code> of <code>String</code> representing drop scripts.
     */
    private List generateDropTableScripts(DatabaseMetaData dbMetaData) {
+      if (statement != null) {
+         try {
+            //get current tables
+            List currentTables = new ArrayList();
+            Iterator it = OpTypeManager.getPrototypes();
+            while (it.hasNext()) {
+               OpPrototype prototype = (OpPrototype) it.next();
+               String tableName = source.newTableName(prototype.getName());
+               currentTables.add(tableName);
+            }
 
-      try {
-         //get current tables
-         List currentTables = new ArrayList();
-         Iterator it = OpTypeManager.getPrototypes();
-         while (it.hasNext()) {
-            OpPrototype prototype = (OpPrototype) it.next();
-            String tableName = source.newTableName(prototype.getName());
-            currentTables.add(tableName);
-         }
-
-         ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
-         List dropStatements = new ArrayList();
-         while (rs.next()) {
-            String tableName = rs.getString(TABLE_NAME_COLUMN);
-            if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
-               OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(dbType);
-               String sqlStatement = statement.getDropTableStatement(tableName);
-               if (sqlStatement != null) {
+            ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
+            List dropStatements = new ArrayList();
+            while (rs.next()) {
+               String tableName = rs.getString(TABLE_NAME_COLUMN);
+               if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
+                  String sqlStatement = statement.getDropTableStatement(tableName);
+                  logger.info("Adding drop statement: " + sqlStatement);
                   dropStatements.add(sqlStatement);
                }
             }
+            rs.close();
+            return dropStatements;
          }
-         return dropStatements;
+         catch (SQLException e) {
+            logger.error("Cannot generate custom update scripts", e);
+         }
       }
-      catch (SQLException e) {
-         logger.error("Cannot generate custom update scripts", e);
-         return Collections.EMPTY_LIST;
-      }
+      return Collections.EMPTY_LIST;
    }
 
    /**
@@ -305,49 +302,51 @@ public final class OpHibernateSchemaUpdater {
     * @return a <code>List</code> of <code>String</code> representing a list of SQL statements.
     */
    private List generateUpdateTableColumnsScripts(OpPrototype prototype) {
-      List result = new ArrayList();
-      Iterator membersIt = prototype.getMembers();
-      while (membersIt.hasNext()) {
-         OpMember member = (OpMember) membersIt.next();
-         //relationships are not taken into account
-         if (member instanceof OpRelationship) {
-            continue;
-         }
-         //find out the sql type for our current registered prototype
-         String hibernateTypeName = OpHibernateSource.getHibernateTypeName(member.getTypeID());
-         if (hibernateTypeName == null) {
-            logger.info("Cannot get hibernate type for OpType.id:" + member.getTypeID());
-            continue;
-         }
-         Type hibernateType = TypeFactory.basic(hibernateTypeName);
-         //only upgrade for primitive types
-         if (!(hibernateType instanceof PrimitiveType)) {
-            continue;
-         }
-         int hibernateSqlType = ((PrimitiveType) hibernateType).sqlType();
+      if (statement != null) {
+         List result = new ArrayList();
+         Iterator membersIt = prototype.getMembers();
+         while (membersIt.hasNext()) {
+            OpMember member = (OpMember) membersIt.next();
+            //relationships are not taken into account
+            if (member instanceof OpRelationship) {
+               continue;
+            }
+            //find out the sql type for our current registered prototype
+            String hibernateTypeName = OpHibernateSource.getHibernateTypeName(member.getTypeID());
+            if (hibernateTypeName == null) {
+               logger.info("Cannot get hibernate type for OpType.id:" + member.getTypeID());
+               continue;
+            }
+            Type hibernateType = TypeFactory.basic(hibernateTypeName);
+            //only upgrade for primitive types
+            if (!(hibernateType instanceof PrimitiveType)) {
+               continue;
+            }
+            int hibernateSqlType = ((PrimitiveType) hibernateType).sqlType();
 
-         //now find out what we have in the db
-         String tableName = source.newTableName(prototype.getName());
-         Map columnMetaData = (Map) this.tableMetaData.get(tableName);
-         if (columnMetaData == null) {
-            logger.info("No metadata found for table:" + tableName);
-            continue;
-         }
-         String columnName = source.newColumnName(member.getName());
-         Short columnType = (Short) columnMetaData.get(columnName);
-         if (columnType == null) {
-            logger.info("No metadata found for column:" + columnName);
-            continue;
-         }
-         if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
-            OpSqlStatement statement = OpSqlStatementFactory.createSqlStatement(this.dbType);
-            String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
-            if (sqlStatement != null) {
+            //now find out what we have in the db
+            String tableName = source.newTableName(prototype.getName());
+            Map columnMetaData = (Map) this.tableMetaData.get(tableName);
+            if (columnMetaData == null) {
+               logger.info("No metadata found for table:" + tableName);
+               continue;
+            }
+            String columnName = source.newColumnName(member.getName());
+            Short columnType = (Short) columnMetaData.get(columnName);
+            if (columnType == null) {
+               logger.info("No metadata found for column:" + columnName);
+               continue;
+            }
+            if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
+
+               String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
                logger.info("Adding update statement: " + sqlStatement);
                result.add(sqlStatement);
+
             }
          }
+         return result;
       }
-      return result;
+      return Collections.EMPTY_LIST;
    }
 }

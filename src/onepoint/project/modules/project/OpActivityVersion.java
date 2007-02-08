@@ -6,6 +6,7 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
 import java.util.Set;
@@ -88,6 +89,7 @@ public class OpActivityVersion extends OpObject {
    private Set successorVersions;
    private Set predecessorVersions;
    private Set attachmentVersions;
+   private OpResource responsibleResource;
 
    public void setName(String name) {
       this.name = name;
@@ -321,4 +323,11 @@ public class OpActivityVersion extends OpObject {
       return attachmentVersions;
    }
 
+   public OpResource getResponsibleResource() {
+      return responsibleResource;
+   }
+
+   public void setResponsibleResource(OpResource responsibleResource) {
+      this.responsibleResource = responsibleResource;
+   }
 }

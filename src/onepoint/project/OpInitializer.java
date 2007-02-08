@@ -67,6 +67,8 @@ public class OpInitializer {
 
    private static OpConfiguration configuration = null;
 
+   private static String productCode = null;
+
    /**
     * This class should not be instantiated
     */
@@ -182,6 +184,7 @@ public class OpInitializer {
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          // Load modules and register prototypes
+
          OpModuleManager.load();
 
          logger.info("Registered modules loaded");
@@ -269,6 +272,23 @@ public class OpInitializer {
     */
    public static boolean isMultiUser() {
       return multiUser;
+   }
+
+
+   /**
+    * Gets the product code registered with the initializer class.
+    * @return a <code>String</code> representing the product code, which indicates the flavour of the application.
+    */
+   public static String getProductCode() {
+      return productCode;
+   }
+
+   /**
+    * Sets the product code constant.
+    * @param productCode a <code>String</code> representing 
+    */
+   public static void setProductCode(String productCode) {
+      OpInitializer.productCode = productCode;
    }
 
    /**

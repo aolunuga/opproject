@@ -4,6 +4,9 @@
 
 package onepoint.persistence.sql;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +20,6 @@ public final class OpSqlStatementFactory {
    /**
     * Constants for different db types.
     */
-   public static final int UNKNOWN = 0;
    public static final int MYSQL = 1;
    public static final int POSTGRESQL = 2;
    public static final int SQLSERVER = 3;
@@ -28,6 +30,11 @@ public final class OpSqlStatementFactory {
     * A cache for the statements.
     */
    private static Map statementCache = new HashMap();
+
+   /**
+    * This class's logger.
+    */
+   private static final XLog logger = XLogFactory.getLogger(OpSqlStatementFactory.class, true);
 
    /**
     * Cannot create instances of this class.
@@ -55,10 +62,6 @@ public final class OpSqlStatementFactory {
             }
             case SQLSERVER: {
                statement = new OpSQLServerStatement();
-               break;
-            }
-            case UNKNOWN: {
-               statement = new OpUnknownSqlStatement();
                break;
             }
             case ORACLE: {

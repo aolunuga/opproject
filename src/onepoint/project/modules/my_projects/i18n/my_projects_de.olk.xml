@@ -25,7 +25,7 @@
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
 
-      <resource id="ProjectResources">Project Resources</resource>
+      <resource id="ProjectResources">Projektressourcen</resource>
       <resource id="BaseEffort">Plan (h)</resource>
       <resource id="ActualEffort">Ist (h)</resource>
       <resource id="RemainingEffort">Rest (h)</resource>
@@ -33,7 +33,7 @@
       <resource id="DeviationEffort">Abw. (h)</resource>
       <resource id="PercentageDeviationEffort">Abw. (%)</resource>
 
-      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="ProjectCosts">Projektkosten</resource>
       <resource id="BaseCosts">Plan (€)</resource>
       <resource id="ActualCosts">Ist (€)</resource>
       <resource id="RemainingCosts">Rest (€)</resource>

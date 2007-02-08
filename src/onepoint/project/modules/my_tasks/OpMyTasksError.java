@@ -19,6 +19,7 @@ public interface OpMyTasksError {
    static final int NO_PROJECT = 3;
    static final int NO_RESOURCE = 4;
    static final int EXISTING_WORKSLIP = 4;
+   static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 5;
 
 
    /**
@@ -29,5 +30,6 @@ public interface OpMyTasksError {
    static final String NO_PROJECT_NAME = "NoProjectError";
    static final String NO_RESOURCE_NAME = "NoResourceError";
    static final String EXISTING_WORKSLIP_NAME = "ExistingWorkSlipError";
+   static final String INSUFICIENT_PERMISSIONS_ERROR_NAME = "InsuficientPermissions";
 
 }

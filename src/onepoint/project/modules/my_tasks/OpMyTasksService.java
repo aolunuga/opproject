@@ -13,6 +13,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
@@ -303,18 +304,26 @@ public class OpMyTasksService extends OpProjectService {
             XComponent row = (XComponent) selectedRows.get(i);
             String locator = row.getStringValue();
             OpActivity activity = (OpActivity) broker.getObject(locator);
-            boolean hasWorkSlips = false;
-            for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
-               OpAssignment assignment = (OpAssignment) iterator.next();
-               if (!assignment.getWorkRecords().isEmpty()) {
-                  hasWorkSlips = true;
+            if (activity.getType() == OpActivity.ADHOC_TASK) {
+               //check access level
+               if (session.effectiveAccessLevel(broker, activity.getProjectPlan().getID()) >= OpPermission.MANAGER) {
+                  boolean hasWorkSlips = false;
+                  for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
+                     OpAssignment assignment = (OpAssignment) iterator.next();
+                     if (!assignment.getWorkRecords().isEmpty()) {
+                        hasWorkSlips = true;
+                     }
+                  }
+                  if (!hasWorkSlips) {
+                     broker.deleteObject(activity);
+                  }
+                  else {
+                     reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP));
+                  }
                }
-            }
-            if (!hasWorkSlips) {
-               broker.deleteObject(activity);
-            }
-            else {
-               reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP));
+               else {
+                  reply.setError(session.newError(ERROR_MAP, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
+               }
             }
          }
          transaction.commit();

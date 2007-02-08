@@ -68,7 +68,7 @@ public class OpBackupManager {
    /**
     * The name of the directory where binary files (contents) are stored
     */
-   private static final String BINARY_DIR_NAME = "/binary-files";
+   private static final String BINARY_DIR_NAME_SUFFIX = "-files";
 
    /**
     * Date format used for importing/exporting date values.
@@ -92,9 +92,19 @@ public class OpBackupManager {
    private static OpBackupManager backupManager = null;
 
    /**
-    * The path to the dir where binary files will be stored (is normally relative to the export path)
+    *  "/" string 
+    */
+   private static final String SLASH_STRING = "/";
+
+   /**
+    * The path to the dir where binary files will be stored
     */
    private String binaryDirPath = null;
+
+   /**
+    * The name of the dir where binary files will be stored
+    */
+   private String binaryDirName = null;
 
    /**
     * There should be only 1 instance of this class.
@@ -614,7 +624,6 @@ public class OpBackupManager {
       writer.writeEndElement(OBJECTS);
    }
 
-
    /**
     * Backs up an existent repository under an xml file with the given path.
     *
@@ -625,33 +634,50 @@ public class OpBackupManager {
     */
    public final void backupRepository(OpProjectSession session, String path)
         throws IOException {
-      this.initFilePath(path);
+      if (!isPathAFile(path, false)) {
+         throw new IllegalArgumentException("The given path to backup the repository to is not a file");
+      }
+      String workingDir = getParentDirectory(path);
+      String fileName = new File(path).getName();
+      fileName = fileName.substring(0, fileName.indexOf('.'));
+      this.binaryDirName = fileName + BINARY_DIR_NAME_SUFFIX;
+      this.binaryDirPath = workingDir + SLASH_STRING + this.binaryDirName;
       this.backupRepository(session, new BufferedOutputStream(new FileOutputStream(path, false)));
    }
 
    /**
-    * Initializes the path to the binary files directory, from the given backup path.
-    *
-    * @param path a <code>String</code> representing the backup path.
-    * @throws IllegalArgumentException if the given path is invalid.
+    * Checks whether the given path points to an existent file or not.
+    * @param path a <code>String</code> representing a path.
+    * @param shouldExist a <code>boolean</code> indicating whether an existence check should be done or not.
+    * @return <code>true</code> if the given path points to an existent file.
     */
-   private void initFilePath(String path) {
+   private boolean isPathAFile(String path, boolean shouldExist) {
       String formattedPath = XEnvironmentManager.convertPathToSlash(path);
       File filePath = new File(formattedPath);
-      if (filePath.exists() && filePath.isDirectory()) {
-         logger.info("Given backup path is a directory");
-         throw new IllegalArgumentException("The path for the backup should point to a file");
+      if (shouldExist && !filePath.exists()) {
+         logger.info("Given path should be an existing file, but isn't");
+         return false;
       }
-      int lastSlashIndex = formattedPath.lastIndexOf("/");
-      if (lastSlashIndex != -1 && !filePath.isDirectory()) {
-         binaryDirPath = formattedPath.substring(0, lastSlashIndex) + BINARY_DIR_NAME;
+      if (filePath.isDirectory()) {
+         logger.info("Given path is a directory");
+         return false;
       }
-      else if (filePath.isDirectory()) {
-         binaryDirPath = formattedPath + BINARY_DIR_NAME;
+      return true;
+   }
+
+   /**
+    * From the given path to a file, extracts the parent directory of the file.
+    * @param filePath a <code>String</code> representing the path to an existent file.
+    * @return a <code>String</code> representing the parent directory of the given file.
+    * @throws IllegalArgumentException if the given string does not point to an exiting file.
+    */
+   private String getParentDirectory(String filePath) {
+      filePath = XEnvironmentManager.convertPathToSlash(filePath);
+      File file = new File(filePath);
+      if (!file.exists() || file.isDirectory()) {
+         throw new IllegalArgumentException("The given path argument does not point to an existent file");
       }
-      else {
-         binaryDirPath = "." + BINARY_DIR_NAME;
-      }
+      return XEnvironmentManager.convertPathToSlash(file.getParent());
    }
 
    /**
@@ -703,22 +729,27 @@ public class OpBackupManager {
     * @param session a <code>OpProjectSession</code> representing an application session.
     * @param path    a <code>String</code> representing a path to the backup file.
     * @throws IOException if the repository cannot be restored.
+    * @throws IllegalArgumentException if the given path does not point to an existing file.
     */
    public final void restoreRepository(OpProjectSession session, String path)
         throws IOException {
-      restoreRepository(session, new BufferedInputStream(new FileInputStream(path)));
+      if (!isPathAFile(path, true)) {
+         throw new IllegalArgumentException("The given path does not point to an exiting file");
+      }
+      String parentDirectory = getParentDirectory(path);
+      restoreRepository(session, new BufferedInputStream(new FileInputStream(path)), parentDirectory);
    }
 
    /**
     * @see OpBackupManager#restoreRepository(onepoint.project.OpProjectSession,String)
     */
-   public void restoreRepository(OpProjectSession session, InputStream input) {
+   private void restoreRepository(OpProjectSession session, InputStream input, String workingDirectory) {
       long start = System.currentTimeMillis();
       logger.info("Restoring repository...");
       // Extra path is required for restoring binary content stored in separate files
       OpBroker broker = session.newBroker();
       OpBackupLoader backupLoader = new OpBackupLoader();
-      backupLoader.loadBackup(broker, input);
+      backupLoader.loadBackup(broker, input, workingDirectory);
       broker.close();
       long elapsedTimeSecs = (System.currentTimeMillis() - start) / 1000;
       logger.info("Repository restore completed in " + elapsedTimeSecs + " seconds");
@@ -733,8 +764,7 @@ public class OpBackupManager {
     * @return a <code>String</code> representing the name of the binary file.
     */
    private String binaryFilePath(long id, String backupMemberName) {
-      StringBuffer pathBuffer = new StringBuffer(binaryDirPath);
-      pathBuffer.append("/object-");
+      StringBuffer pathBuffer = new StringBuffer("/object-");
       pathBuffer.append(id);
       pathBuffer.append('-');
       pathBuffer.append(System.currentTimeMillis());
@@ -760,7 +790,7 @@ public class OpBackupManager {
       // Write binary data to file
       String fileName = binaryFilePath(id, backupMemberName);
       try {
-         FileOutputStream fileOutput = new FileOutputStream(fileName);
+         FileOutputStream fileOutput = new FileOutputStream(binaryDirPath + fileName);
          fileOutput.write(content);
          fileOutput.flush();
          fileOutput.close();
@@ -768,7 +798,7 @@ public class OpBackupManager {
       catch (IOException e) {
          logger.error("ERROR: An I/O exception occured when trying to write binary file: ", e);
       }
-      return fileName;
+      return SLASH_STRING + this.binaryDirName + fileName;
    }
 
    /**

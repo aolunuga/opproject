@@ -32,11 +32,10 @@ public class OpProjectComponent extends XComponent {
    public final static byte GANTT_BOX = 5; // "GANTT_CHART"?
    public final static byte GANTT_MAP = 6;
    public final static byte CAPTION_EDITOR = 7;
-
-   public final static byte UTILIZATION_BOX = 12;
-   public final static byte UTILIZATION_CHART = 13;
-   public final static byte UTILIZATION_ROW = 14;
-   public final static byte UTILIZATION_HEADER = 15;
+   public final static byte UTILIZATION_BOX = 8;
+   public final static byte UTILIZATION_CHART = 9;
+   public final static byte UTILIZATION_ROW = 10;
+   public final static byte UTILIZATION_HEADER = 11;
 
    // *** All rendering preferences are set for GANTT_BOX, because everything
    // else could be incrementally loaded

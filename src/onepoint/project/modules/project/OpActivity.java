@@ -6,6 +6,7 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
 import java.util.Set;
@@ -98,6 +99,7 @@ public class OpActivity extends OpObject {
    private boolean template;
    private OpProjectPlan projectPlan;
    private OpActivity superActivity;
+   private OpResource responsibleResource;
    private Set subActivities; // *** Could also be a List (via sequence)
    private Set assignments;
    private Set workPeriods;
@@ -410,6 +412,15 @@ public class OpActivity extends OpObject {
    public Set getComments() {
       return comments;
    }
+
+   public OpResource getResponsibleResource() {
+      return responsibleResource;
+   }
+
+   public void setResponsibleResource(OpResource responsibleResource) {
+      this.responsibleResource = responsibleResource;
+   }
+
 
    /**
     * Calculates the actual total costs of this activity.

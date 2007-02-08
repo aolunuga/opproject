@@ -9,6 +9,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.schedule.OpScheduler;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
@@ -103,14 +104,13 @@ public class OpSettings {
       // Apply settings to current environment
       fillWithPlanningSettings(calendarSettings);
 
-      String reportScheduleName =  get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
+      String reportScheduleName = get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
       OpScheduler.updateScheduleInterval(session,reportScheduleName,reportRemoveInterval);
 
       XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
-      boolean changedLanguage = false;
-      if (!newLocale.getID().equals(session.getLocale().getID())) {
-         changedLanguage = true;
+      boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
+      if (!OpInitializer.isMultiUser() && changedLanguage) {
          session.setLocale(newLocale);
       }
       return changedLanguage;

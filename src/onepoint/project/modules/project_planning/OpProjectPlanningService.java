@@ -42,9 +42,12 @@ import java.util.*;
  */
 public class OpProjectPlanningService extends OpProjectService {
 
-   private final static String PROJECT_ID = "project_id";
+   public final static String SERVICE_NAME = "PlanningService";
+
+   public final static String PROJECT_ID = "project_id";
    public final static String ACTIVITY_ID = "activity_id";
    public final static String ACTIVITY_SET = "activity_set";
+   public final static String WORKING_PLAN_VERSION_ID = "working_plan_version_id";
 
    private final static String EDIT_MODE = "edit_mode";
    private final static String BYTES_ARRAY_FIELD = "bytes_array";
@@ -61,7 +64,6 @@ public class OpProjectPlanningService extends OpProjectService {
    private final static String FILE_NAME = "fileName";
    private final static String COMMENT_DATA = "comment_data";
    private final static String COMMENT_ID = "comment_id";
-   private final static String WORKING_PLAN_VERSION_ID = "working_plan_version_id";
    private final static OpProjectPlanningErrorMap ERROR_MAP = new OpProjectPlanningErrorMap();
 
    private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);

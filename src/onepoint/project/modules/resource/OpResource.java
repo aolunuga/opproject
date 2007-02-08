@@ -36,6 +36,8 @@ public class OpResource extends OpObject {
    private Set activityAssignments;
    private Set assignmentVersions;
    private Set absences;
+   private Set responsibleActivities;
+   private Set responsibleActivityVersions;
 
    public void setName(String name) {
       this.name = name;
@@ -125,4 +127,19 @@ public class OpResource extends OpObject {
       return absences;
    }
 
+   public Set getResponsibleActivities() {
+      return responsibleActivities;
+   }
+
+   public void setResponsibleActivities(Set responsibleActivities) {
+      this.responsibleActivities = responsibleActivities;
+   }
+
+   public Set getResponsibleActivityVersions() {
+      return responsibleActivityVersions;
+   }
+
+   public void setResponsibleActivityVersions(Set responsibleActivityVersions) {
+      this.responsibleActivityVersions = responsibleActivityVersions;
+   }
 }

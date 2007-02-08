@@ -35,9 +35,11 @@ public class OpBackupLoader extends XLoader {
     * Loads a backup from the given input stream and using the given broker.
     * @param broker a <code>OpBroker</code> used for performing db related operations.
     * @param input_stream an <code>InputStream</code> from which the contents of the back-up are read.
+    * @param workingDirectory a <code>String</code> representing the working directory of the file being restored.
     */
-   public void loadBackup(OpBroker broker, InputStream input_stream) {
+   public void loadBackup(OpBroker broker, InputStream input_stream, String workingDirectory) {
       OpRestoreContext context = new OpRestoreContext(broker);
+      context.setVariable(OpRestoreContext.WORKING_DIRECTORY, workingDirectory);
       loadObject(input_stream, context);
       context.commitRestoredObjects();
    }

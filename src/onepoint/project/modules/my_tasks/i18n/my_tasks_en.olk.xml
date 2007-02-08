@@ -12,9 +12,9 @@
       <resource id="Info">Properties</resource>
       <resource id="Print">Print</resource>
 
-      <resource id="NewAdhocTooltip">Create new ad-hoc tasks</resource>
-      <resource id="EditAdhocTooltip">Edit the selected ad-hoc tasks</resource>
-      <resource id="DeleteAdhocTooltip">Delete the selected ad-hoc tasks</resource>
+      <resource id="NewAdhocTooltip">Create new ad hoc task</resource>
+      <resource id="EditAdhocTooltip">Edit the selected ad hoc task</resource>
+      <resource id="DeleteAdhocTooltip">Delete the selected ad hoc tasks</resource>
       <resource id="NewCommentTooltip">Create new comment</resource>
       <resource id="InfoTooltip">View activity properties</resource>
       <resource id="PrintTooltip">Print this view</resource>
@@ -48,15 +48,15 @@
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
-      <resource id="NewAdhocTitle">New Ad-hoc Task</resource>
-      <resource id="EditAdhocTitle">Edit Ad-hoc Task</resource>
-      <resource id="InfoAdhocTitle">Ad-hoc Task Properties</resource>
+      <resource id="NewAdhocTitle">New Task</resource>
+      <resource id="EditAdhocTitle">Edit Task</resource>
+      <resource id="InfoAdhocTitle">Properties</resource>
 
       <resource id="General">General</resource>
       <resource id="Name">Name</resource>
       <resource id="Priority">Priority</resource>
       <resource id="Description">Description</resource>
-      <resource id="DueDate">Due Date</resource>
+      <resource id="DueDate">Due on</resource>
       <resource id="Project">Project</resource>
       <resource id="Resource">Resource</resource>
 
@@ -82,12 +82,22 @@
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 
+    <resource-map id="my_tasks.delete">
+       <resource id="ConfirmDelete">Delete Ad Hoc Tasks</resource>
+       <resource id="NoSelectionMessage">Please select one or more ad hoc tasks which should be deleted</resource>
+       <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected ad hoc task?</resource>
+       <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected ad hoc tasks?</resource>
+       <resource id="OK">OK</resource>
+       <resource id="Cancel">Cancel</resource>
+    </resource-map>
+
    <resource-map id="my_tasks.error">
-      <resource id="EmptyName">Empty Name</resource>
-      <resource id="InvalidDueDate">Invalid Due Date</resource>
-      <resource id="NoProjectError">Missing Project </resource>
-      <resource id="NoResourceError">Missing Resource</resource>
-      <resource id="ExistingWorkSlipError">Adhoc Task can't be removed because existing work slips are referencing them.</resource>
+      <resource id="EmptyName">The task name was not set</resource>
+      <resource id="InvalidDueDate">The entered due date is invalid</resource>
+      <resource id="NoProjectError">There was no project selected</resource>
+      <resource id="NoResourceError">There was no resource assigned</resource>
+      <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
+      <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
    </resource-map>
 
 </language-kit>

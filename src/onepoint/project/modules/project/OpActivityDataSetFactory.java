@@ -415,11 +415,7 @@ public abstract class OpActivityDataSetFactory {
             OpGanttValidator.setName(dataRow, nameBuffer.toString());
          }
          dataRow.setOutlineLevel(0);
-         // Add project column
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         projectNode = activity.getProjectPlan().getProjectNode();
-         dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
-         dataRow.addChild(dataCell);
+
          dataSet.addChild(dataRow);
          activityRowMap.put(new Long(activity.getID()), dataRow);
       }
@@ -718,6 +714,21 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setListValue(new ArrayList());
       dataRow.addChild(dataCell);
 
+      //Responsible resource (27)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setEnabled(false);
+      OpResource responsibleResource = activity.getResponsibleResource();
+      if (responsibleResource != null) {
+         dataCell.setStringValue(XValidator.choice(responsibleResource.locator(), responsibleResource.getName()));
+      }
+      dataRow.addChild(dataCell);
+
+      // Add project column (28)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      OpProjectNode projectNode = activity.getProjectPlan().getProjectNode();
+      dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
+      dataRow.addChild(dataCell);
+
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -784,8 +795,9 @@ public abstract class OpActivityDataSetFactory {
 
       // Prefetch activities
       List adhocTasks = getAdHocTasks(plan);
-
-      plan.getActivities().removeAll(adhocTasks);
+      if (plan.getActivities() != null) {
+         plan.getActivities().removeAll(adhocTasks);
+      }
 
       HashMap activities = activities(plan);
       Date planStart = plan.getStart();
@@ -924,10 +936,29 @@ public abstract class OpActivityDataSetFactory {
 
       //add the adhoc tasks at the end of the project plan
       int dataRowsNr = dataSet.getChildCount();
+      updateAdHocTasks(plan, dataRowsNr, adhocTasks, broker);
+
+      broker.updateObject(plan);
+
+   }
+
+   /**
+    * Updates the sequence numbers for all ad-hoc tasks in a project plan.
+    *
+    * @param plan       a <code>OpProjectPlan</code> entity.
+    * @param dataRowsNr a <code>int</code> representing the number of activities in the client-side represenation of the
+    *                   project plan.
+    * @param adhocTasks a <code>List</code> of <code>OpActivity(ADHOC_TASK)</code>.
+    * @param broker     a <code>OpBroker</code> used for persistence operations.
+    */
+   private static void updateAdHocTasks(OpProjectPlan plan, int dataRowsNr, List adhocTasks, OpBroker broker) {
       Set activitySet = plan.getActivities();
+      if (activitySet == null || activitySet.isEmpty()) {
+         return;
+      }
       int maxSeq = 0;
       for (Iterator iterator = activitySet.iterator(); iterator.hasNext();) {
-         activity = (OpActivity) iterator.next();
+         OpActivity activity = (OpActivity) iterator.next();
          if (activity.getType() != OpActivity.ADHOC_TASK && activity.getSequence() > maxSeq) {
             maxSeq = activity.getSequence();
          }
@@ -938,15 +969,12 @@ public abstract class OpActivityDataSetFactory {
 
       int sequence = maxSeq + 1;
       for (Iterator iterator = adhocTasks.iterator(); iterator.hasNext();) {
-         activity = (OpActivity) iterator.next();
+         OpActivity activity = (OpActivity) iterator.next();
          activity.setSequence(sequence);
          activity.setProjectPlan(plan);
          broker.updateObject(activity);
          sequence++;
       }
-
-      broker.updateObject(plan);
-
    }
 
    private static List getAdHocTasks(OpProjectPlan plan) {
@@ -970,6 +998,8 @@ public abstract class OpActivityDataSetFactory {
       OpActivityCategory category = null;
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
+      String categoryChoice = OpGanttValidator.getCategory(dataRow);
+      String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
       if (activity == null) {
          // Insert a new activity
          activity = new OpActivity();
@@ -1003,9 +1033,13 @@ public abstract class OpActivityDataSetFactory {
          activity.setDuration(OpGanttValidator.getDuration(dataRow));
          activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
          activity.setType((OpGanttValidator.getType(dataRow)));
-         if (OpGanttValidator.getCategory(dataRow) != null) {
-            category = (OpActivityCategory) broker.getObject(OpGanttValidator.getCategory(dataRow));
+         if (categoryChoice != null) {
+            category = (OpActivityCategory) broker.getObject(XValidator.choiceID(categoryChoice));
             activity.setCategory(category);
+         }
+         if (responsibleResourceChoice != null) {
+            OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(responsibleResourceChoice));
+            activity.setResponsibleResource(resource);
          }
          activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
          activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
@@ -1138,15 +1172,36 @@ public abstract class OpActivityDataSetFactory {
             categoryLocator = activity.getCategory().locator();
          }
 
-         String newCategory = OpGanttValidator.getCategory(dataRow);
-         if (newCategory != null && categoryLocator != newCategory) {
-            update = true;
-            category = (OpActivityCategory) broker.getObject(newCategory);
-            activity.setCategory(category);
+         if (categoryChoice != null) {
+            String newCategoryLocator = XValidator.choiceID(categoryChoice);
+            if (!newCategoryLocator.equals(categoryLocator)) {
+               update = true;
+               category = (OpActivityCategory) broker.getObject(newCategoryLocator);
+               activity.setCategory(category);
+            }
          }
-         else if (newCategory == null) {
+         else {
             update = true;
             activity.setCategory(null);
+         }
+
+         //update the responsible resource
+         String resourceLocator = null;
+         if (activity.getResponsibleResource() != null) {
+            resourceLocator = activity.getResponsibleResource().locator();
+         }
+
+         if (responsibleResourceChoice != null) {
+            String newResourceLocator = XValidator.choiceID(responsibleResourceChoice);
+            if (!newResourceLocator.equals(resourceLocator)) {
+               update = true;
+               OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(newResourceLocator));
+               activity.setResponsibleResource(resource);
+            }
+         }
+         else {
+            update = true;
+            activity.setResponsibleResource(null);
          }
 
          // Do not update complete from client-data: Calculated from work-slips (RemainingEffort)
@@ -1666,22 +1721,19 @@ public abstract class OpActivityDataSetFactory {
       attachment.setName((String) attachmentElement.get(2));
       attachment.setLocation((String) attachmentElement.get(3));
       OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);
+      OpContent content = null;
       if (!attachment.getLinked()) {
          String contentId = (String) attachmentElement.get(4);
          if (contentId.equals(OpActivityDataSetFactory.NO_CONTENT_ID)) {
             byte[] bytes = (byte[]) attachmentElement.get(5);
-            OpContent content = OpContentManager.newContent(bytes, null);
+            content = OpContentManager.newContent(bytes, null);
             broker.makePersistent(content);
-            content.getAttachments().add(attachment);
             attachment.setContent(content);
-            broker.updateObject(content);
          }
          else {
-            OpContent content = (OpContent) broker.getObject(contentId);
+            content = (OpContent) broker.getObject(contentId);
             OpContentManager.updateContent(content, broker, true);
             attachment.setContent(content);
-            content.getAttachments().add(attachment);
-            broker.updateObject(content);
          }
       }
       if (attachment.getID() == 0) {
@@ -1689,6 +1741,11 @@ public abstract class OpActivityDataSetFactory {
       }
       else {
          broker.updateObject(attachment);
+      }
+
+      if (content != null) {
+         content.getAttachments().add(attachment);
+         broker.updateObject(content);
       }
    }
 

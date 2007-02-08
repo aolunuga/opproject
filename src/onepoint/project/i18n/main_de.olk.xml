@@ -15,6 +15,7 @@
    <resource-map id="main.header">
       <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>
       <resource id="ClearImageCache">Bilder-Cache leeren</resource>
+      <resource id="GetBandwidthInfo">Bandbreiten-Information anzeigen</resource>
       <resource id="SignOff">Abmelden</resource>
       <resource id="Quit">Beenden</resource>
    </resource-map>
@@ -24,17 +25,25 @@
 
    <resource-map id="main.about">
       <resource id="OK">OK</resource>
-      <resource id="About">About</resource>
-      <resource id="Product">Product Name</resource>
-      <resource id="Version">Version Number</resource>
+      <resource id="About">Über Onepoint Project</resource>
+      <resource id="Version">Version: </resource>
+      <resource id="CurrentVersion">aktuellste Version: </resource>
    </resource-map>
-   
+
+   <resource-map id="main.bandwidth">
+      <resource id="OK">OK</resource>
+      <resource id="BandwidthInfo">Gemessene Bandbreite (Kb/s)</resource>
+      <resource id="MinVal">Minimum</resource>
+      <resource id="MaxVal">Maximum</resource>
+      <resource id="AvgVal">Durchschnitt</resource>
+   </resource-map>
+
    <resource-map id="main.error">
       <resource id="Error">Fehler</resource>
       <resource id="OK">OK</resource>
       <resource id="Warning">Warnung</resource>
       <resource id="SessionExpired">Ihre Benutzersitzung ist abgelaufen. Bitte melden Sie sich neu an.</resource>
-      <resource id="InsuficientViewPermissions">Your don't have enough permissions to view the file</resource>
-      <resource id="InvalidSession">You must have a valid user session to view files</resource>      
+      <resource id="InsuficientViewPermissions">Sie haben nicht die notwendigen Zugriffsrechte um diese Information einzusehen</resource>
+      <resource id="InvalidSession">Sie müssen sich anmelden um diese Information einsehen zu dürfen</resource>      
    </resource-map>
 </language-kit>

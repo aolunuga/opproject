@@ -42,3 +42,32 @@ function showAbout(event){
    dialog = XComponent.newDialog();
    dialog.open("/forms/about.oxf.xml", parameters);
 }
+
+function bandwidthInfo(info){
+   XDisplay.setWaitingCursor();
+   client = XDisplay.getClient();
+   max = -1;
+   min = -1;
+   avg = 0.0;
+   repeatTime = 3.0;
+   index = 0;
+   while (index < repeatTime) {
+      band = client.getBandwidth();
+      if (band < min || min == -1) {
+         min = band;
+      }
+      if (band > max) {
+         max = band;
+      }
+      avg = avg + band;
+      index++;
+   }
+   avg = avg/repeatTime;
+   XDisplay.resetCursor();
+
+   parameters.MinValue = min;
+   parameters.MaxValue = max;
+   parameters.AvgValue = avg;
+   dialog = XComponent.newDialog();
+   dialog.open("/forms/bandwidthInfo.oxf.xml", parameters);   
+}

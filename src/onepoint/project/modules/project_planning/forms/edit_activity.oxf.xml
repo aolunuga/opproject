@@ -3,7 +3,9 @@
    <panel layout="border">
 
       <data-set id="ActivityCategoryDataSet"/>
-	   
+	    <data-set id="ResponsibleResourceSet"/>
+      <data-set id="AssignmentSet"/>
+
       <data-field id="ActivityRowIndex"/>
       <data-field id="ActivityIDField"/>
       <data-field id="EditModeField"/>
@@ -50,12 +52,15 @@
             <choice-field x="2" y="7" width="3" data-set-ref="ActivityCategoryDataSet" id="Category"/>
             <label x="0" y="8" width="2" text="{$Priority}" id="PriorityLabel"/>
             <int-field x="2" y="8" width="3" id="Priority"/>
-			<check-box x="2" y="9" width="3" id="Mandatory" text="{$Mandatory}" enabled="false"/>
+      			<check-box x="2" y="9" width="3" id="Mandatory" text="{$Mandatory}" enabled="false"/>
          </tab>
 
          <tab text="{$Resources}" layout="border" id="ResourcesTab">
-            <data-set id="AssignmentSet"/>
-            <table-box id="AssignmentTable" data-set-ref="AssignmentSet" flexible="true">
+            <panel layout="table" y="-1">
+               <label x="0" y="0" width="2" text="{$ResponsibleResource}" id="ResponsibleResourceLabel"/>
+               <choice-field x="2" y="0" width="3" data-set-ref="ResponsibleResourceSet" id="ResponsibleResource"/>
+            </panel>
+            <table-box id="AssignmentTable" data-set-ref="AssignmentSet">
                <table-column id="ResourceColumn" text="{$Resource}" width="120" data-column-index="0"
                              value-type="Choice"/>
                <table-column text="{$HoursAssigned}" width="80" data-column-index="2" value-type="Double"
@@ -134,7 +139,7 @@
 
       </tab-box>
 
-   <panel y="1" layout="flow" direction="west">
+      <panel y="1" layout="flow" direction="west">
 	  <panel layout="border">
       <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
       <button x="1" id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>

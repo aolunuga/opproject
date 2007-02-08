@@ -38,4 +38,5 @@
    <relationship name="Attachments" type="OpAttachment" collection-type="Set" back-relationship="Activity" inverse="true" cascade="delete"/>
    <relationship name="Versions" type="OpActivityVersion" collection-type="Set" back-relationship="Activity" inverse="true"/>
    <relationship name="Comments" type="OpActivityComment" collection-type="Set" back-relationship="Activity" inverse="true" cascade="delete"/>
+   <relationship name="ResponsibleResource" type="OpResource" back-relationship="ResponsibleActivities"/>
 </prototype>

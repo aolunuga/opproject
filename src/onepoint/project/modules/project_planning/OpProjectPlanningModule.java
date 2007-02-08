@@ -4,19 +4,20 @@
 
 package onepoint.project.modules.project_planning;
 
-import onepoint.express.XComponent;
 import onepoint.express.server.XFormLoader;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -88,41 +89,9 @@ public class OpProjectPlanningModule extends OpModule {
 
       //validate all the project plans (this includes also the work phase -> work period upgrade)
       for (Iterator iterator = projectPlanIds.iterator(); iterator.hasNext();) {
-         OpTransaction transaction = broker.newTransaction();
          Long projectPlanId = (Long) iterator.next();
-
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId.longValue());
-         OpProjectNode projectNode = projectPlan.getProjectNode();
-         logger.info("Revalidating plan for " + projectNode.getName());
-         OpProjectPlanVersion workingPlan = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-
-         OpGanttValidator validator = new OpGanttValidator();
-         validator.setProjectStart(projectPlan.getProjectNode().getStart());
-         validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
-         validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
-         validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
-
-         HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
-         XComponent resourceDataSet = new XComponent();
-         OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
-         validator.setAssignmentSet(resourceDataSet);
-
-         if (workingPlan != null) {
-            XComponent dataSet = new XComponent(XComponent.DATA_SET);
-            OpActivityVersionDataSetFactory.retrieveActivityVersionDataSet(broker, workingPlan, dataSet, true);
-            validator.setDataSet(dataSet);
-            validator.validateDataSet();
-            OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlan, resources, false);
-         }
-
-         //always update the project plan
-         XComponent dataSet = new XComponent(XComponent.DATA_SET);
-         OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, true);
-         validator.setDataSet(dataSet);
-         validator.setAssignmentSet(resourceDataSet);
-         validator.validateDataSet();
-         OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resources, projectPlan, null);
-         transaction.commit();
+         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
       }
       broker.close();
    }

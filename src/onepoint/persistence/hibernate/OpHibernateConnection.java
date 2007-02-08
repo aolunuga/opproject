@@ -14,6 +14,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.tool.hbm2ddl.DatabaseMetadata;
 
+import java.lang.reflect.Method;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -148,18 +149,40 @@ public class OpHibernateConnection extends OpConnection {
 
       //for hypersonic, we need to switch of the default write delay, or things won't work.
       if (source.getDatabaseType() == OpHibernateSource.HSQLDB) {
-         try {
-            String url = source.getURL();
-            String dbPath = url.replaceAll(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, "");
-            org.hsqldb.Session hsqldbSession = org.hsqldb.DatabaseManager.newSession(OpHibernateSource.HSQLDB_TYPE, dbPath,
-                 source.getLogin(), source.getPassword(), null);
-            hsqldbSession.sqlExecuteDirectNoPreChecks("SET WRITE_DELAY FALSE");
-            hsqldbSession.commit();
-            hsqldbSession.close();
-         }
-         catch (org.hsqldb.HsqlException e) {
-            logger.error("Cannot configure Hypersonic", e);
-         }
+         initHsqlDB(source);
+      }
+   }
+
+   /**
+    * Performs HSQLDB custom initialization.
+    * @param source a <code>OpHibernateSource</code> object containing db parameters.
+    */
+   private void initHsqlDB(OpHibernateSource source) {
+      try {
+         logger.info("Starting HSQLDB initialization...");
+
+         String url = source.getURL();
+         String dbPath = url.replaceAll(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, "");
+
+         Class hsqldbDBManagerClass = Class.forName("org.hsqldb.DatabaseManager");
+         Class hsqlPropertiesClass = Class.forName("org.hsqldb.persist.HsqlProperties");
+         Method newSessionMethod = hsqldbDBManagerClass.getMethod("newSession", new Class[] {String.class, String.class,
+            String.class, String.class, hsqlPropertiesClass});
+
+         Class hsqlSessionClass = Class.forName("org.hsqldb.Session");
+         Method hsqlExecuteMethod = hsqlSessionClass.getMethod("sqlExecuteDirectNoPreChecks", new Class[] {String.class});
+         Method commitMethod = hsqlSessionClass.getMethod("commit", null);
+         Method closeMethod = hsqlSessionClass.getMethod("close", null);
+
+         Object hsqlDbSession = newSessionMethod.invoke(null, new Object[] {OpHibernateSource.HSQLDB_TYPE, dbPath, source.getLogin(), source.getPassword(), null});
+         hsqlExecuteMethod.invoke(hsqlDbSession, new Object[]{"SET WRITE_DELAY FALSE"});
+         commitMethod.invoke(hsqlDbSession, null);
+         closeMethod.invoke(hsqlDbSession, null);
+
+         logger.info("HSQLDB initialization finished");
+      }
+      catch (Exception e) {
+         logger.error("Cannot initialize HSQLDB connection because: " + e.getMessage(), e);
       }
    }
 
@@ -171,7 +194,7 @@ public class OpHibernateConnection extends OpConnection {
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
       Connection connection = _session.connection();
-      OpHibernateSchemaUpdater customSchemaUpdater = OpHibernateSchemaUpdater.getInstance(source);
+      OpHibernateSchemaUpdater customSchemaUpdater = new OpHibernateSchemaUpdater(source);
 
       try {
          //first execute any custom drop statements (only for MySQL necessary at the moment)
@@ -198,7 +221,7 @@ public class OpHibernateConnection extends OpConnection {
    public void dropSchema() {
       // Create drop schema script
       OpHibernateSource source = ((OpHibernateSource) getSource());
-      OpHibernateSchemaUpdater customUpdater = OpHibernateSchemaUpdater.getInstance(source);
+      OpHibernateSchemaUpdater customUpdater = new OpHibernateSchemaUpdater(source);
       Configuration configuration = source.getConfiguration();
       try {
          String[] hibernateDropScripts = configuration.generateDropSchemaScript(source.newHibernateDialect());

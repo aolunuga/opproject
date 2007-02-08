@@ -15,6 +15,7 @@ public class OpTool {
    private OpToolGroup _group;
    private OpModule _module;
    private Boolean multiUserOnly;
+   private boolean selected;
 
    final public void setName(String name) {
       _name = name;
@@ -87,5 +88,13 @@ public class OpTool {
 
    public void setMultiUserOnly(Boolean multiUserOnly) {
       this.multiUserOnly = multiUserOnly;
+   }
+
+   public boolean isSelected() {
+      return selected;
+   }
+
+   public void setSelected(boolean selected) {
+      this.selected = selected;
    }
 }

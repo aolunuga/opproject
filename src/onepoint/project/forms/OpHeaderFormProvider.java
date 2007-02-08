@@ -21,6 +21,7 @@ public class OpHeaderFormProvider implements XFormProvider {
    private final static String USER_DISPLAY_NAME = "UserDisplayName";
    private final static String SIGNOFF_BUTTON_ID = "signOff_button";
    private final static String QUIT_BUTTON_ID = "quit_button";
+   private final static String BANDWIDTH_INFO = "BandwidthInfo";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -31,9 +32,11 @@ public class OpHeaderFormProvider implements XFormProvider {
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
       if (OpInitializer.isMultiUser()) {
          form.findComponent(USER_DISPLAY_NAME).setText(localizer.localize(user.getDisplayName()));
+         form.findComponent(BANDWIDTH_INFO).setVisible(true);
       }
       else {
          form.findComponent(USER_DISPLAY_NAME).setVisible(false);
+         form.findComponent(BANDWIDTH_INFO).setVisible(false);
       }
       form.findComponent(SIGNOFF_BUTTON_ID).setVisible(OpInitializer.isMultiUser());
       form.findComponent(QUIT_BUTTON_ID).setVisible(!OpInitializer.isMultiUser());

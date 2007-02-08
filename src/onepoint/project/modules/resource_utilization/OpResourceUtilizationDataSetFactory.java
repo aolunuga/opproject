@@ -142,9 +142,6 @@ public final class OpResourceUtilizationDataSetFactory {
       }
    }
 
-//   private static double getPoolAvailable(OpProjectSession session, String locatorString) {         
-//   }
-
    /**
     * Calculates the utilizationMap for pools and sets the values in the given map (cache).
     *

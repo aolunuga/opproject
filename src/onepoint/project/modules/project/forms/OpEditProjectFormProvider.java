@@ -38,6 +38,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
    private final static String PROJECT_ID = "ProjectID";
    private final static String EDIT_MODE = "EditMode";
+   private final static String ORIGINAL_START_DATE = "OriginalStartDate";
    private final static String GOALS_SET = "GoalsSet";
    private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
@@ -61,6 +62,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
+
+      //set the orignal start date of the project
+      form.findComponent(ORIGINAL_START_DATE).setDateValue(project.getStart());
 
       //disable templates related stuff
       form.findComponent(TEMPLATE_FIELD).setEnabled(false);

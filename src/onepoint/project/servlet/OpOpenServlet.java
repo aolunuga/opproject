@@ -8,6 +8,7 @@ import onepoint.persistence.OpObject;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.applet.OpOpenApplet;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpProjectConstants;
@@ -93,6 +94,8 @@ public class OpOpenServlet extends XExpressServlet {
       imagesPath = servletContextPath + "/" + getServletConfig().getInitParameter("webimages_path") + "/";
 
       Map initParams = OpInitializer.init(getProjectHome(), true);
+      OpInitializer.setProductCode(this.getProductCode());
+      
       //initialize the security feature
       String secure = (String) initParams.remove(OpInitializer.SECURE_SERVICE);
       secureService = secure != null ? secure : "false";
@@ -206,8 +209,8 @@ public class OpOpenServlet extends XExpressServlet {
       generateAppletResizeFunction(out);
       String codebase = urlBase(request).concat(appletCodebase);
 
-      out
-           .println("<applet id=\"onepoint\" name=\"Onepoint Project 06 Team Edition (Client Applet)\" width=\"100%\" height=\"100%\" code=\"onepoint.project.applet.OpProjectApplet.class\" codebase=\""
+      out.println("<applet id=\"onepoint\" name=\"Onepoint Project 06 Team Edition (Client Applet)\" width=\"100%\" height=\"100%\" code=\"" +
+                getAppletClassName() +"\" codebase=\""
                 + codebase + "\" archive=\"" + appletArchive + "\">");
       out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
       out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
@@ -250,6 +253,10 @@ public class OpOpenServlet extends XExpressServlet {
       out.close();
    }
 
+   protected String getAppletClassName() {
+      return OpOpenApplet.class.getName() + ".class";
+   }
+
    /**
     * Gets the base url for the given request.
     *
@@ -275,10 +282,9 @@ public class OpOpenServlet extends XExpressServlet {
     *
     * @param contentId     a <code>String</code> representing a content id.
     * @param http_response a <code>HttpServletResponse</code> representing the server response.
-    * @param s             a <code>XSession</code> object representing the server session.
+    * @param session             a <code>OpProjectSession</code> object representing the server session.
     */
-   public void generateContentPage(String contentId, HttpServletResponse http_response, XSession s) {
-      OpProjectSession session = (OpProjectSession) s;
+   public void generateContentPage(String contentId, HttpServletResponse http_response, OpProjectSession session) {
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
@@ -351,7 +357,7 @@ public class OpOpenServlet extends XExpressServlet {
          InputStream is = new URL(filePath).openStream();
          int length = is.read(buffer);
          while (length != -1) {
-            stream.write(buffer);
+            stream.write(buffer, 0, length);
             length = is.read(buffer);
          }
          is.close();
@@ -426,26 +432,42 @@ public class OpOpenServlet extends XExpressServlet {
     * @param content a <code>OpContent</code> object representing the content the user is trying to view.
     * @param broker a <code>OpBroker</code> used for performing business operations.
     * @return <code>true</code> if the user has rights to view the content, false otherwise.
+    * <FIXME author="Horia Chiorean" description="Is is safe to assume that it's enough to have permissions on at least 1 of the entities referencing the content ?">
     */
    private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {
       Set attachments = content.getAttachments();
-      if (attachments != null) {
-         for (Iterator it = attachments.iterator(); it.hasNext(); ) {
-            OpObject attachment  = (OpObject) it.next();
-            if (session.checkAccessLevel(broker, attachment.getID(), OpPermission.OBSERVER)) {
+      for (Iterator it = attachments.iterator(); it.hasNext();) {
+         OpObject attachment = (OpObject) it.next();
+         if (session.checkAccessLevel(broker, attachment.getID(), OpPermission.OBSERVER)) {
+            return true;
+         }
+      }
+
+      Set attachmentVersions = content.getAttachmentVersions();
+      if (attachmentVersions != null) {
+         for (Iterator it = attachmentVersions.iterator(); it.hasNext();) {
+            OpObject attachmentVersion = (OpObject) it.next();
+            if (session.checkAccessLevel(broker, attachmentVersion.getID(), OpPermission.OBSERVER)) {
                return true;
             }
          }
       }
+
       Set documents = content.getDocuments();
-      if (documents != null) {
-         for (Iterator it = documents.iterator(); it.hasNext(); ) {
-            OpObject document  = (OpObject) it.next();
-            if (session.checkAccessLevel(broker, document.getID(), OpPermission.OBSERVER)) {
-               return true;
-            }
+      for (Iterator it = documents.iterator(); it.hasNext();) {
+         OpObject document = (OpObject) it.next();
+         if (session.checkAccessLevel(broker, document.getID(), OpPermission.OBSERVER)) {
+            return true;
          }
       }
       return false;
+   }
+
+   /**
+    * Gets a product code string for this servlet.
+    * @return a <code>String</code> representing a product code.
+    */
+   protected String getProductCode() {
+      return OpProjectConstants.OPEN_EDITION_CODE;
    }
 }

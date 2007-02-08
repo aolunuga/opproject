@@ -18,11 +18,12 @@ import java.util.HashMap;
  */
 public class OpResetConfirmationFormProvider implements XFormProvider {
 
+   /**
+    * Form component ids
+    */
    private static final String SINGLE_USER_MESSAGE_LABEL_ID = "SingleUserConfirmationMessage";
    private static final String MULTI_USER_MESSAGE_LABEL_ID = "MultiUserConfirmationMessage";
    private static final String ADMIN_PASSWORD_FIELD_ID = "AdminPasswordField";
-
-
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)

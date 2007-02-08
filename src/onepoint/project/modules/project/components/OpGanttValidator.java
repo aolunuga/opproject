@@ -61,6 +61,7 @@ public class OpGanttValidator extends XValidator {
    private final static int WORKRECORDS_COLUMN_INDEX = 24;
    private final static int ACTUAL_EFFORT_COLUMN_INDEX = 25;
    public final static int VISUAL_RESOURCES_COLUMN_INDEX = 26;
+   public final static int RESPONSIBLE_RESOURCE_COLUMN_INDEX = 27;
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
@@ -207,6 +208,14 @@ public class OpGanttValidator extends XValidator {
 
    public static void setWorkRecords(XComponent data_row, Map newValue) {
       ((XComponent) (data_row.getChild(WORKRECORDS_COLUMN_INDEX))).setValue(newValue);
+   }
+
+   public static String getResponsibleResource(XComponent data_row) {
+      return (String) ((XComponent) (data_row.getChild(RESPONSIBLE_RESOURCE_COLUMN_INDEX))).getValue();
+   }
+
+   public static void setResponsibleResource(XComponent data_row, String newValue) {
+      ((XComponent) (data_row.getChild(RESPONSIBLE_RESOURCE_COLUMN_INDEX))).setValue(newValue);
    }
 
    /**
@@ -1528,8 +1537,8 @@ public class OpGanttValidator extends XValidator {
          }
       }
       else {
-         end = getEnd(activity);
          updateDuration(activity, getDuration(activity));
+         end = getEnd(activity);
       }
 
 
@@ -1899,6 +1908,18 @@ public class OpGanttValidator extends XValidator {
       data_cell.setListValue(new ArrayList());
       data_row.addChild(data_cell);
 
+      // Responsible Resource (27)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);
+
+      //project cell (28)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);
+
       // Must be done at the end: Might potentially need full data-row
       // TODO: Duration of new activities should be configurable
       double duration = 5 * calendar.getWorkHoursPerDay();
@@ -2090,6 +2111,15 @@ public class OpGanttValidator extends XValidator {
             addToUndo();
             setCategory(data_row, categoryChoice);
             break;
+         case RESPONSIBLE_RESOURCE_COLUMN_INDEX:
+            String resourceChoice = (String) value;
+            String resourceId = choiceID(resourceChoice);
+            if (resourceId.equals(NO_RESOURCE_ID)) {
+               resourceChoice = null;
+            }
+            addToUndo();
+            setResponsibleResource(data_row, resourceChoice);
+            break;
          case START_COLUMN_INDEX:
 
             preCheckSetStartValue(data_row, value);
@@ -2234,6 +2264,8 @@ public class OpGanttValidator extends XValidator {
                   }
                }
                setResourceBaseEfforts(data_row, effList);
+               updateResponsibleResource(data_row);
+
                validateDataSet();
                if (taskWarning) {
                   throw new XValidationException(TASK_EXTRA_RESOURCE_EXCEPTION);
@@ -2256,6 +2288,8 @@ public class OpGanttValidator extends XValidator {
 
                //construct the resource availability map
                updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
+               updateResponsibleResource(data_row);
+
                validateDataSet();
             }
             break;
@@ -2323,6 +2357,19 @@ public class OpGanttValidator extends XValidator {
                setAttributes(data_row, attrs);
             }
             break;
+      }
+   }
+
+   protected void updateResponsibleResource(XComponent data_row) {
+      if (getResponsibleResource(data_row) == null) {
+         List resources = getResources(data_row);
+         if (resources.size() > 0) {
+            String resource = (String) resources.get(0);
+            String caption = XValidator.choiceCaption(resource);
+            String resName = getResourceName(caption, null);
+            String id =  XValidator.choiceID(resource);
+            setResponsibleResource(data_row, XValidator.choice(id, resName));
+         }
       }
    }
 

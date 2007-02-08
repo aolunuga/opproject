@@ -2,4 +2,5 @@
    <method name="backup"/>
    <method name="restore"/>
    <method name="reset"/>
+   <method name="validateAdminPassword"/>
 </service>

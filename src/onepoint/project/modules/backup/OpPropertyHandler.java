@@ -83,7 +83,9 @@ public class OpPropertyHandler implements XNodeHandler {
                break;
             case OpType.CONTENT:
                if (valueString != null) {
-                  value = OpBackupManager.readBinaryFile(valueString);
+                  String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
+                  String contentPath = workingDirectory + valueString;
+                  value = OpBackupManager.readBinaryFile(contentPath);
                }
                break;
             case OpType.BYTE:

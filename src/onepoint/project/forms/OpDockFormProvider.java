@@ -7,8 +7,6 @@ package onepoint.project.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpTool;
 import onepoint.project.module.OpToolGroup;
@@ -18,93 +16,134 @@ import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Form provider class for the application's navigation dock.
+ */
 public class OpDockFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpDockFormProvider.class,true);
+   /**
+    * The id of the navigation box
+    */
+   private final static String NAVIGATION_BOX = "NavigationBox";
 
-   private final static String TOOL_DOCK = "ToolDock";
+   /**
+    * Suffix used for i18n the name of tool groups
+    */
+   private static final String GROUP_MAP_ID_SUFFIX = ".module";
 
+   /**
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
+    */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      // Populate dock tool bar with registered tools
-      // System.err.println("OpDockFormProvider.updateForm(): " + form);
-      XComponent tool_dock = form.findComponent(TOOL_DOCK);
-      // System.err.println(" tool-bar: " + tool_bar);
-      // *** Get tools from tool-registry (iterator?)
-      
-      // Add tool-groups to dock
-      Iterator group_lists = OpToolManager.getGroupLists();
-      ArrayList group_list = null;
-      OpToolGroup group = null;
-      int i = 0;
-      XComponent dock_group = null;
-      HashMap dock_group_map = new HashMap();
-      while (group_lists.hasNext()) {
-         group_list = (ArrayList) group_lists.next();
-         for (i = 0; i < group_list.size(); i++) {
-            group = (OpToolGroup) group_list.get(i);
-            System.err.println("***ADDING GROUP " + group.getName());
-            // Create new dock group
-            dock_group = new XExtendedComponent(XExtendedComponent.NAVIGATION_GROUP);
-            dock_group.setID(group.getName());
-            dock_group.setStringValue(group.getName());
-            dock_group_map.put(group.getName(), dock_group);
-            String resource_map_id = group.getModule().getName() + ".module";
-            XLanguageResourceMap resource_map = XLocaleManager.findResourceMap(session.getLocale().getID(),
-                  resource_map_id);
-            dock_group.setText(group.getCaption());
-            if (resource_map != null) {
-               XLocalizer localizer = new XLocalizer();
-               localizer.setResourceMap(resource_map);
-               dock_group.setText(localizer.localize(group.getCaption()));
-            }
-            // dock_group.setOnButtonPressed(TOOL_DOCK + "_onGroupChanged");
-            tool_dock.addChild(dock_group);
-         }
-      }
+      XComponent navigationBox = form.findComponent(NAVIGATION_BOX);
 
-      // Add tools to dock
-      Iterator tool_lists = OpToolManager.getToolLists();
-      ArrayList tool_list = null;
-      OpTool tool = null;
-      XComponent dock_tool = null;
-      while (tool_lists.hasNext()) {
-         tool_list = (ArrayList) tool_lists.next();
-         for (i = 0; i < tool_list.size(); i++) {
-            tool = (OpTool) tool_list.get(i);
-            System.err.println("***ADDING TOOL " + tool.getName());
-            // Create new dock tool
-            dock_tool = new XExtendedComponent(XExtendedComponent.NAVIGATION_ITEM);
-            dock_tool.setID(tool.getName());
-            String resource_map_id = tool.getModule().getName() + ".module";
-            XLanguageResourceMap resource_map = XLocaleManager.findResourceMap(session.getLocale().getID(),
-                  resource_map_id);
-            dock_tool.setText(tool.getCaption());
-            if (resource_map != null) {
-               XLocalizer localizer = new XLocalizer();
-               localizer.setResourceMap(resource_map);
-               dock_tool.setText(localizer.localize(tool.getCaption()));
-            }
-            dock_tool.setStringValue(tool.getStartForm());
-            dock_tool.setIcon(tool.getIcon());
-            dock_tool.setOnButtonPressed(TOOL_DOCK + "_onButtonPressed");
-            
-            // FIXME: This should not be hard-coded
-            if (tool.getName().equals("projects"))
-               dock_tool.setSelected(true);
-            
+      //add the tool groups
+      Map navigationGroupMap = addToolGroups(session, navigationBox);
+
+      //add the tools to each tool group.
+      addTools(session, navigationGroupMap);
+   }
+
+   /**
+    * Links the registered tools with the created navigation groups, via navigation item components.
+    * @param session a <code>OpProjectSession</code> representing the server session.
+    * @param navigationGroupMap a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
+    */
+   private void addTools(OpProjectSession session, Map navigationGroupMap) {
+      Iterator toolLists = OpToolManager.getToolLists();
+      while (toolLists.hasNext()) {
+         List toolList = (List) toolLists.next();
+         for (int i = 0; i < toolList.size(); i++) {
+            OpTool tool = (OpTool) toolList.get(i);
+            //link the tools
             if (tool.getGroupRef() != null) {
-               dock_group = (XComponent) dock_group_map.get(tool.getGroupRef());
-               System.err.println("   --> resolving " + tool.getGroupRef());
-               dock_group.addChild(dock_tool);
+               XComponent navigationGroup = (XComponent) navigationGroupMap.get(tool.getGroupRef());
+               //navigation group might be null 
+               if (navigationGroup != null) {
+                  XComponent navigationItem = createNavigationItem(tool, session);
+                  navigationGroup.addChild(navigationItem);
+               }
             }
          }
       }
+   }
 
+   /**
+    * Creates a navigation item component, from the given tool.
+    * @param tool a <code>OpTool</code> instance.
+    * @param session a <code>OpProjectSession</code> representing the project session.
+    * @return a <code>XComponent(NAVIGATION_ITEM)</code> created from the given tool.
+    */
+   private XComponent createNavigationItem(OpTool tool, OpProjectSession session) {
+      XComponent navigationItem = new XExtendedComponent(XExtendedComponent.NAVIGATION_ITEM);
+      navigationItem.setID(tool.getName());
+      String resourceMapId = tool.getModule().getName() + GROUP_MAP_ID_SUFFIX;
+      XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(), resourceMapId);
+      navigationItem.setText(tool.getCaption());
+      if (resourceMap != null) {
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(resourceMap);
+         navigationItem.setText(localizer.localize(tool.getCaption()));
+      }
+      navigationItem.setStringValue(tool.getStartForm());
+      navigationItem.setIcon(tool.getIcon());
+      navigationItem.setOnButtonPressed(NAVIGATION_BOX + "_onButtonPressed");
+      navigationItem.setSelected(tool.isSelected());
+
+      return navigationItem;
+   }
+
+   /**
+    * Adds the application registered tool groups, creates UI components for each and adds them to the navigation box.
+    * @param session a <code>OpProjectSession</code> representing an application session.
+    * @param navigationBox a <code>XComponent(NAVIGATION_BOX)</code> representing the navigation box.
+    * @return a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
+    */
+   private Map addToolGroups(OpProjectSession session, XComponent navigationBox) {
+      Iterator groupLists = OpToolManager.getGroupLists();
+      Map navigationGroupMap = new HashMap();
+
+      while (groupLists.hasNext()) {
+         List groupList = (List) groupLists.next();
+         for (int i = 0; i < groupList.size(); i++) {
+            OpToolGroup group = (OpToolGroup) groupList.get(i);
+            if (group.isAdministratorOnly() && !session.userIsAdministrator()) {
+               continue;
+            }
+            XComponent navigationGroup = createNavigationGroup(group, session);
+            navigationBox.addChild(navigationGroup);
+            navigationGroupMap.put(group.getName(), navigationGroup);
+         }
+      }
+      return navigationGroupMap;
+   }
+
+   /**
+    * Creates a new navigation group component, containing the data from the given tool group.
+    * @param group a <code>OpToolGroup</code> instance.
+    * @param session a <code>OpProjectSession</code> representing the project session.
+    * @return a <code>XComponent(NAVIGATION_GROUP)</code> component
+    */
+   private XComponent createNavigationGroup(OpToolGroup group, OpProjectSession session) {
+      XComponent dockGroup = new XExtendedComponent(XExtendedComponent.NAVIGATION_GROUP);
+      dockGroup.setID(group.getName());
+      dockGroup.setStringValue(group.getName());
+      String resourceMapId = group.getModule().getName() + GROUP_MAP_ID_SUFFIX;
+      XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(),
+            resourceMapId);
+      dockGroup.setText(group.getCaption());
+      if (resourceMap != null) {
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(resourceMap);
+         dockGroup.setText(localizer.localize(group.getCaption()));
+      }
+      return dockGroup;
    }
 
 }

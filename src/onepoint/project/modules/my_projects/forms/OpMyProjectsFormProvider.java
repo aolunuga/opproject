@@ -36,14 +36,11 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    private final static String MANAGER = "manager";
    private final static String DEFAULT_VALUE = CONTRIB;
 
-   protected final int COMPLETE_INDEX = 2;
+   protected final int PROJECT_NAME_INDEX = 0;
    protected final int BASE_EFFORT_INDEX = 3;
-   protected final int ACTUAL_EFFORT_INDEX = 4;
    protected final int BASE_COST_INDEX = 5;
-   protected final int ACTUAL_COST_INDEX = 6;
-   protected final int PREDICTED_INDEX = 7;
-   protected final int DEVIATION_INDEX = 8;
-   protected final int DEVIATION_PERCENT_INDEX = 9;
+   protected final int PREDICTED_COSTS_INDEX = 7;
+   protected final int PREDICTED_EFFORT_INDEX = 10;
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -67,6 +64,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          XComponent row = createProjectRow(projectNode, broker);
          projectsDataSet.addChild(row);
       }
+
+      //sort by name
+      projectsDataSet.sort(PROJECT_NAME_INDEX);
 
       broker.close();
    }

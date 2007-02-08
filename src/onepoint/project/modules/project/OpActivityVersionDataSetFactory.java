@@ -93,8 +93,7 @@ public abstract class OpActivityVersionDataSetFactory {
             double noResourceHours = OpGanttValidator.getBaseEffort(dataRow) - assignmentsEffortSum.doubleValue();
             if (noResourceHours > OpGanttValidator.ERROR_MARGIN) {
                resourceAvailability.put(OpGanttValidator.NO_RESOURCE_ID, new Double(Integer.MAX_VALUE));
-
-               double percent =  noResourceHours * 100.0 / OpGanttValidator.getDuration(dataRow);
+               double percent = noResourceHours * 100.0 / OpGanttValidator.getDuration(dataRow);
                String caption = OpGanttValidator.NO_RESOURCE_NAME + " " + String.valueOf(percent) + "%";
                String noResource = XValidator.choice(OpGanttValidator.NO_RESOURCE_ID, caption);
                OpGanttValidator.addResource(dataRow, noResource);
@@ -369,6 +368,21 @@ public abstract class OpActivityVersionDataSetFactory {
       dataCell.setListValue(new ArrayList());
       dataRow.addChild(dataCell);
 
+      //Responsible resource (27)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setEnabled(false);
+      OpResource responsibleResource = activityVersion.getResponsibleResource();
+      if (responsibleResource != null) {
+         dataCell.setStringValue(XValidator.choice(responsibleResource.locator(), responsibleResource.getName()));
+      }
+      dataRow.addChild(dataCell);
+
+      // Add project column (28)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      OpProjectNode projectNode = activityVersion.getPlanVersion().getProjectPlan().getProjectNode();
+      dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
+      dataRow.addChild(dataCell);
+
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -409,7 +423,7 @@ public abstract class OpActivityVersionDataSetFactory {
             activityVersionId = (Long) activityIdMap.get(new Long(OpLocator.parseLocator(dataRow.getStringValue()).getID()));
             if (activityVersionId != null) {
                dataRow.setStringValue(OpLocator.locatorString(OpActivityVersion.ACTIVITY_VERSION, activityVersionId.longValue()));
-               mappedActivityIds ++;
+               mappedActivityIds++;
             }
          }
       }
@@ -581,10 +595,10 @@ public abstract class OpActivityVersionDataSetFactory {
    private static OpActivityVersion insertOrUpdateActivityVersion(OpBroker broker, XComponent dataRow,
         OpActivityVersion activityVersion, OpProjectPlanVersion planVersion, OpActivityVersion superActivity, HashMap activities) {
 
-      String categoryLocator = null;
       OpActivityCategory category = null;
-
       OpProjectNode projectNode = planVersion.getProjectPlan().getProjectNode();
+      String categoryChoice = OpGanttValidator.getCategory(dataRow);
+      String responsibleResource = OpGanttValidator.getResponsibleResource(dataRow);
       if (activityVersion == null) {
          // Insert a new activity
          activityVersion = new OpActivityVersion();
@@ -628,9 +642,15 @@ public abstract class OpActivityVersionDataSetFactory {
          activityVersion.setDuration(OpGanttValidator.getDuration(dataRow));
          activityVersion.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
          activityVersion.setType((OpGanttValidator.getType(dataRow)));
-         if (OpGanttValidator.getCategory(dataRow) != null) {
-            category = (OpActivityCategory) broker.getObject(OpGanttValidator.getCategory(dataRow));
+         if (categoryChoice != null) {
+            String categoryLocator = XValidator.choiceID(categoryChoice);
+            category = (OpActivityCategory) broker.getObject(categoryLocator);
             activityVersion.setCategory(category);
+         }
+         if (responsibleResource != null) {
+            String resourceLocator = XValidator.choiceID(responsibleResource);
+            OpResource resource = (OpResource) broker.getObject(resourceLocator);
+            activityVersion.setResponsibleResource(resource);
          }
          // Set complete once (we assume that client-side complete value is correct)
          activityVersion.setComplete(OpGanttValidator.getComplete(dataRow));
@@ -650,11 +670,11 @@ public abstract class OpActivityVersionDataSetFactory {
 
          boolean update = false;
 
-         if (!OpActivityDataSetFactory.checkEquality(activityVersion.getName(),OpGanttValidator.getName(dataRow))) {
+         if (!OpActivityDataSetFactory.checkEquality(activityVersion.getName(), OpGanttValidator.getName(dataRow))) {
             update = true;
             activityVersion.setName(OpGanttValidator.getName(dataRow));
          }
-         if (!OpActivityDataSetFactory.checkEquality(activityVersion.getDescription(),OpGanttValidator.getDescription(dataRow))) {
+         if (!OpActivityDataSetFactory.checkEquality(activityVersion.getDescription(), OpGanttValidator.getDescription(dataRow))) {
             update = true;
             activityVersion.setDescription(OpGanttValidator.getDescription(dataRow));
          }
@@ -676,7 +696,7 @@ public abstract class OpActivityVersionDataSetFactory {
             activityVersion.setSuperActivityVersion(superActivity);
          }
          if ((activityVersion.getStart() != null && !activityVersion.getStart().equals(OpGanttValidator.getStart(dataRow)))
-               || (activityVersion.getStart() == null)) {
+              || (activityVersion.getStart() == null)) {
             Date newStart;
             Date start = OpGanttValidator.getStart(dataRow);
             if (start == null) {
@@ -696,7 +716,7 @@ public abstract class OpActivityVersionDataSetFactory {
             }
          }
          if ((activityVersion.getFinish() != null && !activityVersion.getFinish().equals(OpGanttValidator.getEnd(dataRow)))
-               || (activityVersion.getFinish() == null)) {
+              || (activityVersion.getFinish() == null)) {
 
             Date end = OpGanttValidator.getEnd(dataRow);
             Date newEnd;
@@ -730,21 +750,43 @@ public abstract class OpActivityVersionDataSetFactory {
          }
 
          //update the category
-         categoryLocator = null;
+         String categoryLocator = null;
          if (activityVersion.getCategory() != null) {
             categoryLocator = activityVersion.getCategory().locator();
          }
 
-         String newCategory = OpGanttValidator.getCategory(dataRow);
-         if (newCategory != null && categoryLocator != newCategory) {
-            update = true;
-            category = (OpActivityCategory) broker.getObject(OpGanttValidator.getCategory(dataRow));
-            activityVersion.setCategory(category);
+         if (categoryChoice != null) {
+            String newCategory = XValidator.choiceID(categoryChoice);
+            if (!newCategory.equals(categoryLocator)) {
+               update = true;
+               category = (OpActivityCategory) broker.getObject(categoryChoice);
+               activityVersion.setCategory(category);
+            }
          }
-         else if (newCategory == null) {
+         else {
             update = true;
             activityVersion.setCategory(null);
          }
+
+         //update the responsible resource
+         String resourceLocator = null;
+         if (activityVersion.getResponsibleResource() != null) {
+            resourceLocator = activityVersion.getResponsibleResource().locator();
+         }
+         
+         if (responsibleResource != null) {
+            String newResourceLocator = XValidator.choiceID(responsibleResource);
+            if (!newResourceLocator.equals(resourceLocator)) {
+               update = true;
+               OpResource resource = (OpResource) broker.getObject(newResourceLocator);
+               activityVersion.setResponsibleResource(resource);
+            }
+         }
+         else {
+            update = true;
+            activityVersion.setResponsibleResource(null);
+         }
+
          // Do not update complete from client-data: Calculated from work-slips (RemainingEffort)
          //update complete if progress tracking is off
          OpProjectPlan projectPlan = planVersion.getProjectPlan();
@@ -821,12 +863,12 @@ public abstract class OpActivityVersionDataSetFactory {
             // Check whether persistent assignment is present in resource list
             for (i = resourceList.size() - 1; i >= 0; i--) {
                resourceChoice = (String) resourceList.get(i);
-            //ignore invisible resources
-            String resourceChoiceId = XValidator.choiceID(resourceChoice);
-            if (resourceChoiceId.equals(OpGanttValidator.NO_RESOURCE_ID)) {
-               continue;
-            }
-            if (OpLocator.parseLocator(resourceChoiceId).getID() == assignment.getResource()
+               //ignore invisible resources
+               String resourceChoiceId = XValidator.choiceID(resourceChoice);
+               if (resourceChoiceId.equals(OpGanttValidator.NO_RESOURCE_ID)) {
+                  continue;
+               }
+               if (OpLocator.parseLocator(resourceChoiceId).getID() == assignment.getResource()
                     .getID()) {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
@@ -955,12 +997,12 @@ public abstract class OpActivityVersionDataSetFactory {
             List activitiPeriodValues = (List) workPeriods.get(periodStart);
             if (activitiPeriodValues != null) {
                long workingDays = ((Long) activitiPeriodValues.get(0)).longValue();
-               baseEffort = ((Double)activitiPeriodValues.get(1)).doubleValue();
-               if (baseEffort != workPeriod.getBaseEffort()){
+               baseEffort = ((Double) activitiPeriodValues.get(1)).doubleValue();
+               if (baseEffort != workPeriod.getBaseEffort()) {
                   workPeriod.setBaseEffort(baseEffort);
                   update = true;
                }
-               if (workingDays != workPeriod.getWorkingDays()){
+               if (workingDays != workPeriod.getWorkingDays()) {
                   workPeriod.setWorkingDays(workingDays);
                   update = true;
                }
@@ -986,15 +1028,15 @@ public abstract class OpActivityVersionDataSetFactory {
 
    private static void insertActivityWorkPeriodVersions(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataRow, OpActivityVersion activityVersion, ArrayList reusableWorkPeriodVersions) {
-      
+
       Map workPeriods = OpActivityDataSetFactory.getWorkPeriods(dataRow);
       OpWorkPeriodVersion workPeriod = null;
       for (Iterator iterator = workPeriods.entrySet().iterator(); iterator.hasNext();) {
-         Map.Entry workPeriodEntry =  (Map.Entry) iterator.next();
+         Map.Entry workPeriodEntry = (Map.Entry) iterator.next();
          Date periodStart = (Date) workPeriodEntry.getKey();
          //check if activity does not already have it
          boolean periodSaved = false;
-         if (activityVersion.getWorkPeriodVersions()!=null) {
+         if (activityVersion.getWorkPeriodVersions() != null) {
             for (Iterator iterator1 = activityVersion.getWorkPeriodVersions().iterator(); iterator1.hasNext();) {
                OpWorkPeriodVersion opWorkPeriod = (OpWorkPeriodVersion) iterator1.next();
                if (opWorkPeriod.getStart().equals(periodStart)) {
@@ -1008,7 +1050,7 @@ public abstract class OpActivityVersionDataSetFactory {
          }
          List workPeriodValues = (List) workPeriodEntry.getValue();
          long workingDays = ((Long) workPeriodValues.get(0)).longValue();
-         double baseEffortPerDay = ((Double)workPeriodValues.get(1)).doubleValue();
+         double baseEffortPerDay = ((Double) workPeriodValues.get(1)).doubleValue();
          if ((reusableWorkPeriodVersions != null) && (reusableWorkPeriodVersions.size() > 0)) {
             workPeriod = (OpWorkPeriodVersion) reusableWorkPeriodVersions.remove(reusableWorkPeriodVersions.size() - 1);
          }
@@ -1099,18 +1141,19 @@ public abstract class OpActivityVersionDataSetFactory {
          attachment.setName((String) attachmentElement.get(2));
          attachment.setLocation((String) attachmentElement.get(3));
          OpPermissionSetFactory.copyPermissions(broker, planVersion.getProjectPlan().getProjectNode(), attachment);
+         OpContent content = null;
          if (!attachment.getLinked()) {
 
             String contentId = (String) attachmentElement.get(4);
             if (contentId.equals(OpActivityDataSetFactory.NO_CONTENT_ID)) {
                // Insert new content object and set ref-count to one (1)
                byte[] bytes = (byte[]) attachmentElement.get(5);
-               OpContent content = OpContentManager.newContent(bytes, null);
+               content = OpContentManager.newContent(bytes, null);
                broker.makePersistent(content);
                attachment.setContent(content);
             }
             else {
-               OpContent content = (OpContent) broker.getObject(contentId);
+               content = (OpContent) broker.getObject(contentId);
                OpContentManager.updateContent(content, broker, true);
                attachment.setContent(content);
             }
@@ -1121,6 +1164,11 @@ public abstract class OpActivityVersionDataSetFactory {
          }
          else {
             broker.updateObject(attachment);
+         }
+
+         if (content != null) {
+            content.getAttachmentVersions().add(attachment);
+            broker.updateObject(content);
          }
       }
    }
@@ -1221,6 +1269,9 @@ public abstract class OpActivityVersionDataSetFactory {
          OpActivityVersion activityVersion = null;
          while (activities.hasNext()) {
             activity = (OpActivity) activities.next();
+            if (activity.getType() == OpActivity.ADHOC_TASK) {
+               continue;
+            }
             activityVersion = new OpActivityVersion();
             activityVersion.setPlanVersion(planVersion);
             activityVersion.setActivity(activity);
@@ -1252,6 +1303,9 @@ public abstract class OpActivityVersionDataSetFactory {
          OpContent content = null;
          while (attachments.hasNext()) {
             attachment = (OpAttachment) attachments.next();
+            if (attachment.getActivity().getType() == OpActivity.ADHOC_TASK) {
+               continue;
+            }
             attachmentVersion = new OpAttachmentVersion();
             attachmentVersion.setPlanVersion(planVersion);
             Long activityId = new Long(attachment.getActivity().getID());
@@ -1275,6 +1329,9 @@ public abstract class OpActivityVersionDataSetFactory {
          OpAssignmentVersion assignmentVersion = null;
          while (assignments.hasNext()) {
             assignment = (OpAssignment) assignments.next();
+            if (assignment.getActivity().getType() == OpActivity.ADHOC_TASK) {
+               continue;
+            }
             assignmentVersion = new OpAssignmentVersion();
             assignmentVersion.setPlanVersion(planVersion);
             Long activityId = new Long(assignment.getActivity().getID());
@@ -1295,6 +1352,9 @@ public abstract class OpActivityVersionDataSetFactory {
          OpWorkPeriodVersion workPeriodVersion = null;
          while (workPeriods.hasNext()) {
             workPeriod = (OpWorkPeriod) workPeriods.next();
+            if (workPeriod.getActivity().getType() == OpActivity.ADHOC_TASK) {
+               continue;
+            }
             workPeriodVersion = new OpWorkPeriodVersion();
             workPeriodVersion.setPlanVersion(planVersion);
             Long activityId = new Long(workPeriod.getActivity().getID());

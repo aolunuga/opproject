@@ -16,11 +16,11 @@
       <resource id="EditTooltip">Metainformation für ausgewählten Arbeitszettel bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
-      <resource id="Time">Time Period</resource>
-      <resource id="CurrentMonth">Current Month</resource>
-      <resource id="PreviousMonth">Previous Month</resource>
-      <resource id="CurrentYear">Current Year</resource>
-      <resource id="All">Alle</resource>      
+      <resource id="Time">Zeitspanne</resource>
+      <resource id="CurrentMonth">Dieses Monat</resource>
+      <resource id="PreviousMonth">Letztes Monat</resource>
+      <resource id="CurrentYear">Dieses Jahr</resource>
+      <resource id="All">Alle</resource>
 
    </resource-map>
    <resource-map id="work.new_work_slip">
@@ -74,7 +74,6 @@
    </resource-map>
    <resource-map id="work.error">
       <resource id="DateMissing">Das Datum des Arbeitszettels wurde nicht angeben</resource>
-      <resource id="DuplicateDate">A work slip for the specified date exists already</resource>
       <resource id="DuplicateDate">Ein Arbeitszettel für das angegebene Datum existiert bereits</resource>
       <resource id="IncorrectActualEffort">Der Aufwand ist nicht korrekt</resource>
       <resource id="IncorrectRemainingEffort">Der Restaufwand ist nicht korrekt</resource>

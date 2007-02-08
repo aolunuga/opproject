@@ -24,12 +24,25 @@ function ok(event) {
 }
 
 function ok_edit(event) {
+   bypassFutureStartDateCheck = event.BypassFutureStartDateCheck;
+
    // Gather project-data
    form = XDisplay.getActiveForm();
+
+   //check for future start dates
+   project_data.Start = form.findComponent("Start").getDateValue();
+   originalStartDate = form.findComponent("OriginalStartDate").getDateValue();
+   if (bypassFutureStartDateCheck == null && project_data.Start.after(originalStartDate)) {
+      Console.println("Start date in the future");
+      dialog = XComponent.newDialog();
+      dialog.loadForm("/modules/project/forms/confirm_startdate_future.oxf.xml");
+      dialog.open();
+      return;
+   }
+
    project_id = form.findComponent("ProjectID").getStringValue();
    project_data.Name = form.findComponent("Name").getStringValue();
    project_data.Description = form.findComponent("Description").getStringValue();
-   project_data.Start = form.findComponent("Start").getDateValue();
    project_data.Finish = form.findComponent("Finish").getDateValue();
    project_data.Budget = form.findComponent("Budget").getDoubleValue();
    project_data.CalculationMode = form.findComponent("CalculationMode").getBooleanValue();

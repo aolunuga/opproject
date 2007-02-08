@@ -54,6 +54,9 @@ public class OpLoginFormProvider implements XFormProvider {
 
       //check license
       checkLicense(form, session);
+
+      //mark the session as valid (in case it was invalidated)
+      session.validate();
    }
 
    /**

@@ -46,14 +46,14 @@
 
       <panel layout="border" style-ref="tool-panel-default" y="-1">
          <tool-bar x="-1" id="myTasksToolBar">
-            <tool-button id="NewAdhocButton" text="{$NewAdhoc}" icon="/modules/my_tasks/icons/add_AdhocTask.png"
-                         disabled-icon="/modules/my_tasks/icons/add_AdhocTask_disabled.png"
-                         on-button-pressed="addAdhoc"
-                         tooltip="{$NewAdhocTooltip}"/>
             <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
                          disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
                          on-button-pressed="addComment"
                          tooltip="{$NewCommentTooltip}"/>
+            <tool-button id="NewAdhocButton" text="{$NewAdhoc}" icon="/modules/my_tasks/icons/add_AdhocTask.png"
+                         disabled-icon="/modules/my_tasks/icons/add_AdhocTask_disabled.png"
+                         on-button-pressed="addAdhoc"
+                         tooltip="{$NewAdhocTooltip}"/>
             <tool-button id="InfoButton" text="{$Info}" icon="/icons/info.png"
                          disabled-icon="/icons/info_disabled.png" on-button-pressed="infoActivity"
                          tooltip="{$InfoTooltip}"/>
@@ -94,7 +94,7 @@
                <table-column text="" width="35" data-column-index="18" value-type="IndicatorList"
                              icon-set-ref="IndicatorIconSet"/>
                <table-column text="{$Name}" sortable="true" width="200" data-column-index="0"/>
-               <table-column text="{$Project}" width="100" data-column-index="27" value-type="Choice"/>
+               <table-column text="{$Project}" width="100" data-column-index="28" value-type="Choice"/>
                <table-column text="{$PercentageFinished}" width="65" sortable="true" data-column-index="3"
                              value-type="Double" decimals="0"/>
                <table-column text="{$Start}" width="65" sortable="true" data-column-index="4" value-type="Date"/>

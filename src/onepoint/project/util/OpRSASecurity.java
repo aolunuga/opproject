@@ -7,6 +7,8 @@ package onepoint.project.util;
 import gnu.crypto.key.rsa.GnuRSAPrivateKey;
 import gnu.crypto.key.rsa.GnuRSAPublicKey;
 import gnu.crypto.sig.rsa.RSA;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.math.BigInteger;
 
@@ -21,11 +23,12 @@ public final class OpRSASecurity {
     * Radix used to represent the signature.
     */
    private static final int REPRESENTATION_RADIX = 16;
+   private static final XLog logger = XLogFactory.getLogger(OpRSASecurity.class);
 
    /**
     * Utility class.
     */
-   private OpRSASecurity(){
+   private OpRSASecurity() {
    }
 
    /**
@@ -57,18 +60,24 @@ public final class OpRSASecurity {
     * @return true if signature is valid
     */
    public static boolean verify(String publicKeyString, String message, String signature) {
-      GnuRSAPublicKey publicKey = OpRSASecurity.publicKeyFromString(publicKeyString);
+      try {
+         GnuRSAPublicKey publicKey = OpRSASecurity.publicKeyFromString(publicKeyString);
 
-      //make a message digest (hash - hex form)
-      OpHashFunction sha1 = new OpSHA1();
-      String hash = sha1.calculateHash(message);
-      BigInteger currentHash = new BigInteger(hash, 16);
+         //make a message digest (hash - hex form)
+         OpHashFunction sha1 = new OpSHA1();
+         String hash = sha1.calculateHash(message);
+         BigInteger currentHash = new BigInteger(hash, 16);
 
-      //decrypt the given signature (obtain the hash of the original message)
-      BigInteger decrypted = RSA.verify(publicKey, new BigInteger(signature, REPRESENTATION_RADIX));
+         //decrypt the given signature (obtain the hash of the original message)
+         BigInteger decrypted = RSA.verify(publicKey, new BigInteger(signature, REPRESENTATION_RADIX));
 
-      //compare the original hash with the given message hash
-      return currentHash.equals(decrypted);
+         //compare the original hash with the given message hash
+         return currentHash.equals(decrypted);
+      }
+      catch (Exception e) {
+         logger.error("Could not check the validity of the signature", e);
+         return false;
+      }
    }
 
    /**

@@ -6,18 +6,23 @@ package onepoint.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.project.OpInitializer;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,72 +30,97 @@ import java.util.Map;
  * Form provider for the about dialog.
  *
  * @author mihai.costin
+ * @author horia.chiorean
  */
 public class OpAboutFormProvider implements XFormProvider {
 
-   private static final String PRODUCT_FIELD = "ProductName";
-   private static final String VERSION_FIELD = "VersionNumber";
+   /**
+    * This class's logger.
+    */
+   private static final XLog logger = XLogFactory.getLogger(OpAboutFormProvider.class, true);
 
-   private final static String FILE_NAME = "version.xml";
+   /**
+    * The version number of the application using this class.
+    */
+   private static final String VERSION_NUMBER = "07";
+   private static final String UNKNOWN_VERSION_NUMBER = "N/A";
+
+   /**
+    * The url where the product versions are retrieved from.
+    */
+   private static final String PRODUCT_VERSIONS_URL = "http://www.onepoint.at/current-versions.opv.xml";
+
+   /**
+    * Form component ids where the information will be shown.
+    */
+   private static final String PRODUCT_NAME_LABEL = "ProductName";
+   private static final String VERSION_LABEL = "Version";
+   private static final String CURRENT_VERSION_LABEL = "CurrentVersion";
+
+   /**
+    * XML elements and attribute names.
+    */
    private final static String VERSION = "version";
    private final static String CODE = "code";
    private final static String PRODUCT = "product";
 
+   /**
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
+    */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
-      InputStream infoInput = getVersionInput();
-      if (infoInput != null) {
-         Map valueMap = getInfoMap(infoInput);
-
-         form.findComponent(PRODUCT_FIELD).setStringValue((String) valueMap.get(CODE));
-         form.findComponent(VERSION_FIELD).setStringValue((String) valueMap.get(VERSION));
-
+      Map versionsMap = Collections.EMPTY_MAP;
+      try {
+         URL versionUrl = new URL(PRODUCT_VERSIONS_URL);
+         InputStream inputStream = versionUrl.openStream();
+         versionsMap = getProductVersionsMap(inputStream);
+         inputStream.close();
       }
+      catch (MalformedURLException e) {
+         logger.error("Cannot open the connection to get the product information because:" + e.getMessage(), e);
+      }
+      catch (IOException e) {
+         logger.error("Cannot open the connection to get the product information because:" + e.getMessage(), e);
+      }
+      String productCode = OpInitializer.getProductCode();
+      String currentVersion = (String) versionsMap.get(productCode);
+      if (currentVersion == null) {
+         currentVersion = UNKNOWN_VERSION_NUMBER;
+      }
+      String productName = (String) OpProjectConstants.PRODUCT_CODES.get(productCode);
+
+      form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
+      form.findComponent(VERSION_LABEL).setText(VERSION_NUMBER);
+      form.findComponent(CURRENT_VERSION_LABEL).setText(currentVersion);
    }
 
    /**
-    * Gets the map of values contained in the given XML format infoInput.
+    * Gets the map of product versions information from the given input.
     *
-    * @param infoInput input stream ver the XML information.
-    * @return map of values
+    * @param versionsInputStream a <code>InputStream</code> used for obtaining the latest product version information.
+    * @return map of values a <code>Map</code> of [String, String] representing product code, latest version pairs.
     */
-   private Map getInfoMap(InputStream infoInput) {
+   private Map getProductVersionsMap(InputStream versionsInputStream) {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       Map valueMap = new HashMap();
       try {
          DocumentBuilder db = dbf.newDocumentBuilder();
-         Document doc = db.parse(infoInput);
+         Document doc = db.parse(versionsInputStream);
          NodeList products = doc.getElementsByTagName(PRODUCT);
-         if (products.getLength() > 0) {
-            Node node = products.item(0);
+         for (int i = 0; i < products.getLength(); i++) {
+            Node node = products.item(i);
             NamedNodeMap map = node.getAttributes();
             Node version = map.getNamedItem(VERSION);
             Node name = map.getNamedItem(CODE);
             if (name != null && version != null) {
                String versionValue = version.getNodeValue();
                String nameValue = name.getNodeValue();
-               valueMap.put(VERSION, versionValue);
-               valueMap.put(CODE, nameValue);
+               valueMap.put(nameValue, versionValue);
             }
          }
       }
-      catch (ParserConfigurationException e) {
-         e.printStackTrace();
-      }
-      catch (IOException e) {
-         e.printStackTrace();
-      }
-      catch (SAXException e) {
-         e.printStackTrace();
+      catch (Exception e) {
+         logger.error("Cannot read product information versions from the given input stream because:" + e.getMessage(), e);
       }
       return valueMap;
-   }
-
-   /**
-    * Gets the XML input stream with the version info.
-    *
-    * @return an input stream.
-    */
-   private InputStream getVersionInput() {
-      return OpAboutFormProvider.class.getResourceAsStream(FILE_NAME);
    }
 }

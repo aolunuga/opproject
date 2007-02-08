@@ -173,6 +173,7 @@
       <resource id="WorkRecordsStillExistWarning">Not all selected projects could be deleted, because there existed work slips which referenced some of them</resource>
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
       <resource id="PermissionsLevelError">Permissions Level Error</resource>
+      <resource id="ProjectLockedError">Cannot change project because the project plan is checked out</resource>
    </resource-map>
 
    <resource-map id="project.delete">
@@ -182,6 +183,13 @@
       <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected project or portfolio?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected projects and portfolios?</resource>
       <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project.startdate_future">
+      <resource id="ConfirmStartDateFuture">Moving of the Start Date</resource>
+      <resource id="ConfirmStartDateFutureText">Moving the start date into the future also moves all activities respectively</resource>
+      <resource id="Ok">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 

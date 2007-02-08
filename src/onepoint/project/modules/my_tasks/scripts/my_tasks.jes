@@ -158,17 +158,14 @@ function infoActivity(event){
 }
 
 function deleteAdhoc(event){
-   
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");
    selected_rows = dataSet.selectedRows();
-
-   request = new XMessage;
-   request.setAction("MyTasksService.deleteAdhocTask");
-   request.setArgument("adhocData", selected_rows);
-   response = XDisplay.getClient().invokeMethod(request);
-   XDisplay.findFrame("MainFrame").refreshForm();
-   handleResponse(response); //display error message, if any 
+   if (selected_rows.size() > 0) {
+      parameters.rows = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/my_tasks/forms/confirm_adhoc_delete.oxf.xml", parameters);
+   }
 }
 
 function selectionChanged(event){

@@ -3,7 +3,7 @@
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 
-function ToolDock_onButtonPressed(event) {
+function NavigationBox_onButtonPressed(event) {
    form_location = event.event_source.getStringValue();
    main_frame = XDisplay.findFrame("MainFrame");
    main_frame.showForm(form_location);

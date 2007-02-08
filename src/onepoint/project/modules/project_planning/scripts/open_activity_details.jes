@@ -319,8 +319,8 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
             noCategory = dialog_form.findComponent("ActivityCategoryDataSet").getChild(0).getStringValue();
             category_field.setStringValue(noCategory);
             category_field.getChild(0).setStringValue(noCategory);
-            setFieldEditMode(edit_mode, category_field, disabledFieldsIds);
          }
+         setFieldEditMode(edit_mode, category_field, disabledFieldsIds);
       }
 
       //priority
@@ -340,6 +340,35 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       mandatory_field.setBooleanValue(mandatory);
       if (is_template && edit_mode) {
          mandatory_field.setEnabled(true);
+      }
+
+      //Fill project assignment set & responsible resource
+      assignmentsSet = XDisplay.getActiveForm().findComponent("AssignmentSet");
+      responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");
+      i = 0;
+      if (assignmentsSet != null) {
+         while (i < assignmentsSet.getChildCount()) {
+            dataRow = assignmentsSet.getChild(i);
+            responsibleSet.addChild(dataRow);
+            i++;
+         }
+      }
+
+      data_cell = data_row.getChild(27);
+      field_id = "ResponsibleResource";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         resource_field = dialog_form.findComponent(field_id);
+         resourceLocator = data_cell.getStringValue();
+         if (resourceLocator != null) {
+            resource_field.setStringValue(resourceLocator);
+            resource_field.getChild(0).setStringValue(resourceLocator);
+         }
+         else {
+            noResponsible = dialog_form.findComponent("ResponsibleResourceSet").getChild(0).getStringValue();
+            resource_field.setStringValue(noResponsible);
+            resource_field.getChild(0).setStringValue(noResponsible);
+         }
+         setFieldEditMode(edit_mode, resource_field, disabledFieldsIds);
       }
 
       //resources tab

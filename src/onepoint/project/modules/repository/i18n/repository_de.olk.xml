@@ -41,6 +41,13 @@
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
    </resource-map>   
+   <resource-map id="repository.restore_confirmation">
+      <resource id="RestoreConfirmation">Wiederherstellen aus Sicherungsdatei bestätigen</resource>
+      <resource id="AdminPasswordRequest">Bitte das Administrator Passwort eingeben: </resource>
+      <resource id="SimpleConfirmMessage">Sind Sie sicher, dass Sie eine Sicherungsdatei einspielen wollen?</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
    <resource-map id="repository.error">
       <resource id="BackupError">Es ist beim Sichern ein Fehler aufgetreten. Bitte die Log-Datei für Details überprüfen</resource>
       <resource id="RestoreError">Es ist beim Wiederherstellen ein Fehler aufgetreten. Bitte die Log-Datei für Details überprüfen</resource>

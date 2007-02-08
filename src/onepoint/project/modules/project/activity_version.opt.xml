@@ -28,4 +28,5 @@
    <relationship name="PredecessorVersions" type="OpDependencyVersion" collection-type="Set" back-relationship="SuccessorVersion" inverse="true" cascade="delete"/>
    <relationship name="SuccessorVersions" type="OpDependencyVersion" collection-type="Set" back-relationship="PredecessorVersion" inverse="true" cascade="delete"/>
    <relationship name="AttachmentVersions" type="OpAttachmentVersion" collection-type="Set" back-relationship="ActivityVersion" inverse="true" cascade="delete"/>
+   <relationship name="ResponsibleResource" type="OpResource" back-relationship="ResponsibleActivityVersions"/>
 </prototype>

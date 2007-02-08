@@ -32,9 +32,9 @@
       <tool-group name="my" caption="{$MyToolGroup}"/>
       <tool-group name="reports" caption="{$ReportsToolGroup}"/>
 	    <tool-group name="resources" caption="{$ResourcesToolGroup}"/>
-	    <tool-group name="system" caption="{$SystemToolGroup}"/>
+	    <tool-group name="system" caption="{$SystemToolGroup}" administrator-only="true"/>
    </tool-groups>
    <tools>
-      <tool name="projects" caption="{$ProjectsAdministrationTool}" group-ref="projects" icon="/modules/project/icons/project_tool.png" start-form="/modules/project/forms/projects.oxf.xml"/>
+      <tool name="projects" caption="{$ProjectsAdministrationTool}" group-ref="projects" icon="/modules/project/icons/project_tool.png" start-form="/modules/project/forms/projects.oxf.xml" selected="true"/>
    </tools>
 </module>

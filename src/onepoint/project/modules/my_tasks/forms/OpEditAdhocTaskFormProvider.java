@@ -125,7 +125,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       Set attachments = task.getAttachments();
       addAttachments(form, attachments);
       XLanguageResourceMap resourceMap = session.getLocale().getResourceMap("my_tasks.adhoc_tasks");
-      OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, editMode == null || editMode.booleanValue());
+      OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
 
       broker.close();
 

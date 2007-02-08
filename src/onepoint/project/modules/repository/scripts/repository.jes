@@ -28,7 +28,7 @@ function restore(event) {
    backupDirRootPath = form.findComponent("BackupDirRootPath").getStringValue();
    parameters.backupDirRootPath = backupDirRootPath;
    dialog = XComponent.newDialog();
-   dialog.open("/modules/repository/forms/restore_file_list.oxf.xml", parameters);
+   dialog.open("/modules/repository/forms/restore_confirmation.oxf.xml", parameters);
 }
 
 function reset(event) {

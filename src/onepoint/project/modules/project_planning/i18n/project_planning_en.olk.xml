@@ -138,6 +138,7 @@
       <resource id="Category">Category</resource>
       <resource id="Priority">Priority</resource>
       <resource id="Mandatory">Mandatory</resource>
+      <resource id="ResponsibleResource">Reponsible Resource</resource>
 
       <resource id="Resources">Resources</resource>
       <resource id="Resource">Resource</resource>
@@ -179,7 +180,8 @@
       <resource id="WorkRecordsExistErrorMessage">There exist work slips for this resource assignment</resource>
 
       <resource id="NoCategory">(None)</resource>
-      
+      <resource id="NoResource">(None)</resource>
+
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>

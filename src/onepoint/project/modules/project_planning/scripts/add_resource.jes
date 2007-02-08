@@ -82,6 +82,17 @@ function ok(event) {
 
          assignment_data_set.addDataRow(data_row);
 
+         //update responsible resource if it is the case
+         resourceChooser = previous_dialog.getChild(1).findComponent("ResponsibleResource");
+         chooserValue = resourceChooser.getValue();
+         noResponsible = previous_dialog.getChild(1).findComponent("ResponsibleResourceSet").getChild(0).getStringValue();
+         firstRow = assignment_data_set.getChild(0);
+         responsibleResource = firstRow.getChild(0).getStringValue();
+         if (chooserValue == noResponsible) {
+            resourceChooser.setStringValue(responsibleResource);
+            resourceChooser.getChild(0).setStringValue(responsibleResource);
+         }
+
          // Update assigned user list
          assignment_table_box = previous_dialog.getChild(1).findComponent("AssignmentTable");
          assignment_table_box.update();

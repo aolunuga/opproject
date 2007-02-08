@@ -35,6 +35,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
 
    private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
 
+   private final static String RESPONSIBLE_RESOURCE_SET = "ResponsibleResourceSet";
    private final static String ACTIVITY_CATEGORY_DATA_SET = "ActivityCategoryDataSet";
    private final static String ACTIVITY_CATEGORY_CHOOSER = "Category";
    private final static String COMMENTS_LABEL = "CommentsLabel";
@@ -53,6 +54,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private static final String COMMENT_SO_FAR = "CommentSoFar";
    private static final String COMMENTS_SO_FAR = "CommentsSoFar";
    private static final String NO_COMMENTS = "NoCommentsPossible";
+   private static final String NO_RESOURCE_TEXT = "NoResource";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -97,6 +99,13 @@ public class OpEditActivityFormProvider implements XFormProvider {
       XComponent categoryDataSet = form.findComponent(ACTIVITY_CATEGORY_DATA_SET);
       XComponent categoryChooser = form.findComponent(ACTIVITY_CATEGORY_CHOOSER);
       addCategories(broker, categoryChooser, categoryDataSet, resourceMap);
+
+      //Resource set
+      XComponent responsibleSet = form.findComponent(RESPONSIBLE_RESOURCE_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      String noResource = resourceMap.getResource(NO_RESOURCE_TEXT).getText();
+      dataRow.setStringValue(XValidator.choice(OpGanttValidator.NO_RESOURCE_ID, noResource));
+      responsibleSet.addChild(dataRow);
 
       showComments(form, activity, session, broker, resourceMap, true);
 

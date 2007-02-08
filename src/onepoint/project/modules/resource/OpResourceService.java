@@ -67,15 +67,21 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       // Set pool for this resource and set hourly rate of pool if inherit is true
       String pool_id_string = (String) (resource_data.get("PoolID"));
       logger.debug("***INTO-POOL: " + pool_id_string);
+      OpResourcePool pool;
       if (pool_id_string != null) {
-         OpResourcePool pool = (OpResourcePool) (broker.getObject(pool_id_string));
-         if (pool != null) {
-            resource.setPool(pool);
-         }
-         else {
-            resource.setPool(findRootPool(broker));
+         pool = (OpResourcePool) (broker.getObject(pool_id_string));
+         if (pool == null) {
+            logger.warn("Superpool is null. Resource will be added to root pool.");
+            pool = findRootPool(broker);
          }
       }
+      else {
+         logger.warn("Given superpool locator is null. Resource will be added to root pool.");
+         pool = findRootPool(broker);
+      }
+      resource.setPool(pool);
+
+
       if (resource.getInheritPoolRate()) {
          resource.setHourlyRate(resource.getPool().getHourlyRate());
       }
@@ -535,7 +541,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    public XMessage hasResourceAssignments(OpProjectSession s, XMessage request) {
       String id_string = (String) (request.getArgument(POOL_ID));
       boolean hasAssignments = false;
-      OpBroker broker =  s.newBroker();
+      OpBroker broker = s.newBroker();
       OpResourcePool pool = (OpResourcePool) broker.getObject(id_string);
       for (Iterator iterator = pool.getResources().iterator(); iterator.hasNext();) {
          OpResource resource = (OpResource) iterator.next();
@@ -720,7 +726,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       broker.execute(query);
       */
       query = broker.newQuery("select resource from OpResource as resource where resource.ID in (:resourceIds) and resource.Pool.ID in (:accessiblePoolIds) " +
-           "and size(resource.ActivityAssignments) = 0 and size(resource.AssignmentVersions) = 0");
+           "and size(resource.ActivityAssignments) = 0 and size(resource.AssignmentVersions) = 0" +
+           "and size(resource.ResponsibleActivities) = 0 and size(resource.ResponsibleActivityVersions) = 0");
       query.setCollection("resourceIds", resourceIds);
       query.setCollection("accessiblePoolIds", accessiblePoolIds);
       List resources = broker.list(query);
@@ -785,15 +792,19 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       // Set pool for this resource and set hourly rate of pool if inherit is true
       String superPoolLocator = (String) (pool_data.get("SuperPoolID"));
       logger.debug("***INTO-SUPER-POOL: " + superPoolLocator);
+      OpResourcePool superPool;
       if (superPoolLocator != null) {
-         OpResourcePool superPool = (OpResourcePool) (broker.getObject(superPoolLocator));
-         if (pool != null) {
-            pool.setSuperPool(superPool);
-         }
-         else {
-            pool.setSuperPool(findRootPool(broker));
+         superPool = (OpResourcePool) (broker.getObject(superPoolLocator));
+         if (superPool == null) {
+            logger.warn("Given SuperPool is null. Pool will be inserted into root pool.");
+            superPool = findRootPool(broker);
          }
       }
+      else {
+         superPool = findRootPool(broker);
+         logger.warn("SuperPool locator is null. Pool will be inserted into root pool.");
+      }
+      pool.setSuperPool(superPool);
 
       // Check manager access for super pool
       if (!session.checkAccessLevel(broker, pool.getSuperPool().getID(), OpPermission.MANAGER)) {
@@ -973,7 +984,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Set resources = pool.getResources();
          for (Iterator it = resources.iterator(); it.hasNext();) {
             OpResource resource = (OpResource) it.next();
-            if (!resource.getActivityAssignments().isEmpty() || !resource.getAssignmentVersions().isEmpty()) {
+            if (!resource.getActivityAssignments().isEmpty() || !resource.getAssignmentVersions().isEmpty() ||
+                 !resource.getResponsibleActivities().isEmpty() || !resource.getResponsibleActivityVersions().isEmpty()) {
                logger.warn("Resource " + resource.getName() + " is used in project assignments");
                reply.setError(session.newError(ERROR_MAP, OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED));
                t.rollback();
@@ -1261,8 +1273,15 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpQuery query = broker.newQuery(countQuery);
       query.setLong(0, resource.getID());
       query.setLong(1, projectPlan.getID());
-      Integer counter = (Integer) broker.iterate(query).next();
-      return counter.intValue();
+      Integer counterAssignments = (Integer) broker.iterate(query).next();
+
+      countQuery = "select count(assignmentVersion) from OpResource resource inner join resource.AssignmentVersions assignmentVersion where resource.ID = ? and assignmentVersion.PlanVersion.ProjectPlan.ID = ?";
+      query = broker.newQuery(countQuery);
+      query.setLong(0, resource.getID());
+      query.setLong(1, projectPlan.getID());
+      Integer counterAssignmentVersions = (Integer) broker.iterate(query).next();
+
+      return counterAssignments.intValue() + counterAssignmentVersions.intValue();
    }
 
    /**

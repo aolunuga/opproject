@@ -41,6 +41,13 @@
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
+   <resource-map id="repository.restore_confirmation">
+      <resource id="RestoreConfirmation">Confirm Restore</resource>
+      <resource id="AdminPasswordRequest">Please enter the administrator password: </resource>
+      <resource id="SimpleConfirmMessage">Are you sure you want to restore a backup file?</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
    <resource-map id="repository.error">
       <resource id="BackupError">An error occurred during backup. Please check the log file for details</resource>
       <resource id="RestoreError">An error occurred during restore. Please check the log file for details</resource>

@@ -34,7 +34,6 @@ function addAssignment(event) {
    assignment_data_set = cur_form.findComponent("AssignmentSet");
 
    dialog = XComponent.newDialog();
-   dialog.setText("Resourcen zuweisen");
    form = dialog.loadForm("/modules/project_planning/forms/add_resource.oxf.xml");
    new_resource_set = form.findComponent("ResourceDataSet");
    resource_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
@@ -116,7 +115,6 @@ function addPredecessor(event) {
    cur_form = XDisplay.getActiveForm();
 
    dialog = XComponent.newDialog();
-   dialog.setText("Vorg�nger zuweisen");
    form = dialog.loadForm("/modules/project_planning/forms/add_predecessor.oxf.xml");
    predecessor_set = form.findComponent("ActivityDataSet");
    activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
@@ -424,6 +422,16 @@ function ok(event) {
             return;
          }
       }
+
+      // Update responsible resource
+      responsible = form.findComponent("ResponsibleResource").getStringValue();
+      if (responsible != null) {
+         if (!activity_set.setDataCellValue(activity_row, 27, responsible, form)) {
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
 
       validator.setContinuousAction(false);
       XDisplay.getActiveWindow().close();

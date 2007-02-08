@@ -197,14 +197,10 @@ public class OpRepositoryService extends OpProjectService {
       if (!projectSession.userIsAdministrator()) {
          return createErrorMessage(projectSession, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
       }
-      //check whether the user entered a valid admin password
-      OpBroker broker = projectSession.newBroker();
-      if (OpInitializer.isMultiUser()) {
-         String adminPassword = projectSession.user(broker).getPassword();
-         String enteredAdminPassword = (String) request.getArgument(ADMIN_PASSWORD_PARAMETER);
-         if (!adminPassword.equals(enteredAdminPassword)) {
-            return createErrorMessage(projectSession, OpRepositoryError.INVALID_ADMIN_PASSWORD);
-         }
+
+      XMessage reply = validateAdminPassword(projectSession, request);
+      if (reply != null) {
+         return reply;
       }
 
       try {
@@ -216,9 +212,27 @@ public class OpRepositoryService extends OpProjectService {
          logger.error("An error occured during reset:" + e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.RESET_ERROR_CODE);
       }
-      finally {
-         broker.close();
-      }
       return null;
+   }
+
+   /**
+    * Checks whether the user entered a valid administrator password or not.
+    * @param projectSession a <code>OpProjectSession</code> representing the server session.
+    * @param request a <code>XMessage</code> representing the server request.
+    * @return a <code>XMessage</code> which is the response.
+    */
+   public XMessage validateAdminPassword(OpProjectSession projectSession, XMessage request) {
+      //check whether the user entered a valid admin password
+      XMessage reply = null;
+      OpBroker broker = projectSession.newBroker();
+      if (OpInitializer.isMultiUser()) {
+         String adminPassword = projectSession.user(broker).getPassword();
+         String enteredAdminPassword = (String) request.getArgument(ADMIN_PASSWORD_PARAMETER);
+         if (!adminPassword.equals(enteredAdminPassword)) {
+            reply = createErrorMessage(projectSession, OpRepositoryError.INVALID_ADMIN_PASSWORD);
+         }
+      }
+      broker.close();
+      return reply;
    }
 }

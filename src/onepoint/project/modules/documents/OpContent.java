@@ -6,8 +6,8 @@ package onepoint.project.modules.documents;
 
 import onepoint.persistence.OpObject;
 
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 public class OpContent extends OpObject {
    
@@ -18,6 +18,7 @@ public class OpContent extends OpObject {
    private long size;
    private byte[] bytes; // TODO: Use OpBlobUserType; what about streaming?
    private Set attachments = new HashSet();
+   private Set attachmentVersions = new HashSet();
    private Set documents = new HashSet();
 
    public void setRefCount(int refCount) {
@@ -66,5 +67,13 @@ public class OpContent extends OpObject {
 
    public void setDocuments(Set documents) {
       this.documents = documents;
+   }
+
+   public Set getAttachmentVersions() {
+      return attachmentVersions;
+   }
+
+   public void setAttachmentVersions(Set attachmentVersions) {
+      this.attachmentVersions = attachmentVersions;
    }
 }

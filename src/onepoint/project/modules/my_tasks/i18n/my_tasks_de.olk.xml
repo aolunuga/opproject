@@ -4,16 +4,16 @@
    </resource-map>
    <resource-map id="my_tasks.my_tasks">
 
-      <resource id="NewAdhoc">New task</resource>
-      <resource id="EditAdhoc">Edit task</resource>
-      <resource id="DeleteAdhoc">Delete task</resource>
+      <resource id="NewAdhoc">Neue Aufgabe</resource>
+      <resource id="EditAdhoc">Aufgabe bearbeiten</resource>
+      <resource id="DeleteAdhoc">Aufgabe löschen</resource>
       <resource id="NewComment">Neuer Kommentar</resource>
       <resource id="Info">Eigenschaften</resource>
       <resource id="Print">Drucken</resource>
 
-      <resource id="NewAdhocTooltip">Create new ad-hoc tasks</resource>
-      <resource id="EditAdhocTooltip">Edit the selected ad-hoc tasks</resource>
-      <resource id="DeleteAdhocTooltip">Delete the selected ad-hoc tasks</resource>
+      <resource id="NewAdhocTooltip">Neue Ad-Hoc-Aufgabe anlegen</resource>
+      <resource id="EditAdhocTooltip">Ausgewählte Ad-Hoc-Aufgabe bearbeiten</resource>
+      <resource id="DeleteAdhocTooltip">Ausgewählte Ad-Hoc-Aufgaben löschen</resource>
       <resource id="NewCommentTooltip">Neuen Kommentar erstellen</resource>
       <resource id="InfoTooltip">Vorgangseigenschaften einsehen</resource>
       <resource id="PrintTooltip">Diese Ansicht drucken</resource>
@@ -47,46 +47,56 @@
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
-      <resource id="NewAdhocTitle">New Ad-hoc Task</resource>
-      <resource id="EditAdhocTitle">Edit Ad-hoc Task</resource>
-      <resource id="InfoAdhocTitle">Ad-hoc Task Properties</resource>
+      <resource id="NewAdhocTitle">Neue Aufgabe</resource>
+      <resource id="EditAdhocTitle">Aufgabe bearbeiten</resource>
+      <resource id="InfoAdhocTitle">Eigenschaften</resource>
 
-      <resource id="General">General</resource>
+      <resource id="General">Allgemein</resource>
       <resource id="Name">Name</resource>
-      <resource id="Priority">Priority</resource>
-      <resource id="Description">Description</resource>
-      <resource id="DueDate">Due Date</resource>
-      <resource id="Project">Project</resource>
-      <resource id="Resource">Resource</resource>
+      <resource id="Priority">Priorität</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="DueDate">Fällig am</resource>
+      <resource id="Project">Projekt</resource>
+      <resource id="Resource">Ressource</resource>
 
-      <resource id="Attachments">Attachments</resource>
-      <resource id="Title">Title</resource>
-      <resource id="Location">Location</resource>
-      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
-      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
-      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
-      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Attachments">Anlagen</resource>
+      <resource id="Title">Titel</resource>
+      <resource id="Location">Link</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
+	  <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
+	  <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
+	  <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
 
-      <resource id="Comments">Comments</resource>
-      <resource id="AddCommentTooltip">Add new comment</resource>
-      <resource id="RemoveCommentsTooltip">Delete selected comments</resource>
-      <resource id="By">By</resource>
-      <resource id="On">on</resource>
-      <resource id="At">at</resource>
-      <resource id="CommentSoFar">comment so far</resource>
-      <resource id="CommentsSoFar">comments so far</resource>
-      <resource id="NoCommentsPossible">No comments (activity not checked in yet)</resource>
+      <resource id="Comments">Kommentare</resource>
+      <resource id="AddCommentTooltip">Neuen Kommentar hinzufügen</resource>
+      <resource id="RemoveCommentsTooltip">Ausgewählte Kommentare löschen</resource>
+      <resource id="By">Von</resource>
+      <resource id="On">am</resource>
+      <resource id="At">um</resource>
+      <resource id="CommentSoFar">Kommentar bisher</resource>
+      <resource id="CommentsSoFar">Kommentare bisher</resource>
+      <resource id="NoCommentsPossible">Keine Kommentare (Vorgang noch nicht freigegeben)</resource>
 
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.delete">
+      <resource id="ConfirmDelete">Ad-Hoc-Aufgaben löschen</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie ein oder mehrere Ad-Hoc-Aufgaben zum Löschen aus</resource>
+      <resource id="ConfirmDeleteOneMessage">Möchten Sie die ausgewählte Ad-Hoc-Aufgabe wirklich löschen?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Ad-Hoc-Aufgaben wirklich löschen?</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
-
+   
    <resource-map id="my_tasks.error">
-      <resource id="EmptyName">Empty Name</resource>
-      <resource id="InvalidDueDate">Invalid Due Date</resource>
-      <resource id="NoProjectError">Missing Project </resource>
-      <resource id="NoResourceError">Missing Resource</resource>
-      <resource id="ExistingWorkSlipError">Adhoc Task can't be removed because existing work slips are referencing them.</resource>
+      <resource id="EmptyName">Der Aufgabenname wurde nicht angegeben</resource>
+      <resource id="InvalidDueDate">Das eingegebene Fälligkeitsdatum ist ungültig</resource>
+      <resource id="NoProjectError">Es wurde kein Projekt ausgewählt</resource>
+      <resource id="NoResourceError">Es wurde keine Ressource zugewiesen</resource>
+      <resource id="ExistingWorkSlipError">Die ausgewählten Ad-Hoc-Augaben können nicht gelöscht werden, da Arbeitszettel auf sie verweiseen</resource>
+      <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte um diese Aktion auszuführen</resource>
    </resource-map>
    
 </language-kit>

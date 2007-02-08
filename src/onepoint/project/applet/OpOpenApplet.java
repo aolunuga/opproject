@@ -15,7 +15,7 @@ import java.util.HashMap;
 /**
  * Applet used for the expander application.
  */
-public class OpProjectApplet extends XExpressApplet {
+public class OpOpenApplet extends XExpressApplet {
 
    /**
     * Various applet constants.
