@@ -22,10 +22,10 @@
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="project.jarname" value="opproject-06.1-be.jar"/>
-   <property name="project.client.jarname" value="opproject-client-06.1-be.jar"/>
+   <property name="project.jarname" value="opproject-07beta-be.jar"/>
+   <property name="project.client.jarname" value="opproject-client-07beta-be.jar"/>
    <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client-06.1.jar"/>
+   <property name="express.client.jarname" value="express4j-client-07beta.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
@@ -37,7 +37,7 @@
    <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
    <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
-   <property name="release.root.filename" value="opproject-06.1"/>
+   <property name="release.root.filename" value="opproject-07beta"/>
 
    <!-- Classpath reference -->
    <path id="op.classpath">
@@ -530,7 +530,7 @@
          <zipfileset dir="${op.lib.dir}"
                      excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *jmock*, *junit*, *servlet*"
                      prefix="${op.zip.root.dir}/${op.lib.dir}"/>
-         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
+         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}" excludes="**.sql"/>
          <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
          <zipfileset file="${op.release.dir}/readme.txt" prefix="${op.zip.root.dir}"/>
       </zip>

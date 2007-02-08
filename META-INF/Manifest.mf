@@ -13,4 +13,4 @@ Class-Path: lib/activation.jar lib/antlr-2.7.6rc1.jar
    lib/xercesImpl.jar lib/xml-apis.jar 
    lib/commons-beanutils-1.6.jar lib/commons-digester-1.7.jar
    lib/BrowserLauncher2-10rc4.jar lib/hsqldb.jar
-   lib/commons-javaflow-20060411.jar lib/express4j-06.1.jar
+   lib/commons-javaflow-20060411.jar lib/express4j-07beta.jar

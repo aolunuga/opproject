@@ -8,7 +8,7 @@
 
    <display-name>OnePoint Project</display-name>
    <description>
-      OnePoint Project 06 Team Edition (c) 2006 OnePoint Software GmbH
+      OnePoint Project 07beta Open Edition (c) 2007 OnePoint Software GmbH
    </description>
 
    <servlet>
@@ -24,7 +24,7 @@
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>
-         <param-value>express4j-client-06.1.jar,opproject-client-06.1-be.jar,jcookie-0.8b.jar</param-value>
+         <param-value>express4j-client-07beta.jar,opproject-client-07beta-be.jar,jcookie-0.8b.jar</param-value>
       </init-param>
    </servlet>
 
