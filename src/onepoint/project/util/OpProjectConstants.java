@@ -29,16 +29,16 @@ public abstract class OpProjectConstants {
    public static String PROFESSIONAL_EDITION_CODE = "OPPPE";
    public static String OPEN_EDITION_CODE = "OPPOE";
    public static String TEAM_EDITION_CODE = "OPPTE";
-   public static Map PRODUCT_CODES = new HashMap();
+   public static Map PRODUCT_CODES_DESCRIPTION = new HashMap();
    
    /**
     * Initializer for the map of product codes.
     * <FIXME author="Horia Chiorean" description="Check if the product names should come from an i18n file">
     */
    static {
-      PRODUCT_CODES.put(BASIC_EDITION_CODE, "Onepoint Project Basic Edition");
-      PRODUCT_CODES.put(PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
-      PRODUCT_CODES.put(OPEN_EDITION_CODE, "Onepoint Project Open Edition");
-      PRODUCT_CODES.put(TEAM_EDITION_CODE, "Onepoint Project Team Edition");
+      PRODUCT_CODES_DESCRIPTION.put(BASIC_EDITION_CODE, "Onepoint Project Basic Edition");
+      PRODUCT_CODES_DESCRIPTION.put(PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OPEN_EDITION_CODE, "Onepoint Project Open Edition");
+      PRODUCT_CODES_DESCRIPTION.put(TEAM_EDITION_CODE, "Onepoint Project Team Edition");
    }
 }

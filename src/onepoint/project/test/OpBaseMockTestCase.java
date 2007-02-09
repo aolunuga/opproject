@@ -1,9 +1,12 @@
 /*
-* Copyright(c) OnePoint Software GmbH 2005. All Rights Reserved.
-*/
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
 package onepoint.project.test;
 
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.module.OpModuleRegistryLoader;
@@ -11,7 +14,6 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.*;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.util.XEnvironment;
 import org.apache.log4j.Logger;
 import org.jmock.Mock;
 import org.jmock.cglib.CGLIBCoreMock;
@@ -26,9 +28,9 @@ import java.util.*;
  *         <p/>
  *         Abstract class that defines common functionality for all service test cases.
  */
-public abstract class OpServiceAbstractTest extends MockObjectTestCase {
+public abstract class OpBaseMockTestCase extends MockObjectTestCase {
 
-   private static final Logger log = Logger.getLogger(OpServiceAbstractTest.class);
+   private static final Logger log = Logger.getLogger(OpBaseMockTestCase.class);
    protected Mock mockSession;
    protected Mock mockBroker;
    protected Mock mockQuery;
@@ -101,12 +103,12 @@ public abstract class OpServiceAbstractTest extends MockObjectTestCase {
       //Setup environment for all the tests
 
       log.debug("Static set up block for all test cases");
-      XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, "onepoint/project/test");
+      OpEnvironmentManager.setOnePointHome("onepoint/project/test");
       OpModuleRegistryLoader registryLoader = new OpModuleRegistryLoader();
       registryLoader.setUseResourceLoader(true);
       OpModuleManager.setModuleRegistryLoader(registryLoader);
       XResourceBroker.setResourcePath("onepoint/project");
-      OpModuleManager.load();
+      OpModuleManager.load(Constants.REGISTRY_FILE);
    }
 
    /**
@@ -237,7 +239,7 @@ public abstract class OpServiceAbstractTest extends MockObjectTestCase {
    /**
     * Asserts that a XMessage reply from a service method contains not error msgs.
     *
-    * @param message
+    * @param message  message to check
     */
    public static void assertNoError(XMessage message){
       if (message != null){

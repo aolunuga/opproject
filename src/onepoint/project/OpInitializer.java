@@ -23,7 +23,6 @@ import onepoint.project.modules.user.OpUserService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
-import onepoint.util.XEnvironment;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -36,14 +35,21 @@ import java.util.Map;
  * @author ovidiu.lupas
  *         <FIXME author="Horia Chiorean" description="Not very OO-oriented that this class is static...(same as the 'factories')/>
  */
-public class OpInitializer {
+public final class OpInitializer {
+   /**
+    * Success Run Level.
+    */
+   public static final byte SUCCESS_RUN_LEVEL = 6;
 
-   //keys in the initParams map
-   public static String RESOURCE_CACHE_SIZE = "cacheSize";
-   public static String SECURE_SERVICE = "secureService";
-
-   //class logger
+   /**
+    * This class's logger
+    */
    private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
+
+   /**
+    * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
+    */
+   private static final Map PRODUCT_CODES_MAP = new HashMap();
 
    /**
     * Run level of the application.
@@ -51,23 +57,34 @@ public class OpInitializer {
    private static byte runLevel = 0;
 
    /**
-    * Success Run Level.
+    * The code of the db connection test
     */
-   private static byte successRunLevel = 6;
-
    private static int connectionTestCode = OpConnectionManager.SUCCESS;
 
-   //init params map that will be returned after initialization is performed
+   /**
+    * Map containg information about the initialization steps taken by the initializer
+    */
    private static Map initParams = new HashMap();
 
    /**
-    * Flag indicating whether the application is multi-user or not.
+    * The configuration object initialized by this class
     */
-   private static boolean multiUser = false;
-
    private static OpConfiguration configuration = null;
 
+   /**
+    * The product code used in the initialization process
+    */
    private static String productCode = null;
+
+   /**
+    * Initialize the product codes map
+    */
+   static {
+      PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
+   }
 
    /**
     * This class should not be instantiated
@@ -90,24 +107,23 @@ public class OpInitializer {
     * @return <code>byte</code> run level
     */
    public static byte getSuccessRunLevel() {
-      return successRunLevel;
+      return SUCCESS_RUN_LEVEL;
    }
 
    /**
     * Performs application initilization steps.
     *
-    * @param projectPath <code>String</code> the absolute path to the folder which contains the configuration files
-    * @param isMultiUser True if application is in multi-user mode, false if it is single-user (standalone)
-    * @return <code>Map</code> of init parameters
+    * @param productCode a <code>String</code> representing the program code (the flavour of the application).
+    * @return <code>Map</code> of init parameters.
     */
-   public static Map init(String projectPath, boolean isMultiUser) {
+   public static Map init(String productCode) {
+      //set the product code
+      OpInitializer.productCode = productCode;
 
       logger.info("Application initialization started");
-      multiUser = isMultiUser;
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
       try {
-
          XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
          // Attention: Locale map must be loaded and set before starting up modules
          if (XLocaleManager.getLocaleMap() == null) {
@@ -125,17 +141,9 @@ public class OpInitializer {
          XLanguageKit main_de = main_de_file.loadLanguageKit();
          XLocaleManager.registerLanguageKit(main_de);
 
-         // environment setup
-         if (projectPath != null) {
-            XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, projectPath);
-         }
-         else {
-            logger.error("Environment variable ONEPOINT_HOME is not set");
-            return initParams;
-         }
-
          // Read configuration file
          OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
+         String projectPath = OpEnvironmentManager.getOnePointHome();
          onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
 
          if (configuration == null) {
@@ -164,12 +172,6 @@ public class OpInitializer {
             connectionTestCode = testResult;
             return initParams;
          }
-
-         // the resource cache max size
-         initParams.put(RESOURCE_CACHE_SIZE, configuration.getCacheConfiguration().getResourceCacheSize());
-
-         // the security feature
-         initParams.put(SECURE_SERVICE, configuration.getSecureService());
 
          // set smtp host for OpMailer
          OpMailer.setSMTPHostName(configuration.getSMTPServer());
@@ -271,7 +273,11 @@ public class OpInitializer {
     * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
     */
    public static boolean isMultiUser() {
-      return multiUser;
+      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
+      if (isMultiUser == null) {
+         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
+      }
+      return isMultiUser.booleanValue();
    }
 
 
@@ -281,14 +287,6 @@ public class OpInitializer {
     */
    public static String getProductCode() {
       return productCode;
-   }
-
-   /**
-    * Sets the product code constant.
-    * @param productCode a <code>String</code> representing 
-    */
-   public static void setProductCode(String productCode) {
-      OpInitializer.productCode = productCode;
    }
 
    /**

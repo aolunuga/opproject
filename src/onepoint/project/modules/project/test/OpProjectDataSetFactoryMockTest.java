@@ -21,7 +21,7 @@ import java.util.ArrayList;
  *
  * @author ovidiu.lupas
  */
-public class OpProjectDataSetFactoryTest extends onepoint.project.test.OpServiceAbstractTest {
+public class OpProjectDataSetFactoryMockTest extends onepoint.project.test.OpBaseMockTestCase {
    /*root portfolio of project */
    private OpProjectNode rootPortfolio;
    /* subportfolio of the root portfolio*/
@@ -48,7 +48,7 @@ public class OpProjectDataSetFactoryTest extends onepoint.project.test.OpService
         "where project.SuperNode.ID = ? and project.Type = ?";
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
+    * @see onepoint.project.test.OpBaseMockTestCase#invocationMatch(org.jmock.core.Invocation)
     */
    public Object invocationMatch(Invocation invocation) throws IllegalArgumentException {
       String methodName = invocation.invokedMethod.getName();

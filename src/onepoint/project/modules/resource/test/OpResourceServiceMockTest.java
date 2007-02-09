@@ -27,7 +27,7 @@ import java.util.*;
  *
  * @author ovidiu.lupas
  */
-public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstractTest {
+public class OpResourceServiceMockTest extends onepoint.project.test.OpBaseMockTestCase {
 
    /* the resource service object that is being tested*/
    private OpResourceService resourceService;
@@ -82,7 +82,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
    private final String SUPER_POOL_ID_PARAM = "SuperPoolID";
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#setUp()
+    * @see onepoint.project.test.OpBaseMockTestCase#setUp()
     */
    public void setUp() {
 
@@ -143,7 +143,7 @@ public class OpResourceServiceTest extends onepoint.project.test.OpServiceAbstra
    }
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
+    * @see onepoint.project.test.OpBaseMockTestCase#invocationMatch(org.jmock.core.Invocation)
     */
    public Object invocationMatch(Invocation invocation)
         throws IllegalArgumentException {

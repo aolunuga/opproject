@@ -15,7 +15,6 @@ import onepoint.resource.XLanguageKit;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
-import onepoint.util.XEnvironment;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,44 +24,55 @@ public final class OpModuleManager {
 
    public final static String MODULE_REGISTRY_FILE_NAME = "registry.oxr.xml";
 
-   private static OpModuleRegistry _module_registry;
+   private static OpModuleRegistry moduleRegistry;
    private static OpModuleRegistryLoader opModuleRegistryLoader;
 
    /**
     * Sets the ModuleRegistryLoader to be used for loading the modules
     *
-    * @param moduleLoader
+    * @param moduleLoader module loader
     */
    public static void setModuleRegistryLoader(OpModuleRegistryLoader moduleLoader) {
       opModuleRegistryLoader = moduleLoader;
    }
 
+   /**
+    * Read modules registry.
+    */
    public static void load() {
-      // Read module registry
+      load(MODULE_REGISTRY_FILE_NAME);
+   }
+
+   /**
+    * Read modules registry.
+    *
+    * @param registryFileName name of the module registry file.
+    */
+   public static void load(String registryFileName) {
       // *** Exception/error if module-registry has already been read?
-      String path = XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME) + "/" + MODULE_REGISTRY_FILE_NAME;
+      String path = OpEnvironmentManager.getOnePointHome() + "/" + registryFileName;
       if (opModuleRegistryLoader == null) {
          opModuleRegistryLoader = new OpModuleRegistryLoader();
       }
-      _module_registry = opModuleRegistryLoader.loadModuleRegistry(path);
-      if (_module_registry == null) {
+      moduleRegistry = opModuleRegistryLoader.loadModuleRegistry(path);
+      if (moduleRegistry == null) {
          // We assume that this is a newly installed system
-         _module_registry = new OpModuleRegistry();
+         moduleRegistry = new OpModuleRegistry();
          // *** Add built-in modules here or hard-code completely?
       }
       // Register prototypes and tools for all modules
-      Iterator modules = _module_registry.getModules();
-      OpModule module = null;
-      Iterator prototypes = null;
-      OpPrototype prototype = null;
-      Iterator services = null;
-      XService service = null;
-      Iterator language_kits = null;
-      XLanguageKit language_kit = null;
-      Iterator tools = null;
-      OpTool tool = null;
-      Iterator groups = null;
-      OpToolGroup group = null;
+      Iterator modules = moduleRegistry.getModules();
+      OpModule module;
+      Iterator prototypes;
+      OpPrototype prototype;
+      Iterator services;
+      XService service;
+      Iterator language_kits;
+      XLanguageKit language_kit;
+      Iterator tools;
+      OpTool tool;
+      Iterator groups;
+      OpToolGroup group;
       while (modules.hasNext()) {
          module = (OpModule) (modules.next());
          // Register prototypes
@@ -168,7 +178,7 @@ public final class OpModuleManager {
    public static void setup() {
       // Invoke setup callbacks (for setting up a new instance)
       OpProjectSession setupSession = new OpProjectSession();
-      Iterator modules = _module_registry.getModules();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.setup(setupSession);
@@ -179,7 +189,7 @@ public final class OpModuleManager {
    public static void start() {
       // Invoke start callbacks
       OpProjectSession startupSession = new OpProjectSession();
-      Iterator modules = _module_registry.getModules();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.start(startupSession);
@@ -190,7 +200,7 @@ public final class OpModuleManager {
    public static void stop() {
       // *** Write module-registry?
       OpProjectSession shutdownSession = new OpProjectSession();
-      Iterator modules = _module_registry.getModules();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.stop(shutdownSession);
@@ -201,12 +211,12 @@ public final class OpModuleManager {
    /**
     * Calls the upgrade method for all the registered modules. This usually occurs when a db schema update takes place.
     *
-    * @param dbVersion
+    * @param dbVersion database version.
     * @see OpModule#upgrade(onepoint.project.OpProjectSession,int)
     */
    public static void upgrade(int dbVersion) {
       OpProjectSession session = new OpProjectSession();
-      Iterator modules = _module_registry.getModules();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.upgrade(session, dbVersion);
@@ -214,33 +224,8 @@ public final class OpModuleManager {
       session.close();
    }
 
-   // *** Maybe these two should already go into an XModuleService?
-
-   public static void installModule(OpProjectSession session, String module_name) {
-      // Register new prototypes and re-lock type manager
-      // *** We could maybe work with "run-levels" for locking/unlocking etc.
-      OpModule module = _module_registry.getModule(module_name);
-      if (module != null) {
-         Iterator prototypes = module.getPrototypes();
-         OpPrototype prototype = null;
-         /*
-          * while (prototypes.hasNext()) { prototype = (OpPrototype)
-          * (prototypes.next()); OpTypeManager.registerPrototype(prototype); }
-          * OpTypeManager.lock();
-          */
-         // *** ATTENTION: The following is not possible anymore
-         // ==> We can only create the whole schema
-         // *** Maybe we could provide an "alterSchema()" method for this?
-         /*
-          * // Create prototypes in database OpBroker broker =
-          * session.getBroker(); while (prototypes.hasNext()) { prototype =
-          * (OpPrototype) (prototypes.next());
-          * broker.createPrototype(prototype.getName()); }
-          */
-      }
-   }
 
    public static OpModuleRegistry getModuleRegistry() {
-      return _module_registry;
+      return moduleRegistry;
    }
 }

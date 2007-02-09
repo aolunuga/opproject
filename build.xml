@@ -530,7 +530,6 @@
          <zipfileset dir="${op.lib.dir}"
                      excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *jmock*, *junit*, *servlet*"
                      prefix="${op.zip.root.dir}/${op.lib.dir}"/>
-         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}" excludes="**.sql"/>
          <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
          <zipfileset file="${op.release.dir}/readme.txt" prefix="${op.zip.root.dir}"/>
       </zip>

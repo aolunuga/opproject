@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * @author ovidiu.lupas
  */
-public class OpProgressCalculatorTest extends onepoint.project.test.OpServiceAbstractTest {
+public class OpProgressCalculatorMockTest extends onepoint.project.test.OpBaseMockTestCase {
    /*the assignment project plan*/
    private OpProjectPlan projectPlan;
    /*the assignment resources */

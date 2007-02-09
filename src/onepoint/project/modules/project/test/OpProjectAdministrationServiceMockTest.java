@@ -12,7 +12,7 @@ import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.test.OpServiceAbstractTest;
+import onepoint.project.test.OpBaseMockTestCase;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 import org.jmock.core.Constraint;
@@ -32,7 +32,7 @@ import java.util.*;
 // </FIXME>
 
 
-public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
+public class OpProjectAdministrationServiceMockTest extends OpBaseMockTestCase {
    /**
     * Various predefined project id that will be used in the tests.
     */
@@ -112,7 +112,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#setUp()
+    * @see onepoint.project.test.OpBaseMockTestCase#setUp()
     */
    protected void setUp() {
       super.setUp();
@@ -185,7 +185,7 @@ public class OpProjectAdministrationServiceTest extends OpServiceAbstractTest {
 
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
+    * @see onepoint.project.test.OpBaseMockTestCase#invocationMatch(org.jmock.core.Invocation)
     */
    public Object invocationMatch(Invocation invocation)
         throws IllegalArgumentException {

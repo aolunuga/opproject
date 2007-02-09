@@ -10,7 +10,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResourcePool;
-import onepoint.project.test.OpServiceAbstractTest;
+import onepoint.project.test.OpBaseMockTestCase;
 import onepoint.resource.XLocalizer;
 import org.jmock.core.Constraint;
 import org.jmock.core.Invocation;
@@ -27,7 +27,7 @@ import java.util.Map;
  */
 
 //<FIXME author="Mihai Costin" description="This test needs re-writing!!"
-public class OpResourceDataSetFactoryTest extends OpServiceAbstractTest {
+public class OpResourceDataSetFactoryMockTest extends OpBaseMockTestCase {
 //</FIXME>
 
    //the root resource pool
@@ -52,7 +52,7 @@ public class OpResourceDataSetFactoryTest extends OpServiceAbstractTest {
    private static final String SELECT_RESOURCE_BY_POOL_ID = "select resource.ID from OpResource as resource where resource.Pool.ID = ?";
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
+    * @see onepoint.project.test.OpBaseMockTestCase#invocationMatch(org.jmock.core.Invocation)
     */
    public Object invocationMatch(Invocation invocation)
         throws IllegalArgumentException {
@@ -66,7 +66,7 @@ public class OpResourceDataSetFactoryTest extends OpServiceAbstractTest {
    }
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#setUp()
+    * @see onepoint.project.test.OpBaseMockTestCase#setUp()
     */
    public void setUp() {
       super.setUp();

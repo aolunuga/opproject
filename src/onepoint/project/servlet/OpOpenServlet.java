@@ -11,6 +11,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.applet.OpOpenApplet;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
@@ -29,7 +30,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -65,17 +65,21 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String INSUFICIENT_VIEW_PERMISSIONS = "InsuficientViewPermissions";
    private static final String INVALID_SESSION = "InvalidSession";
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
-   private String project_home;
 
-   protected String getProjectHome() {
-      if (project_home == null) {
-         project_home = getServletConfig().getInitParameter("onepoint_home");
-         if (project_home == null) {
+   private String projectHome = null;
+
+   /**
+    * Initializes the path considered to be the home of the application.
+    */
+   protected void initProjectHome() {
+      if (projectHome == null) {
+         projectHome = getServletConfig().getInitParameter("onepoint_home");
+         if (projectHome == null) {
             ServletContext context = getServletConfig().getServletContext();
-            project_home = context.getRealPath("");
+            projectHome = context.getRealPath("");
          }
+         OpEnvironmentManager.setOnePointHome(projectHome);
       }
-      return project_home;
    }
 
    /**
@@ -83,22 +87,27 @@ public class OpOpenServlet extends XExpressServlet {
     */
    public void onInit() {
       super.onInit();
-      // Override eXpress session class
+
+      //initialize the path to the projec home
+      initProjectHome();
+
+      // override eXpress session class
       getServer().setSessionClass(OpProjectSession.class);
 
-      // Setup environment
+      // setup context path
       initContextPath();
 
       appletCodebase = servletContextPath + "/" + getServletConfig().getInitParameter("applet_codebase") + "/";
       appletArchive = getServletConfig().getInitParameter("applet_archive");
       imagesPath = servletContextPath + "/" + getServletConfig().getInitParameter("webimages_path") + "/";
 
-      Map initParams = OpInitializer.init(getProjectHome(), true);
-      OpInitializer.setProductCode(this.getProductCode());
-      
+      //perform the initialization
+      OpInitializer.init(this.getProductCode());
+
       //initialize the security feature
-      String secure = (String) initParams.remove(OpInitializer.SECURE_SERVICE);
-      secureService = secure != null ? secure : "false";
+      String secure = OpInitializer.getConfiguration() != null ? OpInitializer.getConfiguration().getSecureService()
+           : null;
+      secureService = (secure != null) ? secure : Boolean.FALSE.toString();
    }
 
    /**
@@ -198,23 +207,23 @@ public class OpOpenServlet extends XExpressServlet {
             logger.warn("Could not decode start_form for applet: " + e);
          }
       }
-
+      String contextName = getServletConfig().getServletContext().getServletContextName();
       out.println("<html>");
       out.println("<head>");
-      out.println("<title>Onepoint Project</title>");
+      out.println("<title>" + contextName + "</title>");
       //out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
       out.println(getIconString(request));
       out.println("</head>");
       out.println("<body bgcolor=\"#ffffff\" onResize=\"resize()\"onLoad=\"resize()\" topmargin=\"0\" leftmargin=\"0\" marginwidth=\"0\" marginheight=\"0\">");
       generateAppletResizeFunction(out);
       String codebase = urlBase(request).concat(appletCodebase);
-
-      out.println("<applet id=\"onepoint\" name=\"Onepoint Project 06 Team Edition (Client Applet)\" width=\"100%\" height=\"100%\" code=\"" +
-                getAppletClassName() +"\" codebase=\""
-                + codebase + "\" archive=\"" + appletArchive + "\">");
+      out.println("<applet id=\"onepoint\" name=\"" + contextName +
+           "\" width=\"100%\" height=\"100%\" code=\"" +
+           getAppletClassName() + "\" codebase=\""
+           + codebase + "\" archive=\"" + appletArchive + "\">");
       out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
       out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
-      out.println("<param name=\"path\" value=\"/"+ servletContextPath +"/service\">");
+      out.println("<param name=\"path\" value=\"/" + servletContextPath + "/service\">");
       out.println("<param name=\"start-form\" value=\"" + start_form + "\">");
       out.println("<param name=\"" + OpProjectConstants.RUN_LEVEL + "\" value=\"" + OpInitializer.getRunLevel() + "\">");
       out.println("<param name=\"secure-service\" value=\"" + secureService + "\">");
@@ -282,7 +291,7 @@ public class OpOpenServlet extends XExpressServlet {
     *
     * @param contentId     a <code>String</code> representing a content id.
     * @param http_response a <code>HttpServletResponse</code> representing the server response.
-    * @param session             a <code>OpProjectSession</code> object representing the server session.
+    * @param session       a <code>OpProjectSession</code> object representing the server session.
     */
    public void generateContentPage(String contentId, HttpServletResponse http_response, OpProjectSession session) {
 
@@ -428,11 +437,12 @@ public class OpOpenServlet extends XExpressServlet {
 
    /**
     * Checks if the current logged in user has at least view-permissions of the given content.
+    *
     * @param session a <code>OpProjectSession</code> representing the server session.
     * @param content a <code>OpContent</code> object representing the content the user is trying to view.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @param broker  a <code>OpBroker</code> used for performing business operations.
     * @return <code>true</code> if the user has rights to view the content, false otherwise.
-    * <FIXME author="Horia Chiorean" description="Is is safe to assume that it's enough to have permissions on at least 1 of the entities referencing the content ?">
+    *         <FIXME author="Horia Chiorean" description="Is is safe to assume that it's enough to have permissions on at least 1 of the entities referencing the content ?">
     */
    private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {
       Set attachments = content.getAttachments();
@@ -465,6 +475,7 @@ public class OpOpenServlet extends XExpressServlet {
 
    /**
     * Gets a product code string for this servlet.
+    *
     * @return a <code>String</code> representing a product code.
     */
    protected String getProductCode() {

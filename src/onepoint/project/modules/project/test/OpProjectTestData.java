@@ -22,7 +22,6 @@ import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocaleMapLoader;
 import onepoint.resource.XResourceBroker;
 import onepoint.util.XCalendar;
-import onepoint.util.XEnvironment;
 
 public class OpProjectTestData {
 
@@ -79,7 +78,6 @@ public class OpProjectTestData {
 //      XLog.setLevel(Level.INFO);
 
       // Setup environment
-      XEnvironment.setVariable(OpEnvironmentManager.ONEPOINT_HOME, project_home);
       String modules_path = "onepoint/project/modules/";
       String commercial_modules_path = "onepoint/project/team/modules/";
 

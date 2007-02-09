@@ -23,7 +23,6 @@ import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
-import onepoint.util.XEnvironment;
 
 import java.io.*;
 import java.net.FileNameMap;
@@ -86,7 +85,7 @@ public class OpReportService extends OpProjectService {
          JasperPrint compiledReport = createJasperPrint(session, request);
 
          // TODO: Format ending and location is "too hard-coded"
-         pathBuffer = new StringBuffer(XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME));
+         pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
          pathBuffer.append(SAVED_REPORTS_PATH);
          //create the saved reports directory if not exists
          File saveReportsDirectory = new File(pathBuffer.toString());
@@ -515,7 +514,7 @@ public class OpReportService extends OpProjectService {
     * Removes all the files in the reports directory
     */
    public static void removeReportFiles() {
-      StringBuffer pathBuffer = new StringBuffer(XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME));
+      StringBuffer pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
       pathBuffer.append(SAVED_REPORTS_PATH);
       File saveReportsDirectory = new File(pathBuffer.toString());
       if (saveReportsDirectory.exists()) {

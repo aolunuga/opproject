@@ -22,7 +22,7 @@ import java.util.*;
  *
  * @author ovidiu.lupas
  */
-public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
+public class OpActivityVersionDataSetFactoryMockTest extends OpBaseMockTestCase {
    /*project plan */
    private OpProjectPlan projectPlan;
    /*project plan version */
@@ -358,8 +358,8 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
       OpProjectPlanVersion ppversionn = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, null, PROJECT_PLAN_VERSION_NUMBER, true);
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow1 = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.COLLECTION, 0, 40);
-      XComponent dataRow2 = OpActivityDataSetFactoryTest.newActivity(SECOND_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
+      XComponent dataRow1 = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.COLLECTION, 0, 40);
+      XComponent dataRow2 = OpActivityDataSetFactoryMockTest.newActivity(SECOND_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
       dataSet.addChild(dataRow1);
       dataSet.addChild(dataRow2);
 
@@ -383,7 +383,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
       //add activities to data set
       dataSet.addChild(dataRow);
 
@@ -421,7 +421,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
       //add activities to data set
       dataSet.addChild(dataRow);
       /*expectations */
@@ -447,7 +447,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0, 40);
       //add activities to data set
       dataSet.addChild(dataRow);
 
@@ -498,7 +498,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0,baseEffort / 2);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 0,baseEffort / 2);
       dataRow.setStringValue(FIRST_ACTIVITY_LOCATOR);
       //add activities to data set
       dataSet.addChild(dataRow);
@@ -525,7 +525,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 25,baseEffort);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 25,baseEffort);
       dataRow.setStringValue(FIRST_ACTIVITY_LOCATOR);
       //add activities to data set
       dataSet.addChild(dataRow);
@@ -556,7 +556,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 50, baseEffort*2);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 50, baseEffort*2);
       dataRow.setStringValue(FIRST_ACTIVITY_LOCATOR);
       //add activities to data set
       dataSet.addChild(dataRow);
@@ -604,7 +604,7 @@ public class OpActivityVersionDataSetFactoryTest extends OpServiceAbstractTest {
 
       // create the data set
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      XComponent dataRow = OpActivityDataSetFactoryTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 50, baseEffort*2);
+      XComponent dataRow = OpActivityDataSetFactoryMockTest.newActivity(FIRST_ACTIVITY_LOCATOR, OpActivity.STANDARD, 50, baseEffort*2);
       dataRow.setStringValue(FIRST_ACTIVITY_LOCATOR);
       //add activities to data set
       dataSet.addChild(dataRow);

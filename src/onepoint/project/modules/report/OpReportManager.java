@@ -13,7 +13,6 @@ import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageKit;
 import onepoint.resource.XLocaleManager;
-import onepoint.util.XEnvironment;
 import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
@@ -44,7 +43,7 @@ public class OpReportManager implements XResourceInterceptor {
     * Determines the path to the filesystem, where we expect the report-jars to
     * reside.
     */
-   private final static String REPORT_JAR_PATH = XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME) + "/reportjars";
+   private final static String REPORT_JAR_PATH = OpEnvironmentManager.getOnePointHome() + "/reportjars";
 
    /**
     * Is the base part of the path where the Jasperfiles to be included in the

@@ -73,8 +73,7 @@ public class OpRestoreFileListFormProvider implements XFormProvider {
    private File[] getBackupFiles(File backupRootDir) {
       File[] backupFiles = backupRootDir.listFiles(new FileFilter() {
          public boolean accept(File pathname) {
-            return !pathname.isDirectory() && !pathname.isHidden() && pathname.getName().startsWith(OpRepositoryService.BACKUP_FILE_PREFIX)
-                 && pathname.getName().endsWith(OpRepositoryService.BACKUP_FILE_EXTENSION);
+            return !pathname.isDirectory() && !pathname.isHidden() && pathname.getName().endsWith(OpRepositoryService.BACKUP_FILE_EXTENSION);
          }
       });
       Arrays.sort(backupFiles, new Comparator() {

@@ -86,7 +86,7 @@ public class OpAboutFormProvider implements XFormProvider {
       if (currentVersion == null) {
          currentVersion = UNKNOWN_VERSION_NUMBER;
       }
-      String productName = (String) OpProjectConstants.PRODUCT_CODES.get(productCode);
+      String productName = (String) OpProjectConstants.PRODUCT_CODES_DESCRIPTION.get(productCode);
 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
       form.findComponent(VERSION_LABEL).setText(VERSION_NUMBER);

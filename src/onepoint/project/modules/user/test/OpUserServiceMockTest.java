@@ -10,6 +10,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
+import onepoint.project.test.OpBaseMockTestCase;
 import onepoint.project.util.OpSHA1;
 import onepoint.service.XMessage;
 import org.jmock.core.Constraint;
@@ -33,7 +34,7 @@ import java.util.*;
 //for delete subjects - a test for a non-empty group
 //</FIXME>
 
-public class OpUserServiceTest extends onepoint.project.test.OpServiceAbstractTest {
+public class OpUserServiceMockTest extends OpBaseMockTestCase {
 
    protected OpUserService userService;
 

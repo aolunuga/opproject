@@ -15,7 +15,7 @@ import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpSubject;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.test.OpServiceAbstractTest;
+import onepoint.project.test.OpBaseMockTestCase;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 import org.jmock.core.Constraint;
@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * @author : mihai.costin
  */
-public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
+public class OpProjectPlanningServiceMockTest extends OpBaseMockTestCase {
 
 
    /**
@@ -103,7 +103,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
         "where activityVersion.PlanVersion.ID = ?";
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#setUp()
+    * @see onepoint.project.test.OpBaseMockTestCase#setUp()
     */
    protected void setUp() {
       super.setUp();
@@ -181,7 +181,7 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
    }
 
    /**
-    * @see onepoint.project.test.OpServiceAbstractTest#invocationMatch(org.jmock.core.Invocation)
+    * @see onepoint.project.test.OpBaseMockTestCase#invocationMatch(org.jmock.core.Invocation)
     */
    public Object invocationMatch(Invocation invocation)
         throws IllegalArgumentException {
@@ -1744,6 +1744,36 @@ public class OpProjectPlanningServiceTest extends OpServiceAbstractTest {
       data_cell.setByteValue((byte) 0);
       data_row.addChild(data_cell);
 
+      // Work records map (24) - for a new activity is always empty
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setValue(new HashMap());
+      data_row.addChild(data_cell);
+
+      //actual effort (25)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setDoubleValue(0);
+      data_row.addChild(data_cell);
+
+      // Visual Resources (26)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(true);
+      data_cell.setListValue(new ArrayList());
+      data_row.addChild(data_cell);
+
+      // Responsible Resource (27)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);
+
+      //project cell (28)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);
+      
       return data_row;
    }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2005. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 package onepoint.project.test;
 
@@ -22,7 +22,7 @@ import java.util.*;
  * @author mihai.costin
  * @author ovidiu.lupas Date: Dec 12, 2005
  */
-public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
+public class OpActivityDataSetFactoryMockTest extends OpBaseMockTestCase {
 
    private OpProjectPlan opProjectPlan;
    private OpActivity opFirstActivity;
@@ -1917,6 +1917,24 @@ public class OpActivityDataSetFactoryTest extends OpServiceAbstractTest {
       data_cell.setEnabled(false);
       data_cell.setDoubleValue(0);
       data_row.addChild(data_cell);
+
+      // Visual Resources (26)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(true);
+      data_cell.setListValue(new ArrayList());
+      data_row.addChild(data_cell);
+
+      // Responsible Resource (27)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);
+
+      //project cell (28)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setStringValue(null);
+      data_row.addChild(data_cell);      
 
       return data_row;
    }

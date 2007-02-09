@@ -15,7 +15,6 @@ import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XMessage;
-import onepoint.util.XEnvironment;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -114,8 +113,7 @@ public class OpConfigurationWizardService extends OpProjectService {
       }
 
       //the configuration file name
-      String projectPath = XEnvironment.getVariable(OpEnvironmentManager.ONEPOINT_HOME);
-      String configurationFileName = projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
+      String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
 
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
@@ -129,9 +127,7 @@ public class OpConfigurationWizardService extends OpProjectService {
          return response;
       }
 
-      //re-initialize application
-      boolean isMultiUser = ((Boolean) parameters.get("is_multi_user")).booleanValue();
-      Map initParams = OpInitializer.init(projectPath, isMultiUser);
+      Map initParams = OpInitializer.init(OpInitializer.getProductCode());
       response.setArgument("initParams", initParams);
 
       if (importDemoData) {

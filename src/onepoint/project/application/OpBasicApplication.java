@@ -23,6 +23,7 @@ import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.awt.*;
+import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,6 @@ public class OpBasicApplication {
     */
    private static final XLog logger = XLogFactory.getLogger(OpBasicApplication.class, true);
    private final String title;
-   private String project_home;
    private final int ERROR_WIDTH = 400;
    private final int ERROR_HEIGHT = 100;
 
@@ -47,11 +47,11 @@ public class OpBasicApplication {
     */
    protected OpBasicApplication(String title) {
       this.title = title;
-      project_home = OpEnvironmentManager.getOnePointHome();
-   }
-
-   protected String getProjectHome() {
-      return project_home;
+      String projectHome = OpEnvironmentManager.getOnePointHome();
+      //if not found among OS environment variables, set it to the working dir.
+      if (projectHome == null) {
+         OpEnvironmentManager.setOnePointHome(new File("").getAbsolutePath());
+      }
    }
 
    public static void main(String[] arguments) {
@@ -68,12 +68,12 @@ public class OpBasicApplication {
       XComponent.registerProxy(new OpProjectComponentProxy());
 
       //perform initialization
-      Map initParams = OpInitializer.init(project_home, false);
+      Map initParams = OpInitializer.init(this.getProductCode());
       additionalInitialization();
-      OpInitializer.setProductCode(this.getProductCode());
 
       /*set up the resource cache max size */
-      String cacheSize = (String) initParams.remove(OpInitializer.RESOURCE_CACHE_SIZE);
+      String cacheSize = OpInitializer.getConfiguration() != null ? OpInitializer.getConfiguration().getCacheConfiguration().getCacheSize()
+           : null;
       if (cacheSize != null) {
          int resourceCacheSize = Integer.valueOf(cacheSize).intValue();
          application.getDisplay().setResourceCacheSize(resourceCacheSize);

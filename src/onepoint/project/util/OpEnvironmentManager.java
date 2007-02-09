@@ -16,7 +16,7 @@ import java.util.Properties;
  *
  * @author horia.chiorean
  */
-public class OpEnvironmentManager {
+public final class OpEnvironmentManager {
 
    /**
     * This class logger.
@@ -29,6 +29,11 @@ public class OpEnvironmentManager {
    private static final String OS_NAME = System.getProperty("os.name");
 
    /**
+    * The simbolic name of the onepoint home environment variable
+    */
+   private static final String ONEPOINT_HOME = "ONEPOINT_HOME";
+
+   /**
     * A command that will be executed to get the env. variables.
     */
    private static String COMMAND;
@@ -37,17 +42,16 @@ public class OpEnvironmentManager {
     * The environment properties.
     */
    private static Properties envProps = new Properties();
-   //Name of Windows OS environment variable
-   public static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
+   /**
+    * Initializes the command variable of the environment manager according to the type of OS.
+    */
    static {
-      if (OpEnvironmentManager.OS_NAME.equals("Windows NT") || OpEnvironmentManager.OS_NAME.equals("Windows 2000") || OpEnvironmentManager.OS_NAME.equals("Windows XP") || OpEnvironmentManager.OS_NAME.equals("Windows 2003"))
-      {
+      if (OpEnvironmentManager.OS_NAME.equals("Windows NT") || OpEnvironmentManager.OS_NAME.equals("Windows 2000") || OpEnvironmentManager.OS_NAME.equals("Windows XP") || OpEnvironmentManager.OS_NAME.equals("Windows 2003")) {
          OpEnvironmentManager.COMMAND = "cmd.exe /C set";
       }
       else
-      if (OpEnvironmentManager.OS_NAME.equals("Windows 95") || OpEnvironmentManager.OS_NAME.equals("Windows 98") || OpEnvironmentManager.OS_NAME.equals("Windows Me"))
-      {
+      if (OpEnvironmentManager.OS_NAME.equals("Windows 95") || OpEnvironmentManager.OS_NAME.equals("Windows 98") || OpEnvironmentManager.OS_NAME.equals("Windows Me")) {
          OpEnvironmentManager.COMMAND = "command.com /C set";
       }
       else if (OpEnvironmentManager.OS_NAME.equals("Mac OS X") || OpEnvironmentManager.OS_NAME.equals("Linux")) {
@@ -55,9 +59,11 @@ public class OpEnvironmentManager {
       }
    }
 
+   /**
+    * Private constructor
+    */
    private OpEnvironmentManager() {
    }
-
 
    /**
     * Performs loading of the OS environment variables.
@@ -80,36 +86,46 @@ public class OpEnvironmentManager {
    }
 
    /**
-    * Returns the value of the specified OS environment variable from the property list or <code>null</code> if is not
+    * Returns the value of the specified Onepoint project environment variable from the property list or <code>null</code> if is not
     * found.
     *
     * @param name <code>String</code> representing the environment variable
-    * @return the value of the specified environment variable
+    * @return the value of the specified environment variable or <code>null</code> if the variable can't be found
     */
    private static String getEnvironmentVariable(String name) {
-      if (envProps.size() == 0) {
+      String property = envProps.getProperty(name);
+      //if property not found, try to get it from the OS environment
+      if (property == null) {
          loadEnvironmentProperties();
-      }
-      String property;
-      if (name.equals(ONEPOINT_HOME)) {
-         String path = envProps.getProperty(name);
-         if (path == null || (!new File(path).exists())) {
-            path = new File("").getAbsolutePath();
-         }
-         property = XEnvironmentManager.convertPathToSlash(path);
-      }
-      else {
          property = envProps.getProperty(name);
+         if (property != null && name.equals(ONEPOINT_HOME)) {
+            File onepointHome = new File(property);
+            if (onepointHome.exists() && onepointHome.isDirectory()) {
+               envProps.put(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(property));
+            }
+            else {
+               return null;
+            }
+         }
       }
       return property;
    }
 
    /**
     * Gets the home directory path of the application.
+    *
     * @return a <code>String</code> representing the home directory of the application.
     */
    public static String getOnePointHome() {
       return getEnvironmentVariable(ONEPOINT_HOME);
+   }
+   /**
+    * Sets the home directory path of the application.
+    *
+    * @param onepointHome a <code>String</code> representing the path of the application home.
+    */
+   public static void setOnePointHome(String onepointHome) {
+      envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
    }
 
    /**

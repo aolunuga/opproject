@@ -34,7 +34,8 @@ Activity Structure [property_index, property_type]:
 25) Work records map - HashMap
 26) Actual effort - double
 27) Visual resouces column index - List (String)
-
+28) Responsible resource
+29) Project
 Structure:
 
 0 -> 1 -> 2(c)
@@ -73,6 +74,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
          <data-cell enabled="true" string-value="Activity1"/>
@@ -101,6 +104,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row id="Collection" outline-level="0">
@@ -131,6 +136,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
          <data-cell enabled="true" string-value="Activity3"/>
@@ -159,6 +166,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row id="Milestone" outline-level="0">
@@ -189,6 +198,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
          <data-cell enabled="true" string-value="Activity5"/>
@@ -217,6 +228,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
@@ -247,6 +260,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
          <data-cell enabled="true" string-value="Activity7"/>
@@ -276,6 +291,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
          <data-cell enabled="true" string-value="Activity8"/>
@@ -304,6 +321,8 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
    </data-set>

@@ -19,9 +19,11 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.util.XEnvironmentManager;
 
 import java.io.File;
 import java.util.HashMap;
@@ -41,7 +43,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * Error id for creating the backup directory
     */
-   private static final String BACKUP_DIR_ERROR = "BackupDirectoryError";
+   private static final String BACKUP_DIR_ERROR = "{$BackupDirectoryError}";
 
    /**
     * Form component ids.
@@ -137,13 +139,13 @@ public class OpRepositoryFormProvider implements XFormProvider {
    private String createRootBackupPath() {
       String fullBackupRootPath = null;
       try {
-         String backupDirectoryName = OpInitializer.getConfiguration().getBackupPath();
+         String backupDirectoryName = XEnvironmentManager.convertPathToSlash(OpInitializer.getConfiguration().getBackupPath());
          File absoluteDirectory = new File(backupDirectoryName);
-         if (absoluteDirectory.exists() && absoluteDirectory.isDirectory()) {
+         if (absoluteDirectory.exists() && absoluteDirectory.isDirectory() && absoluteDirectory.isAbsolute()) {
             fullBackupRootPath = absoluteDirectory.getCanonicalPath();
          }
-         else if (!absoluteDirectory.exists()) {
-            String parentDir = ".";
+         else {
+            String parentDir = OpEnvironmentManager.getOnePointHome();
             File backupDir = new File(parentDir, backupDirectoryName);
             if (!backupDir.exists() || !backupDir.isDirectory()) {
                boolean dirCreated = backupDir.mkdir();

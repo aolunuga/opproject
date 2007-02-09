@@ -32,7 +32,7 @@ import java.util.Set;
  *
  * @author ovidiu.lupas
  */
-public class OpWorkServiceTest extends onepoint.project.test.OpServiceAbstractTest {
+public class OpWorkServiceMockTest extends onepoint.project.test.OpBaseMockTestCase {
    //the instance of OpWorkService
    protected OpWorkService workService;
    //the user session

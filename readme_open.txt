@@ -2,7 +2,7 @@ Onepoint Project 07 Open Edition (BETA)
 =======================================
 
 Welcome to the most current release of the Onepoint Project Open Edition. This
-package contains the Web application archive (WAR) of Onepoint Project 06.1
+package contains the Web application archive (WAR) of Onepoint Project 07 BETA
 together with a short user tutorial.
 
 Please note that all installation steps in this document assume that you are
@@ -76,7 +76,7 @@ installation!
 
 7. (OPTIONAL) If you want to start with some demo data load the demo data by
 executing the folling SQL file (see Appendix B):
-   - demodata061.sql
+   - demodata07.sql
 
 Note: This step is optional. If you do not upload the demo data a new, plaim
 repository will be created at the first startup of the web application.
@@ -153,11 +153,11 @@ In order to execute a SQL file in MySQL you have to do the following:
    (1) Open a command line window (DOS shell) und type
        "mysql -u opproject -p opproject" and enter the password you specified
        when creating the database user
-   (2) mysql> source demodata061.sql;
+   (2) mysql> source demodata07.sql;
    (3) mysql> quit
 
 Please note that this example assumes that the user and the database you
-created in MySQL are called "opproject" and the SQL file "demodata061.sql".
+created in MySQL are called "opproject" and the SQL file "demodata07.sql".
 If you used a different user name, then you have to specify this user name in
 (1) after the option "-u" and a different database name after "-p".
 
