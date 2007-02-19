@@ -125,6 +125,7 @@ public final class OpSubjectDataSetFactory {
             dummyRow.setOutlineLevel(outlineLevel + 1);
             dummyRow.setFiltered(true);
             dummyRow.setVisible(true);
+            dummyRow.setSelectable(false);
             dataSet.addChild(dummyRow);
          }
       }

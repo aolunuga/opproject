@@ -111,7 +111,7 @@ public class OpMyTasksService extends OpProjectService {
 
       //task name - mandatory
       if (name == null) {
-         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME));
+         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME_ERROR_CODE));
          return reply;
       }
       values.put(NAME, name);
@@ -120,25 +120,23 @@ public class OpMyTasksService extends OpProjectService {
 
       //project & resource
       if (projectChoice == null) {
-         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT));
+         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT_ERROR_CODE));
          return reply;
       }
       String projectLocator = XValidator.choiceID(projectChoice);
       values.put(PROJECT, projectLocator);
 
       if (resourceChoice == null) {
-         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE));
+         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE));
          return reply;
       }
       String resourceLocator = XValidator.choiceID(resourceChoice);
       values.put(RESOURCE, resourceLocator);
 
       //priority (between 0 and 9)
-      if (priority == null || priority.intValue() < 1) {
-         priority = new Integer(1);
-      }
-      else if (priority.intValue() > 9) {
-         priority = new Integer(9);
+      if (priority == null || priority.intValue() < 1 || priority.intValue() > 9) {
+         reply.setError(session.newError(ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
+         return reply;
       }
       values.put(PRIORITY, priority);
 
@@ -318,7 +316,7 @@ public class OpMyTasksService extends OpProjectService {
                      broker.deleteObject(activity);
                   }
                   else {
-                     reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP));
+                     reply.setError(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
                   }
                }
                else {

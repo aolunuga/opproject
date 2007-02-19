@@ -89,7 +89,8 @@
       <resource id="ScheduledMixedErrorMessage">Es ist nicht erlaubt, Vorgänge und Aufgaben im gleichen Sammelvorgang zu mischen</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
-
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+     
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
       <resource id="FileWriteError">Die Datei konnte nicht geschrieben werden</resource>
@@ -124,6 +125,7 @@
       <resource id="InfoTaskActivity">Aufgabendetails</resource>
       <resource id="InfoCollectionTaskActivity">Sammelaufgabendetails</resource>
       <resource id="InfoScheduledTaskTitle">Geplante Sammelaufgabendetails</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
 
       <resource id="General">Allgemein</resource>
       <resource id="Name">Name</resource>
@@ -176,7 +178,7 @@
       <resource id="RangeErrorMessage">Der Index ist außerhalb des gültigen Wertebereichs</resource>
       <resource id="InvalidCostErrorMessage">Der eingegebene Kostenwert ist ungültig</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die diese Ressourcenzuweisung referenzieren</resource>
-
+      <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand</resource>
 
       <resource id="NoCategory">(Keine)</resource>
       <resource id="NoResource">(Keine)</resource>

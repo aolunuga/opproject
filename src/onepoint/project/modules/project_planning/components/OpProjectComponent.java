@@ -4571,13 +4571,13 @@ public class OpProjectComponent extends XComponent {
       switch (pc_type) {
          case GANTT_ACTIVITY:
             if (action == FOCUS_GAINED) {
-               _scrollToComponent();
+               scrollToComponent();
             }
             break;
 
          case GANTT_DEPENDENCY:
             if (action == FOCUS_GAINED) {
-               _scrollToComponent();
+               scrollToComponent();
             }
             break;
 

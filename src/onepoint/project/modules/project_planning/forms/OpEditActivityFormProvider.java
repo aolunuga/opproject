@@ -188,6 +188,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
          comment = (OpActivityComment) record[0];
          commentPanel = createPanel(comment, resourceMap, localizer, enableCommentRemoving);
          commentsPanel.addChild(commentPanel);
+         count++;
       }
       return count;
    }

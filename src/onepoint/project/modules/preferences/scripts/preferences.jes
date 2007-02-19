@@ -31,7 +31,14 @@ function save(event) {
          request = new XMessage;
          request.setAction("Express.clearResourceCache");
          XDisplay.getClient().invokeMethod(request);
-         XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml");
+         mainFrame = XDisplay.findFrame("MainFrame");
+         dockFrame = XDisplay.findFrame("DockFrame");
+         headerFrame = XDisplay.findFrame("HeaderFrame");
+
+         frames[0] = mainFrame;
+         frames[1] = dockFrame;
+         frames[2] = headerFrame;
+         XDisplay.refreshForms(frames);
       }
       else {
          XDisplay.findFrame("MainFrame").refreshForm();

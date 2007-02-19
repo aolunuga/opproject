@@ -45,7 +45,7 @@
       <utilization-box id="UtilizationBox" color-data-set-ref="UtilizationResourceColorSet" 
                        details-form-ref="/modules/resource_utilization/forms/utilization_details.oxf.xml"
                        alternate-details-form-ref="/modules/resource_utilization/forms/pool_utilization_details.oxf.xml"
-                       data-set-ref="UtilizationDataSet" time-unit="days" on-scroll="UtilizationBox_onScroll"
+                       data-set-ref="UtilizationDataSet" time-unit="days"
                        stateful="true" pop-up-menu-ref="UtilizationPopupMenu" resource-table="UtilizationTable" 
                        horizontal-scroll-bar="always"/>
    </panel>

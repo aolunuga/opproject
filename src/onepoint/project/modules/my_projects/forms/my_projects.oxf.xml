@@ -55,7 +55,7 @@
               <table-column text="{$RemainingEffort}" width="70" data-column-index="18" value-type="Double" sortable="true" decimals="2"/>
               <table-column text="{$ProjectedEffort}" width="70" data-column-index="10" value-type="Double" sortable="true" decimals="2"/>
               <table-column text="{$DeviationEffort}" width="70" data-column-index="11" value-type="Deviation" sortable="true" decimals="2"/>
-              <table-column text="{$PercentageDeviationEffort}" width="70" data-column-index="12" value-type="Deviation" sortable="true"/>
+              <table-column text="{$PercentageDeviationEffort}" width="70" data-column-index="12" value-type="Deviation" decimals="2" sortable="true"/>
            </table-box>
         </tab>
 
@@ -67,7 +67,7 @@
               <table-column text="{$RemainingCosts}" width="70" data-column-index="19" value-type="Double" sortable="true" decimals="2"/>
               <table-column text="{$ProjectedCosts}" width="70" data-column-index="7" value-type="Double" sortable="true" decimals="2"/>
               <table-column text="{$DeviationCosts}" width="70" data-column-index="8" value-type="Deviation" sortable="true" decimals="2"/>
-              <table-column text="{$PercentageDeviationCosts}" width="70" data-column-index="9" value-type="Deviation" sortable="true"/>
+              <table-column text="{$PercentageDeviationCosts}" width="70" data-column-index="9" value-type="Deviation" decimals="2" sortable="true"/>
            </table-box>
         </tab>
 

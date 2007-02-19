@@ -37,6 +37,12 @@ function addSelectedSubject(subjectList) {
       permissionRow.setOutlineLevel(1);
       permissionRow.setStringValue(subject);
 
+      //set the imutable flag to false
+      imutableFlag = XComponent.newDataCell();
+      imutableFlag.setBooleanValue(false);
+      permissionRow.addChild(imutableFlag);
+
+
       // TODO: Check if first selection has an outline-level == 0 (else ignore)
       // (If yes: Use appendToSuperRow in order to add permission row)
       selectedRows = permissionSet.selectedRows();
@@ -70,8 +76,12 @@ function removeSubject(event) {
       while (i < selectedRows.size()) {
          row = selectedRows[i];
          if (row.getOutlineLevel() > 0) {
-            rowsToRemove[j] = row;
-            j++;
+            //imutable flag
+            isImutable = row.getChild(0).getBooleanValue();
+            if (row.getOutlineLevel() > 0 && !isImutable) {
+               rowsToRemove[j] = row;
+               j++;
+            }
          }
          i++;
       }
@@ -229,11 +239,18 @@ function nextSuperRowIndex(dataSet, row) {
 
 function removeRows(dataSet, rows, count) {
    i = 0;
+   j = 0;
    while (i < count) {
-      rowsToRemove[i] = rows[i];
+      isImutable = rows[i].getChild(0).getBooleanValue();
+      if (!isImutable) {
+         rowsToRemove[j] = rows[i];
+         j++;
+      }
       i++;
    }
-   dataSet.removeDataRows(rowsToRemove);
+   if (j > 0) {
+      dataSet.removeDataRows(rowsToRemove);
+   }
 }
 
 function appendToSuperRow(dataSet, superRow, rows, count) {
@@ -261,8 +278,12 @@ function appendToSuperRow(dataSet, superRow, rows, count) {
    while (i < count) {
       Console.println("---appendToSuperRow...");
       Console.println(appendPosition);
-      dataSet.addDataRow(appendPosition, rows[i]);
-      appendPosition++;
+      //check for the imutable flag - imutable rows can't be changed.
+      isImutable = rows[i].getChild(0).getBooleanValue();
+      if (!isImutable) {
+         dataSet.addDataRow(appendPosition, rows[i]);
+         appendPosition++;         
+      }
       i++;
    }
 

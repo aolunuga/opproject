@@ -29,6 +29,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
    /*form's component ids */
    private static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
    private static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
+   private static final String DB_URL_FIELD = "DatabaseUrlTextField";
    private static final String ERROR_LABEL_FIELD = "ErrorLabel";
 
    /**
@@ -41,7 +42,9 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
 
       //set the default selected index
       int selectedIndex = 0;
-      ((XComponent) dataSet.getChild(0)).setSelected(true);
+      XComponent defaultSelectedRow = (XComponent) dataSet.getChild(selectedIndex);
+      defaultSelectedRow.setSelected(true);
+      form.findComponent(DB_URL_FIELD).setStringValue(XValidator.choiceID(defaultSelectedRow.getStringValue()));
       XComponent choiceField = form.findComponent(DB_TYPE_CHOICE_FIELD);
       choiceField.setSelectedIndex(new Integer(selectedIndex));
 
@@ -87,19 +90,19 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       XComponent dataRow ;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://<host>:<port3306>/<database>", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@<host>:<port1521>:<sid>", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:db2://<host>:<port446>/<database>", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://<host>:<port5432>/<database>", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
    }
 }

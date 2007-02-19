@@ -38,6 +38,13 @@
       <data-row string-value="n2m['{$Next2Months}']"/>
    </data-set>
 
+   <data-set id="FilterResourcesSet">
+      <data-row string-value="all['{$All}']"/>
+      <data-row string-value="res['{$Responsible}']"/>
+      <data-row string-value="man['{$Managed}']"/>
+      <data-row string-value="ind['{$Individual}']"/>
+   </data-set>
+
    <data-set id="ProjectSet">
       <data-row string-value="all['{$All}']"/>
    </data-set>
@@ -45,7 +52,7 @@
    <panel layout="border" style-ref="compact-panel-default">
 
       <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar x="-1" id="myTasksToolBar">
+         <tool-bar x="-1" y="-1" id="myTasksToolBar">
             <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
                          disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
                          on-button-pressed="addComment"
@@ -55,11 +62,12 @@
                          on-button-pressed="addAdhoc"
                          tooltip="{$NewAdhocTooltip}"/>
             <tool-button id="InfoButton" text="{$Info}" icon="/icons/info.png"
-                         disabled-icon="/icons/info_disabled.png" on-button-pressed="infoActivity"
+                         disabled-icon="/icons/info_disabled.png"
+                         on-button-pressed="infoActivity"
                          tooltip="{$InfoTooltip}"/>
             <tool-button id="EditAdhocButton" text="{$EditAdhoc}" icon="/icons/edit.png"
                          disabled-icon="/icons/edit_disabled.png"
-                         on-button-pressed="editAdhoc" enabled="false"
+                         on-button-pressed="editActivity" enabled="false"
                          tooltip="{$EditAdhocTooltip}"/>
             <tool-button id="DeleteAdhocButton" text="{$DeleteAdhoc}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
@@ -69,13 +77,16 @@
                          disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="{$PrintTooltip}"/>
          </tool-bar>
 
-         <panel x="1" layout="border" style-ref="compact-panel-default">
+         <panel x="-1" y="0" layout="border" style-ref="compact-panel-default">
             <panel layout="table" flexible="false">
                <label x="0" width="2" text="{$Project}"/>
                <choice-field x="2" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
                              on-value-changed="filterChanged" stateful="true" selected-index="0"/>
                <label x="5" width="2" text="{$StartBefore}"/>
                <choice-field x="7" width="3" id="StartTimeChooser" data-set-ref="StartBeforeSet"
+                             on-value-changed="filterChanged" stateful="true" selected-index="0"/>
+               <label x="10" width="2" text="{$Resources}"/>
+               <choice-field x="12" width="3" id="ResourcesChooser" data-set-ref="FilterResourcesSet"
                              on-value-changed="filterChanged" stateful="true" selected-index="0"/>
             </panel>
          </panel>

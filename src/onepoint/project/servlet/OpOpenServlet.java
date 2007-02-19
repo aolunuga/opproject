@@ -53,6 +53,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static String appletArchive;
    private static String imagesPath;
    private static String servletContextPath;
+   private static String htmlTitle;
 
    /**
     * String that indicates whether secure comunication should be used (https)
@@ -100,6 +101,7 @@ public class OpOpenServlet extends XExpressServlet {
       appletCodebase = servletContextPath + "/" + getServletConfig().getInitParameter("applet_codebase") + "/";
       appletArchive = getServletConfig().getInitParameter("applet_archive");
       imagesPath = servletContextPath + "/" + getServletConfig().getInitParameter("webimages_path") + "/";
+      htmlTitle = getServletConfig().getInitParameter("html_title");
 
       //perform the initialization
       OpInitializer.init(this.getProductCode());
@@ -207,15 +209,15 @@ public class OpOpenServlet extends XExpressServlet {
             logger.warn("Could not decode start_form for applet: " + e);
          }
       }
-      String contextName = getServletConfig().getServletContext().getServletContextName();
       out.println("<html>");
       out.println("<head>");
-      out.println("<title>" + contextName + "</title>");
+      out.println("<title>" + htmlTitle + "</title>");
       //out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
       out.println(getIconString(request));
       out.println("</head>");
       out.println("<body bgcolor=\"#ffffff\" onResize=\"resize()\"onLoad=\"resize()\" topmargin=\"0\" leftmargin=\"0\" marginwidth=\"0\" marginheight=\"0\">");
       generateAppletResizeFunction(out);
+      String contextName = getServletConfig().getServletContext().getServletContextName();
       String codebase = urlBase(request).concat(appletCodebase);
       out.println("<applet id=\"onepoint\" name=\"" + contextName +
            "\" width=\"100%\" height=\"100%\" code=\"" +

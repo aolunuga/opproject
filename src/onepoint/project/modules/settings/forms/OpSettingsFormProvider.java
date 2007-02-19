@@ -11,10 +11,10 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
+import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
-import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -108,7 +108,14 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       String resourceMaxAvailability = OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY);
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
-      resourceMaxAvailabilityTextField.setStringValue(resourceMaxAvailability);
+      double available = 0;
+      try {
+         available = Double.valueOf(resourceMaxAvailability).doubleValue();
+      }
+      catch (NumberFormatException e) {
+         logger.warn("Error in parsing double number " + resourceMaxAvailability);
+      }
+      resourceMaxAvailabilityTextField.setDoubleValue(available);
 
       String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
       XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
@@ -216,7 +223,7 @@ public class OpSettingsFormProvider implements XFormProvider {
          dataRow = new XComponent(XComponent.DATA_ROW);
          dataRow.setStringValue(XValidator.choice(OpSettings.CALENDAR_HOLIDAYS_LOCATION_DEFAULT, localizer.localize(SELECT_CALENDAR)));
          holidaysDataSet.addChild(dataRow);
-         for (int i=0; i<sorterDataSet.getChildCount(); i++) {
+         for (int i = 0; i < sorterDataSet.getChildCount(); i++) {
             dataRow = (XComponent) sorterDataSet.getChild(i);
             dataRow.removeChild(0); //remove extra sorting-criteria
             holidaysDataSet.addChild(dataRow);
@@ -226,7 +233,7 @@ public class OpSettingsFormProvider implements XFormProvider {
             }
          }
          holidays.setSelectedIndex(new Integer(selectedIndex));
-         ((XComponent)holidaysDataSet.getChild(selectedIndex)).setSelected(true);
+         ((XComponent) holidaysDataSet.getChild(selectedIndex)).setSelected(true);
       }
       else {
          holidays.setEnabled(false);

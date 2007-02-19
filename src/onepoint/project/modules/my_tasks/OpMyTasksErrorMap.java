@@ -18,11 +18,12 @@ public class OpMyTasksErrorMap extends XErrorMap {
     */
    public OpMyTasksErrorMap() {
       super("my_tasks.error");
-      registerErrorCode(OpMyTasksError.INVALID_DUE_DATE, OpMyTasksError.INVALID_DUE_DATE_NAME);
-      registerErrorCode(OpMyTasksError.EMPTY_NAME, OpMyTasksError.EMPTY_NAME_NAME);
-      registerErrorCode(OpMyTasksError.NO_PROJECT, OpMyTasksError.NO_PROJECT_NAME);
-      registerErrorCode(OpMyTasksError.NO_RESOURCE, OpMyTasksError.NO_RESOURCE_NAME);
-      registerErrorCode(OpMyTasksError.EXISTING_WORKSLIP, OpMyTasksError.EXISTING_WORKSLIP_NAME);
+      registerErrorCode(OpMyTasksError.INVALID_DUE_DATE_ERROR_CODE, OpMyTasksError.INVALID_DUE_DATE_NAME);
+      registerErrorCode(OpMyTasksError.EMPTY_NAME_ERROR_CODE, OpMyTasksError.EMPTY_NAME_NAME);
+      registerErrorCode(OpMyTasksError.NO_PROJECT_ERROR_CODE, OpMyTasksError.NO_PROJECT_NAME);
+      registerErrorCode(OpMyTasksError.NO_RESOURCE_ERROR_CODE, OpMyTasksError.NO_RESOURCE_NAME);
+      registerErrorCode(OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE, OpMyTasksError.EXISTING_WORKSLIP_ERROR_NAME);
       registerErrorCode(OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_NAME);
+      registerErrorCode(OpMyTasksError.INVALID_PRIORITY_ERROR_CODE, OpMyTasksError.INVALID_PRIORITY_ERROR_NAME);
    }
 }

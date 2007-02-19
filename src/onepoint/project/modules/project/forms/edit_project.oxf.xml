@@ -21,7 +21,7 @@
       <check-box x="2" y="7" width="3" id="ProgressTracked" text="{$ProgressTracked}"/>
 
       <label x="0" y="8" width="2" text="{$Status}" id="StatusLabel"/>
-      <choice-field x="2" y="8" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice"/>
+      <choice-field x="2" y="8" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
 
    </tab>
 

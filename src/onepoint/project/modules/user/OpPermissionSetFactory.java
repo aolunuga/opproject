@@ -174,6 +174,10 @@ public class OpPermissionSetFactory {
          OpSubject subject = null;
          int iconIndex = 0;
          if (addDefaultPermissions) {
+            //a "flag" indicating whether the data-row is mutable or not
+            XComponent imutableFlag = new XComponent(XComponent.DATA_CELL);
+            imutableFlag.setBooleanValue(false);
+
             switch (accessLevel) {
                case OpPermission.ADMINISTRATOR:
                   permissionRow = new XComponent(XComponent.DATA_ROW);
@@ -181,6 +185,10 @@ public class OpPermissionSetFactory {
                   OpUser user = session.user(broker);
                   permissionRow.setStringValue(XValidator.choice(user.locator(), objectLocalizer.localize(user
                        .getDisplayName()), USER_ICON_INDEX));
+                  if (user.getID() == session.administrator(broker).getID()) {
+                     imutableFlag.setBooleanValue(true);
+                  }
+                  permissionRow.addChild(imutableFlag);
                   permissionSet.addChild(permissionRow);
                   break;
                case OpPermission.OBSERVER:
@@ -189,12 +197,17 @@ public class OpPermissionSetFactory {
                   OpGroup everyone = session.everyone(broker);
                   permissionRow.setStringValue(XValidator.choice(everyone.locator(), objectLocalizer.localize(everyone
                        .getDisplayName()), GROUP_ICON_INDEX));
+                  permissionRow.addChild(imutableFlag);                  
                   permissionSet.addChild(permissionRow);
                   break;
             }
          }
          else {
             for (j = 0; j < permissionList.size(); j++) {
+               //a "flag" indicating whether the data-row is mutable or not
+               XComponent imutableFlag = new XComponent(XComponent.DATA_CELL);
+               imutableFlag.setBooleanValue(false);
+
                permission = (OpPermission) permissionList.get(j);
                permissionRow = new XComponent(XComponent.DATA_ROW);
                permissionRow.setOutlineLevel(1);
@@ -209,6 +222,10 @@ public class OpPermissionSetFactory {
                permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
                // Disable system-managed permissions (not editable by the user)
                permissionRow.setEnabled(!permission.getSystemManaged());
+               if (subject.getID() == session.administrator(broker).getID()) {
+                  imutableFlag.setBooleanValue(true);
+               }
+               permissionRow.addChild(imutableFlag);
                permissionSet.addChild(permissionRow);
             }
          }

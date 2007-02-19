@@ -228,6 +228,7 @@ public final class OpResourceDataSetFactory {
             dummyRow.setFiltered(true);
             dataSet.addChild(dummyRow);
             dataRow.setExpanded(false);
+            dummyRow.setSelectable(false);
          }
       }
 

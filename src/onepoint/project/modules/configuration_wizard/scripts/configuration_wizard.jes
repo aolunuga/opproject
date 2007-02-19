@@ -49,9 +49,10 @@ function dbTypeChanged(event) {
 
    db_type = form.findComponent("DatabaseTypeChoiceField");
    database_type = XValidator.choiceCaption(db_type.getStringValue());
+   database_url = XValidator.choiceID(db_type.getStringValue());
 
    /*set default values and enable text fields*/
-   db_url.setStringValue(null);
+   db_url.setStringValue(database_url);
    db_login.setStringValue("opproject");
    db_password.setStringValue("opproject");
 

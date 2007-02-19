@@ -35,7 +35,7 @@
             <int-field x="2" y="7" width="3" id="ReportsRemoveTimePeriod"/>
             <check-box x="2" y="8" width="3" id="ShowResourceHours" text="{$ShowResourceHours}"/>
             <label x="0" y="9" width="2" text="{$ResourceMaxAvailability}"/>
-            <text-field x="2" y="9" width="3" id="ResourceMaxAvailability"/>
+            <double-field x="2" y="9" width="3" id="ResourceMaxAvailability"/>
             <label x="0" y="10" width="2" text="{$MilestoneControllingInterval}"/>
             <int-field x="2" y="10" width="3" id="MilestoneControllingInterval" />
             <check-box x="2" y="11" width="3" id="AllowEmptyPassword" text="{$AllowEmptyPassword}"/>

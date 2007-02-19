@@ -178,6 +178,8 @@
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
       <resource id="PermissionsLevelError">Permissions Level Error</resource>
       <resource id="ProjectLockedError">Cannot change project because the project plan is checked out</resource>
+      <resource id="GoalPriorityError">Some of the goals priorities are invalid</resource>
+      <resource id="TodoPriorityError">Some of the todos priorities are invalid</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>

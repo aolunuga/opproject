@@ -90,7 +90,7 @@ function addGoal(event) {
 }
 
 function removeGoals(event) {
-   data_set = XDisplay.getActiveForm().findComponent("GoalsDataSet");
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    selected_rows = data_set.selectedRows();
    if (selected_rows.size() > 0) {
       data_set.removeDataRows(selected_rows);

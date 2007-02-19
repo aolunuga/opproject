@@ -17,7 +17,6 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.PORTFOLIO_NAME_ALREADY_USED, OpProjectError.PORTFOLIO_NAME_ALREADY_USED_NAME);
       registerErrorCode(OpProjectError.START_DATE_MISSING, OpProjectError.START_DATE_MISSING_NAME);
       registerErrorCode(OpProjectError.END_DATE_INCORRECT, OpProjectError.END_DATE_INCORRECT_NAME);
-      registerErrorCode(OpProjectError.PRIORITY_INCORRECT, OpProjectError.PRIORITY_INCORRECT_NAME);
       registerErrorCode(OpProjectError.BUDGET_INCORRECT, OpProjectError.BUDGET_INCORRECT_NAME);
       registerErrorCode(OpProjectError.PORTFOLIO_NAME_MISSING, OpProjectError.PORTFOLIO_NAME_MISSING_NAME);
       registerErrorCode(OpProjectError.PROJECT_NAME_ALREADY_USED, OpProjectError.PROJECT_NAME_ALREADY_USED_NAME);
@@ -34,5 +33,7 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.PERMISSIONS_LEVEL_ERROR, OpProjectError.PERMISSIONS_LEVEL_ERROR_NAME);
       registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
       registerErrorCode(OpProjectError.PROJECT_CHECKED_IN_ERROR, OpProjectError.PROJECT_CHECKED_IN_ERROR_NAME);
+      registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
+      registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
    }
 }

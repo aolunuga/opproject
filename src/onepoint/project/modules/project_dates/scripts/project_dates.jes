@@ -77,5 +77,5 @@ function filterChanged(event){
 
    parameters.version_id = version_choice_id;
    parameters.resource_id = resource_choice_id;
-   XDisplay.findFrame("MainFrame").refreshForm(parameters);
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
 }

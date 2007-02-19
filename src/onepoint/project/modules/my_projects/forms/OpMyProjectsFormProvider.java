@@ -13,7 +13,6 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
 import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -51,11 +50,10 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       projectsDataSet = form.findComponent(PROJECTS_DATA_SET);
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
-      OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
 
       String projectChoice = getProjectChoice(parameters, form, session);
       List levels = getLevelsForChoice(projectChoice);
-      List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(broker, user, levels);
+      List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
 
       //projectMap = new HashMap();
       for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {

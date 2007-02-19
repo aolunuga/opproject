@@ -13,8 +13,6 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserAssignment;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
@@ -404,16 +402,27 @@ public final class OpProjectDataSetFactory {
 
       List typeParams = new ArrayList();
       queryString.append(" and ( ");
+      boolean filterAdded = false;
       if ((types & PORTFOLIOS) == PORTFOLIOS) {
          queryString.append("projectNode.Type = ?");
          typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
+         filterAdded = true;
       }
+
       if ((types & PROJECTS) == PROJECTS) {
-         queryString.append(" or projectNode.Type = ?");
+         if (filterAdded) {
+            queryString.append(" or ");
+         }
+         queryString.append(" projectNode.Type = ?");
          typeParams.add(new Byte(OpProjectNode.PROJECT));
+         filterAdded = true;
       }
+
       if ((types & TEMPLATES) == TEMPLATES) {
-         queryString.append(" or projectNode.Type = ?");
+         if (filterAdded) {
+            queryString.append(" or ");
+         }
+         queryString.append(" projectNode.Type = ?");
          typeParams.add(new Byte(OpProjectNode.TEMPLATE));
       }
       queryString.append(" )");
@@ -439,14 +448,23 @@ public final class OpProjectDataSetFactory {
          StringBuffer childCountQuery = new StringBuffer("select count(subNode.ID) from OpProjectNode parentNode left join parentNode.SubNodes subNode");
          childCountQuery.append(" where parentNode.ID=? ");
          childCountQuery.append(" and (");
+         filterAdded = false;
          if ((types & PORTFOLIOS) == PORTFOLIOS) {
             childCountQuery.append("subNode.Type = ?");
+            filterAdded = true;
          }
          if ((types & PROJECTS) == PROJECTS) {
-            childCountQuery.append(" or subNode.Type = ?");
+            if (filterAdded) {
+               childCountQuery.append(" or ");
+            }
+            childCountQuery.append(" subNode.Type = ?");
+            filterAdded = true;
          }
          if ((types & TEMPLATES) == TEMPLATES) {
-            childCountQuery.append(" or subNode.Type = ?");
+            if (filterAdded) {
+               childCountQuery.append(" or ");
+            }
+            childCountQuery.append(" subNode.Type = ?");
          }
          childCountQuery.append(")");
          childCountQuery.append(" group by parentNode.ID");
@@ -645,6 +663,7 @@ public final class OpProjectDataSetFactory {
       dummyChild.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
       dummyChild.setVisible(false);
       dummyChild.setEnabled(false);
+      dummyChild.setSelectable(false);
       return dummyChild;
    }
 
@@ -734,23 +753,14 @@ public final class OpProjectDataSetFactory {
    /**
     * Gets the list of project ids for the given user and chosen permission role
     *
-    * @param broker Broker used for db access.
-    * @param user   User to be taken into account when retrieving projects.
-    * @param levels List of permission levels (Byte) to include in the search
+    * @param broker  Broker used for db access.
+    * @param levels  List of permission levels (Byte) to include in the search
+    * @param session current session
     * @return List of project ids.
     */
-   public static List getProjectsByPermissions(OpBroker broker, OpUser user, List levels) {
+   public static List getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
       OpQuery query = broker.newQuery(PROJECT_BY_PERMISSIONS_QUERY);
-      List subjectIds = new ArrayList();
-      subjectIds.add(new Long(user.getID()));
-
-      //TODO Author="Mihai Costin" Description="Just the first level groups. Is that enough?"
-      Iterator assignments = user.getAssignments().iterator();
-      OpUserAssignment assignment;
-      while (assignments.hasNext()) {
-         assignment = (OpUserAssignment) assignments.next();
-         subjectIds.add(new Long(assignment.getGroup().getID()));
-      }
+      List subjectIds = session.getSubjectIds();
 
       query.setCollection("subjectIds", subjectIds);
       List types = new ArrayList();
@@ -771,12 +781,11 @@ public final class OpProjectDataSetFactory {
       Map projectsMap = new HashMap();
       OpBroker broker = session.newBroker();
       long userId = session.getUserID();
-      OpUser user = (OpUser) broker.getObject(OpUser.class, userId);
       List types = new ArrayList();
 
       //add only the user's responsible resources if he is CONTRIBUTOR
       types.add(new Byte(OpPermission.CONTRIBUTOR));
-      List contributorProjects = getProjectsByPermissions(broker, user, types);
+      List contributorProjects = getProjectsByPermissions(session, broker, types);
       for (int i = 0; i < contributorProjects.size(); i++) {
          Long id = (Long) contributorProjects.get(i);
          OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
@@ -798,7 +807,7 @@ public final class OpProjectDataSetFactory {
       types.clear();
       types.add(new Byte(OpPermission.ADMINISTRATOR));
       types.add(new Byte(OpPermission.MANAGER));
-      List managerProjectIds = getProjectsByPermissions(broker, user, types);
+      List managerProjectIds = getProjectsByPermissions(session, broker, types);
       for (int i = 0; i < managerProjectIds.size(); i++) {
          Long id = (Long) managerProjectIds.get(i);
          OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());

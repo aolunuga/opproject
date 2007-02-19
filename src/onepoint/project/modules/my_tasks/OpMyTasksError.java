@@ -14,12 +14,13 @@ public interface OpMyTasksError {
    /**
     * Error constants.
     */
-   static final int EMPTY_NAME = 1;
-   static final int INVALID_DUE_DATE = 2;
-   static final int NO_PROJECT = 3;
-   static final int NO_RESOURCE = 4;
-   static final int EXISTING_WORKSLIP = 4;
+   static final int EMPTY_NAME_ERROR_CODE = 1;
+   static final int INVALID_DUE_DATE_ERROR_CODE = 2;
+   static final int NO_PROJECT_ERROR_CODE = 3;
+   static final int NO_RESOURCE_ERROR_CODE = 4;
+   static final int EXISTING_WORKSLIP_ERROR_CODE = 4;
    static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 5;
+   static final int INVALID_PRIORITY_ERROR_CODE = 6;
 
 
    /**
@@ -29,7 +30,8 @@ public interface OpMyTasksError {
    static final String INVALID_DUE_DATE_NAME = "InvalidDueDate";
    static final String NO_PROJECT_NAME = "NoProjectError";
    static final String NO_RESOURCE_NAME = "NoResourceError";
-   static final String EXISTING_WORKSLIP_NAME = "ExistingWorkSlipError";
+   static final String EXISTING_WORKSLIP_ERROR_NAME = "ExistingWorkSlipError";
    static final String INSUFICIENT_PERMISSIONS_ERROR_NAME = "InsuficientPermissions";
+   static final String INVALID_PRIORITY_ERROR_NAME = "InvalidPriorityErrorMessage";
 
 }

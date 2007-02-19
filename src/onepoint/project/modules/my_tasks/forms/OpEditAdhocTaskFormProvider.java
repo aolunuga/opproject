@@ -42,13 +42,13 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    private static final String ADD_DOC_BUTTON = "AddDocumentButton";
    private static final String ADD_URL_BUTTON = "AddURLButton";
    private static final String REMOVE_BUTTON = "RemoveAttachmentButton";
-   private final static String ADD_COMMENTS_BUTTON = "AddCommentButton";
 
    //parameters
    private static final String SELECTED_ROW = "selectedRow";
    private static final String EDIT_MODE = "EditMode";
    private static final String ATTACHMENT_SET = "AttachmentSet";
    private static final String ACTIVITY_ROW_INDEX = "ActivityRowIndex";
+   private static final String AD_HOC_RESOURCE_MAP = "my_tasks.adhoc_tasks";
 
    /**
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -124,7 +124,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       //fill attachement tab
       Set attachments = task.getAttachments();
       addAttachments(form, attachments);
-      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap("my_tasks.adhoc_tasks");
+      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(AD_HOC_RESOURCE_MAP);
       OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
 
       broker.close();

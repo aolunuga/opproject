@@ -4,8 +4,8 @@
 
 package onepoint.project.util;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Class used for holding constants used in more than one place and specific to the application.

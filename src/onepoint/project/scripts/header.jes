@@ -40,7 +40,7 @@ function enablePopUp(event){
 
 function showAbout(event){
    dialog = XComponent.newDialog();
-   dialog.open("/forms/about.oxf.xml", parameters);
+   dialog.openInNewThread("/forms/about.oxf.xml", parameters);
 }
 
 function bandwidthInfo(info){

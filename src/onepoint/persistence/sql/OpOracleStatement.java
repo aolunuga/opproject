@@ -4,9 +4,9 @@
 
 package onepoint.persistence.sql;
 
-import java.sql.Types;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+import java.sql.Types;
 
 /**
  * Class used for obtaining Oracle statements.

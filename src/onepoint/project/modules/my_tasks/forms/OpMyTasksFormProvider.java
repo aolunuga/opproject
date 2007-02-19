@@ -13,7 +13,9 @@ import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XSession;
@@ -29,12 +31,15 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String PRINT_TITLE = "PrintTitle";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
    private final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
+   private final static String RESOURCE_CHOICE_FIELD = "ResourcesChooser";
    private final static String START_BEFORE_SET = "StartBeforeSet";
    private final static String PROJECT_SET = "ProjectSet";
+   private final static String RESOURCES_SET = "FilterResourcesSet";
 
    // filters
    private final static String START_BEFORE_ID = "start_before_id";
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
+   private final static String RESOURCE_CHOICE_ID = "resources_choice_id";
 
    // start from filter choices
    private final static String ALL = "all";
@@ -42,6 +47,11 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String NEXT_2_WEEKS = "n2w";
    private final static String NEXT_MONTH = "nm";
    private final static String NEXT_2_MONTHS = "n2m";
+
+   private final static String RESPONSIBLE = "res";
+   private final static String MANAGED = "man";
+   private final static String INDIVIDUAL = "ind";
+
    private final static String NEW_COMMENT = "NewCommentButton";
    private final static String INFO_BUTTON = "InfoButton";
    private final static String PRINT_BUTTON = "PrintButton";
@@ -67,6 +77,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
          form.findComponent(NEW_ADHOC).setEnabled(false);
          form.findComponent(PROJECT_CHOICE_FIELD).setEnabled(false);
          form.findComponent(START_TIME_CHOICE_FIELD).setEnabled(false);
+         form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
          return; // TODO: UI-level error -- no resource associated with this user
       }
       form.findComponent(PRINT_TITLE).setStringValue(user.getName());
@@ -153,12 +164,29 @@ public class OpMyTasksFormProvider implements XFormProvider {
          OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, filter, orderCriteria, dataSet);
       }
 
+      String filteredResourcesId = getFilteredResourcesId(session, parameters, form);
+      boolean responsible = RESPONSIBLE.equals(filteredResourcesId);
+      boolean managed = MANAGED.equals(filteredResourcesId);
+      boolean individual = INDIVIDUAL.equals(filteredResourcesId);
+
+
       OpActivityFilter filter = createActivityFilter(session, parameters, form);
       for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
          List resourcesList = (List) iterator.next();
          for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
             String choice = (String) resIt.next();
             String locatorStr = XValidator.choiceID(choice);
+            boolean isResponsible = isResponsible(session.getUserID(), broker, locatorStr);
+            if (responsible && !isResponsible) {
+               continue;
+            }
+            boolean isManaged = isManaged(session, broker, locatorStr);
+            if (managed && !isManaged) {
+               continue;
+            }
+            if (individual && (!isResponsible || !isManaged)) {
+               continue;
+            }
             OpLocator locator = OpLocator.parseLocator(locatorStr);
             filter.addResourceID(locator.getID());
          }
@@ -210,6 +238,31 @@ public class OpMyTasksFormProvider implements XFormProvider {
       OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
 
       broker.close();
+   }
+
+   /**
+    * @param userID
+    * @param broker
+    * @param resourceLocator
+    * @return True if the given user (user ID) is the responsible user for this resource.
+    */
+   private boolean isResponsible(long userID, OpBroker broker, String resourceLocator) {
+      OpResource resource = (OpResource) broker.getObject(resourceLocator);
+      OpUser user = resource.getUser();
+      if (user != null) {
+         if (user.getID() == userID) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   private boolean isManaged(OpProjectSession session, OpBroker broker, String resourceLocator) {
+      OpResource resource = (OpResource) broker.getObject(resourceLocator);
+      if (session.effectiveAccessLevel(broker, resource.getID()) > OpPermission.MANAGER) {
+         return true;
+      }
+      return false;
    }
 
    /**
@@ -279,6 +332,34 @@ public class OpMyTasksFormProvider implements XFormProvider {
       }
       return filteredStartFromId;
    }
+
+   /**
+    * Returns the value of the resources choice field selection from the <code>parameters</code> list.
+    * If it's not found there, the search is performed in <code>form</code>'s state map kept on the <code>session<code>.
+    *
+    * @param session    <code>OpProjectSession</code> the session
+    * @param parameters <code>Map<code> of parameters
+    * @param form       <code>XComponent.FORM</code> for which this class is provider
+    * @return <code>String</code> representing the value of the choice field selection.
+    */
+   private String getFilteredResourcesId(OpProjectSession session, Map parameters, XComponent form) {
+      String filteredResourceChoiceId = (String) parameters.get(RESOURCE_CHOICE_ID);
+      if (filteredResourceChoiceId == null) {
+         Map stateMap = session.getComponentStateMap(form.getID());
+         if (stateMap != null) {
+            Integer selectedIndex = (Integer) stateMap.get(RESOURCE_CHOICE_FIELD);
+            if (selectedIndex != null) {
+               XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
+               if (selectedIndex.intValue() < resourceDataSet.getChildCount()) {
+                  XComponent dataRow = (XComponent) resourceDataSet.getChild(selectedIndex.intValue());
+                  filteredResourceChoiceId = XValidator.choiceID(dataRow.getStringValue());
+               }
+            }
+         }
+      }
+      return filteredResourceChoiceId;
+   }
+
 
    /**
     * Returns the value of the <code>PROJECT_CHOICE_ID</code>(choice field selection) from the <code>parameters</code> list.

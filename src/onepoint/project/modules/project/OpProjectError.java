@@ -16,7 +16,6 @@ public class OpProjectError {
    public final static int PORTFOLIO_NAME_ALREADY_USED = 8;
 
    public final static int BUDGET_INCORRECT = 10;
-   public final static int PRIORITY_INCORRECT = 11;
 
    public final static int UPDATE_ACCESS_DENIED = 12;
    
@@ -43,6 +42,8 @@ public class OpProjectError {
    public final static int PROJECT_LOCKED_ERROR = 31;
    public final static int PROJECT_CHECKED_IN_ERROR = 32;
 
+   public final static int GOAL_PRIORITY_ERROR = 33;
+   public final static int TODO_PRIORITY_ERROR = 34;
 
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
@@ -54,7 +55,6 @@ public class OpProjectError {
    public final static String PORTFOLIO_NAME_ALREADY_USED_NAME = "PortfolioNameAlreadyUsed";
 
    public final static String BUDGET_INCORRECT_NAME = "BudgetIncorrect";
-   public final static String PRIORITY_INCORRECT_NAME = "PriorityIncorrect";
 
    public final static String UPDATE_ACCESS_DENIED_NAME = "UpdateAccessDenied";
    
@@ -80,4 +80,8 @@ public class OpProjectError {
 
    public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
    public final static String PROJECT_CHECKED_IN_ERROR_NAME = "ProjectCheckedInError";
+
+   public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
+   public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
+
 }

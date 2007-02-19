@@ -122,11 +122,12 @@ public class OpSettingsService extends OpProjectService {
 
       /*resource max availability validation [0...Byte.MAX_VALUE]*/
       try{
-         int resourceMaxAvailability = Integer.parseInt((String)newSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         double resourceMaxAvailability = ((Double)newSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY)).doubleValue();
          if (resourceMaxAvailability < 0) {
             reply.setError(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));
             return reply;
          }
+         newSettings.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, Double.toString(resourceMaxAvailability));
       }
       catch(NumberFormatException e){
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));

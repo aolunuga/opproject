@@ -35,15 +35,11 @@ function timeUnitChanged(event) {
 }
 
 function UtilizationTable_onLayoutChanged(event) {
-   // *** TODO: Relayout utilization box
-   Console.println("ACTION: on-layout-changed");
    utilization_box = XDisplay.getActiveForm().findComponent("UtilizationBox");
-   utilization_box.doLayout();
-   utilization_box.repaint();
-}
-
-function UtilizationBox_onScroll(event) {
-   // *** TODO: Scroll UtilizationTable for the same amount (note: Only vertically)
+   if (utilization_box != null) {
+      utilization_box.doLayout();
+      utilization_box.repaint();
+   }
 }
 
 function saveUtilizationImage(event) {

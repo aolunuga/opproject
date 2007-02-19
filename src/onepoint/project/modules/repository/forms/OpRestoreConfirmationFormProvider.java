@@ -4,8 +4,10 @@
 
 package onepoint.project.modules.repository.forms;
 
+import onepoint.express.server.XFormProvider;
 import onepoint.express.XComponent;
 import onepoint.service.server.XSession;
+import onepoint.project.OpInitializer;
 
 import java.util.HashMap;
 

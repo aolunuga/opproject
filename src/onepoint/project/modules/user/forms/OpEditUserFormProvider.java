@@ -132,7 +132,7 @@ public class OpEditUserFormProvider implements XFormProvider {
       }
 
       XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);
-
+      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionSetFactory.USER_OBJECTS);
       Iterator assignments = user.getAssignments().iterator();
       OpUserAssignment assignment = null;
       OpGroup group = null;
@@ -141,7 +141,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          assignment = (OpUserAssignment) assignments.next();
          group = assignment.getGroup();
          dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(XValidator.choice(group.locator(), group.getName()));
+         dataRow.setStringValue(XValidator.choice(group.locator(), userObjectsLocalizer.localize(group.getDisplayName())));
          assigned_group_data_set.addChild(dataRow);
       }
       assigned_group_data_set.sort();

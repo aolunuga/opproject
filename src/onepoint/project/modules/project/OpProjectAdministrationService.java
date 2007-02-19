@@ -218,8 +218,8 @@ public class OpProjectAdministrationService extends OpProjectService {
          data_cell = (XComponent) (data_row.getChild(1));
          goal.setName(data_cell.getStringValue());
          data_cell = (XComponent) (data_row.getChild(2));
-         if (data_cell.getIntValue() < 0) {
-            error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+         if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+            error = session.newError(ERROR_MAP, OpProjectError.GOAL_PRIORITY_ERROR);
             reply.setError(error);
             finalizeSession(t, broker);
             return reply;
@@ -243,8 +243,8 @@ public class OpProjectAdministrationService extends OpProjectService {
          data_cell = (XComponent) (data_row.getChild(1));
          to_do.setName(data_cell.getStringValue());
          data_cell = (XComponent) (data_row.getChild(2));
-         if (data_cell.getIntValue() < 0) {
-            error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+         if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+            error = session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR);
             reply.setError(error);
             finalizeSession(t, broker);
             return reply;
@@ -458,8 +458,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             // priority data cell
             data_cell = (XComponent) (data_row.getChild(2));
             if (goal.getPriority() != data_cell.getIntValue()) {
-               if (data_cell.getIntValue() < 0) {
-                  error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+               if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+                  error = session.newError(ERROR_MAP, OpProjectError.GOAL_PRIORITY_ERROR);
                   reply.setError(error);
                   finalizeSession(t, broker);
                   return reply;
@@ -486,8 +486,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             goal.setName(data_cell.getStringValue());
             // priority data cell
             data_cell = (XComponent) (data_row.getChild(2));
-            if (data_cell.getIntValue() < 0) {
-               error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+            if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+               error = session.newError(ERROR_MAP, OpProjectError.GOAL_PRIORITY_ERROR);
                reply.setError(error);
                finalizeSession(t, broker);
                return reply;
@@ -535,8 +535,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             }
             data_cell = (XComponent) (data_row.getChild(2));
             if (to_do.getPriority() != data_cell.getIntValue()) {
-               if (data_cell.getIntValue() < 0) {
-                  error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+               if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+                  error = session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR);
                   reply.setError(error);
                   finalizeSession(t, broker);
                   return reply;
@@ -567,8 +567,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             data_cell = (XComponent) (data_row.getChild(1));
             to_do.setName(data_cell.getStringValue());
             data_cell = (XComponent) (data_row.getChild(2));
-            if (data_cell.getIntValue() < 0) {
-               error = session.newError(ERROR_MAP, OpProjectError.PRIORITY_INCORRECT);
+            if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
+               error = session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR);
                reply.setError(error);
                finalizeSession(t, broker);
                return reply;
@@ -627,7 +627,8 @@ public class OpProjectAdministrationService extends OpProjectService {
     * as a result of a project start date being moved into the future.
     * @param session a <code>OpProjectSession</code> representing a server session.
     * @param project a <code>OpProjectNode</code> representing the project node being edited.
-    * @param start_date a <code>Date</code> representing the  
+    * @param start_date a <code>Date</code> representing the
+    * @return a <code>XMessage</code> indicating whether the operation was successfull or not.
     */
    private XMessage shiftPlanDates(OpProjectSession session, OpProjectNode project, Date start_date) {
       Date originalDate = project.getStart();
