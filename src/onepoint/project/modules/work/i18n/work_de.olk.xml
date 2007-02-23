@@ -28,6 +28,7 @@
       <resource id="Date">Datum</resource>
       <resource id="Task">Aufgabe</resource>
       <resource id="Project">Projekt</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
@@ -57,6 +58,7 @@
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Worktime">Aufwand</resource>
       <resource id="RemainingEffort">Verbleibend</resource>
       <resource id="Material">Material</resource>

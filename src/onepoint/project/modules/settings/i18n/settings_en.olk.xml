@@ -10,8 +10,8 @@
       <resource id="TimeControl">Time Settings</resource>
       <resource id="FirstWorkday">First work weekday</resource>
       <resource id="LastWorkday">Last work weekday</resource>
-      <resource id="DayWorkTime">Work hours per day</resource>
-      <resource id="WeekWorkTime">Work hours per week</resource>
+      <resource id="DayWorkTime">Working hours per day</resource>
+      <resource id="WeekWorkTime">Working hours per week</resource>
       <resource id="Holidays">Calendar (bank holidays)</resource>
       <resource id="EMailNotificationFromAddress">Notification sender e-mail</resource>
       <resource id="ReportsRemoveTimePeriod">Report archiving period (weeks)</resource>

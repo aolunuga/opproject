@@ -167,5 +167,7 @@
       <resource id="LoopAssignment">This assignment would cause a loop</resource>
       <resource id="InvalidUserLevel">Invalid user level</resource>
       <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
+      <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
+      <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
    </resource-map>
 </language-kit>

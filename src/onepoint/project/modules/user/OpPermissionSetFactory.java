@@ -16,10 +16,16 @@ import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
+import onepoint.service.XError;
 
 import java.util.*;
 
 public class OpPermissionSetFactory {
+
+   /**
+    * The user error map.
+    */
+   private final static OpUserErrorMap USER_ERROR_MAP = new OpUserErrorMap();
 
    // Attention: Role icon index is "appended" to typical icon indexes of user module (reusability)
    public final static int GROUP_ICON_INDEX = 0;
@@ -276,19 +282,22 @@ public class OpPermissionSetFactory {
     * Persists the <code>permissionSet</code> for the given <code>object</code>
     *
     * @param broker        a <code>OpBroker</code>
+    * @param session a <code>OpProjectSession</code> representing the server session.
     * @param object        a <code>XProject</code> or a <code>XProjectPorfolio</code> instance
     * @param permissionSet a <code>XComponent.DATA_SET</code> of permissions
-    * @return true if the permissions were stored ok, false otherwise.
+    * @return a <code>XError</code> object if an error occured, or <code>null</code> if the operation was successfull.
     */
-   public static boolean storePermissionSet(OpBroker broker, OpObject object, XComponent permissionSet) {
+   public static XError storePermissionSet(OpBroker broker, OpProjectSession session, OpObject object, XComponent permissionSet) {
 
       if (!OpInitializer.isMultiUser() && permissionSet.getChildCount() == 0) {
          //set administrator permission on object (if not set already)
-         return createAdministratorPermissions(object, broker);
+         if (!createAdministratorPermissions(object, broker)) {
+            return session.newError(USER_ERROR_MAP, OpUserError.ADMIN_PERMISSION_ERROR);
+         }
       }
 
       if (!checkPermissionsAgainstLevel(broker, permissionSet)) {
-         return false;
+         return session.newError(USER_ERROR_MAP, OpUserError.PERMISSION_LEVEL_ERROR);
       }
 
       if ((object.getPermissions() == null) || (object.getPermissions().size() == 0)) {
@@ -393,7 +402,7 @@ public class OpPermissionSetFactory {
          }
 
       }
-      return true;
+      return null;
    }
 
    /**

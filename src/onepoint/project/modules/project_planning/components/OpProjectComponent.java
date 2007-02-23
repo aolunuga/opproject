@@ -2350,7 +2350,7 @@ public class OpProjectComponent extends XComponent {
     * @param g         the Graphics
     * @param clip_area the rectangle clip area
     */
-   protected void _paintUtilizationRow(Graphics g, Rectangle clip_area) {
+   protected void paintUtilizationRow(Graphics g, Rectangle clip_area) {
       XStyle style = _getStyleAttributes();
       Rectangle bounds = getBounds();
       OpProjectComponent box = (OpProjectComponent) getContext();
@@ -2363,7 +2363,7 @@ public class OpProjectComponent extends XComponent {
       Color color = null;
       double x = 0;
       // "pixels" to be painted
-      double burst = 0;
+      double burstWidth = 0;
       // pixelAmount regarding to the timeunit and daywidth
       double pixelAmount;
       double ratio = getUnitRatio(box.getTimeUnit());
@@ -2373,6 +2373,40 @@ public class OpProjectComponent extends XComponent {
 
       XComponent colorDataSet = box.getColorDataSetComponent();
 
+      for (int i = 0; i < values.size(); i++) {
+         value = ((Double) (values.get(i))).doubleValue();
+         color = getRowColor(colorDataSet, value, available);
+         if (color == previous_color) {
+            burstWidth += pixelAmount;
+         }
+         else {
+            // draw prev burstWidth (color was changed)
+            if (previous_color != null) {
+               paintBurst(g, x, burstWidth, bounds.height, previous_color, color, style);
+            }
+            x += burstWidth;
+            // another color is used - add one burst unit for the color that was just changed
+            previous_color = color;
+            burstWidth = pixelAmount;
+         }
+      }
+
+      // Draw last burstWidth
+      if (color != null && burstWidth >= 1) {
+         paintBurst(g, x, burstWidth, bounds.height, color, null, style);
+      }
+   }
+
+   /**
+    * Gets the drawing color for a given utilization value.
+    *
+    * @param colorDataSet Data set containing the utilization colors.
+    * @param value        Utilization values that has to be painted.
+    * @param available    The available value (the utilization will be compared against this value in order to decide the color)
+    * @return Color for the given utilization value and available.
+    */
+   private Color getRowColor(XComponent colorDataSet, double value, double available) {
+      Color color;
       XComponent row;
       row = (XComponent) colorDataSet.getChild(0);
       Color highlyUnderUsedColor = (Color) ((XComponent) row.getChild(1)).getValue();
@@ -2388,66 +2422,50 @@ public class OpProjectComponent extends XComponent {
 
       row = (XComponent) colorDataSet.getChild(4);
       Color higlyOverUsedColor = (Color) ((XComponent) row.getChild(1)).getValue();
-
-      for (int i = 0; i < values.size(); i++) {
-         value = ((Double) (values.get(i))).doubleValue();
-
-         color = null;
-         if (value > available * 1.2d) {
-            color = higlyOverUsedColor;
-         }
-         else if (value > available) {
-            color = overUsedColor;
-         }
-         else if (value >= available * 0.8d) {
-            color = normalUsedColor;
-         }
-         else if (value >= available * 0.5d) {
-            color = underUsedColor;
-         }
-         else if (value > 0) {
-            color = highlyUnderUsedColor;
-         }
-
-         if (color == previous_color) {
-            burst += pixelAmount;
-         }
-         else {
-            // draw prev burst (color was changed)
-            if (previous_color != null) {
-               g.setColor(previous_color);
-               Rectangle2D rec = new Rectangle();
-               rec.setRect(x, 0, burst, bounds.height);
-               ((Graphics2D) g).fill(rec);
-               g.setColor(style.border_light);
-               if (color == null) {
-                  rec.setFrame(x, 0, burst - 1, bounds.height);
-               }
-               else {
-                  rec.setFrame(x, 0, burst, bounds.height);
-               }
-               ((Graphics2D) g).draw(rec);
-               x += burst;
-            }
-            else {
-               x += burst;
-            }
-            // another color is used - burst becomes 1 - for the color that was just changed
-            previous_color = color;
-            burst = pixelAmount;
-         }
+      color = null;
+      if (value > available * 1.2d) {
+         color = higlyOverUsedColor;
       }
-
-      // Draw last burst
-      if (color != null && burst >= 1) {
-         g.setColor(color);
-         Rectangle2D rec = new Rectangle();
-         rec.setRect(x, 0, (int) burst, bounds.height);
-         ((Graphics2D) g).fill(rec);
-         g.setColor(style.border_light);
-         rec.setFrame(x, 0, burst - 1, bounds.height);
-         ((Graphics2D) g).draw(rec);
+      else if (value > available) {
+         color = overUsedColor;
       }
+      else if (value >= available * 0.8d) {
+         color = normalUsedColor;
+      }
+      else if (value >= available * 0.5d) {
+         color = underUsedColor;
+      }
+      else if (value > 0) {
+         color = highlyUnderUsedColor;
+      }
+      return color;
+   }
+
+   /**
+    * Draws an utilization rectangle from an utilization row definde by a burst (burstWidth).
+    *
+    * @param g          Graphic context used for painting
+    * @param x          X position for the drawn utilization row part.
+    * @param width      Width of the drawn burst
+    * @param height     Height of the drawn burst
+    * @param burstColor Color the burst is drawn with
+    * @param newColor   The new color (color of the following burst - null if no burst will follow).
+    * @param style      Utilization row style.
+    */
+   private void paintBurst(Graphics g, double x, double width, int height, Color burstColor, Color newColor, XStyle style) {
+      g.setColor(burstColor);
+      Rectangle2D rec = new Rectangle();
+      rec.setRect(x, 0, width, height);
+      ((Graphics2D) g).fill(rec);
+      g.setColor(style.border_light);
+      //one px has to be substracted from the frame in order for the burst not to overlap with the weekend (on day view)
+      if (newColor == null) {
+         rec.setFrame(x, 0, width - 1, height);
+      }
+      else {
+         rec.setFrame(x, 0, width, height);
+      }
+      ((Graphics2D) g).draw(rec);
    }
 
    protected void _paintUtilizationChart(Graphics g, Rectangle clip_area) {
@@ -2458,8 +2476,8 @@ public class OpProjectComponent extends XComponent {
    /**
     * Paints the start and end line for the project on the gantt chart.
     *
-    * @param g
-    * @param clip_area
+    * @param g         Graphic context used for painting.
+    * @param clip_area Paint clip area.
     */
    protected void paintProjectStartFinishLines(Graphics g, Rectangle clip_area) {
       OpProjectComponent box = (OpProjectComponent) getContext();
@@ -2764,7 +2782,7 @@ public class OpProjectComponent extends XComponent {
             paintGanttHeader(g, clip_area);
             break;
          case UTILIZATION_ROW:
-            _paintUtilizationRow(g, clip_area);
+            paintUtilizationRow(g, clip_area);
             break;
          case UTILIZATION_CHART:
             _paintUtilizationChart(g, clip_area);

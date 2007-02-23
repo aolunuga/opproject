@@ -40,9 +40,10 @@ public class OpAboutFormProvider implements XFormProvider {
    private static final XLog logger = XLogFactory.getLogger(OpAboutFormProvider.class, true);
 
    /**
-    * The version number of the application using this class.
+    * The map of [product_code, description] for the different flavours of the application.
     */
-   private static final String VERSION_NUMBER = "07";
+   private static final Map PRODUCT_CODES_DESCRIPTION;
+
    private static final String UNKNOWN_VERSION_NUMBER = "N/A";
 
    /**
@@ -63,6 +64,18 @@ public class OpAboutFormProvider implements XFormProvider {
    private final static String VERSION = "version";
    private final static String CODE = "code";
    private final static String PRODUCT = "product";
+
+   /**
+    * Initializer for the map of product codes.
+    * <FIXME author="Horia Chiorean" description="Check if the product names should come from an i18n file">
+    */
+   static {
+      PRODUCT_CODES_DESCRIPTION = new HashMap();
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.BASIC_EDITION_CODE, "Onepoint Project Basic Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.OPEN_EDITION_CODE, "Onepoint Project Open Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.TEAM_EDITION_CODE, "Onepoint Project Team Edition");
+   }
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
@@ -86,10 +99,10 @@ public class OpAboutFormProvider implements XFormProvider {
       if (currentVersion == null) {
          currentVersion = UNKNOWN_VERSION_NUMBER;
       }
-      String productName = (String) OpProjectConstants.PRODUCT_CODES_DESCRIPTION.get(productCode);
+      String productName = (String) PRODUCT_CODES_DESCRIPTION.get(productCode);
 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
-      form.findComponent(VERSION_LABEL).setText(VERSION_NUMBER);
+      form.findComponent(VERSION_LABEL).setText(OpProjectConstants.CODE_VERSION_NUMBER);
       form.findComponent(CURRENT_VERSION_LABEL).setText(currentVersion);
    }
 

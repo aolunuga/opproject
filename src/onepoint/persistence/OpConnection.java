@@ -56,4 +56,6 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
    public abstract Connection getJDBCConnection();
 
    public abstract boolean isValid();
+
+   public abstract boolean isOpen();
 }

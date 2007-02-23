@@ -63,8 +63,8 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String MAIN_ERROR_MAP_ID = "main.error";
    private static final String CONTENT_ID_PARAM = "contentId";
    private static final String FILE_PARAM = "file";
-   private static final String INSUFICIENT_VIEW_PERMISSIONS = "InsuficientViewPermissions";
-   private static final String INVALID_SESSION = "InvalidSession";
+   private static final String INSUFICIENT_VIEW_PERMISSIONS = "{$InsuficientViewPermissions}";
+   private static final String INVALID_SESSION = "{$InvalidSession}";
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    private String projectHome = null;
@@ -86,7 +86,8 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * @see onepoint.express.servlet.XExpressServlet#onInit()
     */
-   public void onInit() {
+   public void onInit()
+        throws ServletException {
       super.onInit();
 
       //initialize the path to the projec home
@@ -419,20 +420,18 @@ public class OpOpenServlet extends XExpressServlet {
     * Generates an error page, as a user response to some action.
     *
     * @param out            a <code>PrintStream</code> representing the output stream on which the server response is written.
-    * @param errorMessageId a <code>String</code> representing an error message id from a resource bundle.
+    * @param errorMessage a <code>String</code> representing an error message to display. The errorMessage tries to be
+    * i18ned from the main language res file.
     * @param session        a <code>OpProjectSession</code> representing the application user session.
     */
-   private void generateErrorPage(PrintStream out, String errorMessageId, OpProjectSession session) {
+   private void generateErrorPage(PrintStream out, String errorMessage, OpProjectSession session) {
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(MAIN_ERROR_MAP_ID));
-      if (!(errorMessageId.startsWith("{$") && errorMessageId.endsWith("}"))) {
-         errorMessageId = "{$" + errorMessageId + "}";
-      }
-      String errorMessage = localizer.localize(errorMessageId);
+      String i18nErrorMessage = localizer.localize(errorMessage);
       out.println("<html>");
-      out.println("<head><title>Onepoint Project Error</title></head>");
+      out.println("<head><title> " + htmlTitle + " Error </title></head>");
       out.print("<body><h1><font color=\"red\">");
-      out.print(errorMessage);
+      out.print(i18nErrorMessage);
       out.println("</font></h1></body>");
       out.print("</html>");
    }

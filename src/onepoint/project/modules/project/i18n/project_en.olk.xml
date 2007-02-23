@@ -83,7 +83,7 @@
       <resource id="CalculationMode">Effort-based planning</resource>
       <resource id="ProgressTracked">Enable progress tracking</resource>
       <resource id="Status">Project Status</resource>
-      <resource id="NoStatus">(No Status)</resource>
+      <resource id="NoStatus">(None)</resource>
       
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
@@ -161,7 +161,6 @@
       <resource id="StartDateMissing">The start date was not specified</resource>
       <resource id="EndDateIncorrect">The entered end date is not valid</resource>
       <resource id="BudgetIncorrect">The entered budget is not valid</resource>
-      <resource id="PriorityIncorrect">The entered priority is not valid</resource>
       <resource id="PortfolioNameMissing">The portfolio name was not specified</resource>
       <resource id="PortfolioNameAlreadyUsed">The portfolio name is already used</resource>
       <resource id="UpdateAccessDenied">You do not have sufficient privileges to edit the project or portfolio</resource>
@@ -172,10 +171,9 @@
       <resource id="WorkRecordsStillExistError">The selected projects cannot be deleted, because there exist work slips which reference them</resource>
       <resource id="WorkRecordsStillExistWarning">Not all selected projects could be deleted, because there existed work slips which referenced some of them</resource>
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
-      <resource id="PermissionsLevelError">Permissions Level Error</resource>
-      <resource id="ProjectLockedError">Cannot change project because the project plan is checked out</resource>
-      <resource id="GoalPriorityError">Some of the goals priorities are invalid</resource>
-      <resource id="TodoPriorityError">Some of the todos priorities are invalid</resource>
+      <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
+      <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
+      <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
    </resource-map>
 
    <resource-map id="project.delete">

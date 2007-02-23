@@ -5,7 +5,6 @@
 package onepoint.project.modules.project_planning;
 
 import onepoint.error.XErrorMap;
-import onepoint.project.modules.project.OpProjectError;
 
 /**
  * @author : mihai.costin
@@ -25,6 +24,12 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS_NAME);
-      registerErrorCode(OpProjectError.UPDATE_ACCESS_DENIED, OpProjectError.UPDATE_ACCESS_DENIED_NAME);
+      registerErrorCode(OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR_NAME);
+
+      registerErrorCode(OpProjectPlanningError.PROJECT_CHECK_IN_ERROR, OpProjectPlanningError.PROJECT_CHECK_IN_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.PROJECT_CHECK_OUT_ERROR, OpProjectPlanningError.PROJECT_CHECK_OUT_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.PROJECT_REVERT_ERROR, OpProjectPlanningError.PROJECT_REVERT_ERROR_NAME);
+      registerErrorCode(OpProjectPlanningError.PROJECT_SAVE_ERROR, OpProjectPlanningError.PROJECT_SAVE_ERROR_NAME);
+
    }
 }

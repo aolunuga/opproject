@@ -90,19 +90,19 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       XComponent dataRow ;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://<host>:<port3306>/<database>", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/onepoint", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@<host>:<port1521>:<sid>", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:db2://<host>:<port446>/<database>", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/onepoint", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://<host>:<port5432>/<database>", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/onepoint", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
    }
 }

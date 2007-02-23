@@ -89,7 +89,7 @@
       <resource id="ScheduledMixedErrorMessage">Es ist nicht erlaubt, Vorgänge und Aufgaben im gleichen Sammelvorgang zu mischen</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
      
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
@@ -250,5 +250,11 @@
       <resource id="MsProjectFileReadError">Die Microsoft Project Datei kann nicht gelesen werden</resource>
       <resource id="MsProjectFileWriteError">Der Projektplan konnte nicht in das Microsoft Project Format exportiert werden</resource>
       <resource id="InsuficientAttachmentPermissions">Sie haben nicht die notwendigen Rechte um diese Anlage einzusehen</resource>
+
+      <resource id="ProjectCheckedInError">Der Projektplan kann nicht bearbeitet werden, da keine Arbeitskopie existiert</resource>
+      <resource id="ProjectCheckOutError">Es ist ein Fehler aufgetreten bei der Erstellung der Arbeitskopie</resource>
+      <resource id="ProjectCheckInError">Es ist ein Fehler aufgetreten bei der Freigabe des Projektplans</resource>
+      <resource id="ProjectRevertError">Es ist ein Fehler aufgetreten beim Verwerfen der Arbeitskopie</resource>
+      <resource id="ProjectSaveError">Es ist ein Fehler aufgetreten beim Speichern der Arbeitskopie</resource>
    </resource-map>
 </language-kit>

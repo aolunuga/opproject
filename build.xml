@@ -22,10 +22,10 @@
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="project.jarname" value="opproject-07beta-be.jar"/>
-   <property name="project.client.jarname" value="opproject-client-07beta-be.jar"/>
+   <property name="project.jarname" value="opproject-07-be.jar"/>
+   <property name="project.client.jarname" value="opproject-client-07-be.jar"/>
    <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client-07beta.jar"/>
+   <property name="express.client.jarname" value="express4j-client-07.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
@@ -37,7 +37,7 @@
    <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
    <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
-   <property name="release.root.filename" value="opproject-07beta"/>
+   <property name="release.root.filename" value="opproject-07"/>
 
    <!-- Classpath reference -->
    <path id="op.classpath">

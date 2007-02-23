@@ -9,11 +9,11 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
-import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.modules.project_planning.OpProjectPlanningService;
+import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.service.server.XServiceManager;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceManager;
 
 import java.util.HashMap;
 
@@ -76,16 +76,20 @@ public class OpProjectPlanValidator {
     *<FIXME author="Horia Chiorean" description="Possible problem: this method is not atomic">
     */
    public XMessage validateProjectPlanIntoNewVersion(OpProjectSession session, PlanModifier modifier) {
-      OpProjectPlanningService planningService = (OpProjectPlanningService) XServiceManager.getService(OpProjectPlanningService.SERVICE_NAME);
+      OpProjectService planningService = (OpProjectService) XServiceManager.getService("PlanningService");
       if (planningService == null) {
          throw new UnsupportedOperationException("Cannot retrieve the registered project planning service !");
       }
 
+      String projectIdArg = "project_id";
+      String activitySetArg = "activity_set";
+      String workingPlanArg = "working_plan_version_id";
+
       //check out the current project plan
       String projectId = projectPlan.getProjectNode().locator();
       XMessage editActivitiesRequest = new XMessage();
-      editActivitiesRequest.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
-      XMessage reply = planningService.editActivities(session, editActivitiesRequest);
+      editActivitiesRequest.setArgument(projectIdArg, projectId);
+      XMessage reply = planningService.invokeMethod(session, "editActivities", editActivitiesRequest);
       if (reply != null && reply.getError() != null) {
          return reply;
       }
@@ -108,10 +112,11 @@ public class OpProjectPlanValidator {
 
       //check-in the working version
       XMessage checkInRequest = new XMessage();
-      checkInRequest.setArgument(OpProjectPlanningService.ACTIVITY_SET, validator.getDataSet());
-      checkInRequest.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
-      checkInRequest.setArgument(OpProjectPlanningService.WORKING_PLAN_VERSION_ID, workingPlanLocator);
-      reply = planningService.checkInActivities(session, checkInRequest);
+
+      checkInRequest.setArgument(activitySetArg, validator.getDataSet());
+      checkInRequest.setArgument(projectIdArg, projectId);
+      checkInRequest.setArgument(workingPlanArg, workingPlanLocator);
+      reply = planningService.invokeMethod(session, "checkInActivities", checkInRequest);
 
       if (reply != null && reply.getError() != null) {
          return reply;

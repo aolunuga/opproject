@@ -46,7 +46,6 @@
       <resource id="Resources">Resources</resource>
       <resource id="Responsible">Responsible</resource>
       <resource id="Managed">Managed</resource>
-      <resource id="Individual">Individual</resource>
 
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>
@@ -103,7 +102,7 @@
       <resource id="NoResourceError">There was no resource assigned</resource>
       <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
       <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>      
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
    </resource-map>
 
 </language-kit>

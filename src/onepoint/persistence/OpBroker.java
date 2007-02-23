@@ -32,25 +32,6 @@ public class OpBroker {
    public OpConnection getConnection() {
       return _default_connection;
    }
-   // public final void createPrototype(String name) {}
-   // public final void createPrototype(OpSource source, String name) {}
-   // public final void drop/removePrototype(OpPrototype prototype) {}
-   // public final void drop/removePrototype(OpSource source, OpPrototype prototype) {}
-   // alterPrototype() for upgrading/migrating?
-
-   // OpObject newObject() -- for retrieving?
-
-   /*
-   public void createPrototype(String prototype_name) { // "install"?
-     // Create prototype in default-source
-     _default_connection.createPrototype(prototype_name);
-   }
-
-   public void dropPrototype(String prototype_name) { // "remove/deinstall"?
-     // Drop prototype from default-source
-     _default_connection.dropPrototype(prototype_name);
-   }
-   */
 
    public void makePersistent(OpObject object) {
       // Persist object into default source and set creation date and time
@@ -131,6 +112,15 @@ public class OpBroker {
       if (_default_connection != null) {
          _default_connection.close();
       }
+   }
+
+   /**
+    * Checks if this broker (and the underlying connection) is still open.
+    *
+    * @return true if it's open.
+    */
+   public boolean isOpen() {
+      return _default_connection.isOpen();
    }
 
    public OpTransaction newTransaction() {

@@ -26,7 +26,6 @@ public abstract class OpResourceError {
    public final static int DELETE_RESOURCE_ASSIGNMENTS_DENIED = 17;
    public final static int DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED = 18;
    public final static int ACTIVITY_ASSIGNMENTS_EXIST_ERROR = 19;
-   public final static int PERMISSIONS_LEVEL_ERROR = 20;
 
 
    // Error names
@@ -49,5 +48,4 @@ public abstract class OpResourceError {
    public final static String DELETE_RESOURCE_ASSIGNMENTS_DENIED_NAME = "DeleteResourceAssignmentsDenied";
    public final static String DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED_NAME = "DeletePoolResourceAssignmentsDenied";
    public final static String ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME = "ActivityAssignmentsExistError";
-   public final static String PERMISSIONS_LEVEL_ERROR_NAME = "PermissionsLevelError";
 }

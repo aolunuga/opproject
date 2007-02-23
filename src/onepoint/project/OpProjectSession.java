@@ -2,6 +2,8 @@ package onepoint.project;
 
 import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
@@ -19,9 +21,8 @@ public class OpProjectSession extends XExpressSession {
    private long userId = NO_ID;
    private long administratorId = NO_ID ; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
-
    private ArrayList subjectIds = new ArrayList();
-
+   private static final XLog logger = XLogFactory.getLogger(OpProjectSession.class, true);
    public OpProjectSession() {
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
@@ -136,6 +137,7 @@ public class OpProjectSession extends XExpressSession {
    public OpBroker newBroker() {
       return OpPersistenceManager.newBroker();
    }
+
 
    public XError newError(XErrorMap errorMap, int errorCode) {
       return errorMap.newError(errorCode, getLocale());

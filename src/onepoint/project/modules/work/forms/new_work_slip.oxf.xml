@@ -27,12 +27,12 @@
       </panel>
 
       <tab-box>
-         <!-- removed travel-time and distance-car because they are not related to activities -->
 
          <tab text="{$Effort}" layout="border">
             <table-box id="EffortTable" data-set-ref="WorkRecordSet" edit-mode="true">
                <table-column width="300" text="{$Task}" data-column-index="0" value-type="Choice" data-set-ref="ActivitySet"/>
                <table-column width="100" text="{$Project}" data-column-index="13" value-type="String"/>
+               <table-column width="70" text="{$AssignmentEffort}" data-column-index="14" value-type="Double"/>
                <table-column width="80" text="{$Resource}" data-column-index="8" value-type="String" id="ResourceColumnEffort"/>
                <table-column width="70" text="{$Worktime}" data-column-index="1" on-value-changed="workTimeEntered" value-type="Double" sortable="true"/>
                <table-column width="70" text="{$RemainingEffort}" data-column-index="2" on-value-changed="remainingEntered" value-type="Double" sortable="true"/>

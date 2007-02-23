@@ -30,6 +30,7 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceException;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -64,7 +65,8 @@ public class OpProjectPlanningService extends OpProjectService {
    private final static String FILE_NAME = "fileName";
    private final static String COMMENT_DATA = "comment_data";
    private final static String COMMENT_ID = "comment_id";
-   private final static OpProjectPlanningErrorMap ERROR_MAP = new OpProjectPlanningErrorMap();
+   private final static OpProjectPlanningErrorMap PLANNING_ERROR_MAP = new OpProjectPlanningErrorMap();
+   private final static OpProjectErrorMap PROJECT_ERROR_MAP = new OpProjectErrorMap();
 
    private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
 
@@ -79,13 +81,18 @@ public class OpProjectPlanningService extends OpProjectService {
       OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
       OpProjectPlan projectPlan = project.getPlan();
 
+      if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
+         broker.close();
+         throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
+      }
+
       InputStream inFile = new ByteArrayInputStream(file);
       XComponent dataSet;
       try {
          dataSet = OpMSProjectManager.importActivities(inFile, projectPlan);
       }
       catch (IOException e) {
-         reply.setError(session.newError(ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
+         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
          return reply;
       }
 
@@ -126,7 +133,7 @@ public class OpProjectPlanningService extends OpProjectService {
          fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet);
       }
       catch (IOException e) {
-         response.setError(session.newError(ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
+         response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
          return null;
       }
 
@@ -152,33 +159,38 @@ public class OpProjectPlanningService extends OpProjectService {
    }
 
    public XMessage editActivities(OpProjectSession session, XMessage request) {
-      // Set persistent lock for current user (working project plan version is created on first save)
-      String project_id_string = (String) (request.getArgument(PROJECT_ID));
-      OpBroker broker = session.newBroker();
+      OpBroker broker = null;
+      try {
+         // Set persistent lock for current user (working project plan version is created on first save)
+         String project_id_string = (String) (request.getArgument(PROJECT_ID));
+         broker = session.newBroker();
+         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
-      OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
+         // Check manager access
+         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Udpate access to project denied; ID = " + project_id_string);
+            broker.close();
+            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+         }
 
-      // Check manager access
-      if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Udpate access to project denied; ID = " + project_id_string);
+         // *** Check if lock is already set -- if yes throw exception
+         if (project.getLocks().size() > 0) {
+            logger.error("Project is already locked");
+            broker.close();
+            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         }
+         XMessage reply = setEditLock(broker, session, project);
+
          broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
          return reply;
       }
-
-      // *** Check if lock is already set -- if yes throw exception
-      if (project.getLocks().size() > 0) {
-         logger.error("Project is already locked");
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
-         return reply;
+      catch (Exception e) {
+         XError error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECK_OUT_ERROR);
+         throw new XServiceException(error);
       }
-      XMessage reply = setEditLock(broker, session, project);
-
-      broker.close();
-      return reply;
+      finally{
+         finalizeSession(null, broker);
+      }
    }
 
    /**
@@ -208,17 +220,17 @@ public class OpProjectPlanningService extends OpProjectService {
 
          if (hasAvailabilityChanged && haveRatesChanged) {
             result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
-            result.setError(session.newError(ERROR_MAP, OpProjectPlanningError.AVAILIBILITY_AND_RATES_MODIFIED_WARNING));
+            result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.AVAILIBILITY_AND_RATES_MODIFIED_WARNING));
             return result;
          }
          if (hasAvailabilityChanged) {
             result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
-            result.setError(session.newError(ERROR_MAP, OpProjectPlanningError.AVAILIBILITY_MODIFIED_WARNING));
+            result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.AVAILIBILITY_MODIFIED_WARNING));
             return result;
          }
          if (haveRatesChanged) {
             result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
-            result.setError(session.newError(ERROR_MAP, OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING));
+            result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING));
             return result;
          }
       }
@@ -296,227 +308,238 @@ public class OpProjectPlanningService extends OpProjectService {
    /**
     * Saves the given activity set. Will serialize the activity set and set it as the plan for the working version.
     *
-    * @param session       The session used
+    * @param session The session used
     * @param request The request that contains the parameters required by the save process
     * @return A message that will contain error messages if something went wrong
     */
    public XMessage saveActivities(OpProjectSession session, XMessage request) {
-      logger.debug("OpProjectAdministrationService.saveActivities");
-      String project_id_string = (String) (request.getArgument(PROJECT_ID));
-
-      if ((project_id_string == null) || (project_id_string.trim().length() == 0)) {
-         return null;
-      }
-
-      String workingPlanVersionLocator = (String) request.getArgument(WORKING_PLAN_VERSION_ID);
-
-      XComponent dataSet = (XComponent) (request.getArgument(ACTIVITY_SET));
-
-      logger.debug("SAVE-ACTIVITIES " + dataSet.getChildCount());
-
-      OpBroker broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
-
-      // *** Check if current user has lock on project
-      if (project.getLocks().size() == 0) {
-         logger.error("Project is currently not being edited");
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_CHECKED_IN_ERROR));
-         return reply;
-      }
-      OpLock lock = (OpLock) project.getLocks().iterator().next();
-      if (lock.getOwner().getID() != session.getUserID()) {
-         logger.error("Project is locked by another user");
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      // Check if project plan already exists (create if not)
-      OpProjectPlan projectPlan = project.getPlan();
-      if (projectPlan == null) {
-         projectPlan = new OpProjectPlan();
-         projectPlan.setProjectNode(project);
-         projectPlan.setStart(project.getStart());
-         projectPlan.setFinish(project.getFinish());
-         projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
-         broker.makePersistent(projectPlan);
-      }
-
-      // Check if working plan version ID is correct (if it is set)
-      boolean fromProjectPlan = true;
-      OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-           projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-      if (workingPlanVersionLocator != null) {
-         // It is important that fromProjectPlan is checked against workingPlanVersionLocator parameter
-         // (And not against existing working plan version in database, because client view might not have been
-         // reloaded)
-         fromProjectPlan = false;
-         if ((workingPlanVersion != null)
-              && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
-            // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-            finalizeSession(t, broker);
+      OpBroker broker = null;
+      try {
+         logger.debug("OpProjectAdministrationService.saveActivities");
+         String project_id_string = (String) (request.getArgument(PROJECT_ID));
+         if ((project_id_string == null) || (project_id_string.trim().length() == 0)) {
             return null;
          }
+         String workingPlanVersionLocator = (String) request.getArgument(WORKING_PLAN_VERSION_ID);
+         XComponent dataSet = (XComponent) (request.getArgument(ACTIVITY_SET));
+
+         logger.debug("SAVE-ACTIVITIES " + dataSet.getChildCount());
+
+         broker = session.newBroker();
+         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
+
+         // *** Check if current user has lock on project
+         if (project.getLocks().size() == 0) {
+            logger.error("Project is currently not being edited");
+            broker.close();
+            throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
+         }
+         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         if (lock.getOwner().getID() != session.getUserID()) {
+            logger.error("Project is locked by another user");
+            broker.close();
+            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         }
+
+
+         OpTransaction t = broker.newTransaction();
+
+         // Check if project plan already exists (create if not)
+         OpProjectPlan projectPlan = project.getPlan();
+         if (projectPlan == null) {
+            projectPlan = new OpProjectPlan();
+            projectPlan.setProjectNode(project);
+            projectPlan.setStart(project.getStart());
+            projectPlan.setFinish(project.getFinish());
+            projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
+            broker.makePersistent(projectPlan);
+         }
+
+         // Check if working plan version ID is correct (if it is set)
+         boolean fromProjectPlan = true;
+         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+              projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         if (workingPlanVersionLocator != null) {
+            // It is important that fromProjectPlan is checked against workingPlanVersionLocator parameter
+            // (And not against existing working plan version in database, because client view might not have been
+            // reloaded)
+            fromProjectPlan = false;
+            if ((workingPlanVersion != null)
+                 && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
+               // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
+               finalizeSession(t, broker);
+               return null;
+            }
+         }
+         // Create new working plan version object if it does not already exist
+         if (workingPlanVersion == null) {
+            workingPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session
+                 .user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
+         }
+
+         // Store working copy as project plan version
+         HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
+         OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlanVersion, resourceMap,
+              fromProjectPlan);
+
+         t.commit();
+         broker.close();
+
+         logger.debug("/OpProjectAdministrationService.saveActivities");
+         return null;
       }
-      // Create new working plan version object if it does not already exist
-      if (workingPlanVersion == null) {
-         workingPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session
-              .user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
+      catch (Exception e) {
+         logger.error("En error has occured in OpProjectPlanningService.saveActivities", e);
+         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_SAVE_ERROR));
       }
-
-      // Store working copy as project plan version
-      HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
-      OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlanVersion, resourceMap,
-           fromProjectPlan);
-
-      t.commit();
-      broker.close();
-
-      logger.debug("/OpProjectAdministrationService.saveActivities");
-      return null;
+      finally{
+         finalizeSession(null, broker);
+      }
    }
 
    public XMessage checkInActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.checkInActivities");
+      OpBroker broker = null;
+      try {
+         String project_id_string = (String) (request.getArgument(PROJECT_ID));
+         String workingPlanVersionLocator = (String) request.getArgument(WORKING_PLAN_VERSION_ID);
+         XComponent dataSet = (XComponent) (request.getArgument(ACTIVITY_SET));
+         broker = session.newBroker();
+         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
-      String project_id_string = (String) (request.getArgument(PROJECT_ID));
-      String workingPlanVersionLocator = (String) request.getArgument(WORKING_PLAN_VERSION_ID);
-      XComponent dataSet = (XComponent) (request.getArgument(ACTIVITY_SET));
-
-      OpBroker broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
-      
-      if (project == null) {
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
-         return reply;
-      }
-
-      // Check if project is locked and current user owns the lock
-      if (project.getLocks().size() == 0) {
-         logger.error("Project is currently not being edited");
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_CHECKED_IN_ERROR));
-         return reply;
-      }
-      OpLock lock = (OpLock) project.getLocks().iterator().next();
-      if (lock.getOwner().getID() != session.getUserID()) {
-         logger.error("Project is locked by another user");
-         broker.close();
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      // Check if project plan already exists (create if not)
-      OpProjectPlan projectPlan = project.getPlan();
-
-      // Archive current project plan to new project plan version
-      OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
-      query.setLong(0, project.getID());
-      Integer maxVersionNumber = (Integer) broker.iterate(query).next();
-      //first version for project plan
-      int versionNumber = 1;
-      // a version exists and it's not WORKING VERSION NUMBER
-      if (maxVersionNumber != null && 
-           maxVersionNumber.intValue() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-         versionNumber = maxVersionNumber.intValue() + 1;
-      }
-      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);
-
-      // Check if working plan version ID is correct (if it is set)
-      OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-      if (workingPlanVersionLocator != null) {
-         if ((workingPlanVersion != null)
-              && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
-            // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-            finalizeSession(t, broker);
-            return null;
+         if (project == null) {
+            broker.close();
+            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
          }
-      }
 
-      // Update project plan from client data-set ONLY if working plan version LOCATOR is set
-      // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
-      HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
-      if (workingPlanVersionLocator != null) {
-         OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
-      }
-      else {
-         OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
-      }
+         // Check if project is locked and current user owns the lock
+         if (project.getLocks().size() == 0) {
+            logger.error("Project is currently not being edited");
+            broker.close();
+            throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
+         }
+         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         if (lock.getOwner().getID() != session.getUserID()) {
+            logger.error("Project is locked by another user");
+            broker.close();
+            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+         }
 
-      // Delete working version (note: There is not necessarily a working version)
-      if (workingPlanVersion != null) {
-         OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
-      }
+         OpTransaction t = broker.newTransaction();
 
-      // 4. Finally, delete lock
-      broker.deleteObject(lock);
+         // Check if project plan already exists (create if not)
+         OpProjectPlan projectPlan = project.getPlan();
 
-      // Send email notification to all project participants on project plan check-in
-      sendProjectNotification(session, project.getName(), resourceMap);
+         // Archive current project plan to new project plan version
+         OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
+         query.setLong(0, project.getID());
+         Integer maxVersionNumber = (Integer) broker.iterate(query).next();
+         //first version for project plan
+         int versionNumber = 1;
+         // a version exists and it's not WORKING VERSION NUMBER
+         if (maxVersionNumber != null &&
+              maxVersionNumber.intValue() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+            versionNumber = maxVersionNumber.intValue() + 1;
+         }
+         OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);
 
-      t.commit();
-      broker.close();
+         // Check if working plan version ID is correct (if it is set)
+         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         if (workingPlanVersionLocator != null) {
+            if ((workingPlanVersion != null)
+                 && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
+               // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
+               finalizeSession(t, broker);
+               return null;
+            }
+         }
 
-      return null;
-   }
-
-   public XMessage revertActivities(OpProjectSession session, XMessage request) {
-      logger.debug("OpProjectAdministrationService.revertActivities");
-
-      String project_id_string = (String) (request.getArgument(PROJECT_ID));
-
-      OpBroker broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
-
-      // Check if project is locked and current user owns the lock
-      if (project.getLocks().size() == 0) {
-         logger.error("Project is currently not being edited");
-         broker.close();
-         // TODO: Error handling
-         return null;
-      }
-      OpLock lock = (OpLock) project.getLocks().iterator().next();
-      if (lock.getOwner().getID() != session.getUserID()) {
-         logger.error("Project is locked by another user");
-         broker.close();
-         // TODO: Error handling
-         return null;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      // Check if project plan exists: If yes we have to delete a potential working version
-      OpProjectPlan projectPlan = project.getPlan();
-      if (projectPlan != null) {
-
-         // Try to retrieve working plan version
-         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-              projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         // Update project plan from client data-set ONLY if working plan version LOCATOR is set
+         // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
+         HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
+         if (workingPlanVersionLocator != null) {
+            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
+         }
+         else {
+            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
+         }
 
          // Delete working version (note: There is not necessarily a working version)
          if (workingPlanVersion != null) {
             OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
          }
 
+         // 4. Finally, delete lock
+         broker.deleteObject(lock);
+
+         // Send email notification to all project participants on project plan check-in
+         sendProjectNotification(session, project.getName(), resourceMap);
+
+         t.commit();
+         broker.close();
+         return null;
       }
+      catch (Exception e) {
+         logger.error("En error has occured in OpProjectPlanningService.checkInActivities ", e);
+         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECK_IN_ERROR));
+      }
+      finally{
+         finalizeSession(null, broker);
+      }
+   }
 
-      // 4. Finally, delete lock
-      broker.deleteObject(lock);
+   public XMessage revertActivities(OpProjectSession session, XMessage request) {
+      logger.debug("OpProjectAdministrationService.revertActivities");
+      OpBroker broker = null;
+      try {
+         String project_id_string = (String) (request.getArgument(PROJECT_ID));
+         broker = session.newBroker();
+         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
-      t.commit();
+         // Check if project is locked and current user owns the lock
+         if (project.getLocks().size() == 0) {
+            logger.error("Project is currently not being edited");
+            broker.close();
+            // TODO: Error handling
+            return null;
+         }
+         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         if (lock.getOwner().getID() != session.getUserID()) {
+            logger.error("Project is locked by another user");
+            broker.close();
+            // TODO: Error handling
+            return null;
+         }
 
-      broker.close();
+         OpTransaction t = broker.newTransaction();
+
+         // Check if project plan exists: If yes we have to delete a potential working version
+         OpProjectPlan projectPlan = project.getPlan();
+         if (projectPlan != null) {
+
+            // Try to retrieve working plan version
+            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+                 projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+
+            // Delete working version (note: There is not necessarily a working version)
+            if (workingPlanVersion != null) {
+               OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
+            }
+         }
+
+         // 4. Finally, delete lock
+         broker.deleteObject(lock);
+
+         t.commit();
+         broker.close();
+      }
+      catch (Exception e) {
+         logger.error("En error has occured in OpProjectPlanningService.revertActivities ", e);
+         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_REVERT_ERROR));
+      }
+      finally{
+         finalizeSession(null, broker);
+      }
       return null;
    }
 
@@ -587,7 +610,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       XMessage response = new XMessage();
       if (!session.checkAccessLevel(broker, object.getID(), OpPermission.OBSERVER)) {
-         response.setError(session.newError(ERROR_MAP, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS));
+         response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS));
          return response;
       }
 
@@ -694,7 +717,7 @@ public class OpProjectPlanningService extends OpProjectService {
       // Check mandatory input fields
       String commentName = (String) comment_data.get(OpActivityComment.NAME);
       if (commentName == null || commentName.length() == 0) {
-         error = session.newError(ERROR_MAP, OpProjectPlanningError.COMMENT_NAME_MISSING);
+         error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NAME_MISSING);
          reply.setError(error);
          return reply;
       }
@@ -705,17 +728,16 @@ public class OpProjectPlanningService extends OpProjectService {
       OpActivity activity = (OpActivity) broker.getObject(activityLocator);
       if (activity == null) {
          broker.close();
-         error = session.newError(ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND);
+         error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND);
          reply.setError(error);
          return reply;
       }
 
       // Check contributor access to activity
-      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.CONTRIBUTOR))
-      {
+      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.CONTRIBUTOR)) {
          logger.warn("ERROR: Insert access to activity denied; ID = " + activity.getID());
          broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+         reply.setError(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
          return reply;
       }
 
@@ -778,17 +800,16 @@ public class OpProjectPlanningService extends OpProjectService {
 
       if (comment == null) {
          broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND));
+         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND));
          return reply;
       }
 
       OpActivity activity = comment.getActivity();
       // Check administrator access to activity
-      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR))
-      {
+      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR)) {
          logger.warn("ERROR: Administrator access to activity denied; ID = " + activity.getID());
          broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectPlanningError.ADMINISTRATOR_ACCESS_DENIED));
+         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.ADMINISTRATOR_ACCESS_DENIED));
          return reply;
       }
 
@@ -819,7 +840,7 @@ public class OpProjectPlanningService extends OpProjectService {
          //update all the activity versions
          Set activityVersions = activity.getVersions();
          if (activityVersions != null && activityVersions.size() > 0) {
-            for (Iterator versionsIt = activityVersions.iterator(); versionsIt.hasNext(); ) {
+            for (Iterator versionsIt = activityVersions.iterator(); versionsIt.hasNext();) {
                OpActivityVersion activityVersion = (OpActivityVersion) versionsIt.next();
                activityVersion.setAttributes(activityVersion.getAttributes() ^ OpActivity.HAS_COMMENTS);
                broker.updateObject(activityVersion);
@@ -830,7 +851,6 @@ public class OpProjectPlanningService extends OpProjectService {
          int activityAtributes = activity.getAttributes();
          activity.setAttributes(activityAtributes ^ OpActivity.HAS_COMMENTS);
          broker.updateObject(activity);
-         
 
          //update all the versions of the activity
          StringBuffer commentsBuffer = new StringBuffer();
@@ -886,7 +906,7 @@ public class OpProjectPlanningService extends OpProjectService {
       //set up reply args
       reply.setArgument(COMMENTS_LABEL_TEXT, commentsBuffer.toString());
       reply.setArgument(ACTIVITY_COMMENT_PANEL, commentPanel);
-      
+
       return reply;
    }
 

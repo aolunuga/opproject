@@ -6,14 +6,18 @@
 
 <web-app>
 
-   <display-name>OnePoint Project 07beta Open Edition</display-name>
+   <display-name>Onepoint Project 07 Open Edition</display-name>
    <description>
-      OnePoint Project 07beta Open Edition (c) 2007 OnePoint Software GmbH
+      Onepoint Project 07 Open Edition (c) 2007 OnePoint Software GmbH
    </description>
 
    <servlet>
       <servlet-name>OpProjectServlet</servlet-name>
       <servlet-class>onepoint.project.servlet.OpOpenServlet</servlet-class>
+      <init-param>
+         <param-name>html_title</param-name>
+         <param-value>Onepoint Project</param-value>
+      </init-param>
       <init-param>
          <param-name>webimages_path</param-name>
          <param-value>images</param-value>
@@ -24,7 +28,7 @@
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>
-         <param-value>express4j-client-07beta.jar,opproject-client-07beta-be.jar,jcookie-0.8b.jar</param-value>
+         <param-value>express4j-client-07.jar,opproject-client-07.jar,jcookie-0.8b.jar</param-value>
       </init-param>
    </servlet>
 

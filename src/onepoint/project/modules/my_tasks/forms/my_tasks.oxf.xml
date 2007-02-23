@@ -42,7 +42,6 @@
       <data-row string-value="all['{$All}']"/>
       <data-row string-value="res['{$Responsible}']"/>
       <data-row string-value="man['{$Managed}']"/>
-      <data-row string-value="ind['{$Individual}']"/>
    </data-set>
 
    <data-set id="ProjectSet">
@@ -51,8 +50,8 @@
 
    <panel layout="border" style-ref="compact-panel-default">
 
-      <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar x="-1" y="-1" id="myTasksToolBar">
+      <panel y="-1" layout="border" style-ref="tool-panel-default">
+         <tool-bar x="0" y="-1" id="myTasksToolBar">
             <tool-button id="NewCommentButton" text="{$NewComment}" icon="/modules/my_tasks/icons/new_comment.png"
                          disabled-icon="/modules/my_tasks/icons/new_comment_disabled.png"
                          on-button-pressed="addComment"
@@ -76,25 +75,22 @@
             <tool-button id="PrintButton" text="{$Print}" icon="/icons/print.png"
                          disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="{$PrintTooltip}"/>
          </tool-bar>
-
-         <panel x="-1" y="0" layout="border" style-ref="compact-panel-default">
-            <panel layout="table" flexible="false">
-               <label x="0" width="2" text="{$Project}"/>
-               <choice-field x="2" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
-                             on-value-changed="filterChanged" stateful="true" selected-index="0"/>
-               <label x="5" width="2" text="{$StartBefore}"/>
-               <choice-field x="7" width="3" id="StartTimeChooser" data-set-ref="StartBeforeSet"
-                             on-value-changed="filterChanged" stateful="true" selected-index="0"/>
-               <label x="10" width="2" text="{$Resources}"/>
-               <choice-field x="12" width="3" id="ResourcesChooser" data-set-ref="FilterResourcesSet"
-                             on-value-changed="filterChanged" stateful="true" selected-index="0"/>
-            </panel>
+         <panel x="0" y="0" layout="table">
+            <label x="0" width="2" text="{$Project}"/>
+            <choice-field x="2" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
+                          on-value-changed="filterChanged" stateful="true" selected-index="0"/>
+            <label x="5" width="2" text="{$StartBefore}"/>
+            <choice-field x="7" width="3" id="StartTimeChooser" data-set-ref="StartBeforeSet"
+                          on-value-changed="filterChanged" stateful="true" selected-index="3"/>
+            <label x="10" width="2" text="{$Resources}"/>
+            <choice-field x="12" width="3" id="ResourcesChooser" data-set-ref="FilterResourcesSet"
+                          on-value-changed="filterChanged" stateful="true" selected-index="0"/>
          </panel>
          <label y="1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
       </panel>
 
-      <!-- filter (drop-down) on activities: Activities, milestones, open/closed? -->
-      <tab-box id="MyTabBox" stateful="true" flexible="true">
+      <panel layout="border">
+         <tab-box id="MyTabBox" stateful="true" flexible="true">
          <tab layout="border" text="{$Tasklist}" id="TasklistTab">
             <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
                        on-double-click="onDoubleClickActivity"
@@ -137,6 +133,7 @@
                        pop-up-menu-ref="ActivityChartPopupMenu"/>
          </tab>
       </tab-box>
+      </panel>
 
       <status-bar y="1"/>
 

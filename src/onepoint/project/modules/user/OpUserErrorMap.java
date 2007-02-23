@@ -32,6 +32,8 @@ public class OpUserErrorMap extends XErrorMap {
       registerErrorCode(OpUserError.SUPER_GROUP_NOT_FOUND, OpUserError.SUPER_GROUP_NOT_FOUND_NAME);
       registerErrorCode(OpUserError.DEMOTE_USER_ERROR, OpUserError.DEMOTE_USER_ERROR_NAME);
       registerErrorCode(OpUserError.INVALID_USER_LEVEL, OpUserError.INVALID_USER_LEVEL_NAME);
+      registerErrorCode(OpUserError.ADMIN_PERMISSION_ERROR, OpUserError.ADMIN_PERMISSION_ERROR_NAME);
+      registerErrorCode(OpUserError.PERMISSION_LEVEL_ERROR, OpUserError.PERMISSION_LEVEL_ERROR_NAME);
    }
 
 }

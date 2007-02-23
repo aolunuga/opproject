@@ -48,6 +48,15 @@ public class OpHibernateConnection extends OpConnection {
    }
 
    /**
+    * Checks if the session is still open.
+    *
+    * @return true if it's open.
+    */
+   public boolean isOpen() {
+      return _session.isOpen();
+   }
+
+   /**
     * Executes a DDL script directly via JDBC, commiting everything in 1 large transaction.
     *
     * @param script a <code>String</code> array representing a set of scripts.

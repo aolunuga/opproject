@@ -210,6 +210,10 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          data_cell.setStringValue(activity.getProjectPlan().getProjectNode().getName());
          data_row.addChild(data_cell);
 
+         // Assignment base effort - 14
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setDoubleValue(workRecord.getAssignment().getBaseEffort());
+         data_row.addChild(data_cell);
       }
       logger.debug("*** after loop");
 

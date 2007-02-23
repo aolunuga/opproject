@@ -133,18 +133,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
          // enable all buttons now beside the edit-mode related buttons
          if (session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
             form.findComponent(EDIT_BUTTON).setEnabled(true);
-            Set versions = project.getPlan().getVersions();
-            boolean enable = false;
-            if (versions.size() == 0){
-               enable = true;
-            }
-            if (versions.size() == 1){
-               OpProjectPlanVersion version = (OpProjectPlanVersion) versions.iterator().next();
-               if (version.getVersionNumber() ==  OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-                  enable = true;
-               }
-            }
-            form.findComponent(IMPORT_BUTTON).setEnabled(enable);
+            form.findComponent(IMPORT_BUTTON).setEnabled(true);
          }
          else {
             form.findComponent(EDIT_BUTTON).setEnabled(false);

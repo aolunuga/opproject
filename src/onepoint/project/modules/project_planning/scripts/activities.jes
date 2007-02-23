@@ -51,11 +51,11 @@ function editActivities(event) {
 
    warning = response.getArgument("warning");
    success = true;
-   XDisplay.resetCursor();
-   
+
    if (warning != null) {
       parameters.project_id = project_id;
       XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+      XDisplay.resetCursor();
       //this needs to be the last call (otherwise the window is closed)
       showWarning(response, warning);
    }
@@ -65,6 +65,7 @@ function editActivities(event) {
          parameters.project_id = project_id;
          XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
       }
+      XDisplay.resetCursor();
    }
 }
 
@@ -82,13 +83,12 @@ function saveActivities(event) {
    request.setArgument("working_plan_version_id", working_plan_version_id);
    request.setArgument("activity_set", activity_set);
    response = XDisplay.getClient().invokeMethod(request);
-   XDisplay.resetCursor();
 
    // *** TODO: Check error response and show error message
    // Refresh form
    parameters.project_id = project_id;
    XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
-
+   XDisplay.resetCursor();
 }
 
 function importActivities(event) {
@@ -230,12 +230,12 @@ function checkInActivities(event) {
    request.setArgument("activity_set", activity_set);
    response = XDisplay.getClient().invokeMethod(request);
    success = handleResponse(response);
-   XDisplay.resetCursor();
 
    if (success == true) {
       parameters.project_id = project_id;
       XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
    }
+   XDisplay.resetCursor();
 }
 
 function revertActivities(event) {

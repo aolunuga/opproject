@@ -83,7 +83,7 @@
       <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
       <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
       <resource id="Status">Project Status</resource>
-      <resource id="NoStatus">(No Status)</resource>
+      <resource id="NoStatus">(Keiner)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
@@ -164,7 +164,6 @@
       <resource id="StartDateMissing">Bitte Startdatum eingeben</resource>
       <resource id="EndDateIncorrect">Bitte korrektes Enddatum eingeben</resource>
       <resource id="BudgetIncorrect">Bitte korrektes Budget eingeben</resource>
-      <resource id="PriorityIncorrect">Bitte eine korrekte Priorität eingeben</resource>
       <resource id="PortfolioNameMissing">Bitte Portfolionamen eingeben</resource>
       <resource id="PortfolioNameAlreadyUsed">Portfolioname wird bereits verwendet</resource>
       <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte um das Projekt oder das Portfolio zu bearbeiten</resource>
@@ -176,10 +175,9 @@
       <resource id="WorkRecordsStillExistWarning">Nicht alle ausgewählten Projekte konnten gelöscht werden, da Arbeitszettel existieren, die auf diese Projekte verweisen</resource>
       <resource id="HourlyRatesModifiedWarning">Die Personalkosten wurden neu berechnet, da die Stundensätze von in diesem Projektplan verwendeten Ressourcen verändert wurden</resource>
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
-      <resource id="PermissionsLevelError">Permissions Level Error</resource>
-      <resource id="ProjectLockedError">Cannot change project because the project plan is checked out</resource>
-      <resource id="GoalPriorityError">Some of the goals priorities are invalid</resource>
-      <resource id="TodoPriorityError">Some of the todos priorities are invalid</resource>
+      <resource id="ProjectLockedError">Das Projekt kann nicht verändert werden, da eine Arbeitskopie existiert</resource>
+      <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
+      <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>

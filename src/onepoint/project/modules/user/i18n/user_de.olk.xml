@@ -167,6 +167,8 @@
       <resource id="EveryoneGroup">Die Gruppe "Alle" ist ein System-Objekt und kann nicht gelöscht werden</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>      
       <resource id="InvalidUserLevel">Ungültie Benutzerebene</resource>      
-      <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
+      <resource id="UserDemoteError">Dieser Benutzer kann nicht zum Standard-Benutzer degradiert werden: Es existieren noch Manager-Rechte in der Datenbank</resource>
+      <resource id="PermissionLevelError">Die Benutzer-Ebene ist zu niedrig um dieses Recht zu gewährleisten</resource>
+      <resource id="AdminPermissionError">Sie können die Rechte des Administrator-Benutzers nicht verändern</resource>
    </resource-map>
 </language-kit>

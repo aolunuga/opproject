@@ -273,10 +273,9 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      boolean result = OpPermissionSetFactory.storePermissionSet(broker, project, permission_set);
-      if (!result) {
-         error = session.newError(ERROR_MAP, OpProjectError.PERMISSIONS_LEVEL_ERROR);
-         reply.setError(error);
+      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+      if (result != null) {
+         reply.setError(result);
          broker.close();
          return reply;
       }
@@ -608,10 +607,9 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       // update permissions
       XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      boolean result = OpPermissionSetFactory.storePermissionSet(broker, project, permission_set);
-      if (!result) {
-         error = session.newError(ERROR_MAP, OpProjectError.PERMISSIONS_LEVEL_ERROR);
-         reply.setError(error);
+      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+      if (result != null) {
+         reply.setError(result);
          broker.close();
          return reply;
       }
@@ -890,7 +888,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     * @param broker  a <code>OpBroker</code> used for performing business operations.
     * @return a <code>boolean</code> indicating whether the project has work records.
     */
-   private boolean hasWorkRecords(OpProjectNode project, OpBroker broker) {
+   public static boolean hasWorkRecords(OpProjectNode project, OpBroker broker) {
       OpQuery query = broker.newQuery("select count(workrecord) from OpProjectPlan projectPlan join projectPlan.Activities activity join activity.Assignments assignment join assignment.WorkRecords workrecord where projectPlan.ID = ?");
       query.setLong(0, project.getPlan().getID());
       Integer workRecordNr = (Integer) broker.iterate(query).next();
@@ -954,10 +952,9 @@ public class OpProjectAdministrationService extends OpProjectService {
       broker.makePersistent(portfolio);
 
       XComponent permission_set = (XComponent) portfolioData.get(OpPermissionSetFactory.PERMISSION_SET);
-      boolean result = OpPermissionSetFactory.storePermissionSet(broker, portfolio, permission_set);
-      if (!result) {
-         error = session.newError(ERROR_MAP, OpProjectError.PERMISSIONS_LEVEL_ERROR);
-         reply.setError(error);
+      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+      if (result != null) {
+         reply.setError(result);
          broker.close();
          return reply;
       }
@@ -1032,10 +1029,9 @@ public class OpProjectAdministrationService extends OpProjectService {
       broker.updateObject(portfolio);
 
       XComponent permission_set = (XComponent) portfolioData.get(OpPermissionSetFactory.PERMISSION_SET);
-      boolean result = OpPermissionSetFactory.storePermissionSet(broker, portfolio, permission_set);
-      if (!result) {
-         error = session.newError(ERROR_MAP, OpProjectError.PERMISSIONS_LEVEL_ERROR);
-         reply.setError(error);
+      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+      if (result != null) {
+         reply.setError(result);
          broker.close();
          return reply;
       }

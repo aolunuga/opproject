@@ -45,7 +45,6 @@
       <resource id="Resources">Ressourcen</resource>
       <resource id="Responsible">Verantwortlich</resource>
       <resource id="Managed">Managed</resource>
-      <resource id="Individual">Individual</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>
@@ -102,7 +101,7 @@
       <resource id="NoResourceError">Es wurde keine Ressource zugewiesen</resource>
       <resource id="ExistingWorkSlipError">Die ausgewählten Ad-Hoc-Augaben können nicht gelöscht werden, da Arbeitszettel auf sie verweiseen</resource>
       <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte um diese Aktion auszuführen</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
    </resource-map>
    
 </language-kit>

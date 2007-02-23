@@ -5,6 +5,8 @@
 package onepoint.project.modules.project_planning;
 
 /**
+ * Project Planning Error 
+ *
  * @author : mihai.costin
  */
 public class OpProjectPlanningError {
@@ -19,6 +21,11 @@ public class OpProjectPlanningError {
    public final static int MSPROJECT_FILE_READ_ERROR = 7;
    public final static int MSPROJECT_FILE_WRITE_ERROR = 8;
    public final static int INSUFICIENT_ATTACHMENT_PERMISSIONS = 9;
+   public final static int PROJECT_CHECK_OUT_ERROR = 10;
+   public final static int PROJECT_CHECK_IN_ERROR = 11;
+   public final static int PROJECT_REVERT_ERROR = 12;
+   public final static int PROJECT_SAVE_ERROR = 13;
+   public final static int PROJECT_CHECKED_IN_ERROR = 14;
 
    // Error names
    public final static String COMMENT_NAME_MISSING_NAME = "CommentNameMissing";
@@ -30,5 +37,10 @@ public class OpProjectPlanningError {
    public final static String MSPROJECT_FILE_READ_ERROR_NAME = "MsProjectFileReadError";
    public final static String MSPROJECT_FILE_WRITE_ERROR_NAME = "MsProjectFileWriteError";
    public final static String INSUFICIENT_ATTACHMENT_PERMISSIONS_NAME = "InsuficientAttachmentPermissions";
+   public final static String PROJECT_CHECK_OUT_ERROR_NAME = "ProjectCheckOutError";
+   public final static String PROJECT_CHECK_IN_ERROR_NAME = "ProjectCheckInError";
+   public final static String PROJECT_REVERT_ERROR_NAME = "ProjectRevertError";
+   public final static String PROJECT_SAVE_ERROR_NAME = "ProjectSaveError";
+   public final static String PROJECT_CHECKED_IN_ERROR_NAME = "ProjectCheckedInError";
 
 }

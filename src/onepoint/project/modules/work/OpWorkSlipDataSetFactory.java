@@ -229,6 +229,11 @@ public class OpWorkSlipDataSetFactory {
       data_cell.setStringValue(activity.getProjectPlan().getProjectNode().getName());
       data_row.addChild(data_cell);
 
+      // Assignment base effort - 14
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setDoubleValue(assignment.getBaseEffort());
+      data_row.addChild(data_cell);
+
       return data_row;
    }
 }
