@@ -1,14 +1,14 @@
-Onepoint Project 07 Open Edition (BETA)
-=======================================
+Onepoint Project 07 Open Edition
+================================
 
-Welcome to the most current release of the Onepoint Project Open Edition. This
-package contains the Web application archive (WAR) of Onepoint Project 07 BETA
-together with a short user tutorial.
+Welcome to the most current release of Onepoint Project Open Edition. This
+package contains the Web application archive (WAR) of Onepoint Project together
+with a short user tutorial.
 
 Please note that all installation steps in this document assume that you are
 using Tomcat and MySQL under Windows 2000/XP/2003 Server. If you are using Linux
 or Mac OS X, or a different application server or database you will have to
-adjust the installation steps to your environment.
+adjust the installation steps according to your environment.
 
 
 System Requirements
@@ -77,7 +77,7 @@ installation!
 7. (OPTIONAL) If you want to start with some demo data load the demo data by
 executing the folling SQL file (see Appendix B):
    - demodata07.sql
-
+   
 Note: This step is optional. If you do not upload the demo data a new, plaim
 repository will be created at the first startup of the web application.
 
@@ -173,7 +173,7 @@ machine using their respective default port numbers).
 For MySQL, the most simple connect string is:
 
 	jdbc:mysql:///opproject
-
+	
 For PostgreSQL, the connect string is:
 
 	jdbc:postgresql:opproject
@@ -192,7 +192,7 @@ computer. Under Windows, this can be done by going to the control panel,
 selecting "Java" and then pressing the clear cache button
 
 * If you get an error in the login screen saying that the JDBC driver was
-not found then you probably forgot to copy the JDCB driver JAR file into
+not found then you probably forgot to copy the JDBC driver JAR file into
 the WEB-INF/lib directory of the web application; please do it and restart
 Tomcat afterwards in order to be sure that the JDBC driver JAR file gets
 loaded correctly

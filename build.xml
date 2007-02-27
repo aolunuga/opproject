@@ -23,7 +23,7 @@
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
    <property name="project.jarname" value="opproject-07-be.jar"/>
-   <property name="project.client.jarname" value="opproject-client-07-be.jar"/>
+   <property name="project.client.jarname" value="opproject-client-07.jar"/>
    <property name="op.warname" value="opproject"/>
    <property name="express.client.jarname" value="express4j-client-07.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>

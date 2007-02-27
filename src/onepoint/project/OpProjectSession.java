@@ -335,6 +335,7 @@ public class OpProjectSession extends XExpressSession {
     * Clears all the data on the project session.
     */
    public void clearSession() {
+      super.clearSession();
       userId = NO_ID;
       administratorId = NO_ID;
       everyoneId = NO_ID;

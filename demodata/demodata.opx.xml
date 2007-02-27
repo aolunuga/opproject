@@ -308,7 +308,7 @@
 <property>
 0</property>
 <property>
-<![CDATA[Akquise]]></property>
+<![CDATA[	Acquisition ]]></property>
 <property>
 null</property>
 <property>
@@ -320,7 +320,7 @@ true</property>
 <property>
 1</property>
 <property>
-<![CDATA[Beauftragung]]></property>
+<![CDATA[Assignment]]></property>
 <property>
 null</property>
 <property>
@@ -332,7 +332,7 @@ true</property>
 <property>
 2</property>
 <property>
-<![CDATA[Umsetzung]]></property>
+<![CDATA[Realization]]></property>
 <property>
 null</property>
 <property>
@@ -344,7 +344,7 @@ true</property>
 <property>
 3</property>
 <property>
-<![CDATA[Abnahme]]></property>
+<![CDATA[Acceptance]]></property>
 <property>
 null</property>
 <property>
@@ -376,7 +376,7 @@ null</reference>
 </object>
 <object id="32768">
 <property>
-<![CDATA[Entwicklung]]></property>
+<![CDATA[Development]]></property>
 <property>
 1</property>
 <property>
@@ -396,7 +396,7 @@ null</reference>
 </object>
 <object id="32777">
 <property>
-<![CDATA[Organisation]]></property>
+<![CDATA[Organization]]></property>
 <property>
 1</property>
 <property>
@@ -496,7 +496,7 @@ null</reference>
 </object>
 <object id="32801">
 <property>
-<![CDATA[Marketingplan]]></property>
+<![CDATA[Marketing Plan]]></property>
 <property>
 3</property>
 <property>
@@ -512,11 +512,11 @@ null</reference>
 <reference>
 null</reference>
 <reference>
-null</reference>
+294912</reference>
 </object>
 <object id="32796">
 <property>
-<![CDATA[Umzug (neues HQ)]]></property>
+<![CDATA[Relocation (new HQ)]]></property>
 <property>
 3</property>
 <property>
@@ -532,11 +532,11 @@ null</reference>
 <reference>
 null</reference>
 <reference>
-null</reference>
+294912</reference>
 </object>
 <object id="98304">
 <property>
-<![CDATA[Einbau ALS/Xplore]]></property>
+<![CDATA[Implementation ALS/Xplore]]></property>
 <property>
 3</property>
 <property>
@@ -552,7 +552,7 @@ null</reference>
 <reference>
 null</reference>
 <reference>
-294914</reference>
+294912</reference>
 </object>
 </objects>
 <objects type="OpProjectPlan">
@@ -654,7 +654,7 @@ true</property>
 </object>
 <object id="262150">
 <property>
-<![CDATA[Design & Konzeption]]></property>
+<![CDATA[Design & Conception]]></property>
 <property>
 null</property>
 <property>
@@ -664,7 +664,7 @@ true</property>
 </object>
 <object id="262151">
 <property>
-<![CDATA[Entwicklung]]></property>
+<![CDATA[Development]]></property>
 <property>
 null</property>
 <property>
@@ -674,7 +674,7 @@ true</property>
 </object>
 <object id="262152">
 <property>
-<![CDATA[Qualitätssicherung]]></property>
+<![CDATA[Quality Assurance]]></property>
 <property>
 null</property>
 <property>
@@ -848,7 +848,7 @@ null</reference>
 </object>
 <object id="53">
 <property>
-<![CDATA[Projektmanager]]></property>
+<![CDATA[Project Manager]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -858,7 +858,7 @@ null</reference>
 </object>
 <object id="50">
 <property>
-<![CDATA[QA & Dokumentation]]></property>
+<![CDATA[QA & Documentation]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -868,7 +868,7 @@ null</reference>
 </object>
 <object id="44">
 <property>
-<![CDATA[Entwickler]]></property>
+<![CDATA[Engineer]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1010,7 +1010,7 @@ true</property>
 <property>
 <![CDATA[ee1]]></property>
 <property>
-<![CDATA[Externer Entwickler 1]]></property>
+<![CDATA[External Engineer 1]]></property>
 <property>
 100.0</property>
 <property>
@@ -1026,7 +1026,7 @@ true</property>
 <property>
 <![CDATA[ee2]]></property>
 <property>
-<![CDATA[Externer Entwickler 2]]></property>
+<![CDATA[External Engineer 2]]></property>
 <property>
 100.0</property>
 <property>
@@ -1058,7 +1058,7 @@ true</property>
 <objects type="OpActivity">
 <object id="65537">
 <property>
-<![CDATA[Projektmanagement]]></property>
+<![CDATA[Project Management]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1186,7 +1186,7 @@ null</reference>
 </object>
 <object id="98364">
 <property>
-<![CDATA[Workshop Anforderungen]]></property>
+<![CDATA[Workshop requirements]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1250,7 +1250,7 @@ null</reference>
 </object>
 <object id="98365">
 <property>
-<![CDATA[Anforderungen dokumentieren]]></property>
+<![CDATA[Documentation requirements]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1378,7 +1378,7 @@ null</reference>
 </object>
 <object id="98367">
 <property>
-<![CDATA[Anforderungen Review]]></property>
+<![CDATA[Review requirements]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1506,7 +1506,7 @@ null</reference>
 </object>
 <object id="98368">
 <property>
-<![CDATA[Umsetzung Anpassungen]]></property>
+<![CDATA[Implementation customizing]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1634,7 +1634,7 @@ null</reference>
 </object>
 <object id="98370">
 <property>
-<![CDATA[Abnahme]]></property>
+<![CDATA[Acceptance]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1698,7 +1698,7 @@ null</reference>
 </object>
 <object id="65546">
 <property>
-<![CDATA[Prototyp]]></property>
+<![CDATA[Prototype]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1762,7 +1762,7 @@ null</reference>
 </object>
 <object id="65551">
 <property>
-<![CDATA[Umsetzung]]></property>
+<![CDATA[Implementation]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1890,7 +1890,7 @@ null</reference>
 </object>
 <object id="65541">
 <property>
-<![CDATA[Projektabschluss]]></property>
+<![CDATA[Project completed]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -1954,7 +1954,7 @@ null</reference>
 </object>
 <object id="65539">
 <property>
-<![CDATA[Projektcontrolling]]></property>
+<![CDATA[Project controlling]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2018,7 +2018,7 @@ null</reference>
 </object>
 <object id="65538">
 <property>
-<![CDATA[Projektstart]]></property>
+<![CDATA[Project start]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2082,7 +2082,7 @@ null</reference>
 </object>
 <object id="65540">
 <property>
-<![CDATA[Projekt- Dokumentation]]></property>
+<![CDATA[Project documentation]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2210,7 +2210,7 @@ null</reference>
 </object>
 <object id="65545">
 <property>
-<![CDATA[Design abgeschlossen]]></property>
+<![CDATA[Design completed]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2274,7 +2274,7 @@ null</reference>
 </object>
 <object id="65544">
 <property>
-<![CDATA[Design Datenbank]]></property>
+<![CDATA[Design database]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2338,7 +2338,7 @@ null</reference>
 </object>
 <object id="65548">
 <property>
-<![CDATA[Prototyp Datenbank]]></property>
+<![CDATA[Prototype database]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2402,7 +2402,7 @@ null</reference>
 </object>
 <object id="65550">
 <property>
-<![CDATA[Prototyp abgeschlossen]]></property>
+<![CDATA[Prototype completed]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2466,7 +2466,7 @@ null</reference>
 </object>
 <object id="65547">
 <property>
-<![CDATA[Prototyp UI]]></property>
+<![CDATA[Prototype UI]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2530,7 +2530,7 @@ null</reference>
 </object>
 <object id="65549">
 <property>
-<![CDATA[Integration Prototyp]]></property>
+<![CDATA[Integration prototype]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2658,7 +2658,7 @@ null</reference>
 </object>
 <object id="65552">
 <property>
-<![CDATA[Umsetzung UI]]></property>
+<![CDATA[Implementation UI]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2722,7 +2722,7 @@ null</reference>
 </object>
 <object id="65556">
 <property>
-<![CDATA[Umsetzung abgeschlossen]]></property>
+<![CDATA[Implementation completed]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2786,7 +2786,7 @@ null</reference>
 </object>
 <object id="65553">
 <property>
-<![CDATA[Umsetzung Datenbank]]></property>
+<![CDATA[Implementation database]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2850,7 +2850,7 @@ null</reference>
 </object>
 <object id="65555">
 <property>
-<![CDATA[Systemhandbuch]]></property>
+<![CDATA[System manual]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2914,7 +2914,7 @@ null</reference>
 </object>
 <object id="65561">
 <property>
-<![CDATA[QA abgeschlossen]]></property>
+<![CDATA[QA completed]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -2978,7 +2978,7 @@ null</reference>
 </object>
 <object id="65560">
 <property>
-<![CDATA[QA Systemhandbuch]]></property>
+<![CDATA[QA system manual]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -3042,7 +3042,7 @@ null</reference>
 </object>
 <object id="65558">
 <property>
-<![CDATA[Manuelle Tests (UI)]]></property>
+<![CDATA[Manual tests (UI)]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -3106,7 +3106,7 @@ null</reference>
 </object>
 <object id="65559">
 <property>
-<![CDATA[Automatisierte Tests]]></property>
+<![CDATA[Automated tests]]></property>
 <property>
 <![CDATA[]]></property>
 <property>
@@ -3676,6 +3676,12 @@ null</reference>
 </object>
 </objects>
 <objects type="OpLock">
+<object id="327897">
+<reference>
+1</reference>
+<reference>
+32781</reference>
+</object>
 </objects>
 <objects type="OpSchedule">
 <object system="report-archive-schedule" id="4">
@@ -3692,7 +3698,7 @@ null</property>
 <property>
 0</property>
 <property>
-2006-12-17 GMT</property>
+2007-02-11 GMT</property>
 </object>
 </objects>
 <objects type="OpPreference">
@@ -3772,7 +3778,7 @@ null</property>
 <property>
 <![CDATA[Locale]]></property>
 <property>
-<![CDATA[de]]></property>
+<![CDATA[en]]></property>
 <reference>
 1</reference>
 </object>
@@ -3786,6 +3792,22 @@ null</property>
 </object>
 </objects>
 <objects type="OpProjectPlanVersion">
+<object id="327898">
+<property>
+-1</property>
+<property>
+null</property>
+<property>
+2006-02-06 GMT</property>
+<property>
+2006-11-24 GMT</property>
+<property>
+false</property>
+<reference>
+32782</reference>
+<reference>
+1</reference>
+</object>
 </objects>
 <objects type="OpActivityVersion">
 </objects>
@@ -5064,14 +5086,12 @@ false</property>
 <property>
 <![CDATA[40.0]]></property>
 </object>
-<object id="262146">
-<property>
-<![CDATA[User_Locale]]></property>
-<property>
-<![CDATA[de]]></property>
-</object>
 </objects>
 <objects type="OpReportType">
+<object id="327717">
+<property>
+<![CDATA[categoryreport]]></property>
+</object>
 </objects>
 <objects type="OpActivityComment">
 </objects>
@@ -5964,6 +5984,26 @@ true</property>
 </object>
 </objects>
 <objects type="OpDynamicResource">
+<object id="327715">
+<property>
+<![CDATA[de]]></property>
+<property>
+null</property>
+<property>
+<![CDATA[Kategorien-Bericht]]></property>
+<reference>
+327717</reference>
+</object>
+<object id="327716">
+<property>
+<![CDATA[en]]></property>
+<property>
+null</property>
+<property>
+<![CDATA[Category Report]]></property>
+<reference>
+327717</reference>
+</object>
 </objects>
 <objects type="OpAttachmentVersion">
 </objects>
