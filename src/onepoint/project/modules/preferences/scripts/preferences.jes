@@ -1,0 +1,48 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+
+/**
+ * Saves the current user preferences.
+ */
+function save(event) {
+   form = XDisplay.getActiveForm();
+
+   preferences.language = XValidator.choiceID(form.findComponent("UserLanguage").getStringValue());
+   preferences.password = form.findComponent("Password").getStringValue();
+   preferences.passwordRetyped = form.findComponent("PasswordRetyped").getStringValue();
+   preferences.showHours = form.findComponent("ShowResourceHours").getBooleanValue();
+
+   request = new XMessage;
+   request.setAction("PreferencesService.savePreferences");
+   request.setArgument("preferences", preferences);
+
+   response = XDisplay.getClient().invokeMethod(request);
+   if (handleError(form, response, "ErrorLabel")) {
+      refresh = response.getArgument("refresh");
+      if (refresh == true) {
+         XDisplay.clearResourceCache();
+         request = new XMessage;
+         request.setAction("Express.clearResourceCache");
+         XDisplay.getClient().invokeMethod(request);
+         mainFrame = XDisplay.findFrame("MainFrame");
+         dockFrame = XDisplay.findFrame("DockFrame");
+         headerFrame = XDisplay.findFrame("HeaderFrame");
+
+         frames[0] = mainFrame;
+         frames[1] = dockFrame;
+         frames[2] = headerFrame;
+         XDisplay.refreshForms(frames);
+      }
+      else {
+         XDisplay.findFrame("MainFrame").refreshForm();
+      }
+   }
+}
+

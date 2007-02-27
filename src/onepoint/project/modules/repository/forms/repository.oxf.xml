@@ -1,0 +1,51 @@
+<form layout="border" resource-map-ref="repository.main"
+      provider-class="onepoint.project.modules.repository.forms.OpRepositoryFormProvider"
+      script="/modules/repository/scripts/repository.jes">
+   <data-field id="BackupDirRootPath"/>
+   <panel layout="border" style-ref="compact-panel-default">
+      <panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar>
+            <tool-button id="Backup" text="{$Backup}" icon="/modules/repository/icons/tb_db_backup.png"
+                         disabled-icon="/modules/repository/icons/tb_db_backup_disabled.png"
+                         on-button-pressed="backup" tooltip="{$BackupTooltip}"/>
+            <tool-button id="Restore" text="{$Restore}" icon="/modules/repository/icons/tb_db_restore.png"
+                         disabled-icon="/modules/repository/icons/tb_db_restore_disabled.png"
+                         on-button-pressed="restore" tooltip="{$RestoreTooltip}"/>
+            <tool-button id="Reset" text="{$Reset}" icon="/modules/repository/icons/tb_db_reset.png"
+                         disabled-icon="/modules/repository/icons/tb_db_reset_disabled.png"
+                         on-button-pressed="reset" tooltip="{$ResetTooltip}"/>
+         </tool-bar>
+      </panel>
+      <panel layout="border" style-ref="layout-panel-default">
+         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <panel layout="table" style-ref="table-panel-default">
+            <!-- User groups # -->
+            <label x="0" y="0" width="2" text="{$UserGroupsCount}"/>
+            <int-field x="2" y="0" width="3" id="UserGroupsCount" enabled="false"/>
+            <!-- Users # -->
+            <label x="0" y="1" width="2" text="{$UsersCount}"/>
+            <int-field x="2" y="1" width="3" id="UsersCount" enabled="false"/>
+            <!-- Project portfolios # -->
+            <label x="0" y="2" width="2" text="{$PortfoliosCount}"/>
+            <int-field x="2" y="2" width="3" id="PortfoliosCount" enabled="false"/>
+            <!-- Project templates # -->
+            <label x="0" y="3" width="2" text="{$TemplatesCount}"/>
+            <int-field x="2" y="3" width="3" id="TemplatesCount" enabled="false"/>
+            <!-- Projects # -->
+            <label x="0" y="4" width="2" text="{$ProjectsCount}"/>
+            <int-field x="2" y="4" width="3" id="ProjectsCount" enabled="false"/>
+            <!-- Resource pools # -->
+            <label x="0" y="5" width="2" text="{$PoolsCount}"/>
+            <int-field x="2" y="5" width="3" id="PoolsCount" enabled="false"/>
+            <!-- Resources # -->
+            <label x="0" y="6" width="2" text="{$ResourcesCount}"/>
+            <int-field x="2" y="6" width="3" id="ResourcesCount" enabled="false"/>
+            <!-- Reports # -->
+            <label x="0" y="7" width="2" text="{$ReportsCount}"/>
+            <int-field x="2" y="7" width="3" id="ReportsCount" enabled="false"/>
+         </panel>
+      </panel>
+      <status-bar y="1"/>
+   </panel>
+
+</form>
