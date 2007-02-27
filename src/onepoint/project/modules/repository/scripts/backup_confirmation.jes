@@ -1,8 +1,0 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
- */
-import onepoint.express.XDisplay;
-
-function ok(event) {
-   XDisplay.getActiveWindow().close();
-}

@@ -1,6 +1,0 @@
-<prototype name="OpGoal" instance-class="onepoint.project.modules.project.OpGoal">
-   <field name="Name" type="String"/>
-   <field name="Priority" type="Byte"/>
-   <field name="Completed" type="Boolean"/>
-   <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Goals"/>
-</prototype>

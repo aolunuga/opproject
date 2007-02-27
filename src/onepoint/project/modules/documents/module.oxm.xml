@@ -1,7 +1,0 @@
-<module name="documents" caption="Dokumente" version="0.5" class="onepoint.project.modules.documents.OpDocumentsModule">
-   <prototype-files>
-      <prototype-file file-name="/modules/documents/content.opt.xml"/>
-      <prototype-file file-name="/modules/documents/document.opt.xml"/>
-      <prototype-file file-name="/modules/documents/dynamic_resource.opt.xml"/>      
-   </prototype-files>
-</module>
