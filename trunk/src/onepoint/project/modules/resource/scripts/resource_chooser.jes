@@ -1,0 +1,62 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for resource_chooser.oxf.xml
+
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   callingFrameID = form.findComponent("CallingFrameID").getStringValue();
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
+   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceSet");
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      callingFrame = XDisplay.findFrame(callingFrameID);
+      if (actionHandler != null) {
+         arguments[0] = selected_rows;
+         XDisplay.getActiveWindow().close();
+         callingFrame.currentForm().invokeFunction(actionHandler, arguments);
+      }
+      callingFrame.getForm().repaint();
+   }
+   else {
+      XDisplay.getActiveWindow().close();   
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function expandDataSet(event) {
+
+   sourcePool = event.expand_source;
+   outlineLevel = sourcePool.getOutlineLevel();
+   dataSet = sourcePool.getParent();
+   locator = sourcePool.getStringValue();
+
+   //FIXME author="Mihai Costin" description="Not the best way to obtain the form"
+   form = dataSet.getParent();
+
+   enableResources = form.findComponent("EnableResources").getValue();
+   enablePools = form.findComponent("EnablePools").getValue();
+   filterIds = form.findComponent("FilteredOutIds").getValue();
+
+   request = new XMessage;
+   request.setAction("ResourceService.expandResourcePool");
+   request.setArgument("source_pool_locator", locator);
+   request.setArgument("outlineLevel", outlineLevel);
+   request.setArgument("EnableResources", enableResources);
+   request.setArgument("EnablePools", enablePools);
+   request.setArgument("FilteredOutIds", filterIds);
+
+   expandNode(sourcePool, 0, request);
+}
+
+
