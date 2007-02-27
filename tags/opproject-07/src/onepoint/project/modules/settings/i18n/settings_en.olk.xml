@@ -1,0 +1,47 @@
+<language-kit locale="en">
+   <resource-map id="settings.module">
+      <resource id="SettingsTool">Settings</resource>
+   </resource-map>
+   <resource-map id="settings.settings">
+      <resource id="Settings">Settings</resource>
+      <resource id="UserLocale">Default language</resource>
+      <resource id="English">English</resource>
+      <resource id="German">German</resource>
+      <resource id="TimeControl">Time Settings</resource>
+      <resource id="FirstWorkday">First work weekday</resource>
+      <resource id="LastWorkday">Last work weekday</resource>
+      <resource id="DayWorkTime">Working hours per day</resource>
+      <resource id="WeekWorkTime">Working hours per week</resource>
+      <resource id="Holidays">Calendar (bank holidays)</resource>
+      <resource id="EMailNotificationFromAddress">Notification sender e-mail</resource>
+      <resource id="ReportsRemoveTimePeriod">Report archiving period (weeks)</resource>
+      <resource id="ShowResourceHours">Show resource assignments in hours</resource>
+      <resource id="ResourceMaxAvailability">Maximum resource availability (%)</resource>
+      <resource id="AllowEmptyPassword">Allow empty passwords</resource>
+      <resource id="Save">Save Settings</resource>
+      <resource id="SaveTooltip">Save system settings</resource>
+      <resource id="SelectCalendar">(Select calendar)</resource>
+      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>      
+   </resource-map>
+
+   <resource-map id="settings.weekdays">
+      <resource id="Monday">Monday</resource>
+      <resource id="Tuesday">Tuesday</resource>
+      <resource id="Wednesday">Wednesday</resource>
+      <resource id="Thursday">Thursday</resource>
+      <resource id="Friday">Friday</resource>
+      <resource id="Saturday">Saturday</resource>
+      <resource id="Sunday">Sunday</resource>
+   </resource-map>
+
+   <resource-map id="settings.error">
+      <resource id="LastWorkDayIncorrect">The selected last work day is not valid</resource>
+      <resource id="DayWorkTimeIncorrect">The specified day work time is not valid</resource>
+      <resource id="WeekWorkTimeIncorrect">The specified week work time is not valid</resource>
+      <resource id="EmailIncorrect">The specified notification sender e-mail is not valid</resource>
+      <resource id="ReportsRemoveTimePeriodIncorrect">The specified report archiving period is not valid</resource>
+      <resource id="ResourceMaxAvailabilityIncorrect">The specified resource maximum availability value is not valid</resource>
+   </resource-map>
+
+
+</language-kit>

@@ -1,0 +1,22 @@
+<module-registry>
+   <module-file file-name="/modules/user/module.oxm.xml"/>
+   <module-file file-name="/modules/resource/module.oxm.xml"/>
+   <module-file file-name="/modules/resource_utilization/module.oxm.xml"/>
+   <module-file file-name="/team/modules/project/module.oxm.xml"/>
+   <module-file file-name="/modules/work/module.oxm.xml"/>
+   <module-file file-name="/team/modules/project_planning/module.oxm.xml"/>
+   <module-file file-name="/team/modules/project_dates/module.oxm.xml"/>
+   <module-file file-name="/team/modules/project_resources/module.oxm.xml"/>
+   <module-file file-name="/team/modules/project_costs/module.oxm.xml"/>
+   <module-file file-name="/modules/settings/module.oxm.xml"/>
+   <module-file file-name="/modules/documents/module.oxm.xml"/>
+   <module-file file-name="/modules/report/module.oxm.xml"/>
+   <module-file file-name="/modules/my_tasks/module.oxm.xml"/>
+   <module-file file-name="/team/modules/my_projects/module.oxm.xml"/>
+   <module-file file-name="/modules/preferences/module.oxm.xml"/>
+   <module-file file-name="/team/modules/activity_category/module.oxm.xml"/>
+   <module-file file-name="/modules/schedule/module.oxm.xml"/>
+   <module-file file-name="/team/modules/report_archive/module.oxm.xml"/>
+   <module-file file-name="/modules/project_status/module.oxm.xml"/>
+   <module-file file-name="/modules/repository/module.oxm.xml"/>
+</module-registry>

@@ -1,0 +1,6146 @@
+<?xml version="1.0"?>
+<opp-backup version="1">
+<prototypes>
+<prototype name="OpProjectStatus">
+<field type="Integer" name="Sequence"/>
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Integer" name="Color"/>
+<field type="Boolean" name="Active"/>
+</prototype>
+<prototype name="OpProjectNode">
+<field type="String" name="Name"/>
+<field type="Byte" name="Type"/>
+<field type="Text" name="Description"/>
+<field type="Date" name="Start"/>
+<field type="Date" name="Finish"/>
+<field type="Double" name="Budget"/>
+<relationship type="OpProjectNode" name="SuperNode"/>
+<relationship type="OpProjectNode" name="TemplateNode"/>
+<relationship type="OpProjectStatus" name="Status"/>
+</prototype>
+<prototype name="OpProjectPlan">
+<field type="Date" name="Start"/>
+<field type="Date" name="Finish"/>
+<field type="Byte" name="CalculationMode"/>
+<field type="Boolean" name="ProgressTracked"/>
+<field type="Boolean" name="Template"/>
+<relationship type="OpProjectNode" name="ProjectNode"/>
+</prototype>
+<prototype name="OpActivityCategory">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Integer" name="Color"/>
+<field type="Boolean" name="Active"/>
+</prototype>
+<prototype name="OpUser">
+<field type="String" name="Name"/>
+<field type="String" name="DisplayName"/>
+<field type="Text" name="Description"/>
+<field type="String" name="Password"/>
+<field type="Byte" name="AuthenticationType"/>
+<field type="Byte" name="Level"/>
+</prototype>
+<prototype name="OpResourcePool">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Double" name="HourlyRate"/>
+<relationship type="OpResourcePool" name="SuperPool"/>
+</prototype>
+<prototype name="OpResource">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Double" name="Available"/>
+<field type="Boolean" name="InheritPoolRate"/>
+<field type="Double" name="HourlyRate"/>
+<relationship type="OpUser" name="User"/>
+<relationship type="OpResourcePool" name="Pool"/>
+</prototype>
+<prototype name="OpActivity">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Byte" name="Type"/>
+<field type="Integer" name="Attributes"/>
+<field type="Integer" name="Sequence"/>
+<field type="Byte" name="OutlineLevel"/>
+<field type="Date" name="Start"/>
+<field type="Date" name="Finish"/>
+<field type="Double" name="Duration"/>
+<field type="Double" name="Complete"/>
+<field type="Byte" name="Priority"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Double" name="BaseTravelCosts"/>
+<field type="Double" name="BasePersonnelCosts"/>
+<field type="Double" name="BaseMaterialCosts"/>
+<field type="Double" name="BaseExternalCosts"/>
+<field type="Double" name="BaseMiscellaneousCosts"/>
+<field type="Double" name="ActualEffort"/>
+<field type="Double" name="ActualTravelCosts"/>
+<field type="Double" name="ActualPersonnelCosts"/>
+<field type="Double" name="ActualMaterialCosts"/>
+<field type="Double" name="ActualExternalCosts"/>
+<field type="Double" name="ActualMiscellaneousCosts"/>
+<field type="Double" name="RemainingEffort"/>
+<field type="Boolean" name="Deleted"/>
+<field type="Boolean" name="Expanded"/>
+<field type="Boolean" name="Template"/>
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpActivityCategory" name="Category"/>
+<relationship type="OpActivity" name="SuperActivity"/>
+<relationship type="OpResource" name="ResponsibleResource"/>
+</prototype>
+<prototype name="OpWorkPeriod">
+<field type="Date" name="Start"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Long" name="WorkingDays"/>
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpActivity" name="Activity"/>
+</prototype>
+<prototype name="OpLock">
+<relationship type="OpUser" name="Owner"/>
+<relationship type="OpObject" name="Target"/>
+</prototype>
+<prototype name="OpSchedule">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Date" name="Start"/>
+<field type="Integer" name="Unit"/>
+<field type="Integer" name="Interval"/>
+<field type="Integer" name="Mask"/>
+<field type="Date" name="LastExecuted"/>
+</prototype>
+<prototype name="OpPreference">
+<field type="String" name="Name"/>
+<field type="String" name="Value"/>
+<relationship type="OpUser" name="User"/>
+</prototype>
+<prototype name="OpProjectPlanVersion">
+<field type="Integer" name="VersionNumber"/>
+<field type="String" name="Comment"/>
+<field type="Date" name="Start"/>
+<field type="Date" name="Finish"/>
+<field type="Boolean" name="Template"/>
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpUser" name="Creator"/>
+</prototype>
+<prototype name="OpActivityVersion">
+<field type="String" name="Name"/>
+<field type="Text" name="Description"/>
+<field type="Byte" name="Type"/>
+<field type="Integer" name="Attributes"/>
+<field type="Integer" name="Sequence"/>
+<field type="Byte" name="OutlineLevel"/>
+<field type="Date" name="Start"/>
+<field type="Date" name="Finish"/>
+<field type="Double" name="Duration"/>
+<field type="Double" name="Complete"/>
+<field type="Byte" name="Priority"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Double" name="BaseTravelCosts"/>
+<field type="Double" name="BasePersonnelCosts"/>
+<field type="Double" name="BaseMaterialCosts"/>
+<field type="Double" name="BaseExternalCosts"/>
+<field type="Double" name="BaseMiscellaneousCosts"/>
+<field type="Boolean" name="Expanded"/>
+<field type="Boolean" name="Template"/>
+<relationship type="OpActivityCategory" name="Category"/>
+<relationship type="OpActivity" name="Activity"/>
+<relationship type="OpActivityVersion" name="SuperActivityVersion"/>
+<relationship type="OpProjectPlanVersion" name="PlanVersion"/>
+<relationship type="OpResource" name="ResponsibleResource"/>
+</prototype>
+<prototype name="OpAssignmentVersion">
+<field type="Double" name="Assigned"/>
+<field type="Double" name="Complete"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Double" name="BaseCosts"/>
+<relationship type="OpProjectPlanVersion" name="PlanVersion"/>
+<relationship type="OpResource" name="Resource"/>
+<relationship type="OpActivityVersion" name="ActivityVersion"/>
+</prototype>
+<prototype name="OpSite">
+<field type="String" name="Name"/>
+</prototype>
+<prototype name="OpGroup">
+<field type="String" name="Name"/>
+<field type="String" name="DisplayName"/>
+<field type="Text" name="Description"/>
+</prototype>
+<prototype name="OpDependency">
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpActivity" name="PredecessorActivity"/>
+<relationship type="OpActivity" name="SuccessorActivity"/>
+</prototype>
+<prototype name="OpAssignment">
+<field type="Double" name="Assigned"/>
+<field type="Double" name="Complete"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Double" name="ActualEffort"/>
+<field type="Double" name="RemainingEffort"/>
+<field type="Double" name="BaseCosts"/>
+<field type="Double" name="ActualCosts"/>
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpResource" name="Resource"/>
+<relationship type="OpActivity" name="Activity"/>
+</prototype>
+<prototype name="OpWorkSlip">
+<field type="Integer" name="Number"/>
+<field type="Date" name="Date"/>
+<relationship type="OpUser" name="Creator"/>
+</prototype>
+<prototype name="OpWorkRecord">
+<field type="Double" name="ActualEffort"/>
+<field type="Double" name="RemainingEffort"/>
+<field type="Double" name="RemainingEffortChange"/>
+<field type="Double" name="PersonnelCosts"/>
+<field type="Double" name="TravelCosts"/>
+<field type="Double" name="MaterialCosts"/>
+<field type="Double" name="ExternalCosts"/>
+<field type="Double" name="MiscellaneousCosts"/>
+<field type="String" name="Comment"/>
+<field type="Boolean" name="Completed"/>
+<relationship type="OpAssignment" name="Assignment"/>
+<relationship type="OpWorkSlip" name="WorkSlip"/>
+</prototype>
+<prototype name="OpContent">
+<field type="Integer" name="RefCount"/>
+<field type="String" name="MediaType"/>
+<field type="Long" name="Size"/>
+<field type="Content" name="Bytes"/>
+</prototype>
+<prototype name="OpAttachment">
+<field type="String" name="Name"/>
+<field type="Boolean" name="Linked"/>
+<field type="String" name="Location"/>
+<relationship type="OpContent" name="Content"/>
+<relationship type="OpProjectPlan" name="ProjectPlan"/>
+<relationship type="OpActivity" name="Activity"/>
+</prototype>
+<prototype name="OpToDo">
+<field type="String" name="Name"/>
+<field type="Byte" name="Priority"/>
+<field type="Boolean" name="Completed"/>
+<field type="Date" name="Due"/>
+<relationship type="OpProjectNode" name="ProjectNode"/>
+</prototype>
+<prototype name="OpSetting">
+<field type="String" name="Name"/>
+<field type="String" name="Value"/>
+</prototype>
+<prototype name="OpReportType">
+<field type="String" name="Name"/>
+</prototype>
+<prototype name="OpActivityComment">
+<field type="String" name="Name"/>
+<field type="Text" name="Text"/>
+<field type="Integer" name="Sequence"/>
+<relationship type="OpActivity" name="Activity"/>
+<relationship type="OpUser" name="Creator"/>
+</prototype>
+<prototype name="OpContact">
+<field type="String" name="FirstName"/>
+<field type="String" name="LastName"/>
+<field type="String" name="EMail"/>
+<field type="String" name="Phone"/>
+<field type="String" name="Mobile"/>
+<field type="String" name="Fax"/>
+<relationship type="OpUser" name="User"/>
+</prototype>
+<prototype name="OpGoal">
+<field type="String" name="Name"/>
+<field type="Byte" name="Priority"/>
+<field type="Boolean" name="Completed"/>
+<relationship type="OpProjectNode" name="ProjectNode"/>
+</prototype>
+<prototype name="OpWorkPeriodVersion">
+<field type="Date" name="Start"/>
+<field type="Double" name="BaseEffort"/>
+<field type="Long" name="WorkingDays"/>
+<relationship type="OpProjectPlanVersion" name="PlanVersion"/>
+<relationship type="OpActivityVersion" name="ActivityVersion"/>
+</prototype>
+<prototype name="OpPermission">
+<relationship type="OpObject" name="Object"/>
+<relationship type="OpSubject" name="Subject"/>
+<field type="Byte" name="AccessLevel"/>
+<field type="Boolean" name="SystemManaged"/>
+</prototype>
+<prototype name="OpDynamicResource">
+<field type="String" name="Locale"/>
+<field type="String" name="Name"/>
+<field type="String" name="Value"/>
+<relationship type="OpObject" name="Object"/>
+</prototype>
+<prototype name="OpAttachmentVersion">
+<field type="String" name="Name"/>
+<field type="Boolean" name="Linked"/>
+<field type="String" name="Location"/>
+<relationship type="OpContent" name="Content"/>
+<relationship type="OpProjectPlanVersion" name="PlanVersion"/>
+<relationship type="OpActivityVersion" name="ActivityVersion"/>
+</prototype>
+<prototype name="OpProjectNodeAssignment">
+<relationship type="OpResource" name="Resource"/>
+<relationship type="OpProjectNode" name="ProjectNode"/>
+</prototype>
+<prototype name="OpReport">
+<field type="String" name="Name"/>
+<relationship type="OpContent" name="Content"/>
+<relationship type="OpUser" name="Creator"/>
+<relationship type="OpReportType" name="Type"/>
+</prototype>
+<prototype name="OpDependencyVersion">
+<relationship type="OpProjectPlanVersion" name="PlanVersion"/>
+<relationship type="OpActivityVersion" name="PredecessorVersion"/>
+<relationship type="OpActivityVersion" name="SuccessorVersion"/>
+</prototype>
+<prototype name="OpGroupAssignment">
+<relationship type="OpGroup" name="SuperGroup"/>
+<relationship type="OpGroup" name="SubGroup"/>
+</prototype>
+<prototype name="OpUserAssignment">
+<relationship type="OpUser" name="User"/>
+<relationship type="OpGroup" name="Group"/>
+</prototype>
+</prototypes>
+<objects type="OpProjectStatus">
+<object id="294912">
+<property>
+0</property>
+<property>
+<![CDATA[	Acquisition ]]></property>
+<property>
+null</property>
+<property>
+15</property>
+<property>
+true</property>
+</object>
+<object id="294913">
+<property>
+1</property>
+<property>
+<![CDATA[Assignment]]></property>
+<property>
+null</property>
+<property>
+14</property>
+<property>
+true</property>
+</object>
+<object id="294914">
+<property>
+2</property>
+<property>
+<![CDATA[Realization]]></property>
+<property>
+null</property>
+<property>
+16</property>
+<property>
+true</property>
+</object>
+<object id="294915">
+<property>
+3</property>
+<property>
+<![CDATA[Acceptance]]></property>
+<property>
+null</property>
+<property>
+10</property>
+<property>
+true</property>
+</object>
+</objects>
+<objects type="OpProjectNode">
+<object system="{$RootProjectPortfolioName}" id="8">
+<property>
+<![CDATA[{$RootProjectPortfolioName}]]></property>
+<property>
+1</property>
+<property>
+<![CDATA[{$RootProjectPortfolioDescription}]]></property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+0.0</property>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="32768">
+<property>
+<![CDATA[Development]]></property>
+<property>
+1</property>
+<property>
+<![CDATA[]]></property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+0.0</property>
+<reference>
+8</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="32777">
+<property>
+<![CDATA[Organization]]></property>
+<property>
+1</property>
+<property>
+<![CDATA[]]></property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+0.0</property>
+<reference>
+8</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="32772">
+<property>
+<![CDATA[Consulting]]></property>
+<property>
+1</property>
+<property>
+<![CDATA[]]></property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+0.0</property>
+<reference>
+8</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="32786">
+<property>
+<![CDATA[Virtual Cockpit v2]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[]]></property>
+<property>
+2007-01-01 GMT</property>
+<property>
+2007-08-31 GMT</property>
+<property>
+0.0</property>
+<reference>
+32768</reference>
+<reference>
+null</reference>
+<reference>
+294914</reference>
+</object>
+<object id="32791">
+<property>
+<![CDATA[ALS v5]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[Automatic Landing System]]></property>
+<property>
+2006-07-03 GMT</property>
+<property>
+2006-12-29 GMT</property>
+<property>
+0.0</property>
+<reference>
+32768</reference>
+<reference>
+null</reference>
+<reference>
+294912</reference>
+</object>
+<object id="32781">
+<property>
+<![CDATA[SuperWiz]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[]]></property>
+<property>
+2006-06-05 GMT</property>
+<property>
+2006-11-24 GMT</property>
+<property>
+0.0</property>
+<reference>
+32768</reference>
+<reference>
+null</reference>
+<reference>
+294913</reference>
+</object>
+<object id="32801">
+<property>
+<![CDATA[Marketing Plan]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[]]></property>
+<property>
+2006-01-02 GMT</property>
+<property>
+2006-12-29 GMT</property>
+<property>
+0.0</property>
+<reference>
+32777</reference>
+<reference>
+null</reference>
+<reference>
+294912</reference>
+</object>
+<object id="32796">
+<property>
+<![CDATA[Relocation (new HQ)]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[]]></property>
+<property>
+2006-08-14 GMT</property>
+<property>
+2006-08-25 GMT</property>
+<property>
+0.0</property>
+<reference>
+32777</reference>
+<reference>
+null</reference>
+<reference>
+294912</reference>
+</object>
+<object id="98304">
+<property>
+<![CDATA[Implementation ALS/Xplore]]></property>
+<property>
+3</property>
+<property>
+<![CDATA[]]></property>
+<property>
+2007-02-05 GMT</property>
+<property>
+2007-03-31 GMT</property>
+<property>
+0.0</property>
+<reference>
+32772</reference>
+<reference>
+null</reference>
+<reference>
+294912</reference>
+</object>
+</objects>
+<objects type="OpProjectPlan">
+<object id="32782">
+<property>
+2006-02-06 GMT</property>
+<property>
+2006-11-24 GMT</property>
+<property>
+1</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32781</reference>
+</object>
+<object id="32787">
+<property>
+2006-05-01 GMT</property>
+<property>
+2006-05-12 GMT</property>
+<property>
+1</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32786</reference>
+</object>
+<object id="32792">
+<property>
+2006-01-09 GMT</property>
+<property>
+2006-12-29 GMT</property>
+<property>
+1</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32791</reference>
+</object>
+<object id="32797">
+<property>
+2006-08-14 GMT</property>
+<property>
+2006-08-25 GMT</property>
+<property>
+2</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32796</reference>
+</object>
+<object id="32802">
+<property>
+2006-01-02 GMT</property>
+<property>
+2006-12-29 GMT</property>
+<property>
+2</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32801</reference>
+</object>
+<object id="98305">
+<property>
+2006-04-10 GMT</property>
+<property>
+2006-04-12 GMT</property>
+<property>
+2</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+98304</reference>
+</object>
+</objects>
+<objects type="OpActivityCategory">
+<object id="262149">
+<property>
+<![CDATA[Administration]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+15</property>
+<property>
+true</property>
+</object>
+<object id="262150">
+<property>
+<![CDATA[Design & Conception]]></property>
+<property>
+null</property>
+<property>
+14</property>
+<property>
+true</property>
+</object>
+<object id="262151">
+<property>
+<![CDATA[Development]]></property>
+<property>
+null</property>
+<property>
+17</property>
+<property>
+true</property>
+</object>
+<object id="262152">
+<property>
+<![CDATA[Quality Assurance]]></property>
+<property>
+null</property>
+<property>
+12</property>
+<property>
+true</property>
+</object>
+</objects>
+<objects type="OpUser">
+<object system="Administrator" id="1">
+<property>
+<![CDATA[Administrator]]></property>
+<property>
+<![CDATA[{$AdministratorDisplayName}]]></property>
+<property>
+<![CDATA[{$AdministratorDescription}]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="12">
+<property>
+<![CDATA[cs]]></property>
+<property>
+<![CDATA[Claudia Schulz]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="16">
+<property>
+<![CDATA[tw]]></property>
+<property>
+<![CDATA[Thomas Winter]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="20">
+<property>
+<![CDATA[hs]]></property>
+<property>
+<![CDATA[Hiromi Sato]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="24">
+<property>
+<![CDATA[fn]]></property>
+<property>
+<![CDATA[Fredrik Nieminen]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="28">
+<property>
+<![CDATA[ms]]></property>
+<property>
+<![CDATA[Mihir Singh]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="32">
+<property>
+<![CDATA[jw]]></property>
+<property>
+<![CDATA[Jody Wang]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="36">
+<property>
+<![CDATA[sh]]></property>
+<property>
+<![CDATA[Sabine Hausberg]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="40">
+<property>
+<![CDATA[dmk]]></property>
+<property>
+<![CDATA[Duncan MacKay]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+<object id="65710">
+<property>
+<![CDATA[jm]]></property>
+<property>
+<![CDATA[Josef Muster]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
+<property>
+0</property>
+<property>
+2</property>
+</object>
+</objects>
+<objects type="OpResourcePool">
+<object system="{$RootResourcePoolName}" id="5">
+<property>
+<![CDATA[{$RootResourcePoolName}]]></property>
+<property>
+<![CDATA[{$RootResourcePoolDescription}]]></property>
+<property>
+0.0</property>
+<reference>
+null</reference>
+</object>
+<object id="47">
+<property>
+<![CDATA[Consultants]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+115.0</property>
+<reference>
+5</reference>
+</object>
+<object id="53">
+<property>
+<![CDATA[Project Manager]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+130.0</property>
+<reference>
+5</reference>
+</object>
+<object id="50">
+<property>
+<![CDATA[QA & Documentation]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+70.0</property>
+<reference>
+5</reference>
+</object>
+<object id="44">
+<property>
+<![CDATA[Engineer]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+100.0</property>
+<reference>
+5</reference>
+</object>
+</objects>
+<objects type="OpResource">
+<object id="56">
+<property>
+<![CDATA[sh]]></property>
+<property>
+<![CDATA[Sabine Hausberg]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+70.0</property>
+<reference>
+36</reference>
+<reference>
+50</reference>
+</object>
+<object id="62">
+<property>
+<![CDATA[cs]]></property>
+<property>
+<![CDATA[Claudia Schulz]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+130.0</property>
+<reference>
+12</reference>
+<reference>
+53</reference>
+</object>
+<object id="65">
+<property>
+<![CDATA[tw]]></property>
+<property>
+<![CDATA[Thomas Winter]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+130.0</property>
+<reference>
+16</reference>
+<reference>
+53</reference>
+</object>
+<object id="68">
+<property>
+<![CDATA[dmk]]></property>
+<property>
+<![CDATA[Duncan MacKay (CA)]]></property>
+<property>
+100.0</property>
+<property>
+false</property>
+<property>
+130.0</property>
+<reference>
+40</reference>
+<reference>
+44</reference>
+</object>
+<object id="71">
+<property>
+<![CDATA[hs]]></property>
+<property>
+<![CDATA[Hiromi Sato]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+70.0</property>
+<reference>
+20</reference>
+<reference>
+50</reference>
+</object>
+<object id="80">
+<property>
+<![CDATA[jw]]></property>
+<property>
+<![CDATA[Jody Wang]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+100.0</property>
+<reference>
+32</reference>
+<reference>
+44</reference>
+</object>
+<object id="83">
+<property>
+<![CDATA[ms]]></property>
+<property>
+<![CDATA[Mihir Singh]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+100.0</property>
+<reference>
+28</reference>
+<reference>
+44</reference>
+</object>
+<object id="86">
+<property>
+<![CDATA[fn]]></property>
+<property>
+<![CDATA[Fredrik Nieminen]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+115.0</property>
+<reference>
+24</reference>
+<reference>
+47</reference>
+</object>
+<object id="89">
+<property>
+<![CDATA[ee1]]></property>
+<property>
+<![CDATA[External Engineer 1]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+100.0</property>
+<reference>
+40</reference>
+<reference>
+44</reference>
+</object>
+<object id="92">
+<property>
+<![CDATA[ee2]]></property>
+<property>
+<![CDATA[External Engineer 2]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+100.0</property>
+<reference>
+40</reference>
+<reference>
+44</reference>
+</object>
+<object id="65707">
+<property>
+<![CDATA[jm]]></property>
+<property>
+<![CDATA[Josef Muster]]></property>
+<property>
+100.0</property>
+<property>
+true</property>
+<property>
+115.0</property>
+<reference>
+65710</reference>
+<reference>
+47</reference>
+</object>
+</objects>
+<objects type="OpActivity">
+<object id="65537">
+<property>
+<![CDATA[Project Management]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+2007-01-01 GMT</property>
+<property>
+2007-08-17 GMT</property>
+<property>
+1320.0</property>
+<property>
+7.5187969924812</property>
+<property>
+0</property>
+<property>
+532.0</property>
+<property>
+0.0</property>
+<property>
+69160.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+40.0</property>
+<property>
+0.0</property>
+<property>
+5200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+492.0</property>
+<property>
+false</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262149</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98363">
+<property>
+<![CDATA[Training ALS 1]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+2007-02-19 GMT</property>
+<property>
+2007-02-21 GMT</property>
+<property>
+24.0</property>
+<property>
+100.0</property>
+<property>
+0</property>
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+2760.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+2760.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98364">
+<property>
+<![CDATA[Workshop requirements]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+2007-02-22 GMT</property>
+<property>
+2007-02-26 GMT</property>
+<property>
+24.0</property>
+<property>
+100.0</property>
+<property>
+0</property>
+<property>
+48.0</property>
+<property>
+0.0</property>
+<property>
+5880.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+48.0</property>
+<property>
+0.0</property>
+<property>
+5880.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98365">
+<property>
+<![CDATA[Documentation requirements]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+2007-02-27 GMT</property>
+<property>
+2007-03-05 GMT</property>
+<property>
+40.0</property>
+<property>
+66.6666666666667</property>
+<property>
+0</property>
+<property>
+40.0</property>
+<property>
+0.0</property>
+<property>
+5200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+32.0</property>
+<property>
+0.0</property>
+<property>
+4160.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+16.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98366">
+<property>
+<![CDATA[Training ALS 2]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+3</property>
+<property>
+0</property>
+<property>
+2007-02-27 GMT</property>
+<property>
+2007-03-05 GMT</property>
+<property>
+40.0</property>
+<property>
+80.0</property>
+<property>
+0</property>
+<property>
+40.0</property>
+<property>
+0.0</property>
+<property>
+4600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+32.0</property>
+<property>
+0.0</property>
+<property>
+3680.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+8.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98367">
+<property>
+<![CDATA[Review requirements]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+4</property>
+<property>
+0</property>
+<property>
+2007-03-06 GMT</property>
+<property>
+2007-03-19 GMT</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+40.0</property>
+<property>
+0.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+40.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="65542">
+<property>
+<![CDATA[Design]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+5</property>
+<property>
+0</property>
+<property>
+2007-01-15 GMT</property>
+<property>
+2007-02-23 GMT</property>
+<property>
+240.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+240.0</property>
+<property>
+0.0</property>
+<property>
+31200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+240.0</property>
+<property>
+false</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262150</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98368">
+<property>
+<![CDATA[Implementation customizing]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+5</property>
+<property>
+0</property>
+<property>
+2007-03-20 GMT</property>
+<property>
+2007-04-16 GMT</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+18400.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98369">
+<property>
+<![CDATA[Installation ALS]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+6</property>
+<property>
+0</property>
+<property>
+2007-04-17 GMT</property>
+<property>
+2007-04-30 GMT</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+9200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="98370">
+<property>
+<![CDATA[Acceptance]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+7</property>
+<property>
+0</property>
+<property>
+2007-04-30 GMT</property>
+<property>
+2007-04-30 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+98305</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="65546">
+<property>
+<![CDATA[Prototype]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+9</property>
+<property>
+0</property>
+<property>
+2007-02-05 GMT</property>
+<property>
+2007-03-30 GMT</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+480.0</property>
+<property>
+0.0</property>
+<property>
+48000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+480.0</property>
+<property>
+false</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="65551">
+<property>
+<![CDATA[Implementation]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+14</property>
+<property>
+0</property>
+<property>
+2007-04-02 GMT</property>
+<property>
+2007-07-06 GMT</property>
+<property>
+560.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+2040.0</property>
+<property>
+0.0</property>
+<property>
+195600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+2040.0</property>
+<property>
+false</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="65557">
+<property>
+<![CDATA[QA]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+1</property>
+<property>
+0</property>
+<property>
+20</property>
+<property>
+0</property>
+<property>
+2007-06-11 GMT</property>
+<property>
+2007-08-03 GMT</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+640.0</property>
+<property>
+0.0</property>
+<property>
+61600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+640.0</property>
+<property>
+false</property>
+<property>
+true</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262152</reference>
+<reference>
+null</reference>
+<reference>
+null</reference>
+</object>
+<object id="65541">
+<property>
+<![CDATA[Project completed]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+4</property>
+<property>
+1</property>
+<property>
+2007-08-17 GMT</property>
+<property>
+2007-08-17 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262149</reference>
+<reference>
+65537</reference>
+<reference>
+null</reference>
+</object>
+<object id="65539">
+<property>
+<![CDATA[Project controlling]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+2</property>
+<property>
+1</property>
+<property>
+2007-01-15 GMT</property>
+<property>
+2007-08-17 GMT</property>
+<property>
+1240.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+372.0</property>
+<property>
+0.0</property>
+<property>
+48360.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+372.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262149</reference>
+<reference>
+65537</reference>
+<reference>
+null</reference>
+</object>
+<object id="65538">
+<property>
+<![CDATA[Project start]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+1</property>
+<property>
+1</property>
+<property>
+2007-01-01 GMT</property>
+<property>
+2007-01-12 GMT</property>
+<property>
+80.0</property>
+<property>
+50.0</property>
+<property>
+0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+40.0</property>
+<property>
+0.0</property>
+<property>
+5200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+40.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262149</reference>
+<reference>
+65537</reference>
+<reference>
+null</reference>
+</object>
+<object id="65540">
+<property>
+<![CDATA[Project documentation]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+3</property>
+<property>
+1</property>
+<property>
+2007-07-23 GMT</property>
+<property>
+2007-08-17 GMT</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262149</reference>
+<reference>
+65537</reference>
+<reference>
+null</reference>
+</object>
+<object id="65543">
+<property>
+<![CDATA[Design UI]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+6</property>
+<property>
+1</property>
+<property>
+2007-01-15 GMT</property>
+<property>
+2007-02-02 GMT</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+15600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262150</reference>
+<reference>
+65542</reference>
+<reference>
+null</reference>
+</object>
+<object id="65545">
+<property>
+<![CDATA[Design completed]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+8</property>
+<property>
+1</property>
+<property>
+2007-02-23 GMT</property>
+<property>
+2007-02-23 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262150</reference>
+<reference>
+65542</reference>
+<reference>
+null</reference>
+</object>
+<object id="65544">
+<property>
+<![CDATA[Design database]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+7</property>
+<property>
+1</property>
+<property>
+2007-02-05 GMT</property>
+<property>
+2007-02-23 GMT</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+15600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262150</reference>
+<reference>
+65542</reference>
+<reference>
+null</reference>
+</object>
+<object id="65548">
+<property>
+<![CDATA[Prototype database]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+11</property>
+<property>
+1</property>
+<property>
+2007-02-26 GMT</property>
+<property>
+2007-03-16 GMT</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+12000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65546</reference>
+<reference>
+null</reference>
+</object>
+<object id="65550">
+<property>
+<![CDATA[Prototype completed]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+13</property>
+<property>
+1</property>
+<property>
+2007-03-30 GMT</property>
+<property>
+2007-03-30 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65546</reference>
+<reference>
+null</reference>
+</object>
+<object id="65547">
+<property>
+<![CDATA[Prototype UI]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+10</property>
+<property>
+1</property>
+<property>
+2007-02-05 GMT</property>
+<property>
+2007-03-09 GMT</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+20000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65546</reference>
+<reference>
+null</reference>
+</object>
+<object id="65549">
+<property>
+<![CDATA[Integration prototype]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+12</property>
+<property>
+1</property>
+<property>
+2007-03-19 GMT</property>
+<property>
+2007-03-30 GMT</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+16000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65546</reference>
+<reference>
+null</reference>
+</object>
+<object id="65554">
+<property>
+<![CDATA[Integration]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+17</property>
+<property>
+1</property>
+<property>
+2007-06-11 GMT</property>
+<property>
+2007-07-06 GMT</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+32000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+320.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65551</reference>
+<reference>
+null</reference>
+</object>
+<object id="65552">
+<property>
+<![CDATA[Implementation UI]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+15</property>
+<property>
+1</property>
+<property>
+2007-04-02 GMT</property>
+<property>
+2007-06-08 GMT</property>
+<property>
+400.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+800.0</property>
+<property>
+0.0</property>
+<property>
+80000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+800.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65551</reference>
+<reference>
+null</reference>
+</object>
+<object id="65556">
+<property>
+<![CDATA[Implementation completed]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+19</property>
+<property>
+1</property>
+<property>
+2007-07-06 GMT</property>
+<property>
+2007-07-06 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65551</reference>
+<reference>
+null</reference>
+</object>
+<object id="65553">
+<property>
+<![CDATA[Implementation database]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+16</property>
+<property>
+1</property>
+<property>
+2007-04-02 GMT</property>
+<property>
+2007-05-25 GMT</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+640.0</property>
+<property>
+0.0</property>
+<property>
+64000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+640.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65551</reference>
+<reference>
+null</reference>
+</object>
+<object id="65555">
+<property>
+<![CDATA[System manual]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+18</property>
+<property>
+1</property>
+<property>
+2007-04-02 GMT</property>
+<property>
+2007-05-18 GMT</property>
+<property>
+280.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+280.0</property>
+<property>
+0.0</property>
+<property>
+19600.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+280.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262151</reference>
+<reference>
+65551</reference>
+<reference>
+null</reference>
+</object>
+<object id="65561">
+<property>
+<![CDATA[QA completed]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+2</property>
+<property>
+0</property>
+<property>
+24</property>
+<property>
+1</property>
+<property>
+2007-08-03 GMT</property>
+<property>
+2007-08-03 GMT</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262152</reference>
+<reference>
+65557</reference>
+<reference>
+null</reference>
+</object>
+<object id="65560">
+<property>
+<![CDATA[QA system manual]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+23</property>
+<property>
+1</property>
+<property>
+2007-07-09 GMT</property>
+<property>
+2007-07-20 GMT</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262152</reference>
+<reference>
+65557</reference>
+<reference>
+null</reference>
+</object>
+<object id="65558">
+<property>
+<![CDATA[Manual tests (UI)]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+21</property>
+<property>
+1</property>
+<property>
+2007-06-11 GMT</property>
+<property>
+2007-07-13 GMT</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+400.0</property>
+<property>
+0.0</property>
+<property>
+40000.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+400.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262152</reference>
+<reference>
+65557</reference>
+<reference>
+null</reference>
+</object>
+<object id="65559">
+<property>
+<![CDATA[Automated tests]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+0</property>
+<property>
+0</property>
+<property>
+22</property>
+<property>
+1</property>
+<property>
+2007-07-09 GMT</property>
+<property>
+2007-08-03 GMT</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+11200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+false</property>
+<property>
+false</property>
+<property>
+false</property>
+<reference>
+32787</reference>
+<reference>
+262152</reference>
+<reference>
+65557</reference>
+<reference>
+null</reference>
+</object>
+</objects>
+<objects type="OpWorkPeriod">
+<object id="196608">
+<property>
+2007-07-08 GMT</property>
+<property>
+2.4</property>
+<property>
+1741659966</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196609">
+<property>
+2007-04-06 GMT</property>
+<property>
+16.0</property>
+<property>
+524188921</property>
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+</object>
+<object id="196611">
+<property>
+2007-08-08 GMT</property>
+<property>
+4.0</property>
+<property>
+999</property>
+<reference>
+32787</reference>
+<reference>
+65540</reference>
+</object>
+<object id="196612">
+<property>
+2007-05-07 GMT</property>
+<property>
+2.4</property>
+<property>
+1944571807</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196613">
+<property>
+2006-12-03 GMT</property>
+<property>
+8.0</property>
+<property>
+1610612736</property>
+<reference>
+32787</reference>
+<reference>
+65538</reference>
+</object>
+<object id="196614">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+1335836284</property>
+<reference>
+32787</reference>
+<reference>
+65547</reference>
+</object>
+<object id="196615">
+<property>
+2007-04-06 GMT</property>
+<property>
+8.0</property>
+<property>
+524188921</property>
+<reference>
+32787</reference>
+<reference>
+65555</reference>
+</object>
+<object id="196616">
+<property>
+2007-06-07 GMT</property>
+<property>
+16.0</property>
+<property>
+3</property>
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+</object>
+<object id="196617">
+<property>
+2007-03-06 GMT</property>
+<property>
+16.0</property>
+<property>
+2013265920</property>
+<reference>
+32787</reference>
+<reference>
+65553</reference>
+</object>
+<object id="196618">
+<property>
+2007-05-07 GMT</property>
+<property>
+8.0</property>
+<property>
+3999</property>
+<reference>
+32787</reference>
+<reference>
+65555</reference>
+</object>
+<object id="196619">
+<property>
+2007-03-06 GMT</property>
+<property>
+8.0</property>
+<property>
+15</property>
+<reference>
+32787</reference>
+<reference>
+65547</reference>
+</object>
+<object id="196620">
+<property>
+2007-01-03 GMT</property>
+<property>
+8.0</property>
+<property>
+999</property>
+<reference>
+32787</reference>
+<reference>
+65538</reference>
+</object>
+<object id="196621">
+<property>
+2007-04-06 GMT</property>
+<property>
+2.4</property>
+<property>
+524188921</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196622">
+<property>
+2007-07-08 GMT</property>
+<property>
+4.0</property>
+<property>
+1741651968</property>
+<reference>
+32787</reference>
+<reference>
+65540</reference>
+</object>
+<object id="196623">
+<property>
+2007-07-08 GMT</property>
+<property>
+8.0</property>
+<property>
+7998</property>
+<reference>
+32787</reference>
+<reference>
+65560</reference>
+</object>
+<object id="196624">
+<property>
+2007-03-06 GMT</property>
+<property>
+16.0</property>
+<property>
+2013265920</property>
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+</object>
+<object id="196625">
+<property>
+2007-05-07 GMT</property>
+<property>
+16.0</property>
+<property>
+511903</property>
+<reference>
+32787</reference>
+<reference>
+65553</reference>
+</object>
+<object id="196626">
+<property>
+2007-05-07 GMT</property>
+<property>
+16.0</property>
+<property>
+1944571807</property>
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+</object>
+<object id="196627">
+<property>
+2007-06-07 GMT</property>
+<property>
+16.0</property>
+<property>
+1048377840</property>
+<reference>
+32787</reference>
+<reference>
+65558</reference>
+</object>
+<object id="196628">
+<property>
+2007-08-08 GMT</property>
+<property>
+2.4</property>
+<property>
+999</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196629">
+<property>
+2007-03-06 GMT</property>
+<property>
+2.4</property>
+<property>
+2046027727</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196630">
+<property>
+2007-01-03 GMT</property>
+<property>
+2.4</property>
+<property>
+2096754688</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196631">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+1333788672</property>
+<reference>
+32787</reference>
+<reference>
+65548</reference>
+</object>
+<object id="196632">
+<property>
+2007-03-06 GMT</property>
+<property>
+8.0</property>
+<property>
+2013265920</property>
+<reference>
+32787</reference>
+<reference>
+65555</reference>
+</object>
+<object id="196633">
+<property>
+2007-03-06 GMT</property>
+<property>
+8.0</property>
+<property>
+1999</property>
+<reference>
+32787</reference>
+<reference>
+65548</reference>
+</object>
+<object id="196634">
+<property>
+2007-04-06 GMT</property>
+<property>
+16.0</property>
+<property>
+524188921</property>
+<reference>
+32787</reference>
+<reference>
+65553</reference>
+</object>
+<object id="196635">
+<property>
+2007-06-07 GMT</property>
+<property>
+16.0</property>
+<property>
+1048377840</property>
+<reference>
+32787</reference>
+<reference>
+65554</reference>
+</object>
+<object id="196636">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+2047612</property>
+<reference>
+32787</reference>
+<reference>
+65544</reference>
+</object>
+<object id="196637">
+<property>
+2007-02-03 GMT</property>
+<property>
+2.4</property>
+<property>
+1335836284</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196638">
+<property>
+2007-06-07 GMT</property>
+<property>
+2.4</property>
+<property>
+1048377843</property>
+<reference>
+32787</reference>
+<reference>
+65539</reference>
+</object>
+<object id="196639">
+<property>
+2007-01-03 GMT</property>
+<property>
+8.0</property>
+<property>
+2096754688</property>
+<reference>
+32787</reference>
+<reference>
+65543</reference>
+</object>
+<object id="196640">
+<property>
+2007-07-08 GMT</property>
+<property>
+16.0</property>
+<property>
+62</property>
+<reference>
+32787</reference>
+<reference>
+65558</reference>
+</object>
+<object id="196641">
+<property>
+2007-03-06 GMT</property>
+<property>
+16.0</property>
+<property>
+32759808</property>
+<reference>
+32787</reference>
+<reference>
+65549</reference>
+</object>
+<object id="196642">
+<property>
+2007-07-08 GMT</property>
+<property>
+8.0</property>
+<property>
+131047230</property>
+<reference>
+32787</reference>
+<reference>
+65559</reference>
+</object>
+<object id="196643">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+1325400064</property>
+<reference>
+98305</reference>
+<reference>
+98366</reference>
+</object>
+<object id="196646">
+<property>
+2007-03-06 GMT</property>
+<property>
+4.0</property>
+<property>
+10191</property>
+<reference>
+98305</reference>
+<reference>
+98367</reference>
+</object>
+<object id="196647">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+1325400064</property>
+<reference>
+98305</reference>
+<reference>
+98365</reference>
+</object>
+<object id="196648">
+<property>
+2007-04-06 GMT</property>
+<property>
+8.0</property>
+<property>
+20871168</property>
+<reference>
+98305</reference>
+<reference>
+98369</reference>
+</object>
+<object id="196649">
+<property>
+2007-03-06 GMT</property>
+<property>
+8.0</property>
+<property>
+2046017536</property>
+<reference>
+98305</reference>
+<reference>
+98368</reference>
+</object>
+<object id="196650">
+<property>
+2007-02-03 GMT</property>
+<property>
+16.0</property>
+<property>
+9961472</property>
+<reference>
+98305</reference>
+<reference>
+98364</reference>
+</object>
+<object id="196651">
+<property>
+2007-04-06 GMT</property>
+<property>
+8.0</property>
+<property>
+1273</property>
+<reference>
+98305</reference>
+<reference>
+98368</reference>
+</object>
+<object id="196652">
+<property>
+2007-02-03 GMT</property>
+<property>
+8.0</property>
+<property>
+458752</property>
+<reference>
+98305</reference>
+<reference>
+98363</reference>
+</object>
+</objects>
+<objects type="OpLock">
+<object id="327897">
+<reference>
+1</reference>
+<reference>
+32781</reference>
+</object>
+</objects>
+<objects type="OpSchedule">
+<object system="report-archive-schedule" id="4">
+<property>
+<![CDATA[report-archive-schedule]]></property>
+<property>
+null</property>
+<property>
+2006-05-07 GMT</property>
+<property>
+2</property>
+<property>
+8</property>
+<property>
+0</property>
+<property>
+2007-02-11 GMT</property>
+</object>
+</objects>
+<objects type="OpPreference">
+<object id="14">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+12</reference>
+</object>
+<object id="18">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[en]]></property>
+<reference>
+16</reference>
+</object>
+<object id="22">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+20</reference>
+</object>
+<object id="26">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+24</reference>
+</object>
+<object id="30">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[en]]></property>
+<reference>
+28</reference>
+</object>
+<object id="34">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[en]]></property>
+<reference>
+32</reference>
+</object>
+<object id="38">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+36</reference>
+</object>
+<object id="42">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+40</reference>
+</object>
+<object id="65712">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[de]]></property>
+<reference>
+65710</reference>
+</object>
+<object id="262147">
+<property>
+<![CDATA[Locale]]></property>
+<property>
+<![CDATA[en]]></property>
+<reference>
+1</reference>
+</object>
+<object id="262148">
+<property>
+<![CDATA[ShowHours]]></property>
+<property>
+<![CDATA[false]]></property>
+<reference>
+1</reference>
+</object>
+</objects>
+<objects type="OpProjectPlanVersion">
+<object id="327898">
+<property>
+-1</property>
+<property>
+null</property>
+<property>
+2006-02-06 GMT</property>
+<property>
+2006-11-24 GMT</property>
+<property>
+false</property>
+<reference>
+32782</reference>
+<reference>
+1</reference>
+</object>
+</objects>
+<objects type="OpActivityVersion">
+</objects>
+<objects type="OpAssignmentVersion">
+</objects>
+<objects type="OpSite">
+</objects>
+<objects type="OpGroup">
+<object system="Everyone" id="3">
+<property>
+<![CDATA[Everyone]]></property>
+<property>
+<![CDATA[{$EveryoneDisplayName}]]></property>
+<property>
+<![CDATA[{$EveryoneDescription}]]></property>
+</object>
+</objects>
+<objects type="OpDependency">
+<object id="65597">
+<reference>
+32787</reference>
+<reference>
+65538</reference>
+<reference>
+65539</reference>
+</object>
+<object id="65604">
+<reference>
+32787</reference>
+<reference>
+65540</reference>
+<reference>
+65541</reference>
+</object>
+<object id="65605">
+<reference>
+32787</reference>
+<reference>
+65538</reference>
+<reference>
+65542</reference>
+</object>
+<object id="65614">
+<reference>
+32787</reference>
+<reference>
+65543</reference>
+<reference>
+65544</reference>
+</object>
+<object id="65616">
+<reference>
+32787</reference>
+<reference>
+65544</reference>
+<reference>
+65545</reference>
+</object>
+<object id="65623">
+<reference>
+32787</reference>
+<reference>
+65543</reference>
+<reference>
+65547</reference>
+</object>
+<object id="65628">
+<reference>
+32787</reference>
+<reference>
+65544</reference>
+<reference>
+65548</reference>
+</object>
+<object id="65633">
+<reference>
+32787</reference>
+<reference>
+65548</reference>
+<reference>
+65549</reference>
+</object>
+<object id="65634">
+<reference>
+32787</reference>
+<reference>
+65547</reference>
+<reference>
+65549</reference>
+</object>
+<object id="65636">
+<reference>
+32787</reference>
+<reference>
+65549</reference>
+<reference>
+65550</reference>
+</object>
+<object id="65637">
+<reference>
+32787</reference>
+<reference>
+65550</reference>
+<reference>
+65551</reference>
+</object>
+<object id="65666">
+<reference>
+32787</reference>
+<reference>
+65553</reference>
+<reference>
+65554</reference>
+</object>
+<object id="65667">
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+<reference>
+65554</reference>
+</object>
+<object id="65677">
+<reference>
+32787</reference>
+<reference>
+65554</reference>
+<reference>
+65556</reference>
+</object>
+<object id="65678">
+<reference>
+32787</reference>
+<reference>
+65555</reference>
+<reference>
+65556</reference>
+</object>
+<object id="65686">
+<reference>
+32787</reference>
+<reference>
+65552</reference>
+<reference>
+65558</reference>
+</object>
+<object id="65692">
+<reference>
+32787</reference>
+<reference>
+65554</reference>
+<reference>
+65559</reference>
+</object>
+<object id="65696">
+<reference>
+32787</reference>
+<reference>
+65555</reference>
+<reference>
+65560</reference>
+</object>
+<object id="65697">
+<reference>
+32787</reference>
+<reference>
+65556</reference>
+<reference>
+65560</reference>
+</object>
+<object id="65699">
+<reference>
+32787</reference>
+<reference>
+65560</reference>
+<reference>
+65561</reference>
+</object>
+<object id="65700">
+<reference>
+32787</reference>
+<reference>
+65559</reference>
+<reference>
+65561</reference>
+</object>
+<object id="65701">
+<reference>
+32787</reference>
+<reference>
+65558</reference>
+<reference>
+65561</reference>
+</object>
+<object id="98377">
+<reference>
+98305</reference>
+<reference>
+98363</reference>
+<reference>
+98364</reference>
+</object>
+<object id="98381">
+<reference>
+98305</reference>
+<reference>
+98364</reference>
+<reference>
+98365</reference>
+</object>
+<object id="98385">
+<reference>
+98305</reference>
+<reference>
+98364</reference>
+<reference>
+98366</reference>
+</object>
+<object id="98390">
+<reference>
+98305</reference>
+<reference>
+98365</reference>
+<reference>
+98367</reference>
+</object>
+<object id="98397">
+<reference>
+98305</reference>
+<reference>
+98367</reference>
+<reference>
+98368</reference>
+</object>
+<object id="98402">
+<reference>
+98305</reference>
+<reference>
+98368</reference>
+<reference>
+98369</reference>
+</object>
+<object id="98404">
+<reference>
+98305</reference>
+<reference>
+98369</reference>
+<reference>
+98370</reference>
+</object>
+</objects>
+<objects type="OpAssignment">
+<object id="65562">
+<property>
+100.0</property>
+<property>
+50.0</property>
+<property>
+80.0</property>
+<property>
+40.0</property>
+<property>
+40.0</property>
+<property>
+10400.0</property>
+<property>
+5200.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65538</reference>
+</object>
+<object id="65565">
+<property>
+30.0</property>
+<property>
+0.0</property>
+<property>
+372.0</property>
+<property>
+0.0</property>
+<property>
+372.0</property>
+<property>
+48360.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65539</reference>
+</object>
+<object id="65598">
+<property>
+50.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65540</reference>
+</object>
+<object id="65603">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65541</reference>
+</object>
+<object id="65606">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+15600.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+68</reference>
+<reference>
+65543</reference>
+</object>
+<object id="65610">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+15600.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+68</reference>
+<reference>
+65544</reference>
+</object>
+<object id="65615">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65545</reference>
+</object>
+<object id="65617">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+20000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+80</reference>
+<reference>
+65547</reference>
+</object>
+<object id="65624">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+0.0</property>
+<property>
+120.0</property>
+<property>
+12000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+83</reference>
+<reference>
+65548</reference>
+</object>
+<object id="65629">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+8000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+80</reference>
+<reference>
+65549</reference>
+</object>
+<object id="65630">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+8000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+83</reference>
+<reference>
+65549</reference>
+</object>
+<object id="65635">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65550</reference>
+</object>
+<object id="65638">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+400.0</property>
+<property>
+0.0</property>
+<property>
+400.0</property>
+<property>
+40000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+89</reference>
+<reference>
+65552</reference>
+</object>
+<object id="65639">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+400.0</property>
+<property>
+0.0</property>
+<property>
+400.0</property>
+<property>
+40000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+80</reference>
+<reference>
+65552</reference>
+</object>
+<object id="65650">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+320.0</property>
+<property>
+32000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+83</reference>
+<reference>
+65553</reference>
+</object>
+<object id="65651">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+320.0</property>
+<property>
+0.0</property>
+<property>
+320.0</property>
+<property>
+32000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+92</reference>
+<reference>
+65553</reference>
+</object>
+<object id="65660">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+16000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+83</reference>
+<reference>
+65554</reference>
+</object>
+<object id="65661">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+16000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+80</reference>
+<reference>
+65554</reference>
+</object>
+<object id="65668">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+280.0</property>
+<property>
+0.0</property>
+<property>
+280.0</property>
+<property>
+19600.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+56</reference>
+<reference>
+65555</reference>
+</object>
+<object id="65676">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65556</reference>
+</object>
+<object id="65679">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+20000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+89</reference>
+<reference>
+65558</reference>
+</object>
+<object id="65680">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+0.0</property>
+<property>
+200.0</property>
+<property>
+20000.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+92</reference>
+<reference>
+65558</reference>
+</object>
+<object id="65687">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+11200.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+71</reference>
+<reference>
+65559</reference>
+</object>
+<object id="65693">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+68</reference>
+<reference>
+65560</reference>
+</object>
+<object id="65698">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+32787</reference>
+<reference>
+62</reference>
+<reference>
+65561</reference>
+</object>
+<object id="98371">
+<property>
+100.0</property>
+<property>
+100.0</property>
+<property>
+24.0</property>
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+2760.0</property>
+<property>
+2760.0</property>
+<reference>
+98305</reference>
+<reference>
+65707</reference>
+<reference>
+98363</reference>
+</object>
+<object id="98373">
+<property>
+100.0</property>
+<property>
+100.0</property>
+<property>
+24.0</property>
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+3120.0</property>
+<property>
+3120.0</property>
+<reference>
+98305</reference>
+<reference>
+65</reference>
+<reference>
+98364</reference>
+</object>
+<object id="98374">
+<property>
+100.0</property>
+<property>
+100.0</property>
+<property>
+24.0</property>
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+2760.0</property>
+<property>
+2760.0</property>
+<reference>
+98305</reference>
+<reference>
+65707</reference>
+<reference>
+98364</reference>
+</object>
+<object id="98378">
+<property>
+100.0</property>
+<property>
+66.6666666666667</property>
+<property>
+40.0</property>
+<property>
+32.0</property>
+<property>
+16.0</property>
+<property>
+5200.0</property>
+<property>
+4160.0</property>
+<reference>
+98305</reference>
+<reference>
+65</reference>
+<reference>
+98365</reference>
+</object>
+<object id="98382">
+<property>
+100.0</property>
+<property>
+80.0</property>
+<property>
+40.0</property>
+<property>
+32.0</property>
+<property>
+8.0</property>
+<property>
+4600.0</property>
+<property>
+3680.0</property>
+<reference>
+98305</reference>
+<reference>
+65707</reference>
+<reference>
+98366</reference>
+</object>
+<object id="98386">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+10400.0</property>
+<property>
+0.0</property>
+<reference>
+98305</reference>
+<reference>
+68</reference>
+<reference>
+98367</reference>
+</object>
+<object id="98391">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+0.0</property>
+<property>
+160.0</property>
+<property>
+18400.0</property>
+<property>
+0.0</property>
+<reference>
+98305</reference>
+<reference>
+86</reference>
+<reference>
+98368</reference>
+</object>
+<object id="98398">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+0.0</property>
+<property>
+80.0</property>
+<property>
+9200.0</property>
+<property>
+0.0</property>
+<reference>
+98305</reference>
+<reference>
+86</reference>
+<reference>
+98369</reference>
+</object>
+<object id="98403">
+<property>
+100.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<reference>
+98305</reference>
+<reference>
+65</reference>
+<reference>
+98370</reference>
+</object>
+</objects>
+<objects type="OpWorkSlip">
+<object id="131074">
+<property>
+1</property>
+<property>
+2006-04-28 GMT</property>
+<reference>
+65710</reference>
+</object>
+<object id="131077">
+<property>
+2</property>
+<property>
+2006-05-05 GMT</property>
+<reference>
+65710</reference>
+</object>
+<object id="131081">
+<property>
+1</property>
+<property>
+2006-04-28 GMT</property>
+<reference>
+16</reference>
+</object>
+<object id="131084">
+<property>
+2</property>
+<property>
+2006-05-05 GMT</property>
+<reference>
+16</reference>
+</object>
+<object id="229377">
+<property>
+1</property>
+<property>
+2007-01-08 GMT</property>
+<reference>
+12</reference>
+</object>
+</objects>
+<objects type="OpWorkRecord">
+<object id="131072">
+<property>
+24.0</property>
+<property>
+0.0</property>
+<property>
+-24.0</property>
+<property>
+2760.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+true</property>
+<reference>
+98371</reference>
+<reference>
+131074</reference>
+</object>
+<object id="131073">
+<property>
+16.0</property>
+<property>
+8.0</property>
+<property>
+-16.0</property>
+<property>
+1840.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+false</property>
+<reference>
+98374</reference>
+<reference>
+131074</reference>
+</object>
+<object id="131075">
+<property>
+8.0</property>
+<property>
+0.0</property>
+<property>
+-8.0</property>
+<property>
+2760.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+true</property>
+<reference>
+98374</reference>
+<reference>
+131077</reference>
+</object>
+<object id="131076">
+<property>
+32.0</property>
+<property>
+8.0</property>
+<property>
+-32.0</property>
+<property>
+3680.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+false</property>
+<reference>
+98382</reference>
+<reference>
+131077</reference>
+</object>
+<object id="131080">
+<property>
+16.0</property>
+<property>
+8.0</property>
+<property>
+-16.0</property>
+<property>
+2080.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+false</property>
+<reference>
+98373</reference>
+<reference>
+131081</reference>
+</object>
+<object id="131082">
+<property>
+8.0</property>
+<property>
+0.0</property>
+<property>
+-8.0</property>
+<property>
+3120.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+true</property>
+<reference>
+98373</reference>
+<reference>
+131084</reference>
+</object>
+<object id="131083">
+<property>
+32.0</property>
+<property>
+16.0</property>
+<property>
+-24.0</property>
+<property>
+4160.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+false</property>
+<reference>
+98378</reference>
+<reference>
+131084</reference>
+</object>
+<object id="229376">
+<property>
+40.0</property>
+<property>
+40.0</property>
+<property>
+-40.0</property>
+<property>
+5200.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+0.0</property>
+<property>
+null</property>
+<property>
+false</property>
+<reference>
+65562</reference>
+<reference>
+229377</reference>
+</object>
+</objects>
+<objects type="OpContent">
+</objects>
+<objects type="OpAttachment">
+</objects>
+<objects type="OpToDo">
+</objects>
+<objects type="OpSetting">
+<object id="11">
+<property>
+<![CDATA[Allow_EmptyPassword]]></property>
+<property>
+<![CDATA[true]]></property>
+</object>
+<object id="262144">
+<property>
+<![CDATA[Calendar_DayWorkTime]]></property>
+<property>
+<![CDATA[8.0]]></property>
+</object>
+<object id="262145">
+<property>
+<![CDATA[Calendar_WeekWorkTime]]></property>
+<property>
+<![CDATA[40.0]]></property>
+</object>
+</objects>
+<objects type="OpReportType">
+<object id="327717">
+<property>
+<![CDATA[categoryreport]]></property>
+</object>
+</objects>
+<objects type="OpActivityComment">
+</objects>
+<objects type="OpContact">
+<object id="2">
+<property>
+null</property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+null</property>
+<property>
+null</property>
+<reference>
+1</reference>
+</object>
+<object id="13">
+<property>
+<![CDATA[Claudia]]></property>
+<property>
+<![CDATA[Schulz]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+12</reference>
+</object>
+<object id="17">
+<property>
+<![CDATA[Thomas]]></property>
+<property>
+<![CDATA[Winter]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+16</reference>
+</object>
+<object id="21">
+<property>
+<![CDATA[Hiromi]]></property>
+<property>
+<![CDATA[Sato]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+20</reference>
+</object>
+<object id="25">
+<property>
+<![CDATA[Fredrik]]></property>
+<property>
+<![CDATA[Nieminen]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+24</reference>
+</object>
+<object id="29">
+<property>
+<![CDATA[Mihir]]></property>
+<property>
+<![CDATA[Singh]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+28</reference>
+</object>
+<object id="33">
+<property>
+<![CDATA[Jody]]></property>
+<property>
+<![CDATA[Wang]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+32</reference>
+</object>
+<object id="37">
+<property>
+<![CDATA[Sabine]]></property>
+<property>
+<![CDATA[Hausberg]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+36</reference>
+</object>
+<object id="41">
+<property>
+<![CDATA[Duncan]]></property>
+<property>
+<![CDATA[MacKay]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+40</reference>
+</object>
+<object id="65711">
+<property>
+<![CDATA[Josef]]></property>
+<property>
+<![CDATA[Muster]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<property>
+<![CDATA[]]></property>
+<reference>
+65710</reference>
+</object>
+</objects>
+<objects type="OpGoal">
+</objects>
+<objects type="OpWorkPeriodVersion">
+</objects>
+<objects type="OpPermission">
+<object id="6">
+<reference>
+5</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="7">
+<reference>
+5</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="9">
+<reference>
+8</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="10">
+<reference>
+8</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="45">
+<reference>
+44</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="46">
+<reference>
+44</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="48">
+<reference>
+47</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="49">
+<reference>
+47</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="51">
+<reference>
+50</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="52">
+<reference>
+50</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="54">
+<reference>
+53</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="55">
+<reference>
+53</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="57">
+<reference>
+56</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="58">
+<reference>
+56</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="63">
+<reference>
+62</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="64">
+<reference>
+62</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="66">
+<reference>
+65</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="67">
+<reference>
+65</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="69">
+<reference>
+68</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="70">
+<reference>
+68</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="72">
+<reference>
+71</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="73">
+<reference>
+71</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="81">
+<reference>
+80</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="82">
+<reference>
+80</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="84">
+<reference>
+83</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="85">
+<reference>
+83</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="87">
+<reference>
+86</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="88">
+<reference>
+86</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="90">
+<reference>
+89</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="91">
+<reference>
+89</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="93">
+<reference>
+92</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="94">
+<reference>
+92</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32769">
+<reference>
+32768</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32770">
+<reference>
+32768</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32771">
+<reference>
+32768</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32773">
+<reference>
+32772</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32774">
+<reference>
+32772</reference>
+<reference>
+16</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32775">
+<reference>
+32772</reference>
+<reference>
+12</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32776">
+<reference>
+32772</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32778">
+<reference>
+32777</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32779">
+<reference>
+32777</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32780">
+<reference>
+32777</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32783">
+<reference>
+32781</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32784">
+<reference>
+32781</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32785">
+<reference>
+32781</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32788">
+<reference>
+32786</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32790">
+<reference>
+32786</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32793">
+<reference>
+32791</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32794">
+<reference>
+32791</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32795">
+<reference>
+32791</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32798">
+<reference>
+32796</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32799">
+<reference>
+32796</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32800">
+<reference>
+32796</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32803">
+<reference>
+32801</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="32804">
+<reference>
+32801</reference>
+<reference>
+40</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="32805">
+<reference>
+32801</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="32851">
+<reference>
+32786</reference>
+<reference>
+36</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="32853">
+<reference>
+32786</reference>
+<reference>
+12</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="32855">
+<reference>
+32786</reference>
+<reference>
+40</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="32857">
+<reference>
+32786</reference>
+<reference>
+20</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="32859">
+<reference>
+32786</reference>
+<reference>
+32</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="32861">
+<reference>
+32786</reference>
+<reference>
+28</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="65702">
+<reference>
+32786</reference>
+<reference>
+12</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="65708">
+<reference>
+65707</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="65709">
+<reference>
+65707</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="98306">
+<reference>
+98304</reference>
+<reference>
+1</reference>
+<property>
+64</property>
+<property>
+false</property>
+</object>
+<object id="98308">
+<reference>
+98304</reference>
+<reference>
+16</reference>
+<property>
+16</property>
+<property>
+false</property>
+</object>
+<object id="98309">
+<reference>
+98304</reference>
+<reference>
+3</reference>
+<property>
+2</property>
+<property>
+false</property>
+</object>
+<object id="98333">
+<reference>
+98304</reference>
+<reference>
+16</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="98335">
+<reference>
+98304</reference>
+<reference>
+40</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="98337">
+<reference>
+98304</reference>
+<reference>
+24</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+<object id="98339">
+<reference>
+98304</reference>
+<reference>
+65710</reference>
+<property>
+4</property>
+<property>
+true</property>
+</object>
+</objects>
+<objects type="OpDynamicResource">
+<object id="327715">
+<property>
+<![CDATA[de]]></property>
+<property>
+null</property>
+<property>
+<![CDATA[Kategorien-Bericht]]></property>
+<reference>
+327717</reference>
+</object>
+<object id="327716">
+<property>
+<![CDATA[en]]></property>
+<property>
+null</property>
+<property>
+<![CDATA[Category Report]]></property>
+<reference>
+327717</reference>
+</object>
+</objects>
+<objects type="OpAttachmentVersion">
+</objects>
+<objects type="OpProjectNodeAssignment">
+<object id="32850">
+<reference>
+56</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32852">
+<reference>
+62</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32854">
+<reference>
+68</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32856">
+<reference>
+71</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32858">
+<reference>
+80</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32860">
+<reference>
+83</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32862">
+<reference>
+89</reference>
+<reference>
+32786</reference>
+</object>
+<object id="32864">
+<reference>
+92</reference>
+<reference>
+32786</reference>
+</object>
+<object id="98332">
+<reference>
+65</reference>
+<reference>
+98304</reference>
+</object>
+<object id="98334">
+<reference>
+68</reference>
+<reference>
+98304</reference>
+</object>
+<object id="98336">
+<reference>
+86</reference>
+<reference>
+98304</reference>
+</object>
+<object id="98338">
+<reference>
+65707</reference>
+<reference>
+98304</reference>
+</object>
+</objects>
+<objects type="OpReport">
+</objects>
+<objects type="OpDependencyVersion">
+</objects>
+<objects type="OpGroupAssignment">
+</objects>
+<objects type="OpUserAssignment">
+<object id="15">
+<reference>
+12</reference>
+<reference>
+3</reference>
+</object>
+<object id="19">
+<reference>
+16</reference>
+<reference>
+3</reference>
+</object>
+<object id="23">
+<reference>
+20</reference>
+<reference>
+3</reference>
+</object>
+<object id="27">
+<reference>
+24</reference>
+<reference>
+3</reference>
+</object>
+<object id="31">
+<reference>
+28</reference>
+<reference>
+3</reference>
+</object>
+<object id="35">
+<reference>
+32</reference>
+<reference>
+3</reference>
+</object>
+<object id="39">
+<reference>
+36</reference>
+<reference>
+3</reference>
+</object>
+<object id="43">
+<reference>
+40</reference>
+<reference>
+3</reference>
+</object>
+<object id="65713">
+<reference>
+65710</reference>
+<reference>
+3</reference>
+</object>
+</objects>
+</opp-backup>

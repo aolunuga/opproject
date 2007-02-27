@@ -1,0 +1,24 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for confirm_revert_project.oxf.xml
+
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+
+function ok(event) {
+
+   projectId = XDisplay.getActiveForm().findComponent("ProjectId").getStringValue();
+   request = new XMessage;
+   request.setAction("PlanningService.revertActivities");
+   request.setArgument("project_id", projectId);
+   response = XDisplay.getClient().invokeMethod(request);
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

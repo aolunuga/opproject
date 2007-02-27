@@ -1,0 +1,72 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for subject_chooser.oxf.xml
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   Console.println("==> subject_chooser.ok");
+   form = XDisplay.getActiveForm();
+   callingFrameID = form.findComponent("CallingFrameID").getStringValue();
+   actionHandler = form.findComponent("ActionHandler").getStringValue();
+   multipleSelection = form.findComponent("MultipleSelection").getBooleanValue();
+   subject_data_set = XDisplay.getActiveForm().findComponent("SubjectSet");
+   selected_rows = subject_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      callingFrame = XDisplay.findFrame(callingFrameID);      
+      size = selected_rows.size();
+      i = 0;
+      while (i < size) {
+         subjects[i] = selected_rows[i].getStringValue();
+         i++;
+      }
+
+      if (multipleSelection) {
+         arguments[0] = subjects;
+      }
+      else {
+         arguments = subjects;
+      }
+
+      // Note: It is important to close the window first because callback might use getActiveForm()
+      XDisplay.getActiveWindow().close();
+      callingFrame.currentForm().invokeFunction(actionHandler, arguments);
+   }
+   if (selected_rows.size() == 0) {
+      XDisplay.getActiveWindow().close();
+   }
+   XDisplay.findFrame("MainFrame").repaint();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+   XDisplay.findFrame("MainFrame").repaint();
+}
+
+function expandDataSet(event) {
+   sourceGroup = event.expand_source;
+   outlineLevel = sourceGroup.getOutlineLevel();
+   dataSet = sourceGroup.getParent();
+   locator = sourceGroup.getStringValue();
+   form = XDisplay.getActiveForm();
+   users = form.findComponent("EnableUsers");
+   groups = form.findComponent("EnableGroups");
+   includeParents = form.findComponent("IncludeParentsInFilter");
+   filtered = form.findComponent("FilteredSubjectIds");
+
+   request = new XMessage;
+   request.setAction("UserService.expandFilteredGroup");
+   request.setArgument("source_group_locator", locator);
+   request.setArgument("outlineLevel", outlineLevel);
+   request.setArgument("EnableUsers", users.getValue());
+   request.setArgument("EnableGroups", groups.getValue());
+   request.setArgument("IncludeParentsInFilter", includeParents.getValue());
+   request.setArgument("FilteredSubjectIds", filtered.getValue());
+
+   expandNode(sourceGroup, 0, request);
+}

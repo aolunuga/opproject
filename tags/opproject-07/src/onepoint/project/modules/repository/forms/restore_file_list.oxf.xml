@@ -1,0 +1,21 @@
+<form layout="border"
+      width="210" height="250"
+      text="{$RestoreFile}"
+      resource-map-ref="repository.restore_file_list"
+      provider-class="onepoint.project.modules.repository.forms.OpRestoreFileListFormProvider"
+      script="/modules/repository/scripts/restore_file_list.jes">
+   <data-set id="RestoreFileListSet"/>
+   <data-field id="RestoreSuccessfullMessage" value="{$RestoreConfirmationSuccessfull}"/>    
+   <panel layout="border">
+      <panel layout="border" y="0">
+         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <list-box id="RestoreFileList" data-set-ref="RestoreFileListSet" flexible="true"/>
+      </panel>
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+   </panel>
+</form>
