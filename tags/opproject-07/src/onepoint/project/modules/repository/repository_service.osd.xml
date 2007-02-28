@@ -1,6 +1,0 @@
-<service name="RepositoryService" class="onepoint.project.modules.repository.OpRepositoryService">
-   <method name="backup"/>
-   <method name="restore"/>
-   <method name="reset"/>
-   <method name="validateAdminPassword"/>
-</service>

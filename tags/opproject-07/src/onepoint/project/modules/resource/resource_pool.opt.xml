@@ -1,8 +1,0 @@
-<prototype name="OpResourcePool" instance-class="onepoint.project.modules.resource.OpResourcePool">
-   <field name="Name" type="String" mandatory="true" unique="true"/>
-   <field name="Description" type="Text"/>
-   <field name="HourlyRate" type="Double"/>
-   <relationship name="SuperPool" type="OpResourcePool" back-relationship="SubPools" recursive="true"/>
-   <relationship name="SubPools" type="OpResourcePool" collection-type="Set" back-relationship="SuperPool" inverse="true" cascade="delete"/>
-   <relationship name="Resources" type="OpResource" collection-type="Set" back-relationship="Pool" inverse="true" cascade="delete"/>
-</prototype>

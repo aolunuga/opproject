@@ -1,4 +1,0 @@
-<prototype name="OpUserAssignment" instance-class="onepoint.project.modules.user.OpUserAssignment">
-   <relationship name="User" type="OpUser" back-relationship="Assignments"/>
-   <relationship name="Group" type="OpGroup" back-relationship="UserAssignments"/>
-</prototype>

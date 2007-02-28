@@ -1,6 +1,0 @@
-//error dialog control
-import onepoint.express.XDisplay;
-
-function ok(event) {
-   XDisplay.getActiveWindow().close();
-}

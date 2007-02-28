@@ -1,8 +1,0 @@
-<prototype name="OpAttachment" instance-class="onepoint.project.modules.project.OpAttachment">
-   <field name="Name" type="String"/>
-   <field name="Linked" type="Boolean"/>
-   <field name="Location" type="String"/>
-   <relationship name="Content" type="OpContent" back-relationship="Attachments"/>
-   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="ActivityAttachments"/>
-   <relationship name="Activity" type="OpActivity" back-relationship="Attachments"/>
-</prototype>

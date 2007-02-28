@@ -1,7 +1,0 @@
-<prototype name="OpWorkSlip" instance-class="onepoint.project.modules.work.OpWorkSlip">
-   <!-- do we need a running number for the time-sheets -->
-   <field name="Number" type="Integer"/>
-   <field name="Date" type="Date" indexed="true"/>
-   <relationship name="Creator" type="OpUser" back-relationship="WorkSlips"/>
-   <relationship name="Records" type="OpWorkRecord" collection-type="Set" back-relationship="WorkSlip" inverse="true" cascade="delete"/>
-</prototype>

@@ -1,4 +1,0 @@
-<prototype name="OpSite" instance-class="onepoint.persistence.OpSite">
-	<field name="Name" type="String"/>
-	<relationship name="Objects" type="OpObject" collection-type="Set" back-relationship="Site" inverse="true"/>
-</prototype>
