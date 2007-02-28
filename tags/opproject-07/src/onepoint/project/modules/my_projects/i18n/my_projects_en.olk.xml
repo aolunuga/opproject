@@ -1,0 +1,47 @@
+<language-kit locale="en">
+   
+   <resource-map id="my_projects.module">
+      <resource id="ProjectsTool">Projects</resource>
+   </resource-map>
+
+   <resource-map id="my_projects.my_projects">
+
+      <resource id="Print">Print</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+
+      <resource id="ContribM">Contributor &amp; Manager</resource>
+      <resource id="Manager">Manager</resource>
+      <resource id="Contrib">Contributor</resource>
+      <resource id="Observer">Observer</resource>
+      <resource id="All">All</resource>
+
+      <resource id="ProjectList">Project List</resource>
+      <resource id="Role">Role</resource>
+      <resource id="Project">Project</resource>
+      <resource id="Status">Status</resource>
+      <resource id="Complete">% Complete</resource>
+      <resource id="Resources">Resources</resource>
+      <resource id="Costs">Costs</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+
+      <resource id="ProjectResources">Project Resources</resource>
+      <resource id="BaseEffort">Base (B/h)</resource>
+      <resource id="ActualEffort">Actual (A/h)</resource>
+      <resource id="RemainingEffort">Rem. (h)</resource>
+      <resource id="ProjectedEffort">Expected (E/h)</resource>
+      <resource id="DeviationEffort">Deviation (D/h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (D/%)</resource>
+
+      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="BaseCosts">Base (B/€)</resource>
+      <resource id="ActualCosts">Actual (A/€)</resource>
+      <resource id="RemainingCosts">Rem. (€)</resource>
+      <resource id="ProjectedCosts">Expected (E/€)</resource>
+      <resource id="DeviationCosts">Deviation (D/€)</resource>
+      <resource id="PercentageDeviationCosts">Deviation (D/%)</resource>
+
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+   </resource-map>
+</language-kit>

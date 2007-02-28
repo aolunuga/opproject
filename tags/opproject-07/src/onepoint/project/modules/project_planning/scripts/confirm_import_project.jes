@@ -1,0 +1,41 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for confirm_import_project.oxf.xml
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+
+function ok(event) {
+
+   thisWindow = XDisplay.getActiveWindow();
+   projectId = XDisplay.getActiveForm().findComponent("ProjectId").getStringValue();
+   fileName = XDisplay.getActiveForm().findComponent("FileName").getStringValue();
+   editMode = XDisplay.getActiveForm().findComponent("EditMode").getBooleanValue();
+   dataSet = XDisplay.getActiveForm().findComponent("ActivitySet").getValue();
+
+   bytes = File.getBytes(fileName);
+
+   //import activities
+   request = new XMessage;
+   request.setAction("PlanningService.importActivities");
+   request.setArgument("project_id", projectId);
+   request.setArgument("bytes_array", bytes);
+   request.setArgument("edit_mode", editMode);
+   response = XDisplay.getClient().invokeMethod(request);
+   if (handleResponse(response) == false) {
+      thisWindow.close();
+      return;
+   }
+
+   //refresh
+   thisWindow.close();
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
