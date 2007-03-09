@@ -8,6 +8,8 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 
+import javax.activation.FileTypeMap;
+
 /**
  * Utility class, responsible for performing content-related operations.
  *
@@ -66,5 +68,15 @@ public final class OpContentManager {
       else {
          logger.error("Trying to update inexistent content");
       }
+   }
+
+   /**
+    * Returns the mime type for the given file name.
+    *
+    * @param name file name to get the mime type for (based on extension)
+    * @return the mime type for the given file name
+    */
+   public static String getFileMimeType(String name) {
+      return FileTypeMap.getDefaultFileTypeMap().getContentType(name.toLowerCase());
    }
 }

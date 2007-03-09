@@ -129,6 +129,7 @@
       <resource id="DeleteResourceAssignmentsDenied">The resource could not be deleted, since it is still used in project plans</resource>
       <resource id="DeletePoolResourceAssignmentsDenied">The pool could not be deleted, since its resources are still used in project plans</resource>
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
+      <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Delete Resources or Pools</resource>

@@ -16,6 +16,8 @@ public class OpSettingsError {
    public final static int EMAIL_INCORRECT = 4;
    public final static int REPORT_REMOVE_TIME_PERIOD_INCORRECT = 5;
    public final static int RESOURCE_MAX_AVAILABILITY_INCORRECT = 6;   
+   public final static int MILESTONE_CONTROLING_INCORRECT = 7;
+   public final static int FIRST_WORK_DAY_INCORRECT = 8;
 
 
    // Error names
@@ -25,4 +27,6 @@ public class OpSettingsError {
    public final static String EMAIL_INCORRECT_NAME = "EmailIncorrect";
    public final static String REPORT_REMOVE_TIME_PERIOD_INCORRECT_NAME = "ReportsRemoveTimePeriodIncorrect";
    public final static String RESOURCE_MAX_AVAILABILITY_INCORRECT_NAME = "ResourceMaxAvailabilityIncorrect";
+   public final static String MILESTONE_CONTROLING_INCORRECT_NAME = "MilestoneControlingIncorrect";
+   public final static String FIRST_WORK_DAY_INCORRECT_NAME = "FirstWorkDayIncorrect";
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.preferences;
@@ -18,6 +18,7 @@ import onepoint.project.util.OpSHA1;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
 
 import java.util.HashMap;
 
@@ -68,7 +69,8 @@ public class OpPreferencesService extends OpProjectService {
          if (!session.getLocale().getID().equals(language)) {
             XLocale newLocale = XLocaleManager.findLocale(language);
             session.setLocale(newLocale);
-            reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.valueOf(languageChanged));
+            XCalendar calendar = OpSettings.configureDefaultCalendar(newLocale);
+            reply.setArgument(OpProjectConstants.CALENDAR, calendar);
          }
       }
 

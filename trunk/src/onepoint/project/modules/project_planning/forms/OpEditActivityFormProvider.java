@@ -46,15 +46,17 @@ public class OpEditActivityFormProvider implements XFormProvider {
 
    public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
 
-   /*action that should be performed when a comment is removed */
+   //action that should be performed when a comment is removed 
    private static final String REMOVE_COMMENT_ACTION = "removeComment";
-   /*remove comment button icon */
+   //remove comment button icon
    private static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
    private static final String REMOVE_COMMENT_BUTTON_STYLE_REF = "icon-button-default";
    private static final String COMMENT_SO_FAR = "CommentSoFar";
    private static final String COMMENTS_SO_FAR = "CommentsSoFar";
    private static final String NO_COMMENTS = "NoCommentsPossible";
    private static final String NO_RESOURCE_TEXT = "NoResource";
+   private static final String COMPLETE = "Complete";
+   private static final String NO_CATEGORY_RESOURCE = "NoCategory";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -86,16 +88,16 @@ public class OpEditActivityFormProvider implements XFormProvider {
       if (currentProjectId != null) {
          OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
          if (!project.getPlan().getProgressTracked()) {
-            form.findComponent("Complete").setEnabled(true);
+            form.findComponent(COMPLETE).setEnabled(true);
          }
          else {
-            form.findComponent("Complete").setEnabled(false);
+            form.findComponent(COMPLETE).setEnabled(false);
          }
       }
 
       XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(PROJECT_EDIT_ACTIVITY);
 
-      // Activity categoriies
+      // Activity categories
       XComponent categoryDataSet = form.findComponent(ACTIVITY_CATEGORY_DATA_SET);
       XComponent categoryChooser = form.findComponent(ACTIVITY_CATEGORY_CHOOSER);
       addCategories(broker, categoryChooser, categoryDataSet, resourceMap);
@@ -116,12 +118,12 @@ public class OpEditActivityFormProvider implements XFormProvider {
    /**
     * Adds to the curent form the comments panel information.
     *
-    * @param form
-    * @param activity
-    * @param session
-    * @param broker
-    * @param resourceMap
-    * @param enabled
+    * @param form        Current form
+    * @param activity    Activity to show the comments for
+    * @param session     Current project session
+    * @param broker      Broker instance for db access
+    * @param resourceMap langauage resource map for comments
+    * @param enabled     if true, panel is action enabled (remove/add comment)
     */
    public static void showComments(XComponent form, OpActivity activity, OpProjectSession session, OpBroker broker, XLanguageResourceMap resourceMap, boolean enabled) {
       // Show comments if activity is already persistent
@@ -162,7 +164,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
 
    protected void addCategories(OpBroker broker, XComponent categoryChooser, XComponent dataSet, XLanguageResourceMap resourceMap) {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-      String noCategory = resourceMap.getResource("NoCategory").getText();
+      String noCategory = resourceMap.getResource(NO_CATEGORY_RESOURCE).getText();
       dataRow.setStringValue(XValidator.choice(OpGanttValidator.NO_CATEGORY_ID, noCategory));
       dataSet.addChild(dataRow);
       categoryChooser.setEnabled(false);

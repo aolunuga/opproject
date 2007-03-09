@@ -17,7 +17,7 @@ function removeComment(event) {
    request.setAction("PlanningService.deleteComment");
    request.setArgument("comment_id", removeButton.getStringValue());
    response = XDisplay.getClient().invokeMethod(request);
-   if (handleResponse(response)) {
+   if (handleResponse(response, null, null)) {
       form = XDisplay.getActiveForm();
       /* update label*/
       comments_label = form.findComponent("CommentsLabel");

@@ -24,6 +24,7 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -157,6 +158,14 @@ public final class OpInitializer {
             OpInitializer.configuration = configuration;
          }
 
+         // initialize logging facility
+
+         String logFile = configuration.getLogFile();
+         if (logFile != null && !new File(logFile).isAbsolute()) {
+            logFile = projectPath + "/" + logFile;  
+         }
+         XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
+
          //get the db connection parameters
          String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
          String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
@@ -175,9 +184,8 @@ public final class OpInitializer {
 
          // set smtp host for OpMailer
          OpMailer.setSMTPHostName(configuration.getSMTPServer());
-         // initialize logging facility
-         XLog.setLogFile(configuration.getLogFile());
-         XLog.setLogLevel(configuration.getLogLevel());
+
+
          //set the debugging level for scripts
          XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
 

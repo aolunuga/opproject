@@ -2,8 +2,6 @@ package onepoint.project;
 
 import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
@@ -18,11 +16,12 @@ import java.util.*;
 public class OpProjectSession extends XExpressSession {
 
    private static final long NO_ID = -1;
-   private long userId = NO_ID;
-   private long administratorId = NO_ID ; // Site administrator
+   protected long userId = NO_ID;
+   protected long administratorId = NO_ID; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
    private ArrayList subjectIds = new ArrayList();
-   private static final XLog logger = XLogFactory.getLogger(OpProjectSession.class, true);
+   private List brokerList = new ArrayList();
+
    public OpProjectSession() {
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
@@ -109,7 +108,7 @@ public class OpProjectSession extends XExpressSession {
       subjectIds.add(new Long(userId));
       // Use HQL, because we only need the IDs
       OpQuery query = broker
-            .newQuery("select assignment.Group.ID from OpUserAssignment as assignment where assignment.User.ID = ?");
+           .newQuery("select assignment.Group.ID from OpUserAssignment as assignment where assignment.User.ID = ?");
       query.setLong(0, userId);
       Iterator i = broker.iterate(query);
       ArrayList groups = new ArrayList();
@@ -121,7 +120,7 @@ public class OpProjectSession extends XExpressSession {
       }
       // Iteratively add super groups of groups to subject ID list
       query = broker
-            .newQuery("select assignment.SuperGroup.ID from OpGroupAssignment as assignment where assignment.SubGroup.ID in (:subjectIds)");
+           .newQuery("select assignment.SuperGroup.ID from OpGroupAssignment as assignment where assignment.SubGroup.ID in (:subjectIds)");
       while (groups.size() > 0) {
          query.setCollection("subjectIds", groups);
          i = broker.iterate(query);
@@ -135,9 +134,10 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public OpBroker newBroker() {
-      return OpPersistenceManager.newBroker();
+      OpBroker broker = OpPersistenceManager.newBroker();
+      brokerList.add(broker);
+      return broker;
    }
-
 
    public XError newError(XErrorMap errorMap, int errorCode) {
       return errorMap.newError(errorCode, getLocale());
@@ -151,7 +151,7 @@ public class OpProjectSession extends XExpressSession {
       // Invoke max-query on the object's permissions
       // TODO: Cache queries?
       OpQuery query = broker
-            .newQuery("select max(permission.AccessLevel) from OpPermission as permission where permission.Object.ID = (:objectId) and permission.Subject.ID in (:subjectIds)");
+           .newQuery("select max(permission.AccessLevel) from OpPermission as permission where permission.Object.ID = (:objectId) and permission.Subject.ID in (:subjectIds)");
       query.setLong("objectId", objectId);
       query.setCollection("subjectIds", getSubjectIds());
       Iterator result = broker.iterate(query);
@@ -162,7 +162,7 @@ public class OpProjectSession extends XExpressSession {
       }
       // Check for locks and respective lock owners
       query = broker
-            .newQuery("select count(lock.ID) from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
+           .newQuery("select count(lock.ID) from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
       query.setLong(0, objectId);
       query.setLong(1, getUserID());
       result = broker.iterate(query);
@@ -224,7 +224,7 @@ public class OpProjectSession extends XExpressSession {
       }
       // Correct effective access levels by retrieving not-owned lock count
       OpQuery query = broker
-            .newQuery("select accessibleObject.ID, count(lock.ID) from OpObject as accessibleObject inner join accessibleObject.Locks as lock where accessibleObject.ID in (:accessibleIds) and lock.Owner.ID = :userId group by accessibleObject.ID");
+           .newQuery("select accessibleObject.ID, count(lock.ID) from OpObject as accessibleObject inner join accessibleObject.Locks as lock where accessibleObject.ID in (:accessibleIds) and lock.Owner.ID = :userId group by accessibleObject.ID");
       query.setCollection("accessibleIds", accessibleIds);
       query.setLong("userId", getUserID());
       Iterator result = broker.iterate(query);
@@ -327,15 +327,12 @@ public class OpProjectSession extends XExpressSession {
       return subjectIds.contains(new Long(groupId));
    }
 
-   public void clearVariables() {
-      super.clearVariables();
-   }
-
    /**
     * Clears all the data on the project session.
     */
    public void clearSession() {
       super.clearSession();
+      
       userId = NO_ID;
       administratorId = NO_ID;
       everyoneId = NO_ID;
@@ -345,6 +342,7 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * Checks if the session is empty.
+    *
     * @return a <code>true</code> if the session is empty (i.e there is no current user logged in).
     */
    public boolean isEmpty() {
@@ -353,7 +351,8 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * Counts the number of entities of the given type in the db.
-    * @param name a <code>String</code> representing the name of the entity to count for.
+    *
+    * @param name   a <code>String</code> representing the name of the entity to count for.
     * @param broker a <code>OpBroker</code> used for performing business operations.
     * @return a <code>int</code> representing the number of the entities of the given type.
     */
@@ -368,5 +367,19 @@ public class OpProjectSession extends XExpressSession {
          result = (Number) it.next();
       }
       return result.intValue();
+   }
+
+   /**
+    * @see onepoint.service.server.XSession#cleanupSession()
+    */
+   public void cleanupSession() {
+      super.cleanupSession();
+      for (Iterator it = brokerList.iterator(); it.hasNext();) {
+         OpBroker opBroker = (OpBroker) it.next();
+         if (opBroker.isOpen()) {
+            opBroker.close();
+         }
+         it.remove();
+      }
    }
 }

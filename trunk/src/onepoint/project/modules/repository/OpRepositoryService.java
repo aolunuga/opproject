@@ -71,7 +71,7 @@ public class OpRepositoryService extends OpProjectService {
    /**
     * The name of the request parameter representing the 
     */
-   private static final String ADMIN_PASSWORD_PARAMETER = "adminPassword";
+   public static final String ADMIN_PASSWORD_PARAMETER = "adminPassword";
    
    /**
     * Backs up a repository.

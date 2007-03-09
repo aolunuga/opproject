@@ -31,7 +31,7 @@ function ok(event) {
       if (error != null) {
          XDisplay.getActiveWindow().close();
          errorMsg = true;
-         showErrorDialog("user.error", error.getName());
+         showErrorDialog("user.error", error.getName(), null, null);
       }
       else {
          if (subIds != null) {

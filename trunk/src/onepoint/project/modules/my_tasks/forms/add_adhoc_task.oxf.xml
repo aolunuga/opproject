@@ -32,8 +32,8 @@
          <tab text="{$Attachments}" layout="border" id="AttachmentsTab">
             <data-set id="AttachmentSet"/>
             <data-set id="AttachmentIconSet">
-               <data-row icon="/modules/project_planning/icons/url.png"/>
-               <data-row icon="/modules/project_planning/icons/document.png"/>
+               <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>
+               <data-row icon="/modules/project_planning/icons/document_attachment_s.png"/>
             </data-set>
             <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
                        flexible="true" on-double-click="view">

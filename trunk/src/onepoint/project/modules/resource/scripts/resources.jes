@@ -132,11 +132,16 @@ function moveResourceOK(selectedPools) {
       firstErrorResponse = response;
    }
 
-   XDisplay.findFrame("MainFrame").refreshForm();
-
    if (firstErrorResponse != null) {
-      showWarning(firstErrorResponse, true);
+      showWarning(firstErrorResponse, true, "MainFrame", "refreshForm");
    }
+   else {
+      refreshForm();
+   }
+}
+
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
 }
 
 /**
@@ -316,7 +321,7 @@ function assignToProjectOK(projectChoices) {
       warning = response.getArgument("warning");
       if (warning != null) {
          if (warning) {
-            handleResponse(response);
+            handleResponse(response, null, null);
          }
       }
    }

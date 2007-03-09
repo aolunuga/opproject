@@ -129,6 +129,7 @@
       <resource id="DeleteResourceAssignmentsDenied">Die Ressource konnte nicht gelöscht werden, da sie noch in Projektplänen verwendet wird</resource>
       <resource id="DeletePoolResourceAssignmentsDenied">Die Ressourcenpool konnte nicht gelöscht werden, da seine Ressourcen noch in Projektplänen verwendet wird</resource>
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
+      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Löschen von Ressouren und Pools</resource>

@@ -1,4 +1,4 @@
-<service name="RepositoryService" class="onepoint.project.modules.repository.OpRepositoryService">
+<service name="RepositoryService" class="onepoint.project.modules.repository.OpRepositoryService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="backup"/>
    <method name="restore"/>
    <method name="reset"/>

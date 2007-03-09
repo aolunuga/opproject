@@ -1,4 +1,4 @@
-<service name="DBConfigurationWizard" class="onepoint.project.modules.configuration_wizard.OpConfigurationWizardService">
+<service name="DBConfigurationWizard" class="onepoint.project.modules.configuration_wizard.OpConfigurationWizardService" interceptor="onepoint.project.OpServiceInterceptor">
     <method name="writeDatabaseConfigurationFile">
       <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>
    </method>

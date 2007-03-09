@@ -12,7 +12,6 @@
    <property name="op.reportsjar.dir" value="reportjars"/>
    <property name="op.calendars.dir" value="calendars"/>
    <property name="op.rootpackage.name" value="onepoint"/>
-   <property name="op.tests.dir" value="tests"/>
    <property name="op.security.dir" value="security"/>
    <property name="op.demodata.dir" value="demodata"/>
    <property name="op.license.file" value="license.txt"/>
@@ -29,6 +28,7 @@
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
+   <property name="test.dir" value="${op.build.dir}/tests"/>
    <property name="applet.dir" value="${op.build.dir}/${op.applet.dir}"/>
    <property name="jars.dir" value="${op.build.dir}/${op.jars.dir}"/>
    <property name="webxml.file" value="WEB-INF/web.xml"/>
@@ -116,6 +116,8 @@
    <!-- Pattern set for all test resources of the application -->
    <patternset id="resources.test.pathid">
       <include name="**/*.xml"/>
+      <include name="**/*.properties"/>
+      <include name="**/*.gif"/>
       <include name="**/test/*.jes"/>
    </patternset>
 
@@ -152,7 +154,6 @@
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
       <delete dir="${op.build.dir}"/>
-      <delete dir="${op.tests.dir}"/>
       <delete dir="${op.dist.dir}"/>
       <delete dir="${op.release.dir}"/>
    </target>
@@ -449,21 +450,33 @@
       <compile/>
 
       <!--creates the test dir-->
-      <mkdir dir="${op.tests.dir}"/>
+      <mkdir dir="${test.dir}"/>
 
-      <!-- Compiles the tests source code of the application -->
-      <copy todir="${op.tests.dir}">
+      <!--Copy the test resources-->
+      <copy todir="${build.dir}">
          <fileset dir="${op.src.dir}">
             <patternset refid="resources.test.pathid"/>
          </fileset>
       </copy>
 
-      <javac sourcepath="" srcdir="${op.src.dir}" destdir="${op.tests.dir}"
+      <!-- Compiles the tests source code of the application -->
+      <javac sourcepath="" srcdir="${op.src.dir}" destdir="${test.dir}"
              classpathref="op.tests.classpath" debug="true"
-             target="${op.jdk.target}" deprecation="on"
-           >
+             target="${op.jdk.target}" deprecation="on">
          <patternset refid="compile.tests.pathid"/>
       </javac>
+
+      <!--create the jars reports-->
+      <property name="tests.onepoint.home" value="${build.dir}/onepoint/project/test"/>
+      <jar.reports/>
+      <mkdir dir="${tests.onepoint.home}/${op.reportsjar.dir}" />
+      <copy todir="${tests.onepoint.home}/${op.reportsjar.dir}">
+         <fileset dir="${report.jars.base}">
+            <include name="*.jar" />
+         </fileset>
+      </copy>
+
+
 
       <!--Executes OnePoint unit tests-->
       <junit>
@@ -471,22 +484,21 @@
          <classpath >
             <path refid="op.classpath"/>
             <pathelement location="${build.dir}"/>
-            <pathelement location="${op.tests.dir}"/>
+            <pathelement location="${test.dir}"/>
          </classpath>
-         <batchtest fork="true" todir="${op.tests.dir}">
-            <fileset dir="${op.tests.dir}">
+         <batchtest fork="true" todir="${test.dir}">
+            <fileset dir="${test.dir}">
                <include name="**/*Test.class"/>
-               <exclude name="**/OpServiceAbstractTest.class"/>
             </fileset>
          </batchtest>
       </junit>
 
       <!--generate html test reports-->
       <junitreport>
-         <fileset dir="${op.tests.dir}">
+         <fileset dir="${test.dir}">
             <include name="TEST-*.xml"/>
          </fileset>
-         <report format="frames" todir="${op.tests.dir}/html-report"/>
+         <report format="frames" todir="${test.dir}/html-report"/>
       </junitreport>
 
    </target>

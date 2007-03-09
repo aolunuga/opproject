@@ -442,8 +442,8 @@ public class OpProjectTestData {
       htiSapProject.setSuperNode(rootPortfolio);
       htiSapProject.setName("HTI-SAP");
       htiSapProject.setDescription("SAP-Einf\u00FChrung bei HTI");
-      htiSapProject.setStart(XCalendar.parseDate("1.8.2005"));
-      htiSapProject.setFinish(XCalendar.parseDate("25.11.2005"));
+      htiSapProject.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      htiSapProject.setFinish(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       // hti_sap.setDuration(calendar.parseLocalizedDuration("17w"));
       broker.makePersistent(htiSapProject);
       addTestPermissions(broker, htiSapProject, cs, tw, everyone);
@@ -453,8 +453,8 @@ public class OpProjectTestData {
       er_siebel.setSuperNode(rootPortfolio);
       er_siebel.setName("ER-Siebel");
       er_siebel.setDescription("Siebel-Implementation f\u00FCr Ehmann & Rudt");
-      er_siebel.setStart(XCalendar.parseDate("1.8.2005"));
-      er_siebel.setFinish(XCalendar.parseDate("5.8.2005"));
+      er_siebel.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      er_siebel.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       // er_siebel.setDuration(calendar.parseLocalizedDuration("17w"));
       broker.makePersistent(er_siebel);
       addTestPermissions(broker, er_siebel, cs, tw, everyone);
@@ -469,8 +469,8 @@ public class OpProjectTestData {
       hti_sc.setSuperNode(rootPortfolio);
       hti_sc.setName("HTI-SC");
       hti_sc.setDescription("Sicherheitscheck bei HTI");
-      hti_sc.setStart(XCalendar.parseDate("1.8.2005"));
-      hti_sc.setFinish(XCalendar.parseDate("5.8.2005"));
+      hti_sc.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      hti_sc.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       // hti_sc.setDuration(calendar.parseLocalizedDuration("17w"));
       broker.makePersistent(hti_sc);
       addTestPermissions(broker, hti_sc, cs, tw, everyone);
@@ -485,8 +485,8 @@ public class OpProjectTestData {
       obankProject.setSuperNode(external_projects);
       obankProject.setName("O-BANK");
       obankProject.setDescription("Online Banking Applikation");
-      obankProject.setStart(XCalendar.parseDate("1.8.2005"));
-      obankProject.setFinish(XCalendar.parseDate("5.8.2005"));
+      obankProject.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      obankProject.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       // obank.setDuration(calendar.parseLocalizedDuration("17w"));
       broker.makePersistent(obankProject);
       addTestPermissions(broker, obankProject, cs, tw, everyone);
@@ -524,14 +524,14 @@ public class OpProjectTestData {
 
       OpProjectPlan hti_sap = new OpProjectPlan();
       hti_sap.setProjectNode(htiSapProject);
-      hti_sap.setStart(XCalendar.parseDate("1.8.2005"));
-      hti_sap.setFinish(XCalendar.parseDate("25.11.2005"));
+      hti_sap.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      hti_sap.setFinish(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       broker.makePersistent(hti_sap);
 
       OpActivity activity1 = new OpActivity();
       activity1.setName("Gespr\u00e4che mit Gesch\u00e4ftsf\u00FChrung");
-      activity1.setStart(XCalendar.parseDate("1.8.2005"));
-      activity1.setFinish(XCalendar.parseDate("2.8.2005"));
+      activity1.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity1.setFinish(XCalendar.getDefaultCalendar().parseDate("2.8.2005"));
       activity1.setDuration(2 * 8);
       activity1.setBaseEffort(2 * 8);
       activity1.setBasePersonnelCosts(activity1.getBaseEffort() * cschulz.getHourlyRate());
@@ -567,8 +567,8 @@ public class OpProjectTestData {
 
       OpActivity activity2 = new OpActivity();
       activity2.setName("Gespr\u00e4che mit Abteilungsleitern");
-      activity2.setStart(XCalendar.parseDate("3.8.2005"));
-      activity2.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity2.setStart(XCalendar.getDefaultCalendar().parseDate("3.8.2005"));
+      activity2.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity2.setDuration(3 * 8);
       activity2.setBaseEffort(3 * 8);
       activity2.setBasePersonnelCosts(activity2.getBaseEffort() * cschulz.getHourlyRate());
@@ -603,8 +603,8 @@ public class OpProjectTestData {
 
       OpActivity activity3 = new OpActivity();
       activity3.setName("Anforderungen analysieren");
-      activity3.setStart(XCalendar.parseDate("8.8.2005"));
-      activity3.setFinish(XCalendar.parseDate("19.8.2005"));
+      activity3.setStart(XCalendar.getDefaultCalendar().parseDate("8.8.2005"));
+      activity3.setFinish(XCalendar.getDefaultCalendar().parseDate("19.8.2005"));
       activity3.setDuration(10 * 8);
       activity3.setBaseEffort(10 * 8);
       activity3.setBasePersonnelCosts(activity3.getBaseEffort() * jmuster.getHourlyRate());
@@ -639,8 +639,8 @@ public class OpProjectTestData {
 
       OpActivity activity4 = new OpActivity();
       activity4.setName("Abnahme Anforderungen");
-      activity4.setStart(XCalendar.parseDate("22.8.2005"));
-      activity4.setFinish(XCalendar.parseDate("26.8.2005"));
+      activity4.setStart(XCalendar.getDefaultCalendar().parseDate("22.8.2005"));
+      activity4.setFinish(XCalendar.getDefaultCalendar().parseDate("26.8.2005"));
       activity4.setDuration(5 * 8);
       activity4.setBaseEffort(5 * 8);
       activity4.setBasePersonnelCosts(activity4.getBaseEffort() * cschulz.getHourlyRate());
@@ -676,8 +676,8 @@ public class OpProjectTestData {
       OpActivity milestone1 = new OpActivity();
       milestone1.setName("Anforderungen abgenommen");
       milestone1.setType(OpActivity.MILESTONE);
-      milestone1.setStart(XCalendar.parseDate("26.8.2005"));
-      milestone1.setFinish(XCalendar.parseDate("26.8.2005"));
+      milestone1.setStart(XCalendar.getDefaultCalendar().parseDate("26.8.2005"));
+      milestone1.setFinish(XCalendar.getDefaultCalendar().parseDate("26.8.2005"));
       milestone1.setSequence(4);
       milestone1.setComplete((byte) 100);
       broker.makePersistent(milestone1);
@@ -692,8 +692,8 @@ public class OpProjectTestData {
 
       OpActivity activity5 = new OpActivity();
       activity5.setName("Implementation");
-      activity5.setStart(XCalendar.parseDate("29.8.2005"));
-      activity5.setFinish(XCalendar.parseDate("21.10.2005"));
+      activity5.setStart(XCalendar.getDefaultCalendar().parseDate("29.8.2005"));
+      activity5.setFinish(XCalendar.getDefaultCalendar().parseDate("21.10.2005"));
       activity5.setDuration(40 * 8);
       activity5.setBaseEffort(40 * 8);
       activity5.setBasePersonnelCosts(activity5.getBaseEffort() * twinter.getHourlyRate());
@@ -728,8 +728,8 @@ public class OpProjectTestData {
 
       OpActivity activity6 = new OpActivity();
       activity6.setName("Test");
-      activity6.setStart(XCalendar.parseDate("24.10.2005"));
-      activity6.setFinish(XCalendar.parseDate("4.11.2005"));
+      activity6.setStart(XCalendar.getDefaultCalendar().parseDate("24.10.2005"));
+      activity6.setFinish(XCalendar.getDefaultCalendar().parseDate("4.11.2005"));
       activity6.setDuration(10 * 8);
       activity6.setBaseEffort(10 * 8);
       activity6.setBasePersonnelCosts(activity6.getBaseEffort() * shausberg.getHourlyRate());
@@ -759,8 +759,8 @@ public class OpProjectTestData {
 
       OpActivity activity7 = new OpActivity();
       activity7.setName("Fehlerbereinigung");
-      activity7.setStart(XCalendar.parseDate("7.11.2005"));
-      activity7.setFinish(XCalendar.parseDate("18.11.2005"));
+      activity7.setStart(XCalendar.getDefaultCalendar().parseDate("7.11.2005"));
+      activity7.setFinish(XCalendar.getDefaultCalendar().parseDate("18.11.2005"));
       activity7.setDuration(10 * 8);
       activity7.setBaseEffort(10 * 8);
       activity7.setBasePersonnelCosts(activity7.getBaseEffort() * twinter.getHourlyRate());
@@ -790,8 +790,8 @@ public class OpProjectTestData {
 
       OpActivity activity8 = new OpActivity();
       activity8.setName("Dokumentation");
-      activity8.setStart(XCalendar.parseDate("7.11.2005"));
-      activity8.setFinish(XCalendar.parseDate("18.11.2005"));
+      activity8.setStart(XCalendar.getDefaultCalendar().parseDate("7.11.2005"));
+      activity8.setFinish(XCalendar.getDefaultCalendar().parseDate("18.11.2005"));
       activity8.setDuration(10 * 8);
       activity8.setBaseEffort(10 * 8);
       activity8.setBasePersonnelCosts(activity8.getBaseEffort() * cschulz.getHourlyRate());
@@ -815,8 +815,8 @@ public class OpProjectTestData {
 
       OpActivity activity9 = new OpActivity();
       activity9.setName("Abnahme");
-      activity9.setStart(XCalendar.parseDate("21.11.2005"));
-      activity9.setFinish(XCalendar.parseDate("25.11.2005"));
+      activity9.setStart(XCalendar.getDefaultCalendar().parseDate("21.11.2005"));
+      activity9.setFinish(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       activity9.setDuration(5 * 8);
       activity9.setBaseEffort(5 * 8);
       activity9.setBasePersonnelCosts(activity9.getBaseEffort() * cschulz.getHourlyRate());
@@ -853,8 +853,8 @@ public class OpProjectTestData {
       OpActivity milestone2 = new OpActivity();
       milestone2.setName("Projekt abgenommen");
       milestone2.setType(OpActivity.MILESTONE);
-      milestone2.setStart(XCalendar.parseDate("25.11.2005"));
-      milestone2.setFinish(XCalendar.parseDate("25.11.2005"));
+      milestone2.setStart(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
+      milestone2.setFinish(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       milestone2.setSequence(10);
       broker.makePersistent(milestone2);
       milestone2.setProjectPlan(hti_sap);
@@ -872,16 +872,16 @@ public class OpProjectTestData {
       // Add WBS test data
       OpProjectPlan obank = new OpProjectPlan();
       obank.setProjectNode(obankProject);
-      obank.setStart(XCalendar.parseDate("1.8.2005"));
-      obank.setFinish(XCalendar.parseDate("5.8.2005"));
+      obank.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      obank.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(obank);
 
       OpActivity activity = new OpActivity();
       activity.setSequence(0);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P1: Anforderungen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -892,8 +892,8 @@ public class OpProjectTestData {
       activity.setSequence(1);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Unterst\u00FCtzung von Bankstandards");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -904,8 +904,8 @@ public class OpProjectTestData {
       activity.setSequence(2);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Sicherheits- bestimmungen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -916,8 +916,8 @@ public class OpProjectTestData {
       activity.setSequence(3);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Rollenmodell");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -929,8 +929,8 @@ public class OpProjectTestData {
       activity.setSequence(4);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M1: Anforderungs- design abgeschlossen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -939,8 +939,8 @@ public class OpProjectTestData {
       activity.setSequence(5);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P2: Forschung");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -951,8 +951,8 @@ public class OpProjectTestData {
       activity.setSequence(6);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Erweiterte Verschl\u00FCsselungs- methoden");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -963,8 +963,8 @@ public class OpProjectTestData {
       activity.setSequence(7);
       activity.setOutlineLevel((byte) 1);
       activity.setName("TAN vs. Token-basierte Systeme");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -976,8 +976,8 @@ public class OpProjectTestData {
       activity.setSequence(8);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M2: Forschung abgeschlossen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -986,8 +986,8 @@ public class OpProjectTestData {
       activity.setSequence(9);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P3: Systemdesign");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -998,8 +998,8 @@ public class OpProjectTestData {
       activity.setSequence(10);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Design: User Interface");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1010,8 +1010,8 @@ public class OpProjectTestData {
       activity.setSequence(11);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Design: Middleware");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1022,8 +1022,8 @@ public class OpProjectTestData {
       activity.setSequence(12);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Design: Datenbank");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1035,8 +1035,8 @@ public class OpProjectTestData {
       activity.setSequence(13);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M3: Design fertig");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -1045,8 +1045,8 @@ public class OpProjectTestData {
       activity.setSequence(14);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P4: Umsetzung");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1057,8 +1057,8 @@ public class OpProjectTestData {
       activity.setSequence(15);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Implementation: User Interface (inklusive Prototyp)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1069,8 +1069,8 @@ public class OpProjectTestData {
       activity.setSequence(16);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Implementation: Middleware");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1081,8 +1081,8 @@ public class OpProjectTestData {
       activity.setSequence(17);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Implementation: Datenbankschema");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1093,8 +1093,8 @@ public class OpProjectTestData {
       activity.setSequence(18);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Applikations- integration");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1106,8 +1106,8 @@ public class OpProjectTestData {
       activity.setSequence(19);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M4: Umsetzung abgeschlossen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -1116,8 +1116,8 @@ public class OpProjectTestData {
       activity.setSequence(20);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P5: Projekttests");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1128,8 +1128,8 @@ public class OpProjectTestData {
       activity.setSequence(21);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Test: User Interface (teilautomatisiert)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1140,8 +1140,8 @@ public class OpProjectTestData {
       activity.setSequence(22);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Test: Middleware (JUnit)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1152,8 +1152,8 @@ public class OpProjectTestData {
       activity.setSequence(23);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Test: Datenbankschema (SQL-automatisiert)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1164,8 +1164,8 @@ public class OpProjectTestData {
       activity.setSequence(24);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Integrationstest (manuell)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1177,8 +1177,8 @@ public class OpProjectTestData {
       activity.setSequence(25);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M5: Projekttests erfolgreich beendet");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -1187,8 +1187,8 @@ public class OpProjectTestData {
       activity.setSequence(26);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P6: Dokumentation");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1199,8 +1199,8 @@ public class OpProjectTestData {
       activity.setSequence(27);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Systemhandbuch (Administratoren)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1211,8 +1211,8 @@ public class OpProjectTestData {
       activity.setSequence(28);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Online Help (Endbenutzer)");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1224,8 +1224,8 @@ public class OpProjectTestData {
       activity.setSequence(29);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M6: Dokumentation fertig");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
@@ -1234,8 +1234,8 @@ public class OpProjectTestData {
       activity.setSequence(30);
       activity.setType(OpActivity.COLLECTION);
       activity.setName("P7: Projektabschluss");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1246,8 +1246,8 @@ public class OpProjectTestData {
       activity.setSequence(31);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Projekt- dokumentation");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1258,8 +1258,8 @@ public class OpProjectTestData {
       activity.setSequence(32);
       activity.setOutlineLevel((byte) 1);
       activity.setName("Projekt-Feedback- Workshop");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       activity.setDuration(5 * 8);
       // activity.setBaseEffort(5 * 8);
       broker.makePersistent(activity);
@@ -1271,8 +1271,8 @@ public class OpProjectTestData {
       activity.setSequence(33);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M7: Projekt abgeschlossen");
-      activity.setStart(XCalendar.parseDate("1.8.2005"));
-      activity.setFinish(XCalendar.parseDate("5.8.2005"));
+      activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
+      activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(activity);
       activity.setProjectPlan(obank);
       broker.updateObject(activity);

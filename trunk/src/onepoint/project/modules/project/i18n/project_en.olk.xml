@@ -84,7 +84,7 @@
       <resource id="ProgressTracked">Enable progress tracking</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(None)</resource>
-      
+
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -115,7 +115,7 @@
       <resource id="DeleteVersions">Delete versions</resource>
 
       <resource id="Permissions">Permissions</resource>
-	   
+
       <resource id="CalculationMode">Effort-based planning</resource>
       <resource id="ProgressTracked">Enable progress tracking</resource>
 
@@ -174,6 +174,7 @@
       <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
       <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
+      <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
    </resource-map>
 
    <resource-map id="project.delete">

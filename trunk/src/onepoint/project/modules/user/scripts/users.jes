@@ -122,12 +122,19 @@ function assignToGroupOK(target_group_id) {
       request.setArgument("target_group_id", target_group_id);
       response = XDisplay.getClient().invokeMethod(request);
       XDisplay.getActiveWindow().close();
-      mainFrame.refreshForm();
       warning = response.getArgument("warning");
-      showWarning(response, warning);
+      if (response.getError() != null) {
+         showWarning(response, warning, "MainFrame", "refreshForm");
+      }
+      else {
+         refreshForm();
+      }
    }
 }
 
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
 
 function selectionChanged(event) {
    form = XDisplay.getActiveForm();

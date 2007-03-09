@@ -8,8 +8,8 @@ import onepoint.persistence.OpObject;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
-import onepoint.project.applet.OpOpenApplet;
 import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
@@ -25,9 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
-import java.net.FileNameMap;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.Set;
@@ -62,6 +60,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String PARAMETERS_ARGUMENT = "parameters";
    private static final String MAIN_ERROR_MAP_ID = "main.error";
    private static final String CONTENT_ID_PARAM = "contentId";
+   private static final String FILENAME_PARAM = "filename";
    private static final String FILE_PARAM = "file";
    private static final String INSUFICIENT_VIEW_PERMISSIONS = "{$InsuficientViewPermissions}";
    private static final String INVALID_SESSION = "{$InvalidSession}";
@@ -159,10 +158,11 @@ public class OpOpenServlet extends XExpressServlet {
          return;
       }
 
-      //search for attachments
-      String attachment = http_request.getParameter(CONTENT_ID_PARAM);
-      if (attachment != null && !attachment.trim().equals("")) {
-         generateContentPage(attachment, http_response, session);
+      //search for content ids
+      String contentId = http_request.getParameter(CONTENT_ID_PARAM);
+      if (contentId != null && !contentId.trim().equals("")) {
+         String contentUrl = http_request.getParameter(FILENAME_PARAM);
+         generateContentPage(contentId, contentUrl, http_response, session);
          return;
       }
 
@@ -266,7 +266,7 @@ public class OpOpenServlet extends XExpressServlet {
    }
 
    protected String getAppletClassName() {
-      return OpOpenApplet.class.getName() + ".class";
+      return "onepoint.project.applet.OpOpenApplet.class";
    }
 
    /**
@@ -293,10 +293,11 @@ public class OpOpenServlet extends XExpressServlet {
     * Generates the server response in the case when a persisted contentId is requested.
     *
     * @param contentId     a <code>String</code> representing a content id.
+    * @param contentUrl  a <code>String</code> representing the url of the content.
     * @param http_response a <code>HttpServletResponse</code> representing the server response.
     * @param session       a <code>OpProjectSession</code> object representing the server session.
     */
-   public void generateContentPage(String contentId, HttpServletResponse http_response, OpProjectSession session) {
+   private void generateContentPage(String contentId, String contentUrl, HttpServletResponse http_response, OpProjectSession session) {
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
@@ -323,6 +324,9 @@ public class OpOpenServlet extends XExpressServlet {
             content = cnt.getBytes();
             String mimeType = cnt.getMediaType();
             http_response.setContentType(mimeType);
+            if (contentUrl != null) {
+               setContentDisposition(http_response, contentUrl);
+            }
             try {
                OutputStream stream = http_response.getOutputStream();
                stream.write(content);
@@ -358,12 +362,12 @@ public class OpOpenServlet extends XExpressServlet {
     */
    public void generateFilePage(String filePath, HttpServletResponse httpResponse) {
 
-      String name = filePath.substring(filePath.lastIndexOf("/"), filePath.length());
-      byte[] buffer = new byte[1024];
-      FileNameMap map = URLConnection.getFileNameMap();
-      String mimeType = map.getContentTypeFor(name);
+      String name = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length());
+      String mimeType = OpContentManager.getFileMimeType(name);
       httpResponse.setContentType(mimeType);
+      setContentDisposition(httpResponse, name);
 
+      byte[] buffer = new byte[1024];
       try {
          OutputStream stream = httpResponse.getOutputStream();
          InputStream is = new URL(filePath).openStream();
@@ -378,6 +382,16 @@ public class OpOpenServlet extends XExpressServlet {
          logger.error("Cannot open url to file" + filePath, e);
       }
    }
+
+   /**
+    * Sets the content disposition for the http response.
+    * @param httpResponse a <code>HttpServletResponse</code> object.
+    * @param fileName a <code>String</code> representing a name of a file.
+    */
+   private void setContentDisposition(HttpServletResponse httpResponse, String fileName) {
+      httpResponse.setHeader("Content-Disposition" , "inline;filename=" + fileName);
+   }
+
 
    /**
     * Prints to the output stream the java script function for resizing the applet.

@@ -20,8 +20,11 @@ function ok(event){
    response = XDisplay.getClient().invokeMethod(request);
 
    thisWindow.close();
-   XDisplay.findFrame("MainFrame").refreshForm();  
-   handleResponse(response);
+   handleResponse(response, "MainFrame", "refreshForm");
+}
+
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
 }
 
 function cancel(event) {

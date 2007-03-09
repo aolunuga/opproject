@@ -25,8 +25,9 @@ function save(event) {
 
    response = XDisplay.getClient().invokeMethod(request);
    if (handleError(form, response, "ErrorLabel")) {
-      refresh = response.getArgument("refresh");
-      if (refresh == true) {
+      calendar = response.getArgument("calendar");
+      if (calendar != null) {
+         XDisplay.setCalendar(calendar);
          XDisplay.clearResourceCache();
          request = new XMessage;
          request.setAction("Express.clearResourceCache");

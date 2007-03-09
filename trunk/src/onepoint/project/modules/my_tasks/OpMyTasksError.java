@@ -10,7 +10,7 @@ package onepoint.project.modules.my_tasks;
  * @author mihai.costin
  */
 public interface OpMyTasksError {
-   
+
    /**
     * Error constants.
     */
@@ -18,9 +18,9 @@ public interface OpMyTasksError {
    static final int INVALID_DUE_DATE_ERROR_CODE = 2;
    static final int NO_PROJECT_ERROR_CODE = 3;
    static final int NO_RESOURCE_ERROR_CODE = 4;
-   static final int EXISTING_WORKSLIP_ERROR_CODE = 4;
-   static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 5;
-   static final int INVALID_PRIORITY_ERROR_CODE = 6;
+   static final int EXISTING_WORKSLIP_ERROR_CODE = 5;
+   static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 6;
+   static final int INVALID_PRIORITY_ERROR_CODE = 7;
 
 
    /**

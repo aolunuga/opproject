@@ -4,10 +4,10 @@
 
 package onepoint.project.modules.report;
 
-import onepoint.error.XException;
 import onepoint.service.XError;
+import onepoint.service.server.XServiceException;
 
-public class OpReportException extends XException {
+public class OpReportException extends XServiceException {
    
    public OpReportException(XError error) {
       super(error);

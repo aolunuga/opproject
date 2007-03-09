@@ -9,11 +9,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
-import onepoint.project.OpProjectService;
-import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.service.XMessage;
-import onepoint.service.server.XServiceManager;
 
 import java.util.HashMap;
 
@@ -66,65 +62,6 @@ public class OpProjectPlanValidator {
    }
 
    /**
-    * Validates this validator's project plan, by creating a new plan version and checking it in.
-    *
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    * Can be <code>null</code>.
-    * @return a <code>XMessage</code> that represents a possible error response or <code>null</code> if the operation was
-    * successfull.
-    *<FIXME author="Horia Chiorean" description="Possible problem: this method is not atomic">
-    */
-   public XMessage validateProjectPlanIntoNewVersion(OpProjectSession session, PlanModifier modifier) {
-      OpProjectService planningService = (OpProjectService) XServiceManager.getService("PlanningService");
-      if (planningService == null) {
-         throw new UnsupportedOperationException("Cannot retrieve the registered project planning service !");
-      }
-
-      String projectIdArg = "project_id";
-      String activitySetArg = "activity_set";
-      String workingPlanArg = "working_plan_version_id";
-
-      //check out the current project plan
-      String projectId = projectPlan.getProjectNode().locator();
-      XMessage editActivitiesRequest = new XMessage();
-      editActivitiesRequest.setArgument(projectIdArg, projectId);
-      XMessage reply = planningService.invokeMethod(session, "editActivities", editActivitiesRequest);
-      if (reply != null && reply.getError() != null) {
-         return reply;
-      }
-
-      //create and validated a working version
-      OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-
-      OpProjectPlanVersion workingVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker),
-         OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
-      String workingPlanLocator = workingVersion.locator();
-      OpProjectNode projectNode = projectPlan.getProjectNode();
-      HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
-      logger.info("Revalidating working plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(resources);
-      this.validatePlanVersion(broker, validator, modifier, resources, workingVersion);
-
-      tx.commit();
-      broker.close();
-
-      //check-in the working version
-      XMessage checkInRequest = new XMessage();
-
-      checkInRequest.setArgument(activitySetArg, validator.getDataSet());
-      checkInRequest.setArgument(projectIdArg, projectId);
-      checkInRequest.setArgument(workingPlanArg, workingPlanLocator);
-      reply = planningService.invokeMethod(session, "checkInActivities", checkInRequest);
-
-      if (reply != null && reply.getError() != null) {
-         return reply;
-      }
-      return null;
-   }
-
-   /**
     * Performs the actual validation on this validator's project plan.
     * @param broker a <code>OpBroker</code> used for persistence operations.
     * @param validator a <code>OpGanttValidator</code> used for gantt validation logic.
@@ -142,28 +79,6 @@ public class OpProjectPlanValidator {
       }
       validator.validateDataSet();
       OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resources, projectPlan, null);
-   }
-
-   /**
-    * Validates this validator's project plan into a new plan version.
-    * 
-    * @param broker a <code>OpBroker</code> used for persistence operations.
-    * @param validator a <code>OpGanttValidator</code> used for gantt validation logic.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    * Can be <code>null</code>.
-    * @param resources a <code>HashMap</code> of project resources.
-    * @param planVersion a <code>OpProjectPlanVersion</code> instance.
-    */
-   private void validatePlanVersion(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources,
-        OpProjectPlanVersion planVersion) {
-      XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, false);
-      validator.setDataSet(dataSet);
-      if (modifier != null) {
-         modifier.modifyPlan(validator);
-      }
-      validator.validateDataSet();
-      OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, planVersion, resources, false);
    }
 
    /**

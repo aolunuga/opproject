@@ -1,4 +1,4 @@
-<service name="MyTasksService" class="onepoint.project.modules.my_tasks.OpMyTasksService">
+<service name="MyTasksService" class="onepoint.project.modules.my_tasks.OpMyTasksService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="addAdhocTask"/>
    <method name="updateAdhocTask"/>
    <method name="deleteAdhocTask"/>

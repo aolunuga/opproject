@@ -30,7 +30,6 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XServiceException;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -83,7 +82,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
          broker.close();
-         throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
+         throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
       }
 
       InputStream inFile = new ByteArrayInputStream(file);
@@ -98,7 +97,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       //edit if !edit_mode
       if (!editMode) {
-         reply = editActivities(session, request);
+         reply = internalEditActivities(session, request);
          if (reply.getError() != null) {
             return reply;
          }
@@ -113,7 +112,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       //check in if !edit_mode
       if (!editMode) {
-         reply = checkInActivities(session, request);
+         reply = internalCheckInActivities(session, request);
          if (reply != null && reply.getError() != null) {
             return reply;
          }
@@ -158,7 +157,23 @@ public class OpProjectPlanningService extends OpProjectService {
       return reply;
    }
 
+   /**
+    * Performs the project plan check out operation.
+    *
+    * @param session Current project session.
+    * @param request Request containing all the required information at edit time.
+    * @return an XMessage reply containing eventual errors.
+    */
    public XMessage editActivities(OpProjectSession session, XMessage request) {
+      return internalEditActivities(session, request);
+   }
+
+   /**
+    * Edit method used internally by the service.
+    *
+    * @see #editActivities(onepoint.project.OpProjectSession,onepoint.service.XMessage)
+    */
+   private XMessage internalEditActivities(OpProjectSession session, XMessage request) {
       OpBroker broker = null;
       try {
          // Set persistent lock for current user (working project plan version is created on first save)
@@ -170,25 +185,21 @@ public class OpProjectPlanningService extends OpProjectService {
          if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
             logger.warn("ERROR: Udpate access to project denied; ID = " + project_id_string);
             broker.close();
-            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
          }
 
          // *** Check if lock is already set -- if yes throw exception
          if (project.getLocks().size() > 0) {
             logger.error("Project is already locked");
             broker.close();
-            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
          XMessage reply = setEditLock(broker, session, project);
 
          broker.close();
          return reply;
       }
-      catch (Exception e) {
-         XError error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECK_OUT_ERROR);
-         throw new XServiceException(error);
-      }
-      finally{
+      finally {
          finalizeSession(null, broker);
       }
    }
@@ -332,13 +343,13 @@ public class OpProjectPlanningService extends OpProjectService {
          if (project.getLocks().size() == 0) {
             logger.error("Project is currently not being edited");
             broker.close();
-            throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
+            throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
          OpLock lock = (OpLock) project.getLocks().iterator().next();
          if (lock.getOwner().getID() != session.getUserID()) {
             logger.error("Project is locked by another user");
             broker.close();
-            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
 
@@ -388,17 +399,29 @@ public class OpProjectPlanningService extends OpProjectService {
          logger.debug("/OpProjectAdministrationService.saveActivities");
          return null;
       }
-      catch (Exception e) {
-         logger.error("En error has occured in OpProjectPlanningService.saveActivities", e);
-         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_SAVE_ERROR));
-      }
-      finally{
+      finally {
          finalizeSession(null, broker);
       }
    }
 
+   /**
+    * Checks in the project plan
+    *
+    * @param session Current project session
+    * @param request Request containing the information needed at check in time.
+    * @return an XMessage reply containing eventual errors.
+    */
    public XMessage checkInActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.checkInActivities");
+      return internalCheckInActivities(session, request);
+   }
+
+   /**
+    * Check in activities used by the service internally.
+    *
+    * @see #checkInActivities(onepoint.project.OpProjectSession,onepoint.service.XMessage)
+    */
+   private XMessage internalCheckInActivities(OpProjectSession session, XMessage request) {
       OpBroker broker = null;
       try {
          String project_id_string = (String) (request.getArgument(PROJECT_ID));
@@ -409,20 +432,20 @@ public class OpProjectPlanningService extends OpProjectService {
 
          if (project == null) {
             broker.close();
-            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
+            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
          }
 
          // Check if project is locked and current user owns the lock
          if (project.getLocks().size() == 0) {
             logger.error("Project is currently not being edited");
             broker.close();
-            throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
+            throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
          OpLock lock = (OpLock) project.getLocks().iterator().next();
          if (lock.getOwner().getID() != session.getUserID()) {
             logger.error("Project is locked by another user");
             broker.close();
-            throw new XServiceException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
          OpTransaction t = broker.newTransaction();
@@ -479,11 +502,7 @@ public class OpProjectPlanningService extends OpProjectService {
          broker.close();
          return null;
       }
-      catch (Exception e) {
-         logger.error("En error has occured in OpProjectPlanningService.checkInActivities ", e);
-         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECK_IN_ERROR));
-      }
-      finally{
+      finally {
          finalizeSession(null, broker);
       }
    }
@@ -533,11 +552,7 @@ public class OpProjectPlanningService extends OpProjectService {
          t.commit();
          broker.close();
       }
-      catch (Exception e) {
-         logger.error("En error has occured in OpProjectPlanningService.revertActivities ", e);
-         throw new XServiceException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_REVERT_ERROR));
-      }
-      finally{
+      finally {
          finalizeSession(null, broker);
       }
       return null;
@@ -626,7 +641,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
          //multi-user means remote
          if (OpInitializer.isMultiUser()) {
-            response.setArgument(ATTACHMENT_URL, null);
+            response.setArgument(ATTACHMENT_URL, location);
             response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
          }
          else {
@@ -868,6 +883,110 @@ public class OpProjectPlanningService extends OpProjectService {
       broker.close();
       logger.debug("/OpProjectAdministrationService.deleteComments()");
       return reply;
+   }
+
+   /**
+    * Moves the start date of a project plan, by creating a new version, revalidating it and checking it in.
+    *
+    * @param session a <code>OpProjectSession</code> representing a server session.
+    * @param request a <code>XMessage</code> representing the request.
+    * @return a <code>XMessage</code> representing a possible error or <code>null</code> if the operation was successfull.
+    *         <FIXME author="Horia Chiorean" description="Possible problem: this method is not atomic">
+    */
+   public XMessage moveProjectPlanStartDate(OpProjectSession session, XMessage request) {
+
+      OpProjectPlan projectPlan = (OpProjectPlan) request.getArgument("projectPlan");
+      Date newDate = (Date) request.getArgument("newDate");
+      //create and validate a working version
+
+      String projectIdArg = "project_id";
+      String activitySetArg = "activity_set";
+      String workingPlanArg = "working_plan_version_id";
+
+      //check out the current project plan
+      String projectId = projectPlan.getProjectNode().locator();
+      XMessage editActivitiesRequest = new XMessage();
+      editActivitiesRequest.setArgument(projectIdArg, projectId);
+
+      XMessage reply = this.internalEditActivities(session, editActivitiesRequest);
+      if (reply != null && reply.getError() != null) {
+         return reply;
+      }
+
+      OpBroker broker = session.newBroker();
+      //attach the project plan with a new session
+      projectPlan = (OpProjectPlan) broker.getObject(projectPlan.locator());
+      OpTransaction tx = broker.newTransaction();
+
+      OpProjectPlanVersion workingVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker),
+           OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
+      String workingPlanLocator = workingVersion.locator();
+
+      XComponent newDataSet = shiftAndValidateWorkingVersion(projectPlan, broker, newDate, workingVersion);
+
+      tx.commit();
+      broker.close();
+
+      //check-in the working version
+      XMessage checkInRequest = new XMessage();
+      checkInRequest.setArgument(activitySetArg, newDataSet);
+      checkInRequest.setArgument(projectIdArg, projectId);
+      checkInRequest.setArgument(workingPlanArg, workingPlanLocator);
+
+      reply = this.internalCheckInActivities(session, checkInRequest);
+
+      if (reply != null && reply.getError() != null) {
+         return reply;
+      }
+      return null;
+   }
+
+   /**
+    * Shifts the start dates and revalidates the working version of the given project plan.
+    *
+    * @param projectPlan    a <code>OpProjecPlan</code> representing a project plan.
+    * @param broker         a <code>OpBroker</code> used for business operations.
+    * @param newDate        a <code>Date</code> which will be the new start date of the project plan.
+    * @param workingVersion a <code>OpProjectPlanVersion</code> representing the working version of the given project plan.
+    * @return a <code>XComponent(DATA_SET)</code> reperesenting the client-representation of the new working plan.
+    */
+   private XComponent shiftAndValidateWorkingVersion(OpProjectPlan projectPlan, OpBroker broker, Date newDate, OpProjectPlanVersion workingVersion) {
+      OpProjectNode projectNode = projectPlan.getProjectNode();
+      logger.info("Revalidating working plan for " + projectNode.getName());
+
+      //create the validator
+      OpGanttValidator validator = new OpGanttValidator();
+      validator.setProjectStart(projectPlan.getProjectNode().getStart());
+      validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
+      validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
+      validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
+
+      XComponent resourceDataSet = new XComponent();
+      HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
+      OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
+      validator.setAssignmentSet(resourceDataSet);
+
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, false);
+      validator.setDataSet(dataSet);
+      long millisDifference = newDate.getTime() - projectPlan.getProjectNode().getStart().getTime();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent activityRow = (XComponent) dataSet.getChild(i);
+
+         //update the start
+         java.sql.Date originalStart = OpGanttValidator.getStart(activityRow);
+         //start can be null for certain activities
+         if (originalStart != null) {
+            long newStartTime = originalStart.getTime() + millisDifference;
+            OpGanttValidator.setStart(activityRow, new java.sql.Date(newStartTime));
+         }
+         //set the end to null so that it's recalculated in the validation process
+         OpGanttValidator.setEnd(activityRow, null);
+      }
+
+      validator.validateDataSet();
+      OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingVersion, resources, false);
+      return validator.getDataSet();
    }
 
    /**

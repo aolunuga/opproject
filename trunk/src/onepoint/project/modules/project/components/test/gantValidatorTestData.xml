@@ -74,7 +74,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
@@ -105,7 +105,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row id="Collection" outline-level="0">
@@ -136,7 +136,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
@@ -167,7 +167,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row id="Milestone" outline-level="0">
@@ -198,7 +198,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
@@ -229,7 +229,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
@@ -260,7 +260,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="0">
@@ -291,7 +291,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
       <data-row outline-level="1">
@@ -322,7 +322,7 @@ Structure:
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
-         <data-cell enabled="true" string-list-value=""/>
+         <data-cell enabled="true" string-value=""/>
          <data-cell enabled="true" string-list-value=""/>
       </data-row>
    </data-set>

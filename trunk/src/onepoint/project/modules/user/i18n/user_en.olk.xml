@@ -123,30 +123,6 @@
       <resource id="EveryoneDisplayName">Everyone</resource>
       <resource id="EveryoneDescription">Every user is originally member of this group</resource>
    </resource-map>
-   <resource-map id="user.calendar">
-      <resource id="HourInitial">h</resource>
-      <resource id="DayInitial">d</resource>
-      <resource id="WeekInitial">w</resource>
-      <resource id="January">January</resource>
-      <resource id="February">February</resource>
-      <resource id="March">March</resource>
-      <resource id="April">April</resource>
-      <resource id="May">May</resource>
-      <resource id="June">June</resource>
-      <resource id="July">July</resource>
-      <resource id="August">August</resource>
-      <resource id="September">September</resource>
-      <resource id="October">October</resource>
-      <resource id="November">November</resource>
-      <resource id="December">December</resource>
-      <resource id="Monday">M</resource>
-      <resource id="Tuesday">T</resource>
-      <resource id="Wednesday">W</resource>
-      <resource id="Thursday">T</resource>
-      <resource id="Friday">F</resource>
-      <resource id="Saturday">S</resource>
-      <resource id="Sunday">S</resource>
-   </resource-map>
    <resource-map id="user.error">
       <resource id="PasswordMismatch">The password you entered is not correct</resource>
       <resource id="UserUnknown">The user name is unknown</resource>

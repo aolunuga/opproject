@@ -15,7 +15,6 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class OpSettingsService extends OpProjectService {
    public final static XErrorMap ERROR_MAP = new OpSettingsErrorMap();
 
    // email pattern ex : eXpress@onepoint.at
-   public final String emailRegex = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
+   public static final String EMAIL_REGEX = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
 
    public XMessage saveSettings(OpProjectSession session, XMessage request) {
       logger.debug("OpSettingsService.saveSettings()");
@@ -40,51 +39,67 @@ public class OpSettingsService extends OpProjectService {
 
       XMessage reply = new XMessage();
 
-      /*first/last working day validation*/
-      int firstWorkDay = Integer.parseInt((String) newSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY));
-      int lastWorkDay = Integer.parseInt((String) newSettings.get(OpSettings.CALENDAR_LAST_WORKDAY));
+      //first/last working day validation
+      int firstWorkDay;
+      try {
+         firstWorkDay = Integer.parseInt((String) newSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY));
+      }
+      catch (NumberFormatException e) {
+         reply.setError(session.newError(ERROR_MAP, OpSettingsError.FIRST_WORK_DAY_INCORRECT));
+         return reply;
+      }
+
+      int lastWorkDay;
+      try {
+         lastWorkDay = Integer.parseInt((String) newSettings.get(OpSettings.CALENDAR_LAST_WORKDAY));
+      }
+      catch (NumberFormatException e) {
+         reply.setError(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
+         return reply;
+      }
+
       if (firstWorkDay > lastWorkDay) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
          return reply;
       }
 
-      /*working hours per day validation */
+      //working hours per day validation
       double dayWorkTime;
       String oldValue;
-      double oldDayWorkTime;
       Double dayWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
+      if (dayWorkTimeDouble == null) {
+         reply.setError(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
+         return reply;
+      }
       dayWorkTime = dayWorkTimeDouble.doubleValue();
       if (dayWorkTime <= 0 || dayWorkTime > 24) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
          return reply;
       }
 
-      /*week work time validation*/
+      //week work time validation
       boolean weekWorkChanged = false;
-      int workingDaysPerWeek = XCalendar.countWeekdays(firstWorkDay, lastWorkDay);
+      int workingDaysPerWeek = XCalendar.getDefaultCalendar().countWeekdays(firstWorkDay, lastWorkDay);
       double weekWorkTime;
-      try {
-         Double weekWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
-         weekWorkTime = weekWorkTimeDouble.doubleValue();
-         oldValue = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
-         if (oldValue != null) {
-            oldDayWorkTime = XCalendar.getDefaultCalendar().parseDouble(oldValue);
-            if (oldDayWorkTime != weekWorkTime) {
-               weekWorkChanged = true;
-            }
-         }
-         else {
-            weekWorkChanged = true;
-         }
-      }
-      catch (ParseException e) {
+      Double weekWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      if (weekWorkTimeDouble == null) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
          return reply;
       }
-
+      weekWorkTime = weekWorkTimeDouble.doubleValue();
+      oldValue = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      if (oldValue != null) {
+         double oldDWeekWorkTime = Double.valueOf(oldValue).doubleValue();
+         if (oldDWeekWorkTime != weekWorkTime) {
+            weekWorkChanged = true;
+         }
+      }
+      else {
+         weekWorkChanged = true;
+      }
       if (weekWorkChanged) {
          //change day work time accordingly
-         double newDayWorkTime = weekWorkTime/workingDaysPerWeek;
+         double newDayWorkTime = weekWorkTime / workingDaysPerWeek;
          newSettings.put(OpSettings.CALENDAR_DAY_WORK_TIME, Double.toString(newDayWorkTime));
          dayWorkTime = newDayWorkTime;
          if (dayWorkTime > 24 || dayWorkTime <= 0) {
@@ -93,46 +108,34 @@ public class OpSettingsService extends OpProjectService {
          }
       }
       else {
-         //set day work time in settings as string
-         newSettings.put(OpSettings.CALENDAR_DAY_WORK_TIME,  Double.toString(dayWorkTime));
+         newSettings.put(OpSettings.CALENDAR_DAY_WORK_TIME, Double.toString(dayWorkTime));
       }
       //change week work time accordingly to day work time
       double newWeekWorkTime = workingDaysPerWeek * dayWorkTime;
       newSettings.put(OpSettings.CALENDAR_WEEK_WORK_TIME, Double.toString(newWeekWorkTime));
 
-      /*email from address validation */
-      String email = (String)newSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
-      if (!Pattern.matches(emailRegex, email)) {
+      //email from address validation
+      String email = (String) newSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
+      if (email == null || !Pattern.matches(EMAIL_REGEX, email)) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.EMAIL_INCORRECT));
          return reply;
       }
 
-      /*reports remove time period validation */
-      try{
-         int removePeriod = Integer.parseInt((String)newSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
-         if (removePeriod <= 0) {
-            reply.setError(session.newError(ERROR_MAP, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT));
-            return reply;
-         }
-      }
-      catch(NumberFormatException e){
+      //reports remove time period validation
+      Integer removePeriodValue = (Integer) newSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
+      if (removePeriodValue == null || removePeriodValue.intValue() <= 0) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT));
          return reply;
       }
+      newSettings.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, removePeriodValue.toString());
 
-      /*resource max availability validation [0...Byte.MAX_VALUE]*/
-      try{
-         double resourceMaxAvailability = ((Double)newSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY)).doubleValue();
-         if (resourceMaxAvailability < 0) {
-            reply.setError(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));
-            return reply;
-         }
-         newSettings.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, Double.toString(resourceMaxAvailability));
-      }
-      catch(NumberFormatException e){
+      //resource max availability validation [0...Byte.MAX_VALUE]
+      Double resourceMaxAvailabilityValue = ((Double) newSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+      if (resourceMaxAvailabilityValue == null || resourceMaxAvailabilityValue.doubleValue() <= 0) {
          reply.setError(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));
          return reply;
       }
+      newSettings.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, resourceMaxAvailabilityValue.toString());
 
       //holiday location
       String value = (String) newSettings.get(OpSettings.CALENDAR_HOLIDAYS_LOCATION);
@@ -145,11 +148,32 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.CALENDAR_HOLIDAYS_LOCATION, null);
       }
 
+      //milestone controlling interval
+      Integer milestoneControllingValue = (Integer) newSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
+      if (milestoneControllingValue == null || milestoneControllingValue.intValue() <= 0) {
+         reply.setError(session.newError(ERROR_MAP, OpSettingsError.MILESTONE_CONTROLING_INCORRECT));
+         return reply;
+      }
+      else {
+         newSettings.put(OpSettings.MILESTONE_CONTROLLING_INTERVAL, milestoneControllingValue.toString());
+      }
+
+      //Show_ResourceHours
+      Boolean showResourceHoursValue = (Boolean) newSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+      if (showResourceHoursValue != null) {
+         newSettings.put(OpSettings.SHOW_RESOURCES_IN_HOURS, showResourceHoursValue.toString());
+      }
+
+      //Allow_EmptyPassword
+      Boolean allowEmptyPassword = (Boolean) newSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD);
+      if (allowEmptyPassword != null) {
+         newSettings.put(OpSettings.ALLOW_EMPTY_PASSWORD, allowEmptyPassword.toString());
+      }
 
       Iterator iterator = newSettings.entrySet().iterator();
       while (iterator.hasNext()) {
-         Map.Entry entry = (Map.Entry)iterator.next();
-         OpSettings.set((String)entry.getKey(),(String)entry.getValue());
+         Map.Entry entry = (Map.Entry) iterator.next();
+         OpSettings.set((String) entry.getKey(), (String) entry.getValue());
       }
 
       OpSettings.saveSettings(session);
@@ -157,9 +181,8 @@ public class OpSettingsService extends OpProjectService {
       // Apply new settings
       boolean changedLanguage = OpSettings.applySettings(session);
 
-      Map userCalendarSettings = new HashMap();
-      OpSettings.fillWithPlanningSettings(userCalendarSettings);
-      reply.setVariable(XCalendar.CALENDAR_SETTINGS, userCalendarSettings);
+      XCalendar calendar = OpSettings.configureDefaultCalendar(session.getLocale());
+      reply.setVariable(OpProjectConstants.CALENDAR, calendar);
 
       if (!OpInitializer.isMultiUser() && changedLanguage) {
          reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);

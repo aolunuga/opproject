@@ -1,4 +1,4 @@
-<service name="ResourceService" class="onepoint.project.modules.resource.OpResourceService">
+<service name="ResourceService" class="onepoint.project.modules.resource.OpResourceService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="insertResource">
       <parameter name="resource_data" instance-class="java.util.HashMap" mode="input"/>
    </method>

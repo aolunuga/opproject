@@ -33,5 +33,6 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
       registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
+      registerErrorCode(OpProjectError.LOOP_ASSIGNMENT_ERROR, OpProjectError.LOOP_ASSIGNMENT_ERROR_NAME);
    }
 }

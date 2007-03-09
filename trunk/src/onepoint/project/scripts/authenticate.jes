@@ -5,6 +5,7 @@
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 import onepoint.project.util.OpSHA1;
+import onepoint.express.XDisplay;
 
 /**
  * Sends a request to the user service to perform user authentication and returns the server response.
@@ -20,8 +21,9 @@ function authenticate(login, password) {
    client = XDisplay.getClient();
    response = client.invokeMethod(request);
 
-   calendarSettings = client.getVariable("calendarSettings");
-   XDisplay.configureCalendar(calendarSettings);
+   calendar = client.getVariable("calendar");
+   Console.println(calendar);
+   XDisplay.setCalendar(calendar);
 
    return response;
 }

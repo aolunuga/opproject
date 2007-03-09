@@ -22,6 +22,10 @@ public class OpErrorFormProvider implements XFormProvider {
    private static final String ERROR_TEXT_ID = "errorID";
    private static final String TEXT_MESSAGE = "errorMessage";
    private static final String WARNING = "warning";
+   private static final String CALLBACK_FRAME = "FrameName";
+   private static final String CALLBACK_FRAME_PARAM = "frameName";
+   private static final String CALLBACK_NAME = "CallbackName";
+   private static final String CALLBACK_NAME_PARAM = "callbackName";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -33,7 +37,7 @@ public class OpErrorFormProvider implements XFormProvider {
       }
       String errorIdText = (String) (parameters.get(ERROR_TEXT_ID));
       String errorText = (String) (parameters.get(TEXT_MESSAGE));
-      boolean warning = (parameters.get(WARNING) != null) ? ((Boolean) parameters.get(WARNING)).booleanValue() : false;
+      boolean warning = (parameters.get(WARNING) != null) && ((Boolean) parameters.get(WARNING)).booleanValue();
 
       //Set Message
       XComponent label = form.findComponent(LABEL);
@@ -52,10 +56,14 @@ public class OpErrorFormProvider implements XFormProvider {
          label.setText(errorText);
       }
       else {
-         //<FIXME author="Mihai Costin" description="should be from resource map. Aslo the form title could be a parameter"> 
+         //<FIXME author="Mihai Costin" description="should be from resource map. Also the form title could be a parameter">
          //no message or id was specified.
          label.setText("Error");
          //</FIXME>
       }
+
+      //set the callback and frame name
+      form.findComponent(CALLBACK_FRAME).setStringValue((String) parameters.get(CALLBACK_FRAME_PARAM));
+      form.findComponent(CALLBACK_NAME).setStringValue((String) parameters.get(CALLBACK_NAME_PARAM));
    }
 }

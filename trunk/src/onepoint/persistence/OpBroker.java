@@ -6,12 +6,13 @@ package onepoint.persistence;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.util.XCalendar;
 
 import java.sql.Blob;
 import java.sql.Connection;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 public class OpBroker {
    private static final XLog logger = XLogFactory.getLogger(OpBroker.class, true);
@@ -35,7 +36,9 @@ public class OpBroker {
 
    public void makePersistent(OpObject object) {
       // Persist object into default source and set creation date and time
-      object.setCreated(XCalendar.now());
+      TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
+      object.setCreated(Calendar.getInstance(gmtTimezone).getTime());
+      
       object.setModified(null);
       _default_connection.persistObject(object);
       logger.debug("OpBroker.makePersistent(): id = " + object.getID());
@@ -57,8 +60,10 @@ public class OpBroker {
 
    public void updateObject(OpObject object) {
       logger.debug("OpBroker.updateObject()");
-      // Set modification date and time
-      object.setModified(XCalendar.now());
+      // Set modification date and time (in GMT)
+      TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
+      object.setModified(Calendar.getInstance(gmtTimezone).getTime());
+      
       _default_connection.updateObject(object);
       logger.debug("/OpBroker.updateObject()");
    }
@@ -120,7 +125,7 @@ public class OpBroker {
     * @return true if it's open.
     */
    public boolean isOpen() {
-      return _default_connection.isOpen();
+      return _default_connection != null && _default_connection.isOpen();
    }
 
    public OpTransaction newTransaction() {

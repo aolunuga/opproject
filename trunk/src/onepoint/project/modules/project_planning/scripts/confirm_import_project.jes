@@ -26,7 +26,7 @@ function ok(event) {
    request.setArgument("bytes_array", bytes);
    request.setArgument("edit_mode", editMode);
    response = XDisplay.getClient().invokeMethod(request);
-   if (handleResponse(response) == false) {
+   if (handleResponse(response, null, null) == false) {
       thisWindow.close();
       return;
    }

@@ -16,6 +16,7 @@ public class OpReportErrorMap extends XErrorMap {
       registerErrorCode(OpReportError.VALUE_CONVERSION_EXCEPTION, OpReportError.VALUE_CONVERSION_EXCEPTION_NAME);
       registerErrorCode(OpReportError.JASPER_CAN_NOT_BUILD_REPORT, OpReportError.JASPER_CAN_NOT_BUILD_REPORT_NAME);
       registerErrorCode(OpReportError.JASPER_CAN_NOT_EXPORT_REPORT, OpReportError.JASPER_CAN_NOT_EXPORT_REPORT_NAME);
+      registerErrorCode(OpReportError.INVALID_REPORT_FORMAT, OpReportError.INVALID_REPORT_FORMAT_NAME);
    }
 
 }

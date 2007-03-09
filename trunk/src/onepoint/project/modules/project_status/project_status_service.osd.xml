@@ -1,4 +1,4 @@
-<service name="ProjectStatusService" class="onepoint.project.modules.project_status.OpProjectStatusService">
+<service name="ProjectStatusService" class="onepoint.project.modules.project_status.OpProjectStatusService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="insertProjectStatus">
       <parameter name="project_status_data" instance-class="java.util.HashMap" mode="input"/>
    </method>

@@ -359,16 +359,18 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
          resource_field = dialog_form.findComponent(field_id);
          resourceLocator = data_cell.getStringValue();
+         responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");
          if (resourceLocator != null) {
             resource_field.setStringValue(resourceLocator);
             resource_field.getChild(0).setStringValue(resourceLocator);
          }
          else {
-            noResponsible = dialog_form.findComponent("ResponsibleResourceSet").getChild(0).getStringValue();
+            noResponsible = responsibleSet.getChild(0).getStringValue();
             resource_field.setStringValue(noResponsible);
             resource_field.getChild(0).setStringValue(noResponsible);
          }
-         setFieldEditMode(edit_mode, resource_field, disabledFieldsIds);
+         showField = (edit_mode && (responsibleSet.getChildCount() > 1));
+         setFieldEditMode(showField, resource_field, disabledFieldsIds);
       }
 
       //resources tab
@@ -421,9 +423,10 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
 
          // add/remove resource icon buttons visibility according to project edit mode
          add_icon_button = dialog_form.findComponent("ResourceAddIcon");
-         setButtonVisibleMode(edit_mode, add_icon_button);
+         showButtons = (edit_mode && (resource_data_set.getChildCount() > 0));
+         setButtonVisibleMode(showButtons, add_icon_button);
          remove_icon_button = dialog_form.findComponent("ResourceRemoveIcon");
-         setButtonVisibleMode(edit_mode, remove_icon_button);
+         setButtonVisibleMode(showButtons, remove_icon_button);
       }
 
       //predecessor tab

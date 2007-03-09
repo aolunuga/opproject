@@ -23,10 +23,10 @@ import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.awt.*;
+import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.File;
 
 public class OpBasicApplication {
 
@@ -36,8 +36,8 @@ public class OpBasicApplication {
     */
    private static final XLog logger = XLogFactory.getLogger(OpBasicApplication.class, true);
    private final String title;
-   private final int ERROR_WIDTH = 400;
-   private final int ERROR_HEIGHT = 100;
+   private static final int ERROR_WIDTH = 400;
+   private static final int ERROR_HEIGHT = 100;
 
 
    /**
@@ -108,8 +108,8 @@ public class OpBasicApplication {
          request.setArgument("login", OpUser.ADMINISTRATOR_NAME);
          request.setArgument("password", OpUserService.BLANK_PASSWORD);
          XMessage response = service.invokeMethod(application.getSession(), "signOn", request);
-         Map settings = (Map) response.getVariables().get(XCalendar.CALENDAR_SETTINGS);
-         XDisplay.configureCalendar(settings);
+         XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
+         XDisplay.setCalendar(calendar);
          application.getDisplay().showForm("/forms/start.oxf.xml", new HashMap(initParams));
       }
    }

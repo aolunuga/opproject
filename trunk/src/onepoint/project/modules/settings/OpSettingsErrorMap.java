@@ -22,6 +22,8 @@ public class OpSettingsErrorMap extends XErrorMap {
         registerErrorCode(OpSettingsError.EMAIL_INCORRECT, OpSettingsError.EMAIL_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT_NAME);
+        registerErrorCode(OpSettingsError.MILESTONE_CONTROLING_INCORRECT, OpSettingsError.MILESTONE_CONTROLING_INCORRECT_NAME);
+        registerErrorCode(OpSettingsError.FIRST_WORK_DAY_INCORRECT, OpSettingsError.FIRST_WORK_DAY_INCORRECT_NAME);
      }
 
 }

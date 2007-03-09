@@ -1,7 +1,9 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.test;
+
+import java.io.File;
 
 /**
  * Here we define common constatnt used through testing process.
@@ -13,7 +15,7 @@ public interface Constants {
    public static final String REGISTRY_FILE = "registry_test.oxr.xml";
 
    // OnePoint Home path used into tests.
-   public static final String ONEPOINT_HOME = "onepoint/project/test";
+   public static final String ONEPOINT_HOME = new File("").getAbsolutePath() + "/build/classes/onepoint/project/test";
 
    // Testing resource path
    public static final String RESOURCE_PATH = "onepoint/project";

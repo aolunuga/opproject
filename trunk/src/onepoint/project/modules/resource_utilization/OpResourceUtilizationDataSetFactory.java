@@ -171,6 +171,7 @@ public final class OpResourceUtilizationDataSetFactory {
             calculatePoolUtilizationValues(pool, utilizations);
          }
       }
+      broker.close();
    }
 
    private static void calculatePoolUtilizationValues(OpResourcePool pool, Map utilizations) {
