@@ -31,6 +31,7 @@ public class OpResourceErrorMap extends XErrorMap {
       registerErrorCode(OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED,OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED_NAME);
       registerErrorCode(OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED,OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED_NAME);
       registerErrorCode(OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR, OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME);
+      registerErrorCode(OpResourceError.LOOP_ASSIGNMENT_ERROR, OpResourceError.LOOP_ASSIGNMENT_ERROR_NAME);
    }
 
 }

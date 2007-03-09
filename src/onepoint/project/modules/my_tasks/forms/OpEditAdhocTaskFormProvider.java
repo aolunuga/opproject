@@ -41,7 +41,8 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    private static final String OK_BUTTON = "okButton";
    private static final String ADD_DOC_BUTTON = "AddDocumentButton";
    private static final String ADD_URL_BUTTON = "AddURLButton";
-   private static final String REMOVE_BUTTON = "RemoveAttachmentButton";
+   private static final String REMOVE_ATTACHMENT_BUTTON = "RemoveAttachmentButton";
+   private static final String VIEW_ATTACHMENT_BUTTON = "ViewAttachmentButton";
 
    //parameters
    private static final String SELECTED_ROW = "selectedRow";
@@ -118,6 +119,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          if (resource != null && XValidator.choiceID(choice).equals(resource.locator())) {
             selectedIndex = index;
          }
+         index++;
       }
       resourcetChooser.setSelectedIndex(new Integer(selectedIndex));
 
@@ -135,8 +137,13 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          form.setText(title);
          form.findComponent(OK_BUTTON).setVisible(false);
          form.findComponent(ADD_DOC_BUTTON).setEnabled(false);
+         form.findComponent(ADD_DOC_BUTTON).setVisible(false);
          form.findComponent(ADD_URL_BUTTON).setEnabled(false);
-         form.findComponent(REMOVE_BUTTON).setEnabled(false);
+         form.findComponent(ADD_URL_BUTTON).setVisible(false);
+         form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(false);
+         form.findComponent(REMOVE_ATTACHMENT_BUTTON).setVisible(false);
+         form.findComponent(VIEW_ATTACHMENT_BUTTON).setEnabled(false);
+         form.findComponent(VIEW_ATTACHMENT_BUTTON).setVisible(false);
          nameField.setEnabled(false);
          descriptionField.setEnabled(false);
          priorityField.setEnabled(false);

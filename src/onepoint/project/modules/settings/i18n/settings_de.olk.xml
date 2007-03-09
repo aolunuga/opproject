@@ -41,6 +41,33 @@
       <resource id="EmailIncorrect">Die angegebene Versender-E-Mail für Verständigungen ist nicht korrekt</resource>
       <resource id="ReportsRemoveTimePeriodIncorrect">Der angegebene Bericht-Archivierungszeitraum ist nicht korrekt</resource>
       <resource id="ResourceMaxAvailabilityIncorrect">Die angegebene maximale Ressourcen-Verfügbarkeit ist nicht korrekt</resource>
+      <resource id="MilestoneControlingIncorrect">Das angegebene Meilenstein-Controllingintervall ist nicht korrekt</resource>
+      <resource id="FirstWorkDayIncorrect">Der angegebene erste Arbeitswochentag ist nicht korrekt</resource>
+   </resource-map>
+
+   <resource-map id="settings.calendar">
+      <resource id="HourInitial">h</resource>
+      <resource id="DayInitial">t</resource>
+      <resource id="WeekInitial">w</resource>
+      <resource id="January">Januar</resource>
+      <resource id="February">Februar</resource>
+      <resource id="March">März</resource>
+      <resource id="April">April</resource>
+      <resource id="May">Mai</resource>
+      <resource id="June">Juni</resource>
+      <resource id="July">Juli</resource>
+      <resource id="August">August</resource>
+      <resource id="September">September</resource>
+      <resource id="October">Oktober</resource>
+      <resource id="November">November</resource>
+      <resource id="December">Dezember</resource>
+      <resource id="Monday">M</resource>
+      <resource id="Tuesday">D</resource>
+      <resource id="Wednesday">M</resource>
+      <resource id="Thursday">D</resource>
+      <resource id="Friday">F</resource>
+      <resource id="Saturday">S</resource>
+      <resource id="Sunday">S</resource>
    </resource-map>
 
 </language-kit>

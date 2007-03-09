@@ -684,7 +684,7 @@ public class OpProjectComponent extends XComponent {
 
    public final void setCategoryColorSetRef(String dataSetRef) {
       setProperty(CATEGORY_COLOR_SET_REF, dataSetRef);
-      setProperty(CATEGORY_COLOR_MAP, null);
+      setCategoryColorMap(null);
    }
 
    public final String getCategoryColorSetRef() {
@@ -827,9 +827,9 @@ public class OpProjectComponent extends XComponent {
       return (Integer) getProperty(COLOR_INDEX);
    }
 
-   protected HashMap categoryColorMap() {
+   protected Map categoryColorMap() {
       //GanttBox: Cache category-color-set-ref data-set in a hash map property
-      HashMap categoryColorMap = (HashMap) getProperty(CATEGORY_COLOR_MAP);
+      Map categoryColorMap = getCategoryColorMap();
       if (categoryColorMap == null) {
          String categoryColorSetRef = getCategoryColorSetRef();
          if (categoryColorSetRef != null) {
@@ -845,7 +845,7 @@ public class OpProjectComponent extends XComponent {
                   colorIndex = (Integer) ((XComponent) dataRow.getChild(CATEGORY_COLOR_COLUMN_INDEX)).getValue();
                   categoryColorMap.put(locator, colorIndex);
                }
-               setProperty(CATEGORY_COLOR_MAP, categoryColorMap);
+               setCategoryColorMap(categoryColorMap);
             }
          }
       }
@@ -901,7 +901,7 @@ public class OpProjectComponent extends XComponent {
          Point absolutePoint = getParent().absolutePosition(x, getBounds().y);
          // <FIXME author="Horia Chiorean" description="For some reason, only forms may have the property below set =>
          // we need to set it here.">
-         _caption_editor.setProperty(XView.FOCUSED_VIEW, _caption_editor);
+         _caption_editor.setFocusedView(_caption_editor);
          // <FIXME>
          getDisplay().openLayer(_caption_editor, absolutePoint.x, absolutePoint.y, true);
          // _caption_editor.requestFocus();
@@ -1210,14 +1210,14 @@ public class OpProjectComponent extends XComponent {
          // logger.debug("*** WORK_WEEK_LENGTH " + work_week_length);
          setWorkWeekLength(work_week_length);
 
-         int first_work_week_length = XCalendar.countWeekdays(start_weekday, last_workday);
+         int first_work_week_length = XCalendar.getDefaultCalendar().countWeekdays(start_weekday, last_workday);
          logger.debug("FIRST_WORK_WEEK_LENGTH: " + first_work_week_length);
 
          int first_weekend_length = weekLength - work_week_length;
          if (first_work_week_length > work_week_length) {
             // Start weekday is part of first weekend
             first_work_week_length = work_week_length;
-            first_weekend_length = XCalendar.countWeekdays(start_weekday, calendar.previousWeekday(first_workday));
+            first_weekend_length = XCalendar.getDefaultCalendar().countWeekdays(start_weekday, calendar.previousWeekday(first_workday));
          }
          // logger.debug("*** FIRST_WEEKEND_LENGTH " +
          // first_weekend_length);
@@ -1259,7 +1259,7 @@ public class OpProjectComponent extends XComponent {
          // calculate the widthIncrement
          int widthGapIncrement = ganttHeaderStyle.gap * 2;
          // get font metrics according to style
-         FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(ganttHeaderStyle.font());
+         FontMetrics metrics = getFontMetrics(ganttHeaderStyle.font());
          int dayWidth = metrics.charWidth('W');
          int weekWidth = dayWidth * 2;
          switch (getTimeUnit()) {
@@ -1360,7 +1360,7 @@ public class OpProjectComponent extends XComponent {
 
    public int getUtilizationRowPrefferedHeight() {
       XStyle style = DEFAULT_UTILIZATION_ROW_STYLE_ATTRIBUTES;
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(style.font());
+      FontMetrics metrics = getFontMetrics(style.font());
       return style.top + metrics.getAscent() + metrics.getDescent() + style.bottom;
    }
 
@@ -1441,7 +1441,7 @@ public class OpProjectComponent extends XComponent {
     */
    private int maxActivityCaption(OpProjectComponent gantt_chart, String captionValueType) {
       int size = 0;
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(_getStyleAttributes().font());
+      FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
       boolean hasActivities = false;
       for (int i = 0; i < gantt_chart.getContext().getDataSetComponent().getChildCount(); i++) {
 //         OpProjectComponent activity = (OpProjectComponent) gantt_chart.getChild(i);
@@ -1534,7 +1534,7 @@ public class OpProjectComponent extends XComponent {
             Date start = gantt_chart.getStart();
             Date end = gantt_chart.getEnd();
             days = (int) ((end.getTime() - start.getTime()) / XCalendar.MILLIS_PER_DAY) + 1;
-            FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(_getStyleAttributes().font());
+            FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
             int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
             realDim = gantt_chart.computeNewDimension(box, days, 2 * line_height + style.gap);
             return realDim;
@@ -1558,7 +1558,7 @@ public class OpProjectComponent extends XComponent {
             Date end = chart.getEnd();
             days = (int) ((end.getTime() - start.getTime()) / XCalendar.MILLIS_PER_DAY) + 1;
             unitRatio = getUnitRatio(box.getTimeUnit());
-            FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(_getStyleAttributes().font());
+            FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
             int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
             realDim = new Dimension((int) (days / unitRatio * box._dayWidth()), 2 * line_height + style.gap);
             return realDim;
@@ -1690,7 +1690,7 @@ public class OpProjectComponent extends XComponent {
       // Layout Gantt tasks and milestones (recursion over sub-projects)
       OpProjectComponent box = (OpProjectComponent) getContext();
       XComponent data_set = box.getDataSetComponent();
-      HashMap categoryColorMap = box.categoryColorMap();
+      Map categoryColorMap = box.categoryColorMap();
 
       XComponent data_row;
       OpProjectComponent component;
@@ -2058,7 +2058,7 @@ public class OpProjectComponent extends XComponent {
       // Paint left, center and right labels (in the future maybe also top and
       // bottom labels)
       XStyle style = _getStyleAttributes();
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(style.font());
+      FontMetrics metrics = getFontMetrics(style.font());
       g.setColor(style.foreground);
       g.setFont(style.font());
       int ascent = metrics.getAscent();
@@ -2131,7 +2131,8 @@ public class OpProjectComponent extends XComponent {
          return OpGanttValidator.getEnd(dataRow);
       }
       else if (id.equals(DETAILS_DURATION)) {
-         return new Double(OpGanttValidator.getDuration(dataRow));
+         XCalendar calendar = XDisplay.getCalendar();
+         return new Double(Math.ceil(OpGanttValidator.getDuration(dataRow) / calendar.getWorkHoursPerDay()));
       }
       else if (id.equals(DETAILS_COMPLETE)) {
          return new Double(OpGanttValidator.getComplete(dataRow));
@@ -3052,7 +3053,7 @@ public class OpProjectComponent extends XComponent {
       // Lower scale: Days (first initial of weekday)
       Rectangle bounds = getBounds();
       XStyle style = _getStyleAttributes();
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(style.font());
+      FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
       OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
@@ -3104,7 +3105,7 @@ public class OpProjectComponent extends XComponent {
       // Upper scale: Quarters; lower scale: Weeks
       Rectangle bounds = getBounds();
       XStyle style = _getStyleAttributes();
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(style.font());
+      FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
       OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
@@ -3232,7 +3233,7 @@ public class OpProjectComponent extends XComponent {
       // Upper scale: Years; lower scale: Months
       Rectangle bounds = getBounds();
       XStyle style = _getStyleAttributes();
-      FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(style.font());
+      FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
       OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
@@ -4429,13 +4430,13 @@ public class OpProjectComponent extends XComponent {
                      if ((modifiers & SHIFT_KEY_DOWN) == SHIFT_KEY_DOWN) {
                         if (transferFocusSiblingBackward()) {
                            repaint();
-                           getDisplay().getFocusedView().repaint();
+                           getDisplay().getDisplayFocusedView().repaint();
                         }
                      }
                      else {
                         if (transferFocusSiblingForward()) {
                            repaint();
-                           getDisplay().getFocusedView().repaint();
+                           getDisplay().getDisplayFocusedView().repaint();
                         }
                      }
                      break;
@@ -4507,13 +4508,13 @@ public class OpProjectComponent extends XComponent {
                      if ((modifiers & SHIFT_KEY_DOWN) == SHIFT_KEY_DOWN) {
                         if (transferFocusSiblingBackward()) {
                            repaint();
-                           getDisplay().getFocusedView().repaint();
+                           getDisplay().getDisplayFocusedView().repaint();
                         }
                      }
                      else {
                         if (transferFocusSiblingForward()) {
                            repaint();
-                           getDisplay().getFocusedView().repaint();
+                           getDisplay().getDisplayFocusedView().repaint();
                         }
                      }
                      break;
@@ -5389,5 +5390,11 @@ public class OpProjectComponent extends XComponent {
       return start;
    }
 
+   public void setCategoryColorMap(Map colorMap) {
+      setProperty(CATEGORY_COLOR_MAP, colorMap);
+   }
 
+   public Map getCategoryColorMap() {
+      return (Map) getProperty(CATEGORY_COLOR_MAP);
+   }
 }

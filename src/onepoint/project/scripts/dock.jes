@@ -37,3 +37,10 @@ function resizeDivision(event) {
    division.doLayout();
    division.getParent().repaint();
 }
+
+function showForm(event) {
+   dockFrame = XDisplay.findFrame("DockFrame");
+   form = dockFrame.getChild(0);
+   box = form.findComponent("NavigationBox");
+   box.requestFocus();
+}

@@ -11,6 +11,7 @@ import onepoint.express.XView;
 import onepoint.express.server.XFormSchema;
 import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.resource.XLocale;
 import onepoint.util.XCalendar;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
@@ -52,10 +53,6 @@ public class OpGanttValidatorTest extends TestCase {
    private static final String COLLECTION_ID = "Collection";
    private static final String MILESTONE_ID = "Milestone";
 
-   /* the number of children of a data row*/
-   private static final int DATA_ROW_CHILD_COUNT = 24;
-
-   private XComponent projectSettings;
    private String WORKER1_ID = "OpResource.16.xid";
    private final String WORKER1 = WORKER1_ID +"['Worker1']";
    private String WORKER2_ID = "OpResource.18.xid";
@@ -70,8 +67,7 @@ public class OpGanttValidatorTest extends TestCase {
 
       XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
       Map calendarSettings = defaultCalendar.getCalendarSettings();
-      calendarSettings.put(XCalendar.LOCALE_KEY, Locale.GERMANY);
-      defaultCalendar.configure(calendarSettings);
+      defaultCalendar.configure(calendarSettings, new XLocale("de", ""), null);
 
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
@@ -110,7 +106,7 @@ public class OpGanttValidatorTest extends TestCase {
       assignmentSet.addChild(dataRow);
 
 
-      projectSettings = new XComponent(XComponent.DATA_SET);
+      XComponent projectSettings = new XComponent(XComponent.DATA_SET);
       projectSettings.setID(OpGanttValidator.PROJECT_SETTINGS_DATA_SET);
       testForm.addChild(projectSettings);
 

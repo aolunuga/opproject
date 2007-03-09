@@ -49,7 +49,7 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
          return null;
        }
        */
-      return XCalendar.parseDate(value);
+      return XCalendar.getDefaultCalendar().parseDate(value);
    }
 
    protected byte _parseTimeUnitValue(String value) {

@@ -45,7 +45,8 @@ public class OpMSProjectManager {
    /**
     * Fills the given data set with infor from the previously loaded ms project file.
     */
-   public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan) throws IOException {
+   public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan)
+        throws IOException {
 
       ProjectFile msProject;
       //for mpp file format the first activity is the name of the project
@@ -238,14 +239,14 @@ public class OpMSProjectManager {
             }
          }
       }
-      
+
       //set also the visual resources 
       Boolean showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
          OpGanttValidator.updateVisualResources(dataRow, showHours.booleanValue(), resourceAvailability);
       }
-      
+
       //validation after import
       if (validator.detectLoops()) {
          throw new OpActivityLoopException(OpGanttValidator.LOOP_EXCEPTION);
@@ -255,7 +256,8 @@ public class OpMSProjectManager {
    }
 
 
-   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet) throws IOException {
+   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet)
+        throws IOException {
 
       //adjust the destination name file
       int endIndex = fileName.lastIndexOf(".");
@@ -283,7 +285,7 @@ public class OpMSProjectManager {
       ProjectCalendar calendar;
       try {
          calendar = file.addDefaultBaseCalendar();
-         TreeSet holidays = XCalendar.getDefaultCalendar().getHolidays();
+         SortedSet holidays = XCalendar.getDefaultCalendar().getHolidays();
          for (Iterator iterator = holidays.iterator(); iterator.hasNext();) {
             ProjectCalendarException exception = calendar.addCalendarException();
             Date holiday = (Date) iterator.next();

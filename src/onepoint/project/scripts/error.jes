@@ -27,17 +27,17 @@ function handleError(form, response, label) {
 /**
  * Shows an error dialog that uses a server response in order to retrieve an error message.
  */
-function handleResponse(response) {
+function handleResponse(response, frame, callback) {
   success = true;
   if (response != null) {
     error = response.getError();
     if (error != null) {
       success = false;
-
+      parameters.frameName = frame;
+      parameters.callbackName = callback;
       parameters.errorMessage = error.getMessage();
       dialog = XComponent.newDialog();
       dialog.open("/forms/error.oxf.xml", parameters);
-
     }
   }
   return success;
@@ -46,21 +46,25 @@ function handleResponse(response) {
 /**
  * Shows a warning from the given response.
  */
-function showWarning(response, warning) {
+function showWarning(response, warning, frame, callback) {
    if (response != null) {
      error = response.getError();
      if (error != null) {
        parameters.errorMessage = error.getMessage();
        parameters.warning = warning;
+        parameters.frameName = frame;
+        parameters.callbackName = callback;
        dialog = XComponent.newDialog();
        dialog.open("/forms/error.oxf.xml", parameters);
      }
    }
 }
 
-function showErrorDialog(errorMap, errorId){
+function showErrorDialog(errorMap, errorId, frame, callback){
    parameters.errorMap =errorMap;
    parameters.errorID = errorId;
+   parameters.frameName = frame;
+   parameters.callbackName = callback;
    dialog = XComponent.newDialog();
    dialog.open("/forms/error.oxf.xml", parameters);
 }

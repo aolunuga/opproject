@@ -178,6 +178,7 @@
       <resource id="ProjectLockedError">Das Projekt kann nicht verändert werden, da eine Arbeitskopie existiert</resource>
       <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
       <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
+      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>

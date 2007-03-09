@@ -38,7 +38,7 @@ function ok(event) {
          request.setAction("ResourceService.deletePools");
          request.setArgument("pool_ids", pool_ids);
          response = XDisplay.getClient().invokeMethod(request);
-         if (handleResponse(response) == false) {
+         if (handleResponse(response, null, null) == false) {
             return; //fail fast
          }
          else {
@@ -51,7 +51,7 @@ function ok(event) {
          request.setAction("ResourceService.deleteResources");
          request.setArgument("resource_ids", resource_ids);
          response = XDisplay.getClient().invokeMethod(request);
-         if (handleResponse(response)) {
+         if (handleResponse(response, null, null)) {
             refreshNeeded = true;
          }
       }

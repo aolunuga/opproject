@@ -18,10 +18,12 @@ public final class OpReportError {
    public static final int COULD_NOT_EXECUTE_REPORT_SQL = 2;
    public static final int JASPER_CAN_NOT_BUILD_REPORT = 3;
    public static final int JASPER_CAN_NOT_EXPORT_REPORT = 4;
+   public static final int INVALID_REPORT_FORMAT = 5;
 
    public static final String VALUE_CONVERSION_EXCEPTION_NAME = "ValueConversionException";
    public static final String COULD_NOT_EXECUTE_REPORT_SQL_NAME = "CouldNotExecuteReportSQL";
    public static final String JASPER_CAN_NOT_BUILD_REPORT_NAME = "JasperCanNotBuildFilledReport";
    public static final String JASPER_CAN_NOT_EXPORT_REPORT_NAME = "JasperCanNotExportReport";
+   public static final String INVALID_REPORT_FORMAT_NAME = "InvalidReportFormat";
 
 }

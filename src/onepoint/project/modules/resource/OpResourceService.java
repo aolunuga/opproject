@@ -14,8 +14,8 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.service.XMessage;
 import onepoint.service.XError;
+import onepoint.service.XMessage;
 
 import java.util.*;
 
@@ -677,7 +677,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          result = broker.list(query).iterator();
          while (result.hasNext()) {
             OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) result.next();
-            int activityAssignmentsCounter = getActivityAssignmentsCount(broker, assignment.getResource(), assignment.getProjectNode().getPlan());
+            int activityAssignmentsCounter = getResourcePlanningAssignmentsCount(broker, assignment.getResource(), assignment.getProjectNode().getPlan());
             if (activityAssignmentsCounter > 0) {
                reply.setError(session.newError(ERROR_MAP, OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR));
                return reply;
@@ -1170,6 +1170,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          OpResourcePool pool = (OpResourcePool) broker.getObject(poolId);
          OpResourcePool superPool = (OpResourcePool) broker.getObject(superPoolId);
 
+         if (checkPoolAssignmentsForLoops(pool, superPool)) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.LOOP_ASSIGNMENT_ERROR));
+            continue;
+         }
+
          // Check manager access for selected pool's super pool and selected super pool
          if (!session.checkAccessLevel(broker, pool.getSuperPool().getID(), OpPermission.MANAGER) ||
               !session.checkAccessLevel(broker, superPool.getID(), OpPermission.MANAGER)) {
@@ -1185,6 +1190,26 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       tx.commit();
       broker.close();
       return reply;
+   }
+
+
+   /**
+    * Checks the group assignments for loops including the newSuperGroups
+    *
+    * @param pool      the <code>OpResourcePool</code> for which the check is performed
+    * @param superPool <code>OpResourcePool</code> representing the assigned super pool the <code>pool</code>
+    * @return true if a loop was found, false otherwise
+    */
+   private boolean checkPoolAssignmentsForLoops(OpResourcePool pool, OpResourcePool superPool) {
+      if (pool.getID() == superPool.getID()) {
+         return true;
+      }
+      if (superPool.getSuperPool() != null) {
+         if (checkPoolAssignmentsForLoops(pool, superPool.getSuperPool())) {
+            return true;
+         }
+      }
+      return false;
    }
 
 
@@ -1262,14 +1287,14 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    }
 
    /**
-    * Returns the number of activity assignments for the given <code>resource</code> and </code>projectPlan</code>
+    * Returns the number of activity assignments/responsible activities for the given <code>resource</code> and </code>projectPlan</code>
     *
     * @param broker      <code>OpBroker</code> used for performing business operations.
     * @param resource    <code>OpResource</code> entity
     * @param projectPlan <code>OpProjectPlan</code> entity
     * @return <code>int</code> representing the number of activity assignments of the resource into the given project
     */
-   public static int getActivityAssignmentsCount(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+   public static int getResourcePlanningAssignmentsCount(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
       String countQuery = "select count(assignment) from OpResource resource inner join resource.ActivityAssignments assignment where resource.ID = ? and assignment.ProjectPlan.ID = ?";
       OpQuery query = broker.newQuery(countQuery);
       query.setLong(0, resource.getID());
@@ -1282,7 +1307,20 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       query.setLong(1, projectPlan.getID());
       Integer counterAssignmentVersions = (Integer) broker.iterate(query).next();
 
-      return counterAssignments.intValue() + counterAssignmentVersions.intValue();
+      countQuery = "select count(activity) from OpResource resource inner join resource.ResponsibleActivities activity where resource.ID = ? and activity.ProjectPlan.ID = ?";
+      query = broker.newQuery(countQuery);
+      query.setLong(0, resource.getID());
+      query.setLong(1, projectPlan.getID());
+      Integer counterResponsible = (Integer) broker.iterate(query).next();
+
+      countQuery = "select count(activityVersion) from OpResource resource inner join resource.ResponsibleActivityVersions activityVersion where resource.ID = ? and activityVersion.PlanVersion.ProjectPlan.ID = ?";
+      query = broker.newQuery(countQuery);
+      query.setLong(0, resource.getID());
+      query.setLong(1, projectPlan.getID());
+      Integer counterResponsibleVersions = (Integer) broker.iterate(query).next();
+
+      return counterAssignments.intValue() + counterAssignmentVersions.intValue() +
+           counterResponsible.intValue() + counterResponsibleVersions.intValue();
    }
 
    /**

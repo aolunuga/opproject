@@ -110,7 +110,7 @@ function move(selected_rows, direction){
    request.setArgument("project_locators", locators);
    request.setArgument("direction", direction);
    response = XDisplay.getClient().invokeMethod(request);
-   if (handleResponse(response) == true) {
+   if (handleResponse(response, null, null) == true) {
       XDisplay.findFrame("MainFrame").refreshForm();
    }
 }

@@ -151,7 +151,7 @@ public class OpScheduler {
          OpSchedule persistedSchedule = (OpSchedule) schedules.get(0);
 
          Date lastExecutedDate;
-         long now = XCalendar.now().getTime();
+         long now = System.currentTimeMillis();
          long nextExecutionTime = getNextExecutionTime(persistedSchedule);
 
          //find the first "next" execution time for the schedule that is before now and try to execute it

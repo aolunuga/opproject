@@ -51,11 +51,10 @@ function ok(event) {
             warning = response.getArgument("warning");
             if (warning != null) {
                XDisplay.getActiveWindow().close();
-               XDisplay.findFrame("MainFrame").refreshForm();
-               showWarning(response, warning);
+               showWarning(response, warning, "MainFrame", "refreshForm");
             }
             else {
-               if (handleResponse(response) == false) {
+               if (handleResponse(response, null, null) == false) {
                   thisWindow.close();
                   return;
                }
@@ -84,11 +83,10 @@ function ok(event) {
             warning = response.getArgument("warning");
             if (warning != null) {
                XDisplay.getActiveWindow().close();
-               XDisplay.findFrame("MainFrame").refreshForm();
-               showWarning(response, warning);
+               showWarning(response, warning, "MainFrame", "refreshForm");
             }
             else {
-               if (handleResponse(response) == false) {
+               if (handleResponse(response, null, null) == false) {
                   thisWindow.close();
                   return;
                }
@@ -100,11 +98,16 @@ function ok(event) {
       }
 
       if (refresh) {
-         XDisplay.findFrame("MainFrame").refreshForm();
+         refreshForm();
       }
    }
 
 }
+
+function refreshForm(){
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
 
 /**
  * @IsOverridden

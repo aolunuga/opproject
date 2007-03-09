@@ -300,13 +300,23 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
-    * Returns the base effort of an activity data row
+    * Returns the actual effort of an activity data row
     *
     * @param data_row the data row
-    * @return double representing the base effort of the activity
+    * @return double representing the actual effort of the activity
     */
    public static double getActualEffort(XComponent data_row) {
       return ((XComponent) (data_row.getChild(ACTUAL_EFFORT_COLUMN_INDEX))).getDoubleValue();
+   }
+
+   /**
+    * Sets the actual effort of an activity data row
+    *
+    * @param data_row the data row
+    * @return double representing the actual effort of the activity
+    */
+   public static void setActualEffort(XComponent data_row, double actualEffort) {
+     ((XComponent) (data_row.getChild(ACTUAL_EFFORT_COLUMN_INDEX))).setDoubleValue(actualEffort);
    }
 
    /**
@@ -3904,7 +3914,7 @@ public class OpGanttValidator extends XValidator {
          clipboard.addChild(row);
       }
       // finally set up the clipboard property
-      clipboard.setProperty(XComponent.CLIPBOARD_ORIGINAL_INDEXES, originalIndexes);
+      clipboard.setClipboardOriginalIndexes(originalIndexes);
 
       // Filter and adjust index-references
       for (int i = 0; i < clonedDataRows.size(); i++) {
@@ -4046,7 +4056,7 @@ public class OpGanttValidator extends XValidator {
       normalizeOutlineLevel(clipboard, startOutlineLevel);
 
       // update succ and pred index lists
-      List origIndexes = displayClipboard.getOriginalClipboardIndexes();
+      List origIndexes = displayClipboard.getClipboardOriginalIndexes();
 
       Hashtable newIndexes = new Hashtable();
       for (int i = 0; i < origIndexes.size(); i++) {
@@ -4106,7 +4116,7 @@ public class OpGanttValidator extends XValidator {
 
       // clean clipboard's rows original indexes
       if (cleanClipboard) {
-         displayClipboard.setProperty(XComponent.CLIPBOARD_ORIGINAL_INDEXES, null);
+         displayClipboard.setClipboardOriginalIndexes(null);
       }
       validateDataSet();
 
@@ -5171,13 +5181,8 @@ public class OpGanttValidator extends XValidator {
     *         1
     */
    private Iterator initHolidays(Date start) {
-      TreeSet holidays = calendar.getHolidays();
-      Iterator relevantHolidays = null;
-      Date nextHoliday = null;
-      if (holidays != null) {
-         // TODO: Could be narrowed further using finish date (exclusive in subMap)
-         relevantHolidays = holidays.tailSet(start).iterator();
-      }
+      SortedSet holidays = calendar.getHolidays();
+      Iterator relevantHolidays = holidays.tailSet(start).iterator();
       return relevantHolidays;
    }
 

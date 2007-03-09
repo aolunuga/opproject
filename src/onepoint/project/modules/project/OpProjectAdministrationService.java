@@ -23,6 +23,8 @@ import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.server.XService;
+import onepoint.service.server.XServiceManager;
 
 import java.sql.Date;
 import java.util.*;
@@ -385,9 +387,12 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
          reply = this.shiftPlanDates(session, project, start_date);
-         if (reply != null) {
+         if (reply.getError() != null) {
             broker.close();
             return reply;
+         }
+         else {
+            reply = new XMessage();
          }
       }
 
@@ -623,31 +628,21 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Updates the start & end dates of all the activities in a project plan, revalidating the project plan
     * as a result of a project start date being moved into the future.
-    * @param session a <code>OpProjectSession</code> representing a server session.
-    * @param project a <code>OpProjectNode</code> representing the project node being edited.
+    *
+    * @param session    a <code>OpProjectSession</code> representing a server session.
+    * @param project    a <code>OpProjectNode</code> representing the project node being edited.
     * @param start_date a <code>Date</code> representing the
     * @return a <code>XMessage</code> indicating whether the operation was successfull or not.
     */
    private XMessage shiftPlanDates(OpProjectSession session, OpProjectNode project, Date start_date) {
-      Date originalDate = project.getStart();
-      final long millisDifference = start_date.getTime() - originalDate.getTime();
-      OpProjectPlanValidator.PlanModifier planModifier = new OpProjectPlanValidator.PlanModifier() {
-         public void modifyPlan(OpGanttValidator validator) {
-            XComponent activitiesSet = validator.getDataSet();
-            for (int i = 0; i < activitiesSet.getChildCount(); i++) {
-               XComponent activityRow = (XComponent) activitiesSet.getChild(i);
-
-               //update the start
-               Date originalStart = OpGanttValidator.getStart(activityRow);
-               long newStartTime = originalStart.getTime() + millisDifference;
-               OpGanttValidator.setStart(activityRow, new Date(newStartTime));
-
-               //set the end to null so that it's recalculated in the validation process
-               OpGanttValidator.setEnd(activityRow, null);
-            }
-         }
-      };
-      return new OpProjectPlanValidator(project.getPlan()).validateProjectPlanIntoNewVersion(session, planModifier);
+      XService planningService = XServiceManager.getService("PlanningService");
+      if (planningService == null) {
+         throw new UnsupportedOperationException("Cannot retrieve the registered project planning service !");
+      }
+      XMessage moveRequest = new XMessage();
+      moveRequest.setArgument("projectPlan", project.getPlan());
+      moveRequest.setArgument("newDate", start_date);
+      return planningService.invokeMethod(session, "moveProjectPlanStartDate", moveRequest);
    }
 
    /**
@@ -699,7 +694,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       Iterator outDatedAssignments = assignmentNodeMap.values().iterator();
       while (outDatedAssignments.hasNext()) {
          OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) outDatedAssignments.next();
-         int activityAssignmentsCounter = OpResourceService.getActivityAssignmentsCount(broker, assignment.getResource(), assignment.getProjectNode().getPlan());
+         int activityAssignmentsCounter = OpResourceService.getResourcePlanningAssignmentsCount(broker, assignment.getResource(), assignment.getProjectNode().getPlan());
          if (activityAssignmentsCounter > 0) {
             reply.setError(session.newError(ERROR_MAP, OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR));
             return reply;
@@ -1169,6 +1164,12 @@ public class OpProjectAdministrationService extends OpProjectService {
                reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
                continue;
             }
+
+            if (checkPortfolioAssignmentsForLoops(projectNode, portfolio)) {
+               reply.setError(session.newError(ERROR_MAP, OpProjectError.LOOP_ASSIGNMENT_ERROR));
+               continue;
+            }
+
             projectNode.setSuperNode(portfolio);
             broker.updateObject(projectNode);
          }
@@ -1177,6 +1178,18 @@ public class OpProjectAdministrationService extends OpProjectService {
       tx.commit();
       broker.close();
       return reply;
+   }
+
+   private boolean checkPortfolioAssignmentsForLoops(OpProjectNode projectNode, OpProjectNode portfolio) {
+      if (projectNode.getID() == portfolio.getID()) {
+         return true;
+      }
+      if (portfolio.getSuperNode() != null) {
+         if (checkPortfolioAssignmentsForLoops(projectNode, portfolio.getSuperNode())) {
+            return true;
+         }
+      }
+      return false;
    }
 
 
@@ -1250,8 +1263,9 @@ public class OpProjectAdministrationService extends OpProjectService {
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, null);
             OpGanttValidator.setWorkPhaseStarts(dataRow, null);
             OpGanttValidator.setWorkPhaseFinishes(dataRow, null);
-         }
+         }         
          OpGanttValidator.setComplete(dataRow, 0);
+         OpGanttValidator.setActualEffort(dataRow, 0);
       }
       // Validate copied and adjusted project plan
       validator.validateDataSet();
@@ -1293,8 +1307,9 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Expands a project node, for the project administration view.
+    *
     * @param projectSession a <code>OpProjectSession</code> representing the application session.
-    * @param request a <code>XMessage</code> representing the client request.
+    * @param request        a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server response.
     */
    public XMessage expandProjectNode(OpProjectSession projectSession, XMessage request) {
@@ -1315,8 +1330,9 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Expands a project node, for the project chooser view.
+    *
     * @param projectSession a <code>OpProjectSession</code> representing the application session.
-    * @param request a <code>XMessage</code> representing the client request.
+    * @param request        a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server response.
     */
    public XMessage expandProjectChooserNode(OpProjectSession projectSession, XMessage request) {

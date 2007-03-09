@@ -27,5 +27,6 @@
       <resource id="CouldNotExecuteReportSQL">The report SQL statement could not be executed</resource>
       <resource id="JasperCanNotBuildFilledReport">Jasper could not build filled report</resource>
       <resource id="JasperCanNotExportReport">Jasper could not export report</resource>
+      <resource id="InvalidReportFormat">Requested report format is not supported</resource>
    </resource-map>
 </language-kit>

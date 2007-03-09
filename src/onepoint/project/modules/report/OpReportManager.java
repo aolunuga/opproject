@@ -209,12 +209,12 @@ public class OpReportManager implements XResourceInterceptor {
       String sessionSpecificString = String.valueOf(s.getUserID()).concat(XEnvironmentManager.FILE_SEPARATOR);
       OpReportManager instance = null;
 
-      HashSet resourceInterceptors = s.getResourceInterceptors();
+      Set resourceInterceptors = s.getResourceInterceptors();
       Iterator resourceInterceptorsIter = resourceInterceptors.iterator();
       while (resourceInterceptorsIter.hasNext()) {
          XResourceInterceptor interceptor = (XResourceInterceptor) resourceInterceptorsIter.next();
          if (interceptor instanceof OpReportManager) {
-            if (((OpReportManager) interceptor).userSpecificString.equalsIgnoreCase(sessionSpecificString)){
+            if (((OpReportManager) interceptor).userSpecificString.equalsIgnoreCase(sessionSpecificString)) {
                instance = (OpReportManager) interceptor;
             }
             else {
@@ -244,7 +244,7 @@ public class OpReportManager implements XResourceInterceptor {
    }
 
    /**
-    * @see XResourceInterceptor#getResource(String, onepoint.express.server.XExpressSession)
+    * @see XResourceInterceptor#getResource(String,onepoint.express.server.XExpressSession)
     */
    public byte[] getResource(String path, XExpressSession s) {
       //any resources going through this interceptor need an additional class loader
@@ -304,6 +304,7 @@ public class OpReportManager implements XResourceInterceptor {
 
    /**
     * Reads the bytes of a file from the given input stream.
+    *
     * @param fileInputStream a <code>FileInputStream</code> that points to a file.
     * @return a <code>byte[]</code> representhing the bytes of the file.
     * @throws IOException if the file cannot be read.
@@ -683,8 +684,9 @@ public class OpReportManager implements XResourceInterceptor {
 
    /**
     * Checks if the given description is valid, for the jar indicated by the report.
+    *
     * @param reportDescription a <code>Map</code> of <code>String,String</code> representing the report description.
-    * @param jarFilePath a <code>String</code> representing the path to a jar file.
+    * @param jarFilePath       a <code>String</code> representing the path to a jar file.
     * @return <code>true</code> if the report description is valid, <code>false</code> otherwise.
     */
    private boolean isReportDescriptionValid(Map reportDescription, String jarFilePath) {
@@ -710,13 +712,14 @@ public class OpReportManager implements XResourceInterceptor {
 
    /**
     * Checks if a given file name string matches the expected patterns.
-    * @param fileName a <code>String</code> representing the name of a file.
-    * @param prefix a <code>String</code> representing the expected prefix.
+    *
+    * @param fileName  a <code>String</code> representing the name of a file.
+    * @param prefix    a <code>String</code> representing the expected prefix.
     * @param extension a <code>String</code> representing the expected extension.
     * @return <code>true</code> if the filename contains the prefix and has the extension.
     */
    private static boolean matchesFilePattern(String fileName, String prefix, String extension) {
-     return fileName.endsWith(extension) && fileName.startsWith(prefix);
+      return fileName.endsWith(extension) && fileName.startsWith(prefix);
    }
 
    private boolean updateReportJar(String name, File jarFilePath, JarFile reportjar, Long lastModified, boolean weakCheck) {
@@ -884,9 +887,10 @@ public class OpReportManager implements XResourceInterceptor {
 
    /**
     * Compiles all the jasper files from the given directory, and updates a report description.
-    * @param jarsWorkDir a <code>File</code> representing a directory where the jasper files are located.
+    *
+    * @param jarsWorkDir       a <code>File</code> representing a directory where the jasper files are located.
     * @param reportDescription a <code>HashMap</code> representing the report decription.
-    * @param weakCheck a <code>boolean</code> indicating whether to look at the timestamps or not.
+    * @param weakCheck         a <code>boolean</code> indicating whether to look at the timestamps or not.
     * @return <code>true</code> if the compilation was successfull.
     */
    private boolean compileJasperFiles(File jarsWorkDir, HashMap reportDescription, boolean weakCheck) {
@@ -918,6 +922,7 @@ public class OpReportManager implements XResourceInterceptor {
 
    /**
     * Registers all the language kits for the given reports dir.
+    *
     * @param jarsWorkDir a <code>File</code> representing the working dir of a report jar.
     */
    private void registerLanguageKits(File jarsWorkDir) {
@@ -939,6 +944,7 @@ public class OpReportManager implements XResourceInterceptor {
    /**
     * Returns an array of URLs for each of the working directories of the registered reports.
     * This is used to be able to dynamically load form provider, via a modified class loader.
+    *
     * @return a <code>URL[]</code> representing urls out of the report directories.
     */
    private URL[] getReportsWorkingDirsUrls() {
@@ -961,7 +967,7 @@ public class OpReportManager implements XResourceInterceptor {
       return this.reportWorkingDirs;
    }
 
-  /**
+   /**
     * A usefull method, which deletes a whole file-tree. may be optimized by
     * better error-handling ;-)
     *
@@ -1011,7 +1017,7 @@ public class OpReportManager implements XResourceInterceptor {
    private class JRXMLFilter implements FilenameFilter {
 
       /**
-       * @see FilenameFilter#accept(java.io.File, String)
+       * @see FilenameFilter#accept(java.io.File,String)
        */
       public boolean accept(File dir, String name) {
          return name.endsWith(REPORTFILE_SOURCE_EXTENSION);
@@ -1026,7 +1032,7 @@ public class OpReportManager implements XResourceInterceptor {
    private class OLKFilter implements FilenameFilter {
 
       /**
-       * @see FilenameFilter#accept(java.io.File, String)
+       * @see FilenameFilter#accept(java.io.File,String)
        */
       public boolean accept(File dir, String name) {
          return name.endsWith(MANDATORY_i18FILENAME_EXTENSION);
@@ -1044,7 +1050,7 @@ public class OpReportManager implements XResourceInterceptor {
       /**
        * This method filters for a given directory all Jars
        *
-       * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
+       * @see java.io.FilenameFilter#accept(java.io.File,java.lang.String)
        */
       public boolean accept(File dir, String name) {
          // we really only want to deal with jar-files...

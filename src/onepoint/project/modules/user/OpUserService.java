@@ -18,7 +18,9 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.project.util.OpSHA1;
-import onepoint.resource.*;
+import onepoint.resource.XLocale;
+import onepoint.resource.XLocaleManager;
+import onepoint.resource.XResourceCache;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
@@ -35,9 +37,12 @@ public class OpUserService extends OpProjectService {
    public final static String PASSWORD_RETYPED = "PasswordRetyped";
    public final static String USER_LEVEL = "userLevel";
    public final static String USER_DATA = "user_data";
+   public final static String LANGUAGE = "Language";
    public final static String USER_ID = "user_id";
    public final static String GROUP_DATA = "group_data";
    public final static String GROUP_ID = "group_id";
+   public final static String SUBJECT_ID = "subject_id";
+   public final static String SUBJECT_NAME = "subject_name";
    public final static String SUBJECT_IDS = "subject_ids";
    public final static String SUPER_SUBJECT_IDS = "super_ids";
    public final static String SUB_SUBJECT_IDS = "sub_ids";
@@ -53,30 +58,20 @@ public class OpUserService extends OpProjectService {
 
    // User data
    public final static String ASSIGNED_GROUPS = "assigned_groups";
+
    // email pattern ex : eXpress@onepoint.at
-   public final String emailRegex = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
+   private final static String EMAIL_REG_EXP = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
 
    // *** Where do we provide the XML-code to register the service?
    // ==> Maybe the most consistent way it to include it in the module
 
-   public final static OpUserErrorMap ERROR_MAP = new OpUserErrorMap();
+   private final static OpUserErrorMap ERROR_MAP = new OpUserErrorMap();
    private final static String SELECT_SUBJECT_ID_BY_NAME_QUERY = "select subject.ID from OpSubject as subject where subject.Name = ?";
 
    public final static String PASSWORD_TOKEN = "@*1XW9F4";
    private final static String NULL_PASSWORD = null;
    public final static String BLANK_PASSWORD = new OpSHA1().calculateHash("");
 
-   /**
-    * Calendar related i18n settings
-    */
-   private final static String CALENDAR_RESOURCE_MAP_ID = "user.calendar";
-   private final static String I18N_HOUR_INITIAL = "{$HourInitial}";
-   private final static String I18N_DAY_INITIAL = "{$DayInitial}";
-   private final static String I18N_WEEK_INITIAL = "{$WeekInitial}";
-   private final static String[] I18N_MONTHS = new String[]{"{$January}", "{$February}", "{$March}", "{$April}", "{$May}", "{$June}", "{$July}",
-        "{$August}", "{$September}", "{$October}", "{$November}", "{$December}"};
-   private final static String[] I18N_WEEKDAYS = new String[]{"{$Monday}", "{$Tuesday}", "{$Wednesday}", "{$Thursday}", "{$Friday}",
-        "{$Saturday}", "{$Sunday}"};
    private final static String WARNING = "warning";
 
 
@@ -124,7 +119,7 @@ public class OpUserService extends OpProjectService {
          // *** Insert a German and an English test user (by specifying user
          // preferences)
 
-         XLocale user_locale = null;
+         XLocale userLocale = null;
          if (user.getPreferences() != null) {
             Iterator preferences = user.getPreferences().iterator();
             OpPreference preference = null;
@@ -132,26 +127,22 @@ public class OpUserService extends OpProjectService {
                preference = (OpPreference) preferences.next();
                if (preference.getName().equals(OpPreference.LOCALE)) {
                   // Set user locale
-                  user_locale = XLocaleManager.findLocale(preference.getValue());
+                  userLocale = XLocaleManager.findLocale(preference.getValue());
                   // TODO: Write warning into log file if user locale is not found
                }
             }
          }
 
          // Fallback: Global locale setting in the database
-         if (user_locale == null) {
-            user_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+         if (userLocale == null) {
+            userLocale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
          }
-         session.setLocale(user_locale);
+         session.setLocale(userLocale);
 
-         //initialze the calendar settings
-         Map userCalendarSettings = initializeUserCalendarSettings(user_locale);
-         reply.setVariable(XCalendar.CALENDAR_SETTINGS, userCalendarSettings);
+         XCalendar calendar = OpSettings.configureDefaultCalendar(userLocale);
 
-         //initialize the calendar instance which will be on the server
-         //<FIXME author="Horia Chiorean" description="In the remote case, this means that always the last signed in user will have his settings...">
-         XCalendar.getDefaultCalendar().configure(userCalendarSettings);
-         //<FIXME>
+         //send the calendar to the client
+         reply.setVariable(OpProjectConstants.CALENDAR, calendar);
       }
       else {
          XError error = session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN);
@@ -162,63 +153,6 @@ public class OpUserService extends OpProjectService {
 
       broker.close();
       return reply;
-   }
-
-   /**
-    * Initializes the calendar settings for the logged in user.
-    *
-    * @param userLocale a <code>Locale</code> representing the user locale.
-    * @return a <code>Map</code> with all the user settings.
-    */
-   private Map initializeUserCalendarSettings(XLocale userLocale) {
-      Map calendarSettings = OpSettings.getCalendarSettings();
-
-      XLanguageResourceMap userCalendarI18nMap = XLocaleManager.findResourceMap(userLocale.getID(), CALENDAR_RESOURCE_MAP_ID);
-      XLocalizer userLocalizer = XLocalizer.getLocalizer(userCalendarI18nMap);
-
-      String hourInitial = userLocalizer.localize(I18N_HOUR_INITIAL);
-      calendarSettings.put(XCalendar.HOUR_INITIAL_KEY, hourInitial);
-      String dayInitial = userLocalizer.localize(I18N_DAY_INITIAL);
-      calendarSettings.put(XCalendar.DAY_INITIAL_KEY, dayInitial);
-      String weekInitial = userLocalizer.localize(I18N_WEEK_INITIAL);
-      calendarSettings.put(XCalendar.WEEK_INITIAL_KEY, weekInitial);
-
-      String[] monthNames = new String[I18N_MONTHS.length];
-      for (int i = 0; i < I18N_MONTHS.length; i++) {
-         String i18nMonth = userLocalizer.localize(I18N_MONTHS[i]);
-         monthNames[i] = i18nMonth;
-      }
-      calendarSettings.put(XCalendar.MONTH_NAMES_KEY, monthNames);
-
-      char[] weekdayInitials = new char[I18N_WEEKDAYS.length + 1];
-      //index 0 is empty
-      weekdayInitials[0] = '\0';
-      //monday
-      char mondayInitial = userLocalizer.localize(I18N_WEEKDAYS[0]).charAt(0);
-      weekdayInitials[Calendar.MONDAY] = mondayInitial;
-      //tuesday
-      char tuesdayInitial = userLocalizer.localize(I18N_WEEKDAYS[1]).charAt(0);
-      weekdayInitials[Calendar.TUESDAY] = tuesdayInitial;
-      //wednesday
-      char wednesdayInitial = userLocalizer.localize(I18N_WEEKDAYS[2]).charAt(0);
-      weekdayInitials[Calendar.WEDNESDAY] = wednesdayInitial;
-      //thursday
-      char thursdayInitial = userLocalizer.localize(I18N_WEEKDAYS[3]).charAt(0);
-      weekdayInitials[Calendar.THURSDAY] = thursdayInitial;
-      //friday
-      char fridayInitial = userLocalizer.localize(I18N_WEEKDAYS[4]).charAt(0);
-      weekdayInitials[Calendar.FRIDAY] = fridayInitial;
-      //saturday
-      char saturdayInitial = userLocalizer.localize(I18N_WEEKDAYS[5]).charAt(0);
-      weekdayInitials[Calendar.SATURDAY] = saturdayInitial;
-      //sunday
-      char sundayInitial = userLocalizer.localize(I18N_WEEKDAYS[6]).charAt(0);
-      weekdayInitials[Calendar.SUNDAY] = sundayInitial;
-
-      calendarSettings.put(XCalendar.WEEKDAYS_INITIALS_KEY, weekdayInitials);
-
-      calendarSettings.put(XCalendar.LOCALE_KEY, new Locale(userLocale.getID()));
-      return calendarSettings;
    }
 
    public XMessage insertUser(OpProjectSession session, XMessage request) {
@@ -257,7 +191,7 @@ public class OpUserService extends OpProjectService {
          return reply;
       }
       else if (contact.getEMail() != null && (!contact.getEMail().equals(""))
-           && (!Pattern.matches(emailRegex, contact.getEMail()))) {
+           && (!Pattern.matches(EMAIL_REG_EXP, contact.getEMail()))) {
          error = session.newError(ERROR_MAP, OpUserError.EMAIL_INCORRECT);
          reply.setError(error);
          return reply;
@@ -304,7 +238,7 @@ public class OpUserService extends OpProjectService {
       String displayName = getDisplayName(contact, user.getName());
       user.setDisplayName(displayName);
 
-      ArrayList assigned_groups = (ArrayList) (user_data.get(ASSIGNED_GROUPS));
+      List assigned_groups = (List) (user_data.get(ASSIGNED_GROUPS));
 
       OpBroker broker = session.newBroker();
 
@@ -327,7 +261,7 @@ public class OpUserService extends OpProjectService {
       broker.makePersistent(contact);
 
       // Set language preference
-      String language = (String) user_data.get("Language");
+      String language = (String) user_data.get(LANGUAGE);
       OpUserLanguageManager.updateUserLanguagePreference(broker, user, language);
 
       if ((assigned_groups != null) && (assigned_groups.size() > 0)) {
@@ -396,7 +330,7 @@ public class OpUserService extends OpProjectService {
 
       OpBroker broker = session.newBroker();
 
-      ArrayList assigned_groups = (ArrayList) (group_data.get(ASSIGNED_GROUPS));
+      List assigned_groups = (List) (group_data.get(ASSIGNED_GROUPS));
       List superGroupsIds = new ArrayList();
       if (assigned_groups != null) {
          for (int i = 0; i < assigned_groups.size(); i++) {
@@ -513,7 +447,7 @@ public class OpUserService extends OpProjectService {
          reply.setError(error);
       }
       else if (contact.getEMail() != null && (!contact.getEMail().equals(""))
-           && (!Pattern.matches(emailRegex, contact.getEMail()))) {
+           && (!Pattern.matches(EMAIL_REG_EXP, contact.getEMail()))) {
          error = session.newError(ERROR_MAP, OpUserError.EMAIL_INCORRECT);
          reply.setError(error);
       }
@@ -602,11 +536,17 @@ public class OpUserService extends OpProjectService {
       String displayName = getDisplayName(contact, user.getName());
       user.setDisplayName(displayName);
 
-      ArrayList updatedGroupIds = (ArrayList) (user_data.get(ASSIGNED_GROUPS));
+      List updatedGroupIds = (List) (user_data.get(ASSIGNED_GROUPS));
 
       //set the language
-      String language = (String) user_data.get("Language");
-      OpUserLanguageManager.updateUserLanguagePreference(broker, user, language);
+      String language = (String) user_data.get(LANGUAGE);
+      boolean languageUpdated = OpUserLanguageManager.updateUserLanguagePreference(broker, user, language);
+      if (languageUpdated && session.userIsAdministrator() && user.getID() == session.getUserID()) {
+         //refresh forms
+         XLocale newLocale = XLocaleManager.findLocale(language);
+         session.setLocale(newLocale);
+         reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
+      }
 
       // validation successfully completed
       OpTransaction t = broker.newTransaction();
@@ -623,7 +563,7 @@ public class OpUserService extends OpProjectService {
       }
 
       if (updatedGroupIds != null) {
-         Long groupId = null;
+         Long groupId;
          OpGroup group;
          for (int i = 0; i < updatedGroupIds.size(); i++) {
             groupId = new Long(OpLocator.parseLocator((String) (updatedGroupIds.get(i))).getID());
@@ -669,6 +609,7 @@ public class OpUserService extends OpProjectService {
 
    /**
     * Gets all the permissions for the given user. Goes recursively upwards collecting permissions from groups as well.
+    *
     * @param user user object to gather the permissions for.
     * @return Set of permissions.
     */
@@ -683,6 +624,7 @@ public class OpUserService extends OpProjectService {
 
    /**
     * Gets all the owned permissions for the given group and recursivly for its supergoups.
+    *
     * @param group group that is being queried.
     * @return Set with the collected permissions.
     */
@@ -747,7 +689,7 @@ public class OpUserService extends OpProjectService {
       }
 
 
-      ArrayList updatedSuperGroupIds = (ArrayList) (group_data.get(ASSIGNED_GROUPS));
+      List updatedSuperGroupIds = (List) (group_data.get(ASSIGNED_GROUPS));
       List superGroupsIds = new ArrayList();
       if (updatedSuperGroupIds != null) {
          for (int i = 0; i < updatedSuperGroupIds.size(); i++) {
@@ -840,8 +782,8 @@ public class OpUserService extends OpProjectService {
       }
 
 
-      ArrayList superLocators = (ArrayList) (request.getArgument(SUPER_SUBJECT_IDS));
-      ArrayList subLocators = (ArrayList) (request.getArgument(SUB_SUBJECT_IDS));
+      List superLocators = (List) (request.getArgument(SUPER_SUBJECT_IDS));
+      List subLocators = (List) (request.getArgument(SUB_SUBJECT_IDS));
 
       OpBroker broker = session.newBroker();
       OpQuery userAssignmentQuery = broker
@@ -900,7 +842,7 @@ public class OpUserService extends OpProjectService {
          return checkUser;
       }
 
-      ArrayList subjectLocators = (ArrayList) (request.getArgument(SUBJECT_IDS));
+      List subjectLocators = (List) (request.getArgument(SUBJECT_IDS));
       logger.debug("OpUserService.deleteSubjects(): subject_ids = " + subjectLocators);
 
       if ((subjectLocators == null) || (subjectLocators.size() == 0)) {
@@ -909,7 +851,7 @@ public class OpUserService extends OpProjectService {
 
       OpBroker broker = session.newBroker();
 
-      ArrayList subjectIds = new ArrayList();
+      List subjectIds = new ArrayList();
       for (int i = 0; i < subjectLocators.size(); i++) {
 
          Long uId = new Long(OpLocator.parseLocator((String) (subjectLocators.get(i))).getID());
@@ -969,7 +911,7 @@ public class OpUserService extends OpProjectService {
 
       logger.debug("OpUserService.assignToGroup()");
 
-      ArrayList subjectLocators = (ArrayList) (request.getArgument(SUBJECT_IDS));
+      List subjectLocators = (List) (request.getArgument(SUBJECT_IDS));
       String targetGroupLocator = (String) (request.getArgument(TARGET_GROUP_ID));
 
       if ((subjectLocators == null) || (targetGroupLocator == null)) {
@@ -1060,9 +1002,9 @@ public class OpUserService extends OpProjectService {
     * Loads the children of the given group based on the filter and enable rules given as parameters.
     * Used for lazy loading, simple structure & filtering.
     *
-    * @param session
-    * @param request
-    * @return
+    * @param session session to use
+    * @param request request data
+    * @return processing results.
     */
    public XMessage expandFilteredGroup(OpProjectSession session, XMessage request) {
 
@@ -1096,9 +1038,9 @@ public class OpUserService extends OpProjectService {
    /**
     * Loads the children of the given group (used for lazy loading/ complex structure)
     *
-    * @param session
-    * @param request
-    * @return
+    * @param session session to use
+    * @param request request data
+    * @return processing results.
     */
    public XMessage expandGroup(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
@@ -1162,7 +1104,7 @@ public class OpUserService extends OpProjectService {
     */
    public XMessage checkSubjects(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-      ArrayList subjectLocators = (ArrayList) (request.getArgument(SUBJECT_IDS));
+      List subjectLocators = (List) (request.getArgument(SUBJECT_IDS));
       //get Everyone Group
       OpGroup everyone = session.everyone(session.newBroker());
       //everyone group should always exists

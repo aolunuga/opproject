@@ -4,7 +4,7 @@
 
 package onepoint.project.modules.project;
 
-public class OpProjectError {
+public interface OpProjectError {
 
    // Error codes
    public final static int PROJECT_NAME_MISSING = 1;
@@ -31,6 +31,8 @@ public class OpProjectError {
    public final static int GOAL_PRIORITY_ERROR = 19;
    public final static int TODO_PRIORITY_ERROR = 20;
 
+   public final static int LOOP_ASSIGNMENT_ERROR = 21;
+
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -52,4 +54,5 @@ public class OpProjectError {
    public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
    public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
    public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
+   public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
 }

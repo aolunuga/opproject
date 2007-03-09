@@ -1,4 +1,4 @@
-<service name="WorkService" class="onepoint.project.modules.work.OpWorkService">
+<service name="WorkService" class="onepoint.project.modules.work.OpWorkService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="insertWorkSlip">
       <parameter name="start" instance-class="java.util.Date" mode="input"/>
       <parameter name="end" instance-class="java.util.Date" mode="input"/>

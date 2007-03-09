@@ -1,4 +1,4 @@
-<service name="ReportService" class="onepoint.project.modules.report.OpReportService">
+<service name="ReportService" class="onepoint.project.modules.report.OpReportService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="createReport">
       <parameter name="name" instance-class="java.lang.String" mode="input"/>
       <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>

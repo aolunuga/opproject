@@ -76,7 +76,7 @@ public class OpClientLauncherStartup {
       // Show GUI
       application.setVisible(true);
       if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
-         application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM);
+         application.getDisplay().showForm(OpProjectConstants.CONFIGURATION_WIZARD_FORM);
       }
       else {
          // the params used for loading the login.oxf.xml form

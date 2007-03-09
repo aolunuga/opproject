@@ -16,25 +16,23 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
+import onepoint.service.XError;
 import onepoint.service.XMessage;
 
 import java.io.*;
-import java.net.FileNameMap;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class OpReportService extends OpProjectService {
-
-   private static final XLog logger = XLogFactory.getLogger(OpReportService.class, true);
 
    public final static String JASPER_REPORTS_PATH = "/modules/report/jasperreports/";
 
@@ -72,11 +70,29 @@ public class OpReportService extends OpProjectService {
    public static final String REPORT_NAME = "ReportName";
    public static final String REPORT_QUERY_TYPE = "reportQueryType";
 
+   private static final XLog logger = XLogFactory.getLogger(OpReportService.class, true);
+
+   private static final List SUPPORTED_FORMATS = Arrays.asList(new String[] {REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV});
+
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
 
       String name = (String) (request.getArgument(NAME));
-      ArrayList formats = (ArrayList) (request.getArgument(FORMATS));
+
+      // Read format of the report to be generated.
+      List formats = (List) (request.getArgument(FORMATS));
+      String format = REPORT_TYPE_PDF; // define default format to PDF
+      if (formats != null && formats.size() > 0) {
+         format = (String) formats.get(0);
+
+         // check if the export format is supported or not.
+         if (!SUPPORTED_FORMATS.contains(format.toUpperCase())) {
+            XMessage response = new XMessage();
+            XError error = session.newError(ERROR_MAP, OpReportError.INVALID_REPORT_FORMAT);
+            response.setError(error);
+            return response;
+         }
+      }
 
       StringBuffer pathBuffer = new StringBuffer();
       OpReportManager xrm = OpReportManager.getReportManager(session);
@@ -84,7 +100,7 @@ public class OpReportService extends OpProjectService {
       try {
          JasperPrint compiledReport = createJasperPrint(session, request);
 
-         // TODO: Format ending and location is "too hard-coded"
+         // TODO: Location is "too hard-coded"
          pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
          pathBuffer.append(SAVED_REPORTS_PATH);
          //create the saved reports directory if not exists
@@ -96,15 +112,13 @@ public class OpReportService extends OpProjectService {
          pathBuffer.append('-');
          SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh_mm_ss");
          pathBuffer.append(dateFormat.format(new Date()));
-         pathBuffer.append(".pdf");
+         pathBuffer.append(".").append(format.toLowerCase());
 
 
          String path = pathBuffer.toString();
 
          FileOutputStream resultStream = new FileOutputStream(path);
-         //<FIXME author="Horia Chiorean" description="Use the formats here">
-         exportReport(session, compiledReport, "PDF", resultStream);
-         //<FIXME>
+         exportReport(session, compiledReport, format, resultStream);
          resultStream.flush();
          resultStream.close();
 
@@ -122,6 +136,7 @@ public class OpReportService extends OpProjectService {
 
    /**
     * Saves the report content the database.
+    *
     * @param session a <code>OpProjectSession</code> representing the current server session.
     * @param request a <code>XMessage</code> representing the current request.
     * @return a <code>XMessage</code> representing the response.
@@ -129,8 +144,21 @@ public class OpReportService extends OpProjectService {
    public XMessage saveReport(OpProjectSession session, XMessage request) {
       String name = (String) (request.getArgument(NAME));
       String reportName = name.substring(0, name.lastIndexOf('.'));
-      ArrayList formats = (ArrayList) (request.getArgument(FORMATS));
-      String format = (String) formats.get(0);
+
+      // Read format of the report to be generated.
+      List formats = (List) (request.getArgument(FORMATS));
+      String format = REPORT_TYPE_PDF; // define default format to PDF
+      if (formats != null && formats.size() > 0) {
+         format = (String) formats.get(0);
+
+         // check if the export format is supported or not.
+         if (!SUPPORTED_FORMATS.contains(format.toUpperCase())) {
+            XMessage response = new XMessage();
+            XError error = session.newError(ERROR_MAP, OpReportError.INVALID_REPORT_FORMAT);
+            response.setError(error);
+            return response;
+         }
+      }
 
       OpReportManager xrm = OpReportManager.getReportManager(session);
 
@@ -151,10 +179,10 @@ public class OpReportService extends OpProjectService {
          query.setString(0, reportName);
          Iterator it = broker.iterate(query);
          if (it.hasNext()) {
-             reportType = (OpReportType) it.next();
+            reportType = (OpReportType) it.next();
          }
          else {
-           reportType = createNewReportType(xrm, broker, name);
+            reportType = createNewReportType(xrm, broker, name);
          }
          tx.commit();
 
@@ -181,8 +209,8 @@ public class OpReportService extends OpProjectService {
     * Creates a new report type.
     *
     * @param reportManager a <code>OpReportManager</code> object used for working with reports.
-    * @param broker a <code>OpBroker</code> used to perform the business operations.
-    * @param name a <code>String</code> representing the name of the report file, including the .jar extension.
+    * @param broker        a <code>OpBroker</code> used to perform the business operations.
+    * @param name          a <code>String</code> representing the name of the report file, including the .jar extension.
     * @return a <code>OpReportType</code> representing the newly created report type.
     */
    private OpReportType createNewReportType(OpReportManager reportManager, OpBroker broker, String name) {
@@ -211,6 +239,7 @@ public class OpReportService extends OpProjectService {
 
    /**
     * Creates the actual compiled (and filled) jasper report, which will then be exported to a certain format.
+    *
     * @param session a <code>OpProjectSession</code> representing the current server session.
     * @param request a <code>XMessage</code> representing the request parameter.
     * @return a <code>JasperPrint</code> object representing the compiled jasper report.
@@ -316,8 +345,7 @@ public class OpReportService extends OpProjectService {
          cleanedReportParameters = updateParameterValues(session, parameters, defParams);
          // some initializing stuff
          URL reportLocation = new File(xrm.getJasperDirName(name)).toURL();
-         JasperPrint jasperPrint = OpJasperReportBuilder.buildDatasourceReport(jasperReport, cleanedReportParameters, session, reportLocation, ds);
-         return jasperPrint;
+         return OpJasperReportBuilder.buildDatasourceReport(jasperReport, cleanedReportParameters, session, reportLocation, ds);
       }
       catch (OpReportException e) {
          logger.error("Cannot generate report", e);
@@ -333,7 +361,8 @@ public class OpReportService extends OpProjectService {
 
    /**
     * Creates a query that will be used to populate the report.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
+    *
+    * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param queryMap a <code>Map</code> of (String, Object) representing information necessary to create a report query.
     * @return a <code>OpQuery</code> object or null if some of the request parameters are invalid.
     */
@@ -372,10 +401,11 @@ public class OpReportService extends OpProjectService {
    /**
     * Parses the given request for sub-report related information, and transforms that information creating the necessary
     * sub-report datasources.
+    *
     * @param subReportData a <code>Map</code> of (String, Map(fields, queryMap, resourceMapId)) representing subreport data.
     * @param parametersMap a <code>Map</code> of (String, Object) pairs.
-    * @param broker a <code>OpBroker</code> used for performing business operations.
-    * @param session a <code>OpProjectSession</code> representing the application session.
+    * @param broker        a <code>OpBroker</code> used for performing business operations.
+    * @param session       a <code>OpProjectSession</code> representing the application session.
     */
    private void putSubreportParameters(Map subReportData, Map parametersMap, OpBroker broker, OpProjectSession session) {
       Iterator it = subReportData.keySet().iterator();
@@ -411,8 +441,8 @@ public class OpReportService extends OpProjectService {
    /**
     * Saves the report into the database.
     *
-    * @param broker a <code>OpBroker</code> object used for data persistence.
-    * @param content an array of bytes representing the report content.
+    * @param broker      a <code>OpBroker</code> object used for data persistence.
+    * @param content     an array of bytes representing the report content.
     * @param contentType a <code>String</code> representing the extension type (pdf, xls etc).
     * @return a <code>OpContent</code> object representing the newly created content.
     */
@@ -421,8 +451,7 @@ public class OpReportService extends OpProjectService {
       reportContent.setBytes(content);
       reportContent.setSize(content.length);
 
-      FileNameMap fileMap = URLConnection.getFileNameMap();
-      String mimeType = fileMap.getContentTypeFor("." + contentType);
+      String mimeType = OpContentManager.getFileMimeType("." + contentType);
       reportContent.setMediaType(mimeType);
 
       broker.makePersistent(reportContent);
@@ -490,17 +519,19 @@ public class OpReportService extends OpProjectService {
 
    /**
     * Sets up the current selected report query type as a session variable.
-    * @param s <code>String</code> the session
+    *
+    * @param s       <code>String</code> the session
     * @param request <code>XMessage</code> the request containing as argument the current query type
     */
-   public void setSessionReportQueryType(OpProjectSession s, XMessage request){
-      String queryName = (String)request.getArgument(REPORT_QUERY_TYPE);
-      s.setVariable(REPORT_QUERY_TYPE,queryName);
+   public void setSessionReportQueryType(OpProjectSession s, XMessage request) {
+      String queryName = (String) request.getArgument(REPORT_QUERY_TYPE);
+      s.setVariable(REPORT_QUERY_TYPE, queryName);
 
    }
 
    /**
     * Removes all the files in the reports directory - Used by the client.
+    *
     * @param s
     * @param request
     */

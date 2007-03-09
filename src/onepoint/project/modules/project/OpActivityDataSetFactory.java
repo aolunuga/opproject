@@ -1722,11 +1722,22 @@ public abstract class OpActivityDataSetFactory {
       attachment.setLocation((String) attachmentElement.get(3));
       OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);
       OpContent content = null;
+      String mimeType = null;
+
+      if (!LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0))) {
+         String filePath = attachment.getLocation();
+         int index = filePath.lastIndexOf(".");
+         if (index != -1) {
+            String type = filePath.substring(index, filePath.length());
+            mimeType = OpContentManager.getFileMimeType(type);
+         }
+      }
+
       if (!attachment.getLinked()) {
          String contentId = (String) attachmentElement.get(4);
          if (contentId.equals(OpActivityDataSetFactory.NO_CONTENT_ID)) {
             byte[] bytes = (byte[]) attachmentElement.get(5);
-            content = OpContentManager.newContent(bytes, null);
+            content = OpContentManager.newContent(bytes, mimeType);
             broker.makePersistent(content);
             attachment.setContent(content);
          }

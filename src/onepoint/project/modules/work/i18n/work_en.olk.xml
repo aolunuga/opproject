@@ -57,6 +57,7 @@
       <resource id="Date">Date</resource>
       <resource id="Task">Task</resource>
       <resource id="Project">Project</resource>
+      <resource id="AssignmentEffort">Planned</resource>
       <resource id="Resource">Resource</resource>
       <resource id="Effort">Effort</resource>
       <resource id="Costs">Costs</resource>

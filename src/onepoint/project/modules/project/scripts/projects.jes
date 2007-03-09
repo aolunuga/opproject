@@ -78,9 +78,18 @@ function moveOk(portfolioChoice) {
    request.setArgument("portfolio_id", portfolioId);
    response = XDisplay.getClient().invokeMethod(request);
 
-   XDisplay.findFrame("MainFrame").refreshForm();
-   showWarning(response, true);
+   if (response.getError() != null) {
+      showWarning(response, true, "MainFrame", "refreshForm");
+   }
+   else {
+      refreshForm();
+   }
 }
+
+function refreshForm(){
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
 
 /**
  * Gets all the portfolios from a list of selected rows.

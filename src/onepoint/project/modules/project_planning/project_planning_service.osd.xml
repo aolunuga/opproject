@@ -1,4 +1,4 @@
-<service name="PlanningService" class="onepoint.project.modules.project_planning.OpProjectPlanningService">
+<service name="PlanningService" class="onepoint.project.modules.project_planning.OpProjectPlanningService" interceptor="onepoint.project.OpServiceInterceptor">
    <method name="importActivities">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="bytes_array" instance-class="java.lang.Object" mode="input"/>

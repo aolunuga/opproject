@@ -18,24 +18,21 @@ function save(event) {
    settings.Calendar_LastWorkday = XValidator.choiceID(form.findComponent("LastWorkday").getStringValue());
    settings.Calendar_DayWorkTime = form.findComponent("DayWorkTime").getDoubleValue();
    settings.Calendar_WeekWorkTime = form.findComponent("WeekWorkTime").getDoubleValue();
-   settings.Allow_EmptyPassword = form.findComponent("AllowEmptyPassword").getBooleanValue().toString();
+   settings.Allow_EmptyPassword = form.findComponent("AllowEmptyPassword").getBooleanValue();
    settings.EMail_FromAddress = form.findComponent("EMailNotificationFromAddress").getStringValue();
-   settings.Report_RemoveTimePeriod = form.findComponent("ReportsRemoveTimePeriod").getIntValue().toString();
-   settings.Calendar_HolidaysLocation = form.findComponent("HolidaysChoice").getValue();
+   settings.Report_RemoveTimePeriod = form.findComponent("ReportsRemoveTimePeriod").getIntValue();
+   settings.Calendar_HolidaysLocation = form.findComponent("HolidaysChoice").getStringValue();
    settings.Resource_MaxAvailability = form.findComponent("ResourceMaxAvailability").getDoubleValue();
-   settings.Milestone_ControllingInterval = form.findComponent("MilestoneControllingInterval").getIntValue().toString();
-   settings.Show_ResourceHours = form.findComponent("ShowResourceHours").getBooleanValue().toString();
-
-   Console.println("SETTINGS");
-   Console.println(settings.User_Locale);
+   settings.Milestone_ControllingInterval = form.findComponent("MilestoneControllingInterval").getIntValue();
+   settings.Show_ResourceHours = form.findComponent("ShowResourceHours").getBooleanValue();
 
    request = new XMessage;
    request.setAction("SettingsService.saveSettings");
    request.setArgument("new_settings", settings);
    client = XDisplay.getClient();
    response = client.invokeMethod(request);
-   calendarSettings = client.getVariable("calendarSettings");
-   XDisplay.configureCalendar(calendarSettings);
+   calendar = client.getVariable("calendar");
+   XDisplay.setCalendar(calendar);
 
    if (handleError(form, response, "ErrorLabel") == true) {
       refresh = response.getArgument("refresh");

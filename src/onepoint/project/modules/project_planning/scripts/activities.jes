@@ -57,7 +57,7 @@ function editActivities(event) {
       XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
       XDisplay.resetCursor();
       //this needs to be the last call (otherwise the window is closed)
-      showWarning(response, warning);
+      showWarning(response, warning, null, null);
    }
    else {
       success = handleError(XDisplay.getActiveForm(),response,"ValidationErrorLabel");
@@ -130,7 +130,7 @@ function exportActivities(event) {
 
    client = XDisplay.getClient();
    response = client.invokeMethod(request);
-   if (handleResponse(response) == false) {
+   if (handleResponse(response, null, null) == false) {
       return;
    }
 
@@ -139,7 +139,7 @@ function exportActivities(event) {
    file_name = response.getArgument("file_name");
    response = File.writeBytes(file_name, byte_array);
 
-   if (handleResponse(response) == false) {
+   if (handleResponse(response, null, null) == false) {
       return;
    }
 }
@@ -229,7 +229,7 @@ function checkInActivities(event) {
    request.setArgument("working_plan_version_id", working_plan_version_id);
    request.setArgument("activity_set", activity_set);
    response = XDisplay.getClient().invokeMethod(request);
-   success = handleResponse(response);
+   success = handleResponse(response, null, null);
 
    if (success == true) {
       parameters.project_id = project_id;

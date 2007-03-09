@@ -9,7 +9,7 @@ package onepoint.project.util;
  *
  * @author horia.chiorean
  */
-public abstract class OpProjectConstants {
+public interface OpProjectConstants {
 
    public static final String RUN_LEVEL = "runLevel";
    public static final String GET_RUN_LEVEL_ACTION = "GetRunLevel";
@@ -34,4 +34,5 @@ public abstract class OpProjectConstants {
     * The code version number.
     */
    public static final String CODE_VERSION_NUMBER = "07";
+   public static final String CALENDAR = "calendar";
 }

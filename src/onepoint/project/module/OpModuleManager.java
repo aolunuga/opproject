@@ -85,12 +85,7 @@ public final class OpModuleManager {
          services = module.getServices();
          while (services.hasNext()) {
             service = (XService) (services.next());
-            if (module.getExtendedModule() != null) {
-               XServiceManager.registerOverriddingService(service);
-            }
-            else {
-               XServiceManager.registerService(service);
-            }
+            XServiceManager.registerService(service);
          }
          // Register language kits
          language_kits = module.getLanguageKits();

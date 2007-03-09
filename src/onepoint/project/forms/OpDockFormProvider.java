@@ -68,6 +68,9 @@ public class OpDockFormProvider implements XFormProvider {
                if (navigationGroup != null) {
                   XComponent navigationItem = createNavigationItem(tool, session);
                   navigationGroup.addChild(navigationItem);
+                  if (navigationItem.getSelected()) {
+                     navigationGroup.setSelectedIndex(new Integer(navigationItem.getIndex()));
+                  }
                }
             }
          }
