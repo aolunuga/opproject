@@ -479,14 +479,14 @@
 
 
       <!--Executes OnePoint unit tests-->
-      <junit>
+      <junit printsummary="on" reloading="false">
          <formatter type="xml"/>
          <classpath >
             <path refid="op.classpath"/>
             <pathelement location="${build.dir}"/>
             <pathelement location="${test.dir}"/>
          </classpath>
-         <batchtest fork="true" todir="${test.dir}">
+         <batchtest fork="false" todir="${test.dir}">
             <fileset dir="${test.dir}">
                <include name="**/*Test.class"/>
             </fileset>
@@ -494,7 +494,7 @@
       </junit>
 
       <!--generate html test reports-->
-      <junitreport>
+      <junitreport todir="${test.dir}">
          <fileset dir="${test.dir}">
             <include name="TEST-*.xml"/>
          </fileset>

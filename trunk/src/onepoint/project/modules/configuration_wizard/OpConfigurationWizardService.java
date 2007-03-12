@@ -59,6 +59,7 @@ public class OpConfigurationWizardService extends OpProjectService {
     */
    private static final String DEMODATA_DIR = "demodata";
    private static final String DEMODATA_FILE = "demodata.opx.xml";
+   private static final String DEMO_DATA_FILE_NAME = "demo_data_file_name";
 
    /**
     * Writes the db configuration file, with the db settings.
@@ -119,7 +120,9 @@ public class OpConfigurationWizardService extends OpProjectService {
 
       Boolean importDemoDataParam = (Boolean) parameters.get("import_demo_data");
       boolean importDemoData = importDemoDataParam != null && importDemoDataParam.booleanValue();
-      File demodataFile = getDemodataFile();
+
+      String fileName = (String) parameters.get(DEMO_DATA_FILE_NAME);
+      File demodataFile = getDemodataFile(fileName);
 
       //if demodata is to be imported, make sure the file exists
       if (importDemoData && demodataFile == null) {
@@ -144,10 +147,15 @@ public class OpConfigurationWizardService extends OpProjectService {
 
    /**
     * Gets the demodata file.
+    *
+    * @param fileName Name of the demo data file (if null, a default will be used)
     * @return a <code>File</code> object representing the demodata, or null if the demodata doesn't exist.
     */
-   private File getDemodataFile() {
-      String demodataBackupFilePath = DEMODATA_DIR + "/" + DEMODATA_FILE;
+   private File getDemodataFile(String fileName) {
+      if (fileName == null) {
+         fileName = DEMODATA_FILE;
+      }
+      String demodataBackupFilePath = DEMODATA_DIR + "/" + fileName;
       File demodataBackupFile = new File(".", demodataBackupFilePath);
       if (!demodataBackupFile.exists() || demodataBackupFile.isDirectory()) {
          return null;
@@ -157,15 +165,16 @@ public class OpConfigurationWizardService extends OpProjectService {
 
    /**
     * Checks whether the given db connection parameters are ok to establish a db connection.
-    * @param databaseDriver a <code>String</code> representing the database driver class.
-    * @param databaseURL a <code>String</code> representing the db connection url.
-    * @param databaseLogin a <code>String</code> representing the user name of the db connection.
+    *
+    * @param databaseDriver   a <code>String</code> representing the database driver class.
+    * @param databaseURL      a <code>String</code> representing the db connection url.
+    * @param databaseLogin    a <code>String</code> representing the user name of the db connection.
     * @param databasePassword a <code>String</code> representing the db password.
     * @return an <code>int</code> representing an error code or 0, representing no error.
     */
    private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword);
-      switch(testResult) {
+      switch (testResult) {
          case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
             return OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR;
          }
@@ -186,11 +195,11 @@ public class OpConfigurationWizardService extends OpProjectService {
     * Writes the configuration file for the application, based on the information from the configuration wizard.
     *
     * @param configurationFileName a <code>String</code> representing the name of the application configuration file.
-    * @param databaseType a <code>String</code> representing the db type.
-    * @param databaseDriver a <code>String</code> representing the path to the db driver.
-    * @param databaseURL a <code>String</code> representing the db connection string.
-    * @param databaseLogin a <code>String</code> representing the user name in the db config.
-    * @param databasePassword a <code>String</code> representing the user password in the db.
+    * @param databaseType          a <code>String</code> representing the db type.
+    * @param databaseDriver        a <code>String</code> representing the path to the db driver.
+    * @param databaseURL           a <code>String</code> representing the db connection string.
+    * @param databaseLogin         a <code>String</code> representing the user name in the db config.
+    * @param databasePassword      a <code>String</code> representing the user password in the db.
     */
    private void writeConfigurationFile(String configurationFileName, String databaseType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       try {
