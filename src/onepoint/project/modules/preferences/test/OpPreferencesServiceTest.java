@@ -33,6 +33,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
    private static final String PASSWORD_ARG = "password";
    private static final String PASSWORD_RETYPED_ARG = "passwordRetyped";
    private static final String SHOW_HOURS_ARG = "showHours";
+   private static final String ENGLISH_LANGUAGE = "en";
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -46,7 +47,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       clean();
 
       Map userData = UserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
-      userData.put(OpUserService.LANGUAGE, "en");
+      userData.put(OpUserService.LANGUAGE, ENGLISH_LANGUAGE);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = getUserService().insertUser(session, request);
@@ -78,7 +79,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
    public void testSavePreferences()
         throws Exception {
       HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, "en");
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
       prefs.put(PASSWORD_ARG, NEW_PASSWORD);
       prefs.put(PASSWORD_RETYPED_ARG, NEW_PASSWORD);
       prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
@@ -103,6 +104,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       HashMap prefs = new HashMap();
       prefs.put(PASSWORD_ARG, NEW_PASSWORD);
       prefs.put(PASSWORD_RETYPED_ARG, "wrong_pass");
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
@@ -113,6 +115,8 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       prefs.clear();
       prefs.put(PASSWORD_ARG, null);
       prefs.put(PASSWORD_RETYPED_ARG, null);
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
+      prefs.put(SHOW_HOURS_ARG, Boolean.FALSE);
 
       request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
@@ -123,6 +127,8 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       prefs.clear();
       prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
       prefs.put(PASSWORD_RETYPED_ARG, NEW_PASSWORD);
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
+       prefs.put(SHOW_HOURS_ARG, Boolean.FALSE);
 
       request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
@@ -169,7 +175,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       broker.close();
 
       HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, "en");
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
       prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
       prefs.put(PASSWORD_RETYPED_ARG, null);
       prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
@@ -203,7 +209,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       broker.close();
 
       HashMap prefs = new HashMap();
-      prefs.put(LANGUAGE_ARG, "en");
+      prefs.put(LANGUAGE_ARG, ENGLISH_LANGUAGE);
       prefs.put(PASSWORD_ARG, OpPreferencesFormProvider.PASSWORD_TOKEN);
       prefs.put(PASSWORD_RETYPED_ARG, null);
       prefs.put(SHOW_HOURS_ARG, Boolean.TRUE);
@@ -235,5 +241,5 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpUserService.SUBJECT_IDS, ids);
       getUserService().deleteSubjects(session, request);
-   }   
+   }
 }

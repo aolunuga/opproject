@@ -104,6 +104,7 @@ public class OpConfigurationWizardTest extends OpBaseTestCase {
       params.put("database_login", dbUserName);
       params.put("database_password", dbPassword);
       params.put("import_demo_data", Boolean.TRUE);
+      params.put("demo_data_file_name", "invalid_demodata.xml");
 
       request = new XMessage();
       request.setArgument("parameters", new HashMap(params));
