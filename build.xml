@@ -528,7 +528,7 @@
          <fileset dir="${op.dist.dir}">
             <include name="${op.warname}.war"/>
          </fileset>
-         <zipfileset file="${op.release.dir}/readme.txt}"/>
+         <zipfileset file="${op.release.dir}/readme.txt"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.demodata.dir}"/>
          <zipfileset file="${op.license.file}"/>
       </zip>
