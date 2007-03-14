@@ -1,0 +1,16 @@
+<module name="work" caption="Arbeit" version="0.2" class="onepoint.project.modules.work.OpWorkModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/work/work_record.opt.xml"/>
+      <prototype-file file-name="/modules/work/work_slip.opt.xml"/>
+   </prototype-files>
+   <service-files>
+      <service-file file-name="/modules/work/work_service.osd.xml"/>
+   </service-files>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/work/i18n/work_en.olk.xml"/>
+      <language-kit-file file-name="/modules/work/i18n/work_de.olk.xml"/>
+   </language-kit-files>
+   <tools>
+      <tool name="work" caption="{$WorkTool}" group-ref="my" icon="/modules/work/icons/work_tool.png" start-form="/modules/work/forms/work_slips.oxf.xml" sequence="10"/>
+   </tools>
+</module>

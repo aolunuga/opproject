@@ -1,0 +1,644 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Open activity details script
+
+require "onepoint/project/modules/project_planning/scripts/add_resource.jes";
+
+import onepoint.project.modules.project.components.OpGanttValidator;
+
+function isTemplatePlan() {
+   dataSet = XDisplay.getActiveForm().findComponent("ProjectSettingsDataSet");
+   if (dataSet != null) {
+      i = 0;
+      while (i < dataSet.getChildCount()) {
+         dataRow = dataSet.getChild(i);
+         dataCell = dataRow.getChild(0);
+         valueName = dataCell.getStringValue();
+         if (valueName != null) {
+            if (valueName.equals("Template")) {
+               dataCell = dataRow.getChild(1);
+               return dataCell.getBooleanValue();
+            }
+         }
+         i++;
+      }
+   }
+   return false;
+}
+
+function editActivity(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+
+   //if a pop-up (e.g date-chooser) is opened, then this should do nothing
+   if (activity_data_set == null) {
+      return;
+   }
+
+   selected_rows = activity_data_set.selectedRows();
+   selected_indices = activity_data_set.selectedIndices();
+   if (selected_rows.size() > 0) {
+      data_row = selected_rows[0];
+      // get activity type
+      data_cell = data_row.getChild(1);
+      activity_type = data_cell.getByteValue().toInt();
+      //edit mode for project plan
+      edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
+      is_template = isTemplatePlan();
+
+      disabledFieldsIds = new ArrayList;
+      hiddenFieldsIds = new ArrayList;
+      hiddenTabsIds = new ArrayList;
+
+      if (activity_type == 0) {
+         titleComponentId = "StandardDialogTitle";
+
+         hiddenFieldsIds[0] = "Priority";
+
+         disabledFieldsIds[0] = "PersonnelCosts";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+      if (activity_type == 1) {
+         titleComponentId = "CollectionDialogTitle";
+
+         disabledFieldsIds[0] = "Complete";
+         disabledFieldsIds[1] = "Start";
+         disabledFieldsIds[2] = "End";
+         disabledFieldsIds[3] = "Duration";
+         disabledFieldsIds[4] = "BaseEffort";
+         disabledFieldsIds[5] = "PersonnelCosts";
+         disabledFieldsIds[6] = "TravelCosts";
+         disabledFieldsIds[7] = "MaterialCosts";
+         disabledFieldsIds[8] = "MiscellaneousCosts";
+         disabledFieldsIds[9] = "ExternalCosts";
+
+         hiddenFieldsIds[0] = "Priority";
+
+         hiddenTabsIds[0] = "ResourcesTab";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+      if (activity_type == 2) {
+         titleComponentId = "MilestoneDialogTitle";
+
+         hiddenFieldsIds[0] = "Priority";
+         hiddenFieldsIds[1] = "Duration";
+         hiddenFieldsIds[2] = "BaseEffort";
+
+         hiddenTabsIds[0] = "CostsTab";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+      if (activity_type == 3) {
+         titleComponentId = "TaskDialogTitle";
+
+         disabledFieldsIds[0] = "PersonnelCosts";
+
+         hiddenFieldsIds[0] = "Start";
+         hiddenFieldsIds[1] = "End";
+         hiddenFieldsIds[2] = "Duration";
+
+         hiddenTabsIds[0] = "PredecessorTab";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+      if (activity_type == 4) {
+         titleComponentId = "CollectionTaskDialogTitle";
+
+         disabledFieldsIds[0] = "Complete";
+         disabledFieldsIds[1] = "PersonnelCosts";
+         disabledFieldsIds[2] = "TravelCosts";
+         disabledFieldsIds[3] = "MaterialCosts";
+         disabledFieldsIds[4] = "MiscellaneousCosts";
+         disabledFieldsIds[5] = "ExternalCosts";
+         disabledFieldsIds[6] = "BaseEffort";
+
+         hiddenFieldsIds[0] = "Start";
+         hiddenFieldsIds[1] = "End";
+         hiddenFieldsIds[2] = "Duration";
+         hiddenFieldsIds[3] = "Priority";
+
+         hiddenTabsIds[0] = "PredecessorTab";
+         hiddenTabsIds[1] = "ResourcesTab";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+      if (activity_type == 5) {
+         titleComponentId = "ScheduledTaskTitle";
+
+         disabledFieldsIds[0] = "BaseEffort";
+         disabledFieldsIds[1] = "PersonnelCosts";
+         disabledFieldsIds[2] = "TravelCosts";
+         disabledFieldsIds[3] = "MaterialCosts";
+         disabledFieldsIds[4] = "MiscellaneousCosts";
+         disabledFieldsIds[5] = "ExternalCosts";
+
+         hiddenFieldsIds[0] = "Priority";
+
+         hiddenTabsIds[0] = "ResourcesTab";
+
+         addAlwaysDisableFields(disabledFieldsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+      }
+   }
+}
+
+function addAlwaysDisableFields(disabledFieldsIds){
+   size = disabledFieldsIds.size();
+   if (size == 0) {
+      index = 0;
+   }
+   else {
+      index = size - 1;
+   }
+   disabledFieldsIds[index] = "Category";
+}
+
+function setButtonVisibleMode(editMode, button) {
+   if (!editMode) {
+      button.setVisible(false);
+   }
+}
+
+function setDurationValue(duration_field, duration) {
+   durationColumn = XDisplay.getActiveForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
+   if (durationColumn.getID() == "Duration") {
+      durationUnit = durationColumn.getDisplayUnit();
+   }
+   else {
+      //default HOUR
+      durationUnit = Byte.parseByte("1");
+   }
+   duration_field.setDoubleValue(XCalendar.convertDurationToUnit(duration, durationUnit));
+}
+
+
+function getEditDialogForm() {
+   return "/modules/project_planning/forms/edit_activity.oxf.xml";
+}
+
+/**
+ * Prepares and open the edit activitiy dialog, for all the types of activities.
+ *
+ * @param titleComponentId - a String representing the i18n name of the resource for the title of the dialog, without the "Edit" or "Info" prefix.
+ * @param edit_mode - a boolean indicating whether we are in edit or info mode.
+ * @param is_template - a boolean indicating whether the current activity is part of a template or not.
+ * @param disabledFieldsIds - a List<String> representing the ids of the fields that should be disabled, according to the activity type.
+ * @param hiddenFieldIds - a List<String> representing the ids of the fields which should be hidden, according to the activity type.
+ * @param hiddenTabIds - a List<String> representing the ids of the tabs which should be hidden.
+ */
+function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldIds, hiddenTabsIds) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   selected_rows = activity_data_set.selectedRows();
+   selected_indices = activity_data_set.selectedIndices();
+   if (selected_rows.size() > 0) {
+      // Create dialog and load form
+      dialog = XComponent.newDialog();
+      parameters.activity_id = selected_rows[0].getStringValue();
+      dialog_form = dialog.loadForm(getEditDialogForm(), parameters);
+      if (edit_mode) {
+         titleComponentId = "Edit" + titleComponentId;
+         title = dialog_form.findComponent(titleComponentId).getText();
+      }
+      else {
+         titleComponentId = "Info" + titleComponentId;
+         title = dialog_form.findComponent(titleComponentId).getText();
+      }
+      dialog.setText(title);
+
+      //fill the project edit mode
+      dialog_form.findComponent("EditModeField").setBooleanValue(edit_mode);
+
+      // Fill ActivityRowIndex field
+      row_index = selected_indices[0];
+      dialog_form.findComponent("ActivityRowIndex").setValue(row_index);
+
+      // Fill general tab
+      data_row = selected_rows[0];
+
+      //name
+      data_cell = data_row.getChild(0);
+      field_id = "Name";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         name_field = dialog_form.findComponent(field_id);
+         name_field.setStringValue(data_cell.getStringValue());
+         setFieldEditMode(edit_mode, name_field, disabledFieldsIds);
+      }
+
+      //description
+      data_cell = data_row.getChild(16);
+      field_id = "Description";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         desc = data_cell.getStringValue();
+         description_field = dialog_form.findComponent(field_id);
+         description_field.setStringValue(desc);
+         setFieldEditMode(edit_mode, description_field, disabledFieldsIds);
+      }
+
+      //completed
+      data_cell = data_row.getChild(3);
+      field_id = "Complete";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         completed = data_cell.getDoubleValue();
+         completed_field = dialog_form.findComponent(field_id);
+         completed_field.setDoubleValue(completed);
+         if (!completed_field.getEnabled()) {
+            //this special case is for progress tracking on
+            setFieldEditMode(false, completed_field, disabledFieldsIds);
+         }
+         else {
+            setFieldEditMode(edit_mode, completed_field, disabledFieldsIds);
+         }
+      }
+
+      //start
+      data_cell = data_row.getChild(4);
+      field_id = "Start";
+      start = data_cell.getDateValue();
+      start_field = dialog_form.findComponent(field_id);
+      start_field.setDateValue(start);
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         start = data_cell.getDateValue();
+         start_field = dialog_form.findComponent(field_id);
+         start_field.setDateValue(start);
+         setFieldEditMode(edit_mode, start_field, disabledFieldsIds);
+      }
+
+      //end
+      data_cell = data_row.getChild(5);
+      field_id = "End";
+      end_field = dialog_form.findComponent(field_id);
+      end_field.setDateValue(data_cell.getDateValue());
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         end_field = dialog_form.findComponent(field_id);
+         end_field.setDateValue(data_cell.getDateValue());
+         setFieldEditMode(edit_mode, end_field, disabledFieldsIds);
+      }
+
+      //duration
+      data_cell = data_row.getChild(6);
+      field_id = "Duration";
+      duration = -1;
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         duration_field = dialog_form.findComponent(field_id);
+         duration = data_cell.getDoubleValue();
+         setDurationValue(duration_field, duration);
+         durationField = dialog_form.findComponent("ActivityDuration");
+         durationField.setDoubleValue(duration);
+         setFieldEditMode(edit_mode, duration_field, disabledFieldsIds);
+      }
+
+      //effort
+      data_cell = data_row.getChild(7);
+      effort = data_cell.getDoubleValue();
+      field_id = "BaseEffort";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         effort_field = dialog_form.findComponent(field_id);
+         effort_field.setDoubleValue(data_cell.getDoubleValue());
+         setFieldEditMode(edit_mode, effort_field, disabledFieldsIds);
+      }
+
+      //category
+      data_cell = data_row.getChild(2);
+      field_id = "Category";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         category_field = dialog_form.findComponent(field_id);
+         category = data_cell.getStringValue();
+         if (category != null) {
+            category_field.setStringValue(category);
+            category_field.getChild(0).setStringValue(category);
+         }
+         else {
+            noCategory = dialog_form.findComponent("ActivityCategoryDataSet").getChild(0).getStringValue();
+            category_field.setStringValue(noCategory);
+            category_field.getChild(0).setStringValue(noCategory);
+         }
+         setFieldEditMode(edit_mode, category_field, disabledFieldsIds);
+      }
+
+      //priority
+      data_cell = data_row.getChild(23);
+      field_id = "Priority";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         priority_field = dialog_form.findComponent(field_id);
+         priority = data_cell.getByteValue().toInt();
+         priority_field.setIntValue(priority);
+         setFieldEditMode(edit_mode, priority_field, disabledFieldsIds);
+      }
+
+      //mandatory (from attributes)
+      data_cell = data_row.getChild(18);
+      mandatory = (data_cell.getIntValue() & 1) == 1;
+      mandatory_field = dialog_form.findComponent("Mandatory");
+      mandatory_field.setBooleanValue(mandatory);
+      if (is_template && edit_mode) {
+         mandatory_field.setEnabled(true);
+      }
+
+      //Fill project assignment set & responsible resource
+      assignmentsSet = XDisplay.getActiveForm().findComponent("AssignmentSet");
+      responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");
+      i = 0;
+      if (assignmentsSet != null) {
+         while (i < assignmentsSet.getChildCount()) {
+            dataRow = assignmentsSet.getChild(i);
+            responsibleSet.addChild(dataRow);
+            i++;
+         }
+      }
+
+      data_cell = data_row.getChild(27);
+      field_id = "ResponsibleResource";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         resource_field = dialog_form.findComponent(field_id);
+         resourceLocator = data_cell.getStringValue();
+         responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");
+         if (resourceLocator != null) {
+            resource_field.setStringValue(resourceLocator);
+            resource_field.getChild(0).setStringValue(resourceLocator);
+         }
+         else {
+            noResponsible = responsibleSet.getChild(0).getStringValue();
+            resource_field.setStringValue(noResponsible);
+            resource_field.getChild(0).setStringValue(noResponsible);
+         }
+         showField = (edit_mode && (responsibleSet.getChildCount() > 1));
+         setFieldEditMode(showField, resource_field, disabledFieldsIds);
+      }
+
+      //resources tab
+      if (!shouldHideTab("ResourcesTab", hiddenTabsIds, dialog_form)) {
+         // Fill resources tab: Reuse resource data-set from activities form
+         resource_data_set = XDisplay.getActiveForm().findComponent("AssignmentSet");
+         dialog_form.findComponent("ResourceColumn").setDataSetComponent(resource_data_set);
+
+         assignment_set = dialog_form.findComponent("AssignmentSet");
+         data_cell = data_row.getChild(10);
+         resources = data_cell.getListValue();
+         noResourceId = "-1";
+         i = 0;
+         while (i < resources.size()) {
+            id = XValidator.choiceID(resources[i]);
+            if (!id.equals(noResourceId)) {
+               caption = XValidator.choiceCaption(resources[i]);
+               name = OpGanttValidator.getResourceName(caption, "%");
+               //default assignment is resource availability
+               assignment = getResourceAvailability(id);
+               if (name.length() != caption.length()) {
+                  assignment = OpGanttValidator.percentAssigned(resources[i]);
+               }
+               assignment_row = assignment_set.newDataRow();
+               assignment_cell = XComponent.newDataCell();
+               assignment_cell.setStringValue(XValidator.choice(id, name));
+               assignment_row.addChild(assignment_cell);
+               assignment_cell = XComponent.newDataCell();
+               assignment_cell.setDoubleValue(assignment);
+               assignment_row.addChild(assignment_cell);
+
+               assignment_h_cell = XComponent.newDataCell();
+               assignmentH = null;
+               //if there is no duration (e.g tasks, use the effort)
+               if (duration == -1) {
+                  if (effort != 0) {
+                     assignmentH = effort;
+                  }
+               }
+               else {
+                  assignmentH = assignment * duration / 100.0;
+               }
+
+               assignment_h_cell.setDoubleValue(assignmentH);
+               assignment_row.addChild(assignment_h_cell);
+               assignment_set.addDataRow(assignment_row);
+            }
+            i++;
+         }
+
+         // add/remove resource icon buttons visibility according to project edit mode
+         add_icon_button = dialog_form.findComponent("ResourceAddIcon");
+         showButtons = (edit_mode && (resource_data_set.getChildCount() > 0));
+         setButtonVisibleMode(showButtons, add_icon_button);
+         remove_icon_button = dialog_form.findComponent("ResourceRemoveIcon");
+         setButtonVisibleMode(showButtons, remove_icon_button);
+      }
+
+      //predecessor tab
+      if (!shouldHideTab("PredecessorTab", hiddenTabsIds, dialog_form)) {
+         // Fill predecessors tab: Reuse activity data-set from activities form
+         predecessor_name_column = dialog_form.findComponent("PredecessorNameColumn");
+         predecessor_name_column.setDataSetComponent(activity_data_set);
+
+         // *** Create predecessor-set from choice-list-value (XArray of String/Choice)
+         // ==> Should be quite similar to resources: Probably we can reuse much of the code
+         predecessor_set = dialog_form.findComponent("PredecessorSet");
+         data_cell = data_row.getChild(8);
+         predecessors = data_cell.getListValue();
+         i = 0;
+         while (i < predecessors.size()) {
+            activity_index = predecessors[i];
+            s = activity_index.toString();
+            activity_name = activity_data_set.getChild(activity_index).getChild(0).getStringValue();
+            predecessor_choice = XValidator.choice(s, activity_name);
+            predecessor_row = predecessor_set.newDataRow();
+            predecessor_cell = XComponent.newDataCell();
+            predecessor_cell.setStringValue(predecessor_choice);
+            predecessor_row.addChild(predecessor_cell);
+            predecessor_set.addDataRow(predecessor_row);
+            i++;
+         }
+         // add/remove predecessor icon buttons visibility according to project edit mode
+         add_icon_button = dialog_form.findComponent("PredecessorAddIcon");
+         setButtonVisibleMode(edit_mode, add_icon_button);
+         remove_icon_button = dialog_form.findComponent("PredecessorRemoveIcon");
+         setButtonVisibleMode(edit_mode, remove_icon_button);
+       }
+
+      //costs tab
+      if (!shouldHideTab("CostsTab", hiddenTabsIds, dialog_form)) {
+         //personnel costs (edit mode false by default)
+         data_cell = data_row.getChild(11);
+         field_id = "PersonnelCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            personnel_costs_field = dialog_form.findComponent(field_id);
+            personnel_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, personnel_costs_field, disabledFieldsIds);
+         }
+
+         //travel costs
+         data_cell = data_row.getChild(12);
+         field_id = "TravelCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            travel_costs_field = dialog_form.findComponent(field_id);
+            travel_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, travel_costs_field, disabledFieldsIds);
+         }
+
+         //material costs
+         data_cell = data_row.getChild(13);
+         field_id = "MaterialCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            material_costs_field = dialog_form.findComponent(field_id);
+            material_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, material_costs_field, disabledFieldsIds);
+         }
+
+         //external costs
+         data_cell = data_row.getChild(14);
+         field_id = "ExternalCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            external_costs_field = dialog_form.findComponent(field_id);
+            external_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, external_costs_field, disabledFieldsIds);
+         }
+
+         //miscellaneous costs
+         data_cell = data_row.getChild(15);
+         field_id = "MiscellaneousCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            miscellaneous_costs_field = dialog_form.findComponent(field_id);
+            miscellaneous_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, miscellaneous_costs_field, disabledFieldsIds);
+         }
+      }
+
+      //attachments tab
+      if (!shouldHideTab("AttachmentsTab", hiddenTabsIds, dialog_form)) {
+         // Fill attachments tab
+         attachment_set = dialog_form.findComponent("AttachmentSet");
+         data_cell = data_row.getChild(17);
+         attachments = data_cell.getListValue();
+         i = 0;
+         while (i < attachments.size()) {
+            attachment = attachments.get(i);
+            data_row = attachment_set.newDataRow();
+
+            //0 - type "u" or "d" identifier
+            dc = XComponent.newDataCell();
+            dc.setStringValue(attachment.get(0));
+            data_row.addChild(dc);
+
+            //1 - choice [name, id]
+            idx = 0;
+            if (attachment.get(0).equals("d")) {
+               idx = 1;
+            }
+
+            choice = attachment.get(1);
+            id = XValidator.choiceID(choice);
+            name = attachment.get(2);
+
+            dc = XComponent.newDataCell();
+            dc.setStringValue(XValidator.choice(id, name, idx));
+            data_row.addChild(dc);
+
+            //2 - location
+            dc = XComponent.newDataCell();
+            dc.setStringValue(attachment.get(3));
+            data_row.addChild(dc);
+
+            //for documents only
+            if (attachment.get(0).equals("d")) {
+               //3 - contentId
+               dc = XComponent.newDataCell();
+               dc.setStringValue(attachment.get(4));
+               data_row.addChild(dc);
+
+               //new attachments
+               if (id.equals("0")) {
+                  //4 - bytes
+                  dc = XComponent.newDataCell();
+                  dc.setValue(attachment.get(5));
+                  data_row.addChild(dc);
+
+                  //full document path (for viewing)
+                  data_row.setStringValue(attachment.get(6));
+               }
+            }
+
+            attachment_set.addDataRow(data_row);
+            i++;
+         }
+         // addURL/addDocument/remove/view attachements buttons visibility according to edit mode
+         add_document_button = dialog_form.findComponent("AddDocumentButton");
+         setButtonVisibleMode(edit_mode, add_document_button);
+         add_url_button = dialog_form.findComponent("AddURLButton");
+         setButtonVisibleMode(edit_mode, add_url_button);
+         remove_button = dialog_form.findComponent("RemoveAttachmentButton");
+         setButtonVisibleMode(edit_mode, remove_button);
+         view_button = dialog_form.findComponent("ViewAttachmentButton");
+         setButtonVisibleMode(edit_mode, view_button);
+      }
+
+      //cancel button visibility according to project edit mode
+      cancel_button = dialog_form.findComponent("cancelButton");
+      setButtonVisibleMode(edit_mode, cancel_button);
+
+      // Show form
+      dialog.open();
+   }
+}
+
+/**
+ * Checks for a given field id, whether that field should be visible or not. If not, hides the field together with its
+ * label.
+ *
+ * @param fieldId a String representing the id of the field (from activity.oxf.xml)
+ * @param hiddenFieldIds a List of field ids which should be hidden.
+ * @param form the edit activity form.
+ * @retun true if the field should be hidden, false otherwise.
+ */
+function shouldHideField(fieldId, hiddenFieldIds, form) {
+   if (hiddenFieldIds.contains(fieldId)) {
+      field = form.findComponent(fieldId);
+      field.setVisible(false);
+      fieldLabelId = fieldId + "Label";
+      fieldLabel = form.findComponent(fieldLabelId);
+      fieldLabel.setVisible(false);
+      return true;
+   }
+   else {
+      return false;
+   }
+}
+
+/**
+ * Checks for a given tab id, whether it should be visible or not.
+ *
+ * @param tabId a String representing the id of the tab (from activity.oxf.xml)
+ * @param hiddenTabIds a List of tab ids which should be hidden.
+ * @param form the edit activity form.
+ * @retun true if the tab should be hidden, false otherwise.
+ */
+function shouldHideTab(tabId, hiddenTabIds, form) {
+   if (hiddenTabIds.contains(tabId)) {
+      form.findComponent(tabId).setHidden(true);
+      return true;
+   }
+   else {
+      return false;
+   }
+}
+
+/**
+ * Makes a form field enabled or disabled, according to a flag and to a list of field ids which should be disabled.
+ * @param editMode a boolean indicating whether the field should be enabled or not.
+ * @param field a component of the edit activity form.
+ * @param disabledFieldIds a list of component ids which should always be disabled.
+ */
+function setFieldEditMode(editMode, field, disabledFieldIds) {
+   if (disabledFieldIds.contains(field.getID())) {
+      field.setEnabled(false);
+   }
+   else {
+      field.setEnabled(editMode);
+   }
+}
+
+

@@ -1,0 +1,90 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for add_document.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+function ok(event) {
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   attachment_data_set = previous_dialog.getChild(1).findComponent("AttachmentSet");
+   form = XDisplay.getActiveForm();
+
+   name = form.findComponent("Name").getStringValue();
+   //force name for an untitled document
+   if (name == null) {
+      name = "document";
+   }
+   location = form.findComponent("Location").getStringValue();
+
+   //full document path
+   data_row = attachment_data_set.newDataRow();
+   document_path = form.findComponent("DocumentPathField").getStringValue();
+   if (document_path != null) {
+      data_row.setStringValue(document_path);
+
+      //0 - type
+      data_cell = XComponent.newDataCell();
+      data_cell.setStringValue("d");
+      data_cell.setEnabled(false);
+      data_row.addChild(data_cell);
+
+      //1 - choice [name, id]
+      data_cell = XComponent.newDataCell();
+      data_cell.setStringValue(XValidator.choice("0", name, 1));
+      data_cell.setEnabled(false);
+      data_row.addChild(data_cell);
+
+      //2 - location
+      data_cell = XComponent.newDataCell();
+      data_cell.setStringValue(location);
+      data_cell.setEnabled(false);
+      data_row.addChild(data_cell);
+
+      //3 - content id (0 in new documents)
+      data_cell = XComponent.newDataCell();
+      data_cell.setStringValue("0");
+      data_cell.setEnabled(false);
+      data_row.addChild(data_cell);
+
+      //4 - the bytes of the file content
+      bytes = File.getBytes(document_path);
+      data_cell = XComponent.newDataCell();
+      data_cell.setValue(bytes);
+      data_cell.setEnabled(false);
+      data_row.addChild(data_cell);
+
+      attachment_data_set.addDataRow(data_row);
+
+      attachment_table_box = previous_dialog.getChild(1).findComponent("AttachmentList");
+      attachment_table_box.update();
+      dialog.close();
+   }
+   else {
+      error_label = form.findComponent("ErrorLabel");
+      error_label.setVisible(true);
+      form.doLayout();
+      form.repaint();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function select(event) {
+   document_path = XDisplay.showFileDialog("Dokument auswaehlen", true, null);
+   if (document_path != null) {
+      document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
+      document_path_field.setStringValue(document_path);
+
+      location = XDisplay.getActiveForm().findComponent("Location");
+      location.setStringValue(File.getDocumentLocation(document_path));
+      location.update();
+   }
+}

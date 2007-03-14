@@ -1,0 +1,32 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+
+function ok(event){
+
+   form = XDisplay.getActiveForm();
+   selected_rows = form.findComponent("TaskIds").getValue();
+   thisWindow = XDisplay.getActiveWindow();
+
+   request = new XMessage;
+   request.setAction("MyTasksService.deleteAdhocTask");
+   request.setArgument("adhocData", selected_rows);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   thisWindow.close();
+   handleResponse(response, "MainFrame", "refreshForm");
+}
+
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

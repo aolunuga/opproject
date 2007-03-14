@@ -1,0 +1,41 @@
+<language-kit locale="de">
+   <resource-map id="resource_utilization.module">
+      <resource id="UtilizationTool">Auslastung</resource>
+   </resource-map>
+   <resource-map id="resource_utilization.overview">
+      <resource id="FrameTitle">Ressourcenauslastung</resource>
+      <resource id="Print">Drucken</resource>
+      <resource id="PrintTooltip">Diese Ansicht drucken</resource>
+      <resource id="ChangeTimeUnit">Zeiteinheit</resource>
+      <resource id="Days">Tage</resource>
+      <resource id="Weeks">Wochen</resource>
+      <resource id="Months">Monate</resource>
+      <resource id="SaveImage">Als Bild speichern...</resource>
+      <resource id="PrintTitle">Ressourcenauslastung</resource>
+
+      <resource id="HighlyUnderused">Sehr unterlastet (&lt; 0,5)</resource>
+      <resource id="Underused">Nicht ausgelastet (&lt; 0,8)</resource>
+      <resource id="Normalused">Gute Auslastung (0,8 - 1,0)</resource>
+      <resource id="Overused">Überlastet (&gt; 1,0)</resource>
+      <resource id="HighlyOverused">Stark überlastet (&gt; 1,2)</resource>
+   </resource-map>
+
+   <resource-map id="resource_utilization.details">
+      <resource id="ProjectName">Projekt</resource>
+      <resource id="ActivityName">Vorgang</resource>
+      <resource id="ActivitySequence">Nr.</resource>
+      <resource id="Start">Anfang</resource>
+      <resource id="Finish">Ende</resource>
+      <resource id="Assigned">% Zugewiesen</resource>
+      <resource id="Effort">Aufwand (h)</resource>
+      <resource id="Total">SUMME</resource>
+   </resource-map>
+
+   <resource-map id="pool_utilization.details">
+      <resource id="ResourceName">Resource</resource>
+      <resource id="Assigned">% Zugewiesen</resource>
+      <resource id="Effort">Aufwand (h)</resource>
+      <resource id="Total">SUMME</resource>
+   </resource-map>
+
+</language-kit>

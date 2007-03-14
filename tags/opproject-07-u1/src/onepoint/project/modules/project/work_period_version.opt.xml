@@ -1,0 +1,7 @@
+<prototype name="OpWorkPeriodVersion" instance-class="onepoint.project.modules.project.OpWorkPeriodVersion">
+   <field name="Start" type="Date" indexed="true"/>
+   <field name="BaseEffort" type="Double"/>
+   <field name="WorkingDays" type="Long"/>
+   <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="WorkPeriodVersions"/>
+   <relationship name="ActivityVersion" type="OpActivityVersion" back-relationship="WorkPeriodVersions"/>
+</prototype>

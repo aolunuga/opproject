@@ -1,0 +1,39 @@
+<service name="PlanningService" class="onepoint.project.modules.project_planning.OpProjectPlanningService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="importActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="bytes_array" instance-class="java.lang.Object" mode="input"/>
+   </method>
+   <method name="exportActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="activity_set" instance-class="onepoint.express.XComponent" mode="input"/>
+      <parameter name="file_name" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="editActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="saveActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="working_plan_version_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="activity_set" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
+   <method name="checkInActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="working_plan_version_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="activity_set" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
+   <method name="revertActivities">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="prepareAttachment">
+      <parameter name="attachment_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="insertComment">
+      <parameter name="comment_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteComment">
+      <parameter name="comment_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="createTemporaryFile">
+      <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+</service>

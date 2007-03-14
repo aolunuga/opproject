@@ -1,0 +1,151 @@
+<language-kit locale="de">
+   <resource-map id="resource.module">
+      <resource id="AdministrationTool">Verwaltung</resource>
+   </resource-map>
+   <resource-map id="resource.resources">
+      <resource id="NewPool">Neuer Pool</resource>
+      <resource id="NewResource">Neue Ressource</resource>
+      <resource id="Properties">Eigenschaften</resource>
+      <resource id="Move">Verschieben</resource>
+      <resource id="Edit">Bearbeiten</resource>
+      <resource id="Delete">Löschen</resource>
+      <resource id="AssignToProject">Projekt zuweisen</resource>
+      <resource id="ImportUser">Benutzer importieren</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+
+      <resource id="NewPoolTooltip">Neuen Ressourcepool erstellen</resource>
+      <resource id="NewResourceTooltip">Neue Ressource erstellen</resource>
+      <resource id="InfoTooltip">Metainformation für ausgewählte Ressource oder Pool anzeigen</resource>
+      <resource id="EditTooltip">Metainformation für ausgewählte Ressource oder Pool bearbeiten</resource>
+      <resource id="MoveTooltip">Ausgewählte Ressource oder Pool in einen anderen Pool verschieben</resource>
+      <resource id="DeleteTooltip">Ausgewählte Ressourcen oder Pools löschen</resource>
+      <resource id="AssignToProjectTooltip">Ausgewählte Ressourcen zu Projekt zuweisen</resource>
+      <resource id="ImportUsersTooltip">Benutzer als Ressourcen importieren</resource>
+
+   </resource-map>
+   <resource-map id="resource.NewPool">
+      <resource id="NewPool">Neuer Pool</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="NewPool">Neuer Pool</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.EditPool">
+      <resource id="EditPool">Pool bearbeiten</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.Info">
+      <resource id="InfoPool">Pooleigenschaften</resource>
+      <resource id="InfoResource">Ressourceneigenschaften</resource>
+   </resource-map>
+   <resource-map id="resource.NewResource">
+      <resource id="NewResource">Neue Ressource</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Projects">Projekte</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Available">Verfügbar (%)</resource>
+      <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="InheritPoolRate">Erbt Poolstundensatz</resource>
+      <resource id="ResponsibleUser">Verantwortlich</resource>
+      <resource id="SelectUser">Auswählen</resource>
+      <resource id="Pool">Pool</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.EditResource">
+      <resource id="EditResource">Ressource bearbeiten</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Projects">Projekte</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Available">Verfügbar (%)</resource>
+      <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="InheritPoolRate">Erbt Poolstundensatz</resource>
+      <resource id="ResponsibleUser">Verantwortlich</resource>
+      <resource id="SelectUser">Auswählen</resource>
+      <resource id="Pool">Pool</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.ImportUser">
+      <resource id="ImportUser">Benutzer importieren</resource>
+      <resource id="NameFormat">Namensformat</resource>
+      <resource id="Available">Verfügbar (%)</resource>
+      <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="InheritPoolRate">Erbt Poolstundensatz</resource>
+      <resource id="Pool">Pool</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Projects">Projekte</resource>
+   </resource-map>
+   <resource-map id="resource.ResourceChooser">
+      <resource id="SelectResource">Ressource oder Pool auswählen</resource>
+      <resource id="SelectPool">Pool auswählen</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.objects">
+      <resource id="RootResourcePoolName">Basisressourcenpool</resource>
+      <resource id="RootResourcePoolDescription">Der Basisressourcenpool bildet die Wurzel der Ressourcenhierarchie</resource>
+      <resource id="NotAssignedDisplayName">Nicht zugewiesen</resource>
+   </resource-map>
+   <resource-map id="resource.add_project">
+      <resource id="AddProject">Projekt hinzufügen</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.error">
+      <resource id="ResourceNameNotSpecified">Es wurde kein Ressourcename vergegeben</resource>
+      <resource id="ResourceNameNotUnique">Der Resourcenname wird bereits verwendet</resource>
+      <resource id="ResourceNameNotValid">Der Resourcenname is ungültig</resource>
+      <resource id="UserIDNotSpecified">Es wurde kein Benutzer ausgewählt</resource>
+      <resource id="PoolNameNotUnique">Der Poolname wird bereits verwendet</resource>
+      <resource id="PoolNameNotSpecified">Es wurde kein Poolname vergegeben</resource>
+      <resource id="AvailabilityNotValid">Dir eingegebene Verfügbarkeit ist nicht erlaubt</resource>
+      <resource id="HourlyRateNotValid">Der eingegebene Stundensatz ist nicht erlaubt</resource>
+      <resource id="NameFormatNotSpecified">Das Namensformat wurde nicht angegeben</resource>
+      <resource id="NameFormatNotValid">Das Namensformat ist nicht gültig</resource>
+      <resource id="ResourceNotFound">Die Ressource wurde nicht gefunden</resource>
+      <resource id="PoolNotFound">Der Pool wurde nicht gefunden</resource>
+      <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte um die Ressource oder den Pool zu bearbeiten</resource>
+      <resource id="AssignAccessDenied">You do not have sufficient privileges to assign resources to project</resource>
+      <resource id="ResourceAssignmentWarning">Could not assign all the selected resources to project</resource>
+      <resource id="ManagerAccessDenied">Sie benötigen Managerrechte für diese Funktion</resource>
+      <resource id="DeleteResourceAssignmentsDenied">Die Ressource konnte nicht gelöscht werden, da sie noch in Projektplänen verwendet wird</resource>
+      <resource id="DeletePoolResourceAssignmentsDenied">Die Ressourcenpool konnte nicht gelöscht werden, da seine Ressourcen noch in Projektplänen verwendet wird</resource>
+      <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
+      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
+   </resource-map>
+   <resource-map id="resource.delete">
+      <resource id="ConfirmDelete">Löschen von Ressouren und Pools</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Ressourcen oder Pools aus, die gelöscht werden sollen.</resource>
+      <resource id="ConfirmDeleteOneMessage">Möchten Sie die ausgewählte Ressource oder den Pool wirklich löschen?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Ressourcen und Pools wirklich löschen?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="resource.change">
+      <resource id="ConfirmChange">Ressource verändern</resource>
+      <resource id="ConfirmChangeHR">Wenn Sie den Stundensatz dieser Ressource verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="ConfirmChangeAvailable">Wenn Sie die Verfügbarkeit dieser Ressource verändern, dann werden die verknüpften Projektpläne neu validiert.</resource>
+      <resource id="ConfirmPoolChange">Ressourcenpool verändern</resource>
+      <resource id="ConfirmPoolChangeHR">Wenn Sie den Stundensatz dieses Ressourcenpools verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+</language-kit>

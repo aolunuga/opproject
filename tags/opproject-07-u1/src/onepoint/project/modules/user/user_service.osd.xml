@@ -1,0 +1,47 @@
+<service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="signOn">
+      <parameter name="login" instance-class="java.lang.String" mode="input"/>
+      <parameter name="password" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="insertUser">
+      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="insertGroup">
+      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateUser">
+      <parameter name="user_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateGroup">
+      <parameter name="group_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteSubjects">
+      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="deleteAssignments">
+      <parameter name="super_ids" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="sub_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="checkSubjects">
+      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="assignToGroup">
+      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="target_group_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="expandGroup">
+      <parameter name="source_group_locator" instance-class="java.lang.String" mode="input"/>
+      <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
+   </method>
+   <method name="expandFilteredGroup">
+      <parameter name="source_group_locator" instance-class="java.lang.String" mode="input"/>
+      <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
+      <parameter name="EnableUsers" instance-class="java.lang.Boolean" mode="input"/>
+      <parameter name="EnableGroups" instance-class="java.lang.Boolean" mode="input"/>
+      <parameter name="IncludeParentsInFilter" instance-class="java.lang.Boolean" mode="input"/>
+      <parameter name="FilteredSubjectIds" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="signOff"/>
+</service>

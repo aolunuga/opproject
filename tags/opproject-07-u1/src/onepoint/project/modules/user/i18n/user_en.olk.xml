@@ -1,0 +1,149 @@
+<language-kit locale="en">
+   <resource-map id="user.module">
+      <resource id="UserTool">Users</resource>
+   </resource-map>
+   <resource-map id="user.add_group">
+      <resource id="AddGroup">Add Group</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="user.edit_group">
+      <resource id="EditGroup">Edit Group</resource>
+      <resource id="General">General</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="GroupAffiliation">Super Groups</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="user.edit_user">
+      <resource id="EditUser">Edit User</resource>
+      <resource id="General">General</resource>
+      <resource id="Firstname">First name</resource>
+      <resource id="Lastname">Last name</resource>
+      <resource id="Login">Login</resource>
+      <resource id="Password">Password</resource>
+      <resource id="PasswordRetyped">Retype password</resource>
+      <resource id="Description">Description</resource>
+      <resource id="UserLanguage">Language</resource>
+      
+      <resource id="Contact">Contact</resource>
+      <resource id="EMail">Email</resource>
+      <resource id="Phone">Phone</resource>
+      <resource id="Mobile">Mobile</resource>
+      <resource id="Fax">Fax</resource>
+      
+      <resource id="Groups">Groups</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+
+      <resource id="UserLevel">User Level</resource>
+      <resource id="ManagerLevel">Manager</resource>
+      <resource id="StandardLevel">Standard</resource>      
+   </resource-map>
+   <resource-map id="user.delete">
+      <resource id="ConfirmDelete">Delete Users or Groups</resource>
+      <resource id="NoSelectionMessage">Please select one or more users or groups which should be deleted.</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you want really want to delete the selected user or group?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you want really want to delete the selected users and groups?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="user.new_group">
+      <resource id="NewGroup">New Group</resource>
+      <resource id="General">General</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="GroupAffiliation">Super Groups</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+  <resource-map id="user.Info">
+      <resource id="InfoUser">User Info</resource>
+      <resource id="InfoGroup">Group Info</resource>
+  </resource-map>  
+   <resource-map id="user.new_user">
+      <resource id="NewUser">New User</resource>
+      <resource id="General">General</resource>
+      <resource id="Firstname">First name</resource>
+      <resource id="Lastname">Last name</resource>
+      <resource id="Login">Login</resource>
+      <resource id="Password">Password</resource>
+      <resource id="PasswordRetyped">Retype password</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Contact">Contact</resource>
+      <resource id="EMail">Email</resource>
+      <resource id="Phone">Phone</resource>
+      <resource id="Mobile">Mobile</resource>
+      <resource id="Fax">Fax</resource>
+      <resource id="UserLanguage">Language</resource>
+
+      <resource id="GroupAffiliation">Groups</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+
+      <resource id="UserLevel">User Level</resource>
+      <resource id="ManagerLevel">Manager</resource>
+      <resource id="StandardLevel">Standard</resource>
+   </resource-map>
+	<resource-map id="user.users">
+		<resource id="NewGroup">New Group</resource>
+		<resource id="NewUser">New User</resource>
+		<resource id="Properties">Properties</resource>
+		<resource id="Edit">Edit</resource>
+		<resource id="Delete">Delete</resource>
+		<resource id="AssignToGroup">Assign to Group</resource>
+      <resource id="Search">Find</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Login">Login</resource>
+
+      <resource id="NewGroupTooltip">Create new user group</resource>
+      <resource id="NewUserTooltip">Create new user</resource>
+      <resource id="InfoTooltip">View meta information for the selected user or group</resource>
+      <resource id="EditTooltip">Edit meta information for the selected user or group</resource>
+      <resource id="DeleteTooltip">Delete selected users and groups</resource>
+      <resource id="AssignToGroupTooltip">Assign the selected users and groups to a group</resource>
+				
+	</resource-map>
+   <resource-map id="user.SubjectChooser">
+      <resource id="SelectSubject">Select User or Group</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="user.permissions_tab">
+      <resource id="Administrators">Administrators</resource>
+      <resource id="Managers">Managers</resource>
+      <resource id="Contributors">Contributors</resource>
+      <resource id="Observers">Observers</resource>
+   </resource-map>
+   <resource-map id="user.objects">
+      <resource id="AdministratorDisplayName">Administrator</resource>
+      <resource id="AdministratorDescription">The administrator has originally administrative permissions everywhere</resource>
+      <resource id="EveryoneDisplayName">Everyone</resource>
+      <resource id="EveryoneDescription">Every user is originally member of this group</resource>
+   </resource-map>
+   <resource-map id="user.error">
+      <resource id="PasswordMismatch">The password you entered is not correct</resource>
+      <resource id="UserUnknown">The user name is unknown</resource>
+      <resource id="FirstNameMissing">The first name is not specified</resource>
+      <resource id="LastNameMissing">The last name is not specified</resource>
+      <resource id="LoginNameMissing">The login name is not specified</resource>
+      <resource id="PasswordMissing">The password is not specified</resource>
+      <resource id="LoginAlreadyUsed">The login name is already used by another user</resource>
+      <resource id="GroupNameMissing">Please enter a name for this group</resource>
+      <resource id="GroupNameAlreadyUsed">The group name is already used</resource>
+      <resource id="UserNotFound">The user name does not exist</resource>
+      <resource id="GroupNotFound">The group name does not exist</resource>
+      <resource id="GroupNotEmpty">The group still contains users. Are you sure that you want to delete it?</resource>
+      <resource id="EmailIncorrect">The e-mail address you entered is not valid</resource>
+      <resource id="InsufficientPrivileges">You do not have sufficient privileges to perform this operation</resource>
+      <resource id="SessionUser">You cannot delete the user you are currently signed on as</resource>
+      <resource id="EveryoneGroup">The group "Everyone" is a system-managed object and cannot be deleted</resource>
+      <resource id="LoopAssignment">This assignment would cause a loop</resource>
+      <resource id="InvalidUserLevel">Invalid user level</resource>
+      <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
+      <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
+      <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
+   </resource-map>
+</language-kit>

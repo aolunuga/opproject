@@ -1,0 +1,471 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for edit_activity.oxf.xml
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/project_planning/scripts/comments.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+import onepoint.util.XCalendar;
+
+function addURLAttachment(event) {
+  addURL(event);
+}
+
+function addDocumentAttachment(event) {
+   addDocument(event);
+}
+
+function removeAttachments(event) {
+   remove(event);
+}
+
+function viewAttachment(event) {
+  view(event);
+}
+
+function addAssignment(event) {
+   cur_form = XDisplay.getActiveForm();
+   assignment_data_set = cur_form.findComponent("AssignmentSet");
+
+   dialog = XComponent.newDialog();
+   form = dialog.loadForm("/modules/project_planning/forms/add_resource.oxf.xml");
+   new_resource_set = form.findComponent("ResourceDataSet");
+   resource_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
+
+   i = 0;
+   while(i < resource_set.getChildCount()) {
+      data_row = resource_set.getChild(i);
+      resource_name = data_row.getStringValue();
+
+      res = XValidator.choiceID(resource_name);
+      nrChildren = assignment_data_set.getChildCount();
+      j = 0;
+      found = false;
+      while (j<nrChildren){
+         assigned_resource_row = assignment_data_set.getChild(j);
+         assigned_resource = assigned_resource_row.getChild(0);
+         assigned_name = assigned_resource.getStringValue();
+         assigned_res = XValidator.choiceID(assigned_name);
+         if (assigned_res == res){
+            found = true;
+            break;
+         }
+         j++;
+      }
+
+      if (!found){
+         p_row = new_resource_set.newDataRow();
+         p_row.setStringValue(resource_name);
+         new_resource_set.addDataRow(p_row);
+      }
+      i++;
+   }
+
+   nrChoice = new_resource_set.getChildCount();
+   if (nrChoice > 0){
+      dialog.open();
+   }
+}
+
+function removeAssignments(event) {
+   activeForm = XDisplay.getActiveForm();
+
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   activity_row_index = activeForm.findComponent("ActivityRowIndex").getIntValue();
+   activity_row = activity_set.getChild(activity_row_index);
+   workRecordsMap = activity_row.getChild(24).getValue();
+
+   data_set = activeForm.findComponent("AssignmentSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      i = 0;
+      while (i < selected_rows.size()) {
+         selectedResource = selected_rows[i].getChild(0).getStringValue();
+         resourceLocator = XValidator.choiceID(selectedResource);
+         if (workRecordsMap.get(resourceLocator) == true) {
+            hasWorkRecords = workRecordsMap.get(resourceLocator);
+            errorText = activeForm.findComponent("WorkRecordsExistException").getText();
+            errorLabel = activeForm.findComponent("ValidationErrorLabel");
+            errorLabel.setText(errorText);
+            errorLabel.setVisible(true);
+            activeForm.doLayout();
+            activeForm.repaint();
+            return;
+         }
+         i++;
+      }
+      data_set.removeDataRows(selected_rows);
+      //get activity type
+      type_data_cell = activity_row.getChild(1);
+      activity_type = type_data_cell.getByteValue().toInt();
+      if (activity_type == 3) { // OpActivity.TASK
+         activeForm.findComponent("ResourceAddIcon").setEnabled(true);
+      }
+      activeForm.findComponent("AssignmentTable").update();
+   }
+}
+
+function addPredecessor(event) {
+   cur_form = XDisplay.getActiveForm();
+
+   dialog = XComponent.newDialog();
+   form = dialog.loadForm("/modules/project_planning/forms/add_predecessor.oxf.xml");
+   predecessor_set = form.findComponent("ActivityDataSet");
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   activity_predecessor_set = cur_form.findComponent("PredecessorSet");
+
+   i = 0;
+   row_index = cur_form.findComponent("ActivityRowIndex").getValue();
+   row_index_int = Integer.parseInt(row_index.toString());
+
+   while(i < activity_set.getChildCount()) {
+      if (i != row_index_int) {
+         data_row = activity_set.getChild(i);
+         activity_name = data_row.getChild(0).getStringValue();
+         data_cell = data_row.getChild(1);
+         activity_type = data_cell.getByteValue().toInt();
+         if (activity_type != 3 && activity_type != 4) {
+            exists = existsPredecessor(activity_name, activity_predecessor_set);
+            if (!exists) {
+               p_choice = XValidator.choice(i.toString(), activity_name);
+               p_row = predecessor_set.newDataRow();
+               p_row.setStringValue(p_choice);
+               predecessor_set.addDataRow(p_row);
+            }
+         }
+      }
+      i++;
+   }
+
+   dialog.open();
+}
+
+function existsPredecessor(activityName,predecessorSet){
+   i = 0;
+   exists = false;
+   while (i < predecessorSet.getChildCount()){
+      predecessorRow = predecessorSet.getChild(i);
+      predecessorName = XValidator.choiceCaption(predecessorRow.getChild(0).getStringValue());
+      if (activityName.equals(predecessorName)){
+         exists = true;
+         return exists;
+      }
+      i++;
+   }
+   return exists;
+}
+
+function removePredecessors(event) {
+   data_set = XDisplay.getActiveForm().findComponent("PredecessorSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("PredecessorTable").update();
+   }
+}
+
+function ok(event) {
+
+   // *** ATTENTION: You have to use OpGanttValidator.setDataCellValue(...)
+   // ==> Otherwise revalidation will not work
+
+   // *** Change data-set row according to values set
+   // ==> Problem: Do we need to know which fields have been changed? (No; validator)
+   // *** Other possibility: Fill data *here* -- in this script file
+   // ==> We could then change data directly and revalidate and reload changed data
+   // *** Advantage: We could use a similar event-handler for all relevant fields
+   // ==> Set value in data-set; revalidate on-demand; call data-refresh helper
+   // *** Although note: We would not have to refresh all fields; only some changed
+   // ==> Typical fields: BaseEffort, Duration, Start, End (are these all affected?)
+   // *** Therefore, it is better if only these fields are being refreshed
+   // ==> Leave the "fill-it-all" code in activities.jes
+
+   form = XDisplay.getActiveForm();
+   //the project edit mode
+   edit_mode = form.findComponent("EditModeField").getBooleanValue();
+   if (edit_mode){
+      activity_row_index = form.findComponent("ActivityRowIndex").getIntValue();
+      activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+      activity_row = activity_set.getChild(activity_row_index);
+
+      validator = activity_set.validator();
+      validator.setContinuousAction(true);
+      // Update general values
+      name = form.findComponent("Name").getStringValue();
+      if (!activity_set.setDataCellValue(activity_row, 0, name, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      description = form.findComponent("Description").getStringValue();
+      if (!activity_set.setDataCellValue(activity_row, 16, description, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      //complete
+      complete = form.findComponent("Complete").getDoubleValue();
+      validator.setDataCellValue(activity_row, 3, complete);
+
+      // no combine the changes to start, end, duration, effort and resources into one ArrayList
+      // so the GanttValidator can decide which values have changed and therefore update the project plan
+
+      array = new ArrayList;
+      start_field = form.findComponent("Start");
+      start = start_field.getDateValue();
+      array.add(start);
+
+      end_field = form.findComponent("End");
+      end = end_field.getDateValue();
+      array.add(end);
+
+      duration_field = form.findComponent("Duration");
+      duration = duration_field.getDoubleValue();
+
+      durationColumn = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
+      durationUnit = durationColumn.getDisplayUnit();
+      array.add(XCalendar.convertDurationFromUnit(duration, durationUnit));
+
+      effort_field = form.findComponent("BaseEffort");
+      effort = effort_field.getDoubleValue();
+      array.add(effort);
+
+      // Update resources
+      // *** Requires activity-set validation: BaseEffort and Duration may change
+      // ==> Simply use validator set* method (actually: XComponent.setDataCellValue)
+      // *** Note: Might be good to encode the general availability for a resource
+      // ==> ...already in the resource-set choice labels (you know when you select it)
+      // *** Note: If no availability is encoded (no n*% after the name) it is 100%
+      // *** Choice-data-set: Resource-set is taken as-is; no changes necessary
+      // *** If selected available percentage < 100: Concat to choice label
+      // ==> Encoded percentage must be stripped from label when chosen
+      // *** Stripping needs additional String method: replaceAll(regex, s)
+      // ==> Correct pattern is: "\d+%$"
+
+      // *** Note: Ideally, percentage-field has range 0-m (min/max) and step of 10
+      // ==> Where m is maximum for this particular resource (global availability)
+      resources_tab = form.findComponent("ResourcesTab");
+      if (resources_tab.getVisible() == true) {
+         ass = form.findComponent("AssignmentSet");
+         ass_project = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
+         ass_array = new ArrayList;
+         i = 0;
+         while (i < ass.getChildCount()) {
+            data_row = ass.getChild(i);
+            val = data_row.getChild(0).getStringValue();
+
+            id = XValidator.choiceID(val);
+            caption = XValidator.choiceCaption(val);
+            asigned = data_row.getChild(1).getDoubleValue();
+
+            available = 0;
+            j = 0;
+            while (j < ass_project.getChildCount()) {
+               res_data_row = ass_project.getChild(j);
+               available_data_cell = res_data_row.getChild(0);
+               available_res = available_data_cell.getDoubleValue();
+               idRes = XValidator.choiceID(res_data_row.getStringValue());
+               if (id == idRes) {
+                  available = available_res;
+               }
+               j++;
+            }
+
+            available_s = XCalendar.doubleToString(available);
+            asigned_s = XCalendar.doubleToString(asigned);
+            if (available_s != asigned_s) {
+               caption = caption.concat(" ");
+               caption = caption.concat(asigned_s);
+               caption = caption.concat("%");
+            }
+
+            ass_array.add(XValidator.choice(id, caption));
+            i++;
+         }
+
+         //validator.setDataCellValue(activity_row, 10, ass_array);
+         array.add(ass_array);
+      }
+      else {
+         array.add(null);
+      }
+
+      // now update validator with combined values
+      if (!activity_set.updateDataCells(activity_row, array, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      // Update predecessors
+      // *** IDEA: We could use the same trick as for resource availability percentages
+      // ==> Encode dependency type as, e.g. {1 (A)}, {1 A} or {1a} for type A
+      // *** Note: MS Project encodes it w/"EA" for Ende-Anfang etc.
+      // ==> We could do the same, but it would be language-dependent (disadvantage?)
+      // *** Problem: How to "choose" predecessors?
+      // ==> Probably it is just an int-value data-cell (maybe limited to 1--max)
+      // *** Note: MS Project lets you choose predecessors via drop-down by name
+      // ==> Could we achieve this as well?
+      // *** We would have to use the ActivitySet as data-set for a choice-cell
+      // ==> Would work OOTB if we would set a real choice as activity-row value
+      // *** Problem: At the moment we use the row-value for storing activity-ID
+      // ==> Maybe extend choice-editor to take an optional data-column-index attribute
+      // *** Attention: We have to check errors here
+      // ==> If validator detects a loop we have to reset the original value
+      // *** Most simply way to achieve this: Check return code of set* method
+      // ==> If returns false: Restore original value from activity-set
+      // *** Attention: This all must take place everytime a predecessor-cell is changed
+      // *** Note also: Choices must have form "row-index+1{Name}"
+      // ==> Must be recalculated/adjusted when indexes change (move-up/move-down/paste)
+      pre = form.findComponent("PredecessorSet");
+      pre_array = new ArrayList;
+      i = 0;
+      while (i < pre.getChildCount()) {
+         data_row = pre.getChild(i);
+         data_cell = data_row.getChild(0);
+         val = data_cell.getStringValue();
+         id = XValidator.choiceID(val);
+         pre_array.add(Integer.parseInt(id));
+         i++;
+      }
+
+      if (!activity_set.setDataCellValue(activity_row, 8, pre_array, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      // *** How could we solve the problem of language-dependent EA [de] == FS [en]?
+      // ==> We would have to have this information in the client session
+      // *** Maybe use client-variables (already thought about other user-settings)
+      // ==> OR: Simply use data-fields or a data-set in the form
+      // *** For instance: We could use a data-field of type string-list
+      // ==> Even better: We probably need a choice-cell in predecessors: Use data-rows
+      // *** How do we "build" the choice for the activity-data-set predecessors-column
+      // ==> We simply concat(...) the dependency-type (e.g., "EA") to the choice-caption
+      // *** How do we create the prececessor-data-set: Separate type from "real" caption
+      // ==> We should keep it "general": Provide a substring() function for String
+
+      // Update costs
+      personnel = form.findComponent("PersonnelCosts").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 11, personnel, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+      travel = form.findComponent("TravelCosts").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 12, travel, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+      material = form.findComponent("MaterialCosts").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 13, material, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+      external = form.findComponent("ExternalCosts").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 14, external, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+      misc = form.findComponent("MiscellaneousCosts").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 15, misc, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      // Update attachments
+      att_array = getAttachments();
+      if (!activity_set.setDataCellValue(activity_row, 17, att_array, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
+      // Update category
+      category = form.findComponent("Category").getStringValue();
+      if (category != null) { //all activities except TASK and COLLECTION_TASK
+         if (!activity_set.setDataCellValue(activity_row, 2, category, form)) {
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
+      // Update priority
+      priority_field = form.findComponent("Priority");
+      if (priority_field.getVisible() == true) {
+         priority = priority_field.getIntValue();
+         if (!activity_set.setDataCellValue(activity_row, 23, priority, form)){
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
+      // Update mandatory
+      mandatory_field = form.findComponent("Mandatory");
+      if (mandatory_field.getEnabled() == true) {
+         mandatory = mandatory_field.getBooleanValue();
+         attributes = activity_row.getChild(18).getIntValue();
+         valid = true;
+         if ((mandatory == false) && ((attributes & 1) == 1)) {
+            valid = activity_set.setDataCellValue(activity_row, 18, attributes + 1, form);
+         }
+         else {
+            if ((mandatory == true) && ((attributes & 1) == 0)) {
+               valid = activity_set.setDataCellValue(activity_row, 18, attributes - 1, form);
+            }
+         }
+         if (!valid){
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
+      // Update responsible resource
+      responsible = form.findComponent("ResponsibleResource").getStringValue();
+      if (responsible != null) {
+         if (!activity_set.setDataCellValue(activity_row, 27, responsible, form)) {
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
+
+      validator.setContinuousAction(false);
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("ProjectContentFrame").doLayout();
+      XDisplay.findFrame("ProjectContentFrame").repaint();
+   }
+   else {
+      XDisplay.getActiveWindow().close();
+   }
+}
+
+function addComment(event) {
+   // Open add-comment dialog w/activity-locator as parameter
+   activityLocator = XDisplay.getActiveForm().findComponent("ActivityIDField").getStringValue();
+   addActivityComment(activityLocator);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function refreshCalculatedFields() {
+   form = XDisplay.getActiveForm();
+   activity_row_index = form.findComponent("ActivityRowIndex").getIntValue();
+   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
+   activity_row = activity_set.getChild(activity_row_index);
+   start = activity_row.getChild(2).getDateValue();
+   form.findComponent("Start").setDateValue(start);
+   end = activity_row.getChild(3).getDateValue();
+   form.findComponent("End").setDateValue(end);
+   duration = activity_row.getChild(4).getDoubleValue() / 8.0;
+   form.findComponent("Duration").setDoubleValue(duration);
+   base_effort = activity_row.getChild(5).getDoubleValue();
+   form.findComponent("BaseEffort").setDoubleValue(base_effort);
+   form.repaint();
+}
+
