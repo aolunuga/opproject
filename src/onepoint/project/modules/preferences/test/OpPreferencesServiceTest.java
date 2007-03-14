@@ -241,5 +241,5 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpUserService.SUBJECT_IDS, ids);
       getUserService().deleteSubjects(session, request);
-   }
+   }   
 }

@@ -18,11 +18,11 @@ import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.sql.Date;
 
 /**
  * This class test resource service methods.
