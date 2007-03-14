@@ -1,20 +1,20 @@
-Onepoint Project 07 Open Edition
-================================
+Onepoint Project 07 Open Edition (Update 1)
+===========================================
 
 Welcome to the most current release of Onepoint Project Open Edition. This
 package contains the Web application archive (WAR) of Onepoint Project together
 with a short user tutorial.
 
 Please note that all installation steps in this document assume that you are
-using Tomcat and MySQL under Windows 2000/XP/2003 Server. If you are using Linux
-or Mac OS X, or a different application server or database you will have to
+using Tomcat and MySQL under Windows 2000/XP/Vista/2003 Server. If you are using
+Linux or Mac OS X, or a different application server or database you will have to
 adjust the installation steps according to your environment.
 
 
 System Requirements
 -------------------
 
-* Microsoft Windows 2000/XP/2003 Server, Linux or Mac OS X
+* Microsoft Windows 2000/XP/Vista/2003 Server, Linux or Mac OS X
 
 * Java Runtime Environment (JRE) version 1.4.2 or higher
 
