@@ -1,4 +1,8 @@
-<form id="NewWorkSlipForm" layout="border" width="900" height="540" text="{$NewWorkSlip}" resource-map-ref="work.new_work_slip" provider-class="onepoint.project.modules.work.forms.OpNewWorkSlipFormProvider" script="/modules/work/scripts/new_work_slip.jes">
+<form id="NewWorkSlipForm" layout="border" width="900" height="540" text="{$NewWorkSlip}"
+      resource-map-ref="work.new_work_slip"
+      provider-class="onepoint.project.modules.work.forms.OpNewWorkSlipFormProvider"
+      script="/modules/work/scripts/new_work_slip.jes"
+      default-button-ref="okButton">
    <!-- Maybe have a white background (border element w/white background) for the user data -->
    <!-- data-set id="ActivitySet"/ -->
    <data-set id="WorkRecordSet"/>

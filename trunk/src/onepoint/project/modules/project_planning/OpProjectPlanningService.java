@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -82,7 +82,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
          broker.close();
-         throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
+         throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST));
       }
 
       InputStream inFile = new ByteArrayInputStream(file);

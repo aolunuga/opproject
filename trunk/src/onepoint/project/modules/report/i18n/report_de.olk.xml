@@ -28,5 +28,7 @@
       <resource id="JasperCanNotBuildFilledReport">Jasper konnte den befüllten Bericht nicht erstellen</resource>
       <resource id="JasperCanNotExportReport">Jasper konnte den Bericht nicht exportieren</resource>
       <resource id="InvalidReportFormat">Angefordertes Berichtsformat wird nicht unterstützt</resource>
+      <resource id="CreateReportException">Beim Erstellen des Berichts ist ein Fehler augetreten</resource>
+      <resource id="SaveReportException">Beim Speichern des Berichts ist ein Fehler augetreten</resource>
    </resource-map>
 </language-kit>

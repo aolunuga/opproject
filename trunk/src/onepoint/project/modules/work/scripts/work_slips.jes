@@ -1,13 +1,17 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 // Controller script for work_slips.oxf.xml
 
-import onepoint.service.XMessage;
-import onepoint.express.XDisplay;
-import onepoint.express.XComponent;
-import onepoint.express.XValidator;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+import
+onepoint.express.XValidator;
 
 function newWorkSlip(event) {
    dialog = XComponent.newDialog();
@@ -41,8 +45,9 @@ function info(event) {
    }
 }
 
-
-function delete(event) {
+function
+delete(event)
+{
    data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
    selected_rows = data_set.selectedRows();
    if (selected_rows.size() > 0) {
@@ -54,8 +59,6 @@ function delete(event) {
 
 function selectionChanged(event) {
    form = XDisplay.getActiveForm();
-   editButton = form.findComponent("EditWorkSlip");
-   editButton.setEnabled(true);
    infoButton = form.findComponent("InfoWorkSlip");
    infoButton.setEnabled(true);
    deleteButton = form.findComponent("DeleteWorkSlip");
@@ -63,7 +66,7 @@ function selectionChanged(event) {
    form.repaint();
 }
 
-function filterChanged(event){
+function filterChanged(event) {
    Console.println("Filter changed");
    form = XDisplay.getActiveForm();
 
@@ -73,4 +76,5 @@ function filterChanged(event){
    parameters.period_choice_id = period_choice_id;
    XDisplay.findFrame("MainFrame").refreshForm(parameters);
 }
+
 

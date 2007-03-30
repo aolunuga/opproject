@@ -1,10 +1,14 @@
 /*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+/*
  * (c) 2005 OnePoint Software GmbH (Graz/Austria)
  * All rights reserved
  */
 package onepoint.project.configuration;
 
-import onepoint.project.util.OpBase64;
+import onepoint.util.XBase64;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -396,7 +400,7 @@ public class OpConfiguration {
    static String getEncryptedDbPassword(String unencryptedPasswd) {
       StringBuffer buffer = new StringBuffer(ENCRYPTION_TOKEN + unencryptedPasswd);
       buffer = buffer.reverse();
-      return OpBase64.encodeString(buffer.toString());
+      return XBase64.encodeString(buffer.toString());
    }
 
    /**
@@ -406,7 +410,7 @@ public class OpConfiguration {
     * @return a <code>String</code> representing the unencrypted password.
     */
    static String getUnEncryptedDbPassword(String encryptedPasswd) {
-      String decodedPasswd = OpBase64.decodeToString(encryptedPasswd);
+      String decodedPasswd = XBase64.decodeToString(encryptedPasswd);
       int startIndex = decodedPasswd.length() - ENCRYPTION_TOKEN.length();
       if (startIndex < decodedPasswd.length()) {
          StringBuffer buffer = new StringBuffer(decodedPasswd);

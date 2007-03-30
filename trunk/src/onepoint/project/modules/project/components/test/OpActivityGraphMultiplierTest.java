@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project.components.test;
 
@@ -10,12 +10,13 @@ import onepoint.express.server.XFormSchema;
 import onepoint.project.modules.project.components.OpActivityGraphFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpGraph;
+import onepoint.resource.XLocale;
+import onepoint.util.XCalendar;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mihai.costin
@@ -54,28 +55,13 @@ public class OpActivityGraphMultiplierTest extends TestCase {
    public void setUp()
         throws Exception {
       super.setUp();
+      XCalendar.getDefaultCalendar().configure(null, new XLocale("de", ""), null);
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
       XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);
       dataSet = (XComponent) testForm.getChild(0);
       validator = new OpGanttValidator();
       validator.setDataSet(dataSet);
-   }
-
-   /**
-    * Creates a <code>List</code> out of a data set.
-    * <p/>
-    * Helper method.
-    *
-    * @param dataSet -data set to be used inthe List generation.
-    * @return a <code>List</code> with the children of the dataSet.
-    */
-   private List dataSetToList(XComponent dataSet) {
-      List result = new ArrayList();
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         result.add(dataSet.getChild(i));
-      }
-      return result;
    }
 
    /**

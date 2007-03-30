@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -8,35 +8,35 @@ import java.util.Hashtable;
 
 public class OpSourceManager {
 
-	private static Hashtable _sources; // Mapping of source names to mounted object sources
-	private static OpSource _default_source; // Default object source
+	private static Hashtable sources; // Mapping of source names to mounted object sources
+	private static OpSource defaultSource; // Default object source
 
 	// In the future maybe JNDI-lookup instead of static?
 
 	static {
-		_sources = new Hashtable();
-		_default_source = null;
+		sources = new Hashtable();
+		defaultSource = null;
 	}
 
 	public static void registerSource(OpSource source) {
 		// To do: Check for uniqueness of name
 		if (source.getName() != null)
-			_sources.put(source.getName(), source);
+			sources.put(source.getName(), source);
 		// Invoke on-register callback
 		source.onRegister();
 	}
 
 	public static void setDefaultSource(OpSource source) {
 		// *** Check if source is registered
-		_default_source = source;
+		defaultSource = source;
 	}
 
 	public static OpSource getDefaultSource() {
-		return _default_source;
+		return defaultSource;
 	}
 
 	public static OpSource getSource(String name) {
-		return (OpSource) (_sources.get(name));
+		return (OpSource) (sources.get(name));
 	}
 
 	// Where to mount data sources (in sessions or here, more globally)?

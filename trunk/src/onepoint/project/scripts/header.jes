@@ -1,3 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
 // Event-script for header.oxf.xml
 
 import onepoint.express.XDisplay;

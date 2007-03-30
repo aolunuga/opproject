@@ -1,4 +1,7 @@
-<form layout="border" width="900" height="540" text="{$EditWorkSlip}" resource-map-ref="work.edit_work_slip" provider-class="onepoint.project.modules.work.forms.OpEditWorkSlipFormProvider" script="/modules/work/scripts/edit_work_slip.jes">
+<form layout="border" width="900" height="540" text="{$EditWorkSlip}" resource-map-ref="work.edit_work_slip"
+      provider-class="onepoint.project.modules.work.forms.OpEditWorkSlipFormProvider"
+      script="/modules/work/scripts/edit_work_slip.jes"
+      default-button-ref="okButton">
    <!-- Maybe have a white background (border element w/white background) for the user data -->
    <!-- data-set id="ActivitySet"/ -->
    <data-field id="WorkSlipIDField"/>
@@ -46,7 +49,8 @@
 	   
 	      <panel y="1" layout="flow" direction="east">
 	         <icon-button icon-type="PlusSign" id="WorkSlipAddIcon" on-button-pressed="addWorkSlip"/>
-		  </panel>
+           <icon-button icon-type="MinusSign" id="WorkSlipDeleteIcon" on-button-pressed="removeWorkSlips"/>           
+      </panel>
 		  
 	</panel>
 	   

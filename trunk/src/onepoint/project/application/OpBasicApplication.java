@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.application;
@@ -106,7 +106,7 @@ public class OpBasicApplication {
          XService service = XServiceManager.getService("UserService");
          XMessage request = new XMessage();
          request.setArgument("login", OpUser.ADMINISTRATOR_NAME);
-         request.setArgument("password", OpUserService.BLANK_PASSWORD);
+         request.setArgument("password", OpUser.BLANK_PASSWORD);
          XMessage response = service.invokeMethod(application.getSession(), "signOn", request);
          XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
          XDisplay.setCalendar(calendar);

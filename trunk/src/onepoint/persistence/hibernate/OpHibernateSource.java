@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -78,18 +78,18 @@ public class OpHibernateSource extends OpSource {
    private static Connection embededConnection = null;
 
    // A control-connection could retrieve the correct order of columns etc.
-   private Configuration _configuration = null;
-   private SessionFactory _session_factory = null;
+   private Configuration configuration = null;
+   private SessionFactory sessionFactory = null;
 
    /**
     * Configuration settings
     */
-   private String _url = null;
-   private String _login = ""; // For embedded databases (DERBY)
-   private String _password = "";
-   private String _driver_class_name = null;
-   private String _mapping = null;
-   private int _database_type = DERBY;
+   private String url = null;
+   private String login = ""; // For embedded databases (DERBY)
+   private String password = "";
+   private String driverClassName = null;
+   private String mapping = null;
+   private int databaseType = DERBY;
    private String connectionPoolMinSize;
    private String connectionPoolMaxSize;
    private String cacheCapacity;
@@ -100,11 +100,11 @@ public class OpHibernateSource extends OpSource {
    private static final int IBM_DB2_INDEX_NAME_LENGTH = 18;
 
    public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type) {
-      this._url = _url;
-      this._driver_class_name = _driver_class_name;
-      this._password = _password;
-      this._login = _login;
-      this._database_type = _database_type;
+      this.url = _url;
+      this.driverClassName = _driver_class_name;
+      this.password = _password;
+      this.login = _login;
+      this.databaseType = _database_type;
       OpBlobUserType.setDatabaseType(_database_type);
 
       if (_database_type == HSQLDB) {
@@ -113,47 +113,47 @@ public class OpHibernateSource extends OpSource {
    }
 
    final Configuration getConfiguration() {
-      return _configuration;
+      return configuration;
    }
 
    final SessionFactory getSessionFactory() {
-      return _session_factory;
+      return sessionFactory;
    }
 
    public final void setURL(String url) {
-      _url = url;
+      this.url = url;
    }
 
    public final String getURL() {
-      return _url;
+      return url;
    }
 
    public final void setLogin(String login) {
-      _login = login;
+      this.login = login;
    }
 
    public final String getLogin() {
-      return _login;
+      return login;
    }
 
    public final void setPassword(String password) {
-      _password = password;
+      this.password = password;
    }
 
    public final String getPassword() {
-      return _password;
+      return password;
    }
 
    public final void setDriverClassName(String driver_class_name) {
-      _driver_class_name = driver_class_name;
+      driverClassName = driver_class_name;
    }
 
    public final String getDriverClassName() {
-      return _driver_class_name;
+      return driverClassName;
    }
 
    public final int getDatabaseType() {
-      return _database_type;
+      return databaseType;
    }
 
    /**
@@ -213,10 +213,10 @@ public class OpHibernateSource extends OpSource {
             if (embededConnection == null) {
                embededConnection = DriverManager.getConnection(this.getURL(), null);
             }
-            session = _session_factory.openSession(embededConnection);
+            session = sessionFactory.openSession(embededConnection);
          }
          else {
-            session = _session_factory.openSession();
+            session = sessionFactory.openSession();
             if (session.connection().isClosed()) {
                logger.warn("ERROR: Hibernate supplied closed connection");
             }
@@ -230,7 +230,7 @@ public class OpHibernateSource extends OpSource {
    }
 
    public Class hibernateDialectClass() {
-      switch (_database_type) {
+      switch (databaseType) {
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
          case MYSQL:
@@ -248,7 +248,7 @@ public class OpHibernateSource extends OpSource {
          case SQLSERVER:
             return SQLServerDialect.class;
          default:
-            throw new IllegalArgumentException("No dialect for this database type " + _database_type);
+            throw new IllegalArgumentException("No dialect for this database type " + databaseType);
       }
    }
 
@@ -269,7 +269,7 @@ public class OpHibernateSource extends OpSource {
     * by using the configuration.oxc.xml file.
     */
    private void initDefaultConfigurationSettings() {
-      _configuration = new Configuration();
+      configuration = new Configuration();
       if (defaultHibernateConfigProperties == null) {
          InputStream input = this.getClass().getResourceAsStream("hibernate.properties");
          defaultHibernateConfigProperties = new Properties();
@@ -282,30 +282,30 @@ public class OpHibernateSource extends OpSource {
       }
       Properties configurationProperties = new Properties();
       configurationProperties.putAll(defaultHibernateConfigProperties);
-      _configuration.setProperties(configurationProperties);
+      configuration.setProperties(configurationProperties);
    }
 
    public void open() {
       initDefaultConfigurationSettings();
       // Build Hibernate configuration and session factory
-      _configuration.setProperty("hibernate.connection.driver_class", _driver_class_name);
-      _configuration.setProperty("hibernate.connection.url", _url);
-      _configuration.setProperty("hibernate.connection.username", _login);
-      _configuration.setProperty("hibernate.connection.password", _password);
-      _configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
+      configuration.setProperty("hibernate.connection.driver_class", driverClassName);
+      configuration.setProperty("hibernate.connection.url", url);
+      configuration.setProperty("hibernate.connection.username", login);
+      configuration.setProperty("hibernate.connection.password", password);
+      configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
 
       //connection pool configuration override
       if (connectionPoolMinSize != null) {
-         _configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
+         configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
       }
       if (connectionPoolMaxSize != null) {
-         _configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
+         configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
       }
       if (cacheCapacity != null) {
-         _configuration.setProperty(OpOSCache.OSCACHE_CAPACITY, cacheCapacity);
+         configuration.setProperty(OpOSCache.OSCACHE_CAPACITY, cacheCapacity);
       }
 
-      Reader reader = new StringReader(_mapping);
+      Reader reader = new StringReader(mapping);
       ByteArrayOutputStream byte_out = new ByteArrayOutputStream();
       try {
          OutputStreamWriter writer = new OutputStreamWriter(byte_out, "UTF-8");
@@ -319,9 +319,9 @@ public class OpHibernateSource extends OpSource {
          }
          while (chars_read != -1);
          writer.flush();
-         _configuration.addInputStream(new ByteArrayInputStream(byte_out.toByteArray()));
+         configuration.addInputStream(new ByteArrayInputStream(byte_out.toByteArray()));
          logger.debug("***before sf");
-         _session_factory = _configuration.buildSessionFactory();
+         sessionFactory = configuration.buildSessionFactory();
          logger.debug("***after sf");
       }
       catch (HibernateException e) {
@@ -337,9 +337,9 @@ public class OpHibernateSource extends OpSource {
     * @see onepoint.persistence.OpSource#existsTable(String)
     */
    public boolean existsTable(String tableName) {
-      Session session = _session_factory.openSession();
+      Session session = sessionFactory.openSession();
       String queryString = "select * from " + tableName;
-      switch (this._database_type) {
+      switch (this.databaseType) {
          case MYSQL: {
             queryString += " limit 1";
             break;
@@ -387,8 +387,8 @@ public class OpHibernateSource extends OpSource {
     * Closes this source, by releasing all resources.
     */
    public void close() {
-      _session_factory.close();
-      _configuration.getProperties().clear();
+      sessionFactory.close();
+      configuration.getProperties().clear();
    }
 
    public final String newColumnName(String property_name) {
@@ -445,7 +445,7 @@ public class OpHibernateSource extends OpSource {
       buffer.append(JOIN_NAME_SEPARATOR);
       buffer.append(property_name.toLowerCase());
       buffer.append(INDEX_NAME_POSTFIX);
-      if (_database_type == IBM_DB2 && buffer.length() > IBM_DB2_INDEX_NAME_LENGTH) {
+      if (databaseType == IBM_DB2 && buffer.length() > IBM_DB2_INDEX_NAME_LENGTH) {
          String indexName = buffer.substring(TABLE_NAME_PREFIX.length());
          int start = 0;
          if (indexName.length() > IBM_DB2_INDEX_NAME_LENGTH) {
@@ -534,13 +534,13 @@ public class OpHibernateSource extends OpSource {
       buffer.append("\n</class>\n");
       buffer.append("</hibernate-mapping>\n");
       // Set mapping
-      _mapping = buffer.toString();
+      mapping = buffer.toString();
 
       System.err.println("***MAPPING\n---\n");
-      System.err.println(_mapping);
+      System.err.println(mapping);
       System.err.println("\n");
 
-      logger.debug(_mapping);
+      logger.debug(mapping);
    }
 
    protected void appendSubTypeMapping(StringBuffer buffer, OpPrototype prototype) {
@@ -583,10 +583,10 @@ public class OpHibernateSource extends OpSource {
             // Exception for MySQL: Use mediumblob (otherwise very limited
             // storage capability)
             if ((field.getTypeID() == OpType.CONTENT)) {
-               if ((_database_type == MYSQL) || (_database_type == MYSQL_INNODB)) {
+               if ((databaseType == MYSQL) || (databaseType == MYSQL_INNODB)) {
                   buffer.append(" sql-type=\"mediumblob\"");
                }
-               if ((_database_type == IBM_DB2)) {
+               if ((databaseType == IBM_DB2)) {
                   buffer.append(" sql-type=\"blob(100M)\"");
                }
             }
@@ -804,7 +804,7 @@ public class OpHibernateSource extends OpSource {
     * Updates the schema version number in the db, to the value of the SCHEMA_VERSION constant.
     */
    public void updateSchemaVersionNumber() {
-      Session session = _session_factory.openSession();
+      Session session = sessionFactory.openSession();
       Connection jdbcConnection = session.connection();
       Statement statement = null;
 
@@ -846,7 +846,7 @@ public class OpHibernateSource extends OpSource {
     *         can't be retrieved.
     */
    public int getExistingSchemaVersionNumber() {
-      Session session = _session_factory.openSession();
+      Session session = sessionFactory.openSession();
       Connection jdbcConnection = session.connection();
       Statement statement = null;
       ResultSet rs = null;
@@ -885,11 +885,11 @@ public class OpHibernateSource extends OpSource {
    }
 
    public void clear() {
-      _session_factory.evictQueries();
+      sessionFactory.evictQueries();
       Iterator prototypesIterator = OpTypeManager.getPrototypes();
       while (prototypesIterator.hasNext()) {
          OpPrototype prototype = (OpPrototype) prototypesIterator.next();
-         _session_factory.evict(prototype.getInstanceClass());
+         sessionFactory.evict(prototype.getInstanceClass());
       }
    }
 }

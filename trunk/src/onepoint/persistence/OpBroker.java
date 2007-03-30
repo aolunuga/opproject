@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -17,7 +17,7 @@ import java.util.Calendar;
 public class OpBroker {
    private static final XLog logger = XLogFactory.getLogger(OpBroker.class, true);
 
-   private OpConnection _default_connection; // Connection to default-source
+   private OpConnection defaultConnection; // Connection to default-source
    // Add object-caching here to broker/cursor instead of connection?!
    // ATTENTION: First implementation ONLY uses default-source
    // ==> Future implementations must add opening of sources and mapping of names/IDs to connections
@@ -26,21 +26,21 @@ public class OpBroker {
       // Constructor is only called by OpSourceManager
       OpSource default_source = OpSourceManager.getDefaultSource();
       if (default_source != null) {
-         _default_connection = default_source.newConnection();
+         defaultConnection = default_source.newConnection();
       }
    }
 
    public OpConnection getConnection() {
-      return _default_connection;
+      return defaultConnection;
    }
 
    public void makePersistent(OpObject object) {
       // Persist object into default source and set creation date and time
       TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
       object.setCreated(Calendar.getInstance(gmtTimezone).getTime());
-      
+
       object.setModified(null);
-      _default_connection.persistObject(object);
+      defaultConnection.persistObject(object);
       logger.debug("OpBroker.makePersistent(): id = " + object.getID());
    }
 
@@ -55,7 +55,7 @@ public class OpBroker {
    public OpObject getObject(Class c, long id) {
       // Get object by ID *** attention: Therewhile just default-connection
       logger.debug("getObject(): id = " + id);
-      return _default_connection.getObject(c, id);
+      return defaultConnection.getObject(c, id);
    }
 
    public void updateObject(OpObject object) {
@@ -63,21 +63,21 @@ public class OpBroker {
       // Set modification date and time (in GMT)
       TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
       object.setModified(Calendar.getInstance(gmtTimezone).getTime());
-      
-      _default_connection.updateObject(object);
+
+      defaultConnection.updateObject(object);
       logger.debug("/OpBroker.updateObject()");
    }
 
    public void deleteObject(OpObject object) {
       logger.debug("OpBroker.deleteObject()");
-      _default_connection.deleteObject(object);
+      defaultConnection.deleteObject(object);
       logger.debug("/OpBroker.deleteObject()");
    }
 
    public List list(OpQuery query) {
       // Find object in sources specified in query (default is default source)
-      if (_default_connection != null) {
-         return _default_connection.list(query);
+      if (defaultConnection != null) {
+         return defaultConnection.list(query);
       }
       else {
          return null;
@@ -86,8 +86,8 @@ public class OpBroker {
 
    public Iterator iterate(OpQuery query) {
       // Find object in sources specified in query (default is default source)
-      if (_default_connection != null) {
-         return _default_connection.iterate(query);
+      if (defaultConnection != null) {
+         return defaultConnection.iterate(query);
       }
       else {
          return null;
@@ -95,8 +95,8 @@ public class OpBroker {
    }
 
    public int execute(OpQuery query) {
-      if (_default_connection != null) {
-         return _default_connection.execute(query);
+      if (defaultConnection != null) {
+         return defaultConnection.execute(query);
       }
       else {
          return 0;
@@ -104,18 +104,18 @@ public class OpBroker {
    }
 
    public Blob newBlob(byte[] bytes) {
-      return _default_connection.newBlob(bytes);
+      return defaultConnection.newBlob(bytes);
    }
 
    public OpQuery newQuery(String s) {
-      return _default_connection.newQuery(s);
+      return defaultConnection.newQuery(s);
    }
-
 
    public void close() {
       // Probably rename this function
-      if (_default_connection != null) {
-         _default_connection.close();
+      if (defaultConnection != null) {
+         defaultConnection.close();
+         defaultConnection = null;
       }
    }
 
@@ -125,15 +125,22 @@ public class OpBroker {
     * @return true if it's open.
     */
    public boolean isOpen() {
-      return _default_connection != null && _default_connection.isOpen();
+      return defaultConnection != null && defaultConnection.isOpen();
+   }
+
+   public boolean isValid() {
+      if (defaultConnection == null) {
+         return (false);
+      }
+      return (defaultConnection.isValid());
    }
 
    public OpTransaction newTransaction() {
-      return _default_connection.newTransaction();
+      return defaultConnection.newTransaction();
    }
 
    public Connection getJDBCConnection() {
-      return _default_connection.getJDBCConnection();
+      return defaultConnection.getJDBCConnection();
    }
 
 }

@@ -138,7 +138,7 @@
       <resource id="Category">Category</resource>
       <resource id="Priority">Priority</resource>
       <resource id="Mandatory">Mandatory</resource>
-      <resource id="ResponsibleResource">Reponsible Resource</resource>
+      <resource id="ResponsibleResource">Responsible Resource</resource>
 
       <resource id="Resources">Resources</resource>
       <resource id="Resource">Resource</resource>
@@ -258,6 +258,7 @@
       <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
       <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
       <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
 
       <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
       <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>

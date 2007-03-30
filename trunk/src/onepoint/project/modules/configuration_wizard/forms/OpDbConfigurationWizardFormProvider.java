@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard.forms;
@@ -90,7 +90,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       XComponent dataRow ;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/onepoint", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
@@ -98,11 +98,11 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       dataSet.addDataRow(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/onepoint", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
       dataSet.addDataRow(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/onepoint", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
       dataSet.addDataRow(dataRow);
    }
 }

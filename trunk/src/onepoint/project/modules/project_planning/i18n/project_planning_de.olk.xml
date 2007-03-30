@@ -241,7 +241,7 @@
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJEKTNAVIGATOR</resource>
    </resource-map>
-   <resource-map id="project.error">
+   <resource-map id="project_planning.error">
       <resource id="CommentNameMissing">Der Betreff wurde nicht angegeben</resource>
       <resource id="CommentNotFound">Der Betreff wurde nicht gefunden</resource>
       <resource id="AdministratorAccessDenied">Sie benötigen Administratorrechte für diese Funktion</resource>
@@ -250,6 +250,7 @@
       <resource id="MsProjectFileReadError">Die Microsoft Project Datei kann nicht gelesen werden</resource>
       <resource id="MsProjectFileWriteError">Der Projektplan konnte nicht in das Microsoft Project Format exportiert werden</resource>
       <resource id="InsuficientAttachmentPermissions">Sie haben nicht die notwendigen Rechte um diese Anlage einzusehen</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips (en)</resource>
 
       <resource id="ProjectCheckedInError">Der Projektplan kann nicht bearbeitet werden, da keine Arbeitskopie existiert</resource>
       <resource id="ProjectCheckOutError">Es ist ein Fehler aufgetreten bei der Erstellung der Arbeitskopie</resource>

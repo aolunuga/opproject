@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -33,6 +33,7 @@ public class OpProjectPlanValidator {
 
    /**
     * Creates a new project plan validator instance.
+    *
     * @param projectPlan an <code>OpProjectPlan</code> entity.
     */
    public OpProjectPlanValidator(OpProjectPlan projectPlan) {
@@ -41,11 +42,11 @@ public class OpProjectPlanValidator {
 
    /**
     * Validates this validator's project plan.
-    * 
-    * @param broker a <code>OpBroker</code> used for persistence operations. Note that the state of this broker
-    * (opened/closed) is not maintained by this method and therefore must be handled elsewhere.
+    *
+    * @param broker   a <code>OpBroker</code> used for persistence operations. Note that the state of this broker
+    *                 (opened/closed) is not maintained by this method and therefore must be handled elsewhere.
     * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    * Can be <code>null</code>.
+    *                 Can be <code>null</code>.
     */
    public void validateProjectPlan(OpBroker broker, PlanModifier modifier) {
       OpTransaction tx = broker.newTransaction();
@@ -62,11 +63,31 @@ public class OpProjectPlanValidator {
    }
 
    /**
+    * Validates the working plan versions for the given project plan.
+    * @param broker   a <code>OpBroker</code> used for persistence operations.
+    * @param modifier  a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    *                  Can be <code>null</code>.
+    */
+   public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
+      OpTransaction tx = broker.newTransaction();
+
+      OpProjectNode projectNode = projectPlan.getProjectNode();
+      HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
+
+      logger.info("Revalidating working version plan for " + projectNode.getName());
+      OpGanttValidator validator = this.createValidator(resources);
+      this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+
+      tx.commit();
+   }
+
+   /**
     * Performs the actual validation on this validator's project plan.
-    * @param broker a <code>OpBroker</code> used for persistence operations.
+    *
+    * @param broker    a <code>OpBroker</code> used for persistence operations.
     * @param validator a <code>OpGanttValidator</code> used for gantt validation logic.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    * Can be <code>null</code>.
+    * @param modifier  a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    *                  Can be <code>null</code>.
     * @param resources a <code>HashMap</code> of project resources.
     */
    private void validatePlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
@@ -84,8 +105,7 @@ public class OpProjectPlanValidator {
    /**
     * Validates the working version of a project plan, if one exists.
     *
-    * @see onepoint.project.modules.project.OpProjectPlanValidator#validateProjectPlan(onepoint.persistence.OpBroker, onepoint.project.modules.project.OpProjectPlanValidator.PlanModifier)
-    *
+    * @see onepoint.project.modules.project.OpProjectPlanValidator#validateProjectPlan(onepoint.persistence.OpBroker,onepoint.project.modules.project.OpProjectPlanValidator.PlanModifier)
     */
    private void validateWorkingVersionPlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //if there is a working plan, validate it
@@ -105,6 +125,7 @@ public class OpProjectPlanValidator {
 
    /**
     * Creates a Gantt validation object that will update a project plan.
+    *
     * @param resources a <code>HashMap</code> of resources.
     * @return a <code>OpGanttValidator</code> instance.
     */
@@ -129,6 +150,7 @@ public class OpProjectPlanValidator {
 
       /**
        * Allows the implementing class (typically an anonymous inner class) to change a project plan before it's validated.
+       *
        * @param validator a <code>OpGanttValidator</code> that contains an in-memory representation of the project plan.
        */
       public void modifyPlan(OpGanttValidator validator);

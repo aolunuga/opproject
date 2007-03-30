@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository;
@@ -175,8 +175,8 @@ public class OpRepositoryService extends OpProjectService {
 
       try {
          OpInitializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
-         //invalidate all server sessions
-         projectSession.getServer().invalidateAllSessions();         
+         //invalidate all server sessions except the current one
+         projectSession.getServer().invalidateAllSessions(projectSession.getID());
       }
       catch (Exception e) {
          logger.error("Cannot restore repository because:" +  e.getMessage(), e);
@@ -206,7 +206,7 @@ public class OpRepositoryService extends OpProjectService {
       try {
          OpInitializer.resetDbSchema();
          //invalidate all server sessions
-         projectSession.getServer().invalidateAllSessions();
+         projectSession.getServer().invalidateAllSessions(projectSession.getID());
       }
       catch (Exception e) {
          logger.error("An error occured during reset:" + e.getMessage(), e);

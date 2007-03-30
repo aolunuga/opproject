@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -10,9 +10,9 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpGroup;
+import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
-import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -58,9 +58,8 @@ public class OpNewUserFormProvider implements XFormProvider {
       //fill the language dataset
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATA_SET);
       XComponent languageDataField = form.findComponent(USER_LANGUAGE_FIELD);
-      String localeId = session.getLocale().getID();
       OpUser currentUser = session.user(broker);
-      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageDataField, localeId, currentUser);
+      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageDataField, currentUser);
 
       //fill the user level dataset
       XLocalizer localizer = new XLocalizer();

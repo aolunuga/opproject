@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource;
@@ -138,15 +138,17 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       if (OpInitializer.isMultiUser()) {
          String user_id_string = (String) (resource_data.get("UserID"));
          if ((user_id_string != null) && (user_id_string.length() > 0)) {
-            OpUser user = (OpUser) (broker.getObject(user_id_string));
-            resource.setUser(user);
+           OpUser user = (OpUser) (broker.getObject(user_id_string));
+           resource.setUser(user);
+         } else { // set user to login user
+           resource.setUser(session.user(broker));
          }
       }
       else {
          OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getAdministratorID()));
          resource.setUser(user);
       }
-
+      
       OpTransaction t = broker.newTransaction();
 
       broker.makePersistent(resource);
@@ -471,8 +473,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       //update availability
+      List projectPlans = new ArrayList();
       if (availibityChanged) {
-         updateAvailability(broker, resource);
+         projectPlans = updateAvailability(broker, resource);
       }
 
       //update permissions
@@ -485,6 +488,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       t.commit();
+
+      //update the working versions for the project plans
+      for (Iterator iterator = projectPlans.iterator(); iterator.hasNext();) {
+         OpProjectPlan plan = (OpProjectPlan) iterator.next();
+         new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null);
+      }
+
       logger.debug("/OpResourceService.updateResource()");
       broker.close();
       return reply;
@@ -564,16 +574,21 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     *
     * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param resource a <code>OpResource</code> representing the resource being edited.
+    * @return List of project plans that had their assignments updated
     */
-   private void updateAvailability(OpBroker broker, OpResource resource) {
+   private List updateAvailability(OpBroker broker, OpResource resource) {
       Iterator it = getAssignmentsForWorkingVersions(broker, resource.getID());
+      List projectPlans = new ArrayList();
       while (it.hasNext()) {
          OpAssignmentVersion assignmentVersion = (OpAssignmentVersion) it.next();
          if (assignmentVersion.getAssigned() > resource.getAvailable()) {
             assignmentVersion.setAssigned(resource.getAvailable());
             broker.updateObject(assignmentVersion);
+            OpProjectPlan plan = assignmentVersion.getPlanVersion().getProjectPlan();
+            projectPlans.add(plan);
          }
       }
+      return projectPlans;
    }
 
    /**

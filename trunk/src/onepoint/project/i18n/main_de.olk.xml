@@ -44,6 +44,7 @@
       <resource id="Warning">Warnung</resource>
       <resource id="SessionExpired">Ihre Benutzersitzung ist abgelaufen. Bitte melden Sie sich neu an.</resource>
       <resource id="InsuficientViewPermissions">Sie haben nicht die notwendigen Zugriffsrechte um diese Information einzusehen</resource>
-      <resource id="InvalidSession">Sie müssen sich anmelden um diese Information einsehen zu dürfen</resource>      
+      <resource id="InvalidSession">Sie müssen sich anmelden um diese Information einsehen zu dürfen</resource>
+      <resource id="InvalidFileURL">Could not open file, because of an invalid request format</resource>
    </resource-map>
 </language-kit>

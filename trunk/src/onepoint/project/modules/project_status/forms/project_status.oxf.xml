@@ -15,8 +15,6 @@
                          on-button-pressed="newProjectStatus" tooltip="{$NewProjectStatusTooltip}"/>
             <tool-button id="Info" text="{$Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
                          on-button-pressed="info" tooltip="{$InfoTooltip}"/>
-            <tool-button id="Edit" text="{$Edit}" icon="/icons/edit.png" disabled-icon="/icons/edit_disabled.png"
-                         on-button-pressed="edit" tooltip="{$EditTooltip}"/>
             <tool-button id="Delete" text="{$Delete}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
@@ -29,7 +27,7 @@
          </tool-bar>
       </panel>
       <table-box id="ProjectStatusTable" data-set-ref="ProjectStatusDataSet" y="0" flexible="true"
-                 on-double-click="info"
+                 on-double-click="edit"
                  on-row-select="selectionChanged">
          <table-column text="" sortable="true" width="20" value-type="Index"/>
          <table-column width="160" text="{$Name}" sortable="true" data-column-index="1"/>

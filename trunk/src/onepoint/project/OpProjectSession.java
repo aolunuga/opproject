@@ -1,3 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
 package onepoint.project;
 
 import onepoint.error.XErrorMap;
@@ -382,4 +386,18 @@ public class OpProjectSession extends XExpressSession {
          it.remove();
       }
    }
+
+  public boolean isUser(OpUser user) {
+    if (user == null)
+      return (userId == NO_ID);
+    return(isUser(user.getID()));
+  }
+
+  public boolean isUser(long user_id) {
+    return(userId == user_id);
+  }
+
+  public boolean isLoggedOn() {
+    return(getUserID() != OpProjectSession.NO_ID);
+  }
 }

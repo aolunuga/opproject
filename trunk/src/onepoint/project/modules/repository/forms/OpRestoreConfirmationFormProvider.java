@@ -1,13 +1,11 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository.forms;
 
-import onepoint.express.server.XFormProvider;
 import onepoint.express.XComponent;
 import onepoint.service.server.XSession;
-import onepoint.project.OpInitializer;
 
 import java.util.HashMap;
 

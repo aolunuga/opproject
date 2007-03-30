@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 /**
@@ -14,14 +14,14 @@ import onepoint.express.XDisplay;
 
 function addURL(event) {
    dialog = XComponent.newDialog();
-   dialog.setText("URL Attachment hinzufÃ¼gen");
+   dialog.setText("URL Attachment hinzufügen");
    form = dialog.loadForm("/modules/project_planning/forms/add_url.oxf.xml");
    dialog.open();
 }
 
 function addDocument(event) {
    dialog = XComponent.newDialog();
-   dialog.setText("Dokument Attachment hinzufÃ¼gen");
+   dialog.setText("Dokument Attachment hinzufügen");
    form = dialog.loadForm("/modules/project_planning/forms/add_document.oxf.xml");
    dialog.open();
 }

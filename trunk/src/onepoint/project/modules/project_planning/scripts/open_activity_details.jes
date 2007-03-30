@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 // Open activity details script
@@ -423,7 +423,13 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
 
          // add/remove resource icon buttons visibility according to project edit mode
          add_icon_button = dialog_form.findComponent("ResourceAddIcon");
-         showButtons = (edit_mode && (resource_data_set.getChildCount() > 0));
+         showButtons = true;
+         if (resource_data_set == null) {
+            showButtons = false;
+         }
+         else {
+            showButtons = (edit_mode && (resource_data_set.getChildCount() > 0));
+         }
          setButtonVisibleMode(showButtons, add_icon_button);
          remove_icon_button = dialog_form.findComponent("ResourceRemoveIcon");
          setButtonVisibleMode(showButtons, remove_icon_button);

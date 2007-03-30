@@ -194,6 +194,9 @@
                                  icon="/modules/project_planning/icons/connection_s.png"
                                  on-button-pressed="changeGanttTool" tooltip="{$LinkTooltip}"/>
                </toggle-bar>
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeActivities"
+                       tooltip="{$RemoveActivityToolTip}"/>
+               <button style-ref="icon-button-default" icon="/icons/edit_s.png" on-button-pressed="editActivity" tooltip="{$EditActivity}"/>
                <button style-ref="icon-button-default" icon="/icons/cut_s.png" on-button-pressed="cutActivities" tooltip="{$CutActivities}"/>
                <button style-ref="icon-button-default" icon="/icons/copy_s.png" on-button-pressed="copyActivities" tooltip="{$CopyActivities}"/>
                <button style-ref="icon-button-default" icon="/icons/paste_s.png" on-button-pressed="pasteActivities" tooltip="{$PasteActivities}"/>

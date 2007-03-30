@@ -2,7 +2,8 @@ Manifest-Version: 1.0
 Ant-Version: Apache Ant 1.6.5
 Created-By: 1.5.0_06-b05 (Sun Microsystems Inc.)
 Main-Class: onepoint.project.application.OpBasicSplasher
-Class-Path: lib/activation.jar lib/antlr-2.7.6rc1.jar
+Class-Path: lib/express4j-07.jar
+   lib/activation.jar lib/antlr-2.7.6rc1.jar
    lib/asm.jar lib/c3p0-0.9.0.jar lib/cglib-nodep-2.1_3.jar
    lib/commons-collections-2.1.1.jar lib/commons-logging-1.0.4.jar
    lib/dom4j-1.6.jar lib/hibernate3.jar
@@ -13,4 +14,5 @@ Class-Path: lib/activation.jar lib/antlr-2.7.6rc1.jar
    lib/xercesImpl.jar lib/xml-apis.jar 
    lib/commons-beanutils-1.6.jar lib/commons-digester-1.7.jar
    lib/BrowserLauncher2-10rc4.jar lib/hsqldb.jar
-   lib/commons-javaflow-20060411.jar lib/express4j-07-u1.jar lib/mpxj.jar
+   lib/commons-javaflow-20060411.jar lib/gnu-crypto.jar lib/mpxj.jar
+   lib/retroweaver-all-2.0.jar lib/retroweaver-rt-2.0.jar

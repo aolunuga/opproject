@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -10,15 +10,15 @@ import onepoint.service.server.XServiceLoader;
 
 public class OpServiceFile {
 
-   private String _file_name;
-   private XService _service;
+   private String fileName;
+   private XService service;
 
    public final void setFileName(String file_name) {
-      _file_name = file_name;
+      fileName = file_name;
    }
 
    public final XService loadService() {
-      String service_file_name = OpProjectConstants.PROJECT_PACKAGE + _file_name;
+      String service_file_name = OpProjectConstants.PROJECT_PACKAGE + fileName;
       return new XServiceLoader().loadService(service_file_name);
    }
 

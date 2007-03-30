@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.components;
@@ -23,7 +23,12 @@ import java.util.List;
 
 public class OpProjectComponent extends XComponent {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
+   /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
+  private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
 
    public final static byte GANTT_ACTIVITY = 1;
    public final static byte GANTT_DEPENDENCY = 2; // *** "GANTT_CONNECTOR"?
@@ -149,8 +154,8 @@ public class OpProjectComponent extends XComponent {
    public final static String UTILIZATION_RESOURCE_DESCRIPTOR = "r";
 
    // Caption editor instance
-   public static XComponent _caption_editor = null;
-   public static XComponent _caption_editor_owner = null;
+   public static XComponent captionEditor = null;
+   public static XComponent captionEditorOwner = null;
 
    // Unique drag-item IDs
    // *** Nicer way to do it: Reuse GANTT_ACTIVITY and aspect DRAGABLE
@@ -282,18 +287,6 @@ public class OpProjectComponent extends XComponent {
       addDefaultStyle(DEFAULT_UTILIZATION_BOX_STYLE, DEFAULT_UTILIZATION_BOX_STYLE_ATTRIBUTES);
    }
 
-   /*
-    * Differences to XShape prototype: - No generalized anchor-points (always right to left middle) - No general
-    * arrow-routing algorithm (right, down, left if necessary, then down until reached, then right until reached) - Use
-    * bounds of component to determine middle - Open question: Maybe the text around shapes and milestones is drawn by
-    * GANTT_CHART - Also open issue: Maybe dependency-drawing must be handled separately (order of drawing) - Probably a
-    * good idea: This also solves the boundary problem - There should be a specialized grid (at least in x-direction)
-    * that takes time-scaling into account - Note that input data now comes in "days" instead of coordinates (although
-    * "x" and "width" can be used) - The scale of the x-axis must also be configurable for GANTT_CHART (property
-    * TIME_SCALE) - In addition, we need a property VERSION for all data-related components (tracking changes) -
-    * Milestones are handled separately in layout algoritm (x-grid "hot spot" is in the middle)
-    */
-
    /**
     * Type of the project component
     */
@@ -421,7 +414,7 @@ public class OpProjectComponent extends XComponent {
             setGridX(16);
             setGridY(16);
             setTimeUnit(XCalendar.DAYS);
-            XComponent view_port = _initializeScrollBox();
+            XComponent view_port = initializeScrollBox();
             OpProjectComponent gantt_chart = new OpProjectComponent(GANTT_CHART);
             // *** Should be configurable
             view_port.addChild(gantt_chart);
@@ -437,11 +430,11 @@ public class OpProjectComponent extends XComponent {
             setStyle(DEFAULT_GANTT_MAP_STYLE);
             break;
          case CAPTION_EDITOR:
-            _initialize(FORM);
+            initialize(FORM);
             setFocusable(true);
             setLayout("border");
-            // *** Use string constant or try to use protected _setLayout()
-            // ==> In addition: Rename _setLayout() to _setLayoutManager()
+            // *** Use string constant or try to use protected setLayout()
+            // ==> In addition: Rename setLayout() to _setLayoutManager()
             XComponent text_overlay = new XComponent(TEXT_OVERLAY);
             addChild(text_overlay);
             registerEventHandler(this, COMPONENT_EVENT);
@@ -468,7 +461,7 @@ public class OpProjectComponent extends XComponent {
             setTimeUnit(XCalendar.DAYS);
             OpProjectComponent utilization_chart = new OpProjectComponent(UTILIZATION_CHART);
             // *** Should be configurable
-            _initializeScrollBox().addChild(utilization_chart);
+            initializeScrollBox().addChild(utilization_chart);
             scrolling_header = new XComponent(XComponent.SCROLLING_HEADER);
             scrolling_header.setX(0);
             scrolling_header.setY(-1);
@@ -749,10 +742,10 @@ public class OpProjectComponent extends XComponent {
 
    protected XComponent _getCaptionEditor() {
       // Create caption-editor from standard components on-demand
-      if (_caption_editor == null) {
-         _caption_editor = new OpProjectComponent(CAPTION_EDITOR);
+      if (captionEditor == null) {
+         captionEditor = new OpProjectComponent(CAPTION_EDITOR);
       }
-      return _caption_editor;
+      return captionEditor;
    }
 
    public Integer getCachedHeight() {
@@ -861,21 +854,21 @@ public class OpProjectComponent extends XComponent {
          text = "";
       }
 
-      if (_caption_editor == null) {
+      if (captionEditor == null) {
          _getCaptionEditor();
       }
-      if (!_caption_editor.getVisible()) {
-         _caption_editor.setVisible(true);
-         XComponent line_editor = (XComponent) (_caption_editor._getChild(0)._getChild(0));
+      if (!captionEditor.getVisible()) {
+         captionEditor.setVisible(true);
+         XComponent line_editor = (XComponent) (captionEditor._getChild(0)._getChild(0));
          line_editor.setSelectionStart(0);
          line_editor.setSelectionEnd(text.length());
          line_editor.setStringValue(text);
 
-         _caption_editor.setSelectionStart(0);
-         _caption_editor.setSelectionEnd(text.length());
+         captionEditor.setSelectionStart(0);
+         captionEditor.setSelectionEnd(text.length());
 
-         _caption_editor.registerEventHandler(this, COMPONENT_EVENT);
-         _caption_editor_owner = this;
+         captionEditor.registerEventHandler(this, COMPONENT_EVENT);
+         captionEditorOwner = this;
          XComponent viewPort = (XComponent) getContext().getChild(VIEW_PORT_INDEX);
          XComponent verticalScrollBar = (XComponent) getContext().getChild(VERTICAL_SCROLL_BAR_INDEX);
          int scrollWidth = 0;
@@ -891,8 +884,8 @@ public class OpProjectComponent extends XComponent {
             x = ganttChartPosition;
          }
          // the open position of the caption + caption editor.width oversteps the viewport
-         if (_caption_editor.getBounds() != null) {
-            int decrement = x + _caption_editor.getBounds().width
+         if (captionEditor.getBounds() != null) {
+            int decrement = x + captionEditor.getBounds().width
                  - (ganttChartPosition + viewPort.getBounds().width - scrollWidth);
             if (decrement > 0) {
                x -= decrement;
@@ -901,22 +894,22 @@ public class OpProjectComponent extends XComponent {
          Point absolutePoint = getParent().absolutePosition(x, getBounds().y);
          // <FIXME author="Horia Chiorean" description="For some reason, only forms may have the property below set =>
          // we need to set it here.">
-         _caption_editor.setFocusedView(_caption_editor);
+         captionEditor.setFocusedView(captionEditor);
          // <FIXME>
-         getDisplay().openLayer(_caption_editor, absolutePoint.x, absolutePoint.y, true);
-         // _caption_editor.requestFocus();
-         _caption_editor.repaint();
+         getDisplay().openLayer(captionEditor, absolutePoint.x, absolutePoint.y, true);
+         // captionEditor.requestFocus();
+         captionEditor.repaint();
          // *** Maybe make this an event-handler for caption-editor
          // ==> We could then change our text when editor is closed
       }
    }
 
    protected void _closeCaptionEditor() {
-      if (_caption_editor.getVisible()) {
-         getDisplay().closeLayer(_caption_editor);
-         _caption_editor.unregisterEventHandler(_caption_editor_owner);
-         _caption_editor.setVisible(false);
-         _caption_editor_owner = null;
+      if (captionEditor.getVisible()) {
+         getDisplay().closeLayer(captionEditor);
+         captionEditor.unregisterEventHandler(captionEditorOwner);
+         captionEditor.setVisible(false);
+         captionEditorOwner = null;
       }
    }
 
@@ -1040,7 +1033,7 @@ public class OpProjectComponent extends XComponent {
 
          XCalendar calendar = XDisplay.getCalendar();
 
-         int first_weekday = calendar.getFirstWeekday();
+         int first_weekday = calendar.getCalendar().getFirstDayOfWeek();
          int last_weekday = calendar.previousWeekday(first_weekday);
          int first_workday = calendar.getFirstWorkday();
          int last_workday = calendar.getLastWorkday();
@@ -1200,8 +1193,8 @@ public class OpProjectComponent extends XComponent {
               - calendar.getCalendar().get(Calendar.DATE);
          setFirstMonthLength(first_month_length);
 
-         int start_weekday = calendar.getFirstWeekday();
-         logger.debug("---MONDAY = " + XCalendar.MONDAY);
+         int start_weekday = calendar.getCalendar().getFirstDayOfWeek();
+         logger.debug("---MONDAY = " + Calendar.MONDAY);
          logger.debug("START date from cal " + calendar.getCalendar().get(Calendar.DAY_OF_MONTH));
          logger.debug("START_WEEKDAY: " + start_weekday);
 
@@ -1255,7 +1248,7 @@ public class OpProjectComponent extends XComponent {
          // get the GanttHeaderComponent
          XComponent ganttHeader = (XComponent) (_getChild(3)).getChild(0);
          // get the style of the Gantt Header
-         XStyle ganttHeaderStyle = ganttHeader._getStyleAttributes();
+         XStyle ganttHeaderStyle = ganttHeader.getStyleAttributes();
          // calculate the widthIncrement
          int widthGapIncrement = ganttHeaderStyle.gap * 2;
          // get font metrics according to style
@@ -1310,7 +1303,7 @@ public class OpProjectComponent extends XComponent {
 
       if (ganttSize == null) {
          int height = getGridY();
-         XStyle chartStyle = _getStyleAttributes();
+         XStyle chartStyle = getStyleAttributes();
          OpProjectComponent box = (OpProjectComponent) getContext();
          XComponent dataSet = box.getDataSetComponent();
 
@@ -1340,7 +1333,7 @@ public class OpProjectComponent extends XComponent {
     * @return the height of the <code>UTILIZATION_CHART</code> component
     */
    public int getUtilizationChartHeight() {
-      XStyle utilizationStyle = _getStyleAttributes();
+      XStyle utilizationStyle = getStyleAttributes();
       // height increment
       int maxHeight = utilizationStyle.top + utilizationStyle.bottom;
       OpProjectComponent box = (OpProjectComponent) getContext();
@@ -1441,7 +1434,7 @@ public class OpProjectComponent extends XComponent {
     */
    private int maxActivityCaption(OpProjectComponent gantt_chart, String captionValueType) {
       int size = 0;
-      FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
+      FontMetrics metrics = getFontMetrics(getStyleAttributes().font());
       boolean hasActivities = false;
       for (int i = 0; i < gantt_chart.getContext().getDataSetComponent().getChildCount(); i++) {
 //         OpProjectComponent activity = (OpProjectComponent) gantt_chart.getChild(i);
@@ -1505,7 +1498,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public Dimension getPreferredSize() {
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       OpProjectComponent box = null;
       XComponent viewPort = null;
       Dimension realDim = null;
@@ -1534,7 +1527,7 @@ public class OpProjectComponent extends XComponent {
             Date start = gantt_chart.getStart();
             Date end = gantt_chart.getEnd();
             days = (int) ((end.getTime() - start.getTime()) / XCalendar.MILLIS_PER_DAY) + 1;
-            FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
+            FontMetrics metrics = getFontMetrics(getStyleAttributes().font());
             int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
             realDim = gantt_chart.computeNewDimension(box, days, 2 * line_height + style.gap);
             return realDim;
@@ -1558,7 +1551,7 @@ public class OpProjectComponent extends XComponent {
             Date end = chart.getEnd();
             days = (int) ((end.getTime() - start.getTime()) / XCalendar.MILLIS_PER_DAY) + 1;
             unitRatio = getUnitRatio(box.getTimeUnit());
-            FontMetrics metrics = getFontMetrics(_getStyleAttributes().font());
+            FontMetrics metrics = getFontMetrics(getStyleAttributes().font());
             int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
             realDim = new Dimension((int) (days / unitRatio * box._dayWidth()), 2 * line_height + style.gap);
             return realDim;
@@ -1892,7 +1885,7 @@ public class OpProjectComponent extends XComponent {
     */
    protected void _doLayoutUtilizationChart() {
       // TODO: Probably use double for x like for Gantt-chart (accuracy)
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       OpProjectComponent box = (OpProjectComponent) getContext();
       String resourceTableId = box.getResourceTableId();
       if (resourceTableId != null) {
@@ -2027,7 +2020,7 @@ public class OpProjectComponent extends XComponent {
          calendar.setTime(start);
          switch (timeUnit) {
             case XCalendar.WEEKS:
-               int minimumDay = XCalendar.getDefaultCalendar().getFirstWeekday();
+               int minimumDay = XCalendar.getDefaultCalendar().getCalendar().getFirstDayOfWeek();
                int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
                if (dayOfWeek > minimumDay) {
                   int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -2057,7 +2050,7 @@ public class OpProjectComponent extends XComponent {
       // *** Do we still need start_x, start_y?
       // Paint left, center and right labels (in the future maybe also top and
       // bottom labels)
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       FontMetrics metrics = getFontMetrics(style.font());
       g.setColor(style.foreground);
       g.setFont(style.font());
@@ -2177,7 +2170,7 @@ public class OpProjectComponent extends XComponent {
     */
    protected void _paintGanttDependency(Graphics g, Rectangle clip_area) {
       // Paint connector using PATH property
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       Point[] path = getPath();
       int[] points_x = new int[path.length];
       int[] points_y = new int[path.length];
@@ -2293,7 +2286,7 @@ public class OpProjectComponent extends XComponent {
     */
    protected void _paintGanttChartHistory(Graphics g, XComponent history) {
       // Assumes that history and data-set have the same number/order of rows
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       // *** Maybe have special HISTORY_STYLE property?
       OpProjectComponent box = (OpProjectComponent) getContext();
       double timeWidth = box._dayWidth();
@@ -2352,7 +2345,7 @@ public class OpProjectComponent extends XComponent {
     * @param clip_area the rectangle clip area
     */
    protected void paintUtilizationRow(Graphics g, Rectangle clip_area) {
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       Rectangle bounds = getBounds();
       OpProjectComponent box = (OpProjectComponent) getContext();
       double day_width = box._dayWidth();
@@ -2471,7 +2464,7 @@ public class OpProjectComponent extends XComponent {
 
    protected void _paintUtilizationChart(Graphics g, Rectangle clip_area) {
       _paintTimeChartBackground(g, clip_area);
-      _paintChildren(g, clip_area);
+      paintChildren(g, clip_area);
    }
 
    /**
@@ -2504,7 +2497,7 @@ public class OpProjectComponent extends XComponent {
       }
       long today = XCalendar.today().getTime();
       x = (int) ((today - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
-      g.setColor(_getStyleAttributes().selection_background);
+      g.setColor(getStyleAttributes().selection_background);
       g.fillRect(x, 0, width, bounds.height);
 
       if (validator.getProjectStart() == null) {
@@ -2538,7 +2531,7 @@ public class OpProjectComponent extends XComponent {
     */
    protected void _paintTimeChartBackground(Graphics g, Rectangle clip_area) {
       // *** Paint grid and "grey-out" holidays
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       Rectangle bounds = getBounds();
       g.setColor(style.background);
       g.fillRect(0, 0, bounds.width, bounds.height);
@@ -2586,7 +2579,7 @@ public class OpProjectComponent extends XComponent {
       // *** Attention with clipping (milestone) and transparency
       // (connector/dependency)
       Rectangle bounds = getBounds();
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       switch (pc_type) {
          case GANTT_CHART:
             initializeCalendar();
@@ -2595,7 +2588,7 @@ public class OpProjectComponent extends XComponent {
 
             // Paint activities and dependencies (in this order)
             insertLine = getGanttActivityLine(g);
-            _paintChildren(g, clip_area);
+            paintChildren(g, clip_area);
 
             // Paint history
             XComponent history = ((OpProjectComponent) getContext()).getHistory();
@@ -2606,7 +2599,7 @@ public class OpProjectComponent extends XComponent {
             //paint activity line
             if (insertLine != null) {
                Color oldColor = g.getColor();
-               g.setColor(_getStyleAttributes().border_light);
+               g.setColor(getStyleAttributes().border_light);
                g.drawLine((int) insertLine.getX1(), (int) insertLine.getY1(),
                     (int) insertLine.getX2(), (int) insertLine.getY2());
                g.setColor(oldColor);
@@ -2807,7 +2800,7 @@ public class OpProjectComponent extends XComponent {
    private void createComponentShape() {
 
       Rectangle bounds = getBounds();
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       int center_y = (bounds.height - style.top - style.bottom) / 2 + style.top;
       Area border = new Area();
       int[] points_x = new int[4];
@@ -3052,7 +3045,7 @@ public class OpProjectComponent extends XComponent {
       // Upper scale: Weeks (date of first weekday)
       // Lower scale: Days (first initial of weekday)
       Rectangle bounds = getBounds();
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
@@ -3104,7 +3097,7 @@ public class OpProjectComponent extends XComponent {
    protected void paintWeeksGanttHeader(Graphics g, Rectangle clip_area) {
       // Upper scale: Quarters; lower scale: Weeks
       Rectangle bounds = getBounds();
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
@@ -3232,7 +3225,7 @@ public class OpProjectComponent extends XComponent {
    protected void paintMonthsGanttHeader(Graphics g, Rectangle clip_area) {
       // Upper scale: Years; lower scale: Months
       Rectangle bounds = getBounds();
-      XStyle style = _getStyleAttributes();
+      XStyle style = getStyleAttributes();
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
@@ -4415,6 +4408,7 @@ public class OpProjectComponent extends XComponent {
                      // </FIXME>
                      break;
                      // *** CURSOR_UP/DOWN: Move activity up/down?
+                  case BACK_SPACE_KEY:
                   case DELETE_KEY: {
                      if (pc_type == GANTT_ACTIVITY) {
                         // Remove activity from chart
@@ -4524,7 +4518,7 @@ public class OpProjectComponent extends XComponent {
          case CAPTION_EDITOR:
             if (action == KEY_UP) {
                if (key_code == ENTER_KEY) {
-                  _sendValueChangedEvent(modifiers);
+                  sendValueChangedEvent(modifiers);
                }
                else {
                   _getChild(0).processKeyboardEvent(event, action, key_code, key_char, modifiers);
@@ -4616,8 +4610,8 @@ public class OpProjectComponent extends XComponent {
                line_editor.hideCursor();
                repaint();
 
-               // close the editor (_caption_editor should never be null here - paranoia)
-               if (_caption_editor != null && _caption_editor_owner != null) {
+               // close the editor (captionEditor should never be null here - paranoia)
+               if (captionEditor != null && captionEditorOwner != null) {
                   // close the layer
                   _closeCaptionEditor();
                }
@@ -4728,7 +4722,7 @@ public class OpProjectComponent extends XComponent {
       switch (pc_type) {
          case GANTT_BOX:
             // the Horizontal scroll Bar is at minumum or maximul position and the box is enabled
-            if (action == HEADER_DATE_UPDATE && getEditMode()) {
+            if (action == SCROLL_AT_END && getEditMode()) {
                // take the direction from the event
                int direction = ((Integer) event.get(DIRECTION)).intValue();
                // update the gantt chart start /end date and repaint all
@@ -4766,7 +4760,7 @@ public class OpProjectComponent extends XComponent {
                   dataSet.clearDataSelection();
                }
             }
-            _processScrollBoxComponentEvent(event, action);
+            processScrollBoxComponentEvent(event, action);
             super.processComponentEvent(event, action);
 
             break;
@@ -4779,7 +4773,7 @@ public class OpProjectComponent extends XComponent {
                   int increment = ((Integer) (event.get(INCREMENT))).intValue();
                   XComponent scroller = (XComponent) this.getChild(VERTICAL_SCROLL_BAR_INDEX);
                   scroller.moveSliderWithoutEvent(direction, increment);
-                  _scrollScrollBoxWithoutEvent(direction, increment);
+                  scrollScrollBoxWithoutEvent(direction, increment);
                }
             }
 
@@ -4792,16 +4786,16 @@ public class OpProjectComponent extends XComponent {
                      int increment = ((Integer) (event.get(INCREMENT))).intValue();
                      XComponent scroller = (XComponent) resourceTable.getChild(VERTICAL_SCROLL_BAR_INDEX);
                      scroller.moveSliderWithoutEvent(direction, increment);
-                     resourceTable._scrollScrollBoxWithoutEvent(direction, increment);
+                     resourceTable.scrollScrollBoxWithoutEvent(direction, increment);
                   }
                }
-               _processScrollBoxComponentEvent(event, action);
+               processScrollBoxComponentEvent(event, action);
             }
             super.processComponentEvent(event, action);
             return;
          case GANTT_ACTIVITY:
             if (action == VALUE_CHANGED) {
-               XComponent line_editor = (XComponent) (_caption_editor._getChild(0)._getChild(0));
+               XComponent line_editor = (XComponent) (captionEditor._getChild(0)._getChild(0));
                OpGanttValidator validator = (OpGanttValidator) ((XComponent) getDataRow().getParent()).validator();
                try {
                   validator.setDataCellValue(getDataRow(), OpGanttValidator.NAME_COLUMN_INDEX, line_editor.getStringValue());
@@ -5012,6 +5006,21 @@ public class OpProjectComponent extends XComponent {
          }
       }
 
+   }
+
+
+   public void setStateful(boolean stateful) {
+      switch (pc_type) {
+         case GANTT_BOX:
+            super.setStateful(stateful);
+            if (stateful) {
+               makeScrollBarsStateful();
+            }
+            break;
+         default:
+            super.setStateful(stateful);
+            break;
+      }
    }
 
    public Serializable state() {

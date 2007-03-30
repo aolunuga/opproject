@@ -113,9 +113,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpResource resource = resourceDataFactory.getResourceById(resId);
       OpProjectNode project = projectDataFactory.getProjectById(projId);
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -132,9 +131,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       projectAssignment.setProjectNode(project);
       broker.makePersistent(projectAssignment);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -211,9 +209,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -226,9 +223,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       assignment.setAssigned(50d);
       broker.makePersistent(assignment);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -268,9 +264,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -284,9 +279,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       assignment.setBaseEffort(25d);
       broker.makePersistent(assignment);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -339,9 +333,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -373,9 +366,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);

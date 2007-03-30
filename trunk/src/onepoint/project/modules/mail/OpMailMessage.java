@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.mail;
@@ -14,12 +14,12 @@ public class OpMailMessage {
 	
 	public final static String TEXT_PLAIN = "text/plain";
 	
-	private InternetAddress _from;
-	private ArrayList _tos = new ArrayList();
-	private ArrayList _ccs = new ArrayList();
-	private ArrayList _bccs = new ArrayList();
-	private String _subject;
-	protected StringBuffer _content = new StringBuffer();
+	private InternetAddress from;
+	private ArrayList tos = new ArrayList();
+	private ArrayList ccs = new ArrayList();
+	private ArrayList bccs = new ArrayList();
+	private String subject;
+	protected StringBuffer content = new StringBuffer();
 	
 	/*
 	- message.setContent("Hello", "text/plain")
@@ -36,63 +36,63 @@ public class OpMailMessage {
 	*/
 
 	public final void setFrom(String email) throws AddressException {
-		_from = new InternetAddress(email);
+		from = new InternetAddress(email);
 	}
 	
 	public final InternetAddress getFrom() {
-		return _from;
+		return from;
 	}
 
    public final void addTo(String email) throws AddressException {
-      _tos.add(new InternetAddress(email));
+      tos.add(new InternetAddress(email));
    }
 
 	public final void addTo(String email, String name) throws UnsupportedEncodingException{
-		_tos.add(new InternetAddress(email, name));
+		tos.add(new InternetAddress(email, name));
 	}
 
    public final Iterator getTos() {
-      return _tos.iterator();
+      return tos.iterator();
    }
 
    public final void addCC(String email) throws AddressException {
-      _ccs.add(new InternetAddress(email));
+      ccs.add(new InternetAddress(email));
    }
 
 	public final void addCC(String email, String name) throws UnsupportedEncodingException {
-		_ccs.add(new InternetAddress(email, name));
+		ccs.add(new InternetAddress(email, name));
 	}
 
    public final Iterator getCCs() {
-      return _ccs.iterator();
+      return ccs.iterator();
    }
 
    public final void addBCC(String email) throws AddressException {
-      _bccs.add(new InternetAddress(email));
+      bccs.add(new InternetAddress(email));
    }
 
 	public final void addBCC(String email, String name) throws UnsupportedEncodingException {
-		_bccs.add(new InternetAddress(email, name));
+		bccs.add(new InternetAddress(email, name));
 	}
 
    public final Iterator getBCCs() {
-      return _bccs.iterator();
+      return bccs.iterator();
    }
 
 	public final void setSubject(String subject) {
-		_subject = subject;
+		this.subject = subject;
 	}
 	
 	public final String getSubject() {
-		return _subject;
+		return subject;
 	}
 	
 	public final void addContent(String content) {
-		_content.append(content);
+		this.content.append(content);
 	}
 	
 	public final String content() {
-		return _content.toString();
+		return content.toString();
 	}
 	
 }

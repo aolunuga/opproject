@@ -1,3 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
 package onepoint.project.servlet;
 
 import onepoint.express.servlet.XExpressServlet;
@@ -16,6 +20,7 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
+import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
 
 import javax.servlet.ServletContext;
@@ -64,6 +69,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String FILE_PARAM = "file";
    private static final String INSUFICIENT_VIEW_PERMISSIONS = "{$InsuficientViewPermissions}";
    private static final String INVALID_SESSION = "{$InvalidSession}";
+   private static final String INVALID_FILE_URL = "{$InvalidFileURL}";
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    private String projectHome = null;
@@ -150,33 +156,45 @@ public class OpOpenServlet extends XExpressServlet {
 
       //there must be a user on the session for a file request to succed.
       if (isFileRequest(http_request) && session.isEmpty()) {
-         http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
-         PrintStream ps = new PrintStream(http_response.getOutputStream());
-         generateErrorPage(ps, INVALID_SESSION, session);
-         ps.flush();
-         ps.close();
+         generateErrorPage(http_response, INVALID_SESSION, session);
          return;
       }
 
       //search for content ids
       String contentId = http_request.getParameter(CONTENT_ID_PARAM);
       if (contentId != null && !contentId.trim().equals("")) {
-         String contentUrl = http_request.getParameter(FILENAME_PARAM);
+         String contentUrl = readParameter(http_request, FILENAME_PARAM);
+
+         if (contentUrl != null) {
+            if (XEncodingHelper.isValueEncoded(contentUrl)) {
+               contentUrl = XEncodingHelper.decodeValue(contentUrl);
+            }
+            else {
+               generateErrorPage(http_response, INVALID_FILE_URL, session);
+               return;
+            }
+         }
+
          generateContentPage(contentId, contentUrl, http_response, session);
          return;
       }
 
       //search for any files which need to be uploaded (e.g reports)
-      String filePath = http_request.getParameter(FILE_PARAM);
+      String filePath = readParameter(http_request, FILE_PARAM);
       if (filePath != null && !filePath.trim().equals("")) {
-         generateFilePage(filePath, http_response);
-         return;
+         if (XEncodingHelper.isValueEncoded(filePath)) {
+            generateFilePage(XEncodingHelper.decodeValue(filePath), http_response);
+            return;
+         }
+         else {
+            generateErrorPage(http_response, INVALID_FILE_URL, session);
+            return;
+         }
       }
 
       //by default generate the applet page
       http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
       generateAppletPage(http_response.getOutputStream(), http_request);
-
    }
 
    /**
@@ -186,7 +204,28 @@ public class OpOpenServlet extends XExpressServlet {
     * @return <code>true</coed> if the request is a request for a file.
     */
    private boolean isFileRequest(HttpServletRequest request) {
-      return request.getParameter(FILE_PARAM) != null || request.getParameter(CONTENT_ID_PARAM) != null;
+      return readParameter(request, FILE_PARAM) != null || request.getParameter(CONTENT_ID_PARAM) != null;
+   }
+
+   /**
+    * Reads those paramters from requests whcih might have values longer than 255 chars. Values of those
+    * paramters were splitted in chuncks.
+    *
+    * @param request         a <code>HttpServletRequest</code>.
+    * @param parameterPrefix parameter prefix to look for.
+    * @return value for that parameter.
+    */
+   private String readParameter(HttpServletRequest request, String parameterPrefix) {
+      StringBuffer buff = new StringBuffer();
+      String chunk = null;
+
+      int counter = 0;
+      while ((chunk = request.getParameter(parameterPrefix + counter)) != null) {
+         buff.append(chunk);
+         counter++;
+      }
+
+      return buff.length() > 0 ? buff.toString() : null;
    }
 
    /**
@@ -293,7 +332,7 @@ public class OpOpenServlet extends XExpressServlet {
     * Generates the server response in the case when a persisted contentId is requested.
     *
     * @param contentId     a <code>String</code> representing a content id.
-    * @param contentUrl  a <code>String</code> representing the url of the content.
+    * @param contentUrl    a <code>String</code> representing the url of the content.
     * @param http_response a <code>HttpServletResponse</code> representing the server response.
     * @param session       a <code>OpProjectSession</code> object representing the server session.
     */
@@ -365,7 +404,7 @@ public class OpOpenServlet extends XExpressServlet {
       String name = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length());
       String mimeType = OpContentManager.getFileMimeType(name);
       httpResponse.setContentType(mimeType);
-      setContentDisposition(httpResponse, name);
+      setContentDisposition(httpResponse, filePath);
 
       byte[] buffer = new byte[1024];
       try {
@@ -385,11 +424,16 @@ public class OpOpenServlet extends XExpressServlet {
 
    /**
     * Sets the content disposition for the http response.
+    *
     * @param httpResponse a <code>HttpServletResponse</code> object.
-    * @param fileName a <code>String</code> representing a name of a file.
+    * @param fileName     a <code>String</code> representing a name of a file.
     */
    private void setContentDisposition(HttpServletResponse httpResponse, String fileName) {
-      httpResponse.setHeader("Content-Disposition" , "inline;filename=" + fileName);
+      if (fileName != null && fileName.indexOf("/") != -1) {
+         fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+      }
+
+      httpResponse.setHeader("Content-Disposition", "inline;filename=" + fileName);
    }
 
 
@@ -433,10 +477,27 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * Generates an error page, as a user response to some action.
     *
-    * @param out            a <code>PrintStream</code> representing the output stream on which the server response is written.
+    * @param http_response a <code>HttpServletResponse</code> http response.
+    * @param errorMessage  a <code>String</code> representing an error message to display. The errorMessage tries to be
+    *                      i18ned from the main language res file.
+    * @param session       a <code>OpProjectSession</code> representing the application user session.
+    */
+   private void generateErrorPage(HttpServletResponse http_response, String errorMessage, OpProjectSession session)
+        throws IOException {
+      http_response.setContentType(TEXT_HTML_CONTENT_TYPE);
+      PrintStream ps = new PrintStream(http_response.getOutputStream());
+      generateErrorPage(ps, errorMessage, session);
+      ps.flush();
+      ps.close();
+   }
+
+   /**
+    * Generates an error page, as a user response to some action.
+    *
+    * @param out          a <code>PrintStream</code> representing the output stream on which the server response is written.
     * @param errorMessage a <code>String</code> representing an error message to display. The errorMessage tries to be
-    * i18ned from the main language res file.
-    * @param session        a <code>OpProjectSession</code> representing the application user session.
+    *                     i18ned from the main language res file.
+    * @param session      a <code>OpProjectSession</code> representing the application user session.
     */
    private void generateErrorPage(PrintStream out, String errorMessage, OpProjectSession session) {
       XLocalizer localizer = new XLocalizer();

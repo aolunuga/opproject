@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -11,14 +11,14 @@ import java.util.List;
 
 public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteConnection?
 
-   private OpSource _source; // The source the connection belongs to
+   private OpSource source; // The source the connection belongs to
 
    public OpConnection(OpSource source) {
-      _source = source;
+      this.source = source;
    }
 
    public final OpSource getSource() {
-      return _source;
+      return source;
    }
 
    // public abstract void createPrototype(String name);
@@ -35,6 +35,8 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    public abstract OpObject getObject(Class c, long id);
 
+//   public abstract boolean contains(Object obj);
+     
    public abstract void updateObject(OpObject object);
 
    public abstract void deleteObject(OpObject object);
@@ -44,6 +46,8 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
    public abstract Iterator iterate(OpQuery query);
 
    public abstract int execute(OpQuery query);
+
+   public abstract void flush();
 
    public abstract OpTransaction newTransaction();
 

@@ -25,9 +25,11 @@
          <!-- Note: If we add a choice-field for selecting outline-level -->
          <!-- Then, we cannot use the same data-set for this and the bar-chart -->
          <!-- (Major reason: Bar chart only make sense on first level) -->
-         <table-box id="CostTable" data-set-ref="CostSet" tree-column-index="0" pop-up-menu-ref="CostsTablePopupMenu">
+         <table-box id="CostTable" data-set-ref="CostSet" tree-column-index="1" pop-up-menu-ref="CostsTablePopupMenu">
             <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-            <table-column text="{$ActivityOrCostType}" width="185" data-column-index="0" sortable="true" decimals="2"/>
+            <table-column text="" width="0" hidden="true" data-column-index="7"
+                          row-font-styles="plain;bold;bold+italic;italic;italic;plain"/>
+            <table-column text="{$ActivityOrCostType}" width="185" data-column-index="0" sortable="true"/>
             <table-column text="{$Base}" width="70" data-column-index="1" value-type="Double" sortable="true" decimals="2"/>
             <table-column text="{$Actual}" width="70" data-column-index="2" value-type="Double" sortable="true" decimals="2"/>
             <table-column text="{$Remaining}" width="70" data-column-index="3" value-type="Double" sortable="true" decimals="2"/>

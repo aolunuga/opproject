@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -10,115 +10,120 @@ import java.util.*;
 
 public class OpModule {
 
-   private String _name;
-   private String _caption;
-   private String _version;
-   private ArrayList _prototype_files;
-   private ArrayList _prototypes;
-   private ArrayList _service_files;
-   private ArrayList _services;
-   private ArrayList _language_kit_files;
-   private ArrayList _language_kits;
-   private ArrayList _tools;
-   private ArrayList _groups;
+   private String name;
+   private String caption;
+   private String version;
+   private List prototypeFiles;
+   private List prototypes;
+   private List serviceFiles;
+   private List services;
+   private List languageKitPaths;
+   private List languageKits;
+   private List tools;
+   private List groups;
    private String extendedModule;
-   private Map toolsMap = new HashMap();
-   private Map groupsMap = new HashMap();
+   private Map toolsMap;
+   private Map groupsMap;
+
+   public OpModule() {
+      prototypeFiles = new ArrayList();
+      prototypes = new ArrayList();
+      serviceFiles = new ArrayList();
+      services = new ArrayList();
+      languageKitPaths = new ArrayList();
+      languageKits = new ArrayList();
+      tools = new ArrayList();
+      groups = new ArrayList();
+      toolsMap = new HashMap();
+      groupsMap = new HashMap();
+   }
 
    final void setName(String name) {
-      _name = name;
-      _prototype_files = new ArrayList();
-      _prototypes = new ArrayList();
-      _service_files = new ArrayList();
-      _services = new ArrayList();
-      _language_kit_files = new ArrayList();
-      _language_kits = new ArrayList();
-      _tools = new ArrayList();
-      _groups = new ArrayList();
+      this.name = name;
    }
 
    public final String getName() {
-      return _name;
+      return name;
    }
 
    final public void setCaption(String caption) {
-      _caption = caption;
+      this.caption = caption;
    }
 
    public final String getCaption() {
-      return _caption;
+      return caption;
    }
 
    final public void setVersion(String version) {
-      _version = version;
+      this.version = version;
    }
 
    public final String getVersion() {
-      return _version;
+      return version;
    }
 
-   final void setPrototypeFiles(ArrayList prototype_files) {
-      _prototype_files = prototype_files;
+   final void setPrototypeFiles(List prototype_files) {
+      prototypeFiles = prototype_files;
    }
 
    public final Iterator getPrototypeFiles() {
-      return _prototype_files.iterator();
+      return prototypeFiles.iterator();
    }
 
-   final void setPrototypes(ArrayList prototypes) {
-      _prototypes = prototypes;
+   final void setPrototypes(List prototypes) {
+      this.prototypes = prototypes;
    }
 
    public final Iterator getPrototypes() {
-      return _prototypes.iterator();
+      return prototypes.iterator();
    }
 
-   final void setServiceFiles(ArrayList service_files) {
-      _service_files = service_files;
+   final void setServiceFiles(List service_files) {
+      serviceFiles = service_files;
    }
 
    public final Iterator getServiceFiles() {
-      return _service_files.iterator();
+      return serviceFiles.iterator();
    }
 
-   final void setServices(ArrayList services) {
-      _services = services;
+   final void setServices(List services) {
+      this.services = services;
    }
 
    public final Iterator getServices() {
-      return _services.iterator();
+      return services.iterator();
    }
 
-   final void setLanguageKitFiles(ArrayList language_kit_files) {
-      _language_kit_files = language_kit_files;
+   final void setLanguageKitPaths(List language_kit_paths) {
+      languageKitPaths = language_kit_paths;
    }
 
-   public final Iterator getLanguageKitFiles() {
-      return _language_kit_files.iterator();
+   public final Iterator getLanguageKitPaths() {
+      return languageKitPaths.iterator();
    }
 
-   final void setLanguageKits(ArrayList language_kits) {
-      _language_kits = language_kits;
+   final void setLanguageKits(List language_kits) {
+      languageKits = language_kits;
    }
 
    public final Iterator getLanguageKits() {
-      return _language_kits.iterator();
+      return languageKits.iterator();
    }
 
-   final void setTools(ArrayList tools) {
-      _tools = tools;
+   final void setTools(List tools) {
+      this.tools = tools;
    }
 
    public final Iterator getTools() {
-      return _tools.iterator();
+      return tools.iterator();
    }
 
-   final void setGroups(ArrayList groups) {
-      _groups = groups;
+   final void setGroups(List groups) {
+      this.groups = groups;
    }
 
    public final Iterator getGroups() {
-      return _groups.iterator();
+      return groups.iterator();
    }
 
    public String getExtendedModule() {
@@ -130,8 +135,8 @@ public class OpModule {
    }
 
    public Map getToolsMap() {
-      if (toolsMap.size() != _tools.size()) {
-         for (Iterator it = _tools.iterator(); it.hasNext();) {
+      if (toolsMap.size() != tools.size()) {
+         for (Iterator it = tools.iterator(); it.hasNext();) {
             OpTool opTool = (OpTool) it.next();
             toolsMap.put(opTool.getName(), opTool);
          }
@@ -140,8 +145,8 @@ public class OpModule {
    }
 
    public Map getGroupsMap() {
-      if (groupsMap.size() != _groups.size()) {
-         for (Iterator it = _groups.iterator(); it.hasNext();) {
+      if (groupsMap.size() != groups.size()) {
+         for (Iterator it = groups.iterator(); it.hasNext();) {
             OpToolGroup opToolGroup = (OpToolGroup) it.next();
             groupsMap.put(opToolGroup.getName(), opToolGroup);
          }
@@ -150,23 +155,23 @@ public class OpModule {
    }
 
    public List getLanguageKitsList() {
-      return _language_kits;
+      return languageKits;
    }
 
    public List getServicesList() {
-      return _services;
+      return services;
    }
 
    public List getPrototypesList() {
-      return _prototypes;
+      return prototypes;
    }
 
    public List getGroupsList() {
-      return _groups;
+      return groups;
    }
 
    public List getToolsList() {
-      return _tools;
+      return tools;
    }
 
    public void install(OpProjectSession session) {

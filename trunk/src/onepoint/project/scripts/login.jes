@@ -1,3 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
 // Event-script for login.oxf.xml
 
 require "onepoint/project/scripts/error.jes";

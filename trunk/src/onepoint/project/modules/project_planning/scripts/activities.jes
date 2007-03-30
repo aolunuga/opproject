@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 // Controller script for activities.oxf.xml
@@ -53,11 +53,12 @@ function editActivities(event) {
    success = true;
 
    if (warning != null) {
-      parameters.project_id = project_id;
-      XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
       XDisplay.resetCursor();
       //this needs to be the last call (otherwise the window is closed)
-      showWarning(response, warning, null, null);
+      parameters.project_id = project_id;
+      parameters.validatePlan = true;
+      args[0] = parameters;
+      showWarning(response, warning, "ProjectContentFrame", "refreshForm", args);
    }
    else {
       success = handleError(XDisplay.getActiveForm(),response,"ValidationErrorLabel");
@@ -67,6 +68,10 @@ function editActivities(event) {
       }
       XDisplay.resetCursor();
    }
+}
+
+function refreshForm(parameters) {
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
 }
 
 function saveActivities(event) {

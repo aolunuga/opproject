@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.preferences.forms;
@@ -45,12 +45,11 @@ public class OpPreferencesFormProvider implements XFormProvider {
       //get the avaiable languages
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATASET_ID);
       XComponent languageChoiceField = form.findComponent(LANGUAGE_CHOICE_ID);
-      String localeId = session.getLocale().getID();
 
       OpBroker broker = session.newBroker();
       OpUser currentUser = session.user(broker);
 
-      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageChoiceField, localeId, currentUser);
+      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageChoiceField, currentUser);
 
       //set up the dummy user password
       XComponent passwordField = form.findComponent(USER_PASSWORD_ID);

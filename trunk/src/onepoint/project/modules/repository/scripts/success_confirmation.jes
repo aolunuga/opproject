@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 require "onepoint/project/scripts/authenticate.jes";
 
@@ -17,10 +17,7 @@ function ok(event) {
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", null);
    }
    else {
-      //make sure all the server sessions are invalidated
-      request = new XMessage;
-      request.setAction("Express.invalidateSessions");
-      response = XDisplay.getClient().invokeMethod(request);
+      //redirect to login
       XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml", null);
    }
 }

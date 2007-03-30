@@ -1,6 +1,6 @@
 <form id="MyTasksForm" layout="border" resource-map-ref="my_tasks.my_tasks"
       provider-class="onepoint.project.modules.my_tasks.forms.OpMyTasksFormProvider"
-      script="/modules/my_tasks/scripts/my_tasks.jes" error-label-ref = "ErrorLabel">
+      script="/modules/my_tasks/scripts/my_tasks.jes" error-label-ref="ErrorLabel">
 
    <data-set id="ActivitySet" validator-class="onepoint.project.modules.project.components.OpIncrementalValidator"/>
    <data-set id="CategoryColorDataSet"/>
@@ -64,10 +64,6 @@
                          disabled-icon="/icons/info_disabled.png"
                          on-button-pressed="infoActivity"
                          tooltip="{$InfoTooltip}"/>
-            <tool-button id="EditAdhocButton" text="{$EditAdhoc}" icon="/icons/edit.png"
-                         disabled-icon="/icons/edit_disabled.png"
-                         on-button-pressed="editActivity" enabled="false"
-                         tooltip="{$EditAdhocTooltip}"/>
             <tool-button id="DeleteAdhocButton" text="{$DeleteAdhoc}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="deleteAdhoc" enabled="false"
@@ -91,48 +87,48 @@
 
       <panel layout="border">
          <tab-box id="MyTabBox" stateful="true" flexible="true">
-         <tab layout="border" text="{$Tasklist}" id="TasklistTab">
-            <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
-                       on-double-click="onDoubleClickActivity"
-                       flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
-               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-               <table-column text="" width="0" hidden="true" data-column-index="1"
-                             row-font-styles="plain;bold;bold+italic;italic;italic"/>
-               <table-column text="" width="35" data-column-index="18" value-type="IndicatorList"
-                             icon-set-ref="IndicatorIconSet"/>
-               <table-column text="{$Name}" sortable="true" width="200" data-column-index="0"/>
-               <table-column text="{$Project}" width="100" data-column-index="28" value-type="Choice"/>
-               <table-column text="{$PercentageFinished}" width="65" sortable="true" data-column-index="3"
-                             value-type="Double" decimals="0"/>
-               <table-column text="{$Start}" width="65" sortable="true" data-column-index="4" value-type="Date"/>
-               <table-column text="{$End}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
-               <table-column text="{$Effort}" width="65" sortable="true" data-column-index="7" value-type="Duration"
-                             display-unit="Hours"/>
-               <table-column text="{$Resources}" width="80" data-column-index="26" value-type="ChoiceList"
-                             data-set-ref="AssignmentSet"/>
-               <table-column text="{$Priority}" width="40" sortable="true" data-column-index="23"
-                             value-type="Byte"/>
+            <tab layout="border" text="{$Tasklist}" id="TasklistTab">
+               <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
+                          on-double-click="onDoubleClickActivity"
+                          flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
+                  <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+                  <table-column text="" width="0" hidden="true" data-column-index="1"
+                                row-font-styles="plain;bold;bold+italic;italic;italic"/>
+                  <table-column text="" width="35" data-column-index="18" value-type="IndicatorList"
+                                icon-set-ref="IndicatorIconSet"/>
+                  <table-column text="{$Name}" sortable="true" width="200" data-column-index="0"/>
+                  <table-column text="{$Project}" width="100" data-column-index="28" value-type="Choice"/>
+                  <table-column text="{$PercentageFinished}" width="65" sortable="true" data-column-index="3"
+                                value-type="Double" decimals="0"/>
+                  <table-column text="{$Start}" width="65" sortable="true" data-column-index="4" value-type="Date"/>
+                  <table-column text="{$End}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
+                  <table-column text="{$Effort}" width="65" sortable="true" data-column-index="7" value-type="Duration"
+                                display-unit="Hours"/>
+                  <table-column text="{$Resources}" width="80" data-column-index="26" value-type="ChoiceList"
+                                data-set-ref="AssignmentSet"/>
+                  <table-column text="{$Priority}" width="40" sortable="true" data-column-index="23"
+                                value-type="Byte"/>
 
-            </table-box>
-            <!-- Tool-bar should have attribute decorated="true" for borders -->
-            <!-- OR, maybe nicer: Have a button-group in addition to tool-bar -->
-         </tab>
-         <tab layout="border" text="{$GanttDiagram}" id="$GanttDiagramTab">
-            <panel y="-1" layout="border" style-ref="compact-panel-default">
-               <panel x="1" layout="table" flexible="false">
-                  <label x="0" width="2" text="{$ChangeTimeUnit}"/>
-                  <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
-                                on-value-changed="timeUnitChanged" selected-index="0" stateful="true"/>
+               </table-box>
+               <!-- Tool-bar should have attribute decorated="true" for borders -->
+               <!-- OR, maybe nicer: Have a button-group in addition to tool-bar -->
+            </tab>
+            <tab layout="border" text="{$GanttDiagram}" id="$GanttDiagramTab">
+               <panel y="-1" layout="border" style-ref="compact-panel-default">
+                  <panel x="1" layout="table" flexible="false">
+                     <label x="0" width="2" text="{$ChangeTimeUnit}"/>
+                     <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
+                                   on-value-changed="timeUnitChanged" selected-index="0" stateful="true"/>
+                  </panel>
                </panel>
-            </panel>
-            <gantt-box id="ActivityGanttChart" data-set-ref="ActivitySet" time-unit="days"
-                       caption-left="ActivityName" caption-right="ResourceNames" on-activity-details="editActivity"
-                       stateful="true"
-                       category-color-set-ref="CategoryColorDataSet"
-                       details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml"
-                       pop-up-menu-ref="ActivityChartPopupMenu"/>
-         </tab>
-      </tab-box>
+               <gantt-box id="ActivityGanttChart" data-set-ref="ActivitySet" time-unit="days"
+                          caption-left="ActivityName" caption-right="ResourceNames" on-activity-details="editActivity"
+                          stateful="true"
+                          category-color-set-ref="CategoryColorDataSet"
+                          details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml"
+                          pop-up-menu-ref="ActivityChartPopupMenu"/>
+            </tab>
+         </tab-box>
       </panel>
 
       <status-bar y="1"/>

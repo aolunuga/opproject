@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_tasks;
@@ -25,5 +25,7 @@ public class OpMyTasksErrorMap extends XErrorMap {
       registerErrorCode(OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE, OpMyTasksError.EXISTING_WORKSLIP_ERROR_NAME);
       registerErrorCode(OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_NAME);
       registerErrorCode(OpMyTasksError.INVALID_PRIORITY_ERROR_CODE, OpMyTasksError.INVALID_PRIORITY_ERROR_NAME);
+      registerErrorCode(OpMyTasksError.INVALID_TYPE_ERROR_CODE, OpMyTasksError.INVALID_TYPE_ERROR_NAME);
+      registerErrorCode(OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE, OpMyTasksError.TASK_NOT_FOUND_ERROR_NAME);
    }
 }

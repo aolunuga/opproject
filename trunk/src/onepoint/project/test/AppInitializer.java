@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.test;
@@ -74,7 +74,7 @@ public class AppInitializer {
 
       updateSchemaTable();
 
-      OpInitializer.init(OpProjectConstants.TEAM_EDITION_CODE);
+      OpInitializer.init(OpProjectConstants.OPEN_EDITION_CODE);
 
       logger.debug("Application initialization end.");
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -13,22 +13,22 @@ public class OpSetting extends OpObject {
    public final static String NAME = "Name";
    public final static String VALUE = "Value";
 
-   private String _name;
-   private String _value;
+   private String name;
+   private String value;
 
    public void setName(String name) {
-      _name = name;
+      this.name = name;
    }
 
    public String getName() {
-      return _name;
+      return name;
    }
 
    public void setValue(String value) {
-      _value = value;
+      this.value = value;
    }
 
    public String getValue() {
-      return _value;
+      return value;
    }
 }

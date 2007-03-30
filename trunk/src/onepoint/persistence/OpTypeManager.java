@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -15,23 +15,23 @@ public class OpTypeManager {
 
    private static final XLog logger = XLogFactory.getLogger(OpTypeManager.class, true);
 
-   private static Hashtable _types;
-   private static Hashtable _prototypes;
-   private static Hashtable _prototype_ids;
-   private static Hashtable _class_names;
-   private static int _min_type_id; // Used to register basic types
-   private static int _max_type_id; // Used to register prototypes
-   private static boolean _locked; // If locked new types cannot be added
+   private static Hashtable types;
+   private static Hashtable prototypes;
+   private static Hashtable prototypeIds;
+   private static Hashtable classNames;
+   private static int minTypeId; // Used to register basic types
+   private static int maxTypeId; // Used to register prototypes
+   private static boolean locked; // If locked new types cannot be added
 
    static {
       // Initialize hashtable and type-ID counters
-      _types = new Hashtable();
-      _prototypes = new Hashtable();
-      _prototype_ids = new Hashtable();
-      _class_names = new Hashtable();
-      _min_type_id = 0;
-      _max_type_id = 0;
-      _locked = false;
+      types = new Hashtable();
+      prototypes = new Hashtable();
+      prototypeIds = new Hashtable();
+      classNames = new Hashtable();
+      minTypeId = 0;
+      maxTypeId = 0;
+      locked = false;
       // Register built-in types (in order of constant type-IDs)
       registerType(new OpType("Boolean", "java.lang.Boolean"));
       registerType(new OpType("Integer", "java.lang.Integer"));
@@ -61,13 +61,13 @@ public class OpTypeManager {
       }
       else {
          // For all basic types, type-IDs are counted down
-         _min_type_id--;
-         type.setID(_min_type_id);
+         minTypeId--;
+         type.setID(minTypeId);
          // Invoke callback
          type.onRegister(); // To do: Error handling?
          // Add to type-registry
-         _types.put(type.getName(), type);
-         _class_names.put(type.getInstanceClass().getName(), type);
+         types.put(type.getName(), type);
+         classNames.put(type.getInstanceClass().getName(), type);
       }
    }
 
@@ -83,12 +83,12 @@ public class OpTypeManager {
       logger.debug("OpTypeManager.registerPrototype() : object-class : " + prototype.getInstanceClass().getName());
 
       // For prototypes, type-IDs are counted up
-      _max_type_id++;
-      prototype.setID(_max_type_id);
-      _types.put(prototype.getName(), prototype);
-      _class_names.put(prototype.getInstanceClass().getName(), prototype);
-      _prototypes.put(prototype.getName(), prototype);
-      _prototype_ids.put(new Integer(_max_type_id), prototype);
+      maxTypeId++;
+      prototype.setID(maxTypeId);
+      types.put(prototype.getName(), prototype);
+      classNames.put(prototype.getInstanceClass().getName(), prototype);
+      prototypes.put(prototype.getName(), prototype);
+      prototypeIds.put(new Integer(maxTypeId), prototype);
       // Assign unique IDs to members (inside inheritance-chain)
       // *** We must assume here that all super-types are already registered (check it)!
       int max_member_id = -1;
@@ -135,7 +135,7 @@ public class OpTypeManager {
    public static void lock() {
       // *** Check if it is already locked?
       // Resolve relationships between all registered prototypes
-      Enumeration prototypes = _prototypes.elements();
+      Enumeration prototypes = OpTypeManager.prototypes.elements();
       while (prototypes.hasMoreElements()) {
          OpPrototype prototype = (OpPrototype) (prototypes.nextElement());
          Iterator members = prototype.getDeclaredMembers();
@@ -182,27 +182,27 @@ public class OpTypeManager {
          }
       }
       // Lock the type-manager (no new types can be added)
-      _locked = true;
+      locked = true;
    }
 
    public static Iterator getPrototypes() {
-      return _prototypes.values().iterator();
+      return prototypes.values().iterator();
    }
 
    public static OpType getType(String name) {
-      return (OpType) (_types.get(name));
+      return (OpType) (types.get(name));
    }
 
    public static OpPrototype getPrototype(String name) {
-      return (OpPrototype) (_prototypes.get(name));
+      return (OpPrototype) (prototypes.get(name));
    }
 
    public static OpPrototype getPrototypeByID(int id) {
-      return (OpPrototype) (_prototype_ids.get(new Integer(id)));
+      return (OpPrototype) (prototypeIds.get(new Integer(id)));
    }
 
    public static OpPrototype getPrototypeByClassName(String class_name) {
-      return (OpPrototype) (_class_names.get(class_name));
+      return (OpPrototype) (classNames.get(class_name));
    }
 
    public static int getMaxLength(int type) {

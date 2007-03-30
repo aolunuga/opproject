@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<remote-configuration>
+   <host>localhost</host>
+   <port>8080</port>
+   <path>/opproject/service</path>
+   <secure-service>true</secure-service>
+</remote-configuration>
+

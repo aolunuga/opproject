@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.forms;
@@ -29,6 +29,7 @@ import java.util.Set;
 public class OpActivitiesFormProvider implements XFormProvider {
 
    public final static String PROJECT_ID = "project_id";
+   public final static String VALIDATE_PLAN = "validatePlan";
 
    private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class,true);
 
@@ -87,6 +88,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
 
       String project_id_string = (String) (parameters.get(PROJECT_ID));
+      Boolean validateProjectPlan = (Boolean) (parameters.get(VALIDATE_PLAN));
+      if (validateProjectPlan == null) {
+         validateProjectPlan = Boolean.FALSE;
+      }
       if (project_id_string != null) {
          // Get open project-ID from parameters and se project-ID session variable
          session.setVariable(PROJECT_ID, project_id_string);
@@ -245,10 +250,14 @@ public class OpActivitiesFormProvider implements XFormProvider {
          enableComponentsForNoOpenProject(form);
       }
 
+      broker.close();
 
+      if (validateProjectPlan.booleanValue() && activityDataSet.validator() != null) {
+         activityDataSet.validator().validateDataSet();
+      }
 
       logger.info("/OpActivitiesFormProvider.prepareForm()");
-      broker.close();
+
    }
 
    protected void addCategories(XComponent form, OpBroker broker) {

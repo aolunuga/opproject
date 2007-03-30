@@ -1,15 +1,23 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
-require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require "onepoint/project/scripts/error.jes";
-require "onepoint/project/scripts/lazyLoad.jes";
+require
+"onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require
+"onepoint/project/scripts/error.jes";
+require
+"onepoint/project/scripts/lazyLoad.jes";
 
-import onepoint.service.XMessage;
-import onepoint.express.XDisplay;
-import onepoint.express.XComponent;
-import onepoint.express.XExtendedComponent;
-import onepoint.express.XValidator;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+import
+onepoint.express.XExtendedComponent;
+import
+onepoint.express.XValidator;
 
 function newPortfolio(event) {
    // Check if portfolio is selected
@@ -64,7 +72,7 @@ function move(event) {
 
 function moveOk(portfolioChoice) {
    portfolioId = XValidator.choiceID(portfolioChoice);
-   
+
    resource_data_set = XDisplay.findFrame("MainFrame").currentForm().findComponent("ProjectDataSet");
    selected_rows = resource_data_set.selectedRows();
 
@@ -79,14 +87,14 @@ function moveOk(portfolioChoice) {
    response = XDisplay.getClient().invokeMethod(request);
 
    if (response.getError() != null) {
-      showWarning(response, true, "MainFrame", "refreshForm");
+      showWarning(response, true, "MainFrame", "refreshForm", null);
    }
    else {
       refreshForm();
    }
 }
 
-function refreshForm(){
+function refreshForm() {
    XDisplay.findFrame("MainFrame").refreshForm();
 }
 
@@ -264,7 +272,9 @@ function edit(event) {
 /**
  * @IsOverridden
  */
-function delete(event) {
+function
+delete(event)
+{
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
    selected_rows = project_data_set.selectedRows();
    if (selected_rows.size() > 0) {
@@ -292,8 +302,6 @@ function selectionChanged(event) {
    infoButton.setEnabled(true);
    moveButton = form.findComponent("MoveButton");
    moveButton.setEnabled(true);
-   editButton = form.findComponent("EditButton");
-   editButton.setEnabled(true);
    deleteButton = form.findComponent("DeleteButton");
    deleteButton.setEnabled(true);
 
@@ -327,7 +335,6 @@ function selectionChanged(event) {
       if (effectiveProjectNodePermission < managerPermission) {
          //the user isn't at least manager on the selected node
          moveButton.setEnabled(false);
-         editButton.setEnabled(false);
       }
 
       //for the delete button we must also check parent permissions
@@ -342,7 +349,7 @@ function selectionChanged(event) {
    toolbar.repaint();
 }
 
-function addProjectResourceOk(selectedResources){
+function addProjectResourceOk(selectedResources) {
    dialog = XDisplay.getActiveForm();
    dataSet = dialog.findComponent("AssignedResourceDataSet");
    i = 0;

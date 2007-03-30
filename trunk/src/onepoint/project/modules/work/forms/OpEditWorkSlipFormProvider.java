@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.work.forms;
@@ -29,6 +29,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
    public final static String DATE_FIELD = "DateField";
    public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";
    public final static String RESOURCE_COLUMN_COSTS = "ResourceColumnCosts";
+   public final static String NEW_ADDED_ACTIVITIES_SET = "NewAddedActivities";
 
    // Form parameters
    public final static String WORK_SLIP_ID = "WorkSlipID";
@@ -58,9 +59,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       }
 
       // Locate time record data set in form
-      XComponent work_record_set = form.findComponent(WORK_RECORD_SET);
-      XComponent data_row;
-      XComponent data_cell;
+      XComponent workRecordSet = form.findComponent(WORK_RECORD_SET);
+      XComponent dataRow;
+      XComponent dataCell;
 
       Iterator workRecords = workSlip.getRecords().iterator();
       logger.debug("*** after workRecords");
@@ -74,162 +75,163 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          if (activityName == null) {
             activityName = "";
          }
-         choice = XValidator.choice(workRecord.getAssignment().locator(), activityName);
+         choice = XValidator.choice(workRecord.getAssignment().getActivity().locator(), activityName);
 
          boolean progressTracked = activity.getProjectPlan().getProgressTracked();
 
          //activity name - 0
-         data_row = new XComponent(XComponent.DATA_ROW);
-         work_record_set.addChild(data_row);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(choice);
-         data_cell.setEnabled(false);
-         data_row.addChild(data_cell);
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         //set the value of the dataRow to the id of the assignment
+         dataRow.setStringValue(workRecord.getAssignment().locator());
+         workRecordSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(choice);
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
 
          // Actual effort - 1
-         data_cell = new XComponent(XComponent.DATA_CELL);
+         dataCell = new XComponent(XComponent.DATA_CELL);
          if (activity.getType() == OpActivity.MILESTONE) {
-            data_cell.setValue(null);
-            data_cell.setEnabled(false);
+            dataCell.setValue(null);
+            dataCell.setEnabled(false);
 
          }
          else {
-            data_cell.setDoubleValue(workRecord.getActualEffort());
-            data_cell.setEnabled(editMode);
+            dataCell.setDoubleValue(workRecord.getActualEffort());
+            dataCell.setEnabled(editMode);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Remaining effort (remaining effort change is calculated after edit) - 2
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getRemainingEffort());
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getRemainingEffort());
          if (progressTracked && activity.getType() != OpActivity.MILESTONE && activity.getType() != OpActivity.ADHOC_TASK) {
-            data_cell.setEnabled(editMode);
+            dataCell.setEnabled(editMode);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Material costs - 3
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getMaterialCosts());
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getMaterialCosts());
          if (activity.getType() != OpActivity.MILESTONE) {
-            data_cell.setEnabled(editMode);
+            dataCell.setEnabled(editMode);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Travel costs - 4
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getTravelCosts());
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getTravelCosts());
          if (activity.getType() != OpActivity.MILESTONE) {
-            data_cell.setEnabled(editMode);
+            dataCell.setEnabled(editMode);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // External costs - 5
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getExternalCosts());
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getExternalCosts());
          if (activity.getType() != OpActivity.MILESTONE) {
-            data_cell.setEnabled(editMode);
+            dataCell.setEnabled(editMode);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Miscellaneous costs - 6
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getMiscellaneousCosts());
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getMiscellaneousCosts());
          if (activity.getType() != OpActivity.MILESTONE) {
-            data_cell.setEnabled(editMode);
+            dataCell.setEnabled(editMode);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Optional comment - 7
-         data_cell = new XComponent(XComponent.DATA_CELL);
+         dataCell = new XComponent(XComponent.DATA_CELL);
          if (workRecord.getComment() != null)
-            data_cell.setStringValue(workRecord.getComment());
-         data_cell.setEnabled(editMode);
-         data_row.addChild(data_cell);
+            dataCell.setStringValue(workRecord.getComment());
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
 
          // Resource name - 8
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setEnabled(false);
-         data_cell.setStringValue(workRecord.getAssignment().getResource().getName());
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setEnabled(false);
+         dataCell.setStringValue(workRecord.getAssignment().getResource().getName());
+         dataRow.addChild(dataCell);
 
          //Original remaining effort - 9
          double originalRemainingEffort = workRecord.getRemainingEffort() - workRecord.getRemainingEffortChange();
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setEnabled(false);
-         data_cell.setDoubleValue(originalRemainingEffort);
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setEnabled(false);
+         dataCell.setDoubleValue(originalRemainingEffort);
+         dataRow.addChild(dataCell);
 
          //Complete
          boolean complete = (workRecord.getAssignment().getComplete() == 100);
          if (complete) {
-            data_row.getChild(2).setEnabled(false);
+            dataRow.getChild(2).setEnabled(false);
          }
-         data_cell = new XComponent(XComponent.DATA_CELL);
+         dataCell = new XComponent(XComponent.DATA_CELL);
          if (workRecord.getAssignment().getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
-            data_cell.setEnabled(editMode);
-            data_cell.setBooleanValue(complete);
+            dataCell.setEnabled(editMode);
+            dataCell.setBooleanValue(complete);
          }
          else {
-            data_cell.setEnabled(false);
-            data_cell.setValue(null);
+            dataCell.setEnabled(false);
+            dataCell.setValue(null);
          }
-         data_row.addChild(data_cell);
+         dataRow.addChild(dataCell);
 
          // Activity type - 11
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setIntValue(activity.getType());
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(activity.getType());
+         dataRow.addChild(dataCell);
 
          // Activity created status (newly inerted / edit ) - 12
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setBooleanValue(false);
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(false);
+         dataRow.addChild(dataCell);
 
          // Activity's project name - 13
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(activity.getProjectPlan().getProjectNode().getName());
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(activity.getProjectPlan().getProjectNode().getName());
+         dataRow.addChild(dataCell);
 
          // Assignment base effort - 14
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(workRecord.getAssignment().getBaseEffort());
-         data_row.addChild(data_cell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(workRecord.getAssignment().getBaseEffort());
+         dataRow.addChild(dataCell);
       }
       logger.debug("*** after loop");
 
 
-     Boolean edit_mode = (Boolean)(parameters.get("edit_mode"));
-     if (!edit_mode.booleanValue()){
+     Boolean paramEditMode = (Boolean)(parameters.get("edit_mode"));
+     if (!paramEditMode.booleanValue()){
        form.findComponent("EffortTable").setEnabled(false);
        form.findComponent("CostsTable").setEnabled(false);
        form.findComponent("DateField").setEnabled(false);
        form.findComponent("Cancel").setVisible(false);
        form.findComponent("WorkSlipAddIcon").setVisible(false);
+       form.findComponent("WorkSlipDeleteIcon").setVisible(false);
        String title = session.getLocale().getResourceMap("work.Info").getResource("WorkInfo").getText();
        form.setText(title);
      }
       broker.close();
-
    }
-
 }

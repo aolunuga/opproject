@@ -1,56 +1,56 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
 
 public class OpField extends OpMember {
 
-   private boolean _auto_increment;
-   private boolean _unique;
-   private boolean _mandatory; // Not-null
-   private boolean _ordered; // Used for export and (logical) backup
-   private boolean _indexed;
+   private boolean autoIncrement;
+   private boolean unique;
+   private boolean mandatory; // Not-null
+   private boolean ordered; // Used for export and (logical) backup
+   private boolean indexed;
 
    public OpField() {}
 
    public final void setAutoIncrement(boolean auto_increment) {
-      _auto_increment = auto_increment;
+      autoIncrement = auto_increment;
    }
 
    public final boolean getAutoIncrement() {
-      return _auto_increment;
+      return autoIncrement;
    }
 
    public final void setUnique(boolean unique) {
-      _unique = unique;
+      this.unique = unique;
    }
 
    public final boolean getUnique() {
-      return _unique;
+      return unique;
    }
 
    public final void setMandatory(boolean mandatory) {
-      _mandatory = mandatory;
+      this.mandatory = mandatory;
    }
 
    public final boolean getMandatory() {
-      return _mandatory;
+      return mandatory;
    }
 
    public final void setOrdered(boolean ordered) {
-      _ordered = ordered;
+      this.ordered = ordered;
    }
 
    public final boolean getOrdered() {
-      return _ordered;
+      return ordered;
    }
 
    public final void setIndexed(boolean indexed) {
-      _indexed = indexed;
+      this.indexed = indexed;
    }
 
    public final boolean getIndexed() {
-      return _indexed;
+      return indexed;
    }
 }

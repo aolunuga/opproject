@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project.components.test;
 
@@ -66,8 +66,7 @@ public class OpGanttValidatorTest extends TestCase {
       super.setUp();
 
       XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
-      Map calendarSettings = defaultCalendar.getCalendarSettings();
-      defaultCalendar.configure(calendarSettings, new XLocale("de", ""), null);
+      defaultCalendar.configure(null, new XLocale("de", ""), null);
 
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
@@ -2082,24 +2081,24 @@ public class OpGanttValidatorTest extends TestCase {
       //4 work phases
       ArrayList expectedStarts = new ArrayList();
       Calendar defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, XCalendar.OCTOBER, 4);
+      defCalendar.set(2004, Calendar.OCTOBER, 4);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 11);
+      defCalendar.set(2004, Calendar.OCTOBER, 11);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 18);
+      defCalendar.set(2004, Calendar.OCTOBER, 18);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 25);
+      defCalendar.set(2004, Calendar.OCTOBER, 25);
       expectedStarts.add(defCalendar.getTime());
 
       ArrayList expectedEnds = new ArrayList();
       defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, XCalendar.OCTOBER, 8);
+      defCalendar.set(2004, Calendar.OCTOBER, 8);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 15);
+      defCalendar.set(2004, Calendar.OCTOBER, 15);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 22);
+      defCalendar.set(2004, Calendar.OCTOBER, 22);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 29);
+      defCalendar.set(2004, Calendar.OCTOBER, 29);
       expectedEnds.add(defCalendar.getTime());
 
       ArrayList expectedEfforts = new ArrayList();
@@ -2144,24 +2143,24 @@ public class OpGanttValidatorTest extends TestCase {
       //4 work phases
       ArrayList expectedStarts = new ArrayList();
       Calendar defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, XCalendar.OCTOBER, 4);
+      defCalendar.set(2004, Calendar.OCTOBER, 4);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 11);
+      defCalendar.set(2004, Calendar.OCTOBER, 11);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 18);
+      defCalendar.set(2004, Calendar.OCTOBER, 18);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 25);
+      defCalendar.set(2004, Calendar.OCTOBER, 25);
       expectedStarts.add(defCalendar.getTime());
 
       ArrayList expectedEnds = new ArrayList();
       defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, XCalendar.OCTOBER, 8);
+      defCalendar.set(2004, Calendar.OCTOBER, 8);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 15);
+      defCalendar.set(2004, Calendar.OCTOBER, 15);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 22);
+      defCalendar.set(2004, Calendar.OCTOBER, 22);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, XCalendar.OCTOBER, 29);
+      defCalendar.set(2004, Calendar.OCTOBER, 29);
       expectedEnds.add(defCalendar.getTime());
 
       ArrayList expectedEfforts = new ArrayList();

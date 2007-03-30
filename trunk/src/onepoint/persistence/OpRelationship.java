@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -17,11 +17,11 @@ public class OpRelationship extends OpMember {
    public final static String CASCADE_DELETE = "delete";
    public final static String CASCADE_SAVEUPDATE = "save-update";
 
-   private int _relationship_type;
-   private String _back_relationship_name;
-   private OpRelationship _back_relationship; // Resolved on registration
-   private boolean _inverse = false;
-   private boolean _recursive = false; // Used for export and (logical) backup
+   private int relationshipType;
+   private String backRelationshipName;
+   private OpRelationship backRelationship; // Resolved on registration
+   private boolean inverse = false;
+   private boolean recursive = false; // Used for export and (logical) backup
 
    /**
     * Indicates whether cascadeMode mode should be used for this relationship.
@@ -31,49 +31,49 @@ public class OpRelationship extends OpMember {
 
    public OpRelationship() {
       // Default relationship-type is 'association'
-      _relationship_type = ASSOCIATION;
+      relationshipType = ASSOCIATION;
    }
 
    public final void setRelationshipType(int relationship_type) {
-      _relationship_type = relationship_type;
+      relationshipType = relationship_type;
    }
 
    public final int getRelationshipType() {
-      return _relationship_type;
+      return relationshipType;
    }
 
    final void setBackRelationshipName(String back_relationship_name) {
-      _back_relationship_name = back_relationship_name;
+      backRelationshipName = back_relationship_name;
    }
 
    String getBackRelationshipName() {
       // Called by OpTypeManager
-      return _back_relationship_name;
+      return backRelationshipName;
    }
 
    final void setBackRelationship(OpRelationship back_relationship) {
       // Called by OpPrototype
-      _back_relationship = back_relationship;
+      backRelationship = back_relationship;
    }
 
    public final OpRelationship getBackRelationship() {
-      return _back_relationship;
+      return backRelationship;
    }
 
    final void setInverse(boolean inverse) {
-      _inverse = inverse;
+      this.inverse = inverse;
    }
 
    public final boolean getInverse() {
-      return _inverse;
+      return inverse;
    }
 
    final void setRecursive(boolean recursive) {
-      _recursive = recursive;
+      this.recursive = recursive;
    }
 
    public final boolean getRecursive() {
-      return _recursive;
+      return recursive;
    }
 
    /**
