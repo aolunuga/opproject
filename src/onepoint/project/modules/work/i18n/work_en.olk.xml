@@ -5,7 +5,6 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">New Work Slip</resource>
       <resource id="Info">Properties</resource>
-      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Number">Number</resource>
       <resource id="Resource">Resource</resource>
@@ -13,7 +12,6 @@
 
       <resource id="NewWorkSlipTooltip">Create new work slip</resource>
       <resource id="InfoTooltip">View meta information for the selected work slip</resource>
-      <resource id="EditTooltip">Edit meta information for the selected work slip</resource>
       <resource id="DeleteTooltip">Delete selected work slips</resource>
 
       <resource id="Time">Time Period</resource>

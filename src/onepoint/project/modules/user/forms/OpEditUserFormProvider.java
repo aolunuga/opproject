@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -81,8 +81,8 @@ public class OpEditUserFormProvider implements XFormProvider {
 
       XComponent languageField = form.findComponent("UserLanguage");
       XComponent languageDataSet = form.findComponent("UserLanguageDataSet");
-      String localeId = session.getLocale().getID();
-      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageField, localeId, user);
+      OpUser currentUser = session.user(broker);
+      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageField, currentUser);
 
       //fill the user level dataset
       XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(), RESOURCE_MAP);

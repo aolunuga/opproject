@@ -45,5 +45,6 @@
       <resource id="SessionExpired">Your user session has expired. Please log in again.</resource>
       <resource id="InsuficientViewPermissions">You do not have sufficient privileges to view this information</resource>
       <resource id="InvalidSession">You must be signed on in order to view this information</resource>
+      <resource id="InvalidFileURL">Could not open file, because of an invalid request format</resource>
    </resource-map>
 </language-kit>

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.report.test;
@@ -6,13 +6,14 @@ package onepoint.project.modules.report.test;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpTransaction;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.report.OpReportError;
 import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
 
 import java.io.File;
 import java.net.URL;
@@ -160,8 +161,7 @@ public class OpReportServiceTest extends OpBaseTestCase {
       request.setArgument(OpReportService.NAME, UNKNOWN_REPORT_NAME);
       XMessage response = reportService.createReport(session, request);
       assertNotNull(response);
-      // TODO - here we should use a real defined error code.
-      assertError(response, 9999);
+      assertError(response, OpReportError.CREATE_REPORT_EXCEPTION);
    }
 
    /**
@@ -238,8 +238,7 @@ public class OpReportServiceTest extends OpBaseTestCase {
       request.setArgument(OpReportService.NAME, UNKNOWN_REPORT_NAME);
       XMessage response = reportService.saveReport(session, request);
       assertNotNull(response);
-      // TODO - here we should use a real defined error code.
-      assertError(response, 9999);
+      assertError(response, OpReportError.SAVE_REPORT_EXCEPTION);
    }
 
    /**
@@ -259,6 +258,8 @@ public class OpReportServiceTest extends OpBaseTestCase {
       assertNotNull(reportPath);
       assertTrue(reportPath.length() > 0);
 
+      reportPath = XEncodingHelper.decodeValue(reportPath);
+      
       // now check if file really exists.
       URL reportFileUrl = new URL(reportPath);
       File reportFile = new File(reportFileUrl.getFile());

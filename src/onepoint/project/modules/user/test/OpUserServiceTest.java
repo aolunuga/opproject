@@ -142,7 +142,7 @@ public class OpUserServiceTest extends OpBaseTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME.toLowerCase());
-      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 
@@ -195,7 +195,7 @@ public class OpUserServiceTest extends OpBaseTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME);
-      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 /*
@@ -54,7 +54,16 @@ public class OpProgressCalculator {
          applyWorkRecord(broker, work_record, false);
       }
    }
-
+   
+   /**
+    * Removes one or more work records.
+    *
+    * @param broker       a <code>OpBroker</code> used for performing business operations.
+    * @param work_record the {@link OpWorkRecord} to be removed.
+    */
+   public static void removeWorkRecord(OpBroker broker, OpWorkRecord work_record) {
+     applyWorkRecord(broker, work_record, false);
+   }
    /**
     * Updates the values for activities and assignments, based on a given work record.
     *

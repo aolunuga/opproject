@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.my_tasks.test;
@@ -128,15 +128,15 @@ public class OpMyTasksServiceTest extends OpBaseTestCase {
 
       String prjChoice = XValidator.choice(projId, PROJECT_NAME);
       String resChoice = XValidator.choice(resId, RESOURCE_NAME);
-      XMessage request = MyTasksTestDataFactory.addAdhocMsg(null, null, 0, null, null, null);
+      XMessage request = MyTasksTestDataFactory.addAdhocMsg(null, null, 1, null, null, null);
       XMessage response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.EMPTY_NAME_ERROR_CODE);
 
-      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 0, null, null, null);
+      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 1, null, null, null);
       response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.NO_PROJECT_ERROR_CODE);
 
-      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 0, null, prjChoice, null);
+      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 1, null, prjChoice, null);
       response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.NO_RESOURCE_ERROR_CODE);
 

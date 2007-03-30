@@ -23,7 +23,6 @@
       <resource id="NewProject">New Project</resource>
       <resource id="Move">Move</resource>
       <resource id="Info">Properties</resource>
-      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
@@ -37,7 +36,6 @@
       <resource id="NewProjectTooltip">Create new project</resource>
       <resource id="MoveTooltip">Move the selected project or portfolio to a different portfolio</resource>
       <resource id="InfoTooltip">View meta information for the selected project or portfolio</resource>
-      <resource id="EditTooltip">Edit meta information for the selected project or portfolio</resource>
       <resource id="DeleteTooltip">Delete selected projects and portfolios</resource>
 
    </resource-map>

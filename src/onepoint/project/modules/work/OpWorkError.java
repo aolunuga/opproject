@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.work;
@@ -20,6 +20,8 @@ public abstract class OpWorkError {
    public final static int DATE_MISSING = 7;
    public final static int DUPLICATE_DATE = 8;
    public final static int WORK_SLIP_NOT_FOUND = 9;
+   public final static int INCORRECT_WORK_SLIP = 10;
+   public final static int INCORRECT_ASSIGNMENT = 11;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";

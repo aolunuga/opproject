@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -31,12 +31,20 @@ public final class OpProjectDataSetFactory {
    public final static int PROJECT_ICON_INDEX = 2;
 
    // Type filter
+   // FIXME(dfreis Mar 22, 2007 3:04:24 PM)
+   // should really be the same as in OpProjectNode!!!!
+   
    public final static int PORTFOLIOS = 1;
    public final static int TEMPLATES = 2;
    public final static int PROJECTS = 4;
    public final static int PROGRAMS = 8;
    public final static int ALL_TYPES = PORTFOLIOS + TEMPLATES + PROJECTS + PROGRAMS;
 
+   public final static int ALL_PROJECT_NODE_TYPES = OpProjectNode.PORTFOLIO + 
+                                                    OpProjectNode.TEMPLATE + 
+                                                    OpProjectNode.PROJECT + 
+                                                    OpProjectNode.PROGRAM;
+   
    public final static String PROJECT_OBJECTS = "project.objects";
 
    public final static String ENABLE_PROJECTS = "EnableProjects";
@@ -773,6 +781,85 @@ public final class OpProjectDataSetFactory {
    /**
     * Creates a map of projects->resources for the current session user taking into account also his permissions over
     * the resources.
+    * Gets a set containing all {@link OpProjectNode}s 
+    * (Portfolios, Projects and/or Templates) representing 
+    * direct children of the given parent. 
+    * @param broker the broker to perform any operation.
+    * @param types bitset, one of (
+    * @param parentId the id of the parent to get child nodes.
+    * @return a set containing all children nodes.
+    * @pre none
+    * @post none
+    */
+   
+   public static Set<OpProjectNode> getProjectNodes(OpBroker broker, int types, long parentId) {
+     StringBuffer queryString = new StringBuffer("select projectNode from OpProjectNode as projectNode where ");
+     if (parentId != -1) {
+       queryString.append("projectNode.SuperNode.ID = ?");
+     }
+     else {
+       queryString.append("projectNode.SuperNode is null");
+     }
+
+     List<Byte> typeParams = new ArrayList<Byte>();
+     boolean filterAdded = false;
+
+     if ((types & ALL_PROJECT_NODE_TYPES) == ALL_PROJECT_NODE_TYPES) 
+     {
+     }
+     else
+     {
+       queryString.append(" and (");
+       if ((types & OpProjectNode.PORTFOLIO) == OpProjectNode.PORTFOLIO) {
+         queryString.append(" projectNode.Type = ?");
+         typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
+         filterAdded = true;
+       }
+       if ((types & OpProjectNode.PROJECT) == OpProjectNode.PROJECT) {
+         if (filterAdded) {
+           queryString.append(" or ");
+         }
+         queryString.append(" projectNode.Type = ?");
+         typeParams.add(new Byte(OpProjectNode.PROJECT));
+         filterAdded = true;
+       }
+
+       if ((types & OpProjectNode.TEMPLATE) == OpProjectNode.TEMPLATE) {
+         if (filterAdded) {
+           queryString.append(" or ");
+         }
+         queryString.append(" projectNode.Type = ?");
+         typeParams.add(new Byte(OpProjectNode.TEMPLATE));
+       }
+       
+       queryString.append(" )");
+     }
+     OpQuery query = broker.newQuery(queryString.toString());
+
+     //set the query parameters (based on the filtered types)
+     // set parent id
+     int paramStartIndex = 0;
+     if (parentId != -1) {
+       query.setLong(0, parentId);
+       ++paramStartIndex;
+     }
+     for (int i = 0; i < typeParams.size(); i++) {
+       query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
+     }
+     
+     List children = broker.list(query);
+     Iterator childrenIterator = children.iterator();
+     OpProjectNode node;
+     HashSet<OpProjectNode> result = new HashSet<OpProjectNode>(children.size());
+     while (childrenIterator.hasNext()) {
+       node = (OpProjectNode)childrenIterator.next();
+       result.add(node);
+     }
+     return result;
+   }
+
+   /**
+    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
     *
     * @param session Current project session (used for db access and current user)
     * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices

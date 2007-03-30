@@ -1,6 +1,6 @@
 
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_resources;
@@ -11,56 +11,56 @@ package onepoint.project.modules.project_resources;
  */
 public class OpProjectResourceSummary {
    
-   private long _resource_id;
-   private String _resource_name;
-   private double _base_effort;
-   private double _actual_effort;
-   private double _effort_to_complete;
-   private double _predicted_effort;
+   private long resourceId;
+   private String resourceName;
+   private double baseEffort;
+   private double actualEffort;
+   private double effortToComplete;
+   private double predictedEffort;
 
    public OpProjectResourceSummary(long resource_id, String resource_name) {
-      _resource_id = resource_id;
-      _resource_name = resource_name;
+      resourceId = resource_id;
+      resourceName = resource_name;
    }
    
    public final long getResourceID() {
-      return _resource_id;
+      return resourceId;
    }
    
    public final String getResourceName() {
-      return _resource_name;
+      return resourceName;
    }
 
    public final void addBaseEffort(double base_effort) {
-      _base_effort += base_effort;
+      baseEffort += base_effort;
    }
    
    public final double getBaseEffort() {
-      return _base_effort;
+      return baseEffort;
    }
 
    public final void addActualEffort(double actual_effort) {
-      _actual_effort += actual_effort;
+      actualEffort += actual_effort;
    }
    
    public final double getActualEffort() {
-      return _actual_effort;
+      return actualEffort;
    }
 
    public final void addEffortToComplete(double effort_to_complete) {
-      _effort_to_complete += effort_to_complete;
+      effortToComplete += effort_to_complete;
    }
 
    public final double getEffortToComplete() {
-      return _effort_to_complete;
+      return effortToComplete;
    }
    
    public final void addPredictedEffort(double predicted_effort) {
-      _predicted_effort += predicted_effort;
+      predictedEffort += predicted_effort;
    }
    
    public final double getPredictedEffort() {
-      return _predicted_effort;
+      return predictedEffort;
    }
 
 }

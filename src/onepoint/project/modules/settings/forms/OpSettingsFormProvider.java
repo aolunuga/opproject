@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings.forms;
@@ -7,6 +7,7 @@ package onepoint.project.modules.settings.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
+import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
@@ -21,10 +22,7 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class OpSettingsFormProvider implements XFormProvider {
 
@@ -142,36 +140,11 @@ public class OpSettingsFormProvider implements XFormProvider {
       mailMessageTextField.setStringValue(emailFromAddress);
 
       // Fill user locale data set
-      resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(), SETTINGS_SETTINGS);
-      localizer.setResourceMap(resourceMap);
-      // TODO: Do not hard-code list of available locales here
-      // TODO: Maybe sort locales in list according to current language
-      String userLocale = OpSettings.get(OpSettings.USER_LOCALE);
-      logger.info("***CURRRENT LOCALE '" + userLocale + "'");
-      String localeDe = XValidator.choice("de", localizer.localize("{$German}"));
-      String localeEn = XValidator.choice("en", localizer.localize("{$English}"));
       XComponent dataSet = form.findComponent(USER_LOCALE_DATA_SET);
-
-      int selectedIndex = -1;
-      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(localeDe);
-      if (userLocale.equals("de")) {
-         dataRow.setSelected(true);
-         selectedIndex = 0;
-      }
-      dataSet.addChild(dataRow);
-
-      dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(localeEn);
-      if (userLocale.equals("en")) {
-         dataRow.setSelected(true);
-         selectedIndex = 1;
-      }
-      dataSet.addChild(dataRow);
-
-      //set up the selected index on choice field based on data row selection index
       XComponent userLocaleChoiceField = form.findComponent(USER_LOCALE);
-      userLocaleChoiceField.setSelectedIndex(new Integer(selectedIndex));
+      String userLocaleId = OpSettings.get(OpSettings.USER_LOCALE);
+      XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
+      logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
 
       // only administrator can modifiy the settings
       if (!session.userIsAdministrator()) {
@@ -245,7 +218,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String val;
       int selectedIndex = -1;
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.SUNDAY;
+      val = "" + Calendar.SUNDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Sunday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -254,7 +227,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.MONDAY;
+      val = "" + Calendar.MONDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Monday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -263,7 +236,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.TUESDAY;
+      val = "" + Calendar.TUESDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Tuesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -272,7 +245,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.WEDNESDAY;
+      val = "" + Calendar.WEDNESDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Wednesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -281,7 +254,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.THURSDAY;
+      val = "" + Calendar.THURSDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Thursday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -290,7 +263,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.FRIDAY;
+      val = "" + Calendar.FRIDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Friday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
@@ -299,7 +272,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + XCalendar.SATURDAY;
+      val = "" + Calendar.SATURDAY;
       data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Saturday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);

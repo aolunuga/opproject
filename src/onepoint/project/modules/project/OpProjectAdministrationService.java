@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -46,7 +46,7 @@ public class OpProjectAdministrationService extends OpProjectService {
    public final static String EDIT_MODE = "edit_mode";
    public final static String NULL_ID = "null";
 
-   protected final static OpProjectErrorMap ERROR_MAP = new OpProjectErrorMap();
+   public final static OpProjectErrorMap ERROR_MAP = new OpProjectErrorMap();
 
    /**
     * Query used to retrieve projects that have a certain name.

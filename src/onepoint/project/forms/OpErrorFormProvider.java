@@ -1,6 +1,6 @@
 /*
-* Copyright(c) OnePoint Software GmbH 2005. All Rights Reserved.
-*/
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;
@@ -26,6 +26,8 @@ public class OpErrorFormProvider implements XFormProvider {
    private static final String CALLBACK_FRAME_PARAM = "frameName";
    private static final String CALLBACK_NAME = "CallbackName";
    private static final String CALLBACK_NAME_PARAM = "callbackName";
+   private static final String CALLBACK_PARAMETERS = "CallbackParameters";
+   private static final String CALLBACK_PARAMETERS_PARAM = "parameters";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -65,5 +67,6 @@ public class OpErrorFormProvider implements XFormProvider {
       //set the callback and frame name
       form.findComponent(CALLBACK_FRAME).setStringValue((String) parameters.get(CALLBACK_FRAME_PARAM));
       form.findComponent(CALLBACK_NAME).setStringValue((String) parameters.get(CALLBACK_NAME_PARAM));
+      form.findComponent(CALLBACK_PARAMETERS).setValue(parameters.get(CALLBACK_PARAMETERS_PARAM));
    }
 }

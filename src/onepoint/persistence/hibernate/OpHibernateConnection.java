@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -27,19 +27,19 @@ public class OpHibernateConnection extends OpConnection {
 
    private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class, true);
 
-   private Session _session;
+   private Session session;
 
    public OpHibernateConnection(OpSource source, Session session) {
       super(source);
-      _session = session;
+      this.session = session;
    }
 
    public boolean isValid() {
-      if (_session == null) {
+      if (session == null) {
          return false;
       }
       try {
-         _session.connection().getMetaData();
+         session.connection().getMetaData();
       }
       catch (Exception e) {
          return false;
@@ -53,7 +53,7 @@ public class OpHibernateConnection extends OpConnection {
     * @return true if it's open.
     */
    public boolean isOpen() {
-      return _session.isOpen();
+      return session.isOpen();
    }
 
    /**
@@ -68,7 +68,7 @@ public class OpHibernateConnection extends OpConnection {
       Statement statement = null;
       OpTransaction t = newTransaction();
       try {
-         Connection connection = _session.connection();
+         Connection connection = session.connection();
          for (int i = 0; i < script.length; i++) {
             statement = connection.createStatement();
             logger.info("Executing SQL: " + script[i]);
@@ -97,7 +97,7 @@ public class OpHibernateConnection extends OpConnection {
       // Try each drop extra and issues only warnings if tables cannot be dropped
       Statement statement = null;
       try {
-         Connection connection = _session.connection();
+         Connection connection = session.connection();
          OpTransaction t = null;
          for (int i = 0; i < script.length; i++) {
             try {
@@ -202,7 +202,7 @@ public class OpHibernateConnection extends OpConnection {
 
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
-      Connection connection = _session.connection();
+      Connection connection = session.connection();
       OpHibernateSchemaUpdater customSchemaUpdater = new OpHibernateSchemaUpdater(source);
 
       try {
@@ -248,9 +248,9 @@ public class OpHibernateConnection extends OpConnection {
 
    public void persistObject(OpObject object) {
       try {
-         logger.debug("before _session.save()");
-         _session.save(object);
-         logger.debug("after _session.save()");
+         logger.debug("before session.save()");
+         session.save(object);
+         logger.debug("after session.save()");
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not save object: " + e);
@@ -258,10 +258,14 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
+//   public boolean contains(Object obj) {
+//     return(_session.contains(obj));
+//   }
+
    public OpObject getObject(Class c, long id) {
       OpObject object = null;
       try {
-         object = (OpObject) (_session.get(c, new Long(id)));
+         object = (OpObject) (session.get(c, new Long(id)));
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not load object: " + e);
@@ -272,7 +276,7 @@ public class OpHibernateConnection extends OpConnection {
 
    public void updateObject(OpObject object) {
       try {
-         _session.update(object);
+         session.update(object);
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not update object: " + e);
@@ -282,7 +286,7 @@ public class OpHibernateConnection extends OpConnection {
 
    public void deleteObject(OpObject object) {
       try {
-         _session.delete(object);
+         session.delete(object);
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not delete object: " + e);
@@ -331,7 +335,7 @@ public class OpHibernateConnection extends OpConnection {
 
    public void close() {
       try {
-         _session.close();
+         session.close();
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.close(): Could not close session: " + e);
@@ -342,7 +346,7 @@ public class OpHibernateConnection extends OpConnection {
    public OpTransaction newTransaction() {
       OpTransaction transaction = null;
       try {
-         transaction = new OpHibernateTransaction(_session.beginTransaction());
+         transaction = new OpHibernateTransaction(session.beginTransaction());
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.newTransaction(): Could not begin transaction: " + e);
@@ -356,11 +360,18 @@ public class OpHibernateConnection extends OpConnection {
    }
 
    public final OpQuery newQuery(String s) {
-      return new OpHibernateQuery(_session.createQuery(s));
+      return new OpHibernateQuery(session.createQuery(s));
    }
 
    public final Connection getJDBCConnection() {
-      return _session.connection();
+      return session.connection();
    }
 
+  /* (non-Javadoc)
+   * @see onepoint.persistence.OpConnection#flush()
+   */
+  @Override
+  public void flush() {
+    session.flush();
+  }
 }

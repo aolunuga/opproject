@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -8,13 +8,13 @@ import java.util.*;
 
 public class OpModuleRegistry {
    /*list of module files*/
-   private List _module_files;
+   private List moduleFiles;
    /*insertion order map of modules <module name,OpModule> */
-   private Map _modules;
+   private Map modules;
 
   public OpModuleRegistry() {
-    _module_files = new ArrayList();
-    _modules = new LinkedHashMap();
+    moduleFiles = new ArrayList();
+    modules = new LinkedHashMap();
   }
 
    /**
@@ -23,7 +23,7 @@ public class OpModuleRegistry {
     * @param module_file <code>OpModuleFile</code>
     */
    final void addModuleFile(OpModuleFile module_file) {
-      _module_files.add(module_file);
+      moduleFiles.add(module_file);
    }
 
    /**
@@ -33,7 +33,7 @@ public class OpModuleRegistry {
     */
    final void addModule(OpModule module) {
       // *** Check for uniqueness of module name?
-      _modules.put(module.getName(), module);
+      modules.put(module.getName(), module);
    }
 
   // *** removeModule(String name)
@@ -45,7 +45,7 @@ public class OpModuleRegistry {
     * @return <code>OpModule</code> the value asociated for this key or <code>null</code> if no value with this key exists.
     */
    public final OpModule getModule(String name) {
-      return (OpModule) (_modules.get(name));
+      return (OpModule) (modules.get(name));
    }
 
    /**
@@ -54,7 +54,7 @@ public class OpModuleRegistry {
     * @return <code>Iterator</code>
     */
    public final Iterator getModuleFiles() {
-      return _module_files.iterator();
+      return moduleFiles.iterator();
    }
 
    /**
@@ -63,7 +63,7 @@ public class OpModuleRegistry {
     * @return <code>Iterator</code>
     */
    public final Iterator getModules() {
-      return _modules.values().iterator();
+      return modules.values().iterator();
    }
 
 }

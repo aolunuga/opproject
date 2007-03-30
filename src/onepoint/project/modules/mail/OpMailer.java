@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.mail;
@@ -30,22 +30,22 @@ public class OpMailer implements Runnable {
 	public final static String RELATED = "related"; // Related body part
 	public final static String CONTENT_ID = "Content-ID";
 
-	private static String _smtp_host_name = null;
+	private static String smtpHostName = null;
 
-   private ArrayList _messages;
+   private ArrayList messages;
 
    public OpMailer() {}
    
    public OpMailer(ArrayList messages) {
-      _messages = messages;
+      this.messages = messages;
    }
 
 	public static void setSMTPHostName(String smtp_host_name) {
-		_smtp_host_name = smtp_host_name;
+		smtpHostName = smtp_host_name;
 	}
 
    public static void sendMessageAsynchronous(OpMailMessage message) {
-      if (_smtp_host_name != null) {
+      if (smtpHostName != null) {
          ArrayList messages = new ArrayList();
          messages.add(message);
          Thread t = new Thread(new OpMailer(messages));
@@ -55,7 +55,7 @@ public class OpMailer implements Runnable {
 
    public void run() {
       try {
-         sendMessages(_messages);
+         sendMessages(messages);
       } catch (Exception e) {
          log.warn("Could not send email: ", e);
       }
@@ -69,14 +69,14 @@ public class OpMailer implements Runnable {
 
 	public void sendMessages(ArrayList messages) throws MessagingException {
 		Properties properties = new Properties();
-		properties.put(MAIL_SMTP_HOST, _smtp_host_name);
+		properties.put(MAIL_SMTP_HOST, smtpHostName);
 		// *** TODO: Probably implement simple authenticator (login, password)
 		// ==> Maybe don't need it: There is login/password in Transport.connect
 		Session session = Session.getDefaultInstance(properties);
 		Transport transport = session.getTransport(SMTP);
 		// *** TODO: Most probably add identifaction here (if required)
 		// ==> Arguments are '_login' and '_password'
-		transport.connect(_smtp_host_name, null, null);
+		transport.connect(smtpHostName, null, null);
 		Iterator i = messages.iterator();
 		while (i.hasNext()) {
 			OpMailMessage message = (OpMailMessage) (i.next());

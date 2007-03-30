@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.work;
@@ -8,6 +8,7 @@ import onepoint.persistence.OpObject;
 import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
+import java.util.Iterator;
 import java.util.Set;
 
 public class OpWorkSlip extends OpObject {
@@ -19,12 +20,12 @@ public class OpWorkSlip extends OpObject {
    public final static String RESOURCE = "Resource";
    public final static String RECORDS = "Records";
 
-   private int number;
+   private int number = -1;
    private Date date;
    private OpUser creator;
    private Set records;
 
-   public void setNumber(int number) {
+   protected void setNumber(int number) {
       this.number = number;
    }
 
@@ -55,5 +56,52 @@ public class OpWorkSlip extends OpObject {
    public Set getRecords() {
       return records;
    }
+   
+   public boolean isValid()
+   {
+     Set records = getRecords();
+     if (records == null)
+       return(true);
+     Iterator iter = records.iterator();
+     OpWorkRecord work_record;
+     boolean validActualEffort = false;
+     boolean validCosts = false;
 
+     while (iter.hasNext())
+     {
+       work_record = (OpWorkRecord) iter.next();
+       //completed
+       if (!work_record.getCompleted()) {
+         validActualEffort = true;
+       }
+       // actual effort
+       if (work_record.getActualEffort() > 0) {
+         validActualEffort = true;
+       }
+       // Material Costs
+       if (work_record.getMaterialCosts() > 0) {
+         validCosts = true;
+       }
+
+       // Travel costs
+       if (work_record.getTravelCosts() > 0) {
+         validCosts = true;
+       }
+
+       // External costs
+       if (work_record.getExternalCosts() > 0) {
+         validCosts = true;
+       }
+
+       // Miscellaneous Costs
+       if (work_record.getMiscellaneousCosts() > 0) {
+         validCosts = true;
+       }
+     }
+     
+     // a valid effort was not found in the work record set
+     if (!validActualEffort && !validCosts) // && number == -1)
+       return(false);
+     return(true);
+   }
 }

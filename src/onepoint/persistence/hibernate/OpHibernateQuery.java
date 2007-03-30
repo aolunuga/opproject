@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -14,99 +14,99 @@ import java.util.Collection;
  */
 public class OpHibernateQuery implements OpQuery {
 
-   private Query _query;
+   private Query query;
 
    OpHibernateQuery(Query query) {
-      _query = query;
-      _query.setCacheable(true);
+      this.query = query;
+      this.query.setCacheable(true);
    }
 
    public final Query getQuery() {
-      return _query;
+      return query;
    }
 
    public final void setByte(int index, byte b) {
-      _query.setByte(index, b);
+      query.setByte(index, b);
    }
 
    public final void setByte(String name, byte b) {
-      _query.setByte(name, b);
+      query.setByte(name, b);
    }
 
    public final void setBoolean(int index, boolean b) {
-      _query.setBoolean(index, b);
+      query.setBoolean(index, b);
    }
    
    public final void setBoolean(String name, boolean b) {
-      _query.setBoolean(name, b);
+      query.setBoolean(name, b);
    }
    
    public final void setInteger(int index, int i) {
-      _query.setInteger(index, i);
+      query.setInteger(index, i);
    }
 
    public final void setInteger(String name, int i) {
-      _query.setInteger(name, i);
+      query.setInteger(name, i);
    }
 
    public final void setLong(int index, long l) {
-      _query.setLong(index, l);
+      query.setLong(index, l);
    }
 
    public final void setLong(String name, long l) {
-      _query.setLong(name, l);
+      query.setLong(name, l);
    }
 
    public final void setString(int index, String s) {
-      _query.setString(index, s);
+      query.setString(index, s);
    }
    
    public final void setString(String name, String s) {
-      _query.setString(name, s);
+      query.setString(name, s);
    }
 
    public final void setDate(int index, java.sql.Date d) {
-      _query.setDate(index, d);
+      query.setDate(index, d);
    }
 
    public final void setDate(String name, java.sql.Date d) {
-      _query.setDate(name, d);
+      query.setDate(name, d);
    }
 
    public final void setTimestamp(int index, java.util.Date d) {
-      _query.setDate(index, d);
+      query.setDate(index, d);
    }
 
    public final void setTimestamp(String name, java.util.Date d) {
-      _query.setDate(name, d);
+      query.setDate(name, d);
    }
    
    public final void setDouble(int index, double d) {
-      _query.setDouble(index, d);
+      query.setDouble(index, d);
    }
    
    public final void setDouble(String name, double d) {
-      _query.setDouble(name, d);
+      query.setDouble(name, d);
    }
 
    public void setCollection(String name, Collection c) {
-      _query.setParameterList(name, c);
+      query.setParameterList(name, c);
    }
 
    public final void setID(int index, long l) {
-      _query.setLong(index, l);
+      query.setLong(index, l);
    }
 
    public void setParameter(int index, Object o) {
-      _query.setParameter(index, o);
+      query.setParameter(index, o);
    }
 
 
    public void setFirstResult(int objectIndex) {
-      _query.setFirstResult(objectIndex);
+      query.setFirstResult(objectIndex);
    }
 
    public void setMaxResults(int count) {
-      _query.setMaxResults(count);
+      query.setMaxResults(count);
    }
 }

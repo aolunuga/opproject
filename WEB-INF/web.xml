@@ -28,7 +28,7 @@
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>
-         <param-value>express4j-client-07-u1.jar,opproject-client-07-u1.jar,jcookie-0.8b.jar</param-value>
+         <param-value>express4j-client-07.jar,opproject-client-07.jar,jcookie-0.8b.jar</param-value>
       </init-param>
    </servlet>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.test;
@@ -673,9 +673,8 @@ public class OpProjectTestData {
       dependency.setSuccessorActivity(activity4);
       broker.updateObject(dependency);
 
-      OpActivity milestone1 = new OpActivity();
+      OpActivity milestone1 = new OpActivity(OpActivity.MILESTONE);
       milestone1.setName("Anforderungen abgenommen");
-      milestone1.setType(OpActivity.MILESTONE);
       milestone1.setStart(XCalendar.getDefaultCalendar().parseDate("26.8.2005"));
       milestone1.setFinish(XCalendar.getDefaultCalendar().parseDate("26.8.2005"));
       milestone1.setSequence(4);
@@ -850,9 +849,8 @@ public class OpProjectTestData {
       dependency.setSuccessorActivity(activity9);
       broker.updateObject(dependency);
 
-      OpActivity milestone2 = new OpActivity();
+      OpActivity milestone2 = new OpActivity(OpActivity.MILESTONE);
       milestone2.setName("Projekt abgenommen");
-      milestone2.setType(OpActivity.MILESTONE);
       milestone2.setStart(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       milestone2.setFinish(XCalendar.getDefaultCalendar().parseDate("25.11.2005"));
       milestone2.setSequence(10);
@@ -876,9 +874,8 @@ public class OpProjectTestData {
       obank.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
       broker.makePersistent(obank);
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(0);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P1: Anforderungen");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -924,8 +921,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(4);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M1: Anforderungs- design abgeschlossen");
@@ -935,9 +931,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(5);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P2: Forschung");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -971,8 +966,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(8);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M2: Forschung abgeschlossen");
@@ -982,9 +976,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(9);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P3: Systemdesign");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -1030,8 +1023,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(13);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M3: Design fertig");
@@ -1041,9 +1033,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(14);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P4: Umsetzung");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -1101,8 +1092,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(19);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M4: Umsetzung abgeschlossen");
@@ -1112,9 +1102,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(20);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P5: Projekttests");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -1172,8 +1161,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(25);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M5: Projekttests erfolgreich beendet");
@@ -1183,9 +1171,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(26);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P6: Dokumentation");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -1219,8 +1206,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(29);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M6: Dokumentation fertig");
@@ -1230,9 +1216,8 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.COLLECTION);
       activity.setSequence(30);
-      activity.setType(OpActivity.COLLECTION);
       activity.setName("P7: Projektabschluss");
       activity.setStart(XCalendar.getDefaultCalendar().parseDate("1.8.2005"));
       activity.setFinish(XCalendar.getDefaultCalendar().parseDate("5.8.2005"));
@@ -1266,8 +1251,7 @@ public class OpProjectTestData {
       activity.setProjectPlan(obank);
       broker.updateObject(activity);
 
-      activity = new OpActivity();
-      activity.setType(OpActivity.MILESTONE);
+      activity = new OpActivity(OpActivity.MILESTONE);
       activity.setSequence(33);
       activity.setOutlineLevel((byte) 1);
       activity.setName("M7: Projekt abgeschlossen");

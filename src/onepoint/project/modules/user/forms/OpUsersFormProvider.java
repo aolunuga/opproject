@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -22,7 +22,6 @@ public class OpUsersFormProvider implements XFormProvider {
    private final static String NEW_USER_BUTTON = "NewUser";
    private final static String NEW_GROUP_BUTTON = "NewGroup";
    private final static String INFO_BUTTON = "Info";
-   private final static String EDIT_BUTTON = "Edit";
    private final static String DELETE_BUTTON = "Delete";
    private final static String ASSIGN_TO_GROUP_BUTTON = "AssignToGroup";
 
@@ -31,13 +30,11 @@ public class OpUsersFormProvider implements XFormProvider {
 
       XComponent dataSet = form.findComponent(USER_DATA_SET);
 
-
       //retrieve the subject structure
       OpSubjectDataSetFactory.retrieveSubjectHierarchy(session, dataSet, null, -1, 0, false);
 
       //disable buttons that require selection
       form.findComponent(INFO_BUTTON).setEnabled(false);
-      form.findComponent(EDIT_BUTTON).setEnabled(false);
       form.findComponent(DELETE_BUTTON).setEnabled(false);
       form.findComponent(ASSIGN_TO_GROUP_BUTTON).setEnabled(false);
 

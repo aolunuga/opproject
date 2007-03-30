@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 require "onepoint/project/scripts/error.jes";
@@ -51,7 +51,7 @@ function ok(event) {
             warning = response.getArgument("warning");
             if (warning != null) {
                XDisplay.getActiveWindow().close();
-               showWarning(response, warning, "MainFrame", "refreshForm");
+               showWarning(response, warning, "MainFrame", "refreshForm", null);
             }
             else {
                if (handleResponse(response, null, null) == false) {
@@ -83,7 +83,7 @@ function ok(event) {
             warning = response.getArgument("warning");
             if (warning != null) {
                XDisplay.getActiveWindow().close();
-               showWarning(response, warning, "MainFrame", "refreshForm");
+               showWarning(response, warning, "MainFrame", "refreshForm", null);
             }
             else {
                if (handleResponse(response, null, null) == false) {

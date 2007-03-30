@@ -473,9 +473,8 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       plan.setCalculationMode(OpGanttValidator.INDEPENDENT);
       broker.updateObject(plan);
 
-      OpActivity activity = new OpActivity();
+      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(time + 1000));
       activity.setFinish(new Date(time + 61000));
       activity.setComplete(67d);
@@ -498,9 +497,8 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       workPeriod.setWorkingDays(5);
       broker.makePersistent(workPeriod);
 
-      activity = new OpActivity();
+      activity = new OpActivity(OpActivity.ADHOC_TASK);
       activity.setProjectPlan(plan);
-      activity.setType(OpActivity.TASK);
       activity.setStart(new Date(time + 1500));
       activity.setFinish(new Date(time + 11500));
       activity.setComplete(80d);
@@ -730,7 +728,5 @@ public class OpProjectServiceTest extends OpBaseTestCase {
          OpObject object = (OpObject) it.next();
          dataFactory.deleteObject(object);
       }
-
-      broker.close();
    }
 }

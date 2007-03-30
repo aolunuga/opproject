@@ -5,8 +5,6 @@
    <resource-map id="settings.settings">
       <resource id="Settings">Settings</resource>
       <resource id="UserLocale">Default language</resource>
-      <resource id="English">English</resource>
-      <resource id="German">German</resource>
       <resource id="TimeControl">Time Settings</resource>
       <resource id="FirstWorkday">First work weekday</resource>
       <resource id="LastWorkday">Last work weekday</resource>

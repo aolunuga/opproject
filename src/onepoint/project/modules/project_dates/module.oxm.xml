@@ -1,8 +1,7 @@
 <module name="project_dates" caption="Projekttermine" version="0.2" class="onepoint.project.modules.project_dates.OpProjectDatesModule">
-   <language-kit-files>
-      <language-kit-file file-name="/modules/project_dates/i18n/project_dates_en.olk.xml"/>
-      <language-kit-file file-name="/modules/project_dates/i18n/project_dates_de.olk.xml"/>
-   </language-kit-files>
+   <language-kit-paths>
+      <language-kit-path path="/modules/project_dates/i18n"/>
+   </language-kit-paths>
    <prototype-files>
    </prototype-files>
    <service-files>

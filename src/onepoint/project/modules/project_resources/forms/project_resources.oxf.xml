@@ -25,8 +25,10 @@
          <!-- Note: If we add a choice-field for selecting outline-level -->
          <!-- Then, we cannot use the same data-set for this and the bar-chart -->
          <!-- (Major reason: Bar chart only make sense on first level) -->
-         <table-box id="ResourceTable" data-set-ref="ResourceSet" tree-column-index="0" pop-up-menu-ref="ResourceTablePopupMenu">
+         <table-box id="ResourceTable" data-set-ref="ResourceSet" tree-column-index="1" pop-up-menu-ref="ResourceTablePopupMenu">
             <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+            <table-column text="" width="0" hidden="true" data-column-index="7"
+                          row-font-styles="plain;bold;bold+italic;italic;italic;plain"/>
             <table-column text="{$ActivityOrResource}" width="185" data-column-index="0" sortable="true"/>
             <table-column text="{$Base}" width="70" data-column-index="1" value-type="Double" sortable="true"/>
             <table-column text="{$Actual}" width="70" data-column-index="2" value-type="Double" sortable="true"/>

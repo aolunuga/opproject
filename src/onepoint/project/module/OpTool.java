@@ -1,85 +1,85 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.module;
 
 public class OpTool {
 
-   private String _name;
-   private int _sequence;
-   private String _caption;
-   private String _icon;
-   private String _start_form;
-   private String _group_ref;
-   private OpToolGroup _group;
-   private OpModule _module;
+   private String name;
+   private int sequence;
+   private String caption;
+   private String icon;
+   private String startForm;
+   private String groupRef;
+   private OpToolGroup group;
+   private OpModule module;
    private Boolean multiUserOnly;
    private boolean selected;
 
    final public void setName(String name) {
-      _name = name;
+      this.name = name;
    }
 
    public final String getName() {
-      return _name;
+      return name;
    }
 
    public final void setSequence(int sequence) {
-      _sequence = sequence;
+      this.sequence = sequence;
    }
 
    public final int getSequence() {
-      return _sequence;
+      return sequence;
    }
 
    final public void setCaption(String caption) {
-      _caption = caption;
+      this.caption = caption;
    }
 
    public final String getCaption() {
-      return _caption;
+      return caption;
    }
 
    final public void setIcon(String icon) {
-      _icon = icon;
+      this.icon = icon;
    }
 
    final public String getIcon() {
-      return _icon;
+      return icon;
    }
 
    final public void setStartForm(String start_form) {
-      _start_form = start_form;
+      startForm = start_form;
    }
 
    public final String getStartForm() {
-      return _start_form;
+      return startForm;
    }
 
    final public void setGroupRef(String group_ref) {
-      _group_ref = group_ref;
-      _group = null;
+      groupRef = group_ref;
+      group = null;
    }
 
    public final String getGroupRef() {
-      return _group_ref;
+      return groupRef;
    }
 
    final public void setGroup(OpToolGroup group) {
-      _group = group;
+      this.group = group;
    }
 
    public final OpToolGroup getGroup() {
-      return _group;
+      return group;
    }
 
    final void setModule(OpModule module) {
-      _module = module;
+      this.module = module;
    }
 
    public final OpModule getModule() {
-      return _module;
+      return module;
    }
 
    public Boolean isMultiUserOnly() {

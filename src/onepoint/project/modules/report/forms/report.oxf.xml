@@ -29,7 +29,8 @@
       </panel>	   
 	   
          <collapsible-box x="-1" stateful="true" id="NavigationBox" text="{$ReportNavigator}" orientation="vertical">
-            <list-box list-style-ref="navigator-list-style" id="QueryList" data-set-ref="QuerySet" tree="false" on-button-pressed="selectQuery"/>
+            <list-box list-style-ref="navigator-list-style" id="QueryList" data-set-ref="QuerySet" tree="false"
+                      on-item-pressed="selectQuery"/>
          </collapsible-box>
 
 	</panel>

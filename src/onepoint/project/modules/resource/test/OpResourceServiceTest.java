@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.resource.test;
@@ -18,11 +18,12 @@ import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.sql.Date;
+
 
 /**
  * This class test resource service methods.
@@ -359,6 +360,7 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       planVersion.setVersionNumber(OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       planVersion.setStart(new Date(System.currentTimeMillis()));
       planVersion.setFinish(new Date(System.currentTimeMillis() + 1000));
+      planVersion.setProjectPlan(projectDataFactory.getProjectByName("prj1").getPlan());
       broker.makePersistent(planVersion);
 
       OpActivityVersion activity = new OpActivityVersion();
@@ -368,6 +370,7 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       OpAssignmentVersion assignment = new OpAssignmentVersion();
       assignment.setActivityVersion(activity);
       assignment.setResource(resource);
+      assignment.setPlanVersion(planVersion);
       broker.makePersistent(assignment);
 
       t.commit();

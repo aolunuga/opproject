@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.report;
@@ -25,6 +25,7 @@ import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -72,10 +73,11 @@ public class OpReportService extends OpProjectService {
 
    private static final XLog logger = XLogFactory.getLogger(OpReportService.class, true);
 
-   private static final List SUPPORTED_FORMATS = Arrays.asList(new String[] {REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV});
+   private static final List SUPPORTED_FORMATS = Arrays.asList(new String[]{REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV});
 
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
+      XMessage response;
 
       String name = (String) (request.getArgument(NAME));
 
@@ -87,7 +89,7 @@ public class OpReportService extends OpProjectService {
 
          // check if the export format is supported or not.
          if (!SUPPORTED_FORMATS.contains(format.toUpperCase())) {
-            XMessage response = new XMessage();
+            response = new XMessage();
             XError error = session.newError(ERROR_MAP, OpReportError.INVALID_REPORT_FORMAT);
             response.setError(error);
             return response;
@@ -122,16 +124,26 @@ public class OpReportService extends OpProjectService {
          resultStream.flush();
          resultStream.close();
 
-         XMessage response = new XMessage();
-         response.setArgument(GENERATED_REPORT_PATH, new File(path).toURL().toExternalForm());
+         response = new XMessage();
+         String fileName = new File(path).toURL().toExternalForm();
+         response.setArgument(GENERATED_REPORT_PATH, XEncodingHelper.encodeValue(fileName));
          return response;
       }
-      catch (Exception e) {
+      catch (OpReportException e) {
          // Whatever happened, we cannot handle it sensefull here...
-         logger.error("An Exception occured during execution of Method 'writeReportWorker'", e);
+         logger.error("An Exception occured during execution of Method 'exportReport'", e);
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.CREATE_REPORT_EXCEPTION);
+         response.setError(error);
+      }
+      catch (IOException ioe) {
+         logger.error("An Exception occured when writing the report to file", ioe);
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.CREATE_REPORT_EXCEPTION);
+         response.setError(error);
       }
       logger.debug("/OpReportService.createReport()");
-      return null;
+      return response;
    }
 
    /**
@@ -142,8 +154,9 @@ public class OpReportService extends OpProjectService {
     * @return a <code>XMessage</code> representing the response.
     */
    public XMessage saveReport(OpProjectSession session, XMessage request) {
+      XMessage response;
       String name = (String) (request.getArgument(NAME));
-      String reportName = name.substring(0, name.lastIndexOf('.'));
+      String reportName = getReportName(name);
 
       // Read format of the report to be generated.
       List formats = (List) (request.getArgument(FORMATS));
@@ -153,7 +166,7 @@ public class OpReportService extends OpProjectService {
 
          // check if the export format is supported or not.
          if (!SUPPORTED_FORMATS.contains(format.toUpperCase())) {
-            XMessage response = new XMessage();
+            response = new XMessage();
             XError error = session.newError(ERROR_MAP, OpReportError.INVALID_REPORT_FORMAT);
             response.setError(error);
             return response;
@@ -190,7 +203,7 @@ public class OpReportService extends OpProjectService {
          String contentLocator = OpLocator.locatorString(reportContent);
          String reportTypeLocator = OpLocator.locatorString(reportType);
 
-         XMessage response = new XMessage();
+         response = new XMessage();
          response.setArgument(CONTENT_ID, contentLocator);
          response.setArgument(REPORT_TYPE_ID, reportTypeLocator);
          response.setArgument(REPORT_NAME, name);
@@ -198,11 +211,14 @@ public class OpReportService extends OpProjectService {
       }
       catch (OpReportException e) {
          logger.error("Cannot save report into db", e);
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.SAVE_REPORT_EXCEPTION);
+         response.setError(error);
       }
       finally {
          broker.close();
       }
-      return null;
+      return response;
    }
 
    /**
@@ -214,7 +230,7 @@ public class OpReportService extends OpProjectService {
     * @return a <code>OpReportType</code> representing the newly created report type.
     */
    private OpReportType createNewReportType(OpReportManager reportManager, OpBroker broker, String name) {
-      String reportName = name.substring(0, name.lastIndexOf('.'));
+      String reportName = getReportName(name);
 
       //create the report type
       OpReportType reportType = new OpReportType();
@@ -246,7 +262,9 @@ public class OpReportService extends OpProjectService {
     */
    private JasperPrint createJasperPrint(OpProjectSession session, XMessage request) {
       String name = (String) (request.getArgument(NAME));
-      HashMap parameters = (HashMap) (request.getArgument(PARAMETERS));
+      Map parameters = (Map) (request.getArgument(PARAMETERS));
+      // copy parameters set to not affect request content.
+      parameters = parameters != null ? new HashMap(parameters) : null;
 
       //create the report query
       OpBroker broker = session.newBroker();
@@ -477,7 +495,7 @@ public class OpReportService extends OpProjectService {
     * @param params
     * @throws OpReportException If the values can not be updated.
     */
-   private Map updateParameterValues(OpProjectSession session, HashMap params, JRParameter[] defParams)
+   private Map updateParameterValues(OpProjectSession session, Map params, JRParameter[] defParams)
         throws OpReportException {
       //go through the defParams Array and convertParameterValue the things we get...
       JRParameter currParam;
@@ -557,4 +575,18 @@ public class OpReportService extends OpProjectService {
       }
    }
 
+   /**
+    * Get the name of the report from string. If the string represent a file name then the ectension is removed.
+    *
+    * @param name the string that contains the name of the report
+    * @return the name of the report.
+    */
+   private static String getReportName(String name) {
+      if (name != null && name.lastIndexOf('.') > -1) {
+         return name.substring(0, name.lastIndexOf('.'));
+      }
+      else {
+         return name;
+      }
+   }
 }

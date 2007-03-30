@@ -7,7 +7,6 @@
       <resource id="NewResource">Neue Ressource</resource>
       <resource id="Properties">Eigenschaften</resource>
       <resource id="Move">Verschieben</resource>
-      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="AssignToProject">Projekt zuweisen</resource>
       <resource id="ImportUser">Benutzer importieren</resource>
@@ -17,7 +16,6 @@
       <resource id="NewPoolTooltip">Neuen Ressourcepool erstellen</resource>
       <resource id="NewResourceTooltip">Neue Ressource erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählte Ressource oder Pool anzeigen</resource>
-      <resource id="EditTooltip">Metainformation für ausgewählte Ressource oder Pool bearbeiten</resource>
       <resource id="MoveTooltip">Ausgewählte Ressource oder Pool in einen anderen Pool verschieben</resource>
       <resource id="DeleteTooltip">Ausgewählte Ressourcen oder Pools löschen</resource>
       <resource id="AssignToProjectTooltip">Ausgewählte Ressourcen zu Projekt zuweisen</resource>

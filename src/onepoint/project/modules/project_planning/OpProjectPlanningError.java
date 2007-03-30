@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -26,6 +26,7 @@ public class OpProjectPlanningError {
    public final static int PROJECT_REVERT_ERROR = 12;
    public final static int PROJECT_SAVE_ERROR = 13;
    public final static int PROJECT_CHECKED_IN_ERROR = 14;
+   public final static int IMPORT_ERROR_WORK_RECORDS_EXIST = 15;
 
    // Error names
    public final static String COMMENT_NAME_MISSING_NAME = "CommentNameMissing";
@@ -42,5 +43,6 @@ public class OpProjectPlanningError {
    public final static String PROJECT_REVERT_ERROR_NAME = "ProjectRevertError";
    public final static String PROJECT_SAVE_ERROR_NAME = "ProjectSaveError";
    public final static String PROJECT_CHECKED_IN_ERROR_NAME = "ProjectCheckedInError";
+   public final static String IMPORT_ERROR_WORK_RECORDS_EXIST_NAME = "ImportErrorWorkRecordsExist";
 
 }

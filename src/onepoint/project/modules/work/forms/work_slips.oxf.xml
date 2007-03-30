@@ -20,8 +20,6 @@
                          tooltip="{$NewWorkSlipTooltip}"/>
             <tool-button text="{$Info}" id="InfoWorkSlip" icon="/icons/info.png"
                          disabled-icon="/icons/info_disabled.png" on-button-pressed="info" tooltip="{$InfoTooltip}"/>
-            <tool-button text="{$Edit}" id="EditWorkSlip" icon="/icons/edit.png"
-                         disabled-icon="/icons/edit_disabled.png" on-button-pressed="edit" tooltip="{$EditTooltip}"/>
             <tool-button text="{$Delete}" id="DeleteWorkSlip" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png" on-button-pressed="delete"
                          tooltip="{$DeleteTooltip}"/>
@@ -30,13 +28,13 @@
             <panel layout="table" flexible="false">
                <label x="0" width="2" text="{$Time}"/>
                <choice-field x="2" width="3" id="PeriodChooser" stateful="true" data-set-ref="PeriodSet"
-                             on-value-changed="filterChanged"  selected-index="0"/>
+                             on-value-changed="filterChanged" selected-index="0"/>
             </panel>
          </panel>
 
       </panel>
 
-      <table-box id="WorkSlipTable" data-set-ref="WorkSlipSet" flexible="true" on-double-click="info"
+      <table-box id="WorkSlipTable" y="0" data-set-ref="WorkSlipSet" flexible="true" on-double-click="edit"
                  on-row-select="selectionChanged">
          <table-column width="180" text="{$Number}" data-column-index="0" value-type="Int"/>
          <table-column width="270" text="{$Date}" data-column-index="1" value-type="Date"/>
