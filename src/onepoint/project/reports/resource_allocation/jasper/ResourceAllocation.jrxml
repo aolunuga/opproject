@@ -364,7 +364,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 						x="368"
 						y="12"
 						width="161"
-						height="27"
+						height="31"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
 						key="enterprise_logo"/>
@@ -389,7 +389,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 						mode="Transparent"
 						x="0"
 						y="35"
-						width="356"
+						width="357"
 						height="20"
 						forecolor="#FF7F00"
 						backcolor="#FFFFFF"
