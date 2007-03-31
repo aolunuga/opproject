@@ -599,7 +599,7 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 						x="368"
 						y="9"
 						width="161"
-						height="27"
+						height="31"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
 						key="enterprise_logo"/>
