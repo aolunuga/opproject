@@ -7,6 +7,7 @@
       <resource id="NewResource">New Resource</resource>
       <resource id="Properties">Properties</resource>
       <resource id="Move">Move</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="AssignToProject">Assign to Project</resource>
       <resource id="ImportUser">Import Users</resource>
@@ -17,6 +18,7 @@
       <resource id="NewResourceTooltip">Create new resource</resource>
       <resource id="InfoTooltip">View meta information for the selected resource or pool</resource>
       <resource id="MoveTooltip">Move the selected resource or pool to a different pool</resource>
+      <resource id="EditTooltip">Edit meta information for the selected resource or pool</resource>
       <resource id="DeleteTooltip">Delete selected resources and pools</resource>
       <resource id="AssignToProjectTooltip">Assign the selected resources to a project</resource>
       <resource id="ImportUsersTooltip">Import users as resources</resource>

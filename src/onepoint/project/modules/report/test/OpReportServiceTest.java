@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.report.test;
@@ -6,15 +6,14 @@ package onepoint.project.modules.report.test;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpLocator;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.report.OpReportError;
 import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
-import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
+import onepoint.service.XMessage;
 
 import java.io.File;
 import java.net.URL;
@@ -260,9 +259,9 @@ public class OpReportServiceTest extends OpBaseTestCase {
       assertTrue(reportPath.length() > 0);
 
       reportPath = XEncodingHelper.decodeValue(reportPath);
-
+      
       // now check if file really exists.
-      URL reportFileUrl = new URL("file://" + XEnvironmentManager.TMP_DIR + File.separator + reportPath);
+      URL reportFileUrl = new URL(reportPath);
       File reportFile = new File(reportFileUrl.getFile());
       assertTrue("Returned file should exist on disk.", reportFile.exists());
       assertTrue("Returned path must be a file", reportFile.isFile());

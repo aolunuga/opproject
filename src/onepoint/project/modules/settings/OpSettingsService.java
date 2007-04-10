@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -79,7 +79,7 @@ public class OpSettingsService extends OpProjectService {
 
       //week work time validation
       boolean weekWorkChanged = false;
-      int workingDaysPerWeek = session.getCalendar().countWeekdays(firstWorkDay, lastWorkDay);
+      int workingDaysPerWeek = XCalendar.getDefaultCalendar().countWeekdays(firstWorkDay, lastWorkDay);
       double weekWorkTime;
       Double weekWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (weekWorkTimeDouble == null) {
@@ -181,8 +181,8 @@ public class OpSettingsService extends OpProjectService {
       // Apply new settings
       boolean changedLanguage = OpSettings.applySettings(session);
 
-      OpSettings.configureServerCalendar(session);
-      reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
+      XCalendar calendar = OpSettings.configureDefaultCalendar(session.getLocale());
+      reply.setVariable(OpProjectConstants.CALENDAR, calendar);
 
       if (!OpInitializer.isMultiUser() && changedLanguage) {
          reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);

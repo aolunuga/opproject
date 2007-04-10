@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_costs;
@@ -159,31 +159,26 @@ public final class OpProjectCostsDataSetFactory {
          data_row.setOutlineLevel(activity.getOutlineLevel() + 1);
          data_row.setExpanded(true);
          XComponent data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(text); //0 - name
+         data_cell.setStringValue(text);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(base);  //1 - base value
+         data_cell.setDoubleValue(base);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(actual); //2 - actual value
+         data_cell.setDoubleValue(actual);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(remaining); //3 - remaining value
+         data_cell.setDoubleValue(remaining);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(predicted); //4- predicted value
+         data_cell.setDoubleValue(predicted);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(deviation); //5 - deviation value
+         data_cell.setDoubleValue(deviation);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         double percentDeviation = OpActivityDataSetFactory.calculatePercentDeviation(base, deviation);
-         data_cell.setDoubleValue(percentDeviation); //6 - percent deviation
+         data_cell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(base, deviation));
          data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL); //7 - type
-         data_cell.setByteValue((byte)0);
-         data_row.addChild(data_cell);
-
          data_set.addChild(data_row);
       }
       return activityPredicted;
@@ -208,8 +203,7 @@ public final class OpProjectCostsDataSetFactory {
       data_row = new XComponent(XComponent.DATA_ROW);
       data_row.setOutlineLevel(activity.getOutlineLevel());
       data_row.setExpanded(true);
-      XComponent data_cell;
-      data_cell = new XComponent(XComponent.DATA_CELL);
+      XComponent data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setStringValue(activity.getName());
       data_row.addChild(data_cell); //0 - name
       data_cell = new XComponent(XComponent.DATA_CELL);
@@ -229,10 +223,6 @@ public final class OpProjectCostsDataSetFactory {
       data_row.addChild(data_cell); //5 deviation
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_row.addChild(data_cell);  //6 %deviation
-
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setByteValue(activity.getType());
-      data_row.addChild(data_cell); //7 - type
 
       return data_row;
    }

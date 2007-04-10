@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -38,7 +38,7 @@ public class OpBroker {
       // Persist object into default source and set creation date and time
       TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
       object.setCreated(Calendar.getInstance(gmtTimezone).getTime());
-
+      
       object.setModified(null);
       defaultConnection.persistObject(object);
       logger.debug("OpBroker.makePersistent(): id = " + object.getID());
@@ -63,7 +63,7 @@ public class OpBroker {
       // Set modification date and time (in GMT)
       TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
       object.setModified(Calendar.getInstance(gmtTimezone).getTime());
-
+      
       defaultConnection.updateObject(object);
       logger.debug("/OpBroker.updateObject()");
    }
@@ -111,11 +111,11 @@ public class OpBroker {
       return defaultConnection.newQuery(s);
    }
 
+
    public void close() {
       // Probably rename this function
       if (defaultConnection != null) {
          defaultConnection.close();
-         defaultConnection = null;
       }
    }
 
@@ -126,13 +126,6 @@ public class OpBroker {
     */
    public boolean isOpen() {
       return defaultConnection != null && defaultConnection.isOpen();
-   }
-
-   public boolean isValid() {
-      if (defaultConnection == null) {
-         return (false);
-      }
-      return (defaultConnection.isValid());
    }
 
    public OpTransaction newTransaction() {

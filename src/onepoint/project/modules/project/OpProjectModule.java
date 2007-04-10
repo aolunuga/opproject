@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -25,37 +25,23 @@ public class OpProjectModule extends OpModule {
     */
    public static final String MODULE_NAME = "project";
 
-   private final static String OLD_ROOT_PORTFOLIO_NAME = "{$RootProjectPortfolioName}";
-
    /**
     * Returns the name of the start form for this module.
-    *
     * @return a <code>String</code> representing the path to the start form.
     */
    public String getStartFormPath() {
-      return "/modules/project/forms/projects.oxf.xml";
+      return "/modules/project/forms/projects.oxf.xml";   
    }
 
    public void start(OpProjectSession session) {
 
       //Register system objects with backup manager
       OpBackupManager.addSystemObjectIDQuery(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME, OpProjectNode.ROOT_PROJECT_PORTFOLIO_ID_QUERY);
-
+      
       // Check if hard-wired portfolio object "Root Project Portfolio" exists (if not create it)
       OpBroker broker = session.newBroker();
       if (OpProjectAdministrationService.findRootPortfolio(broker) == null) {
-         // check for old format
-         OpProjectNode oldRoot = OpProjectAdministrationService.findProjectNode(broker, OLD_ROOT_PORTFOLIO_NAME, OpProjectNode.PORTFOLIO);
-         if (oldRoot != null) {
-            oldRoot.setName(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME);
-            oldRoot.setDescription(OpProjectNode.ROOT_PROJECT_PORTFOLIO_DESCRIPTION);
-            OpTransaction t = broker.newTransaction();
-            broker.updateObject(oldRoot);
-            t.commit();
-         }
-         else {
-            OpProjectAdministrationService.createRootPortfolio(session, broker);
-         }
+         OpProjectAdministrationService.createRootPortfolio(session, broker);
       }
 
       // Patch for BETA-4: Check if all projects have associated project plans (if not: Create them)

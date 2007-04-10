@@ -1,14 +1,14 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.report.test;
 
-import onepoint.persistence.OpLocator;
 import onepoint.project.modules.report.OpReportManager;
 import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
-import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
+import onepoint.service.XMessage;
+import onepoint.persistence.OpLocator;
 
 import java.io.File;
 import java.net.URL;

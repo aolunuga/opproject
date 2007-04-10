@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -80,7 +80,7 @@ public class OpActivity extends OpObject {
    private Date finish;
    private double duration;
    private double complete;
-   private byte priority; // Priority 1-9 (0 means N/A)
+   private byte priority; // Priority 1-9 (null means undefined)
    private double baseEffort; // Person hours
    private double baseTravelCosts;
    private double basePersonnelCosts;
@@ -100,22 +100,14 @@ public class OpActivity extends OpObject {
    private OpProjectPlan projectPlan;
    private OpActivity superActivity;
    private OpResource responsibleResource;
-   private Set<OpActivity> subActivities; // *** Could also be a List (via sequence)
-   private Set<OpAssignment> assignments;
-   private Set<OpWorkPeriod> workPeriods;
-   private Set<OpDependency> successorDependencies;
-   private Set<OpDependency> predecessorDependencies;
-   private Set<OpAttachment> attachments;
-   private Set<OpActivityVersion> versions;
-   private Set<OpActivityComment> comments;
-
-   public OpActivity() {
-   }
-
-   public OpActivity(byte type) {
-      this();
-      setType(type);
-   }
+   private Set subActivities; // *** Could also be a List (via sequence)
+   private Set assignments;
+   private Set workPeriods;
+   private Set successorDependencies;
+   private Set predecessorDependencies;
+   private Set attachments;
+   private Set versions;
+   private Set comments;
 
    public void setName(String name) {
       this.name = name;
@@ -134,9 +126,6 @@ public class OpActivity extends OpObject {
    }
 
    public void setType(byte type) {
-      if ((type < 0) || (type > ADHOC_TASK)) {
-         throw (new IllegalArgumentException("type must be within [0," + ADHOC_TASK + "]!"));
-      }
       this.type = type;
    }
 
@@ -352,15 +341,15 @@ public class OpActivity extends OpObject {
       return projectPlan;
    }
 
-   public void setAssignments(Set<OpAssignment> assignments) {
+   public void setAssignments(Set assignments) {
       this.assignments = assignments;
    }
 
-   public Set<OpAssignment> getAssignments() {
+   public Set getAssignments() {
       return assignments;
    }
 
-   public void setWorkPeriods(Set<OpWorkPeriod> workPeriods) {
+   public void setWorkPeriods(Set workPeriods) {
       this.workPeriods = workPeriods;
    }
 
@@ -376,51 +365,51 @@ public class OpActivity extends OpObject {
       return superActivity;
    }
 
-   public void setSubActivities(Set<OpActivity> subActivities) {
+   public void setSubActivities(Set subActivities) {
       this.subActivities = subActivities;
    }
 
-   public Set<OpActivity> getSubActivities() {
+   public Set getSubActivities() {
       return subActivities;
    }
 
-   public void setSuccessorDependencies(Set<OpDependency> successorDependencies) {
+   public void setSuccessorDependencies(Set successorDependencies) {
       this.successorDependencies = successorDependencies;
    }
 
-   public Set<OpDependency> getSuccessorDependencies() {
+   public Set getSuccessorDependencies() {
       return successorDependencies;
    }
 
-   public void setPredecessorDependencies(Set<OpDependency> predecessorDependencies) {
+   public void setPredecessorDependencies(Set predecessorDependencies) {
       this.predecessorDependencies = predecessorDependencies;
    }
 
-   public Set<OpDependency> getPredecessorDependencies() {
+   public Set getPredecessorDependencies() {
       return predecessorDependencies;
    }
 
-   public void setAttachments(Set<OpAttachment> attachments) {
+   public void setAttachments(Set attachments) {
       this.attachments = attachments;
    }
 
-   public Set<OpAttachment> getAttachments() {
+   public Set getAttachments() {
       return attachments;
    }
 
-   public void setVersions(Set<OpActivityVersion> versions) {
+   public void setVersions(Set versions) {
       this.versions = versions;
    }
 
-   public Set<OpActivityVersion> getVersions() {
+   public Set getVersions() {
       return versions;
    }
 
-   public void setComments(Set<OpActivityComment> comments) {
+   public void setComments(Set comments) {
       this.comments = comments;
    }
 
-   public Set<OpActivityComment> getComments() {
+   public Set getComments() {
       return comments;
    }
 

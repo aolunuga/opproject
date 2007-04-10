@@ -1,0 +1,40 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for project_dates.oxf.xml
+require "onepoint/project/modules/project_dates/scripts/project_dates.jes" as super;
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function saveMilestoneTableCSV(event){
+   XDisplay.getActiveForm().findComponent("MilestoneTable").saveAsCSV("Save Milestones");
+}
+
+function saveMilestoneTableImage(event) {
+   XDisplay.getActiveForm().findComponent("MilestoneTable").saveAsImage("Save Milestones");
+}
+
+function saveMilestoneChartImage(event) {
+   XDisplay.getActiveForm().findComponent("MilestoneChart").saveAsImage("Save Chart");   
+}
+
+function print(event) {
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectDatesBox");
+   cur_tab = tabBox.getIntValue();
+   title = super.getPrintTitle();
+   if (cur_tab == 0) {
+      super.print(event);
+   }
+   if (cur_tab == 1) {
+      component = XDisplay.getActiveForm().findComponent("MilestoneTable");
+      component.print(title);
+   }
+   if (cur_tab == 2) {
+      component = XDisplay.getActiveForm().findComponent("MilestoneChart");
+      component.print(title);
+   }    
+}

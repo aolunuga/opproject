@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.settings.test;
@@ -12,7 +12,6 @@ import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
 import java.util.HashMap;
-import java.util.Calendar;
 
 /**
  * This class test settings service methods and form providers.
@@ -240,8 +239,8 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       HashMap prefs = new HashMap();
       prefs.put(OpSettings.USER_LOCALE, newLocale);
-      prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, Integer.toString(Calendar.TUESDAY));
-      prefs.put(OpSettings.CALENDAR_LAST_WORKDAY, Integer.toString(Calendar.WEDNESDAY));
+      prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, Integer.toString(XCalendar.TUESDAY));
+      prefs.put(OpSettings.CALENDAR_LAST_WORKDAY, Integer.toString(XCalendar.WEDNESDAY));
       prefs.put(OpSettings.CALENDAR_DAY_WORK_TIME, new Double(5d));
       prefs.put(OpSettings.CALENDAR_WEEK_WORK_TIME, new Double(12d));
       prefs.put(OpSettings.CALENDAR_HOLIDAYS_LOCATION, "us");
@@ -260,8 +259,8 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       getSettingsService().loadSettings(session, null);
 
       assertEquals("de", OpSettings.get(OpSettings.USER_LOCALE));
-      assertEquals(Integer.toString(Calendar.TUESDAY), OpSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY));
-      assertEquals(Integer.toString(Calendar.WEDNESDAY), OpSettings.get(OpSettings.CALENDAR_LAST_WORKDAY));
+      assertEquals(Integer.toString(XCalendar.TUESDAY), OpSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY));
+      assertEquals(Integer.toString(XCalendar.WEDNESDAY), OpSettings.get(OpSettings.CALENDAR_LAST_WORKDAY));
       assertEquals("6.0", OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME));
       assertEquals("12.0", OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME));
       assertEquals("us", OpSettings.get(OpSettings.CALENDAR_HOLIDAYS_LOCATION));

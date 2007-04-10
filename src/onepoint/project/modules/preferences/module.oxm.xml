@@ -1,11 +1,12 @@
 <module name="preferences" caption="Einstellungen" version="0.1" class="onepoint.project.modules.preferences.OpPreferencesModule">
-   <language-kit-paths>
-      <language-kit-path path="/modules/preferences/i18n"/>
-   </language-kit-paths>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/preferences/i18n/preferences_en.olk.xml"/>
+      <language-kit-file file-name="/modules/preferences/i18n/preferences_de.olk.xml"/>
+   </language-kit-files>
    <service-files>
       <service-file file-name="/modules/preferences/preferences_service.osd.xml"/>
-   </service-files>
+   </service-files>   
    <tools>
-      <tool name="preferences" caption="${PreferencesTool}" group-ref="my" icon="/modules/preferences/icons/preferences_tool.png" start-form="/modules/preferences/forms/preferences.oxf.xml" sequence="20" multi-user-only="true"/>
+      <tool name="preferences" caption="{$PreferencesTool}" group-ref="my" icon="/modules/preferences/icons/preferences_tool.png" start-form="/modules/preferences/forms/preferences.oxf.xml" sequence="20" multi-user-only="true"/>
    </tools>
 </module>

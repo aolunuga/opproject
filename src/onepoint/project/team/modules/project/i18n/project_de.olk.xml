@@ -1,0 +1,84 @@
+<language-kit locale="de">
+   <resource-map id="project.module">
+      <resource id="ProjectsAdministrationTool">Verwaltung</resource>
+   </resource-map>
+
+   <resource-map id="project.projects">
+      <resource id="NewTemplate">Neue Vorlage</resource>
+      <resource id="SaveAsTemplate">Als Vorlage speichern</resource>
+      <resource id="NewTemplateTooltip">Neue Projektvorlage erstellen</resource>
+      <resource id="SaveAsTemplateTooltip">Ausgewähltes Projekt als Vorlage speichern</resource>
+   </resource-map>
+
+   <resource-map id="project.NewProject">
+      <resource id="Template">Vorlage</resource>
+      <resource id="NotSelected">(Nicht ausgewählt)</resource>
+   </resource-map>
+
+   <resource-map id="project.EditProject">
+      <resource id="Template">Vorlage</resource>
+      <resource id="NotSelected">(Nicht ausgewählt)</resource>
+   </resource-map>
+
+   <resource-map id="project.NewTemplate">
+      <resource id="NewTemplate">Neue Vorlage</resource>
+
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+
+      <resource id="Permissions">Berechtigungen</resource>
+
+      <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
+      <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
+
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.SaveAsTemplate">
+      <resource id="SaveAsTemplate">Als Vorlage speichern</resource>
+
+      <resource id="SelectPortfolio">Bitte ein Zielportfolio auswählen:</resource>
+      <resource id="Name">Name</resource>
+
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.EditTemplate">
+      <resource id="EditTemplate">Vorlage bearbeiten</resource>
+
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+
+      <resource id="Permissions">Berechtigungen</resource>
+
+      <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
+      <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
+
+      <resource id="Resources">Ressourcen</resource>
+
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.Info">
+      <resource id="InfoTemplate">Vorlageneigenschaften</resource>
+   </resource-map>
+
+   <resource-map id="project.error">
+      <resource id="TemplateNameMissing">Bitte Vorlagenname eingeben</resource>
+      <resource id="TemplateNameAlreadyUsed">Der Vorlagenname wird bereits verwendet</resource>
+      <resource id="PortfolioNameMissing">Bitte Portfolionamen eingeben</resource>
+      <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte um das Projekt, die Vorlage oder das Portfolio zu bearbeiten</resource>
+   </resource-map>
+   <resource-map id="project.delete">
+      <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>
+      <resource id="ConfirmVersionDelete">Sind Sie sicher, dass Sie das ausgewählte Versionen löschen möchten ?</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eines oder mehrere Projekte, Vorlagen, oder Portfolios zum Löschen aus.</resource>
+      <resource id="ConfirmDeleteOneMessage">Sind Sie sicher, dass Sie das ausgewählte Projekt, die Vorlage oder das Portfolio löschen möchten?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Sind Sie sicher, dass Sie das ausgewählte, Vorlagen oder Portfolios löschen möchten?</resource>
+   </resource-map>
+</language-kit>

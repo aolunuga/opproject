@@ -1,0 +1,31 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/modules/project_costs/scripts/project_costs.jes" as super;
+
+import onepoint.express.XDisplay;
+
+function saveChartImage(event) {
+   XDisplay.getActiveForm().findComponent("CostBarChart").saveAsImage("Save Chart");
+}
+
+function print(event){
+
+   tabBox = XDisplay.getActiveForm().findComponent("PlanningCostsBox");
+   cur_tab = tabBox.getIntValue();
+   title = super.getPrintTitle();
+
+   if (cur_tab == 0) {
+      super.print(event);
+   }
+   if (cur_tab == 1) {
+      component = XDisplay.getActiveForm().findComponent("CostBarChart");
+      component.print(title);
+   }
+}
+
+function outlineLevelChanged(event){
+    XDisplay.findFrame("ProjectContentFrame").refreshForm();
+}
+

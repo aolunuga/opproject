@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_status.forms;
@@ -31,6 +31,7 @@ public class OpProjectStatusFormProvider implements XFormProvider {
    private final static String IS_ADMIN_ROLE_DATA_FIELD = "AdminRoleDataField";
    private final static String NEW_PROJECT_STATUS_BUTTON = "NewProjectStatus";
    private final static String INFO_BUTTON = "Info";
+   private final static String EDIT_BUTTON = "Edit";
    private final static String DELETE_BUTTON = "Delete";
    private final static String UP_BUTTON = "Up";
    private final static String DOWN_BUTTON = "Down";
@@ -41,6 +42,7 @@ public class OpProjectStatusFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       //disable buttons that require selection
       form.findComponent(INFO_BUTTON).setEnabled(false);
+      form.findComponent(EDIT_BUTTON).setEnabled(false);
       form.findComponent(DELETE_BUTTON).setEnabled(false);
       form.findComponent(UP_BUTTON).setEnabled(false);
       form.findComponent(DOWN_BUTTON).setEnabled(false);

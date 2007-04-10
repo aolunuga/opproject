@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 package onepoint.project.module;
 
@@ -20,8 +20,8 @@ public class OpModuleSchema extends XSchema {
       registerNodeHandler(OpToolHandler.TOOL, new OpToolHandler());
       registerNodeHandler(OpServiceFilesHandler.SERVICE_FILES, new OpServiceFilesHandler());
       registerNodeHandler(OpServiceFileHandler.SERVICE_FILE, new OpServiceFileHandler());
-      registerNodeHandler(OpLanguageKitPathsHandler.LANGUAGE_KIT_PATHS, new OpLanguageKitPathsHandler());
-      registerNodeHandler(OpLanguageKitPathHandler.LANGUAGE_KIT_PATH, new OpLanguageKitPathHandler());
+      registerNodeHandler(OpLanguageKitFilesHandler.LANGUAGE_KIT_FILES, new OpLanguageKitFilesHandler());
+      registerNodeHandler(OpLanguageKitFileHandler.LANGUAGE_KIT_FILE, new OpLanguageKitFileHandler());
    }
 
 }

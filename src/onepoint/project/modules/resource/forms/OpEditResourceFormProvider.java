@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -34,13 +34,13 @@ public class OpEditResourceFormProvider implements XFormProvider {
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ORIGINAL_AVAILABLE = "OriginalAvailable";
    private final static String ORIGINAL_HOURLY_RATE = "OriginalHourlyRate";
+   private final static String USER_BUTTON = "SelectUserButton";
+   private final static String USER_FIELD = "UserName";
    private final static String USER_LABEL = "ResponsibleUserLabel";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String HOURLY_RATE = "HourlyRate";
    private final static String HOURLY_RATE_LABEL = "HourlyRateLabel";
    private final static String INHERIT_POOL_RATE = "InheritPoolRate";
-   private static final String PROJECT_TOOL_PANEL = "ProjectToolPanel";
-   private static final String CANCEL = "Cancel";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -54,7 +54,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
 
       // Downgrade edit mode to view mode if no manager access
       byte accessLevel = session.effectiveAccessLevel(broker, resource.getID());
-      if (edit_mode && (accessLevel < OpPermission.MANAGER)) {
+      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
          edit_mode = Boolean.FALSE;
       }
 
@@ -67,7 +67,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
       // Fill edit-user form with user data
       // *** Use class-constants for text-field IDs?
       form.findComponent(RESOURCE_ID).setStringValue(id_string);
-      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode);
+      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
       XComponent name = form.findComponent(OpResource.NAME);
       name.setStringValue(resource.getName());
       XComponent desc = form.findComponent(OpResource.DESCRIPTION);
@@ -91,15 +91,21 @@ public class OpEditResourceFormProvider implements XFormProvider {
 
       OpUser user = resource.getUser();
       if (user != null) {
+         // *** TODO: Use real choice-field (opens associated chooser dialog)
+         // *** Meanwhile: Use a work-around
+         // ==> Disabled text-field showing user name
+         // ==> Data-field containing user ID
+         // ==> Normal button launching chooser
          XLocalizer localizer = new XLocalizer();
          localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
-         XComponent userName = form.findComponent(USER_NAME);
-         userName.setStringValue(XValidator.choice(user.locator(), localizer.localize(user.getDisplayName())));
+         XComponent user_name_text_field = form.findComponent(USER_NAME);
+         user_name_text_field.setStringValue(localizer.localize(user.getDisplayName()));
+         XComponent user_id_data_field = form.findComponent("SelectedUserDataField");
+         user_id_data_field.setStringValue(user.locator());
       }
 
       XComponent assigned_project_data_set = form.findComponent(ASSIGNED_PROJECT_DATA_SET);
-
       // configure project assignment sort order
       OpObjectOrderCriteria projectOrderCriteria = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
       StringBuffer assignmentQuery = new StringBuffer("select assignment.ProjectNode from OpResource as resource inner join resource.ProjectNodeAssignments as assignment where assignment.Resource.ID = ?");
@@ -108,8 +114,8 @@ public class OpEditResourceFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery(assignmentQuery.toString());
       query.setLong(0, resource.getID());
       Iterator i = broker.iterate(query);
-      OpProjectNode project;
-      XComponent data_row;
+      OpProjectNode project = null;
+      XComponent data_row = null;
       while (i.hasNext()) {
          project = (OpProjectNode) (i.next());
          data_row = new XComponent(XComponent.DATA_ROW);
@@ -117,29 +123,31 @@ public class OpEditResourceFormProvider implements XFormProvider {
          assigned_project_data_set.addChild(data_row);
       }
 
-      if (!edit_mode) {
+      if (!edit_mode.booleanValue()) {
          name.setEnabled(false);
          desc.setEnabled(false);
          available.setEnabled(false);
          hourly_rate.setEnabled(false);
          inherit_pool_rate.setEnabled(false);
          form.findComponent(USER_NAME).setEnabled(false);
-         form.findComponent(PROJECT_TOOL_PANEL).setVisible(false);
-         form.findComponent(CANCEL).setVisible(false);
+         form.findComponent("ProjectToolPanel").setVisible(false);
+         form.findComponent("SelectUserButton").setVisible(false);
+         form.findComponent("Cancel").setVisible(false);
          String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoResource").getText();
          form.setText(title);
       }
 
       if (!OpInitializer.isMultiUser()) {
-         form.findComponent(USER_NAME).setVisible(false);
+         form.findComponent(USER_BUTTON).setVisible(false);
          form.findComponent(USER_LABEL).setVisible(false);
+         form.findComponent(USER_FIELD).setVisible(false);
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
       else {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, edit_mode, accessLevel);
+         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
       }
       broker.close();
    }

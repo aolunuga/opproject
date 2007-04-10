@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository;
@@ -13,6 +13,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.util.XEnvironmentManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class OpRepositoryService extends OpProjectService {
     * The name of the request parameter which contains the value of the back dir
     */
    public static final String BACKUP_DIR_ROOT_PATH_PARAM = "backupDirRootPath";
-
+   
    /**
     * The default prefix for back-up files.
     */
@@ -41,7 +42,7 @@ public class OpRepositoryService extends OpProjectService {
     * Default extension for the backup file.
     */
    public static final String BACKUP_FILE_EXTENSION = ".xml";
-
+   
    /**
     * The name of the response parameter representing the name of the backup file.
     */
@@ -68,15 +69,15 @@ public class OpRepositoryService extends OpProjectService {
    private static final String RESTORE_FILE_PARAMENTER = "restoreFile";
 
    /**
-    * The name of the request parameter representing the
+    * The name of the request parameter representing the 
     */
    public static final String ADMIN_PASSWORD_PARAMETER = "adminPassword";
-
+   
    /**
     * Backs up a repository.
     *
-    * @param projectSession a <code>OpProjectSession</code> representing the server session.
-    * @param request        a <code>XMessage</code> representing the client request.
+    * @param projectSession       a <code>OpProjectSession</code> representing the server session.
+    * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage backup(OpProjectSession projectSession, XMessage request) {
@@ -109,7 +110,6 @@ public class OpRepositoryService extends OpProjectService {
 
    /**
     * Gets the file where the backup will be stored.
-    *
     * @param request a <code>XMessage</code> representing the server request.
     * @return a <code>File</code> objects or null if the backup folder can't be created.
     */
@@ -132,7 +132,7 @@ public class OpRepositoryService extends OpProjectService {
     * @return a <code>String</code> representing the name of the backup file.
     */
    private String createBackupFilename() {
-      StringBuffer fileNameBuffer = new StringBuffer(File.separator);
+      StringBuffer fileNameBuffer = new StringBuffer(XEnvironmentManager.FILE_SEPARATOR);
       fileNameBuffer.append(BACKUP_FILE_PREFIX);
 
       Date currentDate = new Date(System.currentTimeMillis());
@@ -144,9 +144,8 @@ public class OpRepositoryService extends OpProjectService {
 
    /**
     * Creates an error message with the given code.
-    *
     * @param session a <code>OpProjectSession</code> session representing the server session.
-    * @param code    a <code>int</code> representing the error code.
+    * @param code a <code>int</code> representing the error code.
     * @return a <code>XMessage</code> that contains an error with the given code.
     */
    private XMessage createErrorMessage(OpProjectSession session, int code) {
@@ -159,8 +158,8 @@ public class OpRepositoryService extends OpProjectService {
    /**
     * Restores a repository from an existing backup file.
     *
-    * @param projectSession a <code>OpProjectSession</code> representing the server session.
-    * @param request        a <code>XMessage</code> representing the client request.
+    * @param projectSession       a <code>OpProjectSession</code> representing the server session.
+    * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage restore(OpProjectSession projectSession, XMessage request) {
@@ -180,7 +179,7 @@ public class OpRepositoryService extends OpProjectService {
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
       }
       catch (Exception e) {
-         logger.error("Cannot restore repository because:" + e.getMessage(), e);
+         logger.error("Cannot restore repository because:" +  e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.RESTORE_ERROR_CODE);
       }
       return null;
@@ -189,8 +188,8 @@ public class OpRepositoryService extends OpProjectService {
    /**
     * Resets a repository by removing an existing db schema and creating a new one.
     *
-    * @param projectSession a <code>OpProjectSession</code> representing the server session.
-    * @param request        a <code>XMessage</code> representing the client request.
+    * @param projectSession       a <code>OpProjectSession</code> representing the server session.
+    * @param request a <code>XMessage</code> representing the client request.
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage reset(OpProjectSession projectSession, XMessage request) {
@@ -218,9 +217,8 @@ public class OpRepositoryService extends OpProjectService {
 
    /**
     * Checks whether the user entered a valid administrator password or not.
-    *
     * @param projectSession a <code>OpProjectSession</code> representing the server session.
-    * @param request        a <code>XMessage</code> representing the server request.
+    * @param request a <code>XMessage</code> representing the server request.
     * @return a <code>XMessage</code> which is the response.
     */
    public XMessage validateAdminPassword(OpProjectSession projectSession, XMessage request) {

@@ -4,33 +4,33 @@
       on-show="prepareForm">
 	<data-set id="ResultSet"/>
 	<data-field id="ProjectLocatorField"/>
-  <data-field id="PrintTitle" string-value="${PrintTitle}"/>
+  <data-field id="PrintTitle" string-value="{$PrintTitle}"/>
 
   <pop-up-menu id="ResultTablePopupMenu">
-      <pop-up-item text="${SaveCSV}" on-item-selected="saveTableCSV"/>
-      <pop-up-item text="${SaveImage}" on-item-selected="saveTableImage"/>
+      <pop-up-item text="{$SaveCSV}" on-item-selected="saveTableCSV"/>
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveTableImage"/>
   </pop-up-menu>
 
   <!-- division orientation="horizontal" -->
    <panel layout="border">
       <panel y="-1" layout="table" style-ref="table-panel-default">
-         <label x="0" y="0" width="5" id="ErrorLabel" text="${InvalidProject}" visible="false" style-ref="label-error-default"/>
-         <label x="0" y="1" width="2" text="${Project}"/>
-         <action-button x="2" y="1" width="3" id="ProjectNameField" edit-mode="false" on-button-pressed="chooseProject"
-                        left-icon="/icons/remove.png" right-icon="/icons/user_chooser.png"/>
-    </panel>
+         <label x="0" y="0" width="5" id="ErrorLabel" text="{$InvalidProject}" visible="false" style-ref="label-error-default"/>
+			<label x="0" y="1" width="2" text="{$Project}"/>
+			<text-field x="2" y="1" width="2" id="ProjectNameField" enabled="false"/>
+			<button x="4" y="1" text="{$Select}" on-button-pressed="chooseProject"/>
+		</panel>
 			<table-box id="ResultTable" data-set-ref="ResultSet" width="3" flexible="true" pop-up-menu-ref="ResultTablePopupMenu">
-				<table-column width="220" text="${Activity}" data-column-index="0"
+				<table-column width="220" text="{$Activity}" data-column-index="0"
 					value-type="String"/>
-				<table-column width="55" text="${PercentComplete}" value-type="Double"
+				<table-column width="55" text="{$PercentComplete}" value-type="Double"
 					data-column-index="1"/>
-				<table-column width="70" text="${BaseEffort}" value-type="Double"
+				<table-column width="70" text="{$BaseEffort}" value-type="Double"
 					data-column-index="2"/>
-				<table-column width="70" text="${ActualEffort}" value-type="Double"
+				<table-column width="70" text="{$ActualEffort}" value-type="Double"
 					data-column-index="3"/>
-				<table-column width="70" text="${BaseCosts}" value-type="Double"
+				<table-column width="70" text="{$BaseCosts}" value-type="Double"
 					data-column-index="4"/>
-				<table-column width="70" text="${ActualCosts}" value-type="Double"
+				<table-column width="70" text="{$ActualCosts}" value-type="Double"
 					data-column-index="5"/>
 			</table-box>
 			

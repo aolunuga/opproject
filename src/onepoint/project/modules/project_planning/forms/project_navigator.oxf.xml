@@ -10,7 +10,7 @@
 
    <data-set id="ProjectNavigatorDataSet" stateful="true" on-expand="retrieveChildren"/>
 
-   <collapsible-box stateful="true" id="NavigationBox" text="${ProjectNavigator}" orientation="vertical"
+   <collapsible-box stateful="true" id="NavigationBox" text="{$ProjectNavigator}" orientation="vertical"
                     on-expand="resizeDivision" on-collapse="resizeDivision" width="165">
       <list-box list-style-ref="navigator-list-style" stateful="true" id="ProjectNavigatorTree" tree="true"
                 data-set-ref="ProjectNavigatorDataSet" icon-set-ref="IconSet" on-item-pressed="changeProject"/>

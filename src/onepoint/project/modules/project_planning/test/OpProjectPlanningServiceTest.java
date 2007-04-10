@@ -18,11 +18,9 @@ import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.net.URL;
 import java.sql.Date;
 import java.util.*;
 
@@ -115,8 +113,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpResource resource = resourceDataFactory.getResourceById(resId);
       OpProjectNode project = projectDataFactory.getProjectById(projId);
 
-      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
+      OpActivity activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -133,8 +132,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       projectAssignment.setProjectNode(project);
       broker.makePersistent(projectAssignment);
 
-      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -211,8 +211,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
+      OpActivity activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -225,8 +226,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       assignment.setAssigned(50d);
       broker.makePersistent(assignment);
 
-      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -266,8 +268,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
+      OpActivity activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -281,8 +284,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       assignment.setBaseEffort(25d);
       broker.makePersistent(assignment);
 
-      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.SCHEDULED_TASK);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -321,12 +325,7 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       XMessage response = service.createTemporaryFile(session, request);
       assertNoError(request);
       String url = (String) response.getArgument("attachmentUrl");
-      url = XEncodingHelper.decodeValue(url);
-
-      // now check if file really exists.
-      String filePath = XEnvironmentManager.TMP_DIR + File.separator + url;
-
-      FileInputStream bis = (FileInputStream) new FileInputStream(filePath);
+      BufferedInputStream bis = (BufferedInputStream) new URL(url).getContent();
       byte[] bytes = new byte[content.length];
       assertEquals(content.length, bis.read(bytes));
       assertTrue(Arrays.equals(content, bytes));
@@ -340,8 +339,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
+      OpActivity activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);
@@ -373,8 +373,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
+      OpActivity activity = new OpActivity();
       activity.setProjectPlan(plan);
+      activity.setType(OpActivity.COLLECTION_TASK);
       activity.setStart(new Date(date + 1000));
       activity.setComplete(0d);
       activity.setTemplate(false);

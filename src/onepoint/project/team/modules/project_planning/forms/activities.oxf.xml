@@ -1,0 +1,33 @@
+<form id="ActivitiesForm" layout="border" on-unload="autoSave" resource-map-ref="project_planning.activities"
+      extends="/modules/project_planning/forms/activities.oxf.xml"
+      provider-class="onepoint.project.team.modules.project_planning.forms.OpActivitiesAdvancedFormProvider"
+      error-label-ref = "ValidationErrorLabel" script="/team/modules/project_planning/scripts/activities.jes">
+
+   <pop-up-menu id="wbsChartPopupMenu">
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveWBSImage"/>
+   </pop-up-menu>
+
+   <tab layout="border" text="{$Structurediagram}" id="StructureDiagramTab" parent-id="MyTabBox" child-index="2">
+      <wbs-box id="ActivityWBSChart" data-set-ref="ActivitySet" category-color-set-ref="CategoryColorDataSet" on-activity-details="editActivity"
+               on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities"
+               effort_text="{$EffortH}" costs_text="{$Costs}" details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml"
+               pop-up-menu-ref="wbsChartPopupMenu"/>
+      <panel id="WBSToolBar" y="1" layout="flow" direction="east" visible="false">
+         <toggle-bar id="WBSToggleBar" int-value="0" visible="true" stateful="true">
+            <toggle-button style-ref="icon-button-default" id="NormalCursor" icon="/icons/select_s.png" on-button-pressed="changeWbsTool" tooltip="{$DefaultCursorTooltip}"/>
+            <toggle-button style-ref="icon-button-default" id="ActivityDrawItem" icon="/modules/project_planning/icons/activity_s.png" on-button-pressed="changeWbsTool" tooltip="{$ActivityTooltip}"/>
+            <toggle-button style-ref="icon-button-default" id="MilestoneDrawItem" icon="/modules/project_planning/icons/milestone_s.png" on-button-pressed="changeWbsTool" tooltip="{$MilestoneTooltip}"/>
+            <toggle-button style-ref="icon-button-default" id="TaskDrawItem" icon="/modules/project_planning/icons/task.png" on-button-pressed="changeWbsTool" tooltip="{$TaskTooltip}"/>
+         </toggle-bar>
+         <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeActivities"
+                 tooltip="{$RemoveActivityToolTip}"/>
+         <button style-ref="icon-button-default" icon="/icons/edit_s.png" on-button-pressed="editActivity" tooltip="{$EditActivity}"/>
+         <button style-ref="icon-button-default" icon="/icons/cut_s.png" on-button-pressed="cutActivities" tooltip="{$CutActivities}"/>
+         <button style-ref="icon-button-default" icon="/icons/copy_s.png" on-button-pressed="copyActivities" tooltip="{$CopyActivities}"/>
+         <button style-ref="icon-button-default" icon="/icons/paste_s.png" on-button-pressed="pasteActivities" tooltip="{$PasteActivities}"/>
+         <button style-ref="icon-button-default" id="wbsUndoButton" undo="true" icon="/icons/undo.png" disabled-icon="/icons/undo_disabled.png" on-button-pressed="undo" tooltip="{$Undo}" enabled="false"/>
+         <button style-ref="icon-button-default" id="wbsRedoButton" redo="true" icon="/icons/redo.png" disabled-icon="/icons/redo_disabled.png" on-button-pressed="redo" tooltip="{$Redo}" enabled="false"/>
+      </panel>
+   </tab>
+
+</form>

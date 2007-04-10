@@ -1,0 +1,157 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Reporting script for delivery_forecast.oxf.xml
+
+require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function chooseSubject(event) {
+
+	Console.println("BEFORE openSC");
+  openSubjectChooser("QueryFrame", "addSelectedSubject", true, false, null, false, null);
+	Console.println("AFTER openSC");
+
+}
+
+function addSelectedSubject(subject) {
+
+   Console.println("***DELIVERY_FORECAST: addSelectedSubject");
+   queryFrame = XDisplay.findFrame("QueryFrame");
+   form = queryFrame.currentForm();
+   Console.println("***DELIVERY_FORECAST: ACTIVE_FORM");
+   Console.println(form.getID());
+   userLocatorField = form.findComponent("UserLocatorField");
+   Console.println("***USER_LOCATOR_FIELD");
+   Console.println(userLocatorField);
+   userLocatorField.setStringValue(subject);
+   userNameField = form.findComponent("UserNameField");
+   userNameField.setStringValue(XValidator.choiceCaption(subject));
+
+}
+
+function runQuery() {
+
+	Console.println("WORK_REPORT.runQuery()");
+
+	form = XDisplay.findFrame("QueryFrame").currentForm();
+
+	choice = form.findComponent("UserLocatorField").getStringValue();
+	if (choice != null) {
+		parameters.RunQuery = true;
+		parameters.UserLocator = XValidator.choiceID(choice);
+		parameters.Start = form.findComponent("StartField").getDateValue();
+		parameters.Finish = form.findComponent("FinishField").getDateValue();
+   		XDisplay.findFrame("QueryFrame").refreshForm(parameters);
+   	}
+
+}
+
+function createRequest() {
+   Console.println("DeliveryForecast.createRequest()");
+
+   form = XDisplay.findFrame("QueryFrame").currentForm();
+   error_label = form.findComponent("ErrorLabel");
+
+   /*check for valid start date */
+   start_date = form.findComponent("StartField").getDateValue();
+   if (start_date == null) {
+      error_message = form.findComponent("InvalidStartField").getText();
+      error_label.setText(error_message);
+      error_label.setVisible(true);
+      form.doLayout();
+      form.repaint();
+      return null;
+   }
+   /*check for valid finish date */
+   finish_date = form.findComponent("FinishField").getDateValue();
+   if (finish_date == null){
+      error_message = form.findComponent("InvalidFinishField").getText();
+      error_label.setText(error_message);
+      error_label.setVisible(true);
+      form.doLayout();
+      form.repaint();
+      return null;
+   }
+
+   //important: as we can only have one "mainfile" in a jar, we refer here to the jar!!!
+   name = "deliveryforecast.jar";
+   parameters.fromDate = start_date;
+   parameters.toDate = finish_date;
+   formats[0] = "PDF";
+
+   request = new XMessage;
+   request.setArgument("name", name);
+   request.setArgument("parameters", parameters);
+   request.setArgument("formats", formats);
+
+   return request;
+}
+
+/**
+ * Returns a HQL query that will be used to fill up the report.
+ */
+function getReportQuery() {
+   selectClause1 = "select pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, projectNode.Name, ";
+   selectClause2 = " activity.Name, activity.Start, activity.Finish, activity.BaseEffort, activity.ActualEffort, activity.RemainingEffort";
+   fromClause = " from OpAssignment asgn inner join asgn.Activity activity inner join asgn.Resource resource inner join resource.User user inner join resource.Pool pool inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
+   whereClause = " where activity.Finish >= ? and activity.Start <= ? and asgn.RemainingEffort > 0 and user.ID = ? order by pool.Name, resource.Name, projectNode.Name, activity.Start";
+
+   queryString = selectClause1 + selectClause2 + fromClause + whereClause;
+   Console.println("Delivery forecast report query:" + queryString);
+
+   query.queryString = queryString;
+
+   form = XDisplay.findFrame("QueryFrame").currentForm();
+   choice = form.findComponent("UserLocatorField").getStringValue();
+   userLocator = XValidator.choiceID(choice);
+   fromDate = form.findComponent("StartField").getDateValue();
+   toDate = form.findComponent("FinishField").getDateValue();
+
+   query.queryParams[0] = fromDate;
+   query.queryParams[1] = toDate;
+   query.queryParams[2] = userLocator;
+
+   return query;
+}
+
+/**
+ * Returns a map of [reportFieldName, reportFieldIndex] pairs that indicated how the fields from the report map to the
+ * result of the query.
+ */
+function getReportFields() {
+   result.po_name = 0;
+   result.po_description = 1;
+   result.rs_name = 2;
+   result.rs_description = 3;
+   result.rs_rate = 4;
+   result.pn_name = 5;
+   result.op_name = 6;
+   result.op_start = 7;
+   result.op_finish = 8;
+   result.op_baseeffort = 9;
+   result.op_actualeffort = 10;
+   result.op_remainingeffort = 11;
+
+   return result;
+}
+
+function getResourceMapId() {
+   return "resource.objects";
+}
+
+function prepareForm(event){
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("PrintButton");
+   button.setEnabled(false);
+   button.update();
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("RunQueryButton");
+   button.setEnabled(false);
+   button.update();
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("ResetQueryButton");
+   button.setEnabled(false);
+   button.update();
+}

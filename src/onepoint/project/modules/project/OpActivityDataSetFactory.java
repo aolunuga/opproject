@@ -1,10 +1,9 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
 
-import onepoint.error.XLocalizableException;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
@@ -352,6 +351,7 @@ public abstract class OpActivityDataSetFactory {
          queryBuffer.append(order.toHibernateQueryString("activity"));
       }
 
+      System.err.println("QUERY " + queryBuffer.toString());
       OpQuery query = broker.newQuery(queryBuffer.toString());
       // Note: We expect collections, booleans, dates and doubles
       Object value = null;
@@ -759,6 +759,7 @@ public abstract class OpActivityDataSetFactory {
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
+         System.err.println("***MAP-ACT_V " + record[0] + " -> " + record[1]);
          activityVersionIdMap.put(record[0], record[1]);
       }
 
@@ -1001,7 +1002,7 @@ public abstract class OpActivityDataSetFactory {
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
       if (activity == null) {
          // Insert a new activity
-         activity = new OpActivity(OpGanttValidator.getType(dataRow));
+         activity = new OpActivity();
          activity.setProjectPlan(projectPlan);
          activity.setTemplate(projectPlan.getTemplate());
 
@@ -1031,6 +1032,7 @@ public abstract class OpActivityDataSetFactory {
          }
          activity.setDuration(OpGanttValidator.getDuration(dataRow));
          activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
+         activity.setType((OpGanttValidator.getType(dataRow)));
          if (categoryChoice != null) {
             category = (OpActivityCategory) broker.getObject(XValidator.choiceID(categoryChoice));
             activity.setCategory(category);
@@ -1045,12 +1047,9 @@ public abstract class OpActivityDataSetFactory {
          activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
          activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
          activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         if (OpGanttValidator.getPriority(dataRow) != null) {
-            activity.setPriority(OpGanttValidator.getPriority(dataRow).byteValue());
-         }
-         else {
-            activity.setPriority((byte) 0);
-         }
+         byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
+         activity.setPriority(priority);
+
          activity.setActualEffort(0);
 
          double complete = OpGanttValidator.getComplete(dataRow);
@@ -1376,10 +1375,6 @@ public abstract class OpActivityDataSetFactory {
          }
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
-               //check if the assignemnt still has work records - if so => error
-               if (!assignment.getWorkRecords().isEmpty()) {
-                  throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
-               }
                reusableAssignments.add(assignment);
                //break links to activity
                OpActivity activity = assignment.getActivity();
@@ -1759,39 +1754,6 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   /**
-    * @param descriptor
-    * @param choice
-    * @return
-    * @pre
-    * @post
-    */
-   public static OpAttachment createAttachment(OpActivity activity, OpProjectPlan plan,
-        String descriptor, String choice, String name,
-        String contentId, byte[] content_data) {
-      OpAttachment attachment = new OpAttachment();
-      attachment.setProjectPlan(plan);
-      attachment.setActivity(activity);
-      attachment.setLinked(LINKED_ATTACHMENT_DESCRIPTOR.equals(descriptor));
-      attachment.setName(name);
-      attachment.setLocation(contentId);
-      OpContent content = null;
-      String mimeType = null;
-
-      if (!attachment.getLinked()) {
-         String filePath = attachment.getLocation();
-         int index = filePath.lastIndexOf(".");
-         if (index != -1) {
-            String type = filePath.substring(index, filePath.length());
-            mimeType = OpContentManager.getFileMimeType(type);
-         }
-         content = OpContentManager.newContent(content_data, mimeType);
-         attachment.setContent(content);
-         content.getAttachments().add(attachment);
-      }
-      return (attachment);
-   }
-
    private static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
       OpDependency dependency = null;
       XComponent predecessorDataRow = null;
@@ -1934,4 +1896,6 @@ public abstract class OpActivityDataSetFactory {
          }
       }
    }
+
+
 }

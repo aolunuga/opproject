@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.forms;
@@ -91,7 +91,7 @@ public class OpLoginFormProvider implements XFormProvider {
       if (sessionExpiredParameter != null) {
          XLocalizer localizer = XLocaleManager.createLocalizer(localeId, "main.error");
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
-         errorLabel.setText(localizer.localize("${SessionExpired}"));
+         errorLabel.setText(localizer.localize("{$SessionExpired}"));
          errorLabel.setVisible(true);
       }
    }

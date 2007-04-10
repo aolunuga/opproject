@@ -7,32 +7,33 @@
       <data-row icon="/modules/project/icons/project.png"/>
    </data-set>
    <data-set id="ProjectDataSet" stateful="true" on-expand="retrieveChildren"/>
-
-   <panel layout="border" style-ref="compact-panel-default">
-
-      <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar id="ProjectToolbar">
-            <tool-button id="NewPortfolioButton" text="${NewPortfolio}" disabled-icon="/modules/project/icons/new_portfolio_disabled.png" icon="/modules/project/icons/new_portfolio.png" on-button-pressed="newPortfolio" tooltip="${NewPortfolioTooltip}"/>
-            <tool-button id="NewProjectButton" text="${NewProject}" disabled-icon="/modules/project/icons/new_project_disabled.png" icon="/modules/project/icons/new_project.png" on-button-pressed="newProject" tooltip="${NewProjectTooltip}"/>
-            <tool-button id="InfoButton" text="${Info}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="info" tooltip="${InfoTooltip}"/>
-            <tool-button id="MoveButton" text="${Move}" disabled-icon="/icons/move_disabled.png" icon="/icons/move.png" on-button-pressed="move" tooltip="${MoveTooltip}"/>
-            <tool-button id="DeleteButton" text="${Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
-         </tool-bar>
-      </panel>
-      <table-box id="ProjectTreeTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" y="0" on-double-click="edit" on-row-select="selectionChanged">
-         <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-         <!-- vielleicht auch eine Projekt-Nummer/ID -->
-         <table-column width="180" text="${Name}" data-column-index="1" value-type="Choice"/>
-         <table-column width="220" text="${Description}" data-column-index="2"/>
-         <table-column width="60" text="${Start}" value-type="Date" data-column-index="3" sortable="true"/>
-         <table-column width="60" text="${End}" value-type="Date" data-column-index="4" sortable="true"/>
-         <table-column width="70" text="${Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>
-         <table-column width="70" text="${Resources}" value-type="PercentageBar" data-column-index="7" sortable="false"/>
-         <table-column width="70" text="${Costs}" value-type="PercentageBar" data-column-index="8" sortable="false"/>
-      </table-box>
-
-      <status-bar y="1"/>
-
-   </panel>
-
+	
+    <panel layout="border" style-ref="compact-panel-default">
+		
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar id="ProjectToolbar">
+      <tool-button id="NewPortfolioButton" text="{$NewPortfolio}" disabled-icon="/modules/project/icons/new_portfolio_disabled.png" icon="/modules/project/icons/new_portfolio.png" on-button-pressed="newPortfolio" tooltip="{$NewPortfolioTooltip}"/>
+      <tool-button id="NewProjectButton" text="{$NewProject}" disabled-icon="/modules/project/icons/new_project_disabled.png" icon="/modules/project/icons/new_project.png" on-button-pressed="newProject" tooltip="{$NewProjectTooltip}"/>
+      <tool-button id="InfoButton" text="{$Info}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="info" tooltip="{$InfoTooltip}"/>
+      <tool-button id="EditButton" text="{$Edit}" disabled-icon="/icons/edit_disabled.png" icon="/icons/edit.png" on-button-pressed="edit" tooltip="{$EditTooltip}"/>
+      <tool-button id="MoveButton" text="{$Move}" disabled-icon="/icons/move_disabled.png" icon="/icons/move.png" on-button-pressed="move" tooltip="{$MoveTooltip}"/>
+      <tool-button id="DeleteButton" text="{$Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
+   </tool-bar>
+	</panel>
+	   <table-box id="ProjectTreeTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" y="0" on-double-click="info" on-row-select="selectionChanged">
+      <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+      <!-- vielleicht auch eine Projekt-Nummer/ID -->
+      <table-column width="180" text="{$Name}" data-column-index="1" value-type="Choice"/>
+      <table-column width="220" text="{$Description}" data-column-index="2"/>
+      <table-column width="60" text="{$Start}" value-type="Date" data-column-index="3" sortable="true"/>
+      <table-column width="60" text="{$End}" value-type="Date" data-column-index="4" sortable="true"/>
+      <table-column width="70" text="{$Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>
+      <table-column width="70" text="{$Resources}" value-type="PercentageBar" data-column-index="7" sortable="false"/>
+      <table-column width="70" text="{$Costs}" value-type="PercentageBar" data-column-index="8" sortable="false"/>
+   </table-box>
+		
+	<status-bar y="1"/>
+		
+	</panel>
+		
 </form>

@@ -1,0 +1,70 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for categories.oxf.xml
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+function newCategory(event) {
+
+   dialog = XComponent.newDialog();
+   dialog.open("/team/modules/activity_category/forms/new_category.oxf.xml");
+
+}
+
+function info(event) {
+   category_data_set = XDisplay.getActiveForm().findComponent("CategoryDataSet");
+   if (category_data_set !=null){
+      selected_rows = category_data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         parameters.edit_mode = false;
+         parameters.category_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/team/modules/activity_category/forms/edit_category.oxf.xml", parameters);
+      }
+   }
+}
+
+function edit(event) {
+   category_data_set = XDisplay.getActiveForm().findComponent("CategoryDataSet");
+   if (category_data_set !=null){
+      selected_rows = category_data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         parameters.edit_mode = true;
+         parameters.category_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/team/modules/activity_category/forms/edit_category.oxf.xml", parameters);
+      }
+   }
+}
+
+function delete(event) {
+   category_data_set = XDisplay.getActiveForm().findComponent("CategoryDataSet");
+   selected_rows = category_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.category_ids = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/team/modules/activity_category/forms/confirm_category_delete.oxf.xml", parameters);
+   }
+}
+
+function selectionChanged(event) {
+   form = XDisplay.getActiveForm();
+   info_button = form.findComponent("Info");
+   info_button.setEnabled(true);
+
+   is_admin_role = form.findComponent("AdminRoleDataField").getBooleanValue();
+   if (is_admin_role) {
+      edit_button = form.findComponent("Edit");
+      edit_button.setEnabled(true);
+
+      delete_button = form.findComponent("Delete");
+      delete_button.setEnabled(true);
+   }
+   form.repaint();
+}
+

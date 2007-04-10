@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project;
@@ -14,8 +14,8 @@ import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
+import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.module.OpModuleManager;
-import onepoint.project.module.OpLanguageKitPath;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 /**
  * Service class responsible for performing application initialization steps
@@ -79,11 +78,6 @@ public final class OpInitializer {
    private static String productCode = null;
 
    /**
-    * Flag indicatig whether the language settings have been initialized or not.
-    */
-   private static boolean languageInitialized = false;
-
-   /**
     * Initialize the product codes map
     */
    static {
@@ -131,7 +125,22 @@ public final class OpInitializer {
       initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
       try {
-         initLanguageResources();
+         XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
+         // Attention: Locale map must be loaded and set before starting up modules
+            XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
+         if (locale_map != null) {
+            XLocaleManager.setLocaleMap(locale_map);
+         }
+
+         // load language resources for main application forms (e.g. login.oxf)
+         OpLanguageKitFile main_en_file = new OpLanguageKitFile();
+         main_en_file.setFileName("/i18n/main_en.olk.xml");
+         XLanguageKit main_en = main_en_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_en);
+         OpLanguageKitFile main_de_file = new OpLanguageKitFile();
+         main_de_file.setFileName("/i18n/main_de.olk.xml");
+         XLanguageKit main_de = main_de_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_de);
 
          // Read configuration file
          OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
@@ -153,7 +162,7 @@ public final class OpInitializer {
 
          String logFile = configuration.getLogFile();
          if (logFile != null && !new File(logFile).isAbsolute()) {
-            logFile = projectPath + "/" + logFile;
+            logFile = projectPath + "/" + logFile;  
          }
          XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
 
@@ -233,32 +242,6 @@ public final class OpInitializer {
    }
 
    /**
-    * Initializes the default language settings.
-    */
-   private static void initLanguageResources() {
-      if (languageInitialized) {
-         return;
-      }
-
-      XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
-      // Attention: Locale map must be loaded and set before starting up modules
-      XLocaleMap localeMap = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
-      if (localeMap != null) {
-         XLocaleManager.setLocaleMap(localeMap);
-      }
-
-      // load language resources for main application forms (e.g. login.oxf)
-      OpLanguageKitPath mainPath = new OpLanguageKitPath("/i18n");
-      List kits = mainPath.loadLanguageKits();
-      for (int i = 0; i < kits.size(); i++) {
-         XLanguageKit kit = (XLanguageKit) kits.get(i);
-         XLocaleManager.registerLanguageKit(kit);
-      }
-      
-      languageInitialized = true;
-   }
-
-   /**
     * Updates the db schema if necessary.
     */
    private static void updateDBSchema() {
@@ -330,7 +313,7 @@ public final class OpInitializer {
          int runLevel = Integer.valueOf(runLevelParameter).intValue();
          int successRunLevel = getSuccessRunLevel();
          if (runLevel < successRunLevel) {
-            String resourceId = "${" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
+            String resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
             return localizer.localize(resourceId);
          }
       }
@@ -370,10 +353,10 @@ public final class OpInitializer {
     * Restores the db schema from the given file, via the backup manager. The restore drops the existent schema
     * and creates a new one.
     *
-    * @param filePath       a <code>String</code> path to an existent backup file.
+    * @param filePath a <code>String</code> path to an existent backup file.
     * @param projectSession a <code>OpProjectSession</code> representing an application session.
     * @throws SQLException if the db schema cannot be droped or created.
-    * @throws IOException  if the repository cannot be restored from the given file.
+    * @throws IOException if the repository cannot be restored from the given file.
     */
    public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {

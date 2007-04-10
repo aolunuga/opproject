@@ -1,0 +1,20 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   reportIds = form.findComponent("ReportIds").getValue();
+   request = new XMessage;
+   request.setAction("ReportArchiveService.deleteReports");
+   request.setArgument("reportIds", reportIds);
+   XDisplay.getClient().invokeMethod(request);
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
@@ -33,8 +33,6 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
-   private final static String GOALS_TABLE_BOX = "GoalsTableBox";
-   private final static String TODOS_TABLE_BOX = "ToDosTableBox";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -90,10 +88,6 @@ public class OpNewProjectFormProvider implements XFormProvider {
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
-
-      //set edit mode to true for goals table and todos table
-      form.findComponent(GOALS_TABLE_BOX).setEditMode(true);
-      form.findComponent(TODOS_TABLE_BOX).setEditMode(true);
       broker.close();
 
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard.forms;
@@ -58,22 +58,22 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
          errorLabel.setVisible(true);
          switch(connectionTestCode) {
             case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.INVALID_CONNECTION_STRING_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.INVALID_CREDENTIALS_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_CREDENTIALS_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CREDENTIALS_NAME + "}");
                errorLabel.setText(text);
                break;
             }

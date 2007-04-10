@@ -1,0 +1,190 @@
+OnePoint Project 06 Team Edition/Demo (SP-1)
+============================================
+
+Willkommen zur ersten kommerziell verfügbaren Version der Team Edition von
+OnePoint Project. Dieses Paket enthält eine Demoversion, die uneingeschränkte
+Funktionen bietet, aber im Gegensatz zur Vollversion als Desktop-Anwendung
+ausgeführt ist und lediglich einen gleichzeitigen Benutzer stabil unterstützt.
+
+
+Systemvoraussetzungen
+---------------------
+
+* Microsoft Windows 2000/XP (kontaktieren Sie uns bzgl. Linux und Mac OS X)
+
+* Java Runtime Environment (JRE) Version 1.4.2 oder höher
+
+* MySQL Version 5.0.19 (siehe Anhang C)
+
+* MySQL JDBC-Treiber Version 3.1.10 (mysql-connector-java-3.1.10-bin.jar)
+
+
+Dokumentation
+-------------
+
+Im Verzeichnis "doc" finden Sie ein Tutorial zu OnePoint Project, das die
+wichtigsten Funktionen Schritt-für-Schritt erklärt. Das Tutorial ist als
+Acrobat/PDF-Datei gespeichert; zur Ansicht können Sie Adobe Acrobat Reader
+oder einen Webbrowser mit dem Acrobat Reader Plug-in verwenden
+(typischerweise bei Ihnen bereits vorinstalliert). Sollten Sie keinen
+Acrobat Reader besitzen, so kann dieser gratis von der Adobe Website
+heruntergeladen werden:
+
+   http://www.adobe.de ("Get Adobe Reader").
+
+
+Migration von OnePoint Project 2006.b4 (Beta-4)
+-----------------------------------------------
+
+Wenn Sie von einer Beta-4-Installation migrieren wollen, entpacken Sie die
+neue Version bitte in ein neues, leeres Verzeichnis. Kopieren Sie dann ihre
+Konfigurationsdatei aus der Beta-4-Installation in das neue Verzeichnis; die
+Environment-Variable ONEPOINT_HOME ist mit dieser Version nicht mehr
+notwendig -- Sie können Sie löschen.
+
+Führen Sie jetzt bitte die SQL-Patch-Datei "patchdb_beta4.sql" aus, die sich
+im Verzeichnis "patches" befindet.
+
+Wie Sie eine SQL-Datei mit MySQL ausführen entnehmen Sie bitte aus Anhang B.
+
+
+Installation
+------------
+
+Diese Kurzanleitung geht davon aus, dass OnePoint Project in "C:\opproject"
+installiert wird. Wenn Sie OnePoint Project in einem anderen Verzeichnis
+installieren möchten, dann müssen Sie lediglich dieses Verzeichnis anstatt
+"C:\opproject" angeben.
+
+1. ZIP-Datei nach C:\ entpacken (das Paket enthält bereits ein Verzeichnis
+namens "opproject")
+
+2. MySQL Datenbanksoftware installieren und Instanz erstellen
+   - Wählen Sie UTF-8/Unicode als Zeichensatz bzw. Encoding für die Instanz
+
+3. MySQL Datenbankbenutzer ("opproject") und Datenbank einrichten ("opproject")
+   - Wenn Sie kein MySQL-Experte sind, dann lesen Sie bitte Anhang A dazu
+
+4. MySQL JDBC-Treiber (JAR-Datei) nach C:\opproject\lib kopieren
+
+5. Konfigurationsdatei C:\opproject\configuration.oxc.xml anpassen
+   - Datenbank URL (Werkseinstellung ist "opproject")
+   - Datenbankbenutzer (Werkseinstellung ist "opproject")
+   - Datenbankkennwort (Werkseinstellung ist "opproject")
+   - Pfad zum Webbrowser für das Anzeigen von Berichten
+      (Werkseinstellung ist "C:\Programme\Mozilla Firefox\firefox.exe")
+
+(Achtung: Punkt 6. nur ausführen wenn sie NICHT eine bestehenden Installation
+migrieren wollen -- ggf. bestehende Daten werden dabei gelöscht!)
+
+6. Datenbank initialisieren und/oder Demo-Daten laden -- Sie haben die Wahl:
+   a) Eine leere Datenbank erhalten Sie mit:
+      - C:\opproject\opproject.bat setup
+   b) Wenn Sie Demodaten wollen, dann müssen Sie folgende SQL-Datei ausführen
+      - C:\opproject\demodata\demodata06.sql
+
+7. Desktop-Shortcut anlegen (optional)
+   - Drücken Sie die rechte Mousetaste unter Windows am Desktop
+      - Wählen Sie "Neu" -> "Verknüfung"
+   - Wählen Sie beim Icon "durchsuchen" und verwenden Sie "C:\opproject\icons"
+   - Geben Sie als Ziel "C:\opproject\opproject.exe" an
+
+
+Starten der Anwendung
+---------------------
+
+Doppelklicken Sie auf "opproject.exe" (empfohlen) oder auf "opproject.jar". Wenn
+Sie Kommandozeilen-Parameter übergeben verwenden Sie bitte "opproject.bat". Sie
+können nun als "administrator" einloggen, es ist kein Passwort gesetzt. Wir
+möchten Sie darauf hinweisen, dass Sie als allererstes nun ein Passwort für
+den Administrator vergeben sollten: Sie können dies in "Eigene" -> "Einstellungen"
+tun.
+
+
+Verwenden der Demodaten
+-----------------------
+
+Einloggen als Testbenutzer "cs" für eine deutsche Benutzeroberfläche, oder als
+"tw" für Englisch. Beide Testbenutzer haben kein Passwort gesetzt. Um
+administrative Rechte zu erhalten loggen Sie als Benutzer "administrator" ein,
+auch hier ist kein Passwort gesetzt.
+
+Bitte beachten Sie, dass nur zwei Projekte wirklich Daten beinhalten: "Virtual
+Cockpit v2" und "Einbau ALS/Xplore". Die Benutzer tw und cs haben nur auf
+diesen Projekten wirklich Schreibrechte, ansonsten verwenden Sie bitte den
+Administrator-Benutzer.
+
+
+Bekannte Einschränkungen und Probleme
+-------------------------------------
+
+* Die Arbeitszeiteinstellungen (Tagesarbeitszeit, erster und letzter Arbeits-
+Wochentag) können nicht verändert werden. Wir haben uns aus Gründen der
+Stabilität für diese Variante entschieden um die Anzahl der möglichen Testfälle
+zu beschränken.
+
+* Die englische Benutzeroberfläche weist Inkonsistenzen auf, v.a. im Bereich
+der Darstellung von Geldbeträgen.
+
+Beide Einschränkungen werden in der nächsten Produktversion (OnePoint Project
+06.1) behoben sein.
+
+
+Anhang A: Anlegen einer neuen Datenbank und eines Benutzers mit MySQL
+---------------------------------------------------------------------
+
+Um eine Datenbank mit den Standardwerten anzulegen, führen Sie einfach die
+folgenden Schritte nach der Installation von MySQL aus:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und wechseln Sie
+       in das Verzeichnis "demodata"
+   (2) Tippen Sie "mysql –u root -p" und geben Sie das Root-Passwort ein,
+       das Sie bei der Installation von MySQL vergeben haben
+   (3) mysql> \. createdb.sql;
+   (4) mysql> quit
+
+Alternativ können Sie einen neue Datenbank und einen neuen Benutzer in MySQL
+auch manuell anlegen:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und tippen Sie
+       "mysql –u root -p" und geben Sie das Root-Passwort ein, das Sie bei der
+       Installation von MySQL vergeben haben
+   (2) mysql> create database opproject;
+   (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
+       identified by 'opproject' with grant option;
+   (4) mysql> quit
+
+
+Anhang B: Ausführen einer SQL-Datei mit MySQL
+-----------------------------------------------
+
+Um eine SQL-Datei mit MySQL auszuführen, gehen Sie wie folgt vor:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und tippen Sie
+       "mysql –u opproject -p opproject" und geben Sie das Passwort ein, das
+       Sie beim Einrichten des Benutzers vergeben haben
+   (2) mysql> \. opdemodata06.sql;
+   (3) mysql> quit
+
+Beachten Sie bitte, dass das Beispiel davon ausgeht, dass der Benutzer und die
+Datenbank "opproject" heißen und die SQL-Datei "opdemodata06.sql". Wenn Sie
+einen anderen Benutzernamen verwenden, dann müssen sie in (1) diesen nach der
+Option "-u" angeben, einen andere Datenbanknamen nach "-p".
+
+
+Anhang C: MySQL-Versionen
+-------------------------
+
+Um die Qualität zu sichern, waren wir gezwungen die Release auf eine MySQL-
+Version einzuschränken. Der Grund liegt darin, dass die unterschiedlichen
+MySQL-Versionen tlw. sehr unterschiedliche Qualität aufweisen und tatsächlich
+in manchen Versionen sogar Basis-Datenbankfunktionalität nicht funktioniert.
+Mit MySQL 5.0.19 haben wir sehr gute Ergebnisse erzielt, darum haben wir dann
+alle Tests auf dieser Version durchgeführt. Absolut Abstand halten sollten Sie
+von MySQL 5.0.21 -- hier wissen wir, dass es eine Reihe von Problemen gibt.
+
+Wenn Sie nicht auf MySQL 5.x gehen wollen, können wir als Alternative MySQL
+4.1.14 anbieten; diese Version haben wir nicht gleich intensiv getestet, aber
+es sind uns keine Probleme bekannt. Beachten Sie bitte, dass mit MySQL 4.1.14
+die Migration von der Beta-4 nicht möglich ist.
+

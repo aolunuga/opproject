@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.test;
@@ -67,13 +67,14 @@ public class AppInitializer {
       // Now start application initialization.
       logger.debug("Static set up block for all test cases");
       OpEnvironmentManager.setOnePointHome(Constants.ONEPOINT_HOME);
+
       XResourceBroker.setResourcePath(Constants.RESOURCE_PATH);
       XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap(Constants.LOCALES_OLM_XML);
       XLocaleManager.setLocaleMap(locale_map);
 
       updateSchemaTable();
 
-      OpInitializer.init(OpProjectConstants.OPEN_EDITION_CODE);
+      OpInitializer.init(OpProjectConstants.TEAM_EDITION_CODE);
 
       logger.debug("Application initialization end.");
    }

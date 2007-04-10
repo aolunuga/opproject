@@ -2,7 +2,6 @@
    <resource-map id="main.login">
       <resource id="Login">Benutzername</resource>
       <resource id="Password">Passwort</resource>
-      <resource id="Remember">Auf diesem Computer merken</resource>
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="main.levels">
@@ -27,8 +26,8 @@
    <resource-map id="main.about">
       <resource id="OK">OK</resource>
       <resource id="About">Über Onepoint Project</resource>
-      <resource id="Version">Version:</resource>
-      <resource id="CurrentVersion">aktuellste Version:</resource>
+      <resource id="Version">Version: </resource>
+      <resource id="CurrentVersion">aktuellste Version: </resource>
    </resource-map>
 
    <resource-map id="main.bandwidth">

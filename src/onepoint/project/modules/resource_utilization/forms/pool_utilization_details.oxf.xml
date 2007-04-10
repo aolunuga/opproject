@@ -4,9 +4,9 @@
    <panel layout="border" style-ref="border-panel-default">
 	  <panel layout="border">
          <table-box id="UtilizationTable" data-set-ref="UtilizationDataSet" y="0">
-            <table-column width="220" text="${ResourceName}" data-column-index="0"/>
-            <table-column width="90" text="${Effort}" value-type="Double" data-column-index="1"/>
-            <table-column width="90" text="${Assigned}" value-type="PercentageBar" data-column-index="2"/>
+            <table-column width="220" text="{$ResourceName}" data-column-index="0"/>
+            <table-column width="90" text="{$Effort}" value-type="Double" data-column-index="1"/>
+            <table-column width="90" text="{$Assigned}" value-type="PercentageBar" data-column-index="2"/>
          </table-box>
 	  </panel>
   </panel>

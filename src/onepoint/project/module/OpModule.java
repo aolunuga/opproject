@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -13,33 +13,28 @@ public class OpModule {
    private String name;
    private String caption;
    private String version;
-   private List prototypeFiles;
-   private List prototypes;
-   private List serviceFiles;
-   private List services;
-   private List languageKitPaths;
-   private List languageKits;
-   private List tools;
-   private List groups;
+   private ArrayList prototypeFiles;
+   private ArrayList prototypes;
+   private ArrayList serviceFiles;
+   private ArrayList services;
+   private ArrayList languageKitFiles;
+   private ArrayList languageKits;
+   private ArrayList tools;
+   private ArrayList groups;
    private String extendedModule;
-   private Map toolsMap;
-   private Map groupsMap;
+   private Map toolsMap = new HashMap();
+   private Map groupsMap = new HashMap();
 
-   public OpModule() {
+   final void setName(String name) {
+      this.name = name;
       prototypeFiles = new ArrayList();
       prototypes = new ArrayList();
       serviceFiles = new ArrayList();
       services = new ArrayList();
-      languageKitPaths = new ArrayList();
+      languageKitFiles = new ArrayList();
       languageKits = new ArrayList();
       tools = new ArrayList();
       groups = new ArrayList();
-      toolsMap = new HashMap();
-      groupsMap = new HashMap();
-   }
-
-   final void setName(String name) {
-      this.name = name;
    }
 
    public final String getName() {
@@ -62,7 +57,7 @@ public class OpModule {
       return version;
    }
 
-   final void setPrototypeFiles(List prototype_files) {
+   final void setPrototypeFiles(ArrayList prototype_files) {
       prototypeFiles = prototype_files;
    }
 
@@ -70,7 +65,7 @@ public class OpModule {
       return prototypeFiles.iterator();
    }
 
-   final void setPrototypes(List prototypes) {
+   final void setPrototypes(ArrayList prototypes) {
       this.prototypes = prototypes;
    }
 
@@ -78,7 +73,7 @@ public class OpModule {
       return prototypes.iterator();
    }
 
-   final void setServiceFiles(List service_files) {
+   final void setServiceFiles(ArrayList service_files) {
       serviceFiles = service_files;
    }
 
@@ -86,7 +81,7 @@ public class OpModule {
       return serviceFiles.iterator();
    }
 
-   final void setServices(List services) {
+   final void setServices(ArrayList services) {
       this.services = services;
    }
 
@@ -94,15 +89,15 @@ public class OpModule {
       return services.iterator();
    }
 
-   final void setLanguageKitPaths(List language_kit_paths) {
-      languageKitPaths = language_kit_paths;
+   final void setLanguageKitFiles(ArrayList language_kit_files) {
+      languageKitFiles = language_kit_files;
    }
 
-   public final Iterator getLanguageKitPaths() {
-      return languageKitPaths.iterator();
+   public final Iterator getLanguageKitFiles() {
+      return languageKitFiles.iterator();
    }
 
-   final void setLanguageKits(List language_kits) {
+   final void setLanguageKits(ArrayList language_kits) {
       languageKits = language_kits;
    }
 
@@ -110,7 +105,7 @@ public class OpModule {
       return languageKits.iterator();
    }
 
-   final void setTools(List tools) {
+   final void setTools(ArrayList tools) {
       this.tools = tools;
    }
 
@@ -118,7 +113,7 @@ public class OpModule {
       return tools.iterator();
    }
 
-   final void setGroups(List groups) {
+   final void setGroups(ArrayList groups) {
       this.groups = groups;
    }
 

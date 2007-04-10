@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -61,7 +61,7 @@ public class OpHibernateSource extends OpSource {
     * Db schema related constants
     */
    static final String SCHEMA_TABLE = "op_schema";
-   private static final int SCHEMA_VERSION = 5;
+   private static final int SCHEMA_VERSION = 4;
    private static final String VERSION_COLUMN = "op_version";
 
    private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";

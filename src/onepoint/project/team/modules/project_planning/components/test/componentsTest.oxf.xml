@@ -1,0 +1,15 @@
+<form id="main_form" resource-map-ref="Test" layout="border"
+      provider-class="onepoint.project.team.modules.project_planning.components.test.OpAdvancedProjectComponentTestFormProvider">
+
+   <data-set id="BubbleColors"/>
+   <data-set id="PipelineDataSet"/>
+
+   <panel layout="border">
+      <tab-box stateful="true" id="TabBox1">
+         <tab layout="border" text="Pipeline Component">
+            <pipeline-chart-box x ="0" id="pipeline" data-set-ref="PipelineDataSet" color-data-set-ref="BubbleColors"/>
+            <color-legend-box id="pipelineLegend" x="1" color-data-set-ref="BubbleColors"/>
+         </tab>
+      </tab-box>
+   </panel>
+</form>

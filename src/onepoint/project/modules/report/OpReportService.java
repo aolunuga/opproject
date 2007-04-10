@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.report;
@@ -19,13 +19,13 @@ import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.util.XEncodingHelper;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -37,7 +37,7 @@ public class OpReportService extends OpProjectService {
 
    public final static String JASPER_REPORTS_PATH = "/modules/report/jasperreports/";
 
-   public final static String SAVED_REPORTS_PATH = XEnvironmentManager.TMP_DIR;
+   public final static String SAVED_REPORTS_PATH = "/reports/";
 
    public final static OpReportErrorMap ERROR_MAP = new OpReportErrorMap();
 
@@ -96,12 +96,15 @@ public class OpReportService extends OpProjectService {
          }
       }
 
+      StringBuffer pathBuffer = new StringBuffer();
       OpReportManager xrm = OpReportManager.getReportManager(session);
 
       try {
          JasperPrint compiledReport = createJasperPrint(session, request);
+
          // TODO: Location is "too hard-coded"
-         StringBuffer pathBuffer = new StringBuffer(SAVED_REPORTS_PATH);
+         pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
+         pathBuffer.append(SAVED_REPORTS_PATH);
          //create the saved reports directory if not exists
          File saveReportsDirectory = new File(pathBuffer.toString());
          if (!saveReportsDirectory.exists()) {
@@ -113,6 +116,7 @@ public class OpReportService extends OpProjectService {
          pathBuffer.append(dateFormat.format(new Date()));
          pathBuffer.append(".").append(format.toLowerCase());
 
+
          String path = pathBuffer.toString();
 
          FileOutputStream resultStream = new FileOutputStream(path);
@@ -121,7 +125,7 @@ public class OpReportService extends OpProjectService {
          resultStream.close();
 
          response = new XMessage();
-         String fileName = new File(path).getName();
+         String fileName = new File(path).toURL().toExternalForm();
          response.setArgument(GENERATED_REPORT_PATH, XEncodingHelper.encodeValue(fileName));
          return response;
       }
@@ -182,7 +186,7 @@ public class OpReportService extends OpProjectService {
          OpContent reportContent = createReportContent(broker, byteOut.toByteArray(), format);
 
          //see if we have a new report type or an existent one
-         OpReportType reportType;
+         OpReportType reportType = null;
 
          OpQuery query = broker.newQuery("select report from OpReportType as report where report.Name=?");
          query.setString(0, reportName);
@@ -258,9 +262,7 @@ public class OpReportService extends OpProjectService {
     */
    private JasperPrint createJasperPrint(OpProjectSession session, XMessage request) {
       String name = (String) (request.getArgument(NAME));
-      Map parameters = (Map) (request.getArgument(PARAMETERS));
-      // copy parameters set to not affect request content.
-      parameters = parameters != null ? new HashMap(parameters) : null;
+      HashMap parameters = (HashMap) (request.getArgument(PARAMETERS));
 
       //create the report query
       OpBroker broker = session.newBroker();
@@ -353,7 +355,7 @@ public class OpReportService extends OpProjectService {
       if (parameters == null) {
          parameters = new HashMap();
       }
-      Map cleanedReportParameters;
+      Map cleanedReportParameters = null;
 
       try {
          cleanedReportParameters = updateParameterValues(session, parameters, defParams);
@@ -392,7 +394,8 @@ public class OpReportService extends OpProjectService {
       }
       OpQuery query = broker.newQuery(queryString);
       int index = 0;
-      for (Object paramValue : queryParams) {
+      for (Iterator it = queryParams.iterator(); it.hasNext();) {
+         Object paramValue = it.next();
          //try to parse locator
          if (paramValue instanceof String) {
             OpLocator locator = OpLocator.parseLocator((String) paramValue);
@@ -422,8 +425,8 @@ public class OpReportService extends OpProjectService {
     */
    private void putSubreportParameters(Map subReportData, Map parametersMap, OpBroker broker, OpProjectSession session) {
       Iterator it = subReportData.keySet().iterator();
-      for (Object o : subReportData.keySet()) {
-         String subReportDatasourceName = (String) o;
+      while (it.hasNext()) {
+         String subReportDatasourceName = (String) it.next();
          Map subReportMap = (Map) subReportData.get(subReportDatasourceName);
 
          //subreport fields
@@ -490,13 +493,13 @@ public class OpReportService extends OpProjectService {
     * @param params
     * @throws OpReportException If the values can not be updated.
     */
-   private Map updateParameterValues(OpProjectSession session, Map params, JRParameter[] defParams)
+   private Map updateParameterValues(OpProjectSession session, HashMap params, JRParameter[] defParams)
         throws OpReportException {
       //go through the defParams Array and convertParameterValue the things we get...
       JRParameter currParam;
       Class typeClass;
-      for (JRParameter defParam : defParams) {
-         currParam = defParam;
+      for (int i = 0; i < defParams.length; i++) {
+         currParam = defParams[i];
 
          if (currParam.isSystemDefined() || !currParam.isForPrompting()) {
             // nothing to do about these...
@@ -558,10 +561,13 @@ public class OpReportService extends OpProjectService {
     * Removes all the files in the reports directory
     */
    public static void removeReportFiles() {
-      File saveReportsDirectory = new File(SAVED_REPORTS_PATH);
+      StringBuffer pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
+      pathBuffer.append(SAVED_REPORTS_PATH);
+      File saveReportsDirectory = new File(pathBuffer.toString());
       if (saveReportsDirectory.exists()) {
          File[] files = saveReportsDirectory.listFiles();
-         for (File file : files) {
+         for (int i = 0; i < files.length; i++) {
+            File file = files[i];
             file.delete();
          }
       }

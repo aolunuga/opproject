@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -28,6 +28,7 @@ public class OpResourcesFormProvider implements XFormProvider {
 
    private static final String NEW_POOL_BUTTON = "NewPoolButton";
    private static final String NEW_RESOURCE_BUTTON = "NewResourceButton";
+   private static final String EDIT_BUTTON = "EditButton";
    private static final String PROPERTIES_BUTTON = "PropertiesButton";
    private static final String MOVE_BUTTON = "MoveButton";
    private static final String DELETE_BUTTON = "DeleteButton";
@@ -64,11 +65,22 @@ public class OpResourcesFormProvider implements XFormProvider {
          }
       }
 
-      Map<Integer, Integer> columnsSelector = new HashMap<Integer, Integer>();
-      columnsSelector.put(0, OpResourceDataSetFactory.DESCRIPTOR);
-      columnsSelector.put(1, OpResourceDataSetFactory.NAME);
-      columnsSelector.put(2, OpResourceDataSetFactory.DESCRIPTION);
-      columnsSelector.put(3, OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS);
+      Map columnsSelector = new HashMap();
+      Integer index;
+      Integer selector;
+
+      index = new Integer(0);
+      selector = new Integer(OpResourceDataSetFactory.DESCRIPTOR);
+      columnsSelector.put(index, selector);
+      index = new Integer(1);
+      selector = new Integer(OpResourceDataSetFactory.NAME);
+      columnsSelector.put(index, selector);
+      index = new Integer(2);
+      selector = new Integer(OpResourceDataSetFactory.DESCRIPTION);
+      columnsSelector.put(index, selector);
+      index = new Integer(3);
+      selector = new Integer(OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS);
+      columnsSelector.put(index, selector);
 
       form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
       form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
@@ -82,10 +94,10 @@ public class OpResourcesFormProvider implements XFormProvider {
 
    /**
     * Disables buttons that require a selection in order to be enabled.
-    *
     * @param form a <code>XComponent</code> representing the project form.
     */
    private void disableSelectionButtons(XComponent form) {
+      form.findComponent(EDIT_BUTTON).setEnabled(false);
       form.findComponent(MOVE_BUTTON).setEnabled(false);
       form.findComponent(DELETE_BUTTON).setEnabled(false);
       form.findComponent(ASSIGN_TO_PROJECT_BUTTON).setEnabled(false);

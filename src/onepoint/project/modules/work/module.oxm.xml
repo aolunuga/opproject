@@ -6,10 +6,11 @@
    <service-files>
       <service-file file-name="/modules/work/work_service.osd.xml"/>
    </service-files>
-   <language-kit-paths>
-      <language-kit-path path="/modules/work/i18n"/>
-   </language-kit-paths>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/work/i18n/work_en.olk.xml"/>
+      <language-kit-file file-name="/modules/work/i18n/work_de.olk.xml"/>
+   </language-kit-files>
    <tools>
-      <tool name="work" caption="${WorkTool}" group-ref="my" icon="/modules/work/icons/work_tool.png" start-form="/modules/work/forms/work_slips.oxf.xml" sequence="10"/>
+      <tool name="work" caption="{$WorkTool}" group-ref="my" icon="/modules/work/icons/work_tool.png" start-form="/modules/work/forms/work_slips.oxf.xml" sequence="10"/>
    </tools>
 </module>

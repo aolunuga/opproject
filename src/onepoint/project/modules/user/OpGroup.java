@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user;
@@ -16,8 +16,8 @@ public class OpGroup extends OpSubject {
    
    // Name and resource references of hard-wired group "everyone"
    public final static String EVERYONE_NAME = "Everyone";
-   public final static String EVERYONE_DISPLAY_NAME = "${EveryoneDisplayName}";
-   public final static String EVERYONE_DESCRIPTION = "${EveryoneDescription}";
+   public final static String EVERYONE_DISPLAY_NAME = "{$EveryoneDisplayName}";
+   public final static String EVERYONE_DESCRIPTION = "{$EveryoneDescription}";
    public final static String EVERYONE_ID_QUERY = "select group.ID from OpGroup as group where group.Name = '" + EVERYONE_NAME + "'";
 
    private Set userAssignments;

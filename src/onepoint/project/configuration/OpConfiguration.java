@@ -1,8 +1,4 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
-/*
  * (c) 2005 OnePoint Software GmbH (Graz/Austria)
  * All rights reserved
  */

@@ -1,0 +1,25 @@
+<form layout="border" resource-map-ref="report.delivery_forecast"
+      script="delivery_forecast.jes"
+	    provider-class="onepoint.project.team.reports.delivery_forecast.OpDeliveryForecastFormProvider"
+      on-show="prepareForm">
+	<data-set id="ResultSet"/>
+	<data-field id="UserLocatorField"/>
+  <data-field id="InvalidStartField" text="{$InvalidStart}"/>
+  <data-field id="InvalidFinishField" text="{$InvalidFinish}"/>
+  <!-- division orientation="horizontal" -->
+	<panel layout="border">
+		<panel y="-1" layout="table" style-ref="table-panel-default">
+	    <label x="0" y="0" width="2" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+			<label x="0" y="1" width="4" id="UserLabel" text="{$User}"/>
+			<text-field x="4" y="1" width="4" id="UserNameField" enabled="false"/>
+			<button x="8" y="1" width="2" id="SelectUserButton" text="{$Select}" on-button-pressed="chooseSubject"/>
+			<label y="2" width="2" text="{$Start}"/>
+			<date-field x="2" y="2" width="3" id="StartField"/>
+			<label x="5" y="2" width="2" text="{$Finish}"/>
+			<date-field x="7" y="2" width="3" id="FinishField"/>
+		</panel>
+		<panel layout="border" style-ref="table-panel-default">
+			<label x="1" y="1" text="{$QuickQueryNotAvailable}"/>
+		</panel>
+	</panel>
+</form>

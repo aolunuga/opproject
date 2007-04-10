@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.work;
@@ -233,9 +233,6 @@ public class OpWorkSlipDataSetFactory {
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setDoubleValue(assignment.getBaseEffort());
       data_row.addChild(data_cell);
-
-      //set the value of the dataRow to the id of the assignment
-      data_row.setStringValue(choice);
 
       return data_row;
    }

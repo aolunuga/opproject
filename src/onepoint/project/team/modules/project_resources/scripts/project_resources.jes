@@ -1,0 +1,30 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+require "onepoint/project/modules/project_resources/scripts/project_resources.jes" as super;
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function saveChartImage(event) {
+   XDisplay.getActiveForm().findComponent("ResourceBarChart").saveAsImage("Save Chart");   
+}
+
+function print(event){
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectResourcesTabBox");
+   cur_tab = tabBox.getIntValue();
+   title = super.getPrintTitle();
+   if (cur_tab == 0) {
+      super.print(event);
+   }
+   if (cur_tab == 1) {
+      component = XDisplay.getActiveForm().findComponent("ResourceBarChart");
+      component.print(title);
+   }
+}
+
+function outlineLevelChanged(event){
+    XDisplay.findFrame("ProjectContentFrame").refreshForm();
+}

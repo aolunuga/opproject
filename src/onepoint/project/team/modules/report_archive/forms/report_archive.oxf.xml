@@ -1,0 +1,24 @@
+<form id="ReportArchiveForm" layout="border" resource-map-ref="report_archive.report_archive"
+      provider-class="onepoint.project.team.modules.report_archive.forms.OpReportArchiveFormProvider"
+      script="/team/modules/report_archive/scripts/report_archive.jes">
+
+   <data-set id="ReportArchiveDataSet"/>
+   <data-field id="ManagerPermission"/>
+
+   <panel layout="border" style-ref="compact-panel-default">
+      <panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar id="ReportsToolBar">
+            <tool-button text="{$Info}" id="InfoTool" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png" on-button-pressed="info" tooltip="{$InfoTooltip}"/>
+            <tool-button text="{$Delete}" id="DeleteTool" icon="/icons/delete.png" disabled-icon="/icons/delete_disabled.png" on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
+         </tool-bar>
+         <label y="0" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+      </panel>
+      <table-box id="ReportArchiveTable" y="0" data-set-ref="ReportArchiveDataSet" flexible="true" on-double-click="open" on-row-select="selectionChanged">
+         <table-column width="180" text="{$ReportName}" sortable="true" data-column-index="1" value-type="String"/>
+         <table-column width="90" text="{$ReportType}" data-column-index="2" value-type="Choice"/>
+         <table-column width="90" text="{$CreatedBy}" sortable="true" data-column-index="3" value-type="String"/>
+         <table-column width="90" text="{$CreatedOn}" sortable="true" data-column-index="4" value-type="Date"/>
+      </table-box>
+      <status-bar y="1"/>
+   </panel>
+</form>

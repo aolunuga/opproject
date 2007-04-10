@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 require "onepoint/project/scripts/error.jes";
@@ -23,15 +23,12 @@ function ok(event) {
 
          lastIndex = data_row.getChildCount() - 1;
          dataCell = data_row.getChild(lastIndex);
-         locator = dataCell.getStringValue();
+         id = dataCell.getLongValue();
          data_row.removeChild(dataCell);
          newActivityDataRow = new_activities.newDataRow();
-         //set the value of the new data_row to the ID of the activity it contains
-         newActivityDataRow.setStringValue(locator);
+         newActivityDataRow.setLongValue(id);
          new_activities.addChild(newActivityDataRow);
 
-         //set the value of the data_row to the ID of the activity it contains
-         data_row.setStringValue(locator);
          work_data_set.addDataRow(data_row);
          i++;
       }

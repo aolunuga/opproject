@@ -1,6 +1,6 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
+* Copyright(c) OnePoint Software GmbH 2005. All Rights Reserved.
+*/
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;

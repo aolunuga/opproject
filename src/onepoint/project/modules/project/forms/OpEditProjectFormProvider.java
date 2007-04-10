@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
@@ -47,13 +47,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
    private final static String PROJECT_INFO = "project.Info";
    private final static String NO_STATUS = "NoStatus";
-   private final static String WORKING_VERSION = "WorkingVersion";
    private final static String NULL_ID = "null";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
-   private final static String FORM_WORKING_VERSION_NUMBER = "WorkingVersionNumber";
-   private final static String GOALS_TABLE_BOX = "GoalsTableBox";
-   private final static String TODOS_TABLE_BOX = "ToDosTableBox";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -168,7 +164,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
          data_cell.setEnabled(true);
          data_row.addChild(data_cell);
       }
-      form.findComponent(GOALS_TABLE_BOX).setEditMode(edit_mode);
       //sort goals data set based on goal's name (data cell with index 1)
       data_set.sort(1);
 
@@ -198,7 +193,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
          data_cell.setEnabled(true);
          data_row.addChild(data_cell);
       }
-      form.findComponent(TODOS_TABLE_BOX).setEditMode(edit_mode); 
       //sort to dos data set based on to do's name (data cell with index 1)
       data_set.sort(1);
 
@@ -212,8 +206,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
          form.findComponent("ResourcesToolPanel").setVisible(false);
          form.findComponent("GoalsToolPanel").setVisible(false);
          form.findComponent("TasksToolPanel").setVisible(false);
-         form.findComponent(GOALS_TABLE_BOX).setEnabled(false);
-         form.findComponent(TODOS_TABLE_BOX).setEnabled(false);
+         form.findComponent("GoalsTableBox").setEnabled(false);
+         form.findComponent("ToDosTableBox").setEnabled(false);
          form.findComponent("Cancel").setVisible(false);
          form.findComponent("ProgressTracked").setEnabled(false);
          form.findComponent("CalculationMode").setEnabled(false);
@@ -230,7 +224,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       if (project.getPlan() != null) {
          XLocalizer userObjectsLocalizer = new XLocalizer();
          userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
-         fillVersionsDataSet(form, project.getPlan(), userObjectsLocalizer, session);
+         fillVersionsDataSet(form, project.getPlan(), userObjectsLocalizer);
       }
       form.findComponent("RemoveVersionButton").setVisible(isButtonVisible);
 
@@ -268,41 +262,32 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param projectPlan          a <code>OpProjectPlan</code> representing a project's plan.
     * @param userObjectsLocalizer a <code>XLocalizer</code> representing a localizer that is used to get the i18n display names.
     */
-   private void fillVersionsDataSet(XComponent form, OpProjectPlan projectPlan, XLocalizer userObjectsLocalizer, OpProjectSession session) {
-      form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectAdministrationService.WORKING_VERSION_NUMBER));
-
+   private void fillVersionsDataSet(XComponent form, OpProjectPlan projectPlan, XLocalizer userObjectsLocalizer) {
       XComponent versionsDataSet = form.findComponent("VersionsSet");
       Map rowsMap = new TreeMap();
 
       //add the version nrs in ascending order
       Set planVersions = projectPlan.getVersions();
       Iterator it = planVersions.iterator();
-      XComponent workingDataRow = new XComponent(XComponent.DATA_ROW);
-
       while (it.hasNext()) {
          OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
-         
+
+         //filter out working version
+         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+            continue;
+         }
+
          XComponent dataRow = new XComponent(XComponent.DATA_ROW);
 
          //version id - 0
          XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            dataCell.setStringValue(String.valueOf(version.getVersionNumber()));
-         }
-         else{
-            dataCell.setStringValue(OpLocator.locatorString(version));
-         }
+         dataCell.setStringValue(OpLocator.locatorString(version));
          dataRow.addChild(dataCell);
 
          //version number - 1
          int versionNr = version.getVersionNumber();
          dataCell = new XComponent(XComponent.DATA_CELL);
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
-         }
-         else{
-            dataCell.setStringValue(String.valueOf(versionNr));
-         }
+         dataCell.setIntValue(versionNr);
          dataRow.addChild(dataCell);
 
          //created by - 2
@@ -317,19 +302,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataCell.setDateValue(version.getCreated());
          dataRow.addChild(dataCell);
 
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            workingDataRow = dataRow;
-         }
-         else{
-            rowsMap.put(new Integer(versionNr), dataRow);
-         }
+         rowsMap.put(new Integer(versionNr), dataRow);
       }
 
       Integer[] versionNumbers = (Integer[]) rowsMap.keySet().toArray(new Integer[0]);
-      //add the working data row first if exists such a row
-      if(workingDataRow.getChildCount() > 0){
-         versionsDataSet.addChild((XView) workingDataRow);
-      }
       for (int i = versionNumbers.length - 1; i >= 0; i--) {
          Integer versionNumber = versionNumbers[i];
          versionsDataSet.addChild((XView) rowsMap.get(versionNumber));

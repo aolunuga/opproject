@@ -1,0 +1,177 @@
+OnePoint Project 06.1 Team Edition (BETA)
+=========================================
+
+Willkommen zur aktuellen Version der Team Edition von OnePoint Project. Dieses
+Paket enthält die Webapplikation von OnePoint Project 06.1 zusammen mit einem
+Einstiegshandbuch.
+
+
+Systemvoraussetzungen
+---------------------
+
+* Microsoft Windows 2000/XP, Linux oder Mac OS X
+
+* Java Runtime Environment (JRE) Version 1.4.2 oder höher
+
+* MySQL Version 5.0.19 (siehe Anhang C) oder PostgreSQL 8.1
+
+* MySQL oder PostgreSQL JDBC-Treiber
+
+* Apache Tomcat 5.5
+
+Andere Applikationsserver und Datenbanken auf Anfrage.
+
+
+Dokumentation
+-------------
+
+Im ZIP-Paket finden Sie ein Tutorial zu OnePoint Project, das die wichtigsten
+Funktionen Schritt-für-Schritt erklärt. Das Tutorial ist als Acrobat/PDF-Datei
+gespeichert "opproject-06-tutorial-de.pdf" -- zur Ansicht können Sie Adobe
+Acrobat Reader oder einen Webbrowser mit dem Acrobat Reader Plug-in verwenden
+(typischerweise bei Ihnen bereits vorinstalliert). Sollten Sie keinen Acrobat
+Reader besitzen, so kann dieser gratis von der Adobe Website heruntergeladen
+werden:
+
+   http://www.adobe.de ("Get Adobe Reader").
+
+
+Installation
+------------
+
+Sollten Sie von OnePoint Project 06 Team Edition upgraden, dann bewegen Sie bitte
+Ihre derzeitiges "opproject" Webapplikation vom "webapps" Verzeichnis an eine
+andere Stelle im Verzeichnisbaum.
+
+Diese Kurzanleitung geht davon aus, dass OnePoint Project als Tomcat Webapplikation
+installiert wird:
+
+1. Tomcat 5.5 installieren, falls noch nicht vorhanden
+
+2. WAR-Datei "opproject.war" aus dem ZIP-Paket in das "webapps" Verzeichnis Ihrer
+Tomcat Installation kopieren. Wenn Sie den Installer der deutschen Version verwendet
+haben, dann ist das:
+
+   C:\Programme\Apache Software Foundation\Tomcat 5.5\webapps
+
+Kurz danach oder spätestens nach Neustart von Tomcat sollte ein Verzeichnis "opproject"
+innerhalb des webapps Verzeichnisses erscheinen.
+
+3. MySQL Datenbanktreiber (JAR-File) in das Verzeichnis opproject\WEB-INF\lib kopieren
+
+4. MySQL Datenbanksoftware installieren und Instanz erstellen
+   - Wählen Sie UTF-8/Unicode als Zeichensatz bzw. Encoding für die Instanz
+
+5. MySQL Datenbankbenutzer ("opproject") und Datenbank einrichten ("opproject")
+   - Wenn Sie kein MySQL-Experte sind, dann lesen Sie bitte Anhang A dazu
+
+6. Konfigurationsdatei "configuration.oxc.xml" im opproject Verzeichnis anpassen bzw.
+die existierende Konfigurationsdatei von der zuvor gesicherten bestehenden Installation
+kopieren:
+   - Datenbank URL (Werkseinstellung ist "opproject")
+   - Datenbankbenutzer (Werkseinstellung ist "opproject")
+   - Datenbankkennwort (Werkseinstellung ist "opproject")
+
+ACHTUNG: Den nächsten Schritt auf keinen Fall ausführen, wenn Sie eine bestehende
+Installation upgraden!
+
+7. (OPTIONAL) Demodaten laden indem Sie folgende SQL Datei ausführen (siehe Anhang B):
+   - demodata061.sql
+
+8. Tomcat stoppen und neu starten um sicher zu gehen, dass die Konfigurationsänderungen
+übernommen werden (bei einer Neuinstallation wird jetzt automatisch die Datenbankstruktur
+angelegt).
+
+
+Starten der Anwendung
+---------------------
+
+Wenn Sie Tomcat mit den Werkseinstellungen instaliert haben, dann sollte OnePoint
+Project jetzt unter folgender URL verfügbar sein:
+
+   http://localhost:8080/opproject/service
+
+Bitte beachten Sie, dass im Falle einer Neuinstallation das Einrichten der
+Ablagestruktur ein paar Minuten dauern kann.
+
+Sie können nun als "administrator" einloggen, es ist kein Passwort gesetzt. Wir
+möchten Sie darauf hinweisen, dass Sie als allererstes nun ein Passwort für den
+Administrator vergeben sollten: Sie können dies in "Eigene" -> "Einstellungen"
+tun.
+
+
+Verwenden der Demodaten
+-----------------------
+
+Einloggen als Testbenutzer "cs" für eine deutsche Benutzeroberfläche, oder als
+"tw" für Englisch. Beide Testbenutzer haben kein Passwort gesetzt. Um
+administrative Rechte zu erhalten loggen Sie als Benutzer "administrator" ein,
+auch hier ist kein Passwort gesetzt.
+
+Bitte beachten Sie, dass nur zwei Projekte wirklich Daten beinhalten: "Virtual
+Cockpit v2" und "Einbau ALS/Xplore". Die Benutzer tw und cs haben nur auf
+diesen Projekten wirklich Schreibrechte, ansonsten verwenden Sie bitte den
+Administrator-Benutzer.
+
+
+Bekannte Einschränkungen und Probleme
+-------------------------------------
+
+* Das Dock ist noch nicht einklappbar.
+
+Diese Einschränkungen werden in der finalen Produktversion (OnePoint Project
+06.1) behoben sein.
+
+
+Anhang A: Anlegen einer neuen Datenbank und eines Benutzers mit MySQL
+---------------------------------------------------------------------
+
+Um eine Datenbank mit den Standardwerten anzulegen, führen Sie einfach die
+folgenden Schritte nach der Installation von MySQL aus:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und wechseln Sie
+       in das Verzeichnis "demodata"
+   (2) Tippen Sie "mysql –u root -p" und geben Sie das Root-Passwort ein,
+       das Sie bei der Installation von MySQL vergeben haben
+   (3) mysql> \. createdb.sql;
+   (4) mysql> quit
+
+Alternativ können Sie einen neue Datenbank und einen neuen Benutzer in MySQL
+auch manuell anlegen:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und tippen Sie
+       "mysql –u root -p" und geben Sie das Root-Passwort ein, das Sie bei der
+       Installation von MySQL vergeben haben
+   (2) mysql> create database opproject;
+   (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
+       identified by 'opproject' with grant option;
+   (4) mysql> quit
+
+
+Anhang B: Ausführen einer SQL-Datei mit MySQL
+-----------------------------------------------
+
+Um eine SQL-Datei mit MySQL auszuführen, gehen Sie wie folgt vor:
+
+   (1) Öffnen sie eine "Eingabeaufforderung" (DOS-Fenster) und tippen Sie
+       "mysql –u opproject -p opproject" und geben Sie das Passwort ein, das
+       Sie beim Einrichten des Benutzers vergeben haben
+   (2) mysql> \. demodata061.sql;
+   (3) mysql> quit
+
+Beachten Sie bitte, dass das Beispiel davon ausgeht, dass der Benutzer und die
+Datenbank "opproject" heißen und die SQL-Datei "demodata061.sql". Wenn Sie
+einen anderen Benutzernamen verwenden, dann müssen sie in (1) diesen nach der
+Option "-u" angeben, einen andere Datenbanknamen nach "-p".
+
+
+Anhang C: MySQL-Versionen
+-------------------------
+
+Um die Qualität zu sichern, waren wir gezwungen die Release auf eine MySQL-
+Version einzuschränken. Der Grund liegt darin, dass die unterschiedlichen
+MySQL-Versionen tlw. sehr unterschiedliche Qualität aufweisen und tatsächlich
+in manchen Versionen sogar Basis-Datenbankfunktionalität nicht funktioniert.
+Mit MySQL 5.0.19 haben wir sehr gute Ergebnisse erzielt, darum haben wir dann
+alle Tests auf dieser Version durchgeführt. Absolut Abstand halten sollten Sie
+von MySQL 5.0.21 -- hier wissen wir, dass es eine Reihe von Problemen gibt.

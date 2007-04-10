@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for new_resource.oxf.xml
@@ -23,13 +23,7 @@ function ok(event) {
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
-   userChoice = form.findComponent("UserName").getStringValue();
-   if (userChoice != null) {
-      resource_data.UserID = XValidator.choiceID(userChoice);
-   }
-   else {
-      resource_data.UserID = null;
-   }
+   resource_data.UserID = form.findComponent("SelectedUserDataField").getStringValue();
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -71,9 +65,10 @@ function selectUser(event) {
 
 function addResourceSubject(subject) {
    form = XDisplay.getActiveForm();
+   selected_user_data_field = form.findComponent("SelectedUserDataField");
+   selected_user_data_field.setStringValue(subject);
    user_name_field = form.findComponent("UserName");
-   user_name_field.setStringValue(subject);
-   user_name_field.update();
+   user_name_field.setStringValue(XValidator.choiceCaption(subject));
 }
 
 function addProject(event) {

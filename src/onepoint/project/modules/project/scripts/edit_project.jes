@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_project.oxf.xml
@@ -184,36 +184,7 @@ function removeProjectAssignment(event){
       resource_list_box = form.findComponent("AssignedResourcesListBox");
       resource_list_box.update();
    }
+
 }
 
-function selectionChanged(event) {
-
-   form = XDisplay.getActiveForm();
-   version_number = form.findComponent("WorkingVersionNumber");
-   version_set = form.findComponent("VersionsSet");
-   selected_rows = version_set.selectedRows();
-
-   delete_button = form.findComponent("RemoveVersionButton");
-   delete_button.setEnabled(true);
-
-   can_delete = true;
-   //determine if the working version is among the selected ones
-   if (selected_rows.size() > 0) {
-      
-      i = 0;
-      while (i < selected_rows.size()) {
-         if (selected_rows[i].getChild(0).getStringValue() == version_number.getStringValue()) {
-            can_delete = false;
-            break;
-         }
-         i++;
-      }
-   }
-
-   if (!can_delete) {
-      delete_button = form.findComponent("RemoveVersionButton");
-      delete_button.setEnabled(can_delete);
-   }
-   form.repaint();
-}
 

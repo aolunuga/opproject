@@ -1,0 +1,18 @@
+<form id="CategoryPeaksForm" layout="border" provider-class="onepoint.project.team.modules.neckermann.forms.OpCategoryPeaksFormProvider">
+    <data-set id="CategoryPeaksSet" stateful="true"/>
+    <data-set id="TimeUnitSet">
+      <data-row string-value="w['Wochen']"/>
+   </data-set>
+	  <panel layout="border">
+
+		  <panel y="-1" layout="border">
+			  <label x="0" text="Zeiteinheit: "/>
+		     <choice-field x="1" id="TimeUnitChooser" data-set-ref="TimeUnitSet" selected-index="0"/>
+		  </panel>
+
+          <line-chart-box id="CategoryPeaksBox" data-set-ref="CategoryPeaksSet" value-type="Integer" data-column-index="1" data-caption-column-index="0" grid-lines="none" markers="true" sidebar-width="120"/>
+
+          <color-legend-box x="1" chart-box-ref="CategoryPeaksBox"/>
+		  
+	   </panel>
+</form>

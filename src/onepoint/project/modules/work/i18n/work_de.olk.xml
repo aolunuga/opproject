@@ -5,6 +5,7 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">Neuer Arbeitszettel</resource>
       <resource id="Info">Info</resource>
+      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="Number">Nummer</resource>
       <resource id="Resource">Ressource</resource>
@@ -12,6 +13,7 @@
 
       <resource id="NewWorkSlipTooltip">Neuen Arbeitszettel erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählten Arbeitszettel anzeigen</resource>
+      <resource id="EditTooltip">Metainformation für ausgewählten Arbeitszettel bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
       <resource id="Time">Zeitspanne</resource>
@@ -26,7 +28,7 @@
       <resource id="Date">Datum</resource>
       <resource id="Task">Aufgabe</resource>
       <resource id="Project">Projekt</resource>
-      <resource id="AssignmentEffort">Geplant</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
@@ -56,7 +58,7 @@
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
-      <resource id="AssignmentEffort">Geplant</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Worktime">Aufwand</resource>
       <resource id="RemainingEffort">Verbleibend</resource>
       <resource id="Material">Material</resource>

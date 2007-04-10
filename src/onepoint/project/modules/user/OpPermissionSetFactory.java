@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user;
@@ -42,18 +42,18 @@ public class OpPermissionSetFactory {
    // I18n resource-maps and names
    public final static String USER_PERMISSIONS_TAB = "user.permissions_tab";
    public final static String USER_OBJECTS = "user.objects";
-   public final static String ADMINISTRATORS = "${Administrators}";
-   public final static String MANAGERS = "${Managers}";
-   public final static String CONTRIBUTORS = "${Contributors}";
-   public final static String OBSERVERS = "${Observers}";
+   public final static String ADMINISTRATORS = "{$Administrators}";
+   public final static String MANAGERS = "{$Managers}";
+   public final static String CONTRIBUTORS = "{$Contributors}";
+   public final static String OBSERVERS = "{$Observers}";
 
    public static XComponent defaultPermissionRows(OpProjectSession session, OpBroker broker, XComponent permissionSet) {
       // Reload user and everyone objects in case it was detached
       OpUser user = session.user(broker);
       // TODO: I18n name of group everyone
-      // (Note: We could maybe solve this by using a language-resource ${Everyone} in the display name)
+      // (Note: We could maybe solve this by using a language-resource {$Everyone} in the display name)
       // *** ATTENTION: This would also solve our problem w/the naming of the root project folder and resource pool
-      // ==> Use language resources ${RootProjectFolder} and ${RootPool}
+      // ==> Use language resources {$RootProjectFolder} and {$RootPool}
       // TODO: Group everyone is not editable (at least not its properties), only membership
       // (Probably hard-code in edit-resource form-provider)
       // TODO: Check for correct schema *AND* required objects on startup

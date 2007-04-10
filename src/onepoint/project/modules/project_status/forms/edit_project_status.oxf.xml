@@ -1,4 +1,4 @@
-<form layout="border" width="400" height="240" text="${EditProjectStatus}" start-focus-ref="Name"
+<form layout="border" width="400" height="240" text="{$EditProjectStatus}" start-focus-ref="Name"
       default-button-ref="okButton" resource-map-ref="project_status.edit"
       provider-class="onepoint.project.modules.project_status.forms.OpEditProjectStatusFormProvider"
       script="/modules/project_status/scripts/edit_project_status.jes">
@@ -11,19 +11,19 @@
 
       <panel y="0" layout="table">
 
-         <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/>
+         <label x="0" y="0" width="2" text="{$Name}" style-ref="label-emphasized-default"/>
          <text-field x="2" y="0" width="3" id="Name"/>
-         <label x="0" y="1" width="2" text="${Description}"/>
+         <label x="0" y="1" width="2" text="{$Description}"/>
          <text-box x="2" y="1" width="3" id="Description"/>
-         <label x="0" y="2" width="2" text="${Color}"/>
+         <label x="0" y="2" width="2" text="{$Color}"/>
          <color-field x="2" y="2" width="3" id="Color"/>
 
       </panel>
 
       <panel y="1" layout="flow" direction="west">
          <panel layout="border">
-            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
-            <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
          </panel>
       </panel>
 

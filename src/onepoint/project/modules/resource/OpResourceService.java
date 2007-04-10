@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource;
@@ -140,9 +140,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          if ((user_id_string != null) && (user_id_string.length() > 0)) {
             OpUser user = (OpUser) (broker.getObject(user_id_string));
             resource.setUser(user);
-         }
-         else { // set user to login user
-            resource.setUser(session.user(broker));
          }
       }
       else {
@@ -402,9 +399,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpTransaction t = broker.newTransaction();
 
       // *** TODO: Currently a work-around (should use choice instead of ID)
-      String user_locator = (String) (resource_data.get("UserID"));
-      if ((user_locator != null) && (user_locator.length() > 0)) {
-         OpUser user = (OpUser) (broker.getObject(user_locator));
+      String user_id_string = (String) (resource_data.get("UserID"));
+      if ((user_id_string != null) && (user_id_string.length() > 0)) {
+         OpUser user = (OpUser) (broker.getObject(user_id_string));
          Iterator assignments = resource.getProjectNodeAssignments().iterator();
          //user has no responsible user -> for all the resource's project assignments add a contributor permission entry
          if (resource.getUser() == null) {
@@ -1279,19 +1276,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    // Helper methods
 
    public static OpResourcePool findRootPool(OpBroker broker) {
-      return findPool(broker, OpResourcePool.ROOT_RESOURCE_POOL_NAME);
-   }
-
-   /**
-    * Find a pool resource by name
-    *
-    * @param broker a <code>OpBroker</code> instance
-    * @param name   the name of the resource pool
-    * @return an instance of <code>OpResourcePool</code> or <code>null</code> if not found
-    */
-   public static OpResourcePool findPool(OpBroker broker, String name) {
       OpQuery query = broker.newQuery("select pool from OpResourcePool as pool where pool.Name = ?");
-      query.setString(0, name);
+      query.setString(0, OpResourcePool.ROOT_RESOURCE_POOL_NAME);
       Iterator result = broker.list(query).iterator();
       if (result.hasNext()) {
          return (OpResourcePool) result.next();

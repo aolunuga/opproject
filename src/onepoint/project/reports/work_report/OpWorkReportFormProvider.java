@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.reports.work_report;
@@ -15,6 +15,7 @@ import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.HashMap;
@@ -22,8 +23,10 @@ import java.util.Iterator;
 
 public class OpWorkReportFormProvider implements XFormProvider {
 
+   public final static String USER_LOCATOR_FIELD = "UserLocatorField";
    private final static String USER_NAME_FIELD = "UserNameField";
    private final static String USER_NAME_LABEL = "UserLabel";
+   private final static String SELECT_USER_BUTTON = "SelectUserButton";
    private final static String START_FIELD = "StartField";
    private final static String FINISH_FIELD = "FinishField";
    private final static String TOTAL_HOURS_FIELD = "TotalHoursField";
@@ -42,8 +45,8 @@ public class OpWorkReportFormProvider implements XFormProvider {
       String displayName;
       OpBroker broker = session.newBroker();
       // default start-finish dates range
-      Date defaultStartDate = session.getCalendar().getCurrentYearFirstDate();
-      Date defaultFinishDate = session.getCalendar().getCurrentYearLastDate();
+      Date defaultStartDate = XCalendar.getDefaultCalendar().getCurrentYearFirstDate();
+      Date defaultFinishDate = XCalendar.getDefaultCalendar().getCurrentYearLastDate();
 
       // Execute query and fill result set if RunQuery is true
       if (parameters != null) {
@@ -62,7 +65,7 @@ public class OpWorkReportFormProvider implements XFormProvider {
                return; // TODO: Throw exception
             }
             displayName = localizer.localize(user.getDisplayName());
-            form.findComponent(USER_NAME_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
+            form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
 
             // TODO: Use calendar instance of session to set default
             // start/finish dates
@@ -132,7 +135,7 @@ public class OpWorkReportFormProvider implements XFormProvider {
             form.findComponent(FINISH_FIELD).setDateValue(defaultFinishDate);
             OpUser user = session.user(broker);
             displayName = localizer.localize(user.getDisplayName());
-            form.findComponent(USER_NAME_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
+            form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
          }
       }
       else {
@@ -140,18 +143,20 @@ public class OpWorkReportFormProvider implements XFormProvider {
          form.findComponent(FINISH_FIELD).setDateValue(defaultFinishDate);
          OpUser user = session.user(broker);
          displayName = localizer.localize(user.getDisplayName());
-         form.findComponent(USER_NAME_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
+         form.findComponent(USER_LOCATOR_FIELD).setStringValue(XValidator.choice(user.locator(), displayName));
       }
 
 
       if (OpInitializer.isMultiUser()) {
+         form.findComponent(USER_NAME_FIELD).setStringValue(displayName);
          //enable select user button if session user is admin
          if (!session.userIsAdministrator()){
-            form.findComponent(USER_NAME_FIELD).setEnabled(false);
+            form.findComponent(SELECT_USER_BUTTON).setEnabled(false);
          }
       }
       else {
          form.findComponent(USER_NAME_FIELD).setVisible(false);
+         form.findComponent(SELECT_USER_BUTTON).setVisible(false);
          form.findComponent(USER_NAME_LABEL).setVisible(false);
       }
 

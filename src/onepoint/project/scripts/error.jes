@@ -1,7 +1,3 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
 // helper function for error handling
 
 import onepoint.express.XDisplay;

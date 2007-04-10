@@ -13,7 +13,6 @@ import onepoint.project.modules.resource.test.ResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
-import onepoint.project.modules.work.OpWorkError;
 import onepoint.project.modules.work.OpWorkService;
 import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
 import onepoint.project.modules.work.OpWorkSlip;
@@ -99,7 +98,8 @@ public class OpWorkServiceTest extends OpBaseTestCase {
       OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
       OpResource resource = (OpResource) broker.getObject(resId);
 
-      OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      OpActivity activity = new OpActivity();
+      activity.setType(OpActivity.SCHEDULED_TASK);
       broker.makePersistent(activity);
 
       OpAssignment assignment = new OpAssignment();
@@ -121,68 +121,34 @@ public class OpWorkServiceTest extends OpBaseTestCase {
       //todo: check work slips and records
    }
 
-   public void testInsertWorkSlipsSameDate()
-   throws Exception {
-     OpBroker broker = session.newBroker();
-     OpTransaction t = broker.newTransaction();
+   public void testCreateWSRow()
+        throws Exception {
+      OpActivity sa = new OpActivity();
+      sa.setName("Super");
 
-     OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
-     OpResource resource = (OpResource) broker.getObject(resId);
+      OpProjectNode project = new OpProjectNode();
+      project.setName("Project One");
+      OpProjectPlan plan = new OpProjectPlan();
+      plan.setProjectNode(project);
 
-     OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
-     broker.makePersistent(activity);
+      OpActivity activity = new OpActivity();
+      activity.setProjectPlan(plan);
+      activity.setSuperActivity(sa);
 
-     OpAssignment assignment = new OpAssignment();
-     assignment.setProjectPlan(plan);
-     assignment.setResource(resource);
-     assignment.setActivity(activity);
-     broker.makePersistent(assignment);
+      OpResource resource = new OpResource();
+      resource.setID(1);
 
-     t.commit();
-     OpQuery query = broker.newQuery("from OpAssignment");
-     assignment = (OpAssignment) broker.list(query).get(0);
-     broker.close();
+      OpAssignment assignment = new OpAssignment();
+      assignment.setActivity(activity);
+      assignment.setResource(resource);
+      assignment.setProjectPlan(plan);
+      assignment.setBaseEffort(0.2);
 
-     Date wd_date = new Date(System.currentTimeMillis());
-     XMessage request = WorkTestDataFactory.insertWSMsg(assignment.locator(), "", wd_date,
-         false, true, OpActivity.TASK, 32.43d, 321d, 545.432d, 654.32d, 423.31d, 543.32d);
-     XMessage response = service.insertWorkSlip(session, request);
-     assertNoError(response);
-
-     request = WorkTestDataFactory.insertWSMsg(assignment.locator(), "", wd_date,
-         false, true, OpActivity.TASK, 32.43d, 321d, 545.432d, 654.32d, 423.31d, 543.32d);
-     response = service.insertWorkSlip(session, request);
-     assertError(response, OpWorkError.DUPLICATE_DATE);
+      boolean prgtrk = false;
+      HashMap resources = new HashMap();
+      resources.put(new Long(1), "Resource One");
+      XComponent row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, prgtrk, resources);
    }
-
-//   public void testCreateWSRow()
-//        throws Exception {
-//      OpActivity sa = new OpActivity();
-//      sa.setName("Super");
-//
-//      OpProjectNode project = new OpProjectNode();
-//      project.setName("Project One");
-//      OpProjectPlan plan = new OpProjectPlan();
-//      plan.setProjectNode(project);
-//
-//      OpActivity activity = new OpActivity();
-//      activity.setProjectPlan(plan);
-//      activity.setSuperActivity(sa);
-//
-//      OpResource resource = new OpResource();
-//      resource.setID(1);
-//
-//      OpAssignment assignment = new OpAssignment();
-//      assignment.setActivity(activity);
-//      assignment.setResource(resource);
-//      assignment.setProjectPlan(plan);
-//      assignment.setBaseEffort(0.2);
-//
-//      boolean prgtrk = false;
-//      HashMap resources = new HashMap();
-//      resources.put(new Long(1), "Resource One");
-//      XComponent row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, prgtrk, resources);
-//   }
 
    public void testGetAssignments()
         throws Exception {

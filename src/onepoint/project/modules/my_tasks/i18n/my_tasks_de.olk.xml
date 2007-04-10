@@ -5,12 +5,14 @@
    <resource-map id="my_tasks.my_tasks">
 
       <resource id="NewAdhoc">Neue Aufgabe</resource>
+      <resource id="EditAdhoc">Aufgabe bearbeiten</resource>
       <resource id="DeleteAdhoc">Aufgabe löschen</resource>
       <resource id="NewComment">Neuer Kommentar</resource>
       <resource id="Info">Eigenschaften</resource>
       <resource id="Print">Drucken</resource>
 
       <resource id="NewAdhocTooltip">Neue Ad-Hoc-Aufgabe anlegen</resource>
+      <resource id="EditAdhocTooltip">Ausgewählte Ad-Hoc-Aufgabe bearbeiten</resource>
       <resource id="DeleteAdhocTooltip">Ausgewählte Ad-Hoc-Aufgaben löschen</resource>
       <resource id="NewCommentTooltip">Neuen Kommentar erstellen</resource>
       <resource id="InfoTooltip">Vorgangseigenschaften einsehen</resource>
@@ -64,10 +66,10 @@
       <resource id="Attachments">Anlagen</resource>
       <resource id="Title">Titel</resource>
       <resource id="Location">Link</resource>
-      <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
-      <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
-      <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
-      <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
+	  <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
+	  <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
+	  <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
 
       <resource id="Comments">Kommentare</resource>
       <resource id="AddCommentTooltip">Neuen Kommentar hinzufügen</resource>
@@ -91,7 +93,7 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
-
+   
    <resource-map id="my_tasks.error">
       <resource id="EmptyName">Der Aufgabenname wurde nicht angegeben</resource>
       <resource id="InvalidDueDate">Das eingegebene Fälligkeitsdatum ist ungültig</resource>
@@ -100,8 +102,6 @@
       <resource id="ExistingWorkSlipError">Die ausgewählten Ad-Hoc-Augaben können nicht gelöscht werden, da Arbeitszettel auf sie verweiseen</resource>
       <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte um diese Aktion auszuführen</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
-      <resource id="InvalidTypeError">Der Typ der Aufgabe ist ungültig.</resource>
-      <resource id="TaskNotFoundError">Aufgabe konnte nicht gefunden werden.</resource>
    </resource-map>
-
+   
 </language-kit>

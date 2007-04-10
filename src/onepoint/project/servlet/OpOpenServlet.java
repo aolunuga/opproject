@@ -1,7 +1,3 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
 package onepoint.project.servlet;
 
 import onepoint.express.servlet.XExpressServlet;
@@ -15,26 +11,24 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpUserService;
+import onepoint.util.XEncodingHelper;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
-import onepoint.util.XBase64;
-import onepoint.util.XCookieManager;
-import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -69,9 +63,9 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String CONTENT_ID_PARAM = "contentId";
    private static final String FILENAME_PARAM = "filename";
    private static final String FILE_PARAM = "file";
-   private static final String INSUFICIENT_VIEW_PERMISSIONS = "${InsuficientViewPermissions}";
-   private static final String INVALID_SESSION = "${InvalidSession}";
-   private static final String INVALID_FILE_URL = "${InvalidFileURL}";
+   private static final String INSUFICIENT_VIEW_PERMISSIONS = "{$InsuficientViewPermissions}";
+   private static final String INVALID_SESSION = "{$InvalidSession}";
+   private static final String INVALID_FILE_URL = "{$InvalidFileURL}";
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    private String projectHome = null;
@@ -136,9 +130,10 @@ public class OpOpenServlet extends XExpressServlet {
          servletContextPath = DEFAULT_CONTEXT_PATH;
          return;
       }
-      int separatorIndex = contextPath.lastIndexOf(File.separator);
+      String separator = XEnvironmentManager.FILE_SEPARATOR;
+      int separatorIndex = contextPath.lastIndexOf(separator);
       if (separatorIndex != -1) {
-         servletContextPath = contextPath.substring(contextPath.lastIndexOf(File.separator) + 1);
+         servletContextPath = contextPath.substring(contextPath.lastIndexOf(separator) + separator.length());
       }
       else {
          servletContextPath = contextPath;
@@ -165,9 +160,14 @@ public class OpOpenServlet extends XExpressServlet {
       String contentId = http_request.getParameter(CONTENT_ID_PARAM);
       if (contentId != null && !contentId.trim().equals("")) {
          String contentUrl = readParameter(http_request, FILENAME_PARAM);
+
          if (contentUrl != null) {
             if (XEncodingHelper.isValueEncoded(contentUrl)) {
                contentUrl = XEncodingHelper.decodeValue(contentUrl);
+            }
+            else {
+               generateErrorPage(http_response, INVALID_FILE_URL, session);
+               return;
             }
          }
 
@@ -176,12 +176,10 @@ public class OpOpenServlet extends XExpressServlet {
       }
 
       //search for any files which need to be uploaded (e.g reports)
-      String encFile = readParameter(http_request, FILE_PARAM);
-      if (encFile != null && !encFile.trim().equals("")) {
-         if (XEncodingHelper.isValueEncoded(encFile)) {
-            String fileName = XEncodingHelper.decodeValue(encFile);
-            String filePath = new File(XEnvironmentManager.TMP_DIR, fileName).getAbsolutePath();
-            generateFilePage(filePath, http_response);
+      String filePath = readParameter(http_request, FILE_PARAM);
+      if (filePath != null && !filePath.trim().equals("")) {
+         if (XEncodingHelper.isValueEncoded(filePath)) {
+            generateFilePage(XEncodingHelper.decodeValue(filePath), http_response);
             return;
          }
          else {
@@ -215,7 +213,7 @@ public class OpOpenServlet extends XExpressServlet {
     */
    private String readParameter(HttpServletRequest request, String parameterPrefix) {
       StringBuffer buff = new StringBuffer();
-      String chunk;
+      String chunk = null;
 
       int counter = 0;
       while ((chunk = request.getParameter(parameterPrefix + counter)) != null) {
@@ -336,7 +334,7 @@ public class OpOpenServlet extends XExpressServlet {
     */
    private void generateContentPage(String contentId, String contentUrl, HttpServletResponse http_response, OpProjectSession session) {
 
-      OpBroker broker = session.newBroker();
+      OpBroker broker = ((OpProjectSession) session).newBroker();
       OpTransaction t = broker.newTransaction();
 
       try {
@@ -356,7 +354,9 @@ public class OpOpenServlet extends XExpressServlet {
                return;
             }
 
-            byte[] content = cnt.getBytes();
+            byte[] content = null;
+
+            content = cnt.getBytes();
             String mimeType = cnt.getMediaType();
             http_response.setContentType(mimeType);
             if (contentUrl != null) {
@@ -392,12 +392,12 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * Generates a response from the server when a file is requested.
     *
-    * @param filePath     a <code>String</code> representing the full path to a file.
+    * @param filePath     a <code>String</code> representing the path to a file in an <code>URL</code> format.
     * @param httpResponse a <code>HttpServletResponse</code> object representing the response.
     */
    public void generateFilePage(String filePath, HttpServletResponse httpResponse) {
 
-      String name = filePath.substring(filePath.lastIndexOf(File.separator) + 1, filePath.length());
+      String name = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length());
       String mimeType = OpContentManager.getFileMimeType(name);
       httpResponse.setContentType(mimeType);
       setContentDisposition(httpResponse, filePath);
@@ -405,7 +405,7 @@ public class OpOpenServlet extends XExpressServlet {
       byte[] buffer = new byte[1024];
       try {
          OutputStream stream = httpResponse.getOutputStream();
-         InputStream is = new FileInputStream(filePath);
+         InputStream is = new URL(filePath).openStream();
          int length = is.read(buffer);
          while (length != -1) {
             stream.write(buffer, 0, length);
@@ -425,13 +425,9 @@ public class OpOpenServlet extends XExpressServlet {
     * @param fileName     a <code>String</code> representing a name of a file.
     */
    private void setContentDisposition(HttpServletResponse httpResponse, String fileName) {
-      if (fileName == null || fileName.length() == 0) {
-         fileName = "NewFile";
-      }
-      if (fileName.indexOf("/") != -1) {
+      if (fileName != null && fileName.indexOf("/") != -1) {
          fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
       }
-      fileName = fileName.replaceAll("[^-._a-zA-Z0-9]", "_");
 
       httpResponse.setHeader("Content-Disposition", "inline;filename=" + fileName);
    }
@@ -463,40 +459,14 @@ public class OpOpenServlet extends XExpressServlet {
    }
 
 
-   protected XMessage processRequest(XMessage request, boolean sessionExpired, HttpServletRequest http_request, HttpServletResponse http_response, XSession session) {
+   protected XMessage processRequest(XMessage request, boolean sessionExpired, HttpServletRequest http_request, XSession session) {
       if (request.getAction().equalsIgnoreCase(OpProjectConstants.GET_RUN_LEVEL_ACTION)) {
          XMessage response = new XMessage();
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(OpInitializer.getRunLevel()));
          return response;
       }
-      XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
-      addAutoLoginCookie(request, response, http_response);
-      return response;
-   }
-
-   /**
-    * Add an AutoLogin cookie to the HTTP request if conditions are meet.
-    *
-    * @param request       the <code>XMessage</code> action request
-    * @param response      the <code>XMessage</code> action response
-    * @param http_response the HTTP request
-    */
-   private void addAutoLoginCookie(XMessage request, XMessage response, HttpServletResponse http_response) {
-      boolean singOnAction = request.getAction().equalsIgnoreCase(OpProjectConstants.SIGNON_ACTION);
-      boolean rememberChecked = request.getArgument(OpProjectConstants.REMEMBER_PARAM) != null && ((Boolean) request.getArgument(OpProjectConstants.REMEMBER_PARAM));
-      boolean noError = response != null && response.getError() == null;
-      // check if conditions are meet: sign-on action, remember param is set and login is succesful
-      if (singOnAction && rememberChecked && noError) {
-         String name = (String) request.getArgument(OpUserService.LOGIN);
-         String password = "";
-         if (request.getArgument(OpUserService.PASSWORD) != null) {
-            password = (String) request.getArgument(OpUserService.PASSWORD);
-         }
-         // encode [ user + ' ' + password ] with base64 . 
-         Cookie cookie = new Cookie(XCookieManager.AUTO_LOGIN, XBase64.encodeString(name + ' ' + password));
-         cookie.setVersion(0);
-         cookie.setMaxAge(XCookieManager.TTL); // one day in seconds
-         http_response.addCookie(cookie);
+      else {
+         return super.processRequest(request, sessionExpired, http_request, session);
       }
    }
 
@@ -507,7 +477,6 @@ public class OpOpenServlet extends XExpressServlet {
     * @param errorMessage  a <code>String</code> representing an error message to display. The errorMessage tries to be
     *                      i18ned from the main language res file.
     * @param session       a <code>OpProjectSession</code> representing the application user session.
-    * @throws java.io.IOException if opening the output stream fails
     */
    private void generateErrorPage(HttpServletResponse http_response, String errorMessage, OpProjectSession session)
         throws IOException {
@@ -549,8 +518,8 @@ public class OpOpenServlet extends XExpressServlet {
     */
    private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {
       Set attachments = content.getAttachments();
-      for (Object attachmentObj : attachments) {
-         OpObject attachment = (OpObject) attachmentObj;
+      for (Iterator it = attachments.iterator(); it.hasNext();) {
+         OpObject attachment = (OpObject) it.next();
          if (session.checkAccessLevel(broker, attachment.getID(), OpPermission.OBSERVER)) {
             return true;
          }
@@ -558,8 +527,8 @@ public class OpOpenServlet extends XExpressServlet {
 
       Set attachmentVersions = content.getAttachmentVersions();
       if (attachmentVersions != null) {
-         for (Object attachmentVersionObj : attachmentVersions) {
-            OpObject attachmentVersion = (OpObject) attachmentVersionObj;
+         for (Iterator it = attachmentVersions.iterator(); it.hasNext();) {
+            OpObject attachmentVersion = (OpObject) it.next();
             if (session.checkAccessLevel(broker, attachmentVersion.getID(), OpPermission.OBSERVER)) {
                return true;
             }
@@ -567,8 +536,8 @@ public class OpOpenServlet extends XExpressServlet {
       }
 
       Set documents = content.getDocuments();
-      for (Object documentObj : documents) {
-         OpObject document = (OpObject) documentObj;
+      for (Iterator it = documents.iterator(); it.hasNext();) {
+         OpObject document = (OpObject) it.next();
          if (session.checkAccessLevel(broker, document.getID(), OpPermission.OBSERVER)) {
             return true;
          }

@@ -22,6 +22,7 @@
       <resource id="NewProject">Neues Projekt</resource>
       <resource id="Move">Verschieben</resource>
       <resource id="Info">Eigenschaften</resource>
+      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
@@ -35,6 +36,7 @@
       <resource id="NewProjectTooltip">Neues Projekt erstellen</resource>
       <resource id="MoveTooltip">Ausgewähltes Projekt, Vorlage oder Portfolio in ein anderes Portfolio verschieben</resource>
       <resource id="InfoTooltip">Metainformation für ausgewähltes Projekt oder Portfolio anzeigen</resource>
+      <resource id="EditTooltip">Metainformation for ausgewähltes Projekt oder Portfolio bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Projekte, Vorlagen und Portfolios löschen</resource>
 
    </resource-map>
@@ -54,7 +56,7 @@
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
    </resource-map>
-
+	
    <resource-map id="project.NewProject">
       <resource id="NewProject">Neues Projekt</resource>
 
@@ -116,8 +118,6 @@
       <resource id="CreatedBy">Erstellt von</resource>
       <resource id="CreatedOn">Erstellt am</resource>
       <resource id="DeleteVersions">Versionen löschen</resource>
-
-      <resource id="WorkingVersion">Freigegebener Projektplan</resource>
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Status">Project Status</resource>

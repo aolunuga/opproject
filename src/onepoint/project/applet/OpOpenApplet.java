@@ -1,19 +1,13 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.applet;
 
 import onepoint.express.XComponent;
-import onepoint.express.XDisplay;
 import onepoint.express.applet.XExpressApplet;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.service.XBinaryClient;
-import onepoint.service.XMessage;
-import onepoint.util.XBase64;
-import onepoint.util.XCalendar;
-import onepoint.util.XCookieManager;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -64,55 +58,20 @@ public class OpOpenApplet extends XExpressApplet {
    }
 
    /**
-    * @see XExpressApplet#showStartForm(String,java.util.HashMap)
+    * @see XExpressApplet#showStartForm(String, java.util.HashMap)
     */
    protected void showStartForm(String start_form, HashMap parameters) {
       String runLevel = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
-      String formLocation = start_form;
-      if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
-         formLocation = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
+      if (runLevel != null && Byte.parseByte(runLevel)== OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
+         getDisplay().showForm(OpProjectConstants.CONFIGURATION_WIZARD_FORM, parameters);
       }
       else {
-         formLocation = autoLogin(formLocation);
+         getDisplay().showForm(start_form, parameters);
       }
-      getDisplay().showForm(formLocation, parameters);
    }
 
    /**
-    * Automatically log-in the user if the auto-login cookie is set.
-    *
-    * @param formLocation default form to load.
-    * @return the form to redirect to.
-    */
-   private String autoLogin(String formLocation) {
-      XBinaryClient client = (XBinaryClient) getClient();
-      String value = client.getCookieValue(XCookieManager.AUTO_LOGIN);
-      if (value != null) {
-         String logindata = XBase64.decodeToString(value);
-         XMessage request = new XMessage();
-         request.setAction(OpProjectConstants.SIGNON_ACTION);
-         // idx of the user/passs separator
-         int idxDelim = logindata.indexOf(' ');
-         request.setArgument(OpProjectConstants.LOGIN_PARAM, logindata.substring(0, idxDelim));
-         // if password is present > 0 chars
-         if (logindata.length() - idxDelim > 1) {
-            request.setArgument(OpProjectConstants.PASSWORD_PARAM, logindata.substring(idxDelim + 1));
-         }
-         request.setVariable(OpProjectConstants.CLIENT_TIMEZONE, XCalendar.CLIENT_TIMEZONE);
-         // login user
-         XMessage response = client.invokeMethod(request);
-         // if autenticated, go to start form
-         if (response.getError() == null) {
-            XCalendar calendar = (XCalendar) client.getVariable(OpProjectConstants.CALENDAR);
-            XDisplay.getDefaultDisplay().setCalendar(calendar);
-            formLocation = OpProjectConstants.START_FORM;
-         }
-      }
-      return formLocation;
-   }
-
-   /**
-    * @see XExpressApplet#paintAlreadyLoaded(java.awt.Graphics,java.awt.Rectangle)
+    * @see XExpressApplet#paintAlreadyLoaded(java.awt.Graphics, java.awt.Rectangle)
     */
    protected void paintAlreadyLoaded(Graphics g, Rectangle bounds) {
       g.setClip(bounds);

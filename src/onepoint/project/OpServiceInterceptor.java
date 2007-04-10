@@ -4,10 +4,10 @@
 
 package onepoint.project;
 
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceInterceptor;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.lang.reflect.Method;
 

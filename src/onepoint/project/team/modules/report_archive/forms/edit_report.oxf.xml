@@ -1,0 +1,51 @@
+<form layout="border"
+      width="400"
+      height="250"
+      start-focus-ref="Name"
+      default-button-ref="okButton"
+      resource-map-ref="report_archive.edit"
+      provider-class="onepoint.project.team.modules.report_archive.forms.OpEditReportFormProvider"
+      script="/team/modules/report_archive/scripts/edit_report.jes">
+   <label id="EditCaption" text="{$EditCaption}" visible="false"/>
+   <label id="InfoCaption" text="{$InfoCaption}" visible="false"/>
+   <panel y="0" layout="border">
+   <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+
+   <tab-box>
+
+   <tab text="{$General}" layout="table" id="GeneralTab">
+      <label x="0" y="0" text="{$ReportName}" /><text-field width="2" x="1" y="0" id="ReportName"/>
+      <label x="0" y="1" text="{$ReportType}"/><text-field width="2" x="1" y="1" id="ReportType"/>
+      <label x="0" y="2" text="{$CreatedBy}"/><text-field width="2" x="1" y="2" id="CreatedBy"/>
+      <label x="0" y="3" text="{$CreatedOn}"/><date-field width="2" x="1" y="3" id="CreatedOn"/>
+   </tab>
+
+   <tab text="{$Permissions}" layout="border" id="PermissionsTab">
+      <data-set id="PerimssionIconSet">
+         <data-row icon="/modules/user/icons/group.png"/>
+         <data-row icon="/modules/user/icons/user.png"/>
+         <data-row icon="/modules/user/icons/role.png"/>
+      </data-set>
+      <data-set id="PermissionSet"/>
+      <list-box id="PermissionTree" tree="true" data-set-ref="PermissionSet" icon-set-ref="PerimssionIconSet" flexible="true"/>
+      <panel id="PermissionToolPanel" y="1" layout="flow" direction="east">
+         <icon-button icon-type="PlusSign" on-button-pressed="addSubject"/>
+         <icon-button icon-type="MinusSign" on-button-pressed="removeSubject"/>
+         <icon-button icon-type="NorthArrow" on-button-pressed="moveSubjectUp"/>
+         <icon-button icon-type="SouthArrow" on-button-pressed="moveSubjectDown"/>
+      </panel>
+   </tab>
+
+   </tab-box>
+
+   <panel y="1" layout="flow" direction="west">
+	  <panel layout="border" style-ref="layout-panel-default">
+      <button x="0" id="okButton" text="{$Ok}" on-button-pressed="ok"/>
+      <button x="1" id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+	  </panel>
+   </panel>
+
+   </panel>
+
+</form>
+

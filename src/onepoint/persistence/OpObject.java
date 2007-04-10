@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -40,7 +40,7 @@ public class OpObject {
 
    // Attention: Hibernate needs non-final setters and getters for proxy handling
 
-   private void setID(long id) {
+   public void setID(long id) {
       this.id = id;
    }
 

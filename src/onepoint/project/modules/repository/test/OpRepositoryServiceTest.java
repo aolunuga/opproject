@@ -175,7 +175,7 @@ public class OpRepositoryServiceTest extends OpBaseTestCase {
    public void testReset()
         throws Exception {
       XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.ADMIN_PASSWORD_PARAMETER, OpUser.BLANK_PASSWORD);
+      request.setArgument(OpRepositoryService.ADMIN_PASSWORD_PARAMETER, OpUserService.BLANK_PASSWORD);
       XMessage response = getRepositoryService().reset(session, request);
       assertNoError(response);
    }

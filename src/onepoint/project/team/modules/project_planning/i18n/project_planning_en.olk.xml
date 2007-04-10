@@ -1,0 +1,9 @@
+<language-kit locale="en">
+
+   <resource-map id="project_planning.activities">
+      <resource id="Structurediagram">Work Breakdown Structure (WBS)</resource>
+      <resource id="Costs">Costs (€)</resource>
+      <resource id="EffortH">Effort (h)</resource>
+   </resource-map>
+
+</language-kit>

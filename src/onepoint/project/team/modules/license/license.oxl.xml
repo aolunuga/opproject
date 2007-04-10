@@ -1,0 +1,16 @@
+<license version="1" type="Demo" >
+  <valid-until>2007-12-31</valid-until>
+  <issuer>Onepoint Software GmbH</issuer>
+  <customer>
+   <number>N/A</number>
+   <name>Codemart</name>
+  </customer>
+  <product>
+   <code>OPPTE07</code>
+   <name>Onepoint Project Team Edition</name>
+   <version>07</version>
+   <standard-users>50</standard-users>
+   <manager-users>10</manager-users>
+  </product>
+  <signature>3395b988fc173ead0601fe4993990636372445ce96d3f4da8606704d13ec212004eda33893f714b6354e927eff282af9103058bea15fcb557f6e74d634da428770c0c1dd900ea013fc245ba106f40e8fcdbaf4246c6234d437c65d166e99d86f67228d7f7d09514be35befbf116b8b50c6e8e09b162f73cf72078d4217a59a0a</signature>
+</license>

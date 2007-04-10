@@ -1,0 +1,53 @@
+<language-kit locale="de">
+   <resource-map id="activity_category.module">
+      <resource id="ActivityCategoryTool">Kategorien</resource>
+   </resource-map>
+   <resource-map id="activity_category.categories">
+      <resource id="NewCategory">Neue Kategorie</resource>
+      <resource id="Properties">Eigenschaften</resource>
+      <resource id="Edit">Bearbeiten</resource>
+      <resource id="Delete">Löschen</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Color">Farbe</resource>
+
+      <resource id="NewCategoryTooltip">Neue Vorgangskategorie erstellen</resource>
+      <resource id="InfoTooltip">Metainformation der ausgewählten Vorgangskategorie einsehen</resource>
+      <resource id="EditTooltip">Metainformation der ausgewählten Vorgangskategorie bearbeiten</resource>
+      <resource id="DeleteTooltip">Ausgewählte Vorgangskategorien löschen</resource>
+
+   </resource-map>
+   <resource-map id="activity_category.NewCategory">
+      <resource id="NewCategory">Neue Vorgangskategorie</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Color">Farbe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="activity_category.EditCategory">
+      <resource id="EditCategory">Vorgangskategorie bearbeiten</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Color">Farbe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="activity_category.Info">
+      <resource id="InfoCategory">Vorgangskategorie einsehen</resource>
+   </resource-map>
+   <resource-map id="activity_category.error">
+      <resource id="CategoryNameNotSpecified">Es wurde kein Kategorienname vergeben</resource>
+      <resource id="CategoryNameNotUnique">Der Kategorienname wird bereits verwendet</resource>
+      <resource id="CategoryNotFound">Die Kategorie konnte nicht gefunden werden</resource>
+      <resource id="InsuffcientPrivileges">Nur der Administrator darf Vorgangskategorien verwalten</resource>
+   </resource-map>
+   <resource-map id="activity_category.delete">
+      <resource id="ConfirmDelete">Vorgangskategorien löschen</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Vorgangskategorien aus, die gelöscht werden sollen.</resource>
+      <resource id="ConfirmDeleteOneMessage">Möchten Sie die ausgewählte Vorgangskategorie wirklich löschen?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Vorgangskategorien wirklich löschen?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+</language-kit>

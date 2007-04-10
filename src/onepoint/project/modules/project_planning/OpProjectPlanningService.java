@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -30,8 +30,6 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.util.XEnvironmentManager;
-import onepoint.util.XEncodingHelper;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -707,16 +705,16 @@ public class OpProjectPlanningService extends OpProjectService {
          suffix = location.substring(extensionIndex, location.length());
       }
       if (prefix.length() < 3) {
-         prefix = "file" + prefix;
+         prefix += ".tmp";
       }
 
       try {
-         File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
+         File temporaryFile = File.createTempFile(prefix, suffix);
          FileOutputStream fos = new FileOutputStream(temporaryFile);
          fos.write(content);
          fos.flush();
          fos.close();
-         return XEncodingHelper.encodeValue(temporaryFile.getName());
+         return temporaryFile.getCanonicalFile().toURL().toExternalForm();
       }
       catch (IOException e) {
          logger.error("Cannot create temporary attachment file on server", e);
@@ -1012,7 +1010,7 @@ public class OpProjectPlanningService extends OpProjectService {
       int commentsCount = comment.getSequence();
 
       //create the comment panel
-      XComponent commentPanel = OpEditActivityFormProvider.createPanel(comment, resourceMap, localizer, enableCommentRemoving, session.getCalendar());
+      XComponent commentPanel = OpEditActivityFormProvider.createPanel(comment, resourceMap, localizer, enableCommentRemoving);
 
       StringBuffer commentsBuffer = new StringBuffer();
       commentsBuffer.append(commentsCount);

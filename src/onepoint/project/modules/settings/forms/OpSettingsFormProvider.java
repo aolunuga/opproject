@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings.forms;
@@ -22,7 +22,10 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 public class OpSettingsFormProvider implements XFormProvider {
 
@@ -46,7 +49,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    public static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
    public static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
    public static final String SAVE_BUTTON = "Save";
-   public static final String SELECT_CALENDAR = "${SelectCalendar}";
+   public static final String SELECT_CALENDAR = "{$SelectCalendar}";
 
    // Resource map names
    public static final String SETTINGS_SETTINGS = "settings.settings";
@@ -218,8 +221,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       String val;
       int selectedIndex = -1;
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SUNDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Sunday}")));
+      val = "" + XCalendar.SUNDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Sunday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 0;
@@ -227,8 +230,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.MONDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Monday}")));
+      val = "" + XCalendar.MONDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Monday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 1;
@@ -236,8 +239,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.TUESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Tuesday}")));
+      val = "" + XCalendar.TUESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Tuesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 2;
@@ -245,8 +248,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.WEDNESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Wednesday}")));
+      val = "" + XCalendar.WEDNESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Wednesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 3;
@@ -254,8 +257,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.THURSDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Thursday}")));
+      val = "" + XCalendar.THURSDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Thursday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 4;
@@ -263,8 +266,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.FRIDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Friday}")));
+      val = "" + XCalendar.FRIDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Friday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 5;
@@ -272,8 +275,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SATURDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Saturday}")));
+      val = "" + XCalendar.SATURDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Saturday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 6;
