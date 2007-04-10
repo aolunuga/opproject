@@ -1,6 +1,0 @@
-<form layout="border" width="750" height="450" text="{$NewProject}"
-      start-focus-ref="Name" default-button-ref="okButton"
-      resource-map-ref="project.NewProject"
-      provider-class="onepoint.project.team.modules.project.forms.OpNewProjectAdvancedFormProvider"
-      script="/modules/project/scripts/new_project.jes"
-      extends="/modules/project/forms/new_project.oxf.xml"/>

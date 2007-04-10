@@ -1,9 +1,0 @@
-<module name="project_planning" extends="/modules/project_planning/module.oxm.xml" caption="ProjektPlanning" version="0.8" class="onepoint.project.team.modules.project_planning.OpAdvancedProjectPlanningModule">
-   <tools>
-      <tool name="activity" caption="{$PlanningTool}" group-ref="projects" icon="/modules/project_planning/icons/project_activities_tool.png" start-form="/team/modules/project_planning/forms/project_activities_start.oxf.xml"/>
-   </tools>
-   <language-kit-files>
-      <language-kit-file file-name="/team/modules/project_planning/i18n/project_planning_en.olk.xml"/>
-      <language-kit-file file-name="/team/modules/project_planning/i18n/project_planning_de.olk.xml"/>
-   </language-kit-files>
-</module>

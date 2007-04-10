@@ -1,7 +1,0 @@
-<form layout="border" width="750" height="450" start-focus-ref="Name" default-button-ref="okButton"
-      resource-map-ref="project_planning.EditActivity"
-      extends="/modules/project_planning/forms/edit_activity.oxf.xml"
-      error-label-ref = "ValidationErrorLabel"
-      script="/modules/project_planning/scripts/edit_activity.jes"
-      provider-class="onepoint.project.team.modules.project_planning.forms.OpEditActivityAdvancedFormProvider">
-</form>
