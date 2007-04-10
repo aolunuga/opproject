@@ -3,6 +3,6 @@
       <language-kit-path path="/modules/project_resources/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="project_resources" caption="{$ProjectResourcesTool}" group-ref="projects" icon="/modules/project_resources/icons/project_resources_tool.png" start-form="/modules/project_resources/forms/project_resources_start.oxf.xml" sequence="10"/>
+      <tool name="project_resources" caption="${ProjectResourcesTool}" group-ref="projects" icon="/modules/project_resources/icons/project_resources_tool.png" start-form="/modules/project_resources/forms/project_resources_start.oxf.xml" sequence="10"/>
    </tools>
 </module>

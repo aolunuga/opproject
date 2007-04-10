@@ -9,27 +9,19 @@ import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 public class OpWorkService extends OpProjectService {
 
@@ -213,7 +205,6 @@ public class OpWorkService extends OpProjectService {
       {
         // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
         serviceImpl_.insertMyWorkSlip(session, broker, work_slip);
-        serviceImpl_.insertMyWorkRecords(session, broker, workRecordsToAdd.iterator(), work_slip);
         t.commit();
       } catch (XServiceException exc) {
         t.rollback();
@@ -271,8 +262,7 @@ public class OpWorkService extends OpProjectService {
           //work slip's resource record
           work_record = new OpWorkRecord();
           work_record.setWorkSlip(work_slip);
-          data_cell = (XComponent) data_row.getChild(TASK_NAME_COLOMN_INDEX);
-          assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(data_cell.getStringValue())));
+          assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(data_row.getStringValue())));           
           work_record.setAssignment(assignment);
 
           //complete

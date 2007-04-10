@@ -25,19 +25,14 @@
    <patternset id="compile.pathid">
       <exclude name="**/*Test.java"/>
       <exclude name="**/*_test.java"/>
+      <exclude name="**/test/**"/>
    </patternset>
 
    <patternset id="compile.client.pathid">
+      <patternset refid="compile.pathid"/>
       <include name="**/applet/*.java"/>
       <include name="**/components/**/*.java"/>
       <include name="onepoint/project/util/*.java"/>
-      <include name="onepoint/express/**/*.java"/>
-      <include name="onepoint/log/*.java"/>
-      <include name="onepoint/resource/*.java"/>
-      <include name="onepoint/script/interpreter/*.java"/>
-      <include name="onepoint/service/*.java"/>
-      <include name="onepoint/util/*.java"/>
-      <include name="onepoint/xml/*.java"/>
    </patternset>
 
    <patternset id="compile.tests.pathid">
@@ -158,10 +153,10 @@
 
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
-      <delete dir="${build.dir}"/>
-      <delete dir="${dist.dir}"/>
-      <delete dir="${release.dir}"/>
-      <delete>
+      <delete dir="${build.dir}" failonerror="false"/>
+      <delete dir="${dist.dir}" failonerror="false"/>
+      <delete dir="${release.dir}" failonerror="false"/>
+      <delete failonerror="false">
          <fileset dir="${lib.dir}">
             <include name="express4j*.jar"/>
          </fileset>
@@ -177,6 +172,7 @@
       <mkdir dir="${reportjars.dir}"/>
       <mkdir dir="${tests.dir}"/>
       <mkdir dir="${dist.dir}"/>
+      <mkdir dir="${release.dir}"/>
    </target>
 
    <target name="build.express4j.jars" depends="init" if="express4j.present" description="Build the express lib and copy the jars if present">
@@ -350,7 +346,7 @@
    </target>
 
    <!-- Creates the Basic jar distribution files -->
-   <target name="dist.standalone" depends="build.basic.jar,jar.reports">
+   <target name="dist.standalone" depends="clean, build.basic.jar,jar.reports">
       <!--remove old dist files-->
       <delete dir="${dist.basic.dir}" failonerror="false"/>
       <mkdir dir="${dist.basic.dir}"/>
@@ -377,7 +373,7 @@
    </target>
 
    <!-- Performs all the tasks necessary to create the web application -->
-   <target name="dist.war" depends="build.open.jar, build.client.jars,jar.reports" description="Performs the initialization, build and war tasks">
+   <target name="dist.war" depends="clean, build.open.jar, build.client.jars,jar.reports" description="Performs the initialization, build and war tasks">
       <copy todir="${jars.dir}">
          <fileset dir="${lib.dir}">
             <include name="${express.jarname}"/>
@@ -428,8 +424,7 @@
       <copy file="${build.dir}/${warname}" tofile="${dist.open.dir}/${warname.open}"/>
    </target>
 
-   <target name="release" description="Packages the project sources into a release archive.">
-      <mkdir dir="${release.dir}"/>
+   <target name="release" depends="dist.war, dist.standalone" description="Packages the project sources into a release archive.">
       <!--src release-->
       <zip zipfile="${release.dir}/${release.root.filename}-src.zip">
          <zipfileset dir="${src.dir}" prefix="${zip.root.dir}/${src.dir}"/>
@@ -444,30 +439,23 @@
          <zipfileset file="${readme.open.file}" prefix="${zip.root.dir}"/>
       </zip>
       <!--war release [for applet version] -->
-      <antcall target="dist.war"/>
       <copy file="${readme.open.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${release.dir}/${release.root.filename}-open.zip">
-         <fileset dir="${dist.dir}">
-            <include name="${warname}"/>
-         </fileset>
-         <zipfileset file="${release.dir}/readme.txt"/>
-         <zipfileset dir="${demodata.dir}" prefix="${demodata.dir}"/>
-         <zipfileset file="${license.file}"/>
+         <zipfileset dir="${dist.open.dir}" prefix="${zip.root.dir}"/>
+         <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
+         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}"/>
+         <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
       </zip>
-      <delete dir="${dist.dir}"/>
-      <!--<delete dir="${jars.dir}"/>-->
       <!--standalone release -->
-      <antcall target="dist.standalone"/>
       <copy file="${readme.basic.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${release.dir}/${release.root.filename}-basic.zip">
-         <zipfileset dir="${dist.dir}" prefix="${zip.root.dir}"/>
+         <zipfileset dir="${dist.basic.dir}" prefix="${zip.root.dir}"/>
          <zipfileset dir="${lib.dir}"
                      excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *junit*, *servlet*"
                      prefix="${zip.root.dir}/${lib.dir}"/>
          <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
          <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
       </zip>
-      <delete dir="${dist.dir}"/>
    </target>
 
 

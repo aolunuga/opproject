@@ -117,6 +117,8 @@
       <resource id="CreatedOn">Erstellt am</resource>
       <resource id="DeleteVersions">Versionen löschen</resource>
 
+      <resource id="WorkingVersion">Freigegebener Projektplan</resource>
+
       <resource id="Resources">Ressourcen</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>

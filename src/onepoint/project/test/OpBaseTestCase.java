@@ -211,18 +211,14 @@ public class OpBaseTestCase extends TestCase {
     * @param errorCode expected error code.
     */
    public static void assertError(XMessage message, int errorCode) {
-      if (message != null) {
-         XError error = message.getError();
-         assertNotNull("Error message should have been returned", error);
-         int foundErrorCode = error.getCode();
-         // do not check error code in case DUMMY code was used.
-         assertTrue("Invalid error code. (got: "+foundErrorCode+", but expected: "+errorCode+")", errorCode == DUMMY_ERROR_CODE || errorCode == foundErrorCode);
-         assertNotNull("Error should contain an error name.", error.getName());
-         assertNotNull("Error should contain an error message.", error.getName());
-      }
-      else {
-         //message is null <=> no error (success)
-      }
+      assertNotNull("XMessage is null, expected to contain an error!", message);
+      XError error = message.getError();
+      assertNotNull("Error message should have been returned", error);
+      int foundErrorCode = error.getCode();
+      // do not check error code in case DUMMY code was used.
+      assertTrue("Invalid error code. (got: "+foundErrorCode+", but expected: "+errorCode+")", errorCode == DUMMY_ERROR_CODE || errorCode == foundErrorCode);
+      assertNotNull("Error should contain an error name.", error.getName());
+      assertNotNull("Error should contain an error message.", error.getName());
    }
 
    // ----- Helper Methods ------

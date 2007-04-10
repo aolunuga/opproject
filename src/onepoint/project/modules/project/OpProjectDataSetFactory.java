@@ -550,7 +550,7 @@ public final class OpProjectDataSetFactory {
    public static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 " + "and activity.Type in (:activityTypes) group by project.ID");
+      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
@@ -585,7 +585,7 @@ public final class OpProjectDataSetFactory {
    public static double getResourcesValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.ActualEffort), sum(activity.BaseEffort)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.ID = :projectId  and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) group by project.ID");
+      queryBuffer.append(" where project.ID = :projectId  and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);

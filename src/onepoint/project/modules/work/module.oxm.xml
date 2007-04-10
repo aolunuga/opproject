@@ -10,6 +10,6 @@
       <language-kit-path path="/modules/work/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="work" caption="{$WorkTool}" group-ref="my" icon="/modules/work/icons/work_tool.png" start-form="/modules/work/forms/work_slips.oxf.xml" sequence="10"/>
+      <tool name="work" caption="${WorkTool}" group-ref="my" icon="/modules/work/icons/work_tool.png" start-form="/modules/work/forms/work_slips.oxf.xml" sequence="10"/>
    </tools>
 </module>

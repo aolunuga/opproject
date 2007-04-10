@@ -5,13 +5,13 @@ package onepoint.project.modules.project.components.test;
 
 import junit.framework.TestCase;
 import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
 import onepoint.express.XValidationException;
 import onepoint.express.server.XFormSchema;
 import onepoint.project.modules.project.components.OpActivityGraphFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpGraph;
 import onepoint.resource.XLocale;
-import onepoint.util.XCalendar;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
 
@@ -55,7 +55,10 @@ public class OpActivityGraphMultiplierTest extends TestCase {
    public void setUp()
         throws Exception {
       super.setUp();
-      XCalendar.getDefaultCalendar().configure(null, new XLocale("de", ""), null);
+
+      XDisplay display = new XDisplay(null);
+      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
       XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);

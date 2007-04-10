@@ -1,5 +1,5 @@
 <form id="NewAdhocForm" width="600" height="330" layout="border" resource-map-ref="my_tasks.adhoc_tasks"
-      start-focus-ref="Name" default-button-ref="okButton" text="{$NewAdhocTitle}"
+      start-focus-ref="Name" default-button-ref="okButton" text="${NewAdhocTitle}"
       provider-class="onepoint.project.modules.my_tasks.forms.OpAddAdhocTaskFormProvider"
       script="/modules/my_tasks/scripts/add_adhocTask.jes">
 
@@ -12,24 +12,24 @@
       <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
 
       <tab-box>
-         <tab text="{$General}" layout="table" id="GeneralTab">
-            <label x="0" y="0" width="2" text="{$Name}" id="NameLabel"/>
+         <tab text="${General}" layout="table" id="GeneralTab">
+            <label x="0" y="0" width="2" text="${Name}" id="NameLabel"/>
             <text-field x="2" y="0" width="3" id="Name"/>
-            <label x="0" y="1" width="2" text="{$Description}" id="DescriptionLabel"/>
+            <label x="0" y="1" width="2" text="${Description}" id="DescriptionLabel"/>
             <text-box x="2" y="1" width="3" id="Description"/>
-            <label x="0" y="2" width="2" text="{$Priority}" id="PriorityLabel"/>
+            <label x="0" y="2" width="2" text="${Priority}" id="PriorityLabel"/>
             <int-field x="2" y="2" width="3" id="Priority"/>
-            <label x="0" y="3" width="2" text="{$DueDate}" id="DueDateLabel"/>
+            <label x="0" y="3" width="2" text="${DueDate}" id="DueDateLabel"/>
             <date-field x="2" y="3" width="3" id="DueDate"/>
-            <label x="0" y="4" width="2" text="{$Project}"/>
+            <label x="0" y="4" width="2" text="${Project}"/>
             <choice-field x="2" y="4" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
                           on-value-changed="projectChooserChanged" selected-index="0"/>
-            <label x="0" y="5" width="2" text="{$Resource}"/>
+            <label x="0" y="5" width="2" text="${Resource}"/>
             <choice-field x="2" y="5" width="3" id="ResourceChooser" data-set-ref="ResourceSet"
                           selected-index="0"/>
          </tab>
 
-         <tab text="{$Attachments}" layout="border" id="AttachmentsTab">
+         <tab text="${Attachments}" layout="border" id="AttachmentsTab">
             <data-set id="AttachmentSet"/>
             <data-set id="AttachmentIconSet">
                <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>
@@ -37,31 +37,31 @@
             </data-set>
             <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
                        flexible="true" on-double-click="view">
-               <table-column id="AttachmentTitle" text="{$Title}" width="200" data-column-index="1"
+               <table-column id="AttachmentTitle" text="${Title}" width="200" data-column-index="1"
                              value-type="Choice"
                              index-based="true" caption-column-index="1"/>
-               <table-column id="AttachmentLocation" text="{$Location}" width="200" data-column-index="2"
+               <table-column id="AttachmentLocation" text="${Location}" width="200" data-column-index="2"
                              value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
             </table-box>
             <panel y="1" layout="flow" direction="east">
                <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png"
                        on-button-pressed="addDocument" id="AddDocumentButton"
-                       tooltip="{$AddDocumentAttachmentTooltip}"/>
+                       tooltip="${AddDocumentAttachmentTooltip}"/>
                <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png"
-                       on-button-pressed="addURL" id="AddURLButton" tooltip="{$AddLinkAttachmentTooltip}"/>
+                       on-button-pressed="addURL" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
                <button style-ref="icon-button-default" icon="/icons/minus_s.png"
                        on-button-pressed="remove" id="RemoveAttachmentButton"
-                       tooltip="{$RemoveAttachmentTooltip}"/>
+                       tooltip="${RemoveAttachmentTooltip}"/>
                <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="view"
-                       id="ViewAttachmentButton" tooltip="{$ViewAttachmentTooltip}"/>
+                       id="ViewAttachmentButton" tooltip="${ViewAttachmentTooltip}"/>
             </panel>
          </tab>
       </tab-box>
 
       <panel y="1" layout="flow" direction="west">
          <panel layout="border">
-            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
-            <button x="1" id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+            <button x="1" id="cancelButton" text="${Cancel}" on-button-pressed="cancel"/>
          </panel>
       </panel>
 

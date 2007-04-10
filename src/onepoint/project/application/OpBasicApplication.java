@@ -13,13 +13,10 @@ import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XResourceCache;
 import onepoint.service.XMessage;
-import onepoint.service.server.XService;
-import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.awt.*;
@@ -103,13 +100,14 @@ public class OpBasicApplication {
          application.getDisplay().showForm("/forms/runLevel.oxf.xml", formParams);
       }
       else {
-         XService service = XServiceManager.getService("UserService");
          XMessage request = new XMessage();
+         request.setAction("UserService.signOn");
          request.setArgument("login", OpUser.ADMINISTRATOR_NAME);
          request.setArgument("password", OpUser.BLANK_PASSWORD);
-         XMessage response = service.invokeMethod(application.getSession(), "signOn", request);
+         request.setVariable(OpProjectConstants.CLIENT_TIMEZONE, XCalendar.CLIENT_TIMEZONE);
+         XMessage response = application.getSession().invokeMethod(request);
          XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
-         XDisplay.setCalendar(calendar);
+         XDisplay.getDefaultDisplay().setCalendar(calendar);
          application.getDisplay().showForm("/forms/start.oxf.xml", new HashMap(initParams));
       }
    }

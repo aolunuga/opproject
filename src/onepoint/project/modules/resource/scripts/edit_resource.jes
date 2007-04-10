@@ -35,7 +35,13 @@ function ok_edit(event) {
    hourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.HourlyRate = hourlyRate;
    resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
-   resource_data.UserID = form.findComponent("SelectedUserDataField").getStringValue();
+   userChoice = form.findComponent("UserName").getStringValue();
+   if (userChoice != null) {
+      resource_data.UserID = XValidator.choiceID(userChoice);
+   }
+   else {
+      resource_data.UserID = null;
+   }
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -96,10 +102,9 @@ function selectUser(event) {
 
 function addResourceSubject(subject) {
    form = XDisplay.getActiveForm();
-   selected_user_data_field = form.findComponent("SelectedUserDataField");
-   selected_user_data_field.setStringValue(subject);
    user_name_field = form.findComponent("UserName");
-   user_name_field.setStringValue(XValidator.choiceCaption(subject));
+   user_name_field.setStringValue(subject);
+   user_name_field.update();
 }
 
 function addProject(event) {

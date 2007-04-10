@@ -188,7 +188,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       while (result.hasNext()) {
          record = (Object[]) result.next();
          comment = (OpActivityComment) record[0];
-         commentPanel = createPanel(comment, resourceMap, localizer, enableCommentRemoving);
+         commentPanel = createPanel(comment, resourceMap, localizer, enableCommentRemoving, session.getCalendar());
          commentsPanel.addChild(commentPanel);
          count++;
       }
@@ -202,9 +202,10 @@ public class OpEditActivityFormProvider implements XFormProvider {
     * @param resourceMap           language resource map
     * @param localizer             localizer used for the name of the comment creator
     * @param enableCommentRemoving enable/disable remove dialog button
+    * @param calendar a <code>XCalendar</code> representing the client's calendar.
     * @return an <code>XComponent</code> representing the comment panel
     */
-   public static XComponent createPanel(OpActivityComment comment, XLanguageResourceMap resourceMap, XLocalizer localizer, boolean enableCommentRemoving) {
+   public static XComponent createPanel(OpActivityComment comment, XLanguageResourceMap resourceMap, XLocalizer localizer, boolean enableCommentRemoving, XCalendar calendar) {
       XComponent commentPanel;
       StringBuffer subjectBuffer;
       XComponent subjectLabel;
@@ -222,7 +223,6 @@ public class OpEditActivityFormProvider implements XFormProvider {
       commentPanel.setLayout("flow");
       commentPanel.setDirection(XComponent.SOUTH);
       commentPanel.setStyle(XComponent.DEFAULT_LAYOUT_PANEL_STYLE);
-      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       // Subject in bold font
       subjectBuffer = new StringBuffer();

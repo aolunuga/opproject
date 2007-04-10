@@ -21,6 +21,6 @@
 
       <resource id="InvalidStart">The entered start date is not valid</resource>
       <resource id="InvalidFinish">The entered finish date is not valid</resource>
-
+      <resource id="InvalidUser">Please select an user</resource>
    </resource-map>
 </language-kit>

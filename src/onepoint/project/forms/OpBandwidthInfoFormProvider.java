@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
+import onepoint.project.OpProjectSession;
 
 import java.util.HashMap;
 
@@ -28,7 +29,8 @@ public class OpBandwidthInfoFormProvider implements XFormProvider {
 
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
 
-      XCalendar calendar = XCalendar.getDefaultCalendar();
+      OpProjectSession projectSession = (OpProjectSession) session;
+      XCalendar calendar = projectSession.getCalendar();
 
       Double minValue = (Double) parameters.get(MIN_VALUE);
       String minValueString = calendar.localizedDoubleToString(minValue.doubleValue(), 2);

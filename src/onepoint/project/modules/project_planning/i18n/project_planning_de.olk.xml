@@ -226,6 +226,7 @@
       <resource id="Select">Auswahl</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
+      <resource id="ChooseDocument">Dokument auswaehlen</resource>
    </resource-map>
    <resource-map id="project_planning.activity_details">
       <resource id="Name">Name</resource>

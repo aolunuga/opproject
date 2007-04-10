@@ -3,9 +3,9 @@
       script="/scripts/header.jes">
 
    <pop-up-menu id="headerPopupMenu">
-      <pop-up-item text="{$ClearResourceCache}" on-item-selected="clearResourceCache"/>
-      <pop-up-item text="{$ClearImageCache}" on-item-selected="clearImageCache"/>
-      <pop-up-item id="BandwidthInfo" text="{$GetBandwidthInfo}" on-item-selected="bandwidthInfo"/>
+      <pop-up-item text="${ClearResourceCache}" on-item-selected="clearResourceCache"/>
+      <pop-up-item text="${ClearImageCache}" on-item-selected="clearImageCache"/>
+      <pop-up-item id="BandwidthInfo" text="${GetBandwidthInfo}" on-item-selected="bandwidthInfo"/>
    </pop-up-menu>
 
    <panel style-ref="header-panel-default" layout="border" pop-up-menu-ref="headerPopupMenu"
@@ -16,8 +16,8 @@
          <button style-ref="header-button-default" x="1" id="VersionButton" icon="/icons/about.png"
                  on-button-pressed="showAbout"/>
       </panel>
-      <button id="signOff_button" style-ref="header-button-default" x="1" text="{$SignOff}"
+      <button id="signOff_button" style-ref="header-button-default" x="1" text="${SignOff}"
               on-button-pressed="signOff"/>
-      <button id="quit_button" style-ref="header-button-default" x="1" text="{$Quit}" on-button-pressed="quit"/>
+      <button id="quit_button" style-ref="header-button-default" x="1" text="${Quit}" on-button-pressed="quit"/>
    </panel>
 </form>

@@ -1194,10 +1194,22 @@ public class OpProjectAdministrationService extends OpProjectService {
 
 
    public static OpProjectNode findRootPortfolio(OpBroker broker) {
+      return findProjectNode(broker, OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME, OpProjectNode.PORTFOLIO);
+   }
+
+   /**
+    * Finds a project node witha given name and type.
+    *
+    * @param broker a <code>OpBroker</code> instance
+    * @param name   the name of the project node
+    * @param type   the type of the project node
+    * @return an <code>OpProjectNode</code> instance or <code>null</code> if node not found.
+    */
+   public static OpProjectNode findProjectNode(OpBroker broker, String name, byte type) {
       OpQuery query = broker
-           .newQuery("select portfolio from OpProjectNode as portfolio where portfolio.Name = ? and portfolio.Type = ?");
-      query.setString(0, OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME);
-      query.setByte(1, OpProjectNode.PORTFOLIO);
+           .newQuery("select node from OpProjectNode as node where node.Name = ? and node.Type = ?");
+      query.setString(0, name);
+      query.setByte(1, type);
       Iterator result = broker.list(query).iterator();
       if (result.hasNext()) {
          return (OpProjectNode) result.next();
@@ -1263,7 +1275,7 @@ public class OpProjectAdministrationService extends OpProjectService {
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, null);
             OpGanttValidator.setWorkPhaseStarts(dataRow, null);
             OpGanttValidator.setWorkPhaseFinishes(dataRow, null);
-         }         
+         }
          OpGanttValidator.setComplete(dataRow, 0);
          OpGanttValidator.setActualEffort(dataRow, 0);
       }

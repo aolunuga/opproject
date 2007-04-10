@@ -20,8 +20,8 @@ public class OpResourcePool extends OpObject {
    public final static String RESOURCES = "Resources";
 
    // Root resource pool
-   public final static String ROOT_RESOURCE_POOL_NAME = "{$RootResourcePoolName}";
-   public final static String ROOT_RESOURCE_POOL_DESCRIPTION = "{$RootResourcePoolDescription}";
+   public final static String ROOT_RESOURCE_POOL_NAME = "${RootResourcePoolName}";
+   public final static String ROOT_RESOURCE_POOL_DESCRIPTION = "${RootResourcePoolDescription}";
    public final static String ROOT_RESOURCE_POOL_ID_QUERY = "select pool.ID from OpResourcePool as pool where pool.Name = '" + ROOT_RESOURCE_POOL_NAME + "'";
 
    private String name;

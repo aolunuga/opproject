@@ -18,9 +18,11 @@ import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
 
-import java.io.BufferedInputStream;
-import java.net.URL;
+import java.io.File;
+import java.io.FileInputStream;
 import java.sql.Date;
 import java.util.*;
 
@@ -319,7 +321,12 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       XMessage response = service.createTemporaryFile(session, request);
       assertNoError(request);
       String url = (String) response.getArgument("attachmentUrl");
-      BufferedInputStream bis = (BufferedInputStream) new URL(url).getContent();
+      url = XEncodingHelper.decodeValue(url);
+
+      // now check if file really exists.
+      String filePath = XEnvironmentManager.TMP_DIR + File.separator + url;
+
+      FileInputStream bis = (FileInputStream) new FileInputStream(filePath);
       byte[] bytes = new byte[content.length];
       assertEquals(content.length, bis.read(bytes));
       assertTrue(Arrays.equals(content, bytes));

@@ -1648,33 +1648,28 @@ public abstract class OpActivityDataSetFactory {
 
 
    private static ArrayList updateOrDeleteAttachments(OpBroker broker, XComponent dataSet, Iterator attachments) {
-      OpAttachment attachment = null;
-      XComponent dataRow = null;
-      int i = 0;
-      ArrayList attachmentList = null;
-      ArrayList attachmentElement = null;
-      long attachmentId = 0;
       ArrayList reusableAttachments = new ArrayList();
-
       int maxActivitySequence = dataSet.getChildCount();
-      int activitySequence = 0;
-
       while (attachments.hasNext()) {
-         attachment = (OpAttachment) attachments.next();
-         activitySequence = attachment.getActivity().getSequence();
+         OpAttachment attachment = (OpAttachment) attachments.next();
+         OpActivity activity = attachment.getActivity();
+         if (activity.getType() == OpActivity.ADHOC_TASK) {
+            continue; // exclude attachments from ADHOC_TASKs
+         }
+         int activitySequence = activity.getSequence();
+         int i;
          boolean reusable = false;
          if (activitySequence < maxActivitySequence) { // activity was not deleted on client
-            dataRow = (XComponent) dataSet.getChild(attachment.getActivity().getSequence());
-            attachmentList = OpGanttValidator.getAttachments(dataRow);
+            XComponent dataRow = (XComponent) dataSet.getChild(activity.getSequence());
+            ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
             for (i = attachmentList.size() - 1; i >= 0; i--) {
                // Note: We assume that attachments can only be added and removed on the client (no expicit updates)
-               attachmentElement = (ArrayList) attachmentList.get(i);
+               ArrayList attachmentElement = (ArrayList) attachmentList.get(i);
                OpLocator locator = OpLocator.parseLocator(XValidator.choiceID((String) attachmentElement.get(1)));
                if (locator == null) { // new attachment added on client
                   continue;
                }
-               attachmentId = locator.getID();
-               if (attachment.getID() == attachmentId) {
+               if (attachment.getID() == locator.getID()) {
                   // attachment found in project plan (remove it to avoid double insert)
                   attachmentList.remove(i);
                   break;
@@ -1693,7 +1688,6 @@ public abstract class OpActivityDataSetFactory {
             OpContentManager.updateContent(content, broker, false);
             reusableAttachments.add(attachment);
             //break link from activity to attachment
-            OpActivity activity = attachment.getActivity();
             activity.getAttachments().remove(attachment);
          }
       }

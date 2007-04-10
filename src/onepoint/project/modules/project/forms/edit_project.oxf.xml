@@ -1,36 +1,37 @@
-<form layout="border" width="750" height="450" text="{$EditProject}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" script="/modules/project/scripts/edit_project.jes">
+<form layout="border" width="750" height="450" text="${EditProject}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" script="/modules/project/scripts/edit_project.jes">
    <data-field id="ProjectID"/>
    <data-field id="EditMode"/>
    <data-field id="OriginalStartDate"/>
+   <data-field id="WorkingVersionNumber"/>
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
    <tab-box y="0">
-   <tab text="{$General}" layout="table" id="GeneralTab">
+   <tab text="${General}" layout="table" id="GeneralTab">
 
       <data-set id="ProjectStatusDataSet"/>
 
-      <label x="0" y="0" width="2" text="{$Name}" style-ref="label-emphasized-default"/><text-field x="2" y="0" width="3" id="Name"/>
-      <label x="0" y="1" width="2" text="{$Template}"/><choice-field x="2" y="1" width="3" id="TemplateField" string-value="{$NotSelected}" enabled="false"/>
-      <label x="0" y="2" width="2" text="{$Description}"/><text-box x="2" y="2" width="3" id="Description"/>
-      <label x="0" y="3" width="2" text="{$Start}" style-ref="label-emphasized-default"/><date-field x="2" y="3" width="3" id="Start"/>
+      <label x="0" y="0" width="2" text="${Name}" style-ref="label-emphasized-default"/><text-field x="2" y="0" width="3" id="Name"/>
+      <label x="0" y="1" width="2" text="${Template}"/><choice-field x="2" y="1" width="3" id="TemplateField" string-value="${NotSelected}" enabled="false"/>
+      <label x="0" y="2" width="2" text="${Description}"/><text-box x="2" y="2" width="3" id="Description"/>
+      <label x="0" y="3" width="2" text="${Start}" style-ref="label-emphasized-default"/><date-field x="2" y="3" width="3" id="Start"/>
 
       <!-- Probably combine these in 2nd tab 'Vorgaben' -->
-      <label x="0" y="4" width="2" text="{$End}"/><date-field x="2" y="4" width="3" id="Finish"/>
-      <label x="0" y="5" width="2" text="{$Budget}"/><double-field x="2" y="5" width="3" id="Budget" decimals="2"/>
-      <check-box x="2" y="6" width="3" id="CalculationMode" text="{$CalculationMode}"/>
-      <check-box x="2" y="7" width="3" id="ProgressTracked" text="{$ProgressTracked}"/>
+      <label x="0" y="4" width="2" text="${End}"/><date-field x="2" y="4" width="3" id="Finish"/>
+      <label x="0" y="5" width="2" text="${Budget}"/><double-field x="2" y="5" width="3" id="Budget" decimals="2"/>
+      <check-box x="2" y="6" width="3" id="CalculationMode" text="${CalculationMode}"/>
+      <check-box x="2" y="7" width="3" id="ProgressTracked" text="${ProgressTracked}"/>
 
-      <label x="0" y="8" width="2" text="{$Status}" id="StatusLabel"/>
+      <label x="0" y="8" width="2" text="${Status}" id="StatusLabel"/>
       <choice-field x="2" y="8" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
 
    </tab>
 
-   <tab text="{$Goals}" layout="border" id="GoalsTab">
+   <tab text="${Goals}" layout="border" id="GoalsTab">
       <data-set id="GoalsSet"/>
       <table-box y="0" id="GoalsTableBox" data-set-ref="GoalsSet" flexible="true">
          <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
-         <table-column text="{$Subject}" width="350" data-column-index="1" value-type="String" sortable="true"/>
-         <table-column text="{$Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
+         <table-column text="${Subject}" width="350" data-column-index="1" value-type="String" sortable="true"/>
+         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
       </table-box>
       <panel id="GoalsToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addGoal"/>
@@ -39,13 +40,13 @@
       </panel>
    </tab>
 
-   <tab text="{$Tasks}" layout="border" id="TasksTab">
+   <tab text="${Tasks}" layout="border" id="TasksTab">
       <data-set id="ToDosSet"/>
       <table-box y="0" id="ToDosTableBox" data-set-ref="ToDosSet" flexible="true">
          <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
-         <table-column text="{$Subject}" width="280" data-column-index="1" value-type="String" sortable="true"/>
-         <table-column text="{$Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
-         <table-column text="{$DueTo}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
+         <table-column text="${Subject}" width="280" data-column-index="1" value-type="String" sortable="true"/>
+         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
+         <table-column text="${DueTo}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
       </table-box>
       <panel id="TasksToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addToDo"/>
@@ -54,7 +55,7 @@
       </panel>
    </tab>
 
-   <tab text="{$Resources}" layout="border" id="ResourcesTab">
+   <tab text="${Resources}" layout="border" id="ResourcesTab">
       <data-set id="AssignedResourceDataSet"/>
       <data-set id="ReadOnlyResourceDataSet"/>
       <list-box y="0" id="AssignedResourcesListBox" data-set-ref="AssignedResourceDataSet" flexible="true"/>
@@ -64,20 +65,20 @@
       </panel>
    </tab>
 
-   <tab text="{$Versions}" layout="border" id="VersionsTab">
+   <tab text="${Versions}" layout="border" id="VersionsTab">
       <data-set id="VersionsSet"/>
-      <label id="ConfirmDialogHeader" text="{$DeleteVersions}" visible="false"/>
-      <table-box y="0" id="VersionsTableBox" data-set-ref="VersionsSet" flexible="true">
-         <table-column text="{$Version}" width="45" data-column-index="1" value-type="Int" sortable="true"/>
-         <table-column text="{$CreatedBy}" width="140" data-column-index="2" value-type="String" sortable="true"/>
-         <table-column text="{$CreatedOn}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
+      <label id="ConfirmDialogHeader" text="${DeleteVersions}" visible="false"/>
+      <table-box y="0" id="VersionsTableBox" data-set-ref="VersionsSet" flexible="true" on-row-select="selectionChanged">
+         <table-column text="${Version}" width="45" data-column-index="1" value-type="String"/>
+         <table-column text="${CreatedBy}" width="140" data-column-index="2" value-type="String" sortable="true"/>
+         <table-column text="${CreatedOn}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
       </table-box>
       <panel id="VersionsToolPanel" y="1" layout="flow" direction="east">
          <icon-button id="RemoveVersionButton" icon-type="MinusSign" on-button-pressed="removeVersions"/>
       </panel>
    </tab>
 
-   <tab text="{$Permissions}" layout="border" id="PermissionsTab">
+   <tab text="${Permissions}" layout="border" id="PermissionsTab">
       <data-set id="PerimssionIconSet">
          <data-row icon="/modules/user/icons/group.png"/>
          <data-row icon="/modules/user/icons/user.png"/>
@@ -97,8 +98,8 @@
 
    <panel y="1" layout="flow" direction="west">
 	  <panel layout="border">
-      <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
-      <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+      <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
 	  </panel>
    </panel>
 	   

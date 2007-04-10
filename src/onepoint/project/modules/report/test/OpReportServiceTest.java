@@ -14,6 +14,7 @@ import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
 
 import java.io.File;
 import java.net.URL;
@@ -259,9 +260,9 @@ public class OpReportServiceTest extends OpBaseTestCase {
       assertTrue(reportPath.length() > 0);
 
       reportPath = XEncodingHelper.decodeValue(reportPath);
-      
+
       // now check if file really exists.
-      URL reportFileUrl = new URL(reportPath);
+      URL reportFileUrl = new URL("file://" + XEnvironmentManager.TMP_DIR + File.separator + reportPath);
       File reportFile = new File(reportFileUrl.getFile());
       assertTrue("Returned file should exist on disk.", reportFile.exists());
       assertTrue("Returned path must be a file", reportFile.isFile());

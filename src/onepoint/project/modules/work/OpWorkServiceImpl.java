@@ -3,20 +3,23 @@
  */
 package onepoint.project.modules.work;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.hibernate.exception.ConstraintViolationException;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpConnection;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * @author dfreis
@@ -57,10 +60,24 @@ public class OpWorkServiceImpl {
       }
 
       OpUser user = session.user(broker);
-      // check for duplicate work slip date
-      // must do this using a new broker! otherwise we get a 'Duplicate entry' SQLException!
+      
+      // check for duplicate work slip date   
+
+      // allow queries to return stale state
+      int mode = broker.getConnection().getFlushMode();
+      broker.getConnection().setFlushMode(OpConnection.FLUSH_MODE_COMMIT);
+      OpQuery query = broker.newQuery("select work_slip from OpWorkSlip as work_slip where work_slip.Creator.ID = ? and work_slip.Date = ?");
+      query.setLong(0, user.getID());
+      query.setDate(1, work_slip.getDate());
+      Iterator it = broker.iterate(query);
+      if (it.hasNext()) {
+         throw new XServiceException(session.newError(ERROR_MAP, OpWorkError.DUPLICATE_DATE));
+      } 
+      // set flush mode back again
+      broker.getConnection().setFlushMode(mode);
+    
       Integer max = new Integer(0);
-      OpQuery query = broker.newQuery("select max(work_slip.Number) from OpWorkSlip as work_slip where work_slip.Creator.ID = ?");
+      query = broker.newQuery("select max(work_slip.Number) from OpWorkSlip as work_slip where work_slip.Creator.ID = ?");
       query.setLong(0, user.getID());
       max = (Integer) (broker.iterate(query).next());
       if (max == null) {
@@ -84,9 +101,12 @@ public class OpWorkServiceImpl {
       work_slip.setNumber(max.intValue() + 1);
       work_slip.setCreator(user);
 
-      // Inserts work-records into database and add to progress calculator
+      // make work slip persistent
       broker.makePersistent(work_slip);
 
+      // Inserts work-records into database and add to progress calculator
+      insertMyWorkRecords(session, broker, work_slip.getRecords().iterator(), work_slip);
+	    broker.getConnection().flush(); // required to ensure ConstraintViolationException!
    }
 
    /**
@@ -262,7 +282,7 @@ public class OpWorkServiceImpl {
       return (work_slip);
    }
 
-   public void insertMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record, OpWorkSlip work_slip)
+   private void insertMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record, OpWorkSlip work_slip)
         throws XServiceException {
       // check and complete all fields
       // check work slip
@@ -295,41 +315,41 @@ public class OpWorkServiceImpl {
     * @throws XServiceException if any given {@link OpWorkRecord} is of an invalid state, or if one is already existing. Prior records will be inserted.
     */
 
-   public void insertMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records, OpWorkSlip work_slip)
+   private void insertMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records, OpWorkSlip work_slip)
         throws XServiceException {
       while (work_records.hasNext()) {
          insertMyWorkRecord(session, broker, work_records.next(), work_slip);
       }
    }
 
-   public void deleteMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record)
+   private void deleteMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record)
         throws XServiceException {
       logger_.info("deleteMyWorkRecord(" + work_record + ")");
 
-      if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
-         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
-              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only remove work records to his/her work slips
-      }
+//      if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
+//         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
+//              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only remove work records to his/her work slips
+//      }
 
       OpProgressCalculator.removeWorkRecord(broker, work_record);
       broker.deleteObject(work_record);
    }
 
-   public void deleteMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records)
+   private void deleteMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records)
         throws XServiceException {
       while (work_records.hasNext()) {
          deleteMyWorkRecord(session, broker, work_records.next());
       }
    }
 
-   public void updateMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record)
+   private void updateMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record)
         throws XServiceException {
       logger_.info("updateMyWorkRecord(" + work_record + ")");
 
-      if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
-         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
-              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only remove work records to his/her work slips
-      }
+//      if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
+//         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
+//              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only remove work records to his/her work slips
+//      }
       // FIXME(dfreis Mar 22, 2007 8:12:37 AM)
       // should avoid usage of a new Broker (= new Hibernate Session), this works if OpProgressCalculator
       // is triggers within Hibernate Interceptor/EventHandler
@@ -345,7 +365,7 @@ public class OpWorkServiceImpl {
       broker.updateObject(work_record);
    }
 
-   public void updateMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records)
+   private void updateMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records)
         throws XServiceException {
       while (work_records.hasNext()) {
          updateMyWorkRecord(session, broker, work_records.next());
@@ -357,7 +377,7 @@ public class OpWorkServiceImpl {
     * @return
     * @throws XServiceException
     */
-   public OpWorkRecord getMyWorkRecordById(OpProjectSession session, OpBroker broker, long id)
+   private OpWorkRecord getMyWorkRecordById(OpProjectSession session, OpBroker broker, long id)
         throws XServiceException {
       OpWorkRecord work_record = (OpWorkRecord) broker.getObject(OpWorkRecord.class, id);
       if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
@@ -368,7 +388,7 @@ public class OpWorkServiceImpl {
       return (work_record);
    }
 
-   public OpWorkRecord getMyWorkRecordByIdString(OpProjectSession session, OpBroker broker, String id_string)
+   private OpWorkRecord getMyWorkRecordByIdString(OpProjectSession session, OpBroker broker, String id_string)
         throws XServiceException {
       OpWorkRecord work_record = (OpWorkRecord) broker.getObject(id_string);
       if (!session.isUser(work_record.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
@@ -378,300 +398,4 @@ public class OpWorkServiceImpl {
 
       return (work_record);
    }
-
-//  /**
-//   * Performs validation of the <code>work_record_set</code>
-//   *
-//   * @param session         the <code>OpProjectSession</code>
-//   * @param work_record_set the <code>XComponent.DATA_SET</code> of records
-//   * @param insertMode      a <code>boolean</code> indicating whether the operation is insert or edit.
-//   * @return <code>XMessage</code> containing a not null <code>XError</code> instance field if validation fails.
-//   */
-//  private void validateWorkRecordEfforts(OpProjectSession session, OpWorkSlip work_slip, boolean insertMode)
-//    throws XServiceException
-//  {
-//     XComponent data_row;
-//     XComponent data_cell;
-//     boolean validActualEffort = false;
-//     boolean validCosts = false;
-//
-//     for (int i = 0; i < work_record_set.getChildCount(); i++) {
-//        data_row = (XComponent) work_record_set.getChild(i);
-//
-//        //completed
-//        Boolean completedValue = (Boolean) ((XComponent) data_row.getChild(COMPLETED_COLUMN_INDEX)).getValue();
-//        if (completedValue != null && completedValue.booleanValue()) {
-//           validActualEffort = true;
-//        }
-//
-//        // actual effort
-//        data_cell = (XComponent) data_row.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           double actualEffort = data_cell.getDoubleValue();
-//           if (actualEffort < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-//              return reply;
-//           }
-//           if (actualEffort > 0) {
-//              //we found a valid effort
-//              validActualEffort = true;
-//           }
-//        }
-//        // Remaining effort
-//        data_cell = (XComponent) data_row.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           if (data_cell.getDoubleValue() < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_REMAINING_EFFORT));
-//              return reply;
-//           }
-//        }
-//        // Material Costs
-//        data_cell = (XComponent) data_row.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           if (data_cell.getDoubleValue() < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MATERIAL_COSTS));
-//              return reply;
-//           }
-//           if (data_cell.getDoubleValue() > 0) {
-//              validCosts = true;
-//           }
-//        }
-//        // Travel costs
-//        data_cell = (XComponent) data_row.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           if (data_cell.getDoubleValue() < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_TRAVEL_COSTS));
-//              return reply;
-//           }
-//           if (data_cell.getDoubleValue() > 0) {
-//              validCosts = true;
-//           }
-//        }
-//        // External costs
-//        data_cell = (XComponent) data_row.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           if (data_cell.getDoubleValue() < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_EXTERNAL_COSTS));
-//              return reply;
-//           }
-//           if (data_cell.getDoubleValue() > 0) {
-//              validCosts = true;
-//           }
-//        }
-//        // Miscellaneous Costs
-//        data_cell = (XComponent) data_row.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           if (data_cell.getDoubleValue() < 0) {
-//              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MISCELLANEOUS_COSTS));
-//              return reply;
-//           }
-//           if (data_cell.getDoubleValue() > 0) {
-//              validCosts = true;
-//           }
-//        }
-//     }
-//     // a valid effort was not found in the work record set
-//     if (!validActualEffort && !validCosts && insertMode) {
-//        reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-//     }
-//     else if (!validActualEffort && !validCosts) {
-//        //for edit, we just ignore the error...
-//        reply.setArgument(WARNING, Boolean.TRUE);
-//     }
-//     return reply;
-//  }
-
-//  /**
-//   * Checks if a work record's information has changed or not (determining whether it should be inserted or not).
-//   *
-//   * @param dataRow    a <code>XComponent</code> representing the client-side work record data.
-//   * @param insertMode a <code>boolean</code> indicating whether we are in edit or insert mode.
-//   * @return true if the workrecord has changed, false otherwise.
-//   */
-//  private boolean hasWorkRecordChanged(OpWorkRecord work_record, boolean insertMode) {
-//     if (insertMode) {
-//        int activityType = work_record.((XComponent) dataRow.getChild(ACTIVITY_TYPE_COLUMN_INDEX)).getIntValue();
-//        XComponent dataCell = null;
-//        dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-//        double cost;
-//        boolean zeroCosts = true;
-//        if (dataCell.getValue() != null) {
-//           cost = dataCell.getDoubleValue();
-//           if (cost != 0) {
-//              zeroCosts = false;
-//           }
-//        }
-//        dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-//        if (dataCell.getValue() != null) {
-//           cost = dataCell.getDoubleValue();
-//           if (cost != 0) {
-//              zeroCosts = false;
-//           }
-//        }
-//        dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-//        if (dataCell.getValue() != null) {
-//           cost = dataCell.getDoubleValue();
-//           if (cost != 0) {
-//              zeroCosts = false;
-//           }
-//        }
-//        dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-//        if (dataCell.getValue() != null) {
-//           cost = dataCell.getDoubleValue();
-//           if (cost != 0) {
-//              zeroCosts = false;
-//           }
-//        }
-//
-//
-//        switch (activityType) {
-//           case OpActivity.ADHOC_TASK:
-//           case OpActivity.STANDARD:
-//           case OpActivity.TASK: {
-//              boolean completed;
-//              dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-//              completed = (dataCell.getValue() != null && dataCell.getBooleanValue());
-//              double actualEffort = -1;
-//              dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-//              if (dataCell.getValue() != null) {
-//                 actualEffort = dataCell.getDoubleValue();
-//              }
-//              if (actualEffort == 0.0 && !completed && zeroCosts) {
-//                 return false;
-//              }
-//              break;
-//           }
-//           case OpActivity.MILESTONE: {
-//              dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-//              if (dataCell.getValue() != null) {
-//                 boolean complete = dataCell.getBooleanValue();
-//                 if (!complete && zeroCosts) {
-//                    return false;
-//                 }
-//              }
-//              break;
-//           }
-//        }
-//     }
-//     return true;
-//  }
-
-//  /**
-//   * Persist <code>OpWorkRecord</code>s entities for the given <code>work_slip</code> resource.
-//   *
-//   * @param broker          <code>OpBroker</code>
-//   * @param work_slip       <code>OpWorkSlip</code>
-//   * @param work_record_set <code>XComponent.DATA_SET</code> of work records
-//   */
-//  protected void insertWorkRecords(OpBroker broker, OpWorkSlip work_slip, XComponent work_record_set) {
-//     OpWorkRecord work_record = null;
-//     XComponent data_row = null;
-//     XComponent data_cell = null;
-//     OpAssignment assignment = null;
-//     List workRecordsToAdd = new ArrayList();
-//
-//     for (int i = 0; i < work_record_set.getChildCount(); i++) {
-//        data_row = (XComponent) work_record_set.getChild(i);
-//
-//        //check if the work-record has changed
-//        XComponent activityInsertMode = (XComponent) data_row.getChild(ACTIVITY_INSERT_MODE);
-//        boolean insert = activityInsertMode.getBooleanValue();
-//        if (!hasWorkRecordChanged(data_row, insert)) {
-//           continue;
-//        }
-//
-//        //work slip's resource record
-//        work_record = new OpWorkRecord();
-//        work_record.setWorkSlip(work_slip);
-//        data_cell = (XComponent) data_row.getChild(TASK_NAME_COLOMN_INDEX);
-//        assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(data_cell.getStringValue())));
-//        work_record.setAssignment(assignment);
-//
-//        //complete
-//        data_cell = (XComponent) data_row.getChild(COMPLETED_COLUMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setCompleted(data_cell.getBooleanValue());
-//        }
-//
-//        // actual effort data cell
-//        data_cell = (XComponent) data_row.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setActualEffort(data_cell.getDoubleValue());
-//        }
-//        else {
-//           work_record.setActualEffort(0);
-//        }
-//
-//        // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
-//        data_cell = (XComponent) data_row.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setRemainingEffort(data_cell.getDoubleValue());
-//
-//           // Must be negative if remaining effort is lower than original remaining effort
-//           work_record.setRemainingEffortChange(data_cell.getDoubleValue() - assignment.getRemainingEffort());
-//        }
-//        else {
-//           work_record.setRemainingEffort(0);
-//           work_record.setRemainingEffortChange(0);
-//        }
-//
-//        // Material Costs data cell
-//        data_cell = (XComponent) data_row.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setMaterialCosts(data_cell.getDoubleValue());
-//        }
-//        else {
-//           work_record.setMaterialCosts(0);
-//        }
-//
-//        // Travel costs
-//        data_cell = (XComponent) data_row.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setTravelCosts(data_cell.getDoubleValue());
-//        }
-//        else {
-//           work_record.setTravelCosts(0);
-//        }
-//
-//        // External costs
-//        data_cell = (XComponent) data_row.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setExternalCosts(data_cell.getDoubleValue());
-//        }
-//        else {
-//           work_record.setExternalCosts(0);
-//        }
-//
-//        // Miscellaneous Costs
-//        data_cell = (XComponent) data_row.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-//        if (data_cell.getValue() != null) {
-//           work_record.setMiscellaneousCosts(data_cell.getDoubleValue());
-//        }
-//        else {
-//           work_record.setMiscellaneousCosts(0);
-//        }
-//
-//        // Optional comment
-//        data_cell = (XComponent) data_row.getChild(COMMENT_COLOMN_INDEX);
-//        if (data_cell.getStringValue() != null) {
-//           work_record.setComment(data_cell.getStringValue());
-//        }
-//
-//        // Use progress calculator to update progress information in associated project plan
-//        OpProgressCalculator.addWorkRecord(broker, work_record);
-//
-//        //Set the personnel costs for the work record
-//        work_record.setPersonnelCosts(assignment.getResource().getHourlyRate() * work_record.getActualEffort());
-//
-//        //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
-//        workRecordsToAdd.add(work_record);
-//     }
-//
-//     //register work records with broker (done here because hibernate queries flush the session)
-//     Iterator it = workRecordsToAdd.iterator();
-//     while (it.hasNext()) {
-//        broker.makePersistent((OpWorkRecord) it.next());
-//     }
-//  }
-
 }

@@ -69,8 +69,8 @@ public class OpPreferencesService extends OpProjectService {
          if (!session.getLocale().getID().equals(language)) {
             XLocale newLocale = XLocaleManager.findLocale(language);
             session.setLocale(newLocale);
-            XCalendar calendar = OpSettings.configureDefaultCalendar(newLocale);
-            reply.setArgument(OpProjectConstants.CALENDAR, calendar);
+            OpSettings.configureServerCalendar(session);
+            reply.setArgument(OpProjectConstants.CALENDAR, session.getCalendar());
          }
       }
 

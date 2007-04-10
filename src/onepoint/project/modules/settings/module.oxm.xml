@@ -9,6 +9,6 @@
       <language-kit-path path="/modules/settings/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="settings" caption="{$SettingsTool}" group-ref="system" icon="/modules/settings/icons/settings_tool.png" start-form="/modules/settings/forms/settings.oxf.xml" sequence="20"/>
+      <tool name="settings" caption="${SettingsTool}" group-ref="system" icon="/modules/settings/icons/settings_tool.png" start-form="/modules/settings/forms/settings.oxf.xml" sequence="20"/>
    </tools>
 </module>

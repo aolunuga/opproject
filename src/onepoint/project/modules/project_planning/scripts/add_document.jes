@@ -77,8 +77,10 @@ function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
 
-function select(event) {
-   document_path = XDisplay.showFileDialog("Dokument auswaehlen", true, null);
+function select(event) {   
+   form = XDisplay.getActiveForm();
+   title = form.findComponent("DialogTitle").getText();
+   document_path = XDisplay.showFileDialog(title, true, null,"*.*");
    if (document_path != null) {
       document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
       document_path_field.setStringValue(document_path);

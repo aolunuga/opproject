@@ -1308,25 +1308,39 @@ public class OpUserServiceTest extends OpBaseTestCase {
     *
     * @throws Exception If somethign goes wrong.
     */
+   //<FIXME author="Mihai Costin" description="request parameter should be updated for each method call!!">  
    public void testMethodsSecurity()
         throws Exception {
 
-      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
-           DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
+      createDefaultUser();
+      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      assertNotNull(user);
 
+      createDefaultGroup();
+      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      assertNotNull(group);
+
+      // create supergroup
+      String superGroupName = "SuperGroup";
+      Map groupData = UserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
       XMessage request = new XMessage();
-
-      // first try with lower case (for all letters)
-      request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = userService.insertUser(session, request);
+      request.setArgument(OpUserService.GROUP_DATA, groupData);
+      XMessage response = userService.insertGroup(session, request);
       assertNoError(response);
+      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
+      assertNotNull(superGroup);
 
       //log-out Administrator
       logOut();
       logIn(TEST_USER_NAME, TEST_PASS);
 
       // now try to call secured methods.
+      List subIds = Arrays.asList(new String[]{user.locator()});
+      
       request = new XMessage();
+      request.setArgument(OpUserService.TARGET_GROUP_ID, superGroup.locator());
+      request.setArgument(OpUserService.SUBJECT_IDS,  subIds);
+
       try {
          // check insertUser method security
          response = userService.insertUser(session, request);

@@ -273,15 +273,16 @@ public class OpSettings {
       return value;
    }
 
-   public static XCalendar configureDefaultCalendar(XLocale userLocale) {
-      logger.info("Calendar is configured using locale : " + userLocale.getID());
+   public static void configureServerCalendar(OpProjectSession session) {
+      logger.info("Calendar is configured using locale : " + session.getID());
+      XLocale locale = session.getLocale();
+      TimeZone clientTimezone = session.getClientTimeZone();
+
       //initialize the calendar instance which will be on the server and also sent to client
-      //<FIXME author="Horia Chiorean" description="In the remote case, this means that always the last signed in user will have his settings...">
-      XCalendar calendar = XCalendar.getDefaultCalendar();
-      //<FIXME>
-      XLanguageResourceMap userCalendarI18nMap = XLocaleManager.findResourceMap(userLocale.getID(), CALENDAR_RESOURCE_MAP_ID);
-      XLocalizer userLocalizer = XLocalizer.getLocalizer(userCalendarI18nMap);
-      calendar.configure(planningSettings, userLocale, userLocalizer);
-      return calendar;
+      XCalendar calendar = new XCalendar();
+      XLanguageResourceMap calendarI18nMap = XLocaleManager.findResourceMap(locale.getID(), CALENDAR_RESOURCE_MAP_ID);
+      XLocalizer localizer = XLocalizer.getLocalizer(calendarI18nMap);
+      calendar.configure(planningSettings, locale, localizer, clientTimezone);
+      session.setCalendar(calendar);
    }
 }

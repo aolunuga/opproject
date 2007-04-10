@@ -13,6 +13,12 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    private OpSource source; // The source the connection belongs to
 
+   public static final int FLUSH_MODE_NEVER = 0;
+   public static final int FLUSH_MODE_COMMIT = 1;
+   public static final int FLUSH_MODE_AUTO = 2;
+   public static final int FLUSH_MODE_ALWAYS = 3;
+   
+   
    public OpConnection(OpSource source) {
       this.source = source;
    }
@@ -62,4 +68,8 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
    public abstract boolean isValid();
 
    public abstract boolean isOpen();
+
+   public abstract void setFlushMode(int flushMode);
+
+   public abstract int getFlushMode();
 }

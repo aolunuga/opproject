@@ -7,6 +7,6 @@
    <service-files>
    </service-files>
    <tools>
-      <tool name="project_dates" caption="{$ProjectDatesTool}" group-ref="projects" icon="/modules/project_dates/icons/project_dates_tool.png" start-form="/modules/project_dates/forms/project_dates_start.oxf.xml" sequence="30"/>
+      <tool name="project_dates" caption="${ProjectDatesTool}" group-ref="projects" icon="/modules/project_dates/icons/project_dates_tool.png" start-form="/modules/project_dates/forms/project_dates_start.oxf.xml" sequence="30"/>
    </tools>
 </module>

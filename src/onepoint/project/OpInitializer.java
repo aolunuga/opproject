@@ -330,7 +330,7 @@ public final class OpInitializer {
          int runLevel = Integer.valueOf(runLevelParameter).intValue();
          int successRunLevel = getSuccessRunLevel();
          if (runLevel < successRunLevel) {
-            String resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
+            String resourceId = "${" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
             return localizer.localize(resourceId);
          }
       }

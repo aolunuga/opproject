@@ -79,7 +79,7 @@ public class OpSettingsService extends OpProjectService {
 
       //week work time validation
       boolean weekWorkChanged = false;
-      int workingDaysPerWeek = XCalendar.getDefaultCalendar().countWeekdays(firstWorkDay, lastWorkDay);
+      int workingDaysPerWeek = session.getCalendar().countWeekdays(firstWorkDay, lastWorkDay);
       double weekWorkTime;
       Double weekWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (weekWorkTimeDouble == null) {
@@ -181,8 +181,8 @@ public class OpSettingsService extends OpProjectService {
       // Apply new settings
       boolean changedLanguage = OpSettings.applySettings(session);
 
-      XCalendar calendar = OpSettings.configureDefaultCalendar(session.getLocale());
-      reply.setVariable(OpProjectConstants.CALENDAR, calendar);
+      OpSettings.configureServerCalendar(session);
+      reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
 
       if (!OpInitializer.isMultiUser() && changedLanguage) {
          reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);

@@ -29,11 +29,11 @@ public class OpProjectCostsFormProvider implements XFormProvider {
    protected final static String PROJECT_COSTS_PROJECT_COSTS = "project_costs.project_costs";
 
    // Cost types
-   protected final static String PERSONNEL = "{$Personnel}";
-   protected final static String TRAVEL = "{$Travel}";
-   protected final static String MATERIAL = "{$Material}";
-   protected final static String EXTERNAL = "{$External}";
-   protected final static String MISCELLANEOUS = "{$Miscellaneous}";
+   protected final static String PERSONNEL = "${Personnel}";
+   protected final static String TRAVEL = "${Travel}";
+   protected final static String MATERIAL = "${Material}";
+   protected final static String EXTERNAL = "${External}";
+   protected final static String MISCELLANEOUS = "${Miscellaneous}";
    private final static String PRINT_TITLE = "PrintTitle";
 
    // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining

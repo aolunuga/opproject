@@ -25,8 +25,7 @@ public class OpNewResourceFormProvider implements XFormProvider {
    private final static String INHERIT_POOL_RATE = "InheritPoolRate";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String POOL_INDEX = "pool_index";
-   private final static String USER_BUTTON = "SelectUserButton";
-   private final static String USER_FIELD = "UserName";
+   private final static String USER_NAME = "UserName";
    private final static String USER_LABEL = "ResponsibleUserLabel";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
 
@@ -76,9 +75,8 @@ public class OpNewResourceFormProvider implements XFormProvider {
       }
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
-         form.findComponent(USER_BUTTON).setVisible(false);
          form.findComponent(USER_LABEL).setVisible(false);
-         form.findComponent(USER_FIELD).setVisible(false);
+         form.findComponent(USER_NAME).setVisible(false);
       }
 
       broker.close();

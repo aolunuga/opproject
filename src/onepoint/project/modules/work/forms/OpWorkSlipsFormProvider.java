@@ -71,7 +71,7 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery(WORK_SLIPS_QUERY);
       query.setLong(0, session.getUserID());
 
-      Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+      Calendar calendar = session.getCalendar().getCalendar();
       calendar.setTime(XCalendar.today());
       if (period.equals(PERIOD_STARTING_WITH_CURRENT_MONTH)) {
          calendar.set(Calendar.DAY_OF_MONTH, 1);

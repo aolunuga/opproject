@@ -34,8 +34,8 @@ public class OpUser extends OpSubject {
    public final static String ADMINISTRATOR_NAME = "Administrator";
    public final static String ADMINISTRATOR_NAME_ALIAS1 = "administrator";
    public final static String ADMINISTRATOR_NAME_ALIAS2 = "ADMINISTRATOR";
-   public final static String ADMINISTRATOR_DISPLAY_NAME = "{$AdministratorDisplayName}";
-   public final static String ADMINISTRATOR_DESCRIPTION = "{$AdministratorDescription}";
+   public final static String ADMINISTRATOR_DISPLAY_NAME = "${AdministratorDisplayName}";
+   public final static String ADMINISTRATOR_DESCRIPTION = "${AdministratorDescription}";
    public final static String ADMINISTRATOR_ID_QUERY = "select user.ID from OpUser as user where user.Name = '" + OpUser.ADMINISTRATOR_NAME + "'";
 
    // *** Maybe extra property DISPLAY_NAME (configurable)?
@@ -49,7 +49,7 @@ public class OpUser extends OpSubject {
    private String password = BLANK_PASSWORD;
    private byte authenticationType = INTERNAL;
    private Byte level = MANAGER_USER_LEVEL;
-   private OpContact contact = new OpContact();
+   private OpContact contact;
    private Set<OpUserAssignment> assignments;
    private Set<OpLock> ownedLocks;
    private Set<OpResource> resources;
