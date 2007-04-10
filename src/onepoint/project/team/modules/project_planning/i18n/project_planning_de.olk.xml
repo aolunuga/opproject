@@ -1,9 +1,0 @@
-<language-kit locale="de">
-
-   <resource-map id="project_planning.activities">
-      <resource id="Structurediagram">Projektstrukturplan (WBS)</resource>
-      <resource id="EffortH">Aufwand (h)</resource>
-      <resource id="Costs">Kosten (€)</resource>
-   </resource-map>
-
-</language-kit>

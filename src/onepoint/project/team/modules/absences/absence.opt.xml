@@ -1,7 +1,0 @@
-<prototype name="OpAbsence" instance-class="onepoint.project.team.modules.absences.OpAbsence">
-   <field name="Type" type="Byte"/>
-   <field name="Begin" type="Date"/>
-   <field name="End" type="Date"/>
-   <field name="Duration" type="Double"/>
-   <relationship name="Resource" type="OpResource" back-relationship="Absences"/>
-</prototype>

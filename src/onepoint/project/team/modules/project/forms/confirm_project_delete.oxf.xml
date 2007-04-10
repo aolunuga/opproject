@@ -1,4 +1,0 @@
-<form layout="border" default-button-ref="OKButton" resource-map-ref="project.delete"
-      text="{$ConfirmDelete}" provider-class="onepoint.project.modules.project.forms.OpConfirmDeleteProjectFormProvider"
-      script="/team/modules/project/scripts/confirm_project_delete.jes"
-      extends="/modules/project/forms/confirm_project_delete.oxf.xml"/>

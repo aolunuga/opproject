@@ -1,3 +1,0 @@
-<service name="LicenseService" class="onepoint.project.team.modules.license.OpLicenseService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="checkLicense"/>      
-</service>
