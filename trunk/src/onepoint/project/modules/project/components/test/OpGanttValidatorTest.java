@@ -65,8 +65,8 @@ public class OpGanttValidatorTest extends TestCase {
         throws Exception {
       super.setUp();
 
-      XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
-      defaultCalendar.configure(null, new XLocale("de", ""), null);
+      XDisplay display = new XDisplay(null);
+      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
 
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);

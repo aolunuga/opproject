@@ -13,22 +13,22 @@
     <panel layout="border" style-ref="compact-panel-default">
 	 <panel layout="border" style-ref="tool-panel-default" y="-1">
          <tool-bar id="ReportToolbar">
-            <tool-button id="RunQueryButton" text="{$RunQuery}" icon="/modules/report/icons/run_query.png"
-                         on-button-pressed="runQuery" tooltip="{$QuickQueryTooltip}"/>
-             <tool-button id="CreateReportButton" text="{$CreateReport}"
+            <tool-button id="RunQueryButton" text="${RunQuery}" icon="/modules/report/icons/run_query.png"
+                         on-button-pressed="runQuery" tooltip="${QuickQueryTooltip}"/>
+             <tool-button id="CreateReportButton" text="${CreateReport}"
                          icon="/modules/report/icons/create_report.png"
-                         on-button-pressed="createReport" tooltip="{$CreateReportTooltip}"/>
-            <tool-button id="ResetQueryButton" text="{$ResetQuery}" icon="/modules/report/icons/reset_report.png"
-                         on-button-pressed="resetQuery" tooltip="{$ResetQueryTooltip}"/>
-            <tool-button id="PrintButton" text="{$Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png"
-                         on-button-pressed="print" tooltip="{$PrintTooltip}" enabled="false"/>
+                         on-button-pressed="createReport" tooltip="${CreateReportTooltip}"/>
+            <tool-button id="ResetQueryButton" text="${ResetQuery}" icon="/modules/report/icons/reset_report.png"
+                         on-button-pressed="resetQuery" tooltip="${ResetQueryTooltip}"/>
+            <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png"
+                         on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
          </tool-bar>
       </panel>
       <frame id="QueryFrame"/>
    	  <status-bar y="1"/>
       </panel>	   
 	   
-         <collapsible-box x="-1" stateful="true" id="NavigationBox" text="{$ReportNavigator}" orientation="vertical">
+         <collapsible-box x="-1" stateful="true" id="NavigationBox" text="${ReportNavigator}" orientation="vertical">
             <list-box list-style-ref="navigator-list-style" id="QueryList" data-set-ref="QuerySet" tree="false"
                       on-item-pressed="selectQuery"/>
          </collapsible-box>

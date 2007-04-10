@@ -39,7 +39,7 @@ function connect(event) {
       login = form.findComponent("DefaultLogin").getStringValue();
       password = form.findComponent("DefaultPassword").getStringValue();
       //perform silent authentication (without login form)
-      authenticate(login, password);
+      authenticate(login, password, false);
       //show login form
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", params);
    }
@@ -48,7 +48,7 @@ function connect(event) {
 function selectFolder(event) {
    form = XDisplay.getActiveForm();
    defaultName = form.findComponent("HSQLDbDefaultName").getStringValue();
-   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultName);
+   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultName, null);
    if (path != null) {
       form.findComponent("HSQLDbPathTextField").setStringValue(path);
       form.repaint();

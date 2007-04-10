@@ -10,14 +10,16 @@ import onepoint.express.XDisplay;
 /**
  * Sends a request to the user service to perform user authentication and returns the server response.
  */
-function authenticate(login, password) {
+function authenticate(login, password, remember) {
    request = new XMessage;
    request.setAction("UserService.signOn");
    request.setArgument("login", login);
+   request.setVariable("clientTimeZone", XCalendar.getClientTimeZone());
    if (password != null) {
       // put the hashed password into the request, so no real password gets transferred over the network
       request.setArgument("password", OpSHA1.calculateHash(password));
    }
+   request.setArgument("remember", remember);
    client = XDisplay.getClient();
    response = client.invokeMethod(request);
 

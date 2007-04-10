@@ -6,7 +6,7 @@
       <service-file file-name="/modules/repository/repository_service.osd.xml"/>
    </service-files>
    <tools>
-      <tool name="repository" caption="{$RepositoryTool}" group-ref="system" icon="/modules/repository/icons/dock_repository.png"
+      <tool name="repository" caption="${RepositoryTool}" group-ref="system" icon="/modules/repository/icons/dock_repository.png"
             start-form="/modules/repository/forms/repository.oxf.xml"/>
    </tools>
 </module>

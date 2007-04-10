@@ -36,8 +36,8 @@ public class OpProjectNode extends OpObject {
    public final static byte TEMPLATE = 4;
 
    // Root portfolio name and description
-   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "{$RootProjectPortfolioName}";
-   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "{$RootProjectPortfolioDescription}";
+   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "${RootProjectPortfolioName}";
+   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "${RootProjectPortfolioDescription}";
    public final static String ROOT_PROJECT_PORTFOLIO_ID_QUERY = "select portfolio.ID from OpProjectNode as portfolio where portfolio.Name = '"
          + ROOT_PROJECT_PORTFOLIO_NAME + "' and portfolio.Type = " + PORTFOLIO;
 

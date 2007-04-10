@@ -17,6 +17,6 @@
       <language-kit-path path="/modules/user/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="user" caption="{$UserTool}" group-ref="system" icon="/modules/user/icons/user_tool.png" start-form="/modules/user/forms/users.oxf.xml" multi-user-only="true"/>
+      <tool name="user" caption="${UserTool}" group-ref="system" icon="/modules/user/icons/user_tool.png" start-form="/modules/user/forms/users.oxf.xml" multi-user-only="true"/>
    </tools>
 </module>

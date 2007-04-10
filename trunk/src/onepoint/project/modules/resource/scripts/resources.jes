@@ -3,25 +3,16 @@
  */
 
 
-require
-"onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require
-"onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/scripts/lazyLoad.jes";
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XExtendedComponent;
-import
-onepoint.express.XValidator;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 
 function newPool(event) {
 
@@ -89,28 +80,6 @@ function move(event) {
    if (selected_rows.size() > 0) {
       openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false);
    }
-   //<FIXME author="Horia Chiorean" description="Check whether any elements need filtering">
-   //   filteredIds = new ArrayList;
-   //   i = 0;
-   //   while (i < selected_rows.size()) {
-   //      selectedRow = selected_rows[i];
-   //      //filter out the parent
-   //      parentRow = selectedRow.getParentInDataSet();
-   //      filteredIds.add(parentRow.getStringValue());
-   //
-   //      //filter out the selected row
-   //      filteredIds.add(selectedRow.getStringValue());
-   //
-   //      //filter out the children of the selected row
-   //      subRows = selectedRow.getSubRows();
-   //      j = 0;
-   //      while (j < subRows.size()) {
-   //         subRow = subRows[j];
-   //         filteredIds.add(subRow.getStringValue());
-   //         j++;
-   //      }
-   //      i++;
-   //   }
 }
 
 function moveResourceOK(selectedPools) {
@@ -285,9 +254,7 @@ function edit(event) {
    }
 }
 
-function
-delete(event)
-{
+function delete(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {

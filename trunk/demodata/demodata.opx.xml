@@ -354,13 +354,13 @@ true</property>
 </object>
 </objects>
 <objects type="OpProjectNode">
-<object system="{$RootProjectPortfolioName}" id="8">
+<object system="${RootProjectPortfolioName}" id="8">
 <property>
-<![CDATA[{$RootProjectPortfolioName}]]></property>
+<![CDATA[${RootProjectPortfolioName}]]></property>
 <property>
 1</property>
 <property>
-<![CDATA[{$RootProjectPortfolioDescription}]]></property>
+<![CDATA[${RootProjectPortfolioDescription}]]></property>
 <property>
 null</property>
 <property>
@@ -688,9 +688,9 @@ true</property>
 <property>
 <![CDATA[Administrator]]></property>
 <property>
-<![CDATA[{$AdministratorDisplayName}]]></property>
+<![CDATA[${AdministratorDisplayName}]]></property>
 <property>
-<![CDATA[{$AdministratorDescription}]]></property>
+<![CDATA[${AdministratorDescription}]]></property>
 <property>
 <![CDATA[DA39A3EE5E6B4B0D3255BFEF95601890AFD80709]]></property>
 <property>
@@ -826,11 +826,11 @@ true</property>
 </object>
 </objects>
 <objects type="OpResourcePool">
-<object system="{$RootResourcePoolName}" id="5">
+<object system="${RootResourcePoolName}" id="5">
 <property>
-<![CDATA[{$RootResourcePoolName}]]></property>
+<![CDATA[${RootResourcePoolName}]]></property>
 <property>
-<![CDATA[{$RootResourcePoolDescription}]]></property>
+<![CDATA[${RootResourcePoolDescription}]]></property>
 <property>
 0.0</property>
 <reference>
@@ -3820,9 +3820,9 @@ false</property>
 <property>
 <![CDATA[Everyone]]></property>
 <property>
-<![CDATA[{$EveryoneDisplayName}]]></property>
+<![CDATA[${EveryoneDisplayName}]]></property>
 <property>
-<![CDATA[{$EveryoneDescription}]]></property>
+<![CDATA[${EveryoneDescription}]]></property>
 </object>
 </objects>
 <objects type="OpDependency">

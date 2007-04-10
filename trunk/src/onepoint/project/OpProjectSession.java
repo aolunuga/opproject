@@ -11,6 +11,7 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
@@ -20,6 +21,7 @@ import java.util.*;
 public class OpProjectSession extends XExpressSession {
 
    private static final long NO_ID = -1;
+
    protected long userId = NO_ID;
    protected long administratorId = NO_ID; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
@@ -336,7 +338,7 @@ public class OpProjectSession extends XExpressSession {
     */
    public void clearSession() {
       super.clearSession();
-      
+
       userId = NO_ID;
       administratorId = NO_ID;
       everyoneId = NO_ID;
@@ -387,17 +389,26 @@ public class OpProjectSession extends XExpressSession {
       }
    }
 
-  public boolean isUser(OpUser user) {
-    if (user == null)
-      return (userId == NO_ID);
-    return(isUser(user.getID()));
-  }
+   public boolean isUser(OpUser user) {
+      if (user == null) {
+         return (userId == NO_ID);
+      }
+      return (isUser(user.getID()));
+   }
 
-  public boolean isUser(long user_id) {
-    return(userId == user_id);
-  }
+   public boolean isUser(long user_id) {
+      return (userId == user_id);
+   }
 
-  public boolean isLoggedOn() {
-    return(getUserID() != OpProjectSession.NO_ID);
-  }
+   public boolean isLoggedOn() {
+      return (getUserID() != OpProjectSession.NO_ID);
+   }
+
+   /**
+    * Gets the session variable which holds the client-timezone.
+    * @return a <code>TimeZone</code> object, representing the time zone of this client's session.
+    */
+   public TimeZone getClientTimeZone() {
+      return (TimeZone) this.getVariable(OpProjectConstants.CLIENT_TIMEZONE);
+   }
 }

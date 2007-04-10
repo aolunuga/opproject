@@ -1,4 +1,4 @@
-<form width="545" height="327" layout="border" resource-map-ref="main.about" text="{$About}"
+<form width="545" height="327" layout="border" resource-map-ref="main.about" text="${About}"
       provider-class="onepoint.project.forms.OpAboutFormProvider"
       script="/scripts/about.jes">
 
@@ -8,10 +8,10 @@
          <label icon="/icons/about_header.png"/>
          <label id="ProductName"/>
          <panel layout="flow" direction="east" style-ref="compact-panel-default">
-            <label text="{$Version}"/>
+            <label text="${Version}"/>
             <label id="Version"/>
             <label text=" ("/>
-            <label text="{$CurrentVersion}"/>
+            <label text="${CurrentVersion}"/>
             <label id="CurrentVersion"/>
             <label text=")"/>
          </panel>
@@ -23,7 +23,7 @@
       </panel>
       <panel y="1" layout="flow" direction="west">
          <panel layout="border">
-            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
          </panel>
       </panel>
    </panel>

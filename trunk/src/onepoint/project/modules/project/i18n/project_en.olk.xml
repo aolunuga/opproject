@@ -112,6 +112,8 @@
       <resource id="CreatedOn">Created On</resource>
       <resource id="DeleteVersions">Delete versions</resource>
 
+      <resource id="WorkingVersion">Checked in Project Plan</resource>
+
       <resource id="Permissions">Permissions</resource>
 
       <resource id="CalculationMode">Effort-based planning</resource>

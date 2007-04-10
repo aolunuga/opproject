@@ -11,6 +11,6 @@
       <language-kit-path path="/modules/report/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="report" caption="{$QueryTool}" group-ref="reports" icon="/modules/report/icons/report_tool.png" start-form="/modules/report/forms/report.oxf.xml"/>
+      <tool name="report" caption="${QueryTool}" group-ref="reports" icon="/modules/report/icons/report_tool.png" start-form="/modules/report/forms/report.oxf.xml"/>
    </tools>
 </module>

@@ -39,7 +39,7 @@ public class OpMyTasksService extends OpProjectService {
 
    // FIXME(dfreis Mar 5, 2007 11:16:13 AM)
    // should be set within constructor!
-   private OpMyTasksServiceImpl serviceImpl_ =  new OpMyTasksServiceImpl();
+   private OpMyTasksServiceImpl serviceImpl =  new OpMyTasksServiceImpl();
 
    /**
     * Adds a new ad-hoc tasks based on the given information.
@@ -94,7 +94,7 @@ public class OpMyTasksService extends OpProjectService {
         adhocTaks.setAttachments(new HashSet());
         updateAttachments(session, broker, adhocTaks, attachmentSet);
 
-        serviceImpl_.insertMyAdhocTask(session, broker, adhocTaks);
+        serviceImpl.insertAdhocTask(session, broker, adhocTaks);
         transaction.commit();
       } catch (XServiceException exc) {
         exc.append(reply);
@@ -124,7 +124,7 @@ public class OpMyTasksService extends OpProjectService {
       XMessage reply = new XMessage();
       try
       {
-        OpActivity activity = serviceImpl_.getMyActivityByIdString(session, broker, locator);
+        OpActivity activity = serviceImpl.getTaskByIdString(session, broker, locator);
         transaction = broker.newTransaction();
 
         activity.setName((String) arguments.get(NAME));
@@ -152,7 +152,7 @@ public class OpMyTasksService extends OpProjectService {
         XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
         updateAttachments(session, broker, activity, attachmentSet);
 
-        serviceImpl_.updateMyAdhocTask(session, broker, activity);
+        serviceImpl.updateAdhocTask(session, broker, activity);
         
         transaction.commit();
       } catch (XServiceException exc) {
@@ -188,7 +188,7 @@ public class OpMyTasksService extends OpProjectService {
       for (Iterator iterator = existingSet.iterator(); iterator.hasNext();) {
          OpAttachment attachment = (OpAttachment) iterator.next();
          if (!attachmentsRowMap.keySet().contains(attachment.locator())) {
-           serviceImpl_.deleteMyAttachment(session, broker, attachment);
+           serviceImpl.deleteAttachment(session, broker, attachment);
          }
          else {
             attachmentsRowMap.remove(attachment.locator());
@@ -234,7 +234,7 @@ public class OpMyTasksService extends OpProjectService {
            XComponent row = (XComponent) selectedRows.get(i);
            String locator = row.getStringValue();
            OpActivity activity = (OpActivity) broker.getObject(locator);
-           serviceImpl_.deleteMyAdhocTask(session, broker, activity);
+           serviceImpl.deleteAdhocTask(session, broker, activity);
          }
          transaction.commit();
        } catch (XServiceException exc) {

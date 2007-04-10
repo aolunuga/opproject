@@ -12,7 +12,7 @@ function ok(event) {
    if (!multiUser) {
       defaultUserName = form.findComponent("DefaultUserName").getStringValue();
       defaultPassword = form.findComponent("DefaultPassword").getStringValue();
-      authenticate(defaultUserName, defaultPassword);
+      authenticate(defaultUserName, defaultPassword, false);
       //show login form
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", null);
    }

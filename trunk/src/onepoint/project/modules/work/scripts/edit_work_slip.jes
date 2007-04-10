@@ -42,8 +42,10 @@ function addWorkSlip(event) {
    work_slip_locator = form.findComponent("WorkSlipIDField").getStringValue();
    new_activities = form.findComponent("NewAddedActivities");
    work_data_set = form.findComponent("WorkRecordSet");
+   original_data_set = form.findComponent("OriginalDatabaseActivities");
    parameters.WorkSlipIDField = work_slip_locator;
    parameters.NewAddedActivities = new_activities;
+   parameters.OriginalActivities = original_data_set;
    parameters.WorkDataSet = work_data_set;
    
    dialog = XComponent.newDialog();

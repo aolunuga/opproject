@@ -30,6 +30,10 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
    private final static String DATA_SET = "ActivityDataSet";
    private final static String WORK_DATA_SET = "WorkDataSet";
    private final static String NEW_ACTIVITIES = "NewAddedActivities";
+   private final static String ORIGINAL_ACTIVITIES = "OriginalActivities";
+   private final static int ORIGINAL_REMAINING_EFFORT_INDEX = 9;
+   private final static int REMAINING_EFFORT_INDEX = 2;
+   private final static int ACTUAL_EFFORT_INDEX = 1;
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -88,6 +92,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.TASK));
       activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
 
+      XComponent originalActivitiesDataSet = (XComponent) parameters.get(ORIGINAL_ACTIVITIES);     
       result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
 
       while (result.hasNext()) {
@@ -107,13 +112,25 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
 
          //activity name to be displayed
          activityDataRow = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
-         String caption = ((XComponent) activityDataRow.getChild(0)).getStringValue();
-         activityDataRow.setStringValue(caption);
+         String choice = XValidator.choice(assignment.locator(), activity.getName());
+         activityDataRow.setStringValue(choice);
 
          //add a last cell with the assignment id
          XComponent dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(assignment.locator());
          activityDataRow.addChild(dataCell);
+
+         if (originalActivitiesDataSet != null) {
+            for (int i = 0; i < originalActivitiesDataSet.getChildCount(); i++) {
+               XComponent originalDataRow = (XComponent) originalActivitiesDataSet.getChild(i);
+               if(originalDataRow.getStringValue().equals(activityDataRow.getStringValue())){
+                  double originalRemainingEffort = ((XComponent)originalDataRow.getChild(REMAINING_EFFORT_INDEX)).getDoubleValue();
+                  double originalActualEffort = ((XComponent)originalDataRow.getChild(ACTUAL_EFFORT_INDEX)).getDoubleValue();
+                  ((XComponent)activityDataRow.getChild(REMAINING_EFFORT_INDEX)).setDoubleValue(originalActualEffort + originalRemainingEffort);
+                  ((XComponent)activityDataRow.getChild(ORIGINAL_REMAINING_EFFORT_INDEX)).setDoubleValue(originalActualEffort + originalRemainingEffort);
+               }
+            }
+         }
 
          dataSet.addChild(activityDataRow);
       }

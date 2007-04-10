@@ -58,19 +58,32 @@ public class OpUserModule extends OpModule {
     * @param dbVersion The current version of the DB.
     */
    public void upgrade(OpProjectSession session, int dbVersion) {
+      OpBroker broker = session.newBroker();
       if (dbVersion < 3) {
-         OpBroker broker = session.newBroker();
          OpQuery query = broker.newQuery("select user from OpUser as user");
          Iterator result = broker.iterate(query);
          OpTransaction transaction  = broker.newTransaction();
          while (result.hasNext()) {
             OpUser user = (OpUser) result.next();
-            user.setLevel(new Byte(OpUser.MANAGER_USER_LEVEL));
+            user.setLevel(OpUser.MANAGER_USER_LEVEL);
             broker.updateObject(user);
          }
          transaction.commit();
-         broker.close();
       }
+      // update i18n names to the new format
+      if (dbVersion < 5) {
+         OpUser admin = session.administrator(broker);
+         admin.setDisplayName(OpUser.ADMINISTRATOR_DISPLAY_NAME);
+         admin.setDescription(OpUser.ADMINISTRATOR_DESCRIPTION);
+         OpGroup every = session.everyone(broker);
+         every.setDisplayName(OpGroup.EVERYONE_DISPLAY_NAME);
+         every.setDescription(OpGroup.EVERYONE_DESCRIPTION);
+         OpTransaction t  = broker.newTransaction();
+         broker.updateObject(admin);
+         broker.updateObject(every);
+         t.commit();
+      }
+      broker.close();
    }
 
 }

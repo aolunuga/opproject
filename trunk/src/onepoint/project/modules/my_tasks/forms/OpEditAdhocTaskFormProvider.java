@@ -13,6 +13,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
@@ -62,7 +63,8 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       XComponent adhocRow = (XComponent) parameters.get(SELECTED_ROW);
       int activityIndex = adhocRow.getIndex();
       form.findComponent(ACTIVITY_ROW_INDEX).setIntValue(activityIndex);
-      Boolean editMode = (Boolean) parameters.get(EDIT_MODE);
+      // if EDIT_MODE == null the edit mode is Enabled
+      boolean editMode = parameters.get(EDIT_MODE) == null || (Boolean) parameters.get(EDIT_MODE);
       OpProjectSession session = (OpProjectSession) s;
 
       Map projectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
@@ -82,6 +84,9 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       priorityField.setIntValue(task.getPriority());
       XComponent dueField = form.findComponent(TASK_DUE_DATE);
       dueField.setDateValue(task.getFinish());
+
+      // set view mode if no write rights
+      editMode &= OpMyTasksServiceImpl.writeGranted((OpProjectSession) s, task);
 
       //fill project data set
       int index = 0;
@@ -131,7 +136,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
 
       broker.close();
 
-      if (editMode != null && !editMode.booleanValue()) {
+      if (!editMode) {
          //disable all fields
          String title = session.getLocale().getResourceMap(RESOURCE_MAP).getResource(INFO_TITLE).getText();
          form.setText(title);

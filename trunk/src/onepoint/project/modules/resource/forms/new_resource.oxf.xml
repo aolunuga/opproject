@@ -1,4 +1,4 @@
-<form width="750" height="450" layout="border" resource-map-ref="resource.NewResource" start-focus-ref="Name" default-button-ref="okButton" text="{$NewResource}" provider-class="onepoint.project.modules.resource.forms.OpNewResourceFormProvider" script="/modules/resource/scripts/new_resource.jes">
+<form width="750" height="450" layout="border" resource-map-ref="resource.NewResource" start-focus-ref="Name" default-button-ref="okButton" text="${NewResource}" provider-class="onepoint.project.modules.resource.forms.OpNewResourceFormProvider" script="/modules/resource/scripts/new_resource.jes">
    <data-field id="PoolID"/>
    <data-field id="PoolIndexField" int-value="-1"/>
 	
@@ -6,18 +6,17 @@
 	   
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
    <tab-box>
-   <tab text="{$General}" layout="table" id="GeneralTab">
-      <label x="0" y="0" width="2" text="{$Name}"  style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
-      <label x="0" y="1" width="2" text="{$Description}"/><text-box x="2" y="1" width="3" id="Description"/>
-      <label x="0" y="2" width="2" text="{$Available}"/><double-field x="2" y="2" width="3" id="Available" double-value="100"/>
-      <label x="0" y="3" width="2" text="{$HourlyRate}"/><double-field x="2" y="3" width="3" id="HourlyRate"/>
-      <check-box x="2" y="4" width="3" text="{$InheritPoolRate}" id="InheritPoolRate" on-value-changed="inheritPoolRate"/>
-      <label id="ResponsibleUserLabel" x="0" y="5" width="2" text="{$ResponsibleUser}"/>
-      <data-field id="SelectedUserDataField"/>
-      <text-field id="UserName" x="2" y="5" width="2"/>
-      <button id="SelectUserButton" x="4" y="5" text="{$SelectUser}" on-button-pressed="selectUser"/>
+   <tab text="${General}" layout="table" id="GeneralTab">
+      <label x="0" y="0" width="2" text="${Name}"  style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
+      <label x="0" y="1" width="2" text="${Description}"/><text-box x="2" y="1" width="3" id="Description"/>
+      <label x="0" y="2" width="2" text="${Available}"/><double-field x="2" y="2" width="3" id="Available" double-value="100"/>
+      <label x="0" y="3" width="2" text="${HourlyRate}"/><double-field x="2" y="3" width="3" id="HourlyRate"/>
+      <check-box x="2" y="4" width="3" text="${InheritPoolRate}" id="InheritPoolRate" on-value-changed="inheritPoolRate"/>
+      <label id="ResponsibleUserLabel" x="0" y="5" width="2" text="${ResponsibleUser}"/>
+      <action-button x="2" y="5" width="3" id="UserName" edit-mode="false" left-icon="/icons/remove.png" 
+                     right-icon="/icons/user_chooser.png" on-button-pressed="selectUser"/>
    </tab>
-   <tab text="{$Projects}" layout="border" id="ProjectsTab">
+   <tab text="${Projects}" layout="border" id="ProjectsTab">
       <data-set id="AssignedProjectDataSet"/>
       <list-box y="0" id="AssignedProjectListBox" data-set-ref="AssignedProjectDataSet" flexible="true"/>
       <panel y="1" layout="flow" direction="east">
@@ -26,7 +25,7 @@
       </panel>
    </tab>
 
-   <tab text="{$Permissions}" layout="border" id="PermissionsTab">
+   <tab text="${Permissions}" layout="border" id="PermissionsTab">
       <data-set id="PerimssionIconSet">
          <data-row icon="/modules/user/icons/group.png"/>
          <data-row icon="/modules/user/icons/user.png"/>
@@ -46,8 +45,8 @@
 	   
    <panel y="1" layout="flow" direction="west">
 	  <panel layout="border">
-      <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
-      <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+      <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
 	  </panel>
    </panel>
 	   

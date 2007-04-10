@@ -1,23 +1,23 @@
 <form layout="border" resource-map-ref="project_planning.activity_details">
    <panel layout="border" style-ref="border-panel-default">
    <panel layout="table">
-      <label x="0" y="0" width="2" text="{$Name}"/>
+      <label x="0" y="0" width="2" text="${Name}"/>
       <text-field x="2" y="0" width="8" id="ActivityName" enabled="false"/>
-      <label x="0" y="1" width="2" text="{$Resources}"/>
+      <label x="0" y="1" width="2" text="${Resources}"/>
       <text-field x="2" y="1" width="8" id="ResourceNames" enabled="false"/>
-      <label x="0" y="2" width="2" text="{$Category}"/>
+      <label x="0" y="2" width="2" text="${Category}"/>
       <choice-field x="2" y="2" width="8" id="Category" enabled="false"/>
-      <label x="0" y="3" width="2" text="{$Start}"/>
+      <label x="0" y="3" width="2" text="${Start}"/>
       <date-field x="2" y="3" width="3" id="Start" enabled="false"/>
-      <label x="5" y="3" width="2" text="{$Finish}"/>
+      <label x="5" y="3" width="2" text="${Finish}"/>
       <date-field x="7" y="3" width="3" id="Finish" enabled="false"/>
-      <label x="0" y="4" width="2" text="{$Duration}"/>
+      <label x="0" y="4" width="2" text="${Duration}"/>
       <double-field x="2" y="4" width="3" id="Duration" enabled="false"/>
-      <label x="5" y="4" width="2" text="{$PercentComplete}"/>
+      <label x="5" y="4" width="2" text="${PercentComplete}"/>
       <double-field x="7" y="4" width="3" id="Complete" decimals="0" enabled="false"/>
-      <label x="0" y="5" width="2" text="{$Effort}"/>
+      <label x="0" y="5" width="2" text="${Effort}"/>
       <double-field x="2" y="5" width="3" id="BaseEffort" enabled="false"/>
-      <label x="5" y="5" width="2" text="{$Costs}"/>
+      <label x="5" y="5" width="2" text="${Costs}"/>
       <double-field x="7" y="5" width="3" id="BaseCosts" enabled="false"/>
    </panel>
    </panel>

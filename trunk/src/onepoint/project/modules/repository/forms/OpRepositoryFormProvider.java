@@ -43,7 +43,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * Error id for creating the backup directory
     */
-   private static final String BACKUP_DIR_ERROR = "{$BackupDirectoryError}";
+   private static final String BACKUP_DIR_ERROR = "${BackupDirectoryError}";
 
    /**
     * Form component ids.

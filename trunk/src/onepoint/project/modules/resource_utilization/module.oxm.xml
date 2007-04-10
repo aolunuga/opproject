@@ -6,6 +6,6 @@
       <service-file file-name="/modules/resource_utilization/resource_utilization_service.osd.xml"/>
    </service-files>
    <tools>
-      <tool name="resource_utilization" caption="{$UtilizationTool}" group-ref="resources" icon="/modules/resource_utilization/icons/resource_utilization_tool.png" start-form="/modules/resource_utilization/forms/resource_utilization.oxf.xml" sequence="10"/>
+      <tool name="resource_utilization" caption="${UtilizationTool}" group-ref="resources" icon="/modules/resource_utilization/icons/resource_utilization_tool.png" start-form="/modules/resource_utilization/forms/resource_utilization.oxf.xml" sequence="10"/>
    </tools>
 </module>

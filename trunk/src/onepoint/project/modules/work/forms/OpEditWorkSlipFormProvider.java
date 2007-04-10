@@ -30,6 +30,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
    public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";
    public final static String RESOURCE_COLUMN_COSTS = "ResourceColumnCosts";
    public final static String NEW_ADDED_ACTIVITIES_SET = "NewAddedActivities";
+   public final static String ORIGINAL_DATABASE_ACTIVITIES = "OriginalDatabaseActivities";
 
    // Form parameters
    public final static String WORK_SLIP_ID = "WorkSlipID";
@@ -60,7 +61,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
 
       // Locate time record data set in form
       XComponent workRecordSet = form.findComponent(WORK_RECORD_SET);
+      XComponent originalRecordSet = form.findComponent(ORIGINAL_DATABASE_ACTIVITIES);
       XComponent dataRow;
+      XComponent originalDataRow;
       XComponent dataCell;
 
       Iterator workRecords = workSlip.getRecords().iterator();
@@ -82,7 +85,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          //activity name - 0
          dataRow = new XComponent(XComponent.DATA_ROW);
          //set the value of the dataRow to the id of the assignment
-         dataRow.setStringValue(workRecord.getAssignment().locator());
+         String choiceAssignment = XValidator.choice(workRecord.getAssignment().locator(), activityName);
+         dataRow.setStringValue(choiceAssignment);
          workRecordSet.addChild(dataRow);
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(choice);
@@ -217,21 +221,27 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setDoubleValue(workRecord.getAssignment().getBaseEffort());
          dataRow.addChild(dataCell);
+
+         //add a copy of each row to the original activities dataset
+         originalDataRow = dataRow.copyData();
+         originalRecordSet.addChild(originalDataRow);
       }
       logger.debug("*** after loop");
 
+      Boolean paramEditMode = (Boolean) (parameters.get("edit_mode"));
+      form.findComponent("EffortTable").setEditMode(paramEditMode);
+      form.findComponent("CostsTable").setEditMode(paramEditMode);
 
-     Boolean paramEditMode = (Boolean)(parameters.get("edit_mode"));
-     if (!paramEditMode.booleanValue()){
-       form.findComponent("EffortTable").setEnabled(false);
-       form.findComponent("CostsTable").setEnabled(false);
-       form.findComponent("DateField").setEnabled(false);
-       form.findComponent("Cancel").setVisible(false);
-       form.findComponent("WorkSlipAddIcon").setVisible(false);
-       form.findComponent("WorkSlipDeleteIcon").setVisible(false);
-       String title = session.getLocale().getResourceMap("work.Info").getResource("WorkInfo").getText();
-       form.setText(title);
-     }
+      if (!paramEditMode.booleanValue()) {
+         form.findComponent("EffortTable").setEnabled(false);
+         form.findComponent("CostsTable").setEnabled(false);
+         form.findComponent("DateField").setEnabled(false);
+         form.findComponent("Cancel").setVisible(false);
+         form.findComponent("WorkSlipAddIcon").setVisible(false);
+         form.findComponent("WorkSlipDeleteIcon").setVisible(false);
+         String title = session.getLocale().getResourceMap("work.Info").getResource("WorkInfo").getText();
+         form.setText(title);
+      }
       broker.close();
    }
 }

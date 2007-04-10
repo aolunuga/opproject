@@ -6,6 +6,6 @@
       <language-kit-path path="/modules/project_planning/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="activity" caption="{$PlanningTool}" group-ref="projects" icon="/modules/project_planning/icons/project_activities_tool.png" start-form="/modules/project_planning/forms/project_activities_start.oxf.xml"/>
+      <tool name="activity" caption="${PlanningTool}" group-ref="projects" icon="/modules/project_planning/icons/project_activities_tool.png" start-form="/modules/project_planning/forms/project_activities_start.oxf.xml"/>
    </tools>
 </module>

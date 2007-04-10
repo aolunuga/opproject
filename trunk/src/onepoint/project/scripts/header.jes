@@ -4,13 +4,17 @@
 
 // Event-script for header.oxf.xml
 
-import onepoint.express.XDisplay;
-import onepoint.service.XMessage;
-import onepoint.express.XComponent;
+import
+onepoint.express.XDisplay;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XComponent;
 
 function signOff(event) {
    request = new XMessage;
    request.setAction("UserService.signOff");
+   request.setArgument("ClearCookies", true);
    XDisplay.getClient().invokeMethod(request);
    XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml");
 }
@@ -19,7 +23,7 @@ function quit(event) {
    System.exitApplication(0);
 }
 
-function clearResourceCache(event){
+function clearResourceCache(event) {
    XDisplay.clearResourceCache();
    request = new XMessage;
    request.setAction("Express.clearResourceCache");
@@ -27,7 +31,7 @@ function clearResourceCache(event){
 
 }
 
-function clearImageCache(event){
+function clearImageCache(event) {
    XDisplay.clearImageCache();
    mainFrame = XDisplay.findFrame("MainFrame");
    dockFrame = XDisplay.findFrame("DockFrame");
@@ -38,22 +42,23 @@ function clearImageCache(event){
    XDisplay.refreshForms(frames);
 }
 
-function enablePopUp(event){
+function enablePopUp(event) {
    //filter pop up menu if resource cache size is disabled
    resource_cache_size = XDisplay.getResourceCacheSize();
-   if (resource_cache_size == 0){
+   if (resource_cache_size == 0) {
       pop_up_menu = event.popUp;
-      pop_up_menu.getChild(0).setEnabled(false);//ClearResourceCache
+      pop_up_menu.getChild(0).setEnabled(false);
+      //ClearResourceCache
    }
    XDisplay.closeAllPopUps();
 }
 
-function showAbout(event){
+function showAbout(event) {
    dialog = XComponent.newDialog();
    dialog.openInNewThread("/forms/about.oxf.xml", parameters);
 }
 
-function bandwidthInfo(info){
+function bandwidthInfo(info) {
    XDisplay.setWaitingCursor();
    client = XDisplay.getClient();
    max = -1;
@@ -72,12 +77,12 @@ function bandwidthInfo(info){
       avg = avg + band;
       index++;
    }
-   avg = avg/repeatTime;
+   avg = avg / repeatTime;
    XDisplay.resetCursor();
 
    parameters.MinValue = min;
    parameters.MaxValue = max;
    parameters.AvgValue = avg;
    dialog = XComponent.newDialog();
-   dialog.open("/forms/bandwidthInfo.oxf.xml", parameters);   
+   dialog.open("/forms/bandwidthInfo.oxf.xml", parameters);
 }

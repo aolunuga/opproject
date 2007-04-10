@@ -67,7 +67,6 @@ public class AppInitializer {
       // Now start application initialization.
       logger.debug("Static set up block for all test cases");
       OpEnvironmentManager.setOnePointHome(Constants.ONEPOINT_HOME);
-
       XResourceBroker.setResourcePath(Constants.RESOURCE_PATH);
       XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap(Constants.LOCALES_OLM_XML);
       XLocaleManager.setLocaleMap(locale_map);

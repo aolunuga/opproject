@@ -11,36 +11,20 @@ import onepoint.express.XValidator;
 import onepoint.service.XMessage;
 
 function chooseSubject(event) {
-
-	Console.println("BEFORE openSC");
   openSubjectChooser("QueryFrame", "addSelectedSubject", true, false, null, false, null);
-	Console.println("AFTER openSC");
-
 }
 
 function addSelectedSubject(subject) {
-
-   Console.println("***WORK_REPORT: addSelectedSubject");
    queryFrame = XDisplay.findFrame("QueryFrame");
    form = queryFrame.currentForm();
-   Console.println("***WORK_REPORT: ACTIVE_FORM");
-   Console.println(form.getID());
-   userLocatorField = form.findComponent("UserLocatorField");
-   Console.println("***USER_LOCATOR_FIELD");
-   Console.println(userLocatorField);
-   userLocatorField.setStringValue(subject);
    userNameField = form.findComponent("UserNameField");
-   userNameField.setStringValue(XValidator.choiceCaption(subject));
-
+   userNameField.setStringValue(subject);
 }
 
 function runQuery() {
-
-	Console.println("WORK_REPORT.runQuery()");
-
 	form = XDisplay.findFrame("QueryFrame").currentForm();
 
-	choice = form.findComponent("UserLocatorField").getStringValue();
+	choice = form.findComponent("UserNameField").getStringValue();
 	if (choice != null) {
 		parameters.RunQuery = true;
 		parameters.UserLocator = XValidator.choiceID(choice);
@@ -52,10 +36,20 @@ function runQuery() {
 }
 
 function createRequest() {
-   Console.println("WorkReport.createRequest()");
 
    form = XDisplay.findFrame("QueryFrame").currentForm();
    error_label = form.findComponent("ErrorLabel");
+
+   choice = form.findComponent("UserNameField").getStringValue();
+   if (choice == null) {
+      error_message = form.findComponent("InvalidUser").getText();
+      error_label.setText(error_message);
+      error_label.setVisible(true);
+      form.doLayout();
+      form.repaint();
+      return null;
+   }
+
 
    /*check for valid start date */
    start_date = form.findComponent("StartField").getDateValue();
@@ -96,27 +90,27 @@ function createRequest() {
  * Returns a HQL query that will be used to fill up the report.
  */
 function getReportQuery() {
-   selectClause1 = "select resource.Name, resource.Description, resource.HourlyRate, projectNode.Name, activity.Name, workslip.Date";
-   selectClause2 = " , workRecord.ActualEffort, workRecord.TravelCosts, workRecord.MaterialCosts, workRecord.ExternalCosts, workRecord.MiscellaneousCosts";
-   fromClause1 = " from OpWorkSlip workslip inner join workslip.Records workRecord inner join workRecord.Assignment asgn inner join asgn.Activity activity inner join activity.ProjectPlan plan";
-   fromClause2 = " inner join plan.ProjectNode projectNode inner join asgn.Resource resource inner join resource.User user";
-   whereClause = " where workslip.Date >= ? and workslip.Date <= ? and user.ID = ? order by resource.Name, projectNode.Name, workslip.Date";
-
-   queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
-   Console.println("Work report query:" + queryString);
-
-   query.queryString = queryString;
-
    form = XDisplay.findFrame("QueryFrame").currentForm();
-   choice = form.findComponent("UserLocatorField").getStringValue();
-   userLocator = XValidator.choiceID(choice);
-   fromDate = form.findComponent("StartField").getDateValue();
-   toDate = form.findComponent("FinishField").getDateValue();
+   choice = form.findComponent("UserNameField").getStringValue();
+   if (choice != null) {
 
-   query.queryParams[0] = fromDate;
-   query.queryParams[1] = toDate;
-   query.queryParams[2] = userLocator;
+      selectClause1 = "select resource.Name, resource.Description, resource.HourlyRate, projectNode.Name, activity.Name, workslip.Date";
+      selectClause2 = " , workRecord.ActualEffort, workRecord.TravelCosts, workRecord.MaterialCosts, workRecord.ExternalCosts, workRecord.MiscellaneousCosts";
+      fromClause1 = " from OpWorkSlip workslip inner join workslip.Records workRecord inner join workRecord.Assignment asgn inner join asgn.Activity activity inner join activity.ProjectPlan plan";
+      fromClause2 = " inner join plan.ProjectNode projectNode inner join asgn.Resource resource inner join resource.User user";
+      whereClause = " where workslip.Date >= ? and workslip.Date <= ? and user.ID = ? order by resource.Name, projectNode.Name, workslip.Date";
 
+      queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
+      query.queryString = queryString;
+
+      userLocator = XValidator.choiceID(choice);
+      fromDate = form.findComponent("StartField").getDateValue();
+      toDate = form.findComponent("FinishField").getDateValue();
+
+      query.queryParams[0] = fromDate;
+      query.queryParams[1] = toDate;
+      query.queryParams[2] = userLocator;
+   }
    return query;
 }
 

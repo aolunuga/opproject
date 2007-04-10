@@ -1,443 +1,585 @@
-/**
- * 
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
+
 package onepoint.project.modules.my_tasks;
 
+import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Order;
-
-import com.lowagie.text.pdf.AsianFontMapper;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpConnection;
 import onepoint.persistence.OpQuery;
-import onepoint.persistence.hibernate.OpHibernateConnection;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAttachment;
-import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserError;
-import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
 
 /**
- * @author dfreis
+ * Service Implementation for MyTasks.
+ * This class is capable of inserting updating and deleting
+ * AdHocTasks and AdHocTask attachments.
+ * Traversing MyTasks by requesting root tasks and children tasks.
+ * Requesting MyTasks by id (whether by String or long).
  *
+ * @author dfreis
  */
-public class OpMyTasksServiceImpl
-{ 
-  
-  private static final XLog logger_ = XLogFactory.getLogger(OpMyTasksServiceImpl.class, true);
-  private static final String MAX_ACTIVITY_SEQUENCE = "select max(activity.Sequence) from OpActivity activity";
-  static final OpMyTasksErrorMap ERROR_MAP = new OpMyTasksErrorMap();
 
-  // Activity types
-  public final static byte TYPE_STANDARD = OpGanttValidator.STANDARD;
-  public final static byte TYPE_MILESTONE = OpGanttValidator.MILESTONE;
-  public final static byte TYPE_COLLECTION = OpGanttValidator.COLLECTION;
-  public final static byte TYPE_TASK = OpGanttValidator.TASK;
-  public final static byte TYPE_COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
-  public final static byte TYPE_SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
-  public final static byte TYPE_ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
+public class OpMyTasksServiceImpl {
+   private static final XLog LOGGER =
+        XLogFactory.getLogger(OpMyTasksServiceImpl.class, true);
+   private static final String MAX_ACTIVITY_SEQUENCE =
+        "select max(activity.Sequence) from OpActivity activity";
+   static final OpMyTasksErrorMap ERROR_MAP = new OpMyTasksErrorMap();
 
-  private static final String ALL_ROOT_ACTIVITIES = 
-    "select activity from OpActivity as activity"+
-    " inner join activity.Assignments as assignment"+
-    " where assignment.Resource.ID in (:resourceIds)"+
-    " and activity.SuperActivity = null"+ // no parent
-//    " and activity.ProjectPlan.ID :project"+ 
-    " and activity.Deleted = false"+  
-    " order by activity.Sequence";
+   // type filter text;
+   /**
+    * Standard type.
+    */
+   public static final byte TYPE_STANDARD = OpGanttValidator.STANDARD;
 
-  private static final String ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE = 
-    "select activity from OpActivity as activity"+
-    " inner join activity.Assignments as assignment"+
-    " where assignment.Resource.ID in (:resourceIds)"+
-    " and activity.SuperActivity = null"+ // no parent
-//    " and activity.ProjectPlan.ID :project"+ 
-    " and activity.Type in (:types)"+ // = 6 == ADHOC_TASK
-    " and activity.Deleted = false"+  
-    " order by activity.Sequence";
+   /**
+    * Milestone type.
+    */
+   public static final byte TYPE_MILESTONE = OpGanttValidator.MILESTONE;
 
-//  private static final Criteria ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE = 
-//    new Criteria(OpActivity.class)
-//  .createAlias("Assignments","assignments")
-//  .add(Expression.gt("assignments.Resource.ID", new Long(83)))
-//  .add(Expression.isNull("SuperActivity"))
-//  .add(Expression.eq("Deleted", new Boolean(false)))
-//  .add(Expression.in("Type", new Byte[] {0,1,2,3,4,5,6}))
-//  .addOrder( Order.asc("Sequence"))
-  
-  public Iterator<OpActivity> getMyRootTasks(OpProjectSession session, OpBroker broker)
-  throws XServiceException {
-    // get myResourceIds
-    OpUser user = session.user(broker);
-    Set<OpResource> resources = user.getResources();
-    // get myProjectIds
-//    LinkedList<Long> project_ids = new LinkedList<Long>();
-//    Iterator<OpResource> resource_iter = resources.iterator();
-//    Set<OpProjectNode> project_nodes;
-//    Iterator<OpProjectNode> project_iter;
-//    while (resource_iter.hasNext()) {
-//      project_nodes = resource_iter.next().getProjectNodeAssignments();
-//      project_iter = project_nodes.iterator();
-//      while (project_iter.hasNext()) {
-//        project_ids.add(project_iter.next().getID());
-//      }
-//    }
+   /**
+    * Collection type.
+    */
+   public static final byte TYPE_COLLECTION = OpGanttValidator.COLLECTION;
 
-    // construct query
-    OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES);
-    query.setCollection("resourceIds", resources);
-    
-    // type save required...
-    final Iterator iter = broker.iterate(query);
-    return new Iterator<OpActivity>() {
-      public boolean hasNext() {
-        return iter.hasNext();
+   /**
+    * Task task type.
+    */
+   public static final byte TYPE_TASK = OpGanttValidator.TASK;
+
+   /**
+    * Collection task type.
+    */
+   public static final byte TYPE_COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
+
+   /**
+    * Scheduled task type.
+    */
+   public static final byte TYPE_SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+
+   /**
+    * AdHoc task type.
+    */
+   public static final byte TYPE_ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
+
+   private static final String ALL_ROOT_ACTIVITIES =
+        "select activity from OpActivity as activity"
+             + " inner join activity.Assignments as assignment"
+             + " where assignment.Resource.ID in (:resourceIds)"
+             + " and activity.SuperActivity = null" // no parent
+//    + " and activity.ProjectPlan.ID :project" 
+             + " and activity.Deleted = false"
+             + " order by activity.Sequence";
+
+   private static final String ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE =
+        "select activity from OpActivity as activity"
+             + " inner join activity.Assignments as assignment"
+             + " where assignment.Resource.ID in (:resourceIds)"
+             + " and activity.SuperActivity = null" // no parent
+//    + " and activity.ProjectPlan.ID :project" 
+             + " and activity.Type in (:types)" // = 6 == ADHOC_TASK
+             + " and activity.Deleted = false"
+             + " order by activity.Sequence";
+
+// private static final Criteria ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE = 
+// new Criteria(OpActivity.class)
+// .createAlias("Assignments","assignments")
+// .add(Expression.gt("assignments.Resource.ID", new Long(83)))
+// .add(Expression.isNull("SuperActivity"))
+// .add(Expression.eq("Deleted", new Boolean(false)))
+// .add(Expression.in("Type", new Byte[] {0,1,2,3,4,5,6}))
+// .addOrder( Order.asc("Sequence"))
+
+   /**
+    * Returns an iterator over all tasks that do not have a parent
+    * task (= root) and the user is allowed to see.
+    *
+    * @param session the session of the user
+    * @param broker  the broker to use.
+    * @return an iterator over all tasks that do not have a parent.
+    *         task and are allowed for the user to be seen.
+    */
+
+   public final Iterator<OpActivity> getRootTasks(
+        OpProjectSession session, OpBroker broker) {
+      // get myResourceIds
+      OpUser user = session.user(broker);
+      Set<OpResource> resources = user.getResources();
+
+      // construct query
+      OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES);
+      query.setCollection("resourceIds", resources);
+
+      // type save required...
+      final Iterator iter = broker.iterate(query);
+      return new Iterator<OpActivity>() {
+         public boolean hasNext() {
+            return iter.hasNext();
+         }
+
+         public OpActivity next() {
+            return (OpActivity) iter.next();
+         }
+
+         public void remove() {
+            iter.remove();
+         }
+      };
+   }
+
+   /**
+    * Returns an iterator over all tasks that do not have a parent
+    * task (= root) matching the given types. The user must have
+    * sufficient privileged to see these tasks.
+    *
+    * @param session the session of the user
+    * @param broker  the broker to use.
+    * @param types   the types that are to be filtered;
+    * @return an iterator over all tasks that do not have a parent.
+    *         task, match one of the given types and are allowed for the
+    *         user to be seen.
+    */
+
+   public final Iterator<OpActivity> getRootTasks(
+        OpProjectSession session, OpBroker broker, BitSet types) {
+      // get myResourceIds
+      OpUser user = session.user(broker);
+      Set<OpResource> resources = user.getResources();
+      // construct query
+      OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE);
+      query.setCollection("resourceIds", resources);
+      LinkedList<Integer> type_list = new LinkedList<Integer>();
+      for (int bit = types.nextSetBit(0); bit >= 0; bit = types.nextSetBit(bit + 1)) {
+         type_list.add(bit);
+      }
+      query.setCollection("types", type_list);
+      // type save required...
+      final Iterator iter = broker.iterate(query);
+      return new Iterator<OpActivity>() {
+         public boolean hasNext() {
+            return iter.hasNext();
+         }
+
+         public OpActivity next() {
+            return (OpActivity) iter.next();
+         }
+
+         public void remove() {
+            iter.remove();
+         }
+      };
+   }
+
+   /**
+    * Returns an iterator over all child tasks that have the given
+    * common parent activity. The user must have sufficient
+    * privileged to see these tasks.
+    *
+    * @param session  the session of the user
+    * @param broker   the broker to use.
+    * @param activity the parent task to get the children for.
+    * @return an iterator over all tasks representing children of
+    *         the given activity.
+    */
+   public final Iterator<OpActivity> getChildTasks(
+        OpProjectSession session, OpBroker broker, OpActivity activity) {
+      return getChildTasks(session, broker, activity, null);
+   }
+
+   /**
+    * Returns an iterator over all child tasks that have the given
+    * common parent activity and match one of the given types.
+    * The user must have sufficient privileged to see these tasks.
+    *
+    * @param session  the session of the user
+    * @param broker   the broker to use.
+    * @param activity the parent task to get the children for.
+    * @param types    the types that are to be filtered;
+    * @return an iterator over all tasks representing children of the given activity.
+    */
+   public final Iterator<OpActivity> getChildTasks(
+        OpProjectSession session, OpBroker broker, OpActivity activity, BitSet types) {
+      LinkedList<OpActivity> ret = new LinkedList<OpActivity>();
+      Iterator<OpActivity> iter = activity.getSubActivities().iterator();
+      OpActivity to_add;
+      while (iter.hasNext()) {
+         to_add = iter.next();
+         if (readGranted(session, to_add)) {
+            if (types == null || types.get(to_add.getType())) {
+               ret.add(to_add);
+            }
+         }
+      }
+      return ret.iterator();
+   }
+
+   /**
+    * Puts the given <code>activity</code> to the users list of activities.
+    *
+    * @param activity the activity that is to be inserted.
+    * @throws XServiceException {@link OpMyTasksError#EMPTY_NAME_ERROR_CODE}
+    *                           if no name is set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#NO_PROJECT_ERROR_CODE}
+    *                           if no project plan is set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#INVALID_PRIORITY_ERROR_CODE}
+    *                           if the priority within the given activity is out of scope [1,9]
+    * @throws XServiceException {@link OpMyTasksError#NO_RESOURCE_ERROR_CODE}
+    *                           if no assignment to a resource was set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#INVALID_TYPE_ERROR_CODE}
+    *                           if the given activity is not of type {@link OpActivity#ADHOC_TASK}.
+    * @throws XServiceException {@link OpMyTasksError#INSUFICIENT_PERMISSIONS_ERROR_CODE}
+    *                           if the user does not have sufficient privileges to insert an AdHoc Task.
+    */
+   public final void insertAdhocTask(
+        OpProjectSession session, OpBroker broker, OpActivity activity)
+        throws XServiceException {
+      //task name - mandatory
+      if (activity.getName() == null) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME_ERROR_CODE)));
       }
 
-      public OpActivity next() {
-        return (OpActivity)iter.next();
+      //project & resource
+      if (activity.getProjectPlan() == null) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT_ERROR_CODE)));
       }
 
-      public void remove() {
-        iter.remove();
+      // check priority
+      if ((activity.getPriority() <= 0) || (activity.getPriority() > 9)) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE)));
       }
-    };
-//    return(broker.iterate(query));
-  }
-
-  public Iterator<OpActivity> getMyRootTasks(OpProjectSession session, OpBroker broker, BitSet types)
-  throws XServiceException {
-    // get myResourceIds
-    OpUser user = session.user(broker);
-    Set<OpResource> resources = user.getResources();
-    // construct query
-    OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE);
-    query.setCollection("resourceIds", resources);
-    LinkedList<Integer> type_list = new LinkedList<Integer>();
-    for (int bit = types.nextSetBit(0); bit >= 0; bit = types.nextSetBit(bit+1)) {
-      type_list.add(bit);
-    }
-    query.setCollection("types", type_list);
-    // type save required...
-    final Iterator iter = broker.iterate(query);
-    return new Iterator<OpActivity>() {
-      public boolean hasNext() {
-        return iter.hasNext();
+      if (activity.getAssignments() == null || activity.getAssignments().isEmpty()) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+      }
+      // check for null resources
+      for (OpAssignment assignment : activity.getAssignments()) {
+         OpResource resource = assignment.getResource();
+         if (resource == null) {
+            throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+         }
       }
 
-      public OpActivity next() {
-        return (OpActivity)iter.next();
+      // can only insert AdHoc tasks
+      if (activity.getType() != OpActivity.ADHOC_TASK) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE)));
       }
 
-      public void remove() {
-        iter.remove();
+      // check rights
+      if (!writeGranted(session, activity)) {
+         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
-    };
-    //return(broker.iterate(query));    
-  }
 
-  public Iterator<OpActivity> getMyChildTasks(OpProjectSession session, OpBroker broker, OpActivity activity)
-  throws XServiceException {
-    return(getMyChildTasks(session, broker, activity, null));
-    //   return(activity.getSubActivities().iterator());
-  }
-
-  public Iterator<OpActivity> getMyChildTasks(OpProjectSession session, OpBroker broker, OpActivity activity, BitSet types)
-  throws XServiceException {
-    LinkedList<OpActivity> ret = new LinkedList<OpActivity>();
-    Iterator<OpActivity> iter = activity.getSubActivities().iterator();
-    OpActivity to_add;
-    while (iter.hasNext()) {
-      to_add = iter.next();
-      if (readGranted(session, to_add))
-      {
-        if (types == null || types.get(to_add.getType())) {
-          ret.add(to_add);
-        }
+      // get activity sequence
+      int sequence = 0;
+      // allow queries to return stale state
+      int mode = broker.getConnection().getFlushMode();
+      broker.getConnection().setFlushMode(OpConnection.FLUSH_MODE_COMMIT);
+      
+      OpQuery query = broker.newQuery(MAX_ACTIVITY_SEQUENCE);
+      Iterator it = broker.list(query).iterator();
+      if (it.hasNext()) {
+         Integer maxSeq = (Integer) it.next();
+         if (maxSeq != null) {
+            sequence = maxSeq.intValue() + 1;
+         }
       }
-    }
-    return(ret.iterator());
-  }
-  
-  /**
-   * Puts the given <code>activity</code> to the users list of activities. 
-   * @param activity the Map of attributes representing the work slip
-   * @throws XExeption the given {@link OpWorkSlip} is of an invalid state, or the given {@link OpWorkSlip} already exists.
-   * @throws IllegalArgumentException if a required attribute is missing. In this case the work slip will not be added.
-   */
+      // set flush mode back again
+      broker.getConnection().setFlushMode(mode);
 
-  public void insertMyAdhocTask(OpProjectSession session, OpBroker broker, 
-      OpActivity activity)
-  throws XServiceException
-  {
-    //task name - mandatory
-    if (activity.getName() == null) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME_ERROR_CODE)));
-    }
+      activity.setSequence(sequence);
+      broker.makePersistent(activity);
+      // store assignments
+      Iterator<OpAssignment> assignmentIter = activity.getAssignments().iterator();
+      while (assignmentIter.hasNext()) {
+         broker.makePersistent(assignmentIter.next());
+      }
+      // store attachments
+      Iterator<OpAttachment> attachmentIter = activity.getAttachments().iterator();
+      OpAttachment attachment;
+      OpContent content;
+      while (attachmentIter.hasNext()) {
+         attachment = attachmentIter.next();
+         content = attachment.getContent();
+         if (content != null) {
+            broker.makePersistent(content);
+         }
+         broker.makePersistent(attachment);
+      }
 
-    //project & resource
-    if (activity.getProjectPlan() == null) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT_ERROR_CODE)));
-    }
+      // flush connection to ensure possible exceptions here!
+      broker.getConnection().flush();
+   }
 
-    if (activity.getAssignments() == null || activity.getAssignments().isEmpty()) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-    }
+   /**
+    * Deletes the given AdHoc Task.
+    *
+    * @param session  the session of the user
+    * @param broker   the broker to use.
+    * @param activity the task that is to be deleted.
+    * @throws XServiceException {@link OpMyTasksError#TASK_NOT_FOUND_ERROR_CODE}
+    *                           if the given task is <code>null</code>.
+    * @throws XServiceException {@link OpMyTasksError#INSUFICIENT_PERMISSIONS_ERROR_CODE}
+    *                           if the user is not logged in, or does not have sufficient privileges
+    *                           to delete the given task.
+    * @throws XServiceException {@link OpMyTasksError#INVALID_TYPE_ERROR_CODE}
+    *                           if the given activity is not of type {@link OpActivity#ADHOC_TASK}.
+    * @throws XServiceException {@link OpMyTasksError#EXISTING_WORKSLIP_ERROR_CODE}
+    *                           if there exist workslips belonging to the given activity.
+    */
+   public void deleteAdhocTask(
+        OpProjectSession session, OpBroker broker, OpActivity activity)
+        throws XServiceException {
+      if (activity == null) {
+         LOGGER.warn("ERROR: given task is <null>");
+         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
+      }
+      // check rights
+      if (!writeGranted(session, activity)) {
+         throw new XServiceException(session.newError(ERROR_MAP,
+              OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
+      }
 
-    // can only insert AdHoc tasks
-    if (activity.getType() != OpActivity.ADHOC_TASK) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE)));
-    }
+      if ((activity.getType() & OpActivity.ADHOC_TASK) != OpActivity.ADHOC_TASK) {
+         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE));
+      }
+
+      // cannot delete if work records exist
+      for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
+         OpAssignment assignment = (OpAssignment) iterator.next();
+         if (!assignment.getWorkRecords().isEmpty()) {
+            throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
+         }
+      }
+      broker.deleteObject(activity);
+   }
+
+   /**
+    * Updates the given AdHoc Task.
+    *
+    * @param session  the session of the user
+    * @param broker   the broker to use.
+    * @param activity the task that is to be updated within the database.
+    * @throws XServiceException {@link OpMyTasksError#TASK_NOT_FOUND_ERROR_CODE}
+    *                           if the given task is <code>null</code>.
+    * @throws XServiceException {@link OpMyTasksError#INSUFICIENT_PERMISSIONS_ERROR_CODE}
+    *                           if the user is not logged in, or does not have sufficient privileges to delete the given task.
+    * @throws XServiceException {@link OpMyTasksError#INVALID_TYPE_ERROR_CODE}
+    *                           if the given activity is not of type {@link OpActivity#ADHOC_TASK}.
+    * @throws XServiceException {@link OpMyTasksError#EMPTY_NAME_ERROR_CODE}
+    *                           if no name is set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#NO_PROJECT_ERROR_CODE}
+    *                           if no project plan is set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#INVALID_PRIORITY_ERROR_CODE}
+    *                           if the priority within the given activity is out of scope [1,9]
+    * @throws XServiceException {@link OpMyTasksError#NO_RESOURCE_ERROR_CODE}
+    *                           if no assignment to a resource was set within the given activity.
+    * @throws XServiceException {@link OpMyTasksError#EXISTING_WORKSLIP_ERROR_CODE}
+    *                           if there exist workslips belonging to the given activity.
+    */
+
+   public void updateAdhocTask(OpProjectSession session, OpBroker broker, OpActivity activity)
+        throws XServiceException {
+      if (activity == null) {
+         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
+      }
+      // check rights
+      if (!writeGranted(session, activity)) {
+         throw new XServiceException(session.newError(ERROR_MAP,
+              OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
+      }
+
+      if ((activity.getType() & OpActivity.ADHOC_TASK) != OpActivity.ADHOC_TASK) {
+         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE));
+      }
+
+      //task name - mandatory
+      if (activity.getName() == null) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME_ERROR_CODE)));
+      }
+
+      //project & resource
+      if (activity.getProjectPlan() == null) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT_ERROR_CODE)));
+      }
+
+      // check priority
+      if ((activity.getPriority() <= 0) || (activity.getPriority() > 9)) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE)));
+      }
+
+      if (activity.getAssignments() == null || activity.getAssignments().isEmpty()) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+      }
+      
+      // check for null resources
+      for (OpAssignment assignment : activity.getAssignments()) {
+         OpResource resource = assignment.getResource();
+         if (resource == null) {
+            throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+         }
+      }
+
+      broker.getConnection().flush();
+   }
+
+   /**
+    * Returns the AdHoc task identified by the given id, or null if no such task was found.
+    *
+    * @param session the session of the user.
+    * @param broker  the broker to use.
+    * @param id      the id of the AdHoc task to retrieve.
+    * @return the activity identified by id.
+    */
+   public OpActivity getTaskById(
+        OpProjectSession session, OpBroker broker, long id) {
+      OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, id);
+      if (!readGranted(session, activity)) {
+         return null;
+      }
+      return activity;
+   }
+
+   /**
+    * Returns the AdHoc task identified by the given idString, or null if no such task was found.
+    *
+    * @param session  the session of the user.
+    * @param broker   the broker to use.
+    * @param idString the string representing an identifier of the AdHoc task to retrieve.
+    * @return the activity identified by idString.
+    */
+   public OpActivity getTaskByIdString(
+        OpProjectSession session, OpBroker broker, String idString) {
+      OpActivity activity = (OpActivity) broker.getObject(idString);
+      if (!readGranted(session, activity)) {
+         return null;
+      }
+
+      return activity;
+   }
+
+// public void insertMyAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment, OpActivity activity)
+// throws XServiceException {
+// OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
+// }
+
+   /**
+    * Deletes the given attachment from its corresponding task.
+    *
+    * @param session    the session of the user.
+    * @param broker     the broker to use.
+    * @param attachment the attachment that is to be deleted.
+    */
+   // FIXME(dfreis Apr 4, 2007 8:01:56 PM)
+   // should be private!!
    
-    // check rights
-    if (!writeGranted(session, activity)) {
-      throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP, 
-          OpUserError.INSUFFICIENT_PRIVILEGES)); 
-    }
+   void deleteAttachment(
+        OpProjectSession session, OpBroker broker, OpAttachment attachment) {
+      broker.deleteObject(attachment);
+   }
 
-    // get activity sequence
-    int sequence = 0;
-    OpBroker query_broker = session.newBroker();
-    OpQuery query = query_broker.newQuery(MAX_ACTIVITY_SEQUENCE);
-    Iterator it = query_broker.list(query).iterator();
-    if (it.hasNext()) {
-      Integer maxSeq = (Integer) it.next();
-      if (maxSeq != null) {
-        sequence = maxSeq.intValue() + 1;
+// public void updateMyAttachment(
+//   OpProjectSession session, OpBroker broker, OpAttachment attachment)
+// throws XServiceException {
+// }
+
+   /**
+    * It check if the user administrator, project manager, resource manager, resource observer or responsible user for assingned resource
+    *
+    * @param session  the project session
+    * @param activity the ctivity to check
+    * @return true if the user has rights to create/edit resource
+    */
+   public static boolean readGranted(OpProjectSession session, OpActivity activity) {
+      boolean readRights = writeGranted(session, activity);
+      // read writes include write rights
+      if (readRights) {
+         return true;
       }
-    }
-    query_broker.close();
-    activity.setSequence(sequence);
-//    activity.setProjectPlan(activity.getProjectPlan());
-//    activity.setAttachments(new HashSet());
-//    activity.setAssignments(new HashSet());
-    
-    broker.makePersistent(activity);
-    Iterator<OpAssignment> assignmentIter = activity.getAssignments().iterator();
-    while (assignmentIter.hasNext()) {
-      broker.makePersistent(assignmentIter.next());
-    }
-    // attachments are explicitely stored
-    Iterator<OpAttachment> attachmentIter = activity.getAttachments().iterator();
-    OpAttachment attachment;
-    OpContent content;
-    while (attachmentIter.hasNext()) {
-      attachment = attachmentIter.next();
-      content = attachment.getContent();
-      if (content != null) {
-        broker.makePersistent(content);        
+
+      OpBroker broker = session.newBroker();
+      for (OpAssignment assignment : activity.getAssignments()) {
+         OpResource resource = assignment.getResource();
+         if (resource == null) {
+            throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+         }
+         // resource manager can create/update AdHoc Tasks
+         int level = session.effectiveAccessLevel(broker, resource.getID());
+         if (level >= OpPermission.OBSERVER) { // no rights below observer!
+            broker.close();
+            return true;
+         }
       }
-      broker.makePersistent(attachment);
-    }
-  
-    broker.getConnection().flush();
-  }
-     
-  public void deleteMyAdhocTask(OpProjectSession session, OpBroker broker, OpActivity activity)
-    throws XServiceException
-  {
-    if (activity == null) {
-      logger_.warn("ERROR: Could not find object with ID " + activity.getID());
-      throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
-    }
-    // check rights
-    if (!writeGranted(session, activity)) {
-      throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP, 
-          OpUserError.INSUFFICIENT_PRIVILEGES)); 
-    }
 
-    if ((activity.getType() & OpActivity.ADHOC_TASK) != OpActivity.ADHOC_TASK) {
-      throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE)); 
-    }      
-    
-    // cannot delete if work records exist
-    for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
-       OpAssignment assignment = (OpAssignment) iterator.next();
-       if (!assignment.getWorkRecords().isEmpty()) {
-         throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
-       }
-    }
-    broker.deleteObject(activity);
-  }
+      return false;
+   }
 
-  public void updateMyAdhocTask(OpProjectSession session, OpBroker broker, OpActivity activity)
-    throws XServiceException
-  {
-    if (activity == null) {
-      throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
-    }
-    // check rights
-    if (!writeGranted(session, activity)) {
-      throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP, 
-          OpUserError.INSUFFICIENT_PRIVILEGES)); 
-    }
-    
-    if ((activity.getType() & OpActivity.ADHOC_TASK) != OpActivity.ADHOC_TASK) {
-      throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INVALID_TYPE_ERROR_CODE)); 
-    }      
-
-    //task name - mandatory
-    if (activity.getName() == null) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EMPTY_NAME_ERROR_CODE)));
-    }
-
-    //project & resource
-    if (activity.getProjectPlan() == null) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_PROJECT_ERROR_CODE)));
-    }
-
-    if (activity.getAssignments() == null || activity.getAssignments().isEmpty()) {
-      throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-    }
-    broker.getConnection().flush();
-  } 
-
-  /**
-   * @param id
-   * @return
-   * @throws XServiceException 
-   */
-
-  public OpActivity getMyActivityById(OpProjectSession session, OpBroker broker, long id)
-    throws XServiceException {
-    OpActivity activity = (OpActivity)broker.getObject(OpActivity.class, id);
-    if (!readGranted(session, activity)) {
-      return(null);
-    }
-    return(activity);
-  }
-  
-  public OpActivity getMyActivityByIdString(OpProjectSession session, OpBroker broker, String id_string)
-    throws XServiceException
-  {
-    OpActivity activity = (OpActivity)broker.getObject(id_string);
-    if (!readGranted(session, activity)) {
-      return(null);
-    }
-    
-    return(activity);
-  }
-  
-
-//  public void insertMyAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment, OpActivity activity)
-//  throws XServiceException {
-//    OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
-//  }
-
-  public void deleteMyAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment) {
-    broker.deleteObject(attachment);
-  }
-
-//  public void updateMyAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment)
-//    throws XServiceException {
-//  }
-  
-  private static boolean accessGranted(OpProjectSession session, 
-      OpProjectNode project, OpResource resource) {
-    if (!session.isLoggedOn())
-      return(false);
-    if (session.userIsAdministrator())
-      return(true);
-    
-    byte level = project.getEffectiveAccessLevel();
-    if ((level & OpPermission.ADMINISTRATOR) == OpPermission.ADMINISTRATOR ||
-        (level & OpPermission.MANAGER) == OpPermission.MANAGER) {
-      return(true);
-    }
-    if ((level & OpPermission.CONTRIBUTOR) == OpPermission.CONTRIBUTOR) {
-      return(session.isUser(resource.getUser()));
-    }
-    return(false);
-  }
-  
-  private static boolean readGranted(OpProjectSession session, 
-      OpActivity activity) {
-    if (!session.isLoggedOn())
-      return(false);
-    OpProjectPlan project_plan = activity.getProjectPlan();
-    byte level = project_plan.getProjectNode().getEffectiveAccessLevel();
-    if ((level & OpPermission.ADMINISTRATOR) == OpPermission.ADMINISTRATOR ||
-        (level & OpPermission.MANAGER) == OpPermission.MANAGER) {
-      return(true);
-    }
-//    if ((activity.getType() & TYPE_ADHOC_TASK) == TYPE_ADHOC_TASK) {
-//      OpBroker broker = session.newBroker();
-//      if ((session.user(broker).getAssignments().size() <= 0) && 
-//          OpProjectDataSetFactory.getProjectToResourceMap(session).isEmpty())
-//        return(false); // user has no assignments and no permissions to projects
-//      return(true);
-//    }
-    if (((level & OpPermission.CONTRIBUTOR) == OpPermission.CONTRIBUTOR) ||
-       ((activity.getType() & TYPE_ADHOC_TASK) == TYPE_ADHOC_TASK)) {
-
-      // now check that user is owner of at least one assignments
-      Iterator assignment_iter = activity.getAssignments().iterator();
-      OpAssignment assignment;
-      if (!assignment_iter.hasNext()) { // no assignments
-        return(true);
+   /**
+    * It check if the user administrator, project manager, resource manager or responsible user for assingned resource
+    *
+    * @param session  the project session
+    * @param activity the activity to check
+    * @return true if the user has rights to create/edit resource
+    */
+   public static boolean writeGranted(OpProjectSession session, OpActivity activity) {
+      // check if logged in
+      if (!session.isLoggedOn()) {
+         LOGGER.info("not logged in!");
+         return false;
       }
-      while (assignment_iter.hasNext()) {
-        assignment = (OpAssignment) assignment_iter.next();
-        OpResource resource = assignment.getResource();
-        if (resource == null)
-          throw(new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-        if (session.isUser(resource.getUser())) {
-          return(true);
-        }
-      }
-      return(false);
-    }
-    return(false);
-  }
 
-  private static boolean writeGranted(OpProjectSession session, 
-      OpActivity activity) {
-    // admin, manager or (contributor with at least one assignment to the user) 
-    return(readGranted(session, activity));
-//    if (!session.isLoggedOn())
-//      return(false);
-//    if (session.userIsAdministrator())
-//      return(true);
-//    
-//    byte level = activity.getProjectPlan().getProjectNode().getEffectiveAccessLevel();
-//    if ((level & OpPermission.ADMINISTRATOR) == OpPermission.ADMINISTRATOR ||
-//        (level & OpPermission.MANAGER) == OpPermission.MANAGER) {
-//      return(true);
-//    }
-//    if ((level & OpPermission.CONTRIBUTOR) == OpPermission.CONTRIBUTOR) {
-//      // now check that user is owner of all assignments
-//      Iterator assignment_iter = activity.getAssignments().iterator();
-//      OpAssignment assignment;
-//      while (assignment_iter.hasNext()) {
-//        assignment = (OpAssignment) assignment_iter.next();
-//        if (!session.isUser(assignment.getResource().getUser())) {
-//          return(false);
-//        }
-//      }
-//      return(true);
-//    }
-//    return(false);
-  }
+      // administrator has all the rights
+      if (session.getUserID() == session.getAdministratorID()) {
+         return true;
+      }
+
+      OpBroker broker = session.newBroker();
+      try {
+         // project manager can create/update AdHoc Tasks
+         OpProjectNode project = activity.getProjectPlan().getProjectNode();
+         byte level = session.effectiveAccessLevel(broker, project.getID());
+         if (level >= OpPermission.MANAGER) { // no rights below manager!
+            broker.close();
+            return true;
+         }
+
+         for (OpAssignment assignment : activity.getAssignments()) {
+            OpResource resource = assignment.getResource();
+            if (resource == null) {
+               throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
+            }
+            // resource manager can create/update AdHoc Tasks
+            level = session.effectiveAccessLevel(broker, resource.getID());
+            if (level >= OpPermission.MANAGER) { // no rights below manager!
+               broker.close();
+               return true;
+            }
+            // responsible user can create/update AdHoc Tasks
+            if (resource.getUser().getID() == session.getUserID()) {
+               return true;
+            }
+         }
+      }
+      finally {
+         broker.close();
+      }
+      LOGGER.warn("Insufficient Adhoc task write permissions!");
+      return false;
+   }
 }

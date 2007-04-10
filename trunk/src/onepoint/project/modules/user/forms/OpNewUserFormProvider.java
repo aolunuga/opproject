@@ -34,8 +34,8 @@ public class OpNewUserFormProvider implements XFormProvider {
    public final static String USER_LANGUAGE_FIELD = "UserLanguage";
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
-   public final static String MANAGER_LEVEL_CAPTION = "{$ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "{$StandardLevel}";
+   public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
+   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
    public final static String RESOURCE_MAP = "user.new_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {

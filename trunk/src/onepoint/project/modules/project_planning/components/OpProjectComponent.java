@@ -418,7 +418,7 @@ public class OpProjectComponent extends XComponent {
             OpProjectComponent gantt_chart = new OpProjectComponent(GANTT_CHART);
             // *** Should be configurable
             view_port.addChild(gantt_chart);
-            XComponent scrolling_header = new XComponent(XComponent.SCROLLING_HEADER);
+            XComponent scrolling_header = new XComponent(XComponent.SCROLLING_PANEL);
             scrolling_header.setX(0);
             scrolling_header.setY(-1);
             _addChild(scrolling_header);
@@ -462,7 +462,7 @@ public class OpProjectComponent extends XComponent {
             OpProjectComponent utilization_chart = new OpProjectComponent(UTILIZATION_CHART);
             // *** Should be configurable
             initializeScrollBox().addChild(utilization_chart);
-            scrolling_header = new XComponent(XComponent.SCROLLING_HEADER);
+            scrolling_header = new XComponent(XComponent.SCROLLING_PANEL);
             scrolling_header.setX(0);
             scrolling_header.setY(-1);
             _addChild(scrolling_header);
@@ -869,7 +869,7 @@ public class OpProjectComponent extends XComponent {
 
          captionEditor.registerEventHandler(this, COMPONENT_EVENT);
          captionEditorOwner = this;
-         XComponent viewPort = (XComponent) getContext().getChild(VIEW_PORT_INDEX);
+         XComponent viewPort = (XComponent) getContext().getViewPort();
          XComponent verticalScrollBar = (XComponent) getContext().getChild(VERTICAL_SCROLL_BAR_INDEX);
          int scrollWidth = 0;
          if (verticalScrollBar.getBounds() != null) {
@@ -1011,7 +1011,7 @@ public class OpProjectComponent extends XComponent {
     * it's containing chart to reset it's calendar
     */
    public void resetCalendar() {
-      XComponent viewPort = (XComponent) _getChild(VIEW_PORT_INDEX);
+      XComponent viewPort = (XComponent) getViewPort();
       OpProjectComponent chart = (OpProjectComponent) viewPort._getChild(0);
       chart.setStart(null);
       chart.setEnd(null);
@@ -1031,7 +1031,7 @@ public class OpProjectComponent extends XComponent {
       if (getStart() == null) {
          // Only start calculations if not already initialized
 
-         XCalendar calendar = XDisplay.getCalendar();
+         XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
 
          int first_weekday = calendar.getCalendar().getFirstDayOfWeek();
          int last_weekday = calendar.previousWeekday(first_weekday);
@@ -1178,11 +1178,11 @@ public class OpProjectComponent extends XComponent {
          byte timeUnit = box.getTimeUnit();
          switch (timeUnit) {
             case XCalendar.WEEKS: {
-               chart_start = XCalendar.getDefaultCalendar().workWeekStart(chart_start);
+               chart_start = XDisplay.getDefaultDisplay().getCalendar().workWeekStart(chart_start);
                break;
             }
             case XCalendar.MONTHS: {
-               chart_start = XCalendar.getDefaultCalendar().getFirstWorkDayOfMonth(chart_start);
+               chart_start = XDisplay.getDefaultDisplay().getCalendar().getFirstWorkDayOfMonth(chart_start);
                break;
             }
          }
@@ -1203,14 +1203,14 @@ public class OpProjectComponent extends XComponent {
          // logger.debug("*** WORK_WEEK_LENGTH " + work_week_length);
          setWorkWeekLength(work_week_length);
 
-         int first_work_week_length = XCalendar.getDefaultCalendar().countWeekdays(start_weekday, last_workday);
+         int first_work_week_length = XDisplay.getDefaultDisplay().getCalendar().countWeekdays(start_weekday, last_workday);
          logger.debug("FIRST_WORK_WEEK_LENGTH: " + first_work_week_length);
 
          int first_weekend_length = weekLength - work_week_length;
          if (first_work_week_length > work_week_length) {
             // Start weekday is part of first weekend
             first_work_week_length = work_week_length;
-            first_weekend_length = XCalendar.getDefaultCalendar().countWeekdays(start_weekday, calendar.previousWeekday(first_workday));
+            first_weekend_length = XDisplay.getDefaultDisplay().getCalendar().countWeekdays(start_weekday, calendar.previousWeekday(first_workday));
          }
          // logger.debug("*** FIRST_WEEKEND_LENGTH " +
          // first_weekend_length);
@@ -1369,7 +1369,7 @@ public class OpProjectComponent extends XComponent {
       int size = 0;
       Object captionCached;
       String captionValueType;
-      OpProjectComponent gantt_chart = (OpProjectComponent) _getChild(VIEW_PORT_INDEX)._getChild(0);
+      OpProjectComponent gantt_chart = (OpProjectComponent) getBoxContent();
       if (getCaptionLeft() == null) {
          return 0;
       }
@@ -1402,7 +1402,7 @@ public class OpProjectComponent extends XComponent {
       int size = 0;
       Object captionCached;
       String captionValueType;
-      OpProjectComponent gantt_chart = (OpProjectComponent) _getChild(VIEW_PORT_INDEX)._getChild(0);
+      OpProjectComponent gantt_chart = (OpProjectComponent) getBoxContent();
       if (getCaptionRight() == null) {
          return 0;
       }
@@ -1564,7 +1564,7 @@ public class OpProjectComponent extends XComponent {
    protected void _dynamicGanttDependency(int source_x, int source_y, int target_x, int target_y) {
       // TODO: Take all grid-x/y from context/box instead of chart
       OpProjectComponent box = (OpProjectComponent) getContext();
-      OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)._getChild(0));
+      OpProjectComponent chart = (OpProjectComponent) box.getBoxContent();
       double half_day_w = box._dayWidth() / 2;
       int half_grid_y = chart.getGridY() / 2;
       Point target_point = new Point(target_x, target_y);
@@ -2016,11 +2016,11 @@ public class OpProjectComponent extends XComponent {
       if (this.pc_type == GANTT_CHART || this.pc_type == UTILIZATION_CHART) {
          // set the start for chart to "round" values - begining of month/begining of week
          Date start = this.getStart();
-         Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+         Calendar calendar = XDisplay.getDefaultDisplay().getCalendar().getCalendar();
          calendar.setTime(start);
          switch (timeUnit) {
             case XCalendar.WEEKS:
-               int minimumDay = XCalendar.getDefaultCalendar().getCalendar().getFirstDayOfWeek();
+               int minimumDay = XDisplay.getDefaultDisplay().getCalendar().getCalendar().getFirstDayOfWeek();
                int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
                if (dayOfWeek > minimumDay) {
                   int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -2124,7 +2124,7 @@ public class OpProjectComponent extends XComponent {
          return OpGanttValidator.getEnd(dataRow);
       }
       else if (id.equals(DETAILS_DURATION)) {
-         XCalendar calendar = XDisplay.getCalendar();
+         XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
          return new Double(Math.ceil(OpGanttValidator.getDuration(dataRow) / calendar.getWorkHoursPerDay()));
       }
       else if (id.equals(DETAILS_COMPLETE)) {
@@ -2476,7 +2476,7 @@ public class OpProjectComponent extends XComponent {
    protected void paintProjectStartFinishLines(Graphics g, Rectangle clip_area) {
       OpProjectComponent box = (OpProjectComponent) getContext();
       Rectangle bounds = getBounds();
-      XComponent view_port = (XComponent) box._getChild(VIEW_PORT_INDEX);
+      XComponent view_port = (XComponent) box.getViewPort();
       OpProjectComponent ganttChart = (OpProjectComponent) view_port.getChild(0);
 
       XComponent data_set = box.getDataSetComponent();
@@ -2540,9 +2540,9 @@ public class OpProjectComponent extends XComponent {
       XComponent ganttHeader = (XComponent) box.getChild(3).getChild(0);
       Rectangle ganttHeaderBounds = ganttHeader.getBounds();
 
-      XComponent view_port = (XComponent) box._getChild(VIEW_PORT_INDEX);
+      XComponent view_port = (XComponent) box.getViewPort();
       OpProjectComponent ganttChart = (OpProjectComponent) view_port.getChild(0);
-      XCalendar xCalendar = XCalendar.getDefaultCalendar();
+      XCalendar xCalendar = XDisplay.getDefaultDisplay().getCalendar();
       Date currentDay = ganttChart.getStart();
 
       byte time_unit = box.getTimeUnit();
@@ -3049,13 +3049,12 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
-           ._getChild(0));
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
       // int first_week_length = gantt_chart.getFirstWorkWeekLength() +
       // gantt_chart.getFirstWeekendLength();
       Date start = gantt_chart.getStart();
       long time = start.getTime();
-      XCalendar calendar = XDisplay.getCalendar();
+      XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
       char[] weekday_initials = calendar.getWeekdayInitials();
       calendar.getCalendar().setTime(start);
       int weekday = calendar.getCalendar().get(Calendar.DAY_OF_WEEK);
@@ -3101,13 +3100,11 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
-           ._getChild(0));
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
       Date start = gantt_chart.getStart();
       long start_time = start.getTime();
-      long end_time = gantt_chart.getEnd().getTime();
 
-      XCalendar calendar = XCalendar.getDefaultCalendar();
+      XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
       Calendar j_calendar = calendar.getCalendar();
       j_calendar.setTimeInMillis(start_time);
 
@@ -3229,10 +3226,9 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (getParent().getParent()._getChild(VIEW_PORT_INDEX)
-           ._getChild(0));
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
       Date start = gantt_chart.getStart();
-      XCalendar calendar = XDisplay.getCalendar();
+      XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
       Calendar j_calendar = calendar.getCalendar();
       j_calendar.setTime(start);
 
@@ -3299,7 +3295,7 @@ public class OpProjectComponent extends XComponent {
 
       // get the context (chart box) and the chart.
       box = (OpProjectComponent) getContext();
-      chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)._getChild(0));
+      chart = (OpProjectComponent) (box.getBoxContent());
 
       chart.setDragShape(null);
       XComponent data_set = box.getDataSetComponent();
@@ -3325,7 +3321,7 @@ public class OpProjectComponent extends XComponent {
          // milestone
          if (box.getTimeUnit() == XCalendar.WEEKS) {
             day_offset = (long) (Math.floor(((double) x) / day_width) * unitRatio);
-            day_offset += XCalendar.getDefaultCalendar().getWorkHoursPerWeek() / XCalendar.getDefaultCalendar().getWorkHoursPerDay() - 1;
+            day_offset += XDisplay.getDefaultDisplay().getCalendar().getWorkHoursPerWeek() / XDisplay.getDefaultDisplay().getCalendar().getWorkHoursPerDay() - 1;
          }
          else if (box.getTimeUnit() == XCalendar.MONTHS) {
             day_offset = (long) (Math.floor(((double) x) / day_width + 1) * unitRatio);
@@ -3439,7 +3435,7 @@ public class OpProjectComponent extends XComponent {
    protected OpProjectComponent createDependency() {
       logger.debug("   DROP DEPENDENCY");
       OpProjectComponent box = (OpProjectComponent) getContext();
-      OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)._getChild(0));
+      OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
       chart.setDragShape(null);
       // *** TODO: This is a problem; Data-set/model supports no open
       // dependencies
@@ -3470,7 +3466,7 @@ public class OpProjectComponent extends XComponent {
 
       // Check if dependency already has a target
       OpProjectComponent box = (OpProjectComponent) getContext();
-      OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)._getChild(0));
+      OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
       OpProjectComponent source = dependency.getSource();
       OpProjectComponent target = dependency.getTarget();
 
@@ -3587,7 +3583,7 @@ public class OpProjectComponent extends XComponent {
       // *** Check if point (x, y) is outside of currently visible area
       XComponent box = getContext();
       Point position = absolutePosition(x, y);
-      Rectangle bounds = box.getChild(VIEW_PORT_INDEX).absoluteBounds();
+      Rectangle bounds = box.getViewPort().absoluteBounds();
       if ((position.x < bounds.x) || (position.x > bounds.x + bounds.width)) {
          // Scroll horizontally
          XComponent horizontal_scroll_bar = (XComponent) (box._getChild(HORIZONTAL_SCROLL_BAR_INDEX));
@@ -3818,7 +3814,7 @@ public class OpProjectComponent extends XComponent {
                   OpProjectComponent source = parent.getDraggedComponent();
                   if (source != null && source != this) {
                      OpProjectComponent box = (OpProjectComponent) getContext();
-                     OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)._getChild(0));
+                     OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
                      parent.setDrawingLine(null);
                      OpProjectComponent dep = source.createDependency();
                      boolean result = linkToDependency(dep);
@@ -3898,9 +3894,6 @@ public class OpProjectComponent extends XComponent {
                            break;
                         case POINTER_DRAG_END:
                            OpProjectComponent box = (OpProjectComponent) getContext();
-                           OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)
-                                ._getChild(0));
-                           OpGanttValidator validator = (OpGanttValidator) (box.getDataSetComponent().validator());
                            //move the activity
                            try {
                               moveActivityOnGantt();
@@ -3964,15 +3957,14 @@ public class OpProjectComponent extends XComponent {
                               setDragPosition(null);
                               Rectangle bounds = getBounds();
                               OpProjectComponent box = (OpProjectComponent) getContext();
-                              OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)
-                                   ._getChild(0));
+                              OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
                               double day_width = box._dayWidth();
                               long day_offset = (long) (bounds.x / day_width);
 
                               if (box.getTimeUnit() == XCalendar.WEEKS) {
                                  //milestones on last working day of week
                                  day_offset = (long) (day_offset * getUnitRatio(box.getTimeUnit()));
-                                 day_offset += XCalendar.getDefaultCalendar().getWorkHoursPerWeek() / XCalendar.getDefaultCalendar().getWorkHoursPerDay() - 1;
+                                 day_offset += XDisplay.getDefaultDisplay().getCalendar().getWorkHoursPerWeek() / XDisplay.getDefaultDisplay().getCalendar().getWorkHoursPerDay() - 1;
                               }
                               else if (box.getTimeUnit() == XCalendar.MONTHS) {
                                  day_offset = (long) ((day_offset + 1) * getUnitRatio(box.getTimeUnit()));
@@ -4069,8 +4061,7 @@ public class OpProjectComponent extends XComponent {
                               setDragPosition(null);
                               Rectangle bounds = getBounds();
                               OpProjectComponent box = (OpProjectComponent) getContext();
-                              OpProjectComponent chart = (OpProjectComponent) (box._getChild(VIEW_PORT_INDEX)
-                                   ._getChild(0));
+                              OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
                               double day_width = box._dayWidth();
                               double ratio = getUnitRatio(box.getTimeUnit());
                               long start_day_units = (int) ((bounds.x + (day_width / 2)) / day_width);
@@ -4370,7 +4361,6 @@ public class OpProjectComponent extends XComponent {
 
                   case CURSOR_LEFT_KEY:
                      // Move activity one day backward in time
-                     OpProjectComponent chart = (OpProjectComponent) (box.getChild(VIEW_PORT_INDEX).getChild(0));
                      // <FIXME author="Ovidiu Lupas" description="Activity that has not a predecessor has the start date
                      // null">
                      activityStartDate = getStart();
@@ -4379,18 +4369,12 @@ public class OpProjectComponent extends XComponent {
                         Date start = new Date(activityStartDate.getTime() - XCalendar.MILLIS_PER_DAY);
                         box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
                              OpGanttValidator.START_COLUMN_INDEX, start);
-                        /*
-                         * setStart(start); long duration = getDuration(); if (duration == 0) setEnd(start); else
-                         * setEnd(chart.getCalendar().addWorkDays(start, (int) (duration /
-                         * chart.getCalendar().getDayWorkTime()))); chart.validate(); box.doLayout(); box.repaint();
-                         */
                      }
                      // </FIXME>
                      break;
                   case CURSOR_RIGHT_KEY:
                      // Move activity one day forward in time
                      box = (OpProjectComponent) getContext();
-                     chart = (OpProjectComponent) (box.getChild(VIEW_PORT_INDEX).getChild(0));
 
                      // <FIXME author="Ovidiu Lupas" description="Activity that has not a predecessor has the start date
                      // null">
@@ -4399,11 +4383,6 @@ public class OpProjectComponent extends XComponent {
                         Date start = new Date(activityStartDate.getTime() + XCalendar.MILLIS_PER_DAY);
                         box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
                              OpGanttValidator.START_COLUMN_INDEX, start);
-                        /*
-                         * setStart(start); duration = getDuration(); if (duration == 0) setEnd(start); else
-                         * setEnd(chart.getCalendar().addWorkDays(start, (int) (duration /
-                         * chart.getCalendar().getDayWorkTime()))); chart.validate(); box.doLayout(); box.repaint();
-                         */
                      }
                      // </FIXME>
                      break;
@@ -4413,7 +4392,7 @@ public class OpProjectComponent extends XComponent {
                      if (pc_type == GANTT_ACTIVITY) {
                         // Remove activity from chart
                         box = (OpProjectComponent) getContext();
-                        chart = (OpProjectComponent) (box.getChild(VIEW_PORT_INDEX).getChild(0));
+                        OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
                         chart.removeActivity(this);
                         box.doLayout();
                         box.repaint();
@@ -4569,7 +4548,7 @@ public class OpProjectComponent extends XComponent {
       if (this.pc_type == GANTT_DEPENDENCY) {
          // Remove activity from chart
          OpProjectComponent box = (OpProjectComponent) getContext();
-         OpProjectComponent chart = (OpProjectComponent) (box.getChild(VIEW_PORT_INDEX).getChild(0));
+         OpProjectComponent chart = (OpProjectComponent) getBoxContent();
          chart.removeDependency(this);
          box.doLayout();
          box.repaint();
@@ -4630,7 +4609,7 @@ public class OpProjectComponent extends XComponent {
     */
    public void updateGantChartDate(int direction, int calendarField, int value) {
       // update the start Date and the End Date according to the scrolling direction
-      OpProjectComponent ganttChart = (OpProjectComponent) _getChild(VIEW_PORT_INDEX)._getChild(0);
+      OpProjectComponent ganttChart = (OpProjectComponent) getBoxContent();
       // get the date from the ganttChart according to the direction
       Calendar dateCalendar = Calendar.getInstance();
       // inject dateCalendar depending on scrolling direction
@@ -4659,7 +4638,7 @@ public class OpProjectComponent extends XComponent {
     */
    private void updateGanttChartDate(int direction) {
       // view port
-      XComponent viewPort = (XComponent) _getChild(VIEW_PORT_INDEX);
+      XComponent viewPort = getViewPort();
       // gantt chart
       OpProjectComponent ganttChart = (OpProjectComponent) viewPort._getChild(0);
       // update the start Date and the End Date according to the scrolling direction
@@ -4750,7 +4729,7 @@ public class OpProjectComponent extends XComponent {
                updateGanttChartDate(direction);
             }
             if (action == STATUS_CHANGED) {
-               OpProjectComponent chart = (OpProjectComponent) getChild(VIEW_PORT_INDEX).getChild(0);
+               OpProjectComponent chart = (OpProjectComponent) getBoxContent();
                if (chart != null) {
                   chart.resetCached();
                }
@@ -4824,7 +4803,7 @@ public class OpProjectComponent extends XComponent {
       switch (pc_type) {
          case GANTT_BOX:
             // Clear all data
-            XComponent data = (XComponent) (_getChild(VIEW_PORT_INDEX)._getChild(0));
+            XComponent data = (XComponent) getBoxContent();
             if (data != null) {
                data.removeAllChildren();
             }
@@ -4835,7 +4814,7 @@ public class OpProjectComponent extends XComponent {
    public void addChild(XView child) {
       switch (pc_type) {
          case GANTT_BOX:
-            _getChild(VIEW_PORT_INDEX)._getChild(0).addChild(child);
+            getBoxContent().addChild(child);
             break;
          default:
             super.addChild(child);
@@ -5027,7 +5006,7 @@ public class OpProjectComponent extends XComponent {
       Serializable state = null;
       switch (pc_type) {
          case GANTT_BOX:
-            OpProjectComponent chart = (OpProjectComponent) getChild(VIEW_PORT_INDEX).getChild(0);
+            OpProjectComponent chart = (OpProjectComponent) getBoxContent();
             List ganttState = new ArrayList();
             ganttState.add(chart.getDrawingToolId());
             ganttState.add(chart.getMouseCursor());
@@ -5046,7 +5025,7 @@ public class OpProjectComponent extends XComponent {
    public void restoreState(Serializable state) {
       switch (pc_type) {
          case GANTT_BOX:
-            OpProjectComponent chart = (OpProjectComponent) getChild(VIEW_PORT_INDEX).getChild(0);
+            OpProjectComponent chart = (OpProjectComponent) getBoxContent();
             List ganttState = (List) state;
             chart.setDrawingToolId((String) ganttState.get(0));
             chart.setMouseCursor((Cursor) ganttState.get(1));
@@ -5240,8 +5219,8 @@ public class OpProjectComponent extends XComponent {
    public boolean existsValidUtilizationData(List detailsTimeInterval) {
 
       Date rowStartDate = ((XComponent) getDataRow().getChild(UTILIZATION_START_COLUMN_INDEX)).getDateValue();
-      int valuesStartIndex = XDisplay.getCalendar().getDaysDifference(rowStartDate, (Date) detailsTimeInterval.get(INTERVAL_START_INDEX));
-      int valuesEndIndex = XDisplay.getCalendar().getDaysDifference(rowStartDate, (Date) detailsTimeInterval.get(INTERVAL_FINISH_INDEX));
+      int valuesStartIndex = XDisplay.getDefaultDisplay().getCalendar().getDaysDifference(rowStartDate, (Date) detailsTimeInterval.get(INTERVAL_START_INDEX));
+      int valuesEndIndex = XDisplay.getDefaultDisplay().getCalendar().getDaysDifference(rowStartDate, (Date) detailsTimeInterval.get(INTERVAL_FINISH_INDEX));
       //list of values
       List values = ((XComponent) (getDataRow().getChild(UTILIZATION_VALUES_COLUMN_INDEX))).getListValue();
       //suppose not existent valid data in selected interval
@@ -5279,7 +5258,7 @@ public class OpProjectComponent extends XComponent {
       // width increment for x axis
       int widthIncrement = (int) box._dayWidth();
 
-      Calendar time = XDisplay.getCalendar().getCalendar();
+      Calendar time = XDisplay.getDefaultDisplay().getCalendar().getCalendar();
       //start of the utilization start
       time.setTime(getStart());
       int x = 0;
@@ -5338,7 +5317,7 @@ public class OpProjectComponent extends XComponent {
             break;
          case UTILIZATION_BOX:
             hideScrollBars();
-            size = getChild(VIEW_PORT_INDEX)._getChild(0).getBounds().getSize();
+            size = getBoxContent().getBounds().getSize();
             break;
          default:
             size = super.prepareImageableView();
@@ -5363,7 +5342,7 @@ public class OpProjectComponent extends XComponent {
 
    private Date roundEnd(OpProjectComponent box, Date end) {
       if (box.getTimeUnit() == XCalendar.MONTHS) {
-         Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+         Calendar calendar = XDisplay.getDefaultDisplay().getCalendar().getCalendar();
          calendar.setTime(end);
          int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
          int month = calendar.get(Calendar.MONTH);
@@ -5381,7 +5360,7 @@ public class OpProjectComponent extends XComponent {
    private Date roundStart(OpProjectComponent box, Date start) {
       if (box.getTimeUnit() == XCalendar.MONTHS) {
          //for months view, round to the first day of month
-         Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+         Calendar calendar = XDisplay.getDefaultDisplay().getCalendar().getCalendar();
          calendar.setTime(start);
          int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
          int month = calendar.get(Calendar.MONTH);

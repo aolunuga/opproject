@@ -7,7 +7,7 @@
       <language-kit-path path="/modules/project_status/i18n"/>
    </language-kit-paths>
    <tools>
-      <tool name="project_status" caption="{$ProjectStatusTool}" group-ref="system"
+      <tool name="project_status" caption="${ProjectStatusTool}" group-ref="system"
             icon="/modules/project_status/icons/project_status_tool.png"
             start-form="/modules/project_status/forms/project_status.oxf.xml"/>
    </tools>

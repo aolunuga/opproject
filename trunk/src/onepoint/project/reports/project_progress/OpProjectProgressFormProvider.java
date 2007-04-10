@@ -41,11 +41,10 @@ public class OpProjectProgressFormProvider implements XFormProvider {
 
       // Execute query and fill result set if RunQuery is true
       if (parameters != null) {
-         Boolean runQuery = (Boolean) parameters.get(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.RUN_QUERY);
+         Boolean runQuery = (Boolean) parameters.get(RUN_QUERY);
          if ((runQuery != null) && (runQuery.booleanValue())) {
 
-            String projectLocator = (String) parameters
-                 .get(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_LOCATOR);
+            String projectLocator = (String) parameters.get(PROJECT_LOCATOR);
             if (projectLocator == null) {
                broker.close();
                return; // TODO: Throw exception
@@ -58,10 +57,8 @@ public class OpProjectProgressFormProvider implements XFormProvider {
                return; // TODO: Throw exception
             }
 
-            form.findComponent(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_LOCATOR_FIELD).setStringValue(
-                 projectLocator);
-            form.findComponent(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_NAME_FIELD).setStringValue(
-                 project.getName());
+            form.findComponent(PROJECT_LOCATOR_FIELD).setStringValue(projectLocator);
+            form.findComponent(PROJECT_NAME_FIELD).setStringValue(project.getName());
 
             // Execute query
             StringBuffer queryBuffer = new StringBuffer("select activity.Name, activity.Complete, activity.BaseEffort, activity.ActualEffort");

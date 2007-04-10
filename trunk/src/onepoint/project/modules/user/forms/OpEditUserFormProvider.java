@@ -30,8 +30,8 @@ public class OpEditUserFormProvider implements XFormProvider {
    private final static String PASSWORD_RETYPED = "PasswordRetyped";
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
-   public final static String MANAGER_LEVEL_CAPTION = "{$ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "{$StandardLevel}";
+   public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
+   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
    public final static String RESOURCE_MAP = "user.edit_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {

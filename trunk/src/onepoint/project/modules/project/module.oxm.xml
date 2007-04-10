@@ -27,13 +27,13 @@
       <language-kit-path path="/modules/project/i18n"/>
    </language-kit-paths>
    <tool-groups>
-      <tool-group name="projects" caption="{$ProjectsToolGroup}"/>
-      <tool-group name="my" caption="{$MyToolGroup}"/>
-      <tool-group name="reports" caption="{$ReportsToolGroup}"/>
-      <tool-group name="resources" caption="{$ResourcesToolGroup}"/>
-      <tool-group name="system" caption="{$SystemToolGroup}" administrator-only="true"/>
+      <tool-group name="projects" caption="${ProjectsToolGroup}"/>
+      <tool-group name="my" caption="${MyToolGroup}"/>
+      <tool-group name="reports" caption="${ReportsToolGroup}"/>
+      <tool-group name="resources" caption="${ResourcesToolGroup}"/>
+      <tool-group name="system" caption="${SystemToolGroup}" administrator-only="true"/>
    </tool-groups>
    <tools>
-      <tool name="projects" caption="{$ProjectsAdministrationTool}" group-ref="projects" icon="/modules/project/icons/project_tool.png" start-form="/modules/project/forms/projects.oxf.xml" selected="true"/>
+      <tool name="projects" caption="${ProjectsAdministrationTool}" group-ref="projects" icon="/modules/project/icons/project_tool.png" start-form="/modules/project/forms/projects.oxf.xml" selected="true"/>
    </tools>
 </module>

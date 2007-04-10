@@ -1,6 +1,7 @@
-/**
- * 
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
+
 package onepoint.project.modules.user;
 
 import java.util.HashSet;
@@ -10,7 +11,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.hibernate.exception.ConstraintViolationException;
-import org.hsqldb.User;
 
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -26,66 +26,123 @@ import onepoint.service.server.XServiceException;
 import onepoint.log.XLog;
 
 /**
+ * Service Implementation for Users and Groups.
+ * This class is capable of:
+ * Inserting, updating and deleting users and groups.
+ * Signing on and off a user.
+ * Assigning users and groups to groups.
+ * Removing users and groups from groups.
+ * Requesting users and groubs by id.
+ * Traversing users and groups via children relations.
+ *
  * @author dfreis
- * 
- * Implementation of the users services.
+ *
  */
 
-public class OpUserServiceImpl
-{
-  private final static XLog logger_ = XLogFactory.getLogger(OpUserServiceImpl.class, true);
+public class OpUserServiceImpl{
+
+  private static final XLog logger_ = XLogFactory.getLogger(OpUserServiceImpl.class, true);
 
   /**
    * the map containing all error types.
    */
-  public final static OpUserErrorMap ERROR_MAP = new OpUserErrorMap();
+  public static final OpUserErrorMap ERROR_MAP = new OpUserErrorMap();
 
   /**
    * the user subject type used for simple type based filtering.
    */
-  public final static int TYPE_USER = 1;
+  public static final int TYPE_USER = 1;
 
   /**
    * the group subject type used for simple type based filtering.
    */
-  public final static int TYPE_GROUP = 2;
+  public static final int TYPE_GROUP = 2;
 
   /**
    * the all subjects type used to retrieve users and groups.
    */
-  public final static int TYPE_ALL = TYPE_USER+TYPE_GROUP;
+  public static final int TYPE_ALL = TYPE_USER + TYPE_GROUP;
 
-  
+  private static final String ALL_ROOT_GROUPS = 
+     "select activity from OpActivity as activity"
+     + " inner join activity.Assignments as assignment"
+     + " where assignment.Resource.ID in (:resourceIds)"
+     + " and activity.SuperActivity = null" // no parent
+//   + " and activity.ProjectPlan.ID :project" 
+     + " and activity.Deleted = false"
+     + " order by activity.Sequence";
+
   /**
    * Assigns the given {@link OpUser user} to the given {@link OpGroup group}.
-   * 
+   *
    * @param session the session within any operation will be performed.
    * @param broker the broker to perform any operation.
    * @param user the user that is to be assigned to a group.
    * @param group the group to assign the user to.
-   * @throws XServiceException OpUserError.USER_NOT_FOUND if {@link OpUser user} is null.
-   * @throws XServiceException OpUserError.SUPER_GROUP_NOT_FOUND if {@link OpGroup group} is null.
-   * @pre session and broker must be valid
-   * @post user assigned to group
+   * @throws XServiceException {@link OpUserError#USER_NOT_FOUND}
+   * if {@link OpUser user} is null.
+   * @throws XServiceException {@link OpUserError#SUPER_GROUP_NOT_FOUND}
+   * if {@link OpGroup group} is null.
+   * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
+   * if user is not administrator.
    */
-  
-  public void assign(OpProjectSession session, OpBroker broker, OpUser user, OpGroup group) 
-    throws XServiceException 
-  {
-    if (user == null)
-    {
+
+  public final void assign(final OpProjectSession session, final OpBroker broker,
+        final OpUser user, final OpGroup group)
+    throws XServiceException {
+    if (user == null) {
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_NOT_FOUND));
     }
-      
-    if (group == null)
-    {
+
+    if (group == null) {
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
     }
-    
+    if (!session.userIsAdministrator()) {
+       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
+    }
+
     OpUserAssignment assignment = new OpUserAssignment();
     assignment.setUser(user);
     assignment.setGroup(group);
     broker.makePersistent(assignment);
+  }
+
+  /**
+   * Returns an iterator over all groups that do not have a parent
+   * group (= root groups).
+   *
+   * @param session the session of the user
+   * @param broker the broker to use.
+   * @return an iterator over all root groups.
+   */
+
+  public final Iterator<OpGroup> getRootGroups(
+       final OpProjectSession session, final OpBroker broker) {
+
+     return null;
+//     // get myResourceIds
+//     OpUser user = session.user(broker);
+//     Set<OpResource> resources = user.getResources();
+//
+//     // construct query
+//     OpQuery query = broker.newQuery(ALL_ROOT_GROUPS);
+//     query.setCollection("resourceIds", resources);
+//
+//     // type save required...
+//     final Iterator iter = broker.iterate(query);
+//     return new Iterator<OpActivity>() {
+//        public boolean hasNext() {
+//           return iter.hasNext();
+//        }
+//
+//        public OpActivity next() {
+//           return (OpActivity) iter.next();
+//        }
+//
+//        public void remove() {
+//           iter.remove();
+//        }
+//     };
   }
 
   /**
@@ -157,7 +214,7 @@ public class OpUserServiceImpl
    * @pre session and broker must be valid
    * @post
    */
-  public void inserUser(OpProjectSession session, OpBroker broker, OpUser user) throws XServiceException 
+  public void insertUser(OpProjectSession session, OpBroker broker, OpUser user) throws XServiceException 
   {
     if (!session.userIsAdministrator()) {
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
@@ -440,6 +497,10 @@ public class OpUserServiceImpl
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
     }
 
+    if (!session.userIsAdministrator()) {
+       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
+    }
+
     if (!isAssignable(session, broker, group, superGroup))
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
       
@@ -572,7 +633,10 @@ public class OpUserServiceImpl
    * @post
    */
   public void deleteUserAssignment(OpProjectSession session, OpBroker broker, OpUserAssignment assignment) {
-    broker.deleteObject(assignment);    
+     if (!session.userIsAdministrator()) {
+        throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
+     }
+     broker.deleteObject(assignment);    
   }
 
   /**
@@ -607,7 +671,10 @@ public class OpUserServiceImpl
    * @post
    */
   public void deleteGroupAssignment(OpProjectSession session, OpBroker broker, OpGroupAssignment assignment) {
-    broker.deleteObject(assignment);
+     if (!session.userIsAdministrator()) {
+        throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
+     }
+     broker.deleteObject(assignment);
   }
 
   /**

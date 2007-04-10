@@ -23,7 +23,7 @@ public class OpWorkSlip extends OpObject {
    private int number = -1;
    private Date date;
    private OpUser creator;
-   private Set records;
+   private Set<OpWorkRecord> records;
 
    protected void setNumber(int number) {
       this.number = number;
@@ -49,14 +49,32 @@ public class OpWorkSlip extends OpObject {
       return creator;
    }
 
-   public void setRecords(Set records) {
+   public void setRecords(Set<OpWorkRecord> records) {
       this.records = records;
    }
 
-   public Set getRecords() {
+   public Set<OpWorkRecord> getRecords() {
       return records;
    }
-   
+  
+   public String toString() {
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("<"+getClass().getSimpleName()+">\n");
+      buffer.append("<number="+number+"/>\n");
+      buffer.append("<date="+number+"/>\n");
+      buffer.append("<creator="+creator+"/>\n");
+      buffer.append("<records>");
+      if (records != null) {
+         Iterator<OpWorkRecord> iter = records.iterator();
+         while (iter.hasNext()) {
+            buffer.append(iter.next());
+         }
+      }
+      buffer.append("</records>");
+      buffer.append("</"+getClass().getSimpleName()+">");
+      return(buffer.toString());
+   }
+
    public boolean isValid()
    {
      Set records = getRecords();

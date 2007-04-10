@@ -7,6 +7,8 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+
+import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -373,5 +375,54 @@ public class OpHibernateConnection extends OpConnection {
   @Override
   public void flush() {
     session.flush();
+  }
+
+  /* (non-Javadoc)
+   * @see onepoint.persistence.OpConnection#setFlushOnCommitMode()
+   */
+  @Override
+  public void setFlushMode(int flushMode) {
+     switch (flushMode) {
+     case FLUSH_MODE_NEVER:
+     {
+        session.setFlushMode(FlushMode.NEVER);
+        break;
+     }
+     case FLUSH_MODE_COMMIT:
+     {
+        session.setFlushMode(FlushMode.COMMIT);
+        break;
+     }
+     case FLUSH_MODE_AUTO:
+     {
+        session.setFlushMode(FlushMode.AUTO);
+        break;
+     }
+     case FLUSH_MODE_ALWAYS:
+     {
+        session.setFlushMode(FlushMode.ALWAYS);
+        break;
+     }
+     default:
+     {
+        throw new IllegalArgumentException("unsupported flush mode: "+flushMode);
+     }
+     }
+  }
+  /* (non-Javadoc)
+   * @see onepoint.persistence.OpConnection#getFlushMode()
+   */
+  @Override
+  public int getFlushMode() {
+     FlushMode mode = session.getFlushMode();
+     if (mode.equals(FlushMode.NEVER))
+        return FLUSH_MODE_NEVER;
+     if (mode.equals(FlushMode.COMMIT))
+        return FLUSH_MODE_COMMIT;
+     if (mode.equals(FlushMode.AUTO))
+        return FLUSH_MODE_AUTO;
+     if (mode.equals(FlushMode.ALWAYS))
+        return FLUSH_MODE_ALWAYS;
+     return(-1);
   }
 }

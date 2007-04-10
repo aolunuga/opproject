@@ -766,7 +766,7 @@ CREATE TABLE `op_projectnode` (
 
 /*!40000 ALTER TABLE `op_projectnode` DISABLE KEYS */;
 LOCK TABLES `op_projectnode` WRITE;
-INSERT INTO `op_projectnode` VALUES (8,'{$RootProjectPortfolioName}',1,'{$RootProjectPortfolioDescription}',NULL,NULL,0,NULL,NULL,NULL),(32768,'Development',1,'',NULL,NULL,0,8,NULL,NULL),(32772,'Consulting',1,'',NULL,NULL,0,8,NULL,NULL),(32777,'Organization',1,'',NULL,NULL,0,8,NULL,NULL),(32781,'SuperWiz',3,'','2006-06-05','2006-11-24',0,32768,NULL,294913),(32786,'Virtual Cockpit v2',3,'','2007-01-01','2007-08-31',0,32768,NULL,294914),(32791,'ALS v5',3,'Automatic Landing System','2006-07-03','2006-12-29',0,32768,NULL,294912),(32796,'Relocation (new HQ)',3,'','2006-08-14','2006-08-25',0,32777,NULL,294912),(32801,'Marketing Plan',3,'','2006-01-02','2006-12-29',0,32777,NULL,294912),(98304,'Implementation ALS/Xplore',3,'','2007-02-05','2007-03-31',0,32772,NULL,294912);
+INSERT INTO `op_projectnode` VALUES (8,'${RootProjectPortfolioName}',1,'${RootProjectPortfolioDescription}',NULL,NULL,0,NULL,NULL,NULL),(32768,'Development',1,'',NULL,NULL,0,8,NULL,NULL),(32772,'Consulting',1,'',NULL,NULL,0,8,NULL,NULL),(32777,'Organization',1,'',NULL,NULL,0,8,NULL,NULL),(32781,'SuperWiz',3,'','2006-06-05','2006-11-24',0,32768,NULL,294913),(32786,'Virtual Cockpit v2',3,'','2007-01-01','2007-08-31',0,32768,NULL,294914),(32791,'ALS v5',3,'Automatic Landing System','2006-07-03','2006-12-29',0,32768,NULL,294912),(32796,'Relocation (new HQ)',3,'','2006-08-14','2006-08-25',0,32777,NULL,294912),(32801,'Marketing Plan',3,'','2006-01-02','2006-12-29',0,32777,NULL,294912),(98304,'Implementation ALS/Xplore',3,'','2007-02-05','2007-03-31',0,32772,NULL,294912);
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `op_projectnode` ENABLE KEYS */;
 
@@ -1009,7 +1009,7 @@ CREATE TABLE `op_resourcepool` (
 
 /*!40000 ALTER TABLE `op_resourcepool` DISABLE KEYS */;
 LOCK TABLES `op_resourcepool` WRITE;
-INSERT INTO `op_resourcepool` VALUES (5,'{$RootResourcePoolName}','{$RootResourcePoolDescription}',0,NULL),(44,'Engineer','',100,5),(47,'Consultants','',115,5),(50,'QA & Documentation','',70,5),(53,'Project Manager','',130,5);
+INSERT INTO `op_resourcepool` VALUES (5,'${RootResourcePoolName}','${RootResourcePoolDescription}',0,NULL),(44,'Engineer','',100,5),(47,'Consultants','',115,5),(50,'QA & Documentation','',70,5),(53,'Project Manager','',130,5);
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `op_resourcepool` ENABLE KEYS */;
 
@@ -1136,7 +1136,7 @@ CREATE TABLE `op_subject` (
 
 /*!40000 ALTER TABLE `op_subject` DISABLE KEYS */;
 LOCK TABLES `op_subject` WRITE;
-INSERT INTO `op_subject` VALUES (1,'Administrator','{$AdministratorDisplayName}','{$AdministratorDescription}'),(3,'Everyone','{$EveryoneDisplayName}','{$EveryoneDescription}'),(12,'cs','Claudia Schulz',''),(16,'tw','Thomas Winter',''),(20,'hs','Hiromi Sato',''),(24,'fn','Fredrik Nieminen',''),(28,'ms','Mihir Singh',''),(32,'jw','Jody Wang',''),(36,'sh','Sabine Hausberg',''),(40,'dmk','Duncan MacKay',''),(65710,'jm','Josef Muster','');
+INSERT INTO `op_subject` VALUES (1,'Administrator','${AdministratorDisplayName}','${AdministratorDescription}'),(3,'Everyone','${EveryoneDisplayName}','${EveryoneDescription}'),(12,'cs','Claudia Schulz',''),(16,'tw','Thomas Winter',''),(20,'hs','Hiromi Sato',''),(24,'fn','Fredrik Nieminen',''),(28,'ms','Mihir Singh',''),(32,'jw','Jody Wang',''),(36,'sh','Sabine Hausberg',''),(40,'dmk','Duncan MacKay',''),(65710,'jm','Josef Muster','');
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `op_subject` ENABLE KEYS */;
 
