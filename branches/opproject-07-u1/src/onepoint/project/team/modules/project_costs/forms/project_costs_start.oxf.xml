@@ -1,0 +1,6 @@
+<form id="ProjectStart" layout="border">
+   <panel layout="border" style-ref="compact-panel-default">
+      <frame id="ProjectContentFrame" content="/team/modules/project_costs/forms/project_costs.oxf.xml"/>
+      <frame x="-1" id="ProjectNavigatorFrame" content="/modules/project_planning/forms/project_navigator.oxf.xml"/>
+   </panel>
+</form>

@@ -1,0 +1,13 @@
+<form layout="border" default-button-ref="OKButton" resource-map-ref="main.error" text="{$Error}" provider-class="onepoint.project.forms.OpErrorFormProvider" script="/scripts/showError.jes">
+
+   <data-field id="FrameName"/>
+   <data-field id="CallbackName"/>
+   <data-field id="CallbackParameters"/>
+
+   <panel y="0" layout="border">
+   <label y="0" id="Message" style-ref="label-error-default" />
+   <panel y="1" width="3" layout="table">
+      <button x = "1" id="OKButton" text="{$OK}" on-button-pressed="ok"/>
+   </panel>
+   </panel>
+</form>

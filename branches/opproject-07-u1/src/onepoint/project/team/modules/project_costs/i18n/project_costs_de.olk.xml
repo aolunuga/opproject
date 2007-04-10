@@ -1,0 +1,12 @@
+<language-kit locale="de">
+   <resource-map id="project_costs.project_costs">
+      <resource id="BaseCostsDistribution">Basiskostenverteilung</resource>
+      <resource id="OutlineLevelFilter">Gliederungsebenen</resource>
+      <resource id="TopLevel">Oberste</resource>
+      <resource id="Level2">2</resource>
+      <resource id="Level3">3</resource>
+      <resource id="Level4">4</resource>
+      <resource id="Level5">5</resource>
+      <resource id="AllLevels">Alle</resource>
+   </resource-map>
+</language-kit>

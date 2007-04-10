@@ -1,0 +1,5 @@
+<service name="PreferencesService" class="onepoint.project.modules.preferences.OpPreferencesService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="savePreferences">
+      <parameter name="preferences" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+</service>

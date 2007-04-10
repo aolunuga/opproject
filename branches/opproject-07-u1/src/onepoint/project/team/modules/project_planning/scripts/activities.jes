@@ -1,0 +1,64 @@
+
+
+require "onepoint/project/modules/project_planning/scripts/activities.jes" as super;
+
+//overrides the getEditDialogForm() from onepoint/project/modules/project_planning/scripts/open_activity_details.jes
+function getEditDialogForm() {
+   return "/team/modules/project_planning/forms/edit_activity.oxf.xml";
+}
+
+//overrides the addAlwaysDisableFields() from onepoint/project/modules/project_planning/scripts/open_activity_details.jes
+function addAlwaysDisableFields(disabledFieldsIds){
+   //no field will be "always disabled"    
+}
+
+
+function changeWbsTool(event) {
+   // *** Find component gantt-box via ID
+   wbs_box = XDisplay.getActiveForm().findComponent("ActivityWBSChart");
+   toggle_bar = XDisplay.getActiveForm().findComponent("WBSToggleBar");
+   state = toggle_bar.getIntValue();
+   button = toggle_bar.getChild(state);
+   id = button.getID();
+   wbs_box.changeTool(id);
+}
+
+function saveWBSImage(event) {
+   XDisplay.getActiveForm().findComponent("ActivityWBSChart").saveAsImage("Save WBS");
+}
+
+function print(event) {
+   tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
+   tabId = getCurrentTabId(tabBox);
+
+   if (tabId == "StructureDiagramTab") {
+      title = getPrintTitle(tabBox);
+      wbs_chart = XDisplay.getActiveForm().findComponent("ActivityWBSChart");
+      wbs_chart.print(title);
+   }
+   else {
+      super.print(event);
+   }   
+}
+
+function updateAllViews() {
+   super.updateAllViews();
+   XDisplay.getActiveForm().findComponent("ActivityWBSChart").update();
+}
+
+function addActivityWBS(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   selected_rows = activity_data_set.selectedRows();
+   data_row = activity_data_set.newDataRow();
+   if (selected_rows.size() > 0) {
+      index = selected_rows[0].getIndex();
+      outlineLevel = selected_rows[0].getOutlineLevel();
+      data_row.setOutlineLevel(outlineLevel);
+      index++;
+      activity_data_set.addDataRow(index, data_row);
+   }
+   else {
+      activity_data_set.addDataRow(data_row);
+   }
+   XDisplay.getActiveForm().findComponent("ActivityWBSChart").update();
+}

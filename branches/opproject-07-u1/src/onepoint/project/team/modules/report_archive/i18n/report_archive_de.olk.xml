@@ -1,0 +1,42 @@
+<language-kit locale="de">
+   <resource-map id="report_archive.module">
+      <resource id="ReportArchive">Archiv</resource>
+      <resource id="QueryTool">Abfragen</resource>      
+   </resource-map>
+   <resource-map id="report_archive.report_archive">
+      <resource id="ReportName">Name</resource>
+      <resource id="CreatedBy">Erstellt von</resource>
+      <resource id="CreatedOn">Erstellt am</resource>
+      <resource id="ReportType">Typ</resource>
+      <resource id="Info">Eigenschaften</resource>
+      <resource id="InfoTooltip">Bericht Eigenschaften</resource>
+      <resource id="Delete">Löschen</resource>
+      <resource id="DeleteTooltip">Bericht löschen</resource>
+      <resource id="ReportTypes">Report Types</resource>
+   </resource-map>
+   <resource-map id="report_archive.delete">
+      <resource id="ConfirmDelete">Berichte löschen</resource>
+      <resource id="ConfirmDeleteText">Sind Sie sicher, dass Sie die ausgewählten Berichte löschen möchten?</resource>
+      <resource id="Ok">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="report_archive.edit">
+      <resource id="General">Allgemein</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="EditCaption">Bericht Bearbeiten</resource>
+      <resource id="InfoCaption">Bericht Eigenschaften</resource>
+      <resource id="ReportName">Name</resource>
+      <resource id="CreatedBy">Erstellt von</resource>
+      <resource id="CreatedOn">Erstellt am</resource>
+      <resource id="ReportType">Typ</resource>
+      <resource id="Ok">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="report_archive.report">
+      <resource id="SaveReport">Bericht speichern</resource>
+      <resource id="SaveReportTooltip">Bericht speichern</resource>
+   </resource-map>
+   <resource-map id="report_archive.error">
+      <resource id="InsuficientPrivileges">Sie haben nicht die notwendigen Rechte um diesen Bericht einzusehen</resource>
+   </resource-map>   
+</language-kit>

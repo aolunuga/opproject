@@ -1,0 +1,43 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project/scripts/confirm_project_delete.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+/**
+ * @Overrides /modules/project/scripts/confirm_project_delete.jes
+ */
+function deleteTemplates(template_ids) {
+   // delete selected templates
+   if (template_ids.size() > 0) {
+      request = new XMessage;
+      request.setAction("ProjectService.deleteTemplates");
+      request.setArgument("template_ids", template_ids);
+      response = XDisplay.getClient().invokeMethod(request);
+      warning = response.getArgument("warning");
+      if (warning != null) {
+         XDisplay.getActiveWindow().close();
+         showWarning(response, warning, "MainFrame", "refreshForm", null);
+      }
+      else {
+         if (handleResponse(response, null, null) == false) {
+            thisWindow.close();
+            return;
+         }
+         else {
+            refreshForm();
+            return true;
+         }
+      }
+   }
+}
+
+function refreshForm() {
+   XDisplay.findFrame("MainFrame").refreshForm();
+}

@@ -1,0 +1,9 @@
+<language-kit locale="de">
+   <resource-map id="project_dates.project_dates">
+	  <resource id="Milestones">Meilenstein-Liste</resource>
+      <resource id="MilestoneTrendAnalysis">Meilenstein-Trend-Analyse</resource>
+      <resource id="SaveCSV">Als Tabelle speichern...</resource>
+      <resource id="Milestone">Meilenstein</resource>
+      <resource id="CurrentDate">Aktuell</resource>
+   </resource-map>
+</language-kit>

@@ -1,0 +1,14 @@
+<module name="neckermann" caption="Neckermann-Demo" version="0.5" class="onepoint.project.team.modules.neckermann.OpNeckermannModule">
+   <language-kit-files>
+   </language-kit-files>
+   <prototype-files>
+   </prototype-files>
+   <service-files>
+   </service-files>
+   <tool-groups>
+      <tool-group name="neckermann" caption="Neckermann" sequence="100"/>
+   </tool-groups>
+   <tools>
+      <tool name="category_peaks" caption="Kateorienspitzen" group-ref="neckermann" icon="/modules/neckermann/icons/category_peaks_tool.png" start-form="/modules/neckermann/forms/category_peaks.oxf.xml"/>
+   </tools>
+</module>

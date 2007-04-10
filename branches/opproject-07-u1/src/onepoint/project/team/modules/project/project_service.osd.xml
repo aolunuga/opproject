@@ -1,0 +1,16 @@
+<service name="ProjectService" class="onepoint.project.team.modules.project.OpProjectAdministrationAdvancedService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="insertTemplate">
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="saveAsTemplate">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateTemplate">
+      <parameter name="template_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteTemplates">
+      <parameter name="template_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+</service>

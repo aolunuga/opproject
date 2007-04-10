@@ -1,0 +1,47 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/modules/my_projects/scripts/my_projects.jes" as super;
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function print(event) {
+   super.print(event);
+
+   tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
+   cur_tab = tabBox.getIntValue();
+   tabName = tabBox.getChild(cur_tab + 1).getText();
+   title = tabName;
+
+   if (cur_tab == 1) {
+      pipeline = XDisplay.getActiveForm().findComponent("PipelineBox");
+      pipeline.print(title);
+   }   
+}
+
+function savePipelineImage(event) {
+   XDisplay.getActiveForm().findComponent("PipelineBox").saveAsImage("Save My Projects");
+}
+
+function zoomInPipeline(event) {
+   form = XDisplay.getActiveForm();
+   form.findComponent("PipelineBox").zoom(1);
+   form.findComponent("MenuZoomIn").setEnabled(false);
+   form.findComponent("ButtonZoomIn").setEnabled(false);
+   form.findComponent("MenuZoomOut").setEnabled(true);
+   form.findComponent("ButtonZoomOut").setEnabled(true);
+}
+
+function zoomOutPipeline(event) {
+   form = XDisplay.getActiveForm();
+   form.findComponent("PipelineBox").zoom(-1);
+   form.findComponent("MenuZoomOut").setEnabled(false);
+   form.findComponent("ButtonZoomOut").setEnabled(false);
+   form.findComponent("MenuZoomIn").setEnabled(true);
+   form.findComponent("ButtonZoomIn").setEnabled(true);
+}
+

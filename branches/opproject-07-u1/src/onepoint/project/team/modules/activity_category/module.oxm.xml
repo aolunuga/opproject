@@ -1,0 +1,12 @@
+<module name="activity_category" caption="Vorgangskategorien" version="0.5" class="onepoint.project.team.modules.activity_category.OpActivityCategoryModule">
+   <service-files>
+      <service-file file-name="/team/modules/activity_category/activity_category_service.osd.xml"/>
+   </service-files>
+   <language-kit-files>
+      <language-kit-file file-name="/team/modules/activity_category/i18n/activity_category_en.olk.xml"/>
+      <language-kit-file file-name="/team/modules/activity_category/i18n/activity_category_de.olk.xml"/>
+   </language-kit-files>
+   <tools>
+      <tool name="activity_category" caption="{$ActivityCategoryTool}" group-ref="system" icon="/team/modules/activity_category/icons/category_tool.png" start-form="/team/modules/activity_category/forms/categories.oxf.xml" sequence="10"/>
+   </tools>
+</module>

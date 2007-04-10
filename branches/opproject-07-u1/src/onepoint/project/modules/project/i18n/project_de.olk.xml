@@ -1,0 +1,200 @@
+<language-kit locale="de">
+   <resource-map id="project.module">
+
+      <resource id="ProjectsToolGroup">PROJEKTE</resource>
+      <resource id="MyToolGroup">EIGENE</resource>
+      <resource id="ReportsToolGroup">BERICHTE</resource>
+      <resource id="ResourcesToolGroup">RESSOURCEN</resource>
+      <resource id="SystemToolGroup">SYSTEM</resource>
+
+      <resource id="ProjectsAdministrationTool">Verwaltung</resource>
+      <resource id="PlanningTool">Planung</resource>
+
+   </resource-map>
+
+   <resource-map id="template">
+      <resource id="NotificationMailSubject">Projektaktualisierung</resource>
+      <resource id="NotificationMailBody">Der Projektplan für das Projekt '$ProjectName$' wurde geändert.</resource>
+   </resource-map>
+
+   <resource-map id="project.projects">
+      <resource id="NewPortfolio">Neues Portfolio</resource>
+      <resource id="NewProject">Neues Projekt</resource>
+      <resource id="Move">Verschieben</resource>
+      <resource id="Info">Eigenschaften</resource>
+      <resource id="Edit">Bearbeiten</resource>
+      <resource id="Delete">Löschen</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Start">Anfang</resource>
+      <resource id="End">Ende</resource>
+      <resource id="Activities">Vorgänge</resource>
+      <resource id="Resources">Ressourcen</resource>
+      <resource id="Costs">Kosten</resource>
+
+      <resource id="NewPortfolioTooltip">Neues Projektportfolio erstellen</resource>
+      <resource id="NewProjectTooltip">Neues Projekt erstellen</resource>
+      <resource id="MoveTooltip">Ausgewähltes Projekt, Vorlage oder Portfolio in ein anderes Portfolio verschieben</resource>
+      <resource id="InfoTooltip">Metainformation für ausgewähltes Projekt oder Portfolio anzeigen</resource>
+      <resource id="EditTooltip">Metainformation for ausgewähltes Projekt oder Portfolio bearbeiten</resource>
+      <resource id="DeleteTooltip">Ausgewählte Projekte, Vorlagen und Portfolios löschen</resource>
+
+   </resource-map>
+   <resource-map id="project.ProjectChooser">
+      <resource id="SelectProject">Projekt oder Portfolio auswählen</resource>
+      <resource id="SelectPortfolio">Portfolio auswählen</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="project.NewPortfolio">
+      <resource id="NewPortfolio">Neues Portfolio</resource>
+
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+	
+   <resource-map id="project.NewProject">
+      <resource id="NewProject">Neues Projekt</resource>
+
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Start">Anfang</resource>
+      <resource id="End">Ende</resource>
+      <resource id="Budget">Budget (€)</resource>
+      <resource id="Template">Vorlage</resource>
+      <resource id="NotSelected">(Nicht ausgewählt)</resource>
+
+      <resource id="Goals">Ziele</resource>
+      <resource id="Subject">Betreff</resource>
+      <resource id="Priority">Priorität</resource>
+
+      <resource id="Tasks">Aufgaben</resource>
+      <resource id="DueTo">Fällig am</resource>
+
+      <resource id="Resources">Ressourcen</resource>
+
+      <resource id="Permissions">Berechtigungen</resource>
+
+      <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
+      <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(Keiner)</resource>
+
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.EditProject">
+      <resource id="EditProject">Projekt bearbeiten</resource>
+
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Start">Anfang</resource>
+      <resource id="End">Ende</resource>
+      <resource id="Budget">Budget (€)</resource>
+      <resource id="Template">Vorlage</resource>
+      <resource id="NotSelected">(Nicht ausgewählt)</resource>
+
+      <resource id="Goals">Ziele</resource>
+      <resource id="Subject">Betreff</resource>
+      <resource id="Priority">Priorität</resource>
+
+      <resource id="Tasks">Aufgaben</resource>
+      <resource id="DueTo">Fällig am</resource>
+
+      <resource id="Permissions">Berechtigungen</resource>
+
+      <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
+      <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
+
+      <resource id="Versions">Versionen</resource>
+      <resource id="Version">Version</resource>
+      <resource id="CreatedBy">Erstellt von</resource>
+      <resource id="CreatedOn">Erstellt am</resource>
+      <resource id="DeleteVersions">Versionen löschen</resource>
+
+      <resource id="Resources">Ressourcen</resource>
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(No Status)</resource>
+
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+
+   <resource-map id="project.Info">
+      <resource id="InfoProject">Projekteigenschaften</resource>
+      <resource id="InfoPortfolio">Portfolioeigenschaften</resource>
+   </resource-map>
+
+   <resource-map id="project.EditPortfolio">
+      <resource id="EditPortfolio">Portfolio bearbeiten</resource>
+      <resource id="General">Allgemein</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Beschreibung</resource>
+      <resource id="Permissions">Berechtigungen</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.AddRoleAssignment">
+   </resource-map>
+
+   <resource-map id="project.AddProjectAssignment">
+      <resource id="AddProjectAssignment">Ressource hinzufügen</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.objects">
+      <resource id="RootProjectPortfolioName">Basisprojektportfolio</resource>
+      <resource id="RootProjectPortfolioDescription">Das Basisprojektportfolio bildet die Wurzel der Projekthierarchie</resource>
+   </resource-map>
+
+   <resource-map id="project.error">
+      <resource id="ProjectNameMissing">Bitte Projektnamen eingeben</resource>
+      <resource id="ProjectNameAlreadyUsed">Projektname wird bereits verwendet</resource>
+      <resource id="StartDateMissing">Bitte Startdatum eingeben</resource>
+      <resource id="EndDateIncorrect">Bitte korrektes Enddatum eingeben</resource>
+      <resource id="BudgetIncorrect">Bitte korrektes Budget eingeben</resource>
+      <resource id="PortfolioNameMissing">Bitte Portfolionamen eingeben</resource>
+      <resource id="PortfolioNameAlreadyUsed">Portfolioname wird bereits verwendet</resource>
+      <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte um das Projekt oder das Portfolio zu bearbeiten</resource>
+      <resource id="ProjectNotSpecified">Projekt wurde nicht angegeben</resource>
+      <resource id="ProjectNotFound">Projekt wurde nicht gefunden</resource>
+      <resource id="TargetPortfolioNotSelected">Es wurde kein Zielportfolio ausgewählt</resource>
+      <resource id="ManagerAccessDenied">Sie benötigen Managerrechte für diese Funktion</resource>
+      <resource id="WorkRecordsStillExistError">Die ausgewählten Projekte konnten nicht gelöscht werden, da Arbeitszettel existieren, die auf diese Projekte verweisen</resource>
+      <resource id="WorkRecordsStillExistWarning">Nicht alle ausgewählten Projekte konnten gelöscht werden, da Arbeitszettel existieren, die auf diese Projekte verweisen</resource>
+      <resource id="HourlyRatesModifiedWarning">Die Personalkosten wurden neu berechnet, da die Stundensätze von in diesem Projektplan verwendeten Ressourcen verändert wurden</resource>
+      <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
+      <resource id="ProjectLockedError">Das Projekt kann nicht verändert werden, da eine Arbeitskopie existiert</resource>
+      <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
+      <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
+      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
+   </resource-map>
+   <resource-map id="project.delete">
+      <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>
+      <resource id="ConfirmVersionDelete">Sind Sie sicher, dass Sie das ausgewählte Versionen löschen möchten ?</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eines oder mehrere Projekte, oder Portfolios zum Löschen aus.</resource>
+      <resource id="ConfirmDeleteOneMessage">Sind Sie sicher, dass Sie das ausgewählte Projekt oder das Portfolio löschen möchten?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Sind Sie sicher, dass Sie das ausgewählte oder Portfolios löschen möchten?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+
+   <resource-map id="project.startdate_future">
+      <resource id="ConfirmStartDateFuture">Verschiebung des Startdatums</resource>
+      <resource id="ConfirmStartDateFutureText">Eine Verschiebung des Startdatums in die Zukunft verschiebt auch alle Vorgänge adäquat</resource>
+      <resource id="Ok">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+
+</language-kit>

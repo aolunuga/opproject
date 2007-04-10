@@ -1,0 +1,27 @@
+<language-kit locale="de">
+   <resource-map id="configuration_wizard.main">
+      <resource id="DatabaseType">Datenbank</resource>
+       <resource id="DatabaseUrl">Connect-String</resource>
+       <resource id="DatabaseLogin">Benutzername</resource>
+       <resource id="DatabasePassword">Passwort</resource>
+       <resource id="Connect">Verbinden</resource>
+   </resource-map>
+   <resource-map id="standalone_configuration_wizard.main">
+      <resource id="DatabaseLocation">Datenbankordner</resource>
+      <resource id="SelectFolder">Datenbankordner auswählen</resource>
+      <resource id="Select">Ändern</resource>
+      <resource id="OK">OK</resource>
+      <resource id="ImportDemoData">Demodaten importieren</resource>
+   </resource-map>   
+   <resource-map id="configuration_wizard.error">
+      <resource id="DatabaseUrlMissing">Der Datenbank Connect-String wurde nicht angegeben</resource>
+      <resource id="DatabasePathMissing">Das Datenbankordner wurde nicht angegeben</resource>
+      <resource id="DatabaseLoginMissing">Der Benutzername wurde nicht angegeben</resource>
+      <resource id="InvalidCredentials">Benutzername oder Passwort sind ungültig</resource>
+      <resource id="InvalidConnectionString">Der Connect-String ist ungültig</resource>
+      <resource id="GeneralConnectionError">Keine Verbindung zur Datenbank</resource>
+      <resource id="JDBCDriverError">Der JDBC-Treiber für die ausgewählte Datenbank kann nicht geladen werden</resource>
+      <resource id="NonExistentDemoData">Die Demodaten-Datei wurde nicht gefunden</resource>
+      <resource id="DemodataImportFailure">Die Demodaten-Datei konnte nicht importiert werden</resource>
+   </resource-map>
+</language-kit>

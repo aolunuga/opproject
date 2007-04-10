@@ -1,0 +1,270 @@
+<language-kit locale="en">
+
+   <resource-map id="project_planning.module">
+        <resource id="PlanningTool">Planning</resource>
+    </resource-map>
+
+   <resource-map id="project_planning.activities">
+      <resource id="EditPlan">Edit</resource>
+      <resource id="Save">Save</resource>
+      <resource id="CheckIn">Check-in</resource>
+      <resource id="ImportProject">Import</resource>
+      <resource id="ExportProject">Export</resource>
+      <resource id="Revert">Revert</resource>
+      <resource id="Print">Print</resource>
+	   
+      <resource id="Cut">Cut</resource>
+      <resource id="Copy">Copy</resource>
+      <resource id="Paste">Paste</resource>
+      <resource id="AddBefore">Insert Activity (Before)</resource>
+      <resource id="AddAfter">Insert Activity (After)</resource>
+      <resource id="Delete">Delete Activities</resource>
+      <resource id="Edit">Edit Activity</resource>
+      <resource id="Validate">Recalculate Project</resource>
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+
+      <resource id="Cancel">Cancel</resource>
+      <resource id="Tasklist">Activity List</resource>
+      <resource id="Name">Name</resource>
+      <resource id="PercentageFinished">% Com.</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="Duration">Duration</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Predecessor">Pred.</resource>
+      <resource id="Successor">Succ.</resource>
+      <resource id="Resources">Resources</resource>
+      <resource id="Priority">Pri.</resource>
+      <resource id="Mode">Mode</resource>
+
+      <resource id="GanttDiagram">Schedule</resource>
+      <resource id="ChangeTimeUnit">Time unit</resource>
+      <resource id="Days">Days</resource>
+      <resource id="Weeks">Weeks</resource>
+      <resource id="Months">Months</resource>
+
+      <resource id="CostsProjection">Cost Baseline</resource>
+      <resource id="Activity">Activity</resource>
+      <resource id="Personnel">Pers. (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Misc. (€)</resource>
+      <resource id="Costs">Costs (€)</resource>
+
+      <resource id="EditTooltip">Edit project plan</resource>
+      <resource id="SaveTooltip">Save project plan</resource>
+      <resource id="CheckInTooltip">Check-in project plan</resource>
+      <resource id="ImportProjectTooltip">Import project plan</resource>
+      <resource id="ExportProjectTooltip">Export project plan</resource>
+      <resource id="RevertTooltip">Revert changes in project plan</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+
+      <resource id="DefaultCursorTooltip">Selection tool</resource>
+      <resource id="ActivityTooltip">Draw activities</resource>
+      <resource id="MilestoneTooltip">Draw milestones</resource>
+      <resource id="TaskTooltip">Draw tasks</resource>
+      <resource id="LinkTooltip">Draw connections</resource>
+      <resource id="AddActivityToolTip">Add activity</resource>
+      <resource id="RemoveActivityToolTip">Delete activities</resource>
+      <resource id="MoveUpToolTip">Move activities up</resource>
+      <resource id="MoveDownToolTip">Move activities down</resource>
+      <resource id="MoveOut">Move activities out</resource>
+      <resource id="MoveIn">Move activities in</resource>
+      <resource id="EditActivity">Edit activity details</resource>
+      <resource id="CutActivities">Cut activities</resource>
+      <resource id="CopyActivities">Copy activities</resource>
+      <resource id="PasteActivities">Paste activities</resource>
+      <resource id="Undo">Undo</resource>
+      <resource id="Redo">Redo</resource>      
+
+      <resource id="LoopErrorMessage">This action would cause a loop in the project plan</resource>
+      <resource id="ResourcesErrorMessage">The resource name could not be found in the project's resource pool</resource>
+      <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
+      <resource id="RangeErrorMessage">Index is out of range</resource>
+      <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
+      <resource id="MilestoneCollectionErrorMessage">Milestones must not contain sub-activities</resource>
+      <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
+      <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
+      <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
+
+      <resource id="ImportProjectTitle">Import Project Plan</resource>
+      <resource id="ExportProjectTitle">Export Project Plan</resource>
+      <resource id="FileWriteError">File Write Errort</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.RevertProjectPlan">
+      <resource id="ConfirmRevert">Revert Project Plan</resource>
+      <resource id="ConfirmRevertProjectPlan">Are you sure you want to revert all changes?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.ImportProjectPlan">
+      <resource id="ConfirmImport">Import Project Plan</resource>
+      <resource id="ConfirmImportProjectPlan">Importing will replace all current activities. Are you sure you want to import an external project plan?</resource>
+      <resource id="FileReadError">The file could not be read</resource>
+      <resource id="ValidationError">The project plan contains inconsistent data</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.EditActivity">
+      <resource id="EditStandardActivity">Edit Activity</resource>
+      <resource id="EditCollectionActivity">Edit Collection Activity</resource>
+      <resource id="EditMilestoneActivity">Edit Milestone</resource>
+      <resource id="EditTaskActivity">Edit Task</resource>
+      <resource id="EditCollectionTaskActivity">Edit Collection Task</resource>
+      <resource id="EditScheduledTaskTitle">Edit Scheduled Task</resource>
+      <resource id="InfoStandardActivity">Activity Details</resource>
+      <resource id="InfoCollectionActivity">Collection Activity Details</resource>
+      <resource id="InfoMilestoneActivity">Milestone Details</resource>
+      <resource id="InfoTaskActivity">Task Details</resource>
+      <resource id="InfoCollectionTaskActivity">Collection Task Details</resource>
+      <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
+
+      <resource id="General">General</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="Effort">Effort (h)</resource>
+      <resource id="Duration">Duration (d)</resource>
+      <resource id="PercentageFinished">% Completed</resource>
+      <resource id="Category">Category</resource>
+      <resource id="Priority">Priority</resource>
+      <resource id="Mandatory">Mandatory</resource>
+      <resource id="ResponsibleResource">Responsible Resource</resource>
+
+      <resource id="Resources">Resources</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="PercentageAssigned">% Assigned</resource>
+      <resource id="HoursAssigned">Hours Assigned</resource>
+
+      <resource id="Predecessor">Predecessors</resource>
+
+      <resource id="Costs">Costs</resource>
+      <resource id="Personnel">Personnel (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Miscellaneous (€)</resource>
+
+      <resource id="Attachments">Attachments</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+	  <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+	  <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+	  <resource id="ViewAttachmentTooltip">View attachment</resource>
+
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+
+      <resource id="Comments">Comments</resource>
+      <resource id="AddCommentTooltip">Add new comment</resource>
+      <resource id="RemoveCommentsTooltip">Delete selected comments</resource>
+      <resource id="By">By</resource>
+      <resource id="On">on</resource>
+      <resource id="At">at</resource>
+      <resource id="CommentSoFar">comment so far</resource>
+      <resource id="CommentsSoFar">comments so far</resource>
+      <resource id="NoCommentsPossible">No comments (activity not checked in yet)</resource>
+
+      <resource id="LoopErrorMessage">This action would cause a loop in the project plan</resource>
+      <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
+      <resource id="RangeErrorMessage">Index is out of range</resource>
+      <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
+      <resource id="WorkRecordsExistErrorMessage">There exist work slips for this resource assignment</resource>
+      <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+
+      <resource id="NoCategory">(None)</resource>
+      <resource id="NoResource">(None)</resource>
+
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddComment">
+      <resource id="AddComment">Add Comment</resource>
+
+      <resource id="Subject">Subject</resource>
+      <resource id="Text">Text</resource>
+	   
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddPredecessor">
+      <resource id="AddPredecessor">Add Predecessor</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddResource">
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AddResource">Add Resource</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="PercentageAssigned">% Assigned</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddURL">
+      <resource id="ProtocolErrorMessage">The entered protocol is not valid</resource>
+      <resource id="AddURL">Add Link</resource>
+      <resource id="Name">Title</resource>
+      <resource id="Location">Address</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddDocument">
+      <resource id="EmptyFileErrorMessage">Please select a document</resource>
+      <resource id="AddDocument">Add Document</resource>
+      <resource id="Name">Title</resource>
+      <resource id="Location">Document</resource>
+      <resource id="Select">Select</resource>
+      <resource id="Cancel">Cancel</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.activity_details">
+      <resource id="Name">Name</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Duration">Duration (d)</resource>
+      <resource id="PercentComplete">% Complete</resource>
+      <resource id="Effort">Effort (h)</resource>
+      <resource id="Costs">Costs (€)</resource>
+      <resource id="Resources">Resources</resource>
+      <resource id="Category">Category</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.Navigator">
+      <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.error">
+      <resource id="CommentNameMissing">The subject was not specified</resource>
+      <resource id="CommentNotFound">The comment was not found</resource>
+      <resource id="AdministratorAccessDenied">You need administrator privileges for this operation</resource>
+      <resource id="HourlyRatesModifiedWarning">Personnel costs have been recalculated, because hourly rates of resources used in this project plan were modified</resource>
+      <resource id="AvailabilityModifiedWarning">Personnel costs have been recalculated, because the availability of resources used in this project plan were modified</resource>
+      <resource id="AvailabilityAndRatesModifiedWarning">Personnel costs have been recalculated, because the availability and hourly rates of resources used in this project plan were modified</resource>
+      <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
+      <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
+      <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+
+      <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
+      <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>
+      <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
+      <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
+      <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+   </resource-map>
+
+</language-kit>

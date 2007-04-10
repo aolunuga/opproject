@@ -1,0 +1,53 @@
+<language-kit locale="en">
+   <resource-map id="activity_category.module">
+      <resource id="ActivityCategoryTool">Categories</resource>
+   </resource-map>
+   <resource-map id="activity_category.categories">
+      <resource id="NewCategory">New Category</resource>
+      <resource id="Properties">Properties</resource>
+      <resource id="Edit">Edit</resource>
+      <resource id="Delete">Delete</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+
+      <resource id="NewCategoryTooltip">Create new activity category</resource>
+      <resource id="InfoTooltip">View meta information for the selected activity category</resource>
+      <resource id="EditTooltip">Edit meta information for the selected activity category</resource>
+      <resource id="DeleteTooltip">Delete selected activity categories</resource>
+
+   </resource-map>
+   <resource-map id="activity_category.NewCategory">
+      <resource id="NewCategory">New Activity Category</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="activity_category.EditCategory">
+      <resource id="EditCategory">Edit Activity Category</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Color</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+   <resource-map id="activity_category.Info">
+      <resource id="InfoCategory">Category Info</resource>
+   </resource-map>
+   <resource-map id="activity_category.error">
+      <resource id="CategoryNameNotSpecified">The category name was not specified</resource>
+      <resource id="CategoryNameNotUnique">The category name is already used</resource>
+      <resource id="CategoryNotFound">The category could not be found</resource>
+      <resource id="InsuffcientPrivileges">Only Administrator is allowed to manage activity categories</resource>
+   </resource-map>
+   <resource-map id="activity_category.delete">
+      <resource id="ConfirmDelete">Delete Activity Categories</resource>
+      <resource id="NoSelectionMessage">Please select one or more categories which should be deleted.</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected category?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected categories?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+</language-kit>

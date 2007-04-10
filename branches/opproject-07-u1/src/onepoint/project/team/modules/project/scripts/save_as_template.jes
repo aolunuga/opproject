@@ -1,0 +1,54 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for save_as_template.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   // Gather template data
+   form = XDisplay.getActiveForm();
+   project_id = form.findComponent("ProjectID").getStringValue();
+   template_data.Name = form.findComponent("Name").getStringValue();
+   
+   portfolio_data_set = XDisplay.getActiveForm().findComponent("PortfolioSet");
+   selected_rows = portfolio_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      template_data.PortfolioID = selected_rows[0].getStringValue();
+   }
+
+   request = new XMessage;
+   request.setAction("ProjectService.saveAsTemplate");
+   request.setArgument("project_id", project_id);
+   request.setArgument("template_data", template_data);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectNode");
+   request.setArgument("project_row", dataRow);
+   //types - 1 = Portfolios
+   request.setArgument("project_types", 1);
+   //not tabular
+   request.setArgument("tabular", false);
+   expandNode(dataRow, 0, request);
+}
+

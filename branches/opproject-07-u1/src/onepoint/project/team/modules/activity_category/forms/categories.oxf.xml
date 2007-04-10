@@ -1,0 +1,30 @@
+<form id="CategoriesForm" layout="border" resource-map-ref="activity_category.categories" provider-class="onepoint.project.team.modules.activity_category.forms.OpCategoriesFormProvider" script="/team/modules/activity_category/scripts/categories.jes">
+   <data-set id="CategoryDataSet" stateful="true"/>
+   <data-field id="AdminRoleDataField"/>
+
+    <panel layout="border" style-ref="compact-panel-default">
+		
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar>
+      <tool-button id="NewCategory" text="{$NewCategory}" icon="/team/modules/activity_category/icons/new_category.png"
+                   disabled-icon="/team/modules/activity_category/icons/new_category_disabled.png"
+                   on-button-pressed="newCategory" tooltip="{$NewCategoryTooltip}"/>
+      <tool-button id="Info" text="{$Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
+                   on-button-pressed="info" tooltip="{$InfoTooltip}"/>
+      <tool-button id="Edit" text="{$Edit}" icon="/icons/edit.png" disabled-icon="/icons/edit_disabled.png"
+                   on-button-pressed="edit" tooltip="{$EditTooltip}"/>
+      <tool-button id="Delete" text="{$Delete}" icon="/icons/delete.png" disabled-icon="/icons/delete_disabled.png"
+                   on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
+   </tool-bar>
+		</panel>
+   <table-box id="CategoryTable" data-set-ref="CategoryDataSet" y="0" flexible="true" on-double-click="info" on-row-select="selectionChanged">
+      <table-column width="160" text="{$Name}" sortable="true" data-column-index="0"/>
+      <table-column width="240" text="{$Description}" sortable="true" data-column-index="1"/>
+      <table-column width="70" text="{$Color}" sortable="false" data-column-index="2" value-type="Color"/>
+   </table-box>
+		
+	<status-bar y="1"/>
+		
+	</panel>
+		
+</form>

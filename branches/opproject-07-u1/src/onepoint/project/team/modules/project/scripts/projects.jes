@@ -1,0 +1,173 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+require "onepoint/project/modules/project/scripts/projects.jes" as super;
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+/**
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function newProject(event) {
+   parameters = super.getNewProjectParameters();
+   dialog = XComponent.newDialog();
+   dialog.open("/team/modules/project/forms/new_project.oxf.xml", parameters);
+}
+
+function newTemplate(event) {
+   // Check if portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      if (is_portfolio) {
+         parameters.portfolio_id = selected_rows[0].getStringValue();
+         parameters.portfolio_index = selected_rows[0].getIndex();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.open("/team/modules/project/forms/new_template.oxf.xml", parameters);
+}
+
+function saveAsTemplate(event) {
+   // Check if project is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_project = descriptor.equals("p");
+      if (is_project) {
+         parameters.project_id = selected_rows[0].getStringValue();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.open("/team/modules/project/forms/save_as_template.oxf.xml", parameters);
+}
+
+/**
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function editProject(projectId, editMode) {
+   parameters.edit_mode = editMode;
+   parameters.project_id = projectId;
+   dialog = XComponent.newDialog();
+   dialog.open("/team/modules/project/forms/edit_project.oxf.xml", parameters);
+}
+
+/**
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function info(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_template = descriptor.equals("t");
+
+      if (is_template) {
+         parameters.edit_mode = false;
+         parameters.template_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/team/modules/project/forms/edit_template.oxf.xml", parameters);
+      }
+      else {
+         super.info(event);
+      }
+   }
+}
+
+/**
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function edit(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_template = descriptor.equals("t");
+      if (is_template) {
+         parameters.edit_mode = true;
+         parameters.template_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/team/modules/project/forms/edit_template.oxf.xml", parameters);
+      }
+      else {
+         super.edit(event);
+      }
+   }
+}
+
+/**
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function delete(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.rows = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/team/modules/project/forms/confirm_project_delete.oxf.xml", parameters);
+   }
+}
+
+/**
+ * Event handler triggered when selecting a table row.
+ *
+ * @Overrides /modules/project/scripts/projects.jes
+ */
+function selectionChanged(event) {
+   //perform the actions from the parent
+   super.selectionChanged(event);
+
+   //project form
+   form = XDisplay.getActiveForm();
+   //toolbar
+   toolbar = form.findComponent("ProjectToolbar");
+
+   //toolbar buttons
+   newTemplateButton = form.findComponent("NewTemplateButton");
+   newTemplateButton.setEnabled(true);
+   saveAsTemplateButton = form.findComponent("SaveAsTemplateButton");
+   saveAsTemplateButton.setEnabled(true);
+
+   //permissions
+   rootPortfolioPermission = form.findComponent("RootPortfolioPermission").getByteValue();
+   managerPermission = form.findComponent("ManagerPermission").getByteValue();
+
+   tableRow = event.event_source;
+   dataRow = tableRow.getDataComponent();
+   if (dataRow != null) {
+      descriptor = dataRow.getChild(0).getStringValue();
+      effectiveProjectNodePermission = dataRow.getChild(5).getByteValue();
+      if (descriptor.equals("f")) {
+         //portfolio was selected
+         saveAsTemplateButton.setEnabled(false);
+         if (effectiveProjectNodePermission < managerPermission) {
+            //the user isn't at least manager on the selected node
+            newTemplateButton.setEnabled(false);
+         }
+      }
+      else {
+         //project or template was selected
+         if (rootPortfolioPermission < managerPermission) {
+            //the user isn't at least manager on the root portfolio
+            newTemplateButton.setEnabled(false);
+         }
+      }
+
+      //these buttons apply to all types of project nodes
+      if (effectiveProjectNodePermission < managerPermission) {
+         //the user isn't at least manager on the selected node
+         saveAsTemplateButton.setEnabled(false);
+      }
+   }
+   toolbar.doLayout();
+   toolbar.repaint();
+}

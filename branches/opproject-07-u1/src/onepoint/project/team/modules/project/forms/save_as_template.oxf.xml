@@ -1,0 +1,34 @@
+<form layout="border" width="600" height="300" text="{$SaveAsTemplate}"
+      start-focus-ref="Name" default-button-ref="okButton"
+      resource-map-ref="project.SaveAsTemplate"
+      provider-class="onepoint.project.team.modules.project.forms.OpSaveAsTemplateFormProvider"
+      script="/team/modules/project/scripts/save_as_template.jes">
+   <data-field id="ProjectID"/>
+
+   <panel y="0" layout="border">
+
+      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+
+      <panel y="0" layout="table">
+
+         <data-set id="PortfolioIconSet">
+            <data-row icon="/modules/project/icons/portfolio.png"/>
+         </data-set>
+         <data-set id="PortfolioSet" on-expand="retrieveChildren"/>
+         <label x="0" y="0" width="5" text="{$SelectPortfolio}" style-ref="label-description-default"/>
+         <list-box x="0" y="1" width="5" tree="true" data-set-ref="PortfolioSet" icon-set-ref="PortfolioIconSet" flexible="true"/>
+
+         <label x="0" y="2" width="2" text="{$Name}" style-ref="label-emphasized-default"/>
+         <text-field x="2" y="2" width="3" id="Name"/>
+
+      </panel>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+
+   </panel>
+</form>

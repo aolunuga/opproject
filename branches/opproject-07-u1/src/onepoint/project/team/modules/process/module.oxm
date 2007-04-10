@@ -1,0 +1,21 @@
+<module name="process" caption="Prozessmanagement" version="0.1">
+   <prototypes>
+      <prototype name="XProcess" instance-class="onepoint.project.modules.process.OpProcess">
+         <field name="Name" type="String"/>
+         <field name="Description" type="String"/>
+         <field name="Definition" type="Content"/>
+         <relationship name="Cases" type="XCase" collection-type="Set" back-relationship="Process" inverse="true"/>
+      </prototype>
+      <prototype name="XCase" instance-class="onepoint.project.modules.process.OpCase">
+         <field name="Name" type="String"/>
+         <field name="ActiveTaskName" type="String"/>
+         <relationship name="Process" type="XProcess back-relationship="Cases"/>
+      </prototype>
+   </prototypes>
+   <services>
+      <!-- Future maybe web services API -->
+   </services>
+   <tools>
+      <!-- Future maybe processes tool (status display) for administrator -->
+   </tools>
+</module>

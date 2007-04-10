@@ -1,0 +1,12 @@
+<service name="ActivityCategoryService" class="onepoint.project.team.modules.activity_category.OpActivityCategoryService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="insertCategory">
+      <parameter name="category_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateCategory">
+      <parameter name="category_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="category_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteCategories">
+      <parameter name="category_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+</service>
