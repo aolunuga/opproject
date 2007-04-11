@@ -44,28 +44,28 @@
    </resource-map>
 
    <resource-map id="settings.calendar">
-      <resource id="HourInitial">h</resource>
-      <resource id="DayInitial">d</resource>
-      <resource id="WeekInitial">w</resource>
-      <resource id="January">January</resource>
-      <resource id="February">February</resource>
-      <resource id="March">March</resource>
-      <resource id="April">April</resource>
-      <resource id="May">May</resource>
-      <resource id="June">June</resource>
-      <resource id="July">July</resource>
-      <resource id="August">August</resource>
-      <resource id="September">September</resource>
-      <resource id="October">October</resource>
-      <resource id="November">November</resource>
-      <resource id="December">December</resource>
-      <resource id="Monday">M</resource>
-      <resource id="Tuesday">T</resource>
-      <resource id="Wednesday">W</resource>
-      <resource id="Thursday">T</resource>
-      <resource id="Friday">F</resource>
-      <resource id="Saturday">S</resource>
-      <resource id="Sunday">S</resource>
+     <resource id="HourInitial">ч</resource>
+      <resource id="DayInitial">д</resource>
+      <resource id="WeekInitial">н</resource>
+      <resource id="January">Январь</resource>
+      <resource id="February">Февраль</resource>
+      <resource id="March">Март</resource>
+      <resource id="April">Апрель</resource>
+      <resource id="May">Май</resource>
+      <resource id="June">Июнь</resource>
+      <resource id="July">Июль</resource>
+      <resource id="August">Август</resource>
+      <resource id="September">Сентябрь</resource>
+      <resource id="October">Октябрь</resource>
+      <resource id="November">Ноябрь</resource>
+      <resource id="December">Декабрь</resource>
+      <resource id="Monday">П</resource>
+      <resource id="Tuesday">В</resource>
+      <resource id="Wednesday">С</resource>
+      <resource id="Thursday">Ч</resource>
+      <resource id="Friday">П</resource>
+      <resource id="Saturday">С</resource>
+      <resource id="Sunday">В</resource>
    </resource-map>
 
 
