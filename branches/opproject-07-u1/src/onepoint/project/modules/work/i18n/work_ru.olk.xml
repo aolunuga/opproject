@@ -1,0 +1,96 @@
+<language-kit locale="ru">
+   <resource-map id="work.module">
+      <resource id="WorkTool">Табели</resource>
+   </resource-map>
+   <resource-map id="work.work_slips">
+      <resource id="NewWorkSlip">Новый табель</resource>
+      <resource id="Info">Свойства</resource>
+      <resource id="Delete">Удалить</resource>
+      <resource id="Number">Номер табеля</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="Date">Дата</resource>
+		
+      <resource id="NewWorkSlipTooltip">Внести новый табель фактических трудозатрат</resource>
+      <resource id="InfoTooltip">Показать мета-данные для указанного табеля</resource>      
+      <resource id="DeleteTooltip">Удалить указанный табель</resource>
+
+      <resource id="Time">Time Period</resource>
+      <resource id="CurrentMonth">Current Month</resource>
+      <resource id="PreviousMonth">Previous Month</resource>
+      <resource id="CurrentYear">Current Year</resource>
+      <resource id="All">All</resource>
+		
+   </resource-map>
+   <resource-map id="work.new_work_slip">
+      <resource id="NewWorkSlip">Новый табель</resource>
+      <resource id="Date">Дата</resource>
+      <resource id="Task">Задача</resource>
+      <resource id="Project">Проект</resource>
+      <resource id="AssignmentEffort">Planned</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="Effort">Объём работ</resource>
+      <resource id="Costs">Затраты</resource>
+      <resource id="Worktime">Объём работ</resource>
+      <resource id="RemainingEffort">Остаток</resource>
+      <resource id="Material">Material</resource>
+      <resource id="Travel">Travel</resource>
+      <resource id="External">External</resource>
+      <resource id="Misc">Miscellaneous</resource>
+      <resource id="Comment">Комментарий</resource>
+      <resource id="Completed">Выполнено</resource>
+
+      <resource id="StartBefore">Период</resource>
+      <resource id="All">Все</resource>
+      <resource id="Project">Проект</resource>
+      <resource id="NextWeek">Следующая неделя</resource>
+      <resource id="Next2Weeks">Следующие 2 недели</resource>
+      <resource id="NextMonth">Следующий месяц</resource>
+      <resource id="Next2Months">Следующие 2 месяца</resource>
+
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+   <resource-map id="work.edit_work_slip">
+      <resource id="EditWorkSlip">Изменить табель</resource>
+      <resource id="Date">Дата</resource>
+      <resource id="Task">Задача</resource>
+      <resource id="Project">Проект</resource>
+      <resource id="AssignmentEffort">Planned</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="Effort">Объём работ</resource>
+      <resource id="Costs">Затраты</resource>
+      <resource id="Worktime">Объём работ</resource>
+      <resource id="RemainingEffort">Остаток</resource>
+      <resource id="Material">Material</resource>
+      <resource id="Travel">Travel</resource>
+      <resource id="External">External</resource>
+      <resource id="Misc">Miscellaneous</resource>
+      <resource id="Comment">Комментарий</resource>
+      <resource id="Completed">Выполнено</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="AddWorkSlipActivity">Укажите задачу для добавления</resource>
+   </resource-map>
+  <resource-map id="work.Info">
+    <resource id="WorkInfo">Свойства табеля</resource>
+  </resource-map>
+  <resource-map id="work.error">
+    <resource id="DateMissing">Не указана дата табеля</resource>
+    <resource id="DuplicateDate">На указанную дату табель уже внесен</resource>
+    <resource id="IncorrectActualEffort">Неверное значение текущего объема работ</resource>
+    <resource id="IncorrectRemainingEffort">Неверное значение остатка объема работ</resource>
+    <resource id="IncorrectMaterialCosts">Incorrect Material Costs</resource>
+    <resource id="IncorrectTravelCosts">Incorrect Travel Costs</resource>
+    <resource id="IncorrectExternalCosts">Incorrect External Costs</resource>
+    <resource id="IncorrectMiscellaneousCosts">Incorrect Miscellaneous Costs</resource>
+  </resource-map>
+   <resource-map id="work.delete">
+      <resource id="ConfirmDelete">Удалить табель</resource>
+      <resource id="NoSelectionMessage">Пожалуйста, укажите один или несколько табелей, которые вы хотите удалить</resource>
+      <resource id="ConfirmDeleteOneMessage">Вы действительно хотите удалить данный табель?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Вы действительно хотите удалить данные табели?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+
+</language-kit>

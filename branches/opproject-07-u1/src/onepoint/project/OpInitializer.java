@@ -141,6 +141,10 @@ public final class OpInitializer {
          main_de_file.setFileName("/i18n/main_de.olk.xml");
          XLanguageKit main_de = main_de_file.loadLanguageKit();
          XLocaleManager.registerLanguageKit(main_de);
+         OpLanguageKitFile main_ru_file = new OpLanguageKitFile();
+         main_ru_file.setFileName("/i18n/main_ru.olk.xml");
+         XLanguageKit main_ru = main_ru_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_ru);
 
          // Read configuration file
          OpConfigurationLoader configurationLoader = new OpConfigurationLoader();

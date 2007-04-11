@@ -2,6 +2,7 @@
    <language-kit-files>
       <language-kit-file file-name="/modules/my_tasks/i18n/my_tasks_en.olk.xml"/>
       <language-kit-file file-name="/modules/my_tasks/i18n/my_tasks_de.olk.xml"/>
+      <language-kit-file file-name="/modules/my_tasks/i18n/my_tasks_ru.olk.xml"/>
    </language-kit-files>
    <service-files>
       <service-file file-name="/modules/my_tasks/my_tasks_service.osd.xml"/>
