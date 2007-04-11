@@ -1,0 +1,73 @@
+<language-kit locale="ru">
+   <resource-map id="settings.module">
+      <resource id="SettingsTool">Настройки общие</resource>
+   </resource-map>
+   <resource-map id="settings.settings">
+      <resource id="Settings">Настройки общие</resource>
+      <resource id="UserLocale">Язык по умолчанию</resource>      
+      <resource id="TimeControl">Time Settings</resource>
+      <resource id="FirstWorkday">Первый рабочий день</resource>
+      <resource id="LastWorkday">Последний рабочий день</resource>
+      <resource id="DayWorkTime">Рабочих часов в день</resource>
+      <resource id="WeekWorkTime">Рабочих часов в неделю</resource>
+      <resource id="Holidays">Календарь (выходные и праздники)</resource>
+      <resource id="EMailNotificationFromAddress">Адрес отправителя эл. почты для уведомлений</resource>
+      <resource id="ReportsRemoveTimePeriod">Report archiving period (weeks)</resource>
+      <resource id="ShowResourceHours">Показывать назначения ресурса в часах</resource>
+      <resource id="ResourceMaxAvailability">Максимальная доступность ресурса (%)</resource>
+      <resource id="AllowEmptyPassword">Разрешить пустые пароли</resource>
+      <resource id="Save">Сохранить настройки</resource>
+      <resource id="SaveTooltip">Сохранить системные настройки</resource>
+      <resource id="SelectCalendar">(Выбор календаря)</resource>
+      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>      
+   </resource-map>
+
+   <resource-map id="settings.weekdays">
+      <resource id="Monday">Понедельник</resource>
+      <resource id="Tuesday">Вторник</resource>
+      <resource id="Wednesday">Среда</resource>
+      <resource id="Thursday">Четверг</resource>
+      <resource id="Friday">Пятница</resource>
+      <resource id="Saturday">Суббота</resource>
+      <resource id="Sunday">Воскресенье</resource>
+   </resource-map>
+
+   <resource-map id="settings.error">
+      <resource id="LastWorkDayIncorrect">The selected last work day is not valid</resource>
+      <resource id="DayWorkTimeIncorrect">The specified day work time is not valid</resource>
+      <resource id="WeekWorkTimeIncorrect">The specified week work time is not valid</resource>
+      <resource id="EmailIncorrect">The specified notification sender e-mail is not valid</resource>
+      <resource id="ReportsRemoveTimePeriodIncorrect">The specified report archiving period is not valid</resource>
+      <resource id="ResourceMaxAvailabilityIncorrect">The specified resource maximum availability value is not valid</resource>
+      <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
+      <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
+   </resource-map>
+
+   <resource-map id="settings.calendar">
+      <resource id="HourInitial">h</resource>
+      <resource id="DayInitial">d</resource>
+      <resource id="WeekInitial">w</resource>
+      <resource id="January">January</resource>
+      <resource id="February">February</resource>
+      <resource id="March">March</resource>
+      <resource id="April">April</resource>
+      <resource id="May">May</resource>
+      <resource id="June">June</resource>
+      <resource id="July">July</resource>
+      <resource id="August">August</resource>
+      <resource id="September">September</resource>
+      <resource id="October">October</resource>
+      <resource id="November">November</resource>
+      <resource id="December">December</resource>
+      <resource id="Monday">M</resource>
+      <resource id="Tuesday">T</resource>
+      <resource id="Wednesday">W</resource>
+      <resource id="Thursday">T</resource>
+      <resource id="Friday">F</resource>
+      <resource id="Saturday">S</resource>
+      <resource id="Sunday">S</resource>
+   </resource-map>
+
+
+
+</language-kit>
