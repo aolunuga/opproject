@@ -8,7 +8,6 @@ import net.sf.mpxj.*;
 import net.sf.mpxj.mpp.MPPReader;
 import net.sf.mpxj.mpx.MPXReader;
 import net.sf.mpxj.mpx.MPXWriter;
-import net.sf.mpxj.writer.ProjectWriter;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
@@ -22,6 +21,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.util.XCalendar;
+import onepoint.resource.XLocale;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,8 +44,10 @@ public class OpMSProjectManager {
 
    /**
     * Fills the given data set with infor from the previously loaded ms project file.
+    *
+    * @return a dataset with all the saved activities
     */
-   public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan)
+   public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
         throws IOException {
 
       ProjectFile msProject;
@@ -58,7 +60,9 @@ public class OpMSProjectManager {
       catch (MPXJException e) {
          try {
             sourceFile.reset();
-            msProject = new MPXReader().read(sourceFile);
+            MPXReader reader = new MPXReader();
+            reader.setLocale(new Locale(xlocale.getID()));
+            msProject = reader.read(sourceFile);
          }
          catch (MPXJException e1) {
             throw new IOException("Unable to load the file " + sourceFile);
@@ -256,7 +260,7 @@ public class OpMSProjectManager {
    }
 
 
-   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet)
+   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet, XLocale xlocale)
         throws IOException {
 
       //adjust the destination name file
@@ -269,7 +273,9 @@ public class OpMSProjectManager {
       }
 
       ProjectFile file = new ProjectFile();
-      ProjectWriter writer = new MPXWriter();
+      MPXWriter writer = new MPXWriter();
+      writer.setLocale(new Locale(xlocale.getID()));
+
       OpGanttValidator validator = ((OpGanttValidator) dataSet.validator());
 
       file.setAutoTaskID(true);
