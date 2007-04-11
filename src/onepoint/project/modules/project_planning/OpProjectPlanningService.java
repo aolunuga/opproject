@@ -74,7 +74,7 @@ public class OpProjectPlanningService extends OpProjectService {
    public XMessage importActivities(OpProjectSession session, XMessage request) {
 
       String projectId = (String) (request.getArgument(PROJECT_ID));
-      boolean editMode = ((Boolean) (request.getArgument(EDIT_MODE))).booleanValue();
+      boolean editMode = (Boolean) (request.getArgument(EDIT_MODE));
       byte[] file = (byte[]) (request.getArgument(BYTES_ARRAY_FIELD));
 
       XMessage reply = new XMessage();
@@ -90,7 +90,7 @@ public class OpProjectPlanningService extends OpProjectService {
       InputStream inFile = new ByteArrayInputStream(file);
       XComponent dataSet;
       try {
-         dataSet = OpMSProjectManager.importActivities(inFile, projectPlan);
+         dataSet = OpMSProjectManager.importActivities(inFile, projectPlan, session.getLocale());
       }
       catch (IOException e) {
          reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
@@ -131,7 +131,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
-         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet);
+         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale());
       }
       catch (IOException e) {
          response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
