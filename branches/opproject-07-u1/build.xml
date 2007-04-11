@@ -22,11 +22,11 @@
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="project.basic.jarname" value="opproject-07-u1-be.jar"/>
-   <property name="project.open.jarname" value="opproject-07-u1.jar"/>
-   <property name="project.client.jarname" value="opproject-client-07-u1.jar"/>
+   <property name="project.basic.jarname" value="opproject-07-be.jar"/>
+   <property name="project.open.jarname" value="opproject-07.jar"/>
+   <property name="project.client.jarname" value="opproject-client-07.jar"/>
    <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client-07-u1.jar"/>
+   <property name="express.client.jarname" value="express4j-client-07.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
