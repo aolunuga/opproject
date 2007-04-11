@@ -10,6 +10,7 @@
    <language-kit-files>
       <language-kit-file file-name="/modules/report/i18n/report_en.olk.xml"/>
       <language-kit-file file-name="/modules/report/i18n/report_de.olk.xml"/>
+      <language-kit-file file-name="/modules/report/i18n/report_ru.olk.xml"/>
    </language-kit-files>
    <tools>
       <tool name="report" caption="{$QueryTool}" group-ref="reports" icon="/modules/report/icons/report_tool.png" start-form="/modules/report/forms/report.oxf.xml"/>

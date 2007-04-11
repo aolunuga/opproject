@@ -2,6 +2,7 @@
    <language-kit-files>
       <language-kit-file file-name="/modules/project_costs/i18n/project_costs_en.olk.xml"/>
       <language-kit-file file-name="/modules/project_costs/i18n/project_costs_de.olk.xml"/>
+      <language-kit-file file-name="/modules/project_costs/i18n/project_costs_ru.olk.xml"/>
    </language-kit-files>
    <tools>
       <tool name="project_costs" caption="{$ProjectCostsTool}" group-ref="projects" icon="/modules/project_costs/icons/project_costs_tool.png" start-form="/modules/project_costs/forms/project_costs_start.oxf.xml" sequence="20"/>

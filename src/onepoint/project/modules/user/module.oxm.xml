@@ -16,6 +16,7 @@
    <language-kit-files>
       <language-kit-file file-name="/modules/user/i18n/user_en.olk.xml"/>
       <language-kit-file file-name="/modules/user/i18n/user_de.olk.xml"/>
+      <language-kit-file file-name="/modules/user/i18n/user_ru.olk.xml"/>
    </language-kit-files>
    <tools>
       <tool name="user" caption="{$UserTool}" group-ref="system" icon="/modules/user/icons/user_tool.png" start-form="/modules/user/forms/users.oxf.xml" multi-user-only="true"/>
