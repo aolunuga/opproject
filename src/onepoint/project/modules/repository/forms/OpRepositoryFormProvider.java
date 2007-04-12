@@ -49,6 +49,8 @@ public class OpRepositoryFormProvider implements XFormProvider {
     * Form component ids.
     */
    private static final String USER_GROUPS_COUNT_ID = "UserGroupsCount";
+   private static final String USER_GROUPS_COUNT_LABEL_ID = "UserGroupsCountLabel";
+   private static final String USERS_COUNT_LABEL_ID = "UsersCountLabel";
    private static final String USERS_COUNT_ID = "UsersCount";
    private static final String PORTFOLIOS_COUNT_ID = "PortfoliosCount";
    private static final String TEMPLATES_COUNT_ID = "TemplatesCount";
@@ -69,6 +71,15 @@ public class OpRepositoryFormProvider implements XFormProvider {
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
       OpProjectSession projectSession = (OpProjectSession) session;
+
+      // hide multi user fields
+      if (!OpInitializer.isMultiUser()) {
+         form.findComponent(USER_GROUPS_COUNT_ID).setVisible(false);
+         form.findComponent(USER_GROUPS_COUNT_LABEL_ID).setVisible(false);
+         form.findComponent(USERS_COUNT_ID).setVisible(false);
+         form.findComponent(USERS_COUNT_LABEL_ID).setVisible(false);
+      }
+
       //set the form's fields
       setFormFields(form, projectSession);
 
@@ -137,7 +148,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
     * @return  a <code>String</code> representing the path to the root directory, or null if an error occurred.
     */
    private String createRootBackupPath() {
-      String fullBackupRootPath = null;
+      String fullBackupRootPath;
       try {
          String backupDirectoryName = XEnvironmentManager.convertPathToSlash(OpInitializer.getConfiguration().getBackupPath());
          File absoluteDirectory = new File(backupDirectoryName);

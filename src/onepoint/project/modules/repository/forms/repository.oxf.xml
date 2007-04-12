@@ -20,10 +20,10 @@
          <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
          <panel layout="table" style-ref="table-panel-default">
             <!-- User groups # -->
-            <label x="0" y="0" width="2" text="{$UserGroupsCount}"/>
+            <label x="0" y="0" width="2" text="{$UserGroupsCount}" id="UserGroupsCountLabel"/>
             <int-field x="2" y="0" width="3" id="UserGroupsCount" enabled="false"/>
             <!-- Users # -->
-            <label x="0" y="1" width="2" text="{$UsersCount}"/>
+            <label x="0" y="1" width="2" text="{$UsersCount}" id="UsersCountLabel"/>
             <int-field x="2" y="1" width="3" id="UsersCount" enabled="false"/>
             <!-- Project portfolios # -->
             <label x="0" y="2" width="2" text="{$PortfoliosCount}"/>
