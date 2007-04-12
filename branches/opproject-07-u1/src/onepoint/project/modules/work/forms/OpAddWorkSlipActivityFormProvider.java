@@ -5,8 +5,10 @@
 package onepoint.project.modules.work.forms;
 
 import onepoint.express.XComponent;
+import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
@@ -50,8 +52,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       List existingActivities = new ArrayList();
       while (workRecords.hasNext()) {
          workRecord = (OpWorkRecord) (workRecords.next());
-         activity = workRecord.getAssignment().getActivity();
-         existingActivities.add(new Long(activity.getID()));
+          existingActivities.add(new Long(workRecord.getAssignment().getID()));
       }
 
       //the activities newly added in the data set
@@ -59,7 +60,8 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       if (newActivitiesDataSet != null) {
          for (int i = 0; i < newActivitiesDataSet.getChildCount(); i++) {
             XComponent dataRow = (XComponent) newActivitiesDataSet.getChild(i);
-            long activityId = dataRow.getLongValue();
+            OpLocator dataRowLocator =  OpLocator.parseLocator(XValidator.choiceID(dataRow.getStringValue()));
+            long activityId = dataRowLocator.getID();
             existingActivities.add(new Long(activityId));
          }
       }
@@ -99,18 +101,24 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
             continue;
          }
 
-         if (existingActivities.contains(new Long(activity.getID()))) {
+         if (existingActivities.contains(new Long(assignment.getID()))) {         
             continue;
          }
 
          //activity name to be displayed
          data_row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
-         String caption = ((XComponent) data_row.getChild(0)).getStringValue();
-         data_row.setStringValue(caption);
+         String choice = XValidator.choice(assignment.locator(), activity.getName());
 
-         //add activity id
+         //if an activity has more than one resource show the name of the resource and the name of the activity
+         if(activity.getAssignments().size() > 1){
+            String newCaption  = "['" + assignment.getResource().getName() + ": ";
+            choice = choice.replace("['", newCaption);
+         }
+         data_row.setStringValue(choice);
+
+         //add a last cell with the assignment id
          XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setLongValue(activity.getID());
+         dataCell.setStringValue(assignment.locator());
          data_row.addChild(dataCell);
 
          dataSet.addChild(data_row);

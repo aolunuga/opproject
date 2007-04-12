@@ -80,6 +80,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
 
          //activity name - 0
          data_row = new XComponent(XComponent.DATA_ROW);
+         //set the value of the dataRow to the id of the assignment
+         data_row.setStringValue(choice);
          work_record_set.addChild(data_row);
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setStringValue(choice);
