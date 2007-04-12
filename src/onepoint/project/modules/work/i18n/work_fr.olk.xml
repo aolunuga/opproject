@@ -1,0 +1,96 @@
+<language-kit locale="fr">
+   <resource-map id="work.module">
+      <resource id="WorkTool">CRA</resource>
+   </resource-map>
+   <resource-map id="work.work_slips">
+      <resource id="NewWorkSlip">Nouveau CRA</resource>
+      <resource id="Info">Propriétés</resource>
+      <resource id="Delete">Supprimer</resource>
+      <resource id="Number">Numéro</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="Date">Date</resource>
+
+      <resource id="NewWorkSlipTooltip">Créer un nouveau CRA</resource>
+      <resource id="InfoTooltip">Voir les meta information des CRA choisis</resource>
+      <resource id="DeleteTooltip">Supprimer les CRA choisis</resource>
+
+      <resource id="Time">Période De Temps</resource>
+      <resource id="CurrentMonth">Mois courant</resource>
+      <resource id="PreviousMonth">Mois précédent</resource>
+      <resource id="CurrentYear">Année Courante</resource>
+      <resource id="All">Tout</resource>
+
+   </resource-map>
+   <resource-map id="work.new_work_slip">
+      <resource id="NewWorkSlip">Nouveau CRA</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Task">Tâche</resource>
+      <resource id="Project">Projet</resource>
+      <resource id="AssignmentEffort">Planifié</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Coûts</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Obligatoire</resource>
+      <resource id="Material">Materiel</resource>
+      <resource id="Travel">Voyage</resource>
+      <resource id="External">Externe</resource>
+      <resource id="Misc">Divers</resource>
+      <resource id="Comment">Commentaire</resource>
+      <resource id="Completed">Terminée</resource>
+
+      <resource id="StartBefore">Période De Temps</resource>
+      <resource id="All">Tout</resource>
+      <resource id="Project">Projet</resource>
+      <resource id="NextWeek">Semaine suivante</resource>
+      <resource id="Next2Weeks">2 Semaines prochaines</resource>
+      <resource id="NextMonth">Mois suivant</resource>
+      <resource id="Next2Months">2 Mois prochains</resource>
+
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="work.edit_work_slip">
+      <resource id="EditWorkSlip">Modifier le CRA</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Task">Tâche</resource>
+      <resource id="Project">Projet</resource>
+      <resource id="AssignmentEffort">Planifié</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="Effort">Effort</resource>
+      <resource id="Costs">Coûts</resource>
+      <resource id="Worktime">Effort</resource>
+      <resource id="RemainingEffort">Obligatoire</resource>
+      <resource id="Material">Materiel</resource>
+      <resource id="Travel">Voyage</resource>
+      <resource id="External">Externe</resource>
+      <resource id="Misc">Divers</resource>
+      <resource id="Comment">Commentaire</resource>
+      <resource id="Completed">Terminée</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+      <resource id="AddWorkSlipActivity">Choisir des Activités à ajouter</resource>
+   </resource-map>
+   <resource-map id="work.Info">
+      <resource id="WorkInfo">Information CRA</resource>
+   </resource-map>
+   <resource-map id="work.error">
+      <resource id="DateMissing">La date du CRA n'a pas été indiquée</resource>
+      <resource id="DuplicateDate">Un CRA pour la date indiquée existe déjà</resource>
+      <resource id="IncorrectActualEffort">Effort Actuel Invalide</resource>
+      <resource id="IncorrectRemainingEffort">Effort Obligatoire Invalide</resource>
+      <resource id="IncorrectMaterialCosts">Coûts Materiel Invalide</resource>
+      <resource id="IncorrectTravelCosts">Coûts de Voyage Invalide</resource>
+      <resource id="IncorrectExternalCosts">Coûts Externe Invalide</resource>
+      <resource id="IncorrectMiscellaneousCosts">Coûts Divers Invalide</resource>
+   </resource-map>
+   <resource-map id="work.delete">
+      <resource id="ConfirmDelete">Supprimer les CRA</resource>
+      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs CRA à supprimer.</resource>
+      <resource id="ConfirmDeleteOneMessage">Voulez vous vraiment supprimer le CRA choisi ?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les CRA choisis ?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+
+</language-kit>
