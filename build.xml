@@ -392,6 +392,8 @@
                <attribute name="i18nfilename" value="project_progress"/>
                <attribute name="en" value="Project Progress"/>
                <attribute name="de" value="Projektfortschritt"/>
+               <attribute name="fr" value="Progression Projet"/>
+               <attribute name="ru" value="Проектное Продвижение"/>
             </section>
          </manifest>
       </jar>
@@ -416,6 +418,8 @@
                <attribute name="i18nfilename" value="resource_allocation"/>
                <attribute name="en" value="Resource Allocation"/>
                <attribute name="de" value="Ressourcen-Zuweisung"/>
+               <attribute name="fr" value="Affectation Ressource"/>
+               <attribute name="ru" value="Распределение Ресурса"/>
             </section>
          </manifest>
       </jar>
@@ -440,6 +444,8 @@
                <attribute name="i18nfilename" value="work_report"/>
                <attribute name="en" value="Work Report"/>
                <attribute name="de" value="Arbeitsbericht"/>
+               <attribute name="fr" value="Rapport d'Activité"/>
+               <attribute name="ru" value="Сообщение о Работе"/>
             </section>
          </manifest>
       </jar>
