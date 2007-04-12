@@ -30,6 +30,7 @@ public class OpResource extends OpObject {
    private double available = 100; // Default: 100%
    private boolean inheritPoolRate;
    private double hourlyRate;
+   private double externalRate;
    private OpResourcePool pool;
    private OpUser user;
    private Set projectNodeAssignments;
@@ -38,6 +39,7 @@ public class OpResource extends OpObject {
    private Set absences;
    private Set responsibleActivities;
    private Set responsibleActivityVersions;
+   private Set<OpHourlyRatesPeriod> hourlyRatesPeriods;
 
    public void setName(String name) {
       this.name = name;
@@ -141,5 +143,21 @@ public class OpResource extends OpObject {
 
    public void setResponsibleActivityVersions(Set responsibleActivityVersions) {
       this.responsibleActivityVersions = responsibleActivityVersions;
+   }
+
+   public double getExternalRate() {
+      return externalRate;
+   }
+
+   public void setExternalRate(Double externalRate) {
+      this.externalRate = (externalRate != null) ? externalRate : 0;
+   }
+
+   public Set<OpHourlyRatesPeriod> getHourlyRatesPeriods() {
+      return hourlyRatesPeriods;
+   }
+
+   public void setHourlyRatesPeriods(Set<OpHourlyRatesPeriod> hourlyRatesPeriods) {
+      this.hourlyRatesPeriods = hourlyRatesPeriods;
    }
 }

@@ -2,6 +2,7 @@
    <prototype-files>
       <prototype-file file-name="/modules/resource/resource_pool.opt.xml"/>
       <prototype-file file-name="/modules/resource/resource.opt.xml"/>
+      <prototype-file file-name="/modules/resource/hourly_rates_period.opt.xml"/>
    </prototype-files>
    <service-files>
       <service-file file-name="/modules/resource/resource_service.osd.xml"/>

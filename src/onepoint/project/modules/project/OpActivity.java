@@ -94,6 +94,8 @@ public class OpActivity extends OpObject {
    private double actualExternalCosts;
    private double actualMiscellaneousCosts;
    private double remainingEffort; // Person hours
+   private double baseProceeds;
+   private double actualProceeds;
    private boolean deleted;
    private boolean expanded;
    private boolean template;
@@ -432,6 +434,21 @@ public class OpActivity extends OpObject {
       this.responsibleResource = responsibleResource;
    }
 
+   public double getBaseProceeds() {
+      return baseProceeds;
+   }
+
+   public void setBaseProceeds(Double baseProceeds) {
+      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0 ;
+   }
+
+   public double getActualProceeds() {
+      return actualProceeds;
+   }
+
+   public void setActualProceeds(Double actualProceeds) {
+      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
+   }
 
    /**
     * Calculates the actual total costs of this activity.

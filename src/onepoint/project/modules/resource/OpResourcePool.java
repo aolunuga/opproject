@@ -27,6 +27,7 @@ public class OpResourcePool extends OpObject {
    private String name;
    private String description;
    private double hourlyRate;
+   private double externalRate;
    private OpResourcePool superPool;
    private Set subPools;
    private Set resources;
@@ -79,4 +80,11 @@ public class OpResourcePool extends OpObject {
       return this.resources;
    }
 
+   public double getExternalRate() {
+      return externalRate;
+   }
+
+   public void setExternalRate(Double externalRate) {
+      this.externalRate = (externalRate != null) ? externalRate : 0;
+   }
 }

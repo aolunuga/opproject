@@ -8,10 +8,7 @@ import onepoint.project.modules.report.OpReportManager;
 import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
-import onepoint.util.XEncodingHelper;
 
-import java.io.File;
-import java.net.URL;
 import java.util.Map;
 
 /**
@@ -46,24 +43,12 @@ public class OpReportManagerTest extends OpBaseTestCase {
       assertNotNull(response);
       assertNoError(response);
 
-      String reportPath = (String) response.getArgument(OpReportService.GENERATED_REPORT_PATH);
-      assertNotNull(reportPath);
-
-      // Now we'll try to transform that path into a resource path (to be loaded as a resource from classpath).
-      String className = OpReportManager.class.getName();
-      String rootPackage = className.substring(0, className.indexOf('.'));
-
-      reportPath = XEncodingHelper.decodeValue(reportPath);
-      
-      URL reportFileUrl = new URL(reportPath);
-      reportPath = reportFileUrl.getFile();
-      reportPath = reportPath.substring(reportPath.lastIndexOf(rootPackage));
-      File reportFile = new File(reportFileUrl.getFile());
-
-      byte[] content = reportManager.getResource(reportPath, session);
+      byte[] content = reportManager.getResource("/work_report.jes", session); // from path cache
       assertNotNull(content);
       assertTrue(content.length > 0);
-      assertEquals(reportFile.length(), content.length);
+      content = reportManager.getResource("jasper/logo.png", session); // from classpath
+      assertNotNull(content);
+      assertTrue(content.length > 0);
    }
 
    /**
