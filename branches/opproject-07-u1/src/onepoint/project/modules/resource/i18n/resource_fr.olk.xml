@@ -1,0 +1,150 @@
+<language-kit locale="fr">
+   <resource-map id="resource.module">
+      <resource id="AdministrationTool">Administration</resource>
+   </resource-map>
+   <resource-map id="resource.resources">
+      <resource id="NewPool">Nouveau Groupe</resource>
+      <resource id="NewResource">Nouvelle Ressource</resource>
+      <resource id="Properties">Propriétés</resource>
+      <resource id="Move">Déplacer</resource>
+      <resource id="Edit">Modifier</resource>
+      <resource id="Delete">Supprimer</resource>
+      <resource id="AssignToProject">Affecter au projet</resource>
+      <resource id="ImportUser">Importer les Utilisateurs</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+
+      <resource id="NewPoolTooltip">Creer un nouveau groupe de ressource</resource>
+      <resource id="NewResourceTooltip">Creer une nouvelle ressource</resource>
+      <resource id="InfoTooltip">Voir les informations pour les ressources ou groupes choisis</resource>
+      <resource id="MoveTooltip">Déplacer les ressources ou groupes choisis vers un autre groupe</resource>
+      <resource id="EditTooltip">Modifier les meta information pour les ressources ou groupes choisis</resource>
+      <resource id="DeleteTooltip">Supprimer les ressources et groupes choisis</resource>
+      <resource id="AssignToProjectTooltip">Affecter les ressources choisies à un projet</resource>
+      <resource id="ImportUsersTooltip">Importer les utilisateurs comme ressources</resource>
+
+   </resource-map>
+   <resource-map id="resource.NewPool">
+      <resource id="NewPool">Nouveau Groupe</resource>
+      <resource id="General">Généralités</resource>
+      <resource id="Permissions">Permissions</resource>
+      <resource id="NewPool">Nouveau Groupe</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.EditPool">
+      <resource id="EditPool">Modifier le groupe</resource>
+      <resource id="General">Généralités</resource>
+      <resource id="Permissions">Permissions</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.Info">
+      <resource id="InfoPool">Information Groupe</resource>
+      <resource id="InfoResource">Information Ressource</resource>
+   </resource-map>
+   <resource-map id="resource.NewResource">
+      <resource id="NewResource">Nouvelle Ressource</resource>
+      <resource id="General">Généralités</resource>
+      <resource id="Projects">Projets</resource>
+      <resource id="Permissions">Permissions</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Descriptions</resource>
+      <resource id="Available">Disponibilité (%)</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="InheritPoolRate">Héritez du taux du groupe</resource>
+      <resource id="ResponsibleUser">Utilisateur responsable</resource>
+      <resource id="SelectUser">Choisir</resource>
+      <resource id="Pool">Groupe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.EditResource">
+      <resource id="EditResource">Modifier Ressource</resource>
+      <resource id="General">Généralités</resource>
+      <resource id="Projects">Projets</resource>
+      <resource id="Permissions">Permissions</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Available">Disponibilité (%)</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="InheritPoolRate">Héritez du taux du groupe</resource>
+      <resource id="ResponsibleUser">Utilisateur responsable</resource>
+      <resource id="SelectUser">Choisir</resource>
+      <resource id="Pool">Groupe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.ImportUser">
+      <resource id="ImportUser">Importer les Utilisateurs</resource>
+      <resource id="General">Généralités</resource>
+      <resource id="Projects">Projets</resource>
+      <resource id="NameFormat">Nom format</resource>
+      <resource id="Available">Disponibilité (%)</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="InheritPoolRate">Héritez du taux du groupe</resource>
+      <resource id="Pool">Groupe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.ResourceChooser">
+      <resource id="SelectResource">Choisir une Ressource ou un groupe</resource>
+      <resource id="SelectPool">Choisir le Groupe</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.objects">
+      <resource id="RootResourcePoolName">Groupe Ressource Racine</resource>
+      <resource id="RootResourcePoolDescription">Le groupe de ressource racine agit en tant que racine de la hiérarchie de ressource</resource>
+      <resource id="NotAssignedDisplayName">Non affecté</resource>
+   </resource-map>
+   <resource-map id="resource.add_project">
+      <resource id="AddProject">Ajouter un Projet</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.error">
+      <resource id="ResourceNameNotSpecified">Le nom de ressource n'a pas été indiqué</resource>
+      <resource id="ResourceNameNotUnique">Le nom de ressource est déjà employé</resource>
+      <resource id="ResourceNameNotValid">Le nom de ressource est invalide</resource>
+      <resource id="UserIDNotSpecified">L'utilisateur n'a pas été indiqué</resource>
+      <resource id="PoolNameNotUnique">Le nom du groupe est déjà employé</resource>
+      <resource id="PoolNameNotSpecified">Le nom du groupe n'a pas été indiqué</resource>
+      <resource id="AvailabilityNotValid">La disponibilité est invalide</resource>
+      <resource id="HourlyRateNotValid">Le taux horaire est invalide</resource>
+      <resource id="NameFormatNotSpecified">Le nom du format n'a pas été indiqué</resource>
+      <resource id="NameFormatNotValid">Le nom du format est invalide</resource>
+      <resource id="ResourceNotFound">La ressource n'a pas été trouvée</resource>
+      <resource id="PoolNotFound">Le groupe n'a pas été trouvée</resource>
+      <resource id="UpdateAccessDenied">Vous n'avez pas les droits suffisants pour modifier la ressource ou le groupe</resource>
+      <resource id="AssignAccessDenied">Vous n'avez pas les droits suffisants pour affecter des ressources au projet</resource>
+      <resource id="ResourceAssignmentWarning">Vous ne pouvez pas affecter toutes les ressources choisies sur le projet</resource>
+      <resource id="ManagerAccessDenied">Vous devez avoir les droits de manager pour cette operation</resource>
+      <resource id="DeleteResourceAssignmentsDenied">La ressource ne peut pas être supprimée, puisqu'elle est encore employée dans des planning projet</resource>
+      <resource id="DeletePoolResourceAssignmentsDenied">Le groupe ne peut pas être supprimée, tant que les ressources de ce groupe sont employée dans des planning projet</resource>
+      <resource id="ActivityAssignmentsExistError">La ressource ne peut pas être supprimée du projet car elle est affectée à une ou plusieurs tâches</resource>
+   </resource-map>
+   <resource-map id="resource.delete">
+      <resource id="ConfirmDelete">Supprimer les ressources ou groupes</resource>
+      <resource id="NoSelectionMessage">Veuillez choisir une ou plusieurs ressources ou groupes à supprimer.</resource>
+      <resource id="ConfirmDeleteOneMessage">Voulez vous vraiment supprimer la ressource ou le groupe ?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les ressources et groupes?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="resource.change">
+      <resource id="ConfirmChange">Modifier la Ressource</resource>
+      <resource id="ConfirmChangeHR">Modifier le taux horaire de cette ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
+      <resource id="ConfirmChangeAvailable">Modifier la disponibilité de cette ressource entrainera une revalidation des plannings associés.</resource>
+      <resource id="ConfirmPoolChange">Modifier le Groupe</resource>
+      <resource id="ConfirmPoolChangeHR">Modifier le taux horaire de cet groupe de ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+</language-kit>

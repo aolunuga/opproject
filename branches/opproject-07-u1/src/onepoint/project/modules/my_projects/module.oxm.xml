@@ -4,6 +4,7 @@
       <language-kit-file file-name="/modules/my_projects/i18n/my_projects_en.olk.xml"/>
       <language-kit-file file-name="/modules/my_projects/i18n/my_projects_de.olk.xml"/>
       <language-kit-file file-name="/modules/my_projects/i18n/my_projects_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/my_projects/i18n/my_projects_fr.olk.xml"/>
    </language-kit-files>
    <tools>
       <tool name="my_projects" caption="{$ProjectsTool}" group-ref="my"

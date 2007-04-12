@@ -3,6 +3,7 @@
       <language-kit-file file-name="/modules/project_dates/i18n/project_dates_en.olk.xml"/>
       <language-kit-file file-name="/modules/project_dates/i18n/project_dates_de.olk.xml"/>
       <language-kit-file file-name="/modules/project_dates/i18n/project_dates_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/project_dates/i18n/project_dates_fr.olk.xml"/>
    </language-kit-files>
    <prototype-files>
    </prototype-files>

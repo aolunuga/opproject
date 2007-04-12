@@ -6,12 +6,14 @@
    <resource-map id="my_tasks.my_tasks">
 
       <resource id="NewAdhoc">New task</resource>
+      <resource id="EditAdhoc">Edit task</resource>
       <resource id="DeleteAdhoc">Delete task</resource>
       <resource id="NewComment">Новый комментарий</resource>
       <resource id="Info">Свойства</resource>
       <resource id="Print">Печать</resource>
 
       <resource id="NewAdhocTooltip">Create new ad hoc task</resource>
+      <resource id="EditAdhocTooltip">Edit the selected ad hoc task</resource>
       <resource id="DeleteAdhocTooltip">Delete the selected ad hoc tasks</resource>
       <resource id="NewCommentTooltip">Добавить новый комментарий</resource>
       <resource id="InfoTooltip">Показать свойства задачи</resource>

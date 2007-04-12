@@ -1,0 +1,67 @@
+<language-kit locale="fr">
+
+   <resource-map id="project_status.module">
+      <resource id="ProjectStatusTool">Satut Projet</resource>
+   </resource-map>
+
+   <resource-map id="project_status.project_status">
+
+      <resource id="NewProjectStatus">Nouveau Statut de Projet</resource>
+      <resource id="Properties">Propriétés</resource>
+      <resource id="Edit">Modifier</resource>
+      <resource id="Delete">Supprimer</resource>
+      <resource id="Up">Monter</resource>
+      <resource id="Down">Descendre</resource>
+      
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Couleur</resource>
+
+      <resource id="NewProjectStatusTooltip">Créer un nouveau statut de projet</resource>
+      <resource id="InfoTooltip">Voir les informations pour le statut de projet choisi</resource>
+      <resource id="EditTooltip">Modifier les informations pour le statut de projet choisi</resource>
+      <resource id="DeleteTooltip">Supprimer les statuts de projet choisis</resource>
+      <resource id="UpTooltip">Monter le status de projet choisi</resource>
+      <resource id="DownTooltip">Descendre le status de projet choisi</resource>
+
+   </resource-map>
+
+   <resource-map id="project_status.new">
+      <resource id="NewProjectStatus">Nouveau Statut de Projet</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Couleur</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+
+   <resource-map id="project_status.edit">
+      <resource id="EditProjectStatus">Edit Project Status</resource>
+      <resource id="Name">Nom</resource>
+      <resource id="Description">Description</resource>
+      <resource id="Color">Couleur</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+
+   <resource-map id="project_status.Info">
+      <resource id="InfoProjectStatus">Information sur le statut de Projet</resource>
+   </resource-map>
+
+   <resource-map id="project_status.delete">
+      <resource id="ConfirmDelete">Supprimer les éléments des Statuts de Projet</resource>
+      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs éléments de statuts de projet a supprimés</resource>
+      <resource id="ConfirmDeleteOneMessage">Voulez vous vraiment supprimer le statut de projet choisi ?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les statuts de projet choisis ?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+
+   <resource-map id="project_status.error">
+      <resource id="ProjectStatusNameNotSpecified">Le nom de statut du projet n'a pas été entré</resource>
+      <resource id="ProjectStatusNameNotUnique">Le nom de statut du projet est déjà utilisé</resource>
+      <resource id="ProjectStatusNotFound">Le statut de projet n'a pas été trouvé</resource>
+      <resource id="InsuffcientPrivileges">Seul l'administrateur est autorisé à modifier les objets de projet</resource>
+   </resource-map>
+
+</language-kit>

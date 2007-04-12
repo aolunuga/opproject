@@ -23,6 +23,7 @@
       <resource id="NewProject">Новый проект</resource>
       <resource id="Move">Переместить</resource>
       <resource id="Info">Свойства</resource>
+      <resource id="Edit">Изменить</resource>
       <resource id="Delete">Удалить</resource>
       <resource id="Name">Название</resource>
       <resource id="Description">Описание</resource>
@@ -36,6 +37,7 @@
       <resource id="NewProjectTooltip">Создать новый проект</resource>
       <resource id="MoveTooltip">Переместить указанный проект или портфель в другой портфель</resource>
       <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>      
+      <resource id="EditTooltip">Изменить мета-данные для указанного проекта или портфеля</resource>
       <resource id="DeleteTooltip">Удалить указанный проект или портфель</resource>
 
    </resource-map>

@@ -3,6 +3,7 @@
       <language-kit-file file-name="/modules/repository/i18n/repository_en.olk.xml"/>
       <language-kit-file file-name="/modules/repository/i18n/repository_de.olk.xml"/>
       <language-kit-file file-name="/modules/repository/i18n/repository_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/repository/i18n/repository_fr.olk.xml"/>
    </language-kit-files>
    <service-files>
       <service-file file-name="/modules/repository/repository_service.osd.xml"/>
