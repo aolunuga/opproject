@@ -234,6 +234,9 @@ public class OpWorkSlipDataSetFactory {
       data_cell.setDoubleValue(assignment.getBaseEffort());
       data_row.addChild(data_cell);
 
+      //set the value of the dataRow to the id of the assignment
+      data_row.setStringValue(choice);
+
       return data_row;
    }
 }
