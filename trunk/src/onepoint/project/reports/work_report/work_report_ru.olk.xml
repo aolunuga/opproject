@@ -1,0 +1,26 @@
+<language-kit locale="ru">
+   <resource-map id="report.work_report">
+      <resource id="PrintTitle">Work report</resource>
+      <resource id="User">User</resource>
+      <resource id="Select">Select</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Date">Date</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="Hours">Effort (h)</resource>
+      <resource id="Costs">Pers. (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Miscellaneous">Misc. (€)</resource>
+      <resource id="TotalHours">Total Effort (h)</resource>
+      <resource id="InvalidUser">Please select a user</resource>
+
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+
+      <resource id="InvalidStart">The entered start date is not valid</resource>
+      <resource id="InvalidFinish">The entered finish date is not valid</resource>
+      <resource id="InvalidUser">Please select an user</resource>
+   </resource-map>
+</language-kit>
