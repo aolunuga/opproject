@@ -14,8 +14,8 @@ import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
-import onepoint.project.module.OpModuleManager;
 import onepoint.project.module.OpLanguageKitPath;
+import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.mail.OpMailer;
@@ -28,8 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service class responsible for performing application initialization steps
@@ -51,7 +51,7 @@ public final class OpInitializer {
    /**
     * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
     */
-   private static final Map PRODUCT_CODES_MAP = new HashMap();
+   private static final Map<String, Boolean> PRODUCT_CODES_MAP = new HashMap<String, Boolean>();
 
    /**
     * Run level of the application.
@@ -66,7 +66,7 @@ public final class OpInitializer {
    /**
     * Map containg information about the initialization steps taken by the initializer
     */
-   private static Map initParams = new HashMap();
+   private static Map<String, String> initParams = new HashMap<String, String>();
 
    /**
     * The configuration object initialized by this class
@@ -250,11 +250,11 @@ public final class OpInitializer {
       // load language resources for main application forms (e.g. login.oxf)
       OpLanguageKitPath mainPath = new OpLanguageKitPath("/i18n");
       List kits = mainPath.loadLanguageKits();
-      for (int i = 0; i < kits.size(); i++) {
-         XLanguageKit kit = (XLanguageKit) kits.get(i);
+      for (Object kit1 : kits) {
+         XLanguageKit kit = (XLanguageKit) kit1;
          XLocaleManager.registerLanguageKit(kit);
       }
-      
+
       languageInitialized = true;
    }
 
@@ -297,11 +297,11 @@ public final class OpInitializer {
     * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
     */
    public static boolean isMultiUser() {
-      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
+      Boolean isMultiUser = PRODUCT_CODES_MAP.get(productCode);
       if (isMultiUser == null) {
          throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
       }
-      return isMultiUser.booleanValue();
+      return isMultiUser;
    }
 
 
@@ -327,7 +327,7 @@ public final class OpInitializer {
       if (runLevelParameter != null) {
          XLocalizer localizer = XLocaleManager.createLocalizer(localeId, mapId);
 
-         int runLevel = Integer.valueOf(runLevelParameter).intValue();
+         int runLevel = Integer.valueOf(runLevelParameter);
          int successRunLevel = getSuccessRunLevel();
          if (runLevel < successRunLevel) {
             String resourceId = "${" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";

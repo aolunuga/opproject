@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
@@ -27,6 +28,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    protected final static String PROJECTS_DATA_SET = "ProjectsSet";
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
+   private final static String ROLE_PANEL = "RolePanel";
    private final static int DEFAULT_PROJECT_CHOICE_FIELD_INDEX = 0;
 
    //project choice values
@@ -50,6 +52,11 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       projectsDataSet = form.findComponent(PROJECTS_DATA_SET);
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+
+      // hide multi-user components
+      if (!OpInitializer.isMultiUser()) {
+         form.findComponent(ROLE_PANEL).setVisible(false);
+      }
 
       String projectChoice = getProjectChoice(parameters, form, session);
       List levels = getLevelsForChoice(projectChoice);
@@ -96,8 +103,8 @@ public class OpMyProjectsFormProvider implements XFormProvider {
     * Gets the project permission choice from the PROJECT_CHOICE_FIELD component.
     *
     * @param parameters form parameters
-    * @param form
-    * @param session
+    * @param form       the current form
+    * @param session    the project session
     * @return project permission choice
     */
    private String getProjectChoice(HashMap parameters, XComponent form, OpProjectSession session) {
@@ -266,7 +273,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(costs);
       dataRow.addChild(dataCell);
-
 
       //remaining effort (base - actual)  18
       double remainingEffort = baseEffort - actualEffort;

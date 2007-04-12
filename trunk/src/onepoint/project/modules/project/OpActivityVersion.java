@@ -77,6 +77,7 @@ public class OpActivityVersion extends OpObject {
    private double baseMaterialCosts;
    private double baseExternalCosts;
    private double baseMiscellaneousCosts;
+   private double baseProceeds;
    private boolean expanded;
    private boolean template;
    private OpActivityCategory category;
@@ -329,5 +330,13 @@ public class OpActivityVersion extends OpObject {
 
    public void setResponsibleResource(OpResource responsibleResource) {
       this.responsibleResource = responsibleResource;
+   }
+
+   public double getBaseProceeds() {
+      return baseProceeds;
+   }
+
+   public void setBaseProceeds(Double baseProceeds) {
+      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 }

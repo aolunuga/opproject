@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
@@ -15,7 +16,10 @@ import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactor
 import onepoint.project.modules.user.OpPermission;
 import onepoint.service.server.XSession;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Form provider for my projects tool.
@@ -27,6 +31,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    protected final static String PROJECTS_DATA_SET = "ProjectsSet";
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
+   private final static String ROLE_PANEL = "RolePanel";
    private final static int DEFAULT_PROJECT_CHOICE_FIELD_INDEX = 0;
 
    //project choice values
@@ -51,14 +56,19 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
 
+      // hide multi-user components
+      if (!OpInitializer.isMultiUser()) {
+         form.findComponent(ROLE_PANEL).setVisible(false);
+      }
+
       String projectChoice = getProjectChoice(parameters, form, session);
       List levels = getLevelsForChoice(projectChoice);
       List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
 
       //projectMap = new HashMap();
-      for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {
-         Long id = (Long) iterator.next();
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+      for (Object projectNodeID : projectNodeIDs) {
+         Long id = (Long) projectNodeID;
+         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
          XComponent row = createProjectRow(projectNode, broker);
          projectsDataSet.addChild(row);
       }
@@ -70,24 +80,24 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    }
 
    private List getLevelsForChoice(String permission) {
-      List levels = new ArrayList();
+      List<Byte> levels = new ArrayList<Byte>();
       if (OBSERVER.equals(permission)) {
          //show all projects the user has at least read access to
-         levels.add(new Byte(OpPermission.OBSERVER));
-         levels.add(new Byte(OpPermission.CONTRIBUTOR));
-         levels.add(new Byte(OpPermission.MANAGER));
-         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+         levels.add(OpPermission.OBSERVER);
+         levels.add(OpPermission.CONTRIBUTOR);
+         levels.add(OpPermission.MANAGER);
+         levels.add(OpPermission.ADMINISTRATOR);
       }
       else if (CONTRIB.equals(permission)) {
          //show projects the user has at least contributor permissions to
-         levels.add(new Byte(OpPermission.CONTRIBUTOR));
-         levels.add(new Byte(OpPermission.MANAGER));
-         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+         levels.add(OpPermission.CONTRIBUTOR);
+         levels.add(OpPermission.MANAGER);
+         levels.add(OpPermission.ADMINISTRATOR);
       }
       else if (MANAGER.equals(permission)) {
          //show projects the user has at least manager permissions to
-         levels.add(new Byte(OpPermission.MANAGER));
-         levels.add(new Byte(OpPermission.ADMINISTRATOR));
+         levels.add(OpPermission.MANAGER);
+         levels.add(OpPermission.ADMINISTRATOR);
       }
       return levels;
    }
@@ -96,8 +106,8 @@ public class OpMyProjectsFormProvider implements XFormProvider {
     * Gets the project permission choice from the PROJECT_CHOICE_FIELD component.
     *
     * @param parameters form parameters
-    * @param form
-    * @param session
+    * @param form       the current form
+    * @param session    the project session
     * @return project permission choice
     */
    private String getProjectChoice(HashMap parameters, XComponent form, OpProjectSession session) {
@@ -110,7 +120,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          if (stateMap != null) {
             Integer state = (Integer) stateMap.get(PROJECT_CHOICE_FIELD);
             if (state != null) {
-               selectedIndex = state.intValue();
+               selectedIndex = state;
                String value = (String) ((XComponent) chooser.getDataSetComponent().getChild(selectedIndex)).getValue();
                projectChoice = XValidator.choiceID(value);
             }
@@ -123,7 +133,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
             projectChoice = DEFAULT_VALUE;
             selectedIndex = DEFAULT_PROJECT_CHOICE_FIELD_INDEX;
          }
-         chooser.setSelectedIndex(new Integer(selectedIndex));
+         chooser.setSelectedIndex(selectedIndex);
       }
       return projectChoice;
    }
@@ -159,9 +169,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       XComponent dataCell;
 
-      ArrayList activityTypes = new ArrayList();
-      activityTypes.add(new Byte(OpActivity.STANDARD));
-      activityTypes.add(new Byte(OpActivity.COLLECTION));
+      ArrayList<Byte> activityTypes = new ArrayList<Byte>();
+      activityTypes.add(OpActivity.STANDARD);
+      activityTypes.add(OpActivity.COLLECTION);
 
       double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode.getID(), activityTypes);
 
@@ -266,7 +276,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(costs);
       dataRow.addChild(dataCell);
-
 
       //remaining effort (base - actual)  18
       double remainingEffort = baseEffort - actualEffort;

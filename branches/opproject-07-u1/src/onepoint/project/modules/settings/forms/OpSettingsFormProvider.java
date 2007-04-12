@@ -11,6 +11,7 @@ import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpInitializer;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
@@ -43,6 +44,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    public static final String DAY_WORK_TIME = "DayWorkTime";
    public static final String WEEK_WORK_TIME = "WeekWorkTime";
    public static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
+   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
    public static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
    public static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
    public static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
@@ -148,6 +150,13 @@ public class OpSettingsFormProvider implements XFormProvider {
       String userLocaleId = OpSettings.get(OpSettings.USER_LOCALE);
       XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
       logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
+
+      // hide multi-user fields
+      if (!OpInitializer.isMultiUser()) {
+         mailMessageTextField.setVisible(false);
+         form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
+         emptyPasswordCheckBox.setVisible(false);
+      }
 
       // only administrator can modifiy the settings
       if (!session.userIsAdministrator()) {

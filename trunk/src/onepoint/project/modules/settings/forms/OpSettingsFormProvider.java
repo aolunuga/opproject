@@ -10,6 +10,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
@@ -20,9 +21,11 @@ import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
-import onepoint.util.XCalendar;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class OpSettingsFormProvider implements XFormProvider {
 
@@ -40,6 +43,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    public static final String DAY_WORK_TIME = "DayWorkTime";
    public static final String WEEK_WORK_TIME = "WeekWorkTime";
    public static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
+   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
    public static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
    public static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
    public static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
@@ -85,7 +89,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String dayWorkTimeString = OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
       double dayWorkTime;
       try {
-         dayWorkTime = Double.valueOf(dayWorkTimeString).doubleValue();
+         dayWorkTime = Double.valueOf(dayWorkTimeString);
       }
       catch (NumberFormatException e) {
          dayWorkTime = 0;
@@ -97,7 +101,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String weekWorkTimeString = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       double weekWorkTime;
       try {
-         weekWorkTime = Double.valueOf(weekWorkTimeString).doubleValue();
+         weekWorkTime = Double.valueOf(weekWorkTimeString);
       }
       catch (NumberFormatException e) {
          weekWorkTime = 0;
@@ -108,7 +112,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
       double available = 0;
       try {
-         available = Double.valueOf(resourceMaxAvailability).doubleValue();
+         available = Double.valueOf(resourceMaxAvailability);
       }
       catch (NumberFormatException e) {
          logger.warn("Error in parsing double number " + resourceMaxAvailability);
@@ -117,7 +121,7 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
       XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval).intValue());
+      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval));
       OpProjectDatesModule projectDatesModule = (OpProjectDatesModule) OpModuleManager.getModuleRegistry().getModule(OpProjectDatesModule.MODULE_NAME);
       if (!projectDatesModule.enableMilestoneControllingIntervalSetting()) {
          milestoneControllingIntervalField.setEnabled(false);
@@ -125,15 +129,15 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       String emptyPasswordValue = OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD);
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
-      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue).booleanValue());
+      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue));
 
       String showHours = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
-      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours).booleanValue());
+      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours));
 
       String reportsRemovePeriod = OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
       XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod).intValue());
+      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod));
 
       String emailFromAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
@@ -145,6 +149,13 @@ public class OpSettingsFormProvider implements XFormProvider {
       String userLocaleId = OpSettings.get(OpSettings.USER_LOCALE);
       XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
       logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
+
+      // hide multi-user fields
+      if (!OpInitializer.isMultiUser()) {
+         mailMessageTextField.setVisible(false);
+         form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
+         emptyPasswordCheckBox.setVisible(false);
+      }
 
       // only administrator can modifiy the settings
       if (!session.userIsAdministrator()) {
@@ -173,8 +184,8 @@ public class OpSettingsFormProvider implements XFormProvider {
          //use an intermediate data set in order to sort
          XComponent sorterDataSet = new XComponent(XComponent.DATA_SET);
          XComponent dataRow;
-         for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
-            String id = (String) iterator.next();
+         for (Object key : keys) {
+            String id = (String) key;
             OpHolidayCalendar manager = (OpHolidayCalendar) holidayMap.get(id);
             String label = manager.getLabel();
             if (label == null) {
@@ -205,7 +216,7 @@ public class OpSettingsFormProvider implements XFormProvider {
                selectedIndex = i + 1;
             }
          }
-         holidays.setSelectedIndex(new Integer(selectedIndex));
+         holidays.setSelectedIndex(selectedIndex);
          ((XComponent) holidaysDataSet.getChild(selectedIndex)).setSelected(true);
       }
       else {
@@ -280,6 +291,6 @@ public class OpSettingsFormProvider implements XFormProvider {
       }
       data_set.addChild(data_row);
 
-      choice.setSelectedIndex(new Integer(selectedIndex));
+      choice.setSelectedIndex(selectedIndex);
    }
 }

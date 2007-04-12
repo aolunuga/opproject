@@ -23,7 +23,7 @@
       </tool-bar>
 
      <panel x="1" layout="border" style-ref="compact-panel-default">
-        <panel layout="table" flexible="false">
+        <panel id="RolePanel" layout="table" flexible="false">
            <label x="0" width="2" text="${Role}"/>
            <choice-field x="2" width="3" id="ProjectChooser" data-set-ref="ProjectSet" on-value-changed="filterChanged" stateful="true" selected-index="0"/>
         </panel>

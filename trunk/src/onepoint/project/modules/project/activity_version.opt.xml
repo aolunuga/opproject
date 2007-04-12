@@ -16,6 +16,7 @@
    <field name="BaseMaterialCosts" type="Double"/>
    <field name="BaseExternalCosts" type="Double"/>
    <field name="BaseMiscellaneousCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>
    <relationship name="Category" type="OpActivityCategory" back-relationship="ActivityVersions"/>
