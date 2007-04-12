@@ -9,6 +9,7 @@
       <language-kit-file file-name="/modules/settings/i18n/settings_en.olk.xml"/>
       <language-kit-file file-name="/modules/settings/i18n/settings_de.olk.xml"/>
       <language-kit-file file-name="/modules/settings/i18n/settings_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/settings/i18n/settings_fr.olk.xml"/>
    </language-kit-files>
    <tools>
       <tool name="settings" caption="{$SettingsTool}" group-ref="system" icon="/modules/settings/icons/settings_tool.png" start-form="/modules/settings/forms/settings.oxf.xml" sequence="20"/>

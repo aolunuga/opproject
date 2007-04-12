@@ -27,6 +27,7 @@
       <language-kit-file file-name="/modules/project/i18n/project_en.olk.xml"/>
       <language-kit-file file-name="/modules/project/i18n/project_de.olk.xml"/>
       <language-kit-file file-name="/modules/project/i18n/project_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/project/i18n/project_fr.olk.xml"/>
    </language-kit-files>
    <tool-groups>
       <tool-group name="projects" caption="{$ProjectsToolGroup}"/>
