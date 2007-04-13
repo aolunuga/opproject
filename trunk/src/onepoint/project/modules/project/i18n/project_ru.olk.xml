@@ -112,7 +112,7 @@
       <resource id="CreatedOn">Дата создания</resource>
       <resource id="DeleteVersions">Удалить версию</resource>
 
-      <resource id="WorkingVersion">Checked in Project Plan</resource>
+      <resource id="WorkingVersion">Checked out Project Plan</resource>
 
       <resource id="Permissions">Доступ</resource>
 	   

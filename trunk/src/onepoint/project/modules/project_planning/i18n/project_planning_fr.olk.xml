@@ -1,8 +1,8 @@
 <language-kit locale="fr">
 
    <resource-map id="project_planning.module">
-        <resource id="PlanningTool">Planning</resource>
-    </resource-map>
+      <resource id="PlanningTool">Planning</resource>
+   </resource-map>
 
    <resource-map id="project_planning.activities">
       <resource id="EditPlan">Modifier</resource>
@@ -12,7 +12,7 @@
       <resource id="ExportProject">Exporter</resource>
       <resource id="Revert">Annuler</resource>
       <resource id="Print">Imprimer</resource>
-	   
+
       <resource id="Cut">Couper</resource>
       <resource id="Copy">Copier</resource>
       <resource id="Paste">Coller</resource>
@@ -77,7 +77,9 @@
       <resource id="CopyActivities">copier les activités</resource>
       <resource id="PasteActivities">Coller les activités</resource>
       <resource id="Undo">Annuler</resource>
-      <resource id="Redo">Répéter</resource>      
+      <resource id="Redo">Répéter</resource>
+
+      <resource id="Total">Total</resource>
 
       <resource id="LoopErrorMessage">Cette action va provoquer une boucle dans le planning projet</resource>
       <resource id="ResourcesErrorMessage">Cette ressource n'a pas été trouvé dans le groupe de ressource du projet</resource>
@@ -90,7 +92,7 @@
       <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
       <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
 
       <resource id="ImportProjectTitle">Importer le planning projet</resource>
       <resource id="ExportProjectTitle">Exporter le planning projet</resource>
@@ -105,7 +107,7 @@
    </resource-map>
 
    <resource-map id="project_planning.ImportProjectPlan">
-      <resource id="ConfirmImport">Importer  le planning projet</resource>
+      <resource id="ConfirmImport">Importer le planning projet</resource>
       <resource id="ConfirmImportProjectPlan">L'importation va remplacer toutes les activités courrantes. Etesvous sûr de vouloir importer un planning de projet externe ?</resource>
       <resource id="FileReadError">Le fichier ne peut être lu</resource>
       <resource id="ValidationError">Le planning projet a des données incohérentes</resource>
@@ -127,7 +129,7 @@
       <resource id="InfoCollectionTaskActivity">Détail de la liste de tâches</resource>
       <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
 
-      <resource id="General">Généralités </resource>
+      <resource id="General">Généralités</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
       <resource id="Start">Début</resource>
@@ -136,8 +138,8 @@
       <resource id="Duration">Durée (d)</resource>
       <resource id="PercentageFinished">% Terminé</resource>
       <resource id="Category">Catégorie</resource>
-      <resource id="Priority">Priorité </resource>
-      <resource id="Mandatory">Obligatoire </resource>
+      <resource id="Priority">Priorité</resource>
+      <resource id="Mandatory">Obligatoire</resource>
       <resource id="ResponsibleResource">Responsable</resource>
 
       <resource id="Resources">Ressources</resource>
@@ -145,7 +147,7 @@
       <resource id="PercentageAssigned">% Affecté</resource>
       <resource id="HoursAssigned">Heures Affectées</resource>
 
-      <resource id="Predecessor">Prédécesseurs </resource>
+      <resource id="Predecessor">Prédécesseurs</resource>
 
       <resource id="Costs">Coûts</resource>
       <resource id="Personnel">Personnel (€)</resource>
@@ -155,15 +157,15 @@
       <resource id="Misc">Divers (€)</resource>
 
       <resource id="Attachments">piéce jointe</resource>
-	  <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
-	  <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
-	  <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
-	  <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
+      <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
 
       <resource id="Title">Titre</resource>
       <resource id="Location">Lieu</resource>
 
-      <resource id="Comments">Commentaires </resource>
+      <resource id="Comments">Commentaires</resource>
       <resource id="AddCommentTooltip">Ajout un Commentaire</resource>
       <resource id="RemoveCommentsTooltip">Supprimer les commentaires choisis</resource>
       <resource id="By">Par</resource>
@@ -193,7 +195,7 @@
 
       <resource id="Subject">Sujet</resource>
       <resource id="Text">Texte</resource>
-	   
+
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -217,7 +219,7 @@
       <resource id="ProtocolErrorMessage">Le protocole saisi est invalide</resource>
       <resource id="AddURL">Ajouter un lien</resource>
       <resource id="Name">Titre</resource>
-      <resource id="Location">Adresse </resource>
+      <resource id="Location">Adresse</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>

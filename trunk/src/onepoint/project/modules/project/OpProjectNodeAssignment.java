@@ -13,9 +13,9 @@ public class OpProjectNodeAssignment extends OpObject {
 
    public final static String RESOURCE = "Resource";
    public final static String PROJECT_NODE = "ProjectNode";
-   // TODO: Maybe general %-assignment
-   // TODO: Maybe store rate as well?
 
+   private double hourlyRate;
+   private double externalRate;
    private OpResource resource;
    private OpProjectNode projectNode;
 
@@ -35,4 +35,19 @@ public class OpProjectNodeAssignment extends OpObject {
       return projectNode;
    }
 
+   public double getExternalRate() {
+      return externalRate;
+   }
+
+   public void setExternalRate(Double externalRate) {
+      this.externalRate = (externalRate != null) ? externalRate : 0;
+   }
+
+   public double getHourlyRate() {
+      return hourlyRate;
+   }
+
+   public void setHourlyRate(Double hourlyRate) {
+      this.hourlyRate = (hourlyRate != null) ? hourlyRate : 0;
+   }
 }

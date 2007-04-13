@@ -78,6 +78,8 @@
       <resource id="Undo">Rückgängig</resource>
       <resource id="Redo">Wiederherstellen</resource>
 
+      <resource id="Total">Summe</resource>
+
       <resource id="LoopErrorMessage">Diese Aktion würde einen Kreis im Projektplan erzeugen</resource>
       <resource id="ResourcesErrorMessage">Der Ressourcenname konnte im Projektressourcepool nicht gefunden werden</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand</resource>
@@ -90,7 +92,7 @@
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
-     
+
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
       <resource id="FileWriteError">Die Datei konnte nicht geschrieben werden</resource>
@@ -155,10 +157,10 @@
       <resource id="Misc">Sonstige (€)</resource>
 
       <resource id="Attachments">Anlagen</resource>
-	  <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
-	  <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
-	  <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
-	  <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
+      <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
+      <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
+      <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
+      <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
 
       <resource id="Title">Titel</resource>
       <resource id="Location">Link</resource>
