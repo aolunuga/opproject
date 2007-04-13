@@ -24,11 +24,11 @@ import java.util.List;
 public class OpProjectComponent extends XComponent {
 
    /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    *
+    */
+   private static final long serialVersionUID = 1L;
 
-  private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
 
    public final static byte GANTT_ACTIVITY = 1;
    public final static byte GANTT_DEPENDENCY = 2; // *** "GANTT_CONNECTOR"?
@@ -157,10 +157,6 @@ public class OpProjectComponent extends XComponent {
    public static XComponent captionEditor = null;
    public static XComponent captionEditorOwner = null;
 
-   // Unique drag-item IDs
-   // *** Nicer way to do it: Reuse GANTT_ACTIVITY and aspect DRAGABLE
-   // ==> Even nicer: Have an interface XDragable, but increases the size of the
-   // applet
    public final static String ACTIVITY_DRAW_ITEM = "ActivityDrawItem";
    public final static String MILESTONE_DRAW_ITEM = "MilestoneDrawItem";
    public final static String TASK_DRAW_ITEM = "TaskDrawItem";
@@ -2587,7 +2583,7 @@ public class OpProjectComponent extends XComponent {
             paintProjectStartFinishLines(g, clip_area);
 
             // Paint activities and dependencies (in this order)
-            insertLine = getGanttActivityLine(g);
+            insertLine = getGanttActivityLine();
             paintChildren(g, clip_area);
 
             // Paint history
@@ -2914,11 +2910,9 @@ public class OpProjectComponent extends XComponent {
    }
 
    /**
-    * Paint the activity insert line at move/drag time
-    *
-    * @param g Graphics used to draw
+    * Returns the activity insert line at move/drag time
     */
-   private Line2D getGanttActivityLine(Graphics g) {
+   private Line2D getGanttActivityLine() {
       XView dragSource = getDisplay().getDragSource();
       if (dragSource != null && dragSource instanceof OpProjectComponent) {
          OpProjectComponent activity = (OpProjectComponent) dragSource;
@@ -3049,7 +3043,7 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent) getParent().getParent()).getBoxContent());
       // int first_week_length = gantt_chart.getFirstWorkWeekLength() +
       // gantt_chart.getFirstWeekendLength();
       Date start = gantt_chart.getStart();
@@ -3100,7 +3094,7 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent) getParent().getParent()).getBoxContent());
       Date start = gantt_chart.getStart();
       long start_time = start.getTime();
 
@@ -3226,7 +3220,7 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(style.font());
       int line_height = metrics.getAscent() + metrics.getDescent() + style.top + style.bottom;
       int ascent = metrics.getAscent();
-      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent)getParent().getParent()).getBoxContent());
+      OpProjectComponent gantt_chart = (OpProjectComponent) (((XComponent) getParent().getParent()).getBoxContent());
       Date start = gantt_chart.getStart();
       XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
       Calendar j_calendar = calendar.getCalendar();
@@ -3297,7 +3291,6 @@ public class OpProjectComponent extends XComponent {
       box = (OpProjectComponent) getContext();
       chart = (OpProjectComponent) (box.getBoxContent());
 
-      chart.setDragShape(null);
       XComponent data_set = box.getDataSetComponent();
       OpGanttValidator validator = (OpGanttValidator) (data_set.validator());
       double day_width = box._dayWidth();
@@ -3436,7 +3429,6 @@ public class OpProjectComponent extends XComponent {
       logger.debug("   DROP DEPENDENCY");
       OpProjectComponent box = (OpProjectComponent) getContext();
       OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
-      chart.setDragShape(null);
       // *** TODO: This is a problem; Data-set/model supports no open
       // dependencies
       // ==> Partially solved via OPEN_DEPENDENCIES; Maybe focus problem remains

@@ -388,9 +388,11 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       assertEquals(NEW_NAME, resource.getName());
       assertEquals(NEW_DESCRIPTION, resource.getDescription());
       assertEquals(80d, resource.getAvailable(), 0d);
-      OpResourcePool pool = OpResourceService.findRootPool(session.newBroker());
+      broker = session.newBroker();
+      OpResourcePool pool = OpResourceService.findRootPool(broker);
       assertEquals(pool.getHourlyRate(), resource.getHourlyRate(), 0d);
       assertTrue(resource.getInheritPoolRate());
+      broker.close();
    }
 
    /**
@@ -836,7 +838,9 @@ public class OpResourceServiceTest extends OpBaseTestCase {
     */
    public void testNoPermisions()
         throws Exception {
-      String superPoolId = OpResourceService.findRootPool(session.newBroker()).locator();
+      OpBroker broker = session.newBroker();
+      String superPoolId = OpResourceService.findRootPool(broker).locator();
+      broker.close();
 
       XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, superPoolId);
       XMessage response = service.insertResource(session, request);
