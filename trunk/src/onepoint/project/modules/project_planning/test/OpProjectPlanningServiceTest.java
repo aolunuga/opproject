@@ -152,7 +152,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
 
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       dataSet.setValidatorClass(OpGanttValidator.class.getName());
+      broker = session.newBroker();
       OpActivityDataSetFactory.retrieveActivityDataSet(session.newBroker(), plan, dataSet, false);
+      broker.close();
       assertEquals(2, dataSet.getChildCount());
 
       String fileName = "msproject.test";
@@ -173,7 +175,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
 
       dataSet = new XComponent(XComponent.DATA_SET);
       dataSet.setValidatorClass(OpGanttValidator.class.getName());
-      OpActivityDataSetFactory.retrieveActivityDataSet(session.newBroker(), plan, dataSet, false);
+      broker = session.newBroker();
+      OpActivityDataSetFactory.retrieveActivityDataSet(broker, plan, dataSet, false);
+      broker.close();
       assertEquals(2, dataSet.getChildCount());
    }
 
@@ -254,7 +258,9 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       request = ProjectPlanningTestDataFactory.revertActivitiesMsg(projId);
       response = service.revertActivities(session, request);
       assertNoError(response);
-      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(session.newBroker(), plan, 1);
+      broker = session.newBroker();
+      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, 1);
+      broker.close();
       assertNull(planVersion);
    }
 

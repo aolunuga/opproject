@@ -397,7 +397,9 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       assertNoError(response);
       //todo: create portofolio
 
-      String id = OpProjectAdministrationService.findRootPortfolio(session.newBroker()).locator();
+      OpBroker broker = session.newBroker();
+      String id = OpProjectAdministrationService.findRootPortfolio(broker).locator();
+      broker.close();
       request = new XMessage();
       XComponent row = new XComponent();
       row.setValue(id);
@@ -419,7 +421,9 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       response = service.insertProject(session, request);
       assertNoError(response);
 
-      String id = OpProjectAdministrationService.findRootPortfolio(session.newBroker()).locator();
+      OpBroker broker = session.newBroker();
+      String id = OpProjectAdministrationService.findRootPortfolio(broker).locator();
+      broker.close();
       List ids = new ArrayList();
       ids.add(dataFactory.getProjectId(PRJ_NAME + 1));
       request = new XMessage();
@@ -558,9 +562,17 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       response = service.insertProject(session, request);
       assertNoError(response);
 
-      assertEquals(1, OpProjectDataSetFactory.countProjectNode(OpProjectNode.PORTFOLIO, session.newBroker()));
+      OpBroker broker = session.newBroker();
+      assertEquals(1, OpProjectDataSetFactory.countProjectNode(OpProjectNode.PORTFOLIO, broker));
+      broker.close();
+
+      broker = session.newBroker();
       assertEquals(2, OpProjectDataSetFactory.countProjectNode(OpProjectNode.PROJECT, session.newBroker()));
+      broker.close();
+
+      broker = session.newBroker();
       assertEquals(0, OpProjectDataSetFactory.countProjectNode(OpProjectNode.TEMPLATE, session.newBroker()));
+      broker.close();
    }
 
    public void testProjectAndResourcesMapping()
