@@ -5,7 +5,7 @@
    <resource-map id="my_tasks.my_tasks">
 
       <resource id="NewAdhoc">Neue Aufgabe</resource>
-      <resource id="DeleteAdhoc">Aufgabe löschen</resource>
+      <resource id="DeleteAdhoc">Löschen</resource>
       <resource id="NewComment">Neuer Kommentar</resource>
       <resource id="Info">Eigenschaften</resource>
       <resource id="Print">Drucken</resource>

@@ -65,7 +65,7 @@ public class OpHibernateSource extends OpSource {
    private static final String VERSION_COLUMN = "op_version";
 
    private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
-   private static final String INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(0)";
+   private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + SCHEMA_VERSION + ")";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
 
@@ -855,7 +855,7 @@ public class OpHibernateSource extends OpSource {
 
          if (!existsTable(SCHEMA_TABLE)) {
             statement.execute(CREATE_SCHEMA_TABLE_STATEMENT);
-            statement.executeUpdate(INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT);
+            statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT);
             jdbcConnection.commit();
             logger.info("Created table op_schema for versioning");
          }

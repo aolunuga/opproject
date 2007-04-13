@@ -1,4 +1,6 @@
 <prototype name="OpProjectNodeAssignment" instance-class="onepoint.project.modules.project.OpProjectNodeAssignment">
+   <field name="HourlyRate" type="Double"/>
+   <field name="ExternalRate" type="Double"/>
    <relationship name="Resource" type="OpResource" back-relationship="ProjectNodeAssignments"/>
    <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Assignments"/>
 </prototype>

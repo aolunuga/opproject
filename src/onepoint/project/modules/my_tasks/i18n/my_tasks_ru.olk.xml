@@ -5,9 +5,9 @@
 
    <resource-map id="my_tasks.my_tasks">
 
-      <resource id="NewAdhoc">New task</resource>
-      <resource id="DeleteAdhoc">Delete task</resource>
-      <resource id="NewComment">Новый комментарий</resource>
+      <resource id="NewAdhoc">Новая Задача</resource>
+      <resource id="DeleteAdhoc">Удалить</resource>
+      <resource id="NewComment">Новый Комментарий</resource>
       <resource id="Info">Свойства</resource>
       <resource id="Print">Печать</resource>
 
