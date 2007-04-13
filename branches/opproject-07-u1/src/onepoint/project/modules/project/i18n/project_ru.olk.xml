@@ -36,7 +36,7 @@
       <resource id="NewPortfolioTooltip">Создать новый портфель проектов</resource>
       <resource id="NewProjectTooltip">Создать новый проект</resource>
       <resource id="MoveTooltip">Переместить указанный проект или портфель в другой портфель</resource>
-      <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>      
+      <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>   
       <resource id="EditTooltip">Изменить мета-данные для указанного проекта или портфеля</resource>
       <resource id="DeleteTooltip">Удалить указанный проект или портфель</resource>
 
@@ -113,8 +113,6 @@
       <resource id="CreatedBy">Создана пользователем</resource>
       <resource id="CreatedOn">Дата создания</resource>
       <resource id="DeleteVersions">Удалить версию</resource>
-
-      <resource id="WorkingVersion">Checked in Project Plan</resource>
 
       <resource id="Permissions">Доступ</resource>
 	   
