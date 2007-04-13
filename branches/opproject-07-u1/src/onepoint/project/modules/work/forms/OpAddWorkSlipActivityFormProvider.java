@@ -112,7 +112,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
          //if an activity has more than one resource show the name of the resource and the name of the activity
          if(activity.getAssignments().size() > 1){
             String newCaption  = "['" + assignment.getResource().getName() + ": ";
-            choice = choice.replace("['", newCaption);
+            choice = choice.replaceAll("\\['", newCaption);
          }
          data_row.setStringValue(choice);
 
