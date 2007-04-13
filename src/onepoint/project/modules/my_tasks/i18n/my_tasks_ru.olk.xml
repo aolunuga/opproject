@@ -103,8 +103,6 @@
       <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
       <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
-      <resource id="InvalidTypeError">Type of Task is not valid.</resource>
-      <resource id="TaskNotFoundError">Missing Task</resource>
    </resource-map>
 
 </language-kit>
