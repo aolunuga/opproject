@@ -53,27 +53,6 @@ function newResource(event) {
    dialog.open("/modules/resource/forms/new_resource.oxf.xml", parameters);
 }
 
-function info(event) {
-   resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
-   if (resource_data_set != null) {
-      selected_rows = resource_data_set.selectedRows();
-      if (selected_rows.size() > 0) {
-         parameters.edit_mode = false;
-         descriptor = selected_rows[0].getChild(0).getStringValue();
-         is_pool = descriptor.equals("p");
-         if (is_pool) {
-            parameters.pool_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
-         }
-         else {
-            parameters.resource_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
-         }
-      }
-   }
-}
 function move(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();

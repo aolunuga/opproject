@@ -20,5 +20,6 @@
       <resource id="Miscellaneous">Miscellaneous</resource>
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>
+      <resource id="Total">Total</resource>
    </resource-map>
 </language-kit>

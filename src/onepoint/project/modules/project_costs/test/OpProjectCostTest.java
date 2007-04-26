@@ -57,7 +57,7 @@ public class OpProjectCostTest extends OpBaseTestCase {
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 2d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId = resourceDataFactory.getResourceByName("resource").locator();

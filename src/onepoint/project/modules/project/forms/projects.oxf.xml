@@ -14,7 +14,7 @@
          <tool-bar id="ProjectToolbar">
             <tool-button id="NewPortfolioButton" text="${NewPortfolio}" disabled-icon="/modules/project/icons/new_portfolio_disabled.png" icon="/modules/project/icons/new_portfolio.png" on-button-pressed="newPortfolio" tooltip="${NewPortfolioTooltip}"/>
             <tool-button id="NewProjectButton" text="${NewProject}" disabled-icon="/modules/project/icons/new_project_disabled.png" icon="/modules/project/icons/new_project.png" on-button-pressed="newProject" tooltip="${NewProjectTooltip}"/>
-            <tool-button id="InfoButton" text="${Info}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="info" tooltip="${InfoTooltip}"/>
+            <tool-button id="InfoButton" text="${Info}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="edit" tooltip="${InfoTooltip}"/>
             <tool-button id="MoveButton" text="${Move}" disabled-icon="/icons/move_disabled.png" icon="/icons/move.png" on-button-pressed="move" tooltip="${MoveTooltip}"/>
             <tool-button id="DeleteButton" text="${Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
          </tool-bar>

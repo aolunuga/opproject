@@ -36,7 +36,7 @@ public class OpConfigurationLoader extends XLoader {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpConfigurationLoader.class);
+   private static final XLog logger = XLogFactory.getClientLogger(OpConfigurationLoader.class);
 
    public OpConfigurationLoader() {
       super(new XDocumentHandler(CONFIGURATION_SCHEMA));

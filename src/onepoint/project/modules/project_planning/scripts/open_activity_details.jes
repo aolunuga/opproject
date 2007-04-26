@@ -342,6 +342,15 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          mandatory_field.setEnabled(true);
       }
 
+      //payment
+      data_cell = data_row.getChild(29);
+      field_id = "Payment";
+      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+         paymentField = dialog_form.findComponent(field_id);
+         paymentField.setDoubleValue(data_cell.getDoubleValue());
+         setFieldEditMode(edit_mode, paymentField, disabledFieldsIds);
+      }
+
       //Fill project assignment set & responsible resource
       assignmentsSet = XDisplay.getActiveForm().findComponent("AssignmentSet");
       responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");

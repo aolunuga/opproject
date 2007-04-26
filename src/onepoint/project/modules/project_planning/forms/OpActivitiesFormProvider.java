@@ -31,17 +31,19 @@ public class OpActivitiesFormProvider implements XFormProvider {
    public final static String PROJECT_ID = "project_id";
    public final static String VALIDATE_PLAN = "validatePlan";
 
-   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
-
+   protected final static String ACTIVITY_SET = "ActivitySet";
+   protected final static String EDIT_MODE_FIELD = "EditModeField";
+   protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
+   protected final static String TOTAL_STRING = "Total";
+       
+   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
 
    private final static String ASSIGNMENT_SET = OpGanttValidator.ASSIGNMENT_SET;
    private final static String CALCULATION_MODE = OpGanttValidator.CALCULATION_MODE;
    private final static String PROGRESS_TRACKED = OpGanttValidator.PROGRESS_TRACKED;
    private final static String PROJECT_TEMPLATE = OpGanttValidator.PROJECT_TEMPLATE;
 
-   private final static String ACTIVITY_SET = "ActivitySet";
    private final static String PROJECT_NAME_SET = "ProjectNameSet";
-   private final static String TOTAL_STRING = "Total";
    private final static String PRINT_TITLE = "PrintTitle";
    private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
 
@@ -54,9 +56,6 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    private final static String PROJECT_ID_FIELD = "ProjectIDField";
    private final static String WORKING_PLAN_VERSION_ID_FIELD = "WorkingPlanVersionIDField";
-   private final static String EDIT_MODE_FIELD = "EditModeField";
-
-   protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
 
    private final static String GANTT_CHART_TOGGLE_BAR = "GanttToggleBar";
    private final static String EDIT_BUTTON = "EditButton";

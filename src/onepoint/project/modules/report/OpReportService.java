@@ -71,7 +71,7 @@ public class OpReportService extends OpProjectService {
    public static final String REPORT_NAME = "ReportName";
    public static final String REPORT_QUERY_TYPE = "reportQueryType";
 
-   private static final XLog logger = XLogFactory.getLogger(OpReportService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpReportService.class);
 
    private static final List SUPPORTED_FORMATS = Arrays.asList(new String[]{REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV});
 

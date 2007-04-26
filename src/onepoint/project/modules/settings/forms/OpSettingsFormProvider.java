@@ -29,7 +29,7 @@ import java.util.Set;
 
 public class OpSettingsFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getLogger(OpSettingsFormProvider.class, true);
+   private static XLog logger = XLogFactory.getServerLogger(OpSettingsFormProvider.class);
 
    public static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
    public static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";

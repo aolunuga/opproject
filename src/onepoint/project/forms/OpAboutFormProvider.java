@@ -37,7 +37,7 @@ public class OpAboutFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpAboutFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpAboutFormProvider.class);
 
    /**
     * The map of [product_code, description] for the different flavours of the application.

@@ -13,16 +13,14 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
-import onepoint.util.XCalendar;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class OpSettingsService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpSettingsService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpSettingsService.class);
 
    // Form parameters
    public static final String NEW_SETTINGS = "new_settings";
@@ -35,7 +33,10 @@ public class OpSettingsService extends OpProjectService {
 
    public XMessage saveSettings(OpProjectSession session, XMessage request) {
       logger.debug("OpSettingsService.saveSettings()");
-      Map newSettings = (HashMap) request.getArgument(NEW_SETTINGS);
+
+      Map<Object, Object> newSettings = (Map) request.getArgument(NEW_SETTINGS);
+      // create a copy of the settings to not affect REQUEST content.
+      newSettings = newSettings != null ? new HashMap<Object, Object>(newSettings) : null;
 
       XMessage reply = new XMessage();
 
@@ -170,9 +171,8 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.ALLOW_EMPTY_PASSWORD, allowEmptyPassword.toString());
       }
 
-      Iterator iterator = newSettings.entrySet().iterator();
-      while (iterator.hasNext()) {
-         Map.Entry entry = (Map.Entry) iterator.next();
+      for (Map.Entry<Object, Object> entry1 : newSettings.entrySet()) {
+         Map.Entry entry = (Map.Entry) entry1;
          OpSettings.set((String) entry.getKey(), (String) entry.getValue());
       }
 

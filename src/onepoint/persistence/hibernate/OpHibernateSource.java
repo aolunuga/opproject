@@ -25,7 +25,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The logger used in this class.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpHibernateSource.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSource.class);
 
    /**
     * Constant that defines
@@ -33,13 +33,12 @@ public class OpHibernateSource extends OpSource {
 
    // Hibernate source that is always auto-mapped
    public final static int DERBY = 1; // Default database type
-   public final static int MYSQL = 2;
-   public final static int MYSQL_INNODB = 3;
-   public final static int POSTGRESQL = 4;
-   public final static int ORACLE = 5;
-   public final static int HSQLDB = 6;
-   public final static int IBM_DB2 = 7;
-   public final static int SQLSERVER = 8;
+   public final static int MYSQL_INNODB = 2;
+   public final static int POSTGRESQL = 3;
+   public final static int ORACLE = 4;
+   public final static int HSQLDB = 5;
+   public final static int IBM_DB2 = 6;
+   public final static int MSSQL = 7;
 
    public final static String INDEX_NAME_PREFIX = "op_";
    public final static String INDEX_NAME_POSTFIX = "_i";
@@ -233,8 +232,6 @@ public class OpHibernateSource extends OpSource {
       switch (databaseType) {
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
-         case MYSQL:
-            return org.hibernate.dialect.MySQLDialect.class;
          case MYSQL_INNODB:
             return org.hibernate.dialect.MySQLInnoDBDialect.class;
          case POSTGRESQL:
@@ -245,7 +242,7 @@ public class OpHibernateSource extends OpSource {
             return org.hibernate.dialect.HSQLDialect.class;
          case IBM_DB2:
             return org.hibernate.dialect.DB2Dialect.class;
-         case SQLSERVER:
+         case MSSQL:
             return SQLServerDialect.class;
          default:
             throw new IllegalArgumentException("No dialect for this database type " + databaseType);
@@ -340,10 +337,6 @@ public class OpHibernateSource extends OpSource {
       Session session = sessionFactory.openSession();
       String queryString = "select * from " + tableName;
       switch (this.databaseType) {
-         case MYSQL: {
-            queryString += " limit 1";
-            break;
-         }
          case MYSQL_INNODB: {
             queryString += " limit 1";
             break;
@@ -364,7 +357,7 @@ public class OpHibernateSource extends OpSource {
             queryString = "select top 1 * from " + tableName;
             break;
          }
-         case SQLSERVER: {
+         case MSSQL: {
             queryString = "select top 1 * from " + tableName;
             break;
          }
@@ -580,10 +573,9 @@ public class OpHibernateSource extends OpSource {
             buffer.append(newColumnName(field.getName()));
             buffer.append('"');
 
-            // Exception for MySQL: Use mediumblob (otherwise very limited
-            // storage capability)
+            // Exception for MySQL: Use mediumblob (otherwise very limited storage capability)
             if ((field.getTypeID() == OpType.CONTENT)) {
-               if ((databaseType == MYSQL) || (databaseType == MYSQL_INNODB)) {
+               if (databaseType == MYSQL_INNODB) {
                   buffer.append(" sql-type=\"mediumblob\"");
                }
                if ((databaseType == IBM_DB2)) {

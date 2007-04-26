@@ -24,7 +24,7 @@ import java.util.Iterator;
  */
 public class OpProjectStatusFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectStatusFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectStatusFormProvider.class);
 
    //form's components
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";

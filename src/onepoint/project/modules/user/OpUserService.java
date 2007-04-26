@@ -27,7 +27,7 @@ import java.util.*;
 
 public class OpUserService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpUserService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpUserService.class);
 
    public final static String LOGIN = "login";
    public final static String PASSWORD = "password";

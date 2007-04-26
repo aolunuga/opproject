@@ -27,7 +27,7 @@ import java.util.*;
 
 public class OpSettings {
 
-   private static final XLog logger = XLogFactory.getLogger(OpSettings.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpSettings.class);
    // Available settings
    public static final String USER_LOCALE = "User_Locale";
 

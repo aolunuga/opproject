@@ -58,7 +58,7 @@ public class OpBackupManager {
    /**
     * This class's logger
     */
-   private static final XLog logger = XLogFactory.getLogger(OpBackupManager.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpBackupManager.class);
 
    /**
     * The size of a page, when performing backup.

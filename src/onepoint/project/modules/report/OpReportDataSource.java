@@ -24,7 +24,7 @@ public class OpReportDataSource implements JRDataSource {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpReportDataSource.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpReportDataSource.class);
 
    /**
     * The map of [reportFieldName, reportFieldIndex] pairs.

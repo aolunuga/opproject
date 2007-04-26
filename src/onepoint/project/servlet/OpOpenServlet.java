@@ -49,7 +49,7 @@ public class OpOpenServlet extends XExpressServlet {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpOpenServlet.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpOpenServlet.class);
 
    /**
     * Servlet init parameters.

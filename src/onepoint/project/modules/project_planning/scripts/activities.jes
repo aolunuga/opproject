@@ -88,6 +88,8 @@ function saveActivities(event) {
    working_plan_version_id = working_plan_version_id_field.getStringValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
 
+   activity_set.removeDummyRows();
+
    XDisplay.setWaitingCursor();
    request = new XMessage;
    request.setAction("PlanningService.saveActivities");
@@ -108,12 +110,17 @@ function importActivities(event) {
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
    fileName = XDisplay.showFileDialog(importProject, true, null, "mpp,mpx");
    if (fileName == null) {
+      showErrorDialog("resource.incorrectFile", "IncorrectFileName", null, null);      
       return;
    }
    edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
+
+   activity_set.removeDummyRows();
+   XDisplay.getActiveForm().findComponent("ActivityTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();
 
    parameters.ProjectId = project_id;
    parameters.EditMode = edit_mode;
@@ -133,6 +140,10 @@ function exportActivities(event) {
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
+
+   activity_set.removeDummyRows();
+   XDisplay.getActiveForm().findComponent("ActivityTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();
 
    request = new XMessage;
    request.setAction("PlanningService.exportActivities");
@@ -178,6 +189,11 @@ function print(event) {
    tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
    tabId = getCurrentTabId(tabBox);
 
+   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_set.removeDummyRows();
+   XDisplay.getActiveForm().findComponent("ActivityTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();
+
    if (tabId == "TasklistTab") {
       title = getPrintTitle(tabBox);
       activity_table = XDisplay.getActiveForm().findComponent("ActivityTable");
@@ -207,19 +223,16 @@ function autoSave(event) {
       Console.println("   Project id set");
       edit_mode = event.sourceForm.findComponent("EditModeField").getBooleanValue();
       if (edit_mode) {
-         Console.println("      Edit mode is on: Auto-save activities");
          working_plan_version_id_field = event.sourceForm.findComponent("WorkingPlanVersionIDField");
          working_plan_version_id = working_plan_version_id_field.getStringValue();
-         Console.println("AUTO-SAVING activity data set");
-         Console.println(project_id);
          activity_set = event.sourceForm.findComponent("ActivitySet");
+         activity_set.removeDummyRows();
          request = new XMessage;
          request.setAction("PlanningService.saveActivities");
          request.setArgument("project_id", project_id);
          request.setArgument("working_plan_version_id", working_plan_version_id);
          request.setArgument("activity_set", activity_set);
          response = XDisplay.getClient().invokeMethod(request);
-         Console.println("/AUTO-SAVING activity data set");
       }
    }
 }
@@ -235,6 +248,7 @@ function checkInActivities(event) {
    working_plan_version_id_field = XDisplay.getActiveForm().findComponent("WorkingPlanVersionIDField");
    working_plan_version_id = working_plan_version_id_field.getStringValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_set.removeDummyRows();
    request = new XMessage;
    request.setAction("PlanningService.checkInActivities");
    request.setArgument("project_id", project_id);
@@ -617,4 +631,12 @@ function updateSums(event) {
    //misc
    mainIndex = 15;
    updateCostSum(mainIndex, 6);
+}
+
+/**
+ * Handler used when activating the planning table (is not used here)
+ * @Overridden
+ */
+function activatePlanningTable(event) {
+
 }

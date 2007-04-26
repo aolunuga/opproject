@@ -27,7 +27,7 @@ import java.util.List;
 
 public class OpHibernateConnection extends OpConnection {
 
-   private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateConnection.class);
 
    private Session session;
 
@@ -209,7 +209,7 @@ public class OpHibernateConnection extends OpConnection {
 
       try {
          //first execute any custom drop statements (only for MySQL necessary at the moment)
-         if (source.getDatabaseType() == OpHibernateSource.MYSQL || source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
+         if (source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
             customDropScripts = customSchemaUpdater.generateDropConstraintScripts(connection.getMetaData());
             softExecuteDDLScript((String[]) customDropScripts.toArray(new String[]{}));
          }

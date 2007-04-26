@@ -77,6 +77,8 @@
   <resource-map id="work.error">
     <resource id="DateMissing">Не указана дата табеля</resource>
     <resource id="DuplicateDate">На указанную дату табель уже внесен</resource>
+    <resource id="CreatorMissing">The work slip creator was not specified (en)</resource>
+    <resource id="WorkRecordsMissing">The work slip has no valid work records (en)</resource>
     <resource id="IncorrectActualEffort">Неверное значение текущего объема работ</resource>
     <resource id="IncorrectRemainingEffort">Неверное значение остатка объема работ</resource>
     <resource id="IncorrectMaterialCosts">Incorrect Material Costs</resource>

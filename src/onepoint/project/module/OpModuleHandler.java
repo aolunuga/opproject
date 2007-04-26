@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class OpModuleHandler implements XNodeHandler {
 
-   private static final XLog logger = XLogFactory.getLogger(OpModuleHandler.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpModuleHandler.class);
 
    public final static String MODULE = "module";
    public final static String CLASS = "class";

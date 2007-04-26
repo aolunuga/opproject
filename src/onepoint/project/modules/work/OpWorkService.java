@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class OpWorkService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpWorkService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpWorkService.class);
 
    public final static String START = "start";
    public final static String WORK_RECORD_SET = "work_record_set";
@@ -41,180 +41,129 @@ public class OpWorkService extends OpProjectService {
    private final int MISCELLANEOUS_COSTS_COLOMN_INDEX = 6;
    private final int COMMENT_COLOMN_INDEX = 7;
    private final int COMPLETED_COLUMN_INDEX = 10;
-   private final int ACTIVITY_TYPE_COLUMN_INDEX = 11;
-   private final int ACTIVITY_INSERT_MODE = 12;
 
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
-   private static final String WARNING = "warning";
 
-   private OpWorkServiceImpl serviceImpl_ =  new OpWorkServiceImpl();
+   private OpWorkServiceImpl serviceImpl_ = new OpWorkServiceImpl();
 
    public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.insertWorkSlip()");
       Date start = (Date) (request.getArgument(START));
 
-      OpWorkSlip work_slip = new OpWorkSlip();
-      //      work_slip.setNumber(max.intValue() + 1)
-//      work_slip.setCreator(user);
-      work_slip.setCreated(XCalendar.today());
-      work_slip.setDate(start);
+      OpWorkSlip workSlip = new OpWorkSlip();
+      workSlip.setCreated(XCalendar.today());
+      workSlip.setDate(start);
 
       XComponent workRecordSet = (XComponent) (request.getArgument(WORK_RECORD_SET));
       OpBroker broker = session.newBroker();
 
-      OpWorkRecord work_record = null;
-      XComponent data_row = null;
-      XComponent data_cell = null;
-      OpAssignment assignment = null;
+      OpWorkRecord workRecord;
+      XComponent dataRow;
+      XComponent dataCell;
+      OpAssignment assignment;
+      int errorCode = 0;
       // hashset should be ArraySet
-      Set<OpWorkRecord>  workRecordsToAdd = new HashSet<OpWorkRecord>(workRecordSet.getChildCount());
- 
+      Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>(workRecordSet.getChildCount());
+
       for (int i = 0; i < workRecordSet.getChildCount(); i++) {
-        data_row = (XComponent) workRecordSet.getChild(i);
+         dataRow = (XComponent) workRecordSet.getChild(i);
+         //work slip's resource record
+         workRecord = new OpWorkRecord();
+         dataCell = (XComponent) dataRow.getChild(TASK_NAME_COLOMN_INDEX);
+         assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(dataCell.getStringValue())));
+         workRecord.setAssignment(assignment);
 
-        //check if the work-record has changed
-//      XComponent activityInsertMode = (XComponent) data_row.getChild(ACTIVITY_INSERT_MODE);
-//      boolean insert = activityInsertMode.getBooleanValue();
-//      if (!hasWorkRecordChanged(data_row, insert)) {
-//      continue;
-//      }
+         //complete
+         dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setCompleted(dataCell.getBooleanValue());
+         }
 
-        //work slip's resource record
-        work_record = new OpWorkRecord();
-        data_cell = (XComponent) data_row.getChild(TASK_NAME_COLOMN_INDEX);
-        assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(data_cell.getStringValue())));
-        work_record.setAssignment(assignment);
+         // actual effort data cell
+         dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setActualEffort(dataCell.getDoubleValue());
+         }
 
-        //complete
-        data_cell = (XComponent) data_row.getChild(COMPLETED_COLUMN_INDEX);
-        if (data_cell.getValue() != null) {
-          work_record.setCompleted(data_cell.getBooleanValue());
-        }
-
-        // actual effort data cell
-        data_cell = (XComponent) data_row.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try
-          {
-            work_record.setActualEffort(data_cell.getDoubleValue());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-            return(reply);
-          }
-        }
-
-        // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
-        data_cell = (XComponent) data_row.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try
-          {
-            work_record.setRemainingEffort(data_cell.getDoubleValue());
+         // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
+         dataCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setRemainingEffort(dataCell.getDoubleValue());
             // Must be negative if remaining effort is lower than original remaining effort
-            work_record.setRemainingEffortChange(data_cell.getDoubleValue() - assignment.getRemainingEffort());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_REMAINING_EFFORT));
-            return(reply);
-          }
-        }
+            workRecord.setRemainingEffortChange(dataCell.getDoubleValue() - assignment.getRemainingEffort());
+         }
 
-        // Material Costs data cell
-        data_cell = (XComponent) data_row.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try {
-            work_record.setMaterialCosts(data_cell.getDoubleValue());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MATERIAL_COSTS));
-            return(reply);
-          }
-        }
+         // Material Costs data cell
+         dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setMaterialCosts(dataCell.getDoubleValue());
+         }
 
-        // Travel costs
-        data_cell = (XComponent) data_row.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try {
-            work_record.setTravelCosts(data_cell.getDoubleValue());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_TRAVEL_COSTS));
-            return(reply);
-          }
-        }
+         // Travel costs
+         dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setTravelCosts(dataCell.getDoubleValue());
+         }
 
-        // External costs
-        data_cell = (XComponent) data_row.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try {
-            work_record.setExternalCosts(data_cell.getDoubleValue());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_EXTERNAL_COSTS));
-            return(reply);
-          }
-        }
+         // External costs
+         dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setExternalCosts(dataCell.getDoubleValue());
+         }
 
-        // Miscellaneous Costs
-        data_cell = (XComponent) data_row.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-        if (data_cell.getValue() != null) {
-          try {
-            work_record.setMiscellaneousCosts(data_cell.getDoubleValue());
-          } catch (IllegalArgumentException exc)
-          {
-            XMessage reply = new XMessage();
-            reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MISCELLANEOUS_COSTS));
-            return(reply);
-          }
-        }
+         // Miscellaneous Costs
+         dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setMiscellaneousCosts(dataCell.getDoubleValue());
+         }
 
-        // Optional comment
-        data_cell = (XComponent) data_row.getChild(COMMENT_COLOMN_INDEX);
-        if (data_cell.getStringValue() != null) {
-          work_record.setComment(data_cell.getStringValue());
-        }
+         // Optional comment
+         dataCell = (XComponent) dataRow.getChild(COMMENT_COLOMN_INDEX);
+         if (dataCell.getStringValue() != null) {
+            workRecord.setComment(dataCell.getStringValue());
+         }
 
-        //Set the personnel costs for the work record
-        work_record.setPersonnelCosts(assignment.getResource().getHourlyRate() * work_record.getActualEffort());
-        //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
-        workRecordsToAdd.add(work_record);
+         //Set the personnel costs for the work record
+         workRecord.setPersonnelCosts(assignment.getResource().getHourlyRate() * workRecord.getActualEffort());
+
+         // Add only if valid
+         if (workRecord.isValid() == 0) {
+            //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
+            workRecordsToAdd.add(workRecord);
+         }
+         else {
+            // Keep the first error code
+            if(errorCode == 0) {
+               errorCode = workRecord.isValid();
+            }
+         }
       }
 
-      //register work records with broker (done here because hibernate queries flush the session)
-//    Iterator it = workRecordsToAdd.iterator();
-//    while (it.hasNext()) {
-//    broker.makePersistent((OpWorkRecord) it.next());
-//    }
-      
-      OpTransaction t = broker.newTransaction();      
-      work_slip.setRecords(workRecordsToAdd);
+      // if no works records are valid throw an exception
+      if (workRecordsToAdd.isEmpty() && errorCode != 0) {
+         XMessage reply = new XMessage();
+         reply.setError(session.newError(ERROR_MAP, errorCode));
+         return reply;
+      }
 
-      //validate work record set
-      if (!work_slip.isValid()) {
-        XMessage reply = new XMessage();
-        reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-        return(reply);
+      OpTransaction t = broker.newTransaction();
+      workSlip.setRecords(workRecordsToAdd);
+
+      try {
+         // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
+         serviceImpl_.insertMyWorkSlip(session, broker, workSlip);
+         t.commit();
       }
-      
-      try
-      {
-        // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
-        serviceImpl_.insertMyWorkSlip(session, broker, work_slip);
-        t.commit();
-      } catch (XServiceException exc) {
-        t.rollback();
-        XMessage reply = new XMessage();
-        reply.setError(exc.getError());
-        return(reply);
-      } finally {
-        broker.close();
+      catch (XServiceException exc) {
+         t.rollback();
+         XMessage reply = new XMessage();
+         reply.setError(exc.getError());
+         return reply;
       }
-      
+      finally {
+         broker.close();
+      }
+
       logger.info("/OpWorkService.insertWorkSlip()");
       return null;
    }
@@ -222,201 +171,161 @@ public class OpWorkService extends OpProjectService {
    public XMessage editWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.editWorkSlip()");
 
-      String work_slip_id = (String) (request.getArgument(WORK_SLIP_ID));
-      XComponent work_record_set = (XComponent) (request.getArgument(WORK_RECORD_SET));
+      String workSlipId = (String) (request.getArgument(WORK_SLIP_ID));
+      XComponent workRecordSet = (XComponent) (request.getArgument(WORK_RECORD_SET));
 
-//      //validate work record set
-//      XMessage reply = validateWorkRecordEfforts(session, work_record_set, false);
-//      if (reply.getError() != null || reply.getArgument(WARNING) != null) {
-//         return reply;
-//      }
       // TODO: Error handling (parameters set)?
       OpBroker broker = session.newBroker();
       OpTransaction t = null;
 
-      try
-      {
-        
-        OpWorkSlip work_slip = serviceImpl_.getMyWorkSlipByIdString(session, broker, work_slip_id);
+      try {
 
-        if (work_slip == null) {
-          XMessage reply = new XMessage();
-          reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_FOUND));
-          broker.close();
-          return reply;        
-        }
-        
-        XComponent data_row;
-        XComponent data_cell;
-        OpAssignment assignment;
-        OpWorkRecord work_record;
-        // HashSet should be ArraySet
-        Set<OpWorkRecord>  workRecordsToAdd = new HashSet<OpWorkRecord>(work_record_set.getChildCount());
+         OpWorkSlip workSlip = serviceImpl_.getMyWorkSlipByIdString(session, broker, workSlipId);
 
-        // strategy: create new records and replace existing ones within OpWorkSlip
-        //           call updateMyWorkSlip which updates all records accordingly.
-        
-        for (int i = 0; i < work_record_set.getChildCount(); i++) {
-          data_row = (XComponent) work_record_set.getChild(i);
+         if (workSlip == null) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_FOUND));
+            broker.close();
+            return reply;
+         }
 
-          //work slip's resource record
-          work_record = new OpWorkRecord();
-          work_record.setWorkSlip(work_slip);
-          assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(data_row.getStringValue())));           
-          work_record.setAssignment(assignment);
+         XComponent dataRow;
+         XComponent dataCell;
+         OpAssignment assignment;
+         OpWorkRecord workRecord;
+         // HashSet should be ArraySet
+         Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>(workRecordSet.getChildCount());
 
-          //complete
-          data_cell = (XComponent) data_row.getChild(COMPLETED_COLUMN_INDEX);
-          if (data_cell.getValue() != null) {
-             work_record.setCompleted(data_cell.getBooleanValue());
-          }
+         // strategy: create new records and replace existing ones within OpWorkSlip
+         //           call updateMyWorkSlip which updates all records accordingly.
 
-          // actual effort data cell
-          data_cell = (XComponent) data_row.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try
-            {
-              work_record.setActualEffort(data_cell.getDoubleValue());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-              return(reply);
+         for (int i = 0; i < workRecordSet.getChildCount(); i++) {
+            dataRow = (XComponent) workRecordSet.getChild(i);
+
+            //work slip's resource record
+            workRecord = new OpWorkRecord();
+            workRecord.setWorkSlip(workSlip);
+            assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(dataRow.getStringValue())));
+            workRecord.setAssignment(assignment);
+
+            //complete
+            dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setCompleted(dataCell.getBooleanValue());
             }
-          }
 
-          // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
-          data_cell = (XComponent) data_row.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try {
-              work_record.setRemainingEffort(data_cell.getDoubleValue());
-
-              // Must be negative if remaining effort is lower than original remaining effort
-              work_record.setRemainingEffortChange(data_cell.getDoubleValue() - assignment.getRemainingEffort());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_REMAINING_EFFORT));
-              return(reply);
-            }   
-          }
-
-          // Material Costs data cell
-          data_cell = (XComponent) data_row.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try {
-              work_record.setMaterialCosts(data_cell.getDoubleValue());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MATERIAL_COSTS));
-              return(reply);
+            // actual effort data cell
+            dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setActualEffort(dataCell.getDoubleValue());
             }
-          }
 
-          // Travel costs
-          data_cell = (XComponent) data_row.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try {
-              work_record.setTravelCosts(data_cell.getDoubleValue());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_TRAVEL_COSTS));
-              return(reply);
+            // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
+            dataCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setRemainingEffort(dataCell.getDoubleValue());
+               // Must be negative if remaining effort is lower than original remaining effort
+               workRecord.setRemainingEffortChange(dataCell.getDoubleValue() - assignment.getRemainingEffort());
             }
-          }
 
-          // External costs
-          data_cell = (XComponent) data_row.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try {
-              work_record.setExternalCosts(data_cell.getDoubleValue());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_EXTERNAL_COSTS));
-              return(reply);
+            // Material Costs data cell
+            dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setMaterialCosts(dataCell.getDoubleValue());
             }
-          }
 
-          // Miscellaneous Costs
-          data_cell = (XComponent) data_row.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-          if (data_cell.getValue() != null) {
-            try {
-              work_record.setMiscellaneousCosts(data_cell.getDoubleValue());
-            } catch (IllegalArgumentException exc)
-            {
-              XMessage reply = new XMessage();
-              reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_MISCELLANEOUS_COSTS));
-              return(reply);
+            // Travel costs
+            dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setTravelCosts(dataCell.getDoubleValue());
             }
-          }
 
-          // Optional comment
-          data_cell = (XComponent) data_row.getChild(COMMENT_COLOMN_INDEX);
-          if (data_cell.getStringValue() != null) {
-             work_record.setComment(data_cell.getStringValue());
-          }
+            // External costs
+            dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setExternalCosts(dataCell.getDoubleValue());
+            }
 
-          //Set the personnel costs for the work record
-          work_record.setPersonnelCosts(assignment.getResource().getHourlyRate() * work_record.getActualEffort());
+            // Miscellaneous Costs
+            dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
+            if (dataCell.getValue() != null) {
+               workRecord.setMiscellaneousCosts(dataCell.getDoubleValue());
+            }
 
-          //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
-          workRecordsToAdd.add(work_record);
-       }
-       t = broker.newTransaction();      
-       work_slip.setRecords(workRecordsToAdd);
-       //validate work record set
-       if (!work_slip.isValid()) {
+            // Optional comment
+            dataCell = (XComponent) dataRow.getChild(COMMENT_COLOMN_INDEX);
+            if (dataCell.getStringValue() != null) {
+               workRecord.setComment(dataCell.getStringValue());
+            }
+
+            //Set the personnel costs for the work record
+            workRecord.setPersonnelCosts(assignment.getResource().getHourlyRate() * workRecord.getActualEffort());
+
+            if (workRecord.isValid() == 0) {
+               //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
+               workRecordsToAdd.add(workRecord);
+            }
+            else {
+               XMessage reply = new XMessage();
+               reply.setError(session.newError(ERROR_MAP, workRecord.isValid()));
+               return reply;
+            }
+         }
+         t = broker.newTransaction();
+         workSlip.setRecords(workRecordsToAdd);
+
+         //validate work record set
+         int error = workSlip.isValid();
+         if (error != 0) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, error));
+            return reply;
+         }
+
+         serviceImpl_.updateMyWorkSlip(session, broker, workSlip);
+         t.commit();
+
+         logger.info("/OpWorkService.editWorkSlip()");
+         return null;
+      }
+      catch (XServiceException exc) {
+         if (t != null) {
+            t.rollback();
+         }
          XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
-         return(reply);
-       }
-       
-       serviceImpl_.updateMyWorkSlip(session, broker, work_slip);
-       t.commit();
-       
-       logger.info("/OpWorkService.editWorkSlip()");
-       return null;
-
-      } catch (XServiceException exc)
-      {
-        if (t != null)
-          t.rollback(); 
-        XMessage reply = new XMessage();
-        exc.append(reply);
-        return (reply);
-      } finally {
-        broker.close();
+         exc.append(reply);
+         return (reply);
+      }
+      finally {
+         broker.close();
       }
    }
+
    public XMessage deleteWorkSlips(OpProjectSession session, XMessage request)
-     throws XServiceException {
+        throws XServiceException {
       ArrayList id_strings = (ArrayList) (request.getArgument(WORK_SLIP_IDS));
       logger.info("OpWorkService.deleteWorkSlip(): workslip_ids = " + id_strings);
 
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
-      
+
       LinkedList<OpWorkSlip> to_delete = new LinkedList<OpWorkSlip>();
-      for (int i = 0; i < id_strings.size(); i++) {
-        to_delete.add(serviceImpl_.getMyWorkSlipByIdString(session, broker, (String) id_strings.get(i)));
+      for (Object id_string : id_strings) {
+         to_delete.add(serviceImpl_.getMyWorkSlipByIdString(session, broker, (String) id_string));
       }
-      
-      try
-      {
-        serviceImpl_.deleteMyWorkSlips(session, broker, to_delete.iterator());
-        t.commit();
-      } catch (XServiceException exc)
-      {
-        t.rollback();
-        XMessage reply = new XMessage();
-        exc.append(reply);
-        return (reply);
-      } finally
-      {
-        broker.close();
+
+      try {
+         serviceImpl_.deleteMyWorkSlips(session, broker, to_delete.iterator());
+         t.commit();
+      }
+      catch (XServiceException exc) {
+         t.rollback();
+         XMessage reply = new XMessage();
+         exc.append(reply);
+         return (reply);
+      }
+      finally {
+         broker.close();
       }
 
       logger.info("/OpWorkService.deleteWorkSlip()");

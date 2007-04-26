@@ -27,6 +27,11 @@ public interface OpResourceError {
    public final static int DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED = 18;
    public final static int ACTIVITY_ASSIGNMENTS_EXIST_ERROR = 19;
    public final static int LOOP_ASSIGNMENT_ERROR = 20;
+   public final static int EXTERNAL_RATE_NOT_VALID = 21;
+   public final static int PERIOD_START_DATE_NOT_VALID = 22;
+   public final static int PERIOD_END_DATE_NOT_VALID = 23;
+   public final static int PERIOD_INTERVAL_NOT_VALID = 24;
+   public final static int DATE_INTERVAL_OVERLAP = 25;
 
    // Error names
    public final static String RESOURCE_NAME_NOT_SPECIFIED_NAME = "ResourceNameNotSpecified";
@@ -49,4 +54,9 @@ public interface OpResourceError {
    public final static String DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED_NAME = "DeletePoolResourceAssignmentsDenied";
    public final static String ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME = "ActivityAssignmentsExistError";
    public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
+   public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";
+   public final static String PERIOD_START_DATE_NOT_VALID_NAME = "PeriodStartDateNotValid";
+   public final static String PERIOD_END_DATE_NOT_VALID_NAME = "PeriodEndDateNotValid";
+   public final static String PERIOD_INTERVAL_NOT_VALID_NAME = "PeriodIntervalNotValid";
+   public final static String DATE_INTERVAL_OVERLAP_NAME = "DateIntervalOverlap";
 }

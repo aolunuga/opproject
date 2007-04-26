@@ -537,6 +537,7 @@ public abstract class OpActivityDataSetFactory {
       boolean isStrictlyTask = (activity.getType() == OpActivity.TASK);
       boolean isTask = isStrictlyTask || (activity.getType() == OpActivity.COLLECTION_TASK);
       boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_TASK);
+      boolean isMilestone = (activity.getType() == OpActivity.MILESTONE);
 
       dataRow.setOutlineLevel(activity.getOutlineLevel());
       dataRow.setExpanded(activity.getExpanded());
@@ -727,6 +728,12 @@ public abstract class OpActivityDataSetFactory {
       dataCell = new XComponent(XComponent.DATA_CELL);
       OpProjectNode projectNode = activity.getProjectPlan().getProjectNode();
       dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
+      dataRow.addChild(dataCell);
+
+      // Payment (29)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setEnabled(editable && isMilestone);
+      dataCell.setDoubleValue(activity.getPayment());
       dataRow.addChild(dataCell);
 
       OpGanttValidator.updateAttachmentAttribute(dataRow);
@@ -1045,6 +1052,9 @@ public abstract class OpActivityDataSetFactory {
          activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
          activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
          activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
+         if (activity.getType() == OpGanttValidator.MILESTONE) {
+            activity.setPayment(OpGanttValidator.getPayment(dataRow));
+         }
          if (OpGanttValidator.getPriority(dataRow) != null) {
             activity.setPriority(OpGanttValidator.getPriority(dataRow).byteValue());
          }
@@ -1064,7 +1074,6 @@ public abstract class OpActivityDataSetFactory {
          activity.setActualMaterialCosts(0);
          activity.setActualExternalCosts(0);
          activity.setActualMiscellaneousCosts(0);
-
          broker.makePersistent(activity);
 
       }
@@ -1236,7 +1245,10 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setPriority(validatorPriority);
          }
-
+         if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
+            update = true;
+            activity.setPayment(OpGanttValidator.getPayment(dataRow));
+         }
          if (update) {
             broker.updateObject(activity);
          }

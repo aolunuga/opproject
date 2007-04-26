@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class OpUserServiceTest extends OpBaseTestCase {
    // class logger.
-   private static final XLog logger = XLogFactory.getLogger(OpUserServiceTest.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpUserServiceTest.class);
 
    // Password used for tests.
    private static final String TEST_PASS = new OpSHA1().calculateHash("password");

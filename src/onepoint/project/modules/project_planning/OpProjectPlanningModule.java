@@ -29,7 +29,7 @@ public class OpProjectPlanningModule extends OpModule {
    /**
     * This class's logger.
     */
-   private XLog logger = XLogFactory.getLogger(OpProjectPlanningModule.class, true);
+   private XLog logger = XLogFactory.getServerLogger(OpProjectPlanningModule.class);
 
 
    /**

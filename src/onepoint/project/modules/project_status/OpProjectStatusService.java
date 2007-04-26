@@ -23,7 +23,7 @@ import java.util.*;
  */
 public class OpProjectStatusService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectStatusService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectStatusService.class);
 
    public final static String PROJECT_STATUS_ID = "project_status_id";
    private final static String PROJECT_STATUS_IDS = "project_status_ids";

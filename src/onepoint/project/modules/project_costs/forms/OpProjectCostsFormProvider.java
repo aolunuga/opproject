@@ -35,6 +35,8 @@ public class OpProjectCostsFormProvider implements XFormProvider {
    protected final static String EXTERNAL = "${External}";
    protected final static String MISCELLANEOUS = "${Miscellaneous}";
    private final static String PRINT_TITLE = "PrintTitle";
+   private final static String TOTAL = "Total";
+   private final static String FOOTER_DATA_SET = "CostFooterSet";
 
    // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining
    // (Therefore, deviation = predicted - base)
@@ -70,6 +72,56 @@ public class OpProjectCostsFormProvider implements XFormProvider {
          createViewDataSet(session, broker, project, max_outline_level, data_set);
       }
       broker.close();
+
+      updateFooterData(form);
+   }
+
+   private void updateFooterData(XComponent form) {
+      XComponent dataSet = form.findComponent(COST_SET);
+      XComponent footerDataSet = form.findComponent(FOOTER_DATA_SET);
+
+      XComponent row = new XComponent(XComponent.DATA_ROW);
+      double sum;
+      XComponent cell;
+
+      //total 0
+      cell = new XComponent(XComponent.DATA_CELL);
+      cell.setStringValue(form.findComponent(TOTAL).getText());
+      row.addChild(cell);
+
+      //base 1
+      cell = new XComponent(XComponent.DATA_CELL);
+      sum = dataSet.calculateDoubleSum(1, 0);
+      cell.setDoubleValue(sum);
+      row.addChild(cell);
+
+      //actual 2
+      cell = new XComponent(XComponent.DATA_CELL);
+      sum = dataSet.calculateDoubleSum(2, 0);
+      cell.setDoubleValue(sum);
+      row.addChild(cell);
+
+      //remaining 3
+      cell = new XComponent(XComponent.DATA_CELL);
+      sum = dataSet.calculateDoubleSum(3, 0);
+      cell.setDoubleValue(sum);
+      row.addChild(cell);
+
+      //predicted 4
+      cell = new XComponent(XComponent.DATA_CELL);
+      sum = dataSet.calculateDoubleSum(4, 0);
+      cell.setDoubleValue(sum);
+      row.addChild(cell);
+
+      //5
+      cell = new XComponent(XComponent.DATA_CELL);
+      row.addChild(cell);
+
+      //6
+      cell = new XComponent(XComponent.DATA_CELL);
+      row.addChild(cell);
+
+      footerDataSet.addChild(row);
    }
 
    protected void createViewDataSet(OpProjectSession session, OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set) {

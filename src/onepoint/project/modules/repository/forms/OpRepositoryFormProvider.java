@@ -38,7 +38,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpRepositoryFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpRepositoryFormProvider.class);
 
    /**
     * Error id for creating the backup directory

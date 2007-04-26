@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 public class OpImportUserFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpImportUserFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpImportUserFormProvider.class);
 
    private final static String USER_DATA_SET = "UserDataSet";
    private final static String POOL_ID = "PoolID";

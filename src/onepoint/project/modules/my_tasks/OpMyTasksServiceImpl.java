@@ -4,12 +4,6 @@
 
 package onepoint.project.modules.my_tasks;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -27,6 +21,11 @@ import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XServiceException;
 
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
+
 /**
  * Service Implementation for MyTasks.
  * This class is capable of inserting updating and deleting
@@ -36,10 +35,9 @@ import onepoint.service.server.XServiceException;
  *
  * @author dfreis
  */
-
 public class OpMyTasksServiceImpl {
    private static final XLog LOGGER =
-        XLogFactory.getLogger(OpMyTasksServiceImpl.class, true);
+        XLogFactory.getServerLogger(OpMyTasksServiceImpl.class);
    private static final String MAX_ACTIVITY_SEQUENCE =
         "select max(activity.Sequence) from OpActivity activity";
    static final OpMyTasksErrorMap ERROR_MAP = new OpMyTasksErrorMap();
@@ -248,8 +246,7 @@ public class OpMyTasksServiceImpl {
     * @throws XServiceException {@link OpMyTasksError#INSUFICIENT_PERMISSIONS_ERROR_CODE}
     *                           if the user does not have sufficient privileges to insert an AdHoc Task.
     */
-   public final void insertAdhocTask(
-        OpProjectSession session, OpBroker broker, OpActivity activity)
+   public final void insertAdhocTask(OpProjectSession session, OpBroker broker, OpActivity activity)
         throws XServiceException {
       //task name - mandatory
       if (activity.getName() == null) {
@@ -282,7 +279,7 @@ public class OpMyTasksServiceImpl {
       }
 
       // check rights
-      if (!writeGranted(session, activity)) {
+      if (!createGranted(session, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
 
@@ -291,13 +288,13 @@ public class OpMyTasksServiceImpl {
       // allow queries to return stale state
       int mode = broker.getConnection().getFlushMode();
       broker.getConnection().setFlushMode(OpConnection.FLUSH_MODE_COMMIT);
-      
+
       OpQuery query = broker.newQuery(MAX_ACTIVITY_SEQUENCE);
       Iterator it = broker.list(query).iterator();
       if (it.hasNext()) {
          Integer maxSeq = (Integer) it.next();
          if (maxSeq != null) {
-            sequence = maxSeq.intValue() + 1;
+            sequence = maxSeq + 1;
          }
       }
       // set flush mode back again
@@ -306,9 +303,8 @@ public class OpMyTasksServiceImpl {
       activity.setSequence(sequence);
       broker.makePersistent(activity);
       // store assignments
-      Iterator<OpAssignment> assignmentIter = activity.getAssignments().iterator();
-      while (assignmentIter.hasNext()) {
-         broker.makePersistent(assignmentIter.next());
+      for (OpAssignment assignment : activity.getAssignments()) {
+         broker.makePersistent(assignment);
       }
       // store attachments
       Iterator<OpAttachment> attachmentIter = activity.getAttachments().iterator();
@@ -351,7 +347,7 @@ public class OpMyTasksServiceImpl {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
       }
       // check rights
-      if (!writeGranted(session, activity)) {
+      if (!deleteGranted(session, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP,
               OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
@@ -361,8 +357,7 @@ public class OpMyTasksServiceImpl {
       }
 
       // cannot delete if work records exist
-      for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
-         OpAssignment assignment = (OpAssignment) iterator.next();
+      for (OpAssignment assignment : activity.getAssignments()) {
          if (!assignment.getWorkRecords().isEmpty()) {
             throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
          }
@@ -393,14 +388,13 @@ public class OpMyTasksServiceImpl {
     * @throws XServiceException {@link OpMyTasksError#EXISTING_WORKSLIP_ERROR_CODE}
     *                           if there exist workslips belonging to the given activity.
     */
-
    public void updateAdhocTask(OpProjectSession session, OpBroker broker, OpActivity activity)
         throws XServiceException {
       if (activity == null) {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
       }
       // check rights
-      if (!writeGranted(session, activity)) {
+      if (!editGranted(session, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP,
               OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
@@ -427,7 +421,7 @@ public class OpMyTasksServiceImpl {
       if (activity.getAssignments() == null || activity.getAssignments().isEmpty()) {
          throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
       }
-      
+
       // check for null resources
       for (OpAssignment assignment : activity.getAssignments()) {
          OpResource resource = assignment.getResource();
@@ -488,9 +482,7 @@ public class OpMyTasksServiceImpl {
     */
    // FIXME(dfreis Apr 4, 2007 8:01:56 PM)
    // should be private!!
-   
-   void deleteAttachment(
-        OpProjectSession session, OpBroker broker, OpAttachment attachment) {
+   void deleteAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment) {
       broker.deleteObject(attachment);
    }
 
@@ -500,75 +492,72 @@ public class OpMyTasksServiceImpl {
 // }
 
    /**
-    * It check if the user administrator, project manager, resource manager, resource observer or responsible user for assingned resource
-    *
-    * @param session  the project session
-    * @param activity the ctivity to check
-    * @return true if the user has rights to create/edit resource
-    */
-   public static boolean readGranted(OpProjectSession session, OpActivity activity) {
-      boolean readRights = writeGranted(session, activity);
-      // read writes include write rights
-      if (readRights) {
-         return true;
-      }
-
-      OpBroker broker = session.newBroker();
-      for (OpAssignment assignment : activity.getAssignments()) {
-         OpResource resource = assignment.getResource();
-         if (resource == null) {
-            throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-         }
-         // resource manager can create/update AdHoc Tasks
-         int level = session.effectiveAccessLevel(broker, resource.getID());
-         if (level >= OpPermission.OBSERVER) { // no rights below observer!
-            broker.close();
-            return true;
-         }
-      }
-
-      return false;
-   }
-
-   /**
-    * It check if the user administrator, project manager, resource manager or responsible user for assingned resource
+    * It check if the user is at least Observer on the project
     *
     * @param session  the project session
     * @param activity the activity to check
-    * @return true if the user has rights to create/edit resource
+    * @return true if the user has rights to view adhoc task
     */
-   public static boolean writeGranted(OpProjectSession session, OpActivity activity) {
-      // check if logged in
-      if (!session.isLoggedOn()) {
-         LOGGER.info("not logged in!");
-         return false;
-      }
-
-      // administrator has all the rights
-      if (session.getUserID() == session.getAdministratorID()) {
+   public static boolean readGranted(OpProjectSession session, OpActivity activity) {
+      // read rights include admin rights
+      if (basicRightsCheck(session)) {
          return true;
       }
+      // no riths below OBSERVER
+      if (hasProjectRights(session, activity, OpPermission.OBSERVER)) {
+         return true;
+      }
+      else {
+         LOGGER.warn("Insufficient Adhoc task view permissions!");
+         return false;
+      }
+   }
 
+   /**
+    * It check if the user is administrator, project manager or project contributor
+    *
+    * @param session  the project session
+    * @param activity the activity to check
+    * @return true if the user has rights to create adhoc task
+    */
+   public static boolean createGranted(OpProjectSession session, OpActivity activity) {
+      // create rights include admin rights
+      if (basicRightsCheck(session)) {
+         return true;
+      }
+      // no riths below CONTRIBUTOR
+      if (hasProjectRights(session, activity, OpPermission.CONTRIBUTOR)) {
+         return true;
+      }
+      else {
+         LOGGER.warn("Insufficient Adhoc task create permissions!");
+         return false;
+      }
+   }
+
+   /**
+    * It check if the user administrator, project manager or responsible user for assingned resource
+    *
+    * @param session  the project session
+    * @param activity the activity to check
+    * @return true if the user has rights to edit adhoc tasks
+    */
+   public static boolean editGranted(OpProjectSession session, OpActivity activity) {
+      // delete rights include admin rights
+      if (basicRightsCheck(session)) {
+         return true;
+      }
+      // no riths below MANAGER
+      if (hasProjectRights(session, activity, OpPermission.MANAGER)) {
+         return true;
+      }
+      // be a responsible user
       OpBroker broker = session.newBroker();
       try {
-         // project manager can create/update AdHoc Tasks
-         OpProjectNode project = activity.getProjectPlan().getProjectNode();
-         byte level = session.effectiveAccessLevel(broker, project.getID());
-         if (level >= OpPermission.MANAGER) { // no rights below manager!
-            broker.close();
-            return true;
-         }
-
          for (OpAssignment assignment : activity.getAssignments()) {
             OpResource resource = assignment.getResource();
             if (resource == null) {
                throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-            }
-            // resource manager can create/update AdHoc Tasks
-            level = session.effectiveAccessLevel(broker, resource.getID());
-            if (level >= OpPermission.MANAGER) { // no rights below manager!
-               broker.close();
-               return true;
             }
             // responsible user can create/update AdHoc Tasks
             if (resource.getUser().getID() == session.getUserID()) {
@@ -579,7 +568,69 @@ public class OpMyTasksServiceImpl {
       finally {
          broker.close();
       }
-      LOGGER.warn("Insufficient Adhoc task write permissions!");
+      LOGGER.warn("Insufficient Adhoc task edit permissions!");
+      return false;
+   }
+
+   /**
+    * It check if the user is administrator or project manager
+    *
+    * @param session  the project session
+    * @param activity the activity to check
+    * @return true if the user has rights to delete adhoc tasks
+    */
+   public static boolean deleteGranted(OpProjectSession session, OpActivity activity) {
+      // delete rights include admin rights
+      if (basicRightsCheck(session)) {
+         return true;
+      }
+      // no riths below MANAGER
+      if (hasProjectRights(session, activity, OpPermission.MANAGER)) {
+         return true;
+      }
+      else {
+         LOGGER.warn("Insufficient Adhoc task delete permissions!");
+         return false;
+      }
+   }
+
+   /**
+    * Check if the user is log-in and if it's Administrator.
+    *
+    * @param session the project session
+    * @return true if Administrator rights, fals othetwise or if not logged-in
+    */
+   private static boolean basicRightsCheck(OpProjectSession session) {
+      // check if logged in
+      if (!session.isLoggedOn()) {
+         LOGGER.info("not logged in!");
+         return false;
+      }
+      // administrator has all the rights
+      return session.getUserID() == session.getAdministratorID();
+   }
+
+   /**
+    * Check if the current user has the required permissions on the parent project of the given activity.
+    *
+    * @param session  the project session
+    * @param activity the activity to check
+    * @param reqLevel the required permission level
+    * @return true if has the required permissions
+    */
+   private static boolean hasProjectRights(OpProjectSession session, OpActivity activity, byte reqLevel) {
+      OpBroker broker = session.newBroker();
+      try {
+         // Project associated with AdHoc Tasks
+         OpProjectNode project = activity.getProjectPlan().getProjectNode();
+         byte level = session.effectiveAccessLevel(broker, project.getID());
+         if (level >= reqLevel) { // the required level
+            return true;
+         }
+      }
+      finally {
+         broker.close();
+      }
       return false;
    }
 }

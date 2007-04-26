@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class OpEditPortfolioFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpEditPortfolioFormProvider.class);
 
    private final static String PORTFOLIO_ID = "PortfolioID";
    private final static String EDIT_MODE = "EditMode";

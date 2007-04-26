@@ -20,7 +20,7 @@ public final class OpContentManager {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpContentManager.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpContentManager.class);
 
    /**
     * This is private class.

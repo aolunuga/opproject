@@ -28,7 +28,7 @@ public class OpProjectComponent extends XComponent {
     */
    private static final long serialVersionUID = 1L;
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectComponent.class);
+   private static final XLog logger = XLogFactory.getClientLogger(OpProjectComponent.class);
 
    public final static byte GANTT_ACTIVITY = 1;
    public final static byte GANTT_DEPENDENCY = 2; // *** "GANTT_CONNECTOR"?
@@ -1433,8 +1433,6 @@ public class OpProjectComponent extends XComponent {
       FontMetrics metrics = getFontMetrics(getStyleAttributes().font());
       boolean hasActivities = false;
       for (int i = 0; i < gantt_chart.getContext().getDataSetComponent().getChildCount(); i++) {
-//         OpProjectComponent activity = (OpProjectComponent) gantt_chart.getChild(i);
-//         XComponent activityData = activity.getDataRow();
          XComponent activityData = (XComponent) gantt_chart.getContext().getDataSetComponent().getChild(i);
          String caption = "";
          if (activityData != null) {
@@ -3332,6 +3330,9 @@ public class OpProjectComponent extends XComponent {
       if (index > data_set.getChildCount()) {
          index = data_set.getChildCount();
       }
+      if (index < 0) {
+         index = 0;
+      }
 
       validator.setContinuousAction(true);
 
@@ -4720,7 +4721,7 @@ public class OpProjectComponent extends XComponent {
                }
                updateGanttChartDate(direction);
             }
-            if (action == STATUS_CHANGED) {
+            if (action == TAB_ACTIVATED) {
                OpProjectComponent chart = (OpProjectComponent) getBoxContent();
                if (chart != null) {
                   chart.resetCached();
@@ -4730,6 +4731,10 @@ public class OpProjectComponent extends XComponent {
                if (dataSet != null) {
                   dataSet.clearDataSelection();
                }
+               if (dataSet != null) {
+                  dataSet.removeAllDummyRows();
+               }
+
             }
             processScrollBoxComponentEvent(event, action);
             super.processComponentEvent(event, action);

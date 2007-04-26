@@ -4,14 +4,7 @@
 
 package onepoint.project.modules.user;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.Vector;
-
-import org.hibernate.exception.ConstraintViolationException;
-
+import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpFilter;
@@ -23,7 +16,9 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XResourceCache;
 import onepoint.service.server.XServiceException;
-import onepoint.log.XLog;
+import org.hibernate.exception.ConstraintViolationException;
+
+import java.util.*;
 
 /**
  * Service Implementation for Users and Groups.
@@ -41,7 +36,7 @@ import onepoint.log.XLog;
 
 public class OpUserServiceImpl{
 
-  private static final XLog logger_ = XLogFactory.getLogger(OpUserServiceImpl.class, true);
+  private static final XLog logger_ = XLogFactory.getServerLogger(OpUserServiceImpl.class);
 
   /**
    * the map containing all error types.

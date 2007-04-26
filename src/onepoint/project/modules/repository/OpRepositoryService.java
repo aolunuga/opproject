@@ -55,7 +55,7 @@ public class OpRepositoryService extends OpProjectService {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpRepositoryService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpRepositoryService.class);
 
    /**
     * The date format object used for formatting the name of the backup files.

@@ -3,29 +3,23 @@
  */
 package onepoint.project.modules.work.test;
 
-import onepoint.express.XComponent;
 import onepoint.persistence.*;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.test.ProjectTestDataFactory;
+import onepoint.project.modules.project_planning.OpProjectPlanningService;
+import onepoint.project.modules.project_planning.test.ProjectPlanningTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.ResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
-import onepoint.project.modules.work.OpWorkError;
-import onepoint.project.modules.work.OpWorkService;
-import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
-import onepoint.project.modules.work.OpWorkSlip;
-import onepoint.project.modules.work.OpWorkRecord;
-import onepoint.project.modules.project_planning.OpProjectPlanningService;
-import onepoint.project.modules.project_planning.test.ProjectPlanningTestDataFactory;
+import onepoint.project.modules.work.*;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -66,7 +60,7 @@ public class OpWorkServiceTest extends OpBaseTestCase {
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 1d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId = resourceDataFactory.getResourceByName("resource").locator();

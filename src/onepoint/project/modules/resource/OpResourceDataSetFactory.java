@@ -221,7 +221,7 @@ public final class OpResourceDataSetFactory {
          Integer subCount = ((Integer) subEntityMap.get(new Long(id)));
          if (subCount != null && subCount.intValue() > 0 && !allChildrenFiltered(subPool, filteredLocators)) {
             //add dummy child
-            XComponent dummyRow = new XComponent(XComponent.DATA_SET);
+            XComponent dummyRow = new XComponent(XComponent.DATA_ROW);
             dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
             dummyRow.setOutlineLevel(childrenOutlineLevel + 1);
             dummyRow.setVisible(false);

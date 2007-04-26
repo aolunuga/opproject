@@ -19,6 +19,7 @@ function ok(event) {
    pool_data.Name = form.findComponent("Name").getStringValue();
    pool_data.Description = form.findComponent("Description").getStringValue();
    pool_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
+   pool_data.ExternalRate = form.findComponent("ExternalRate").getDoubleValue();
    
    pool_data.PermissionSet = form.findComponent("PermissionSet");
 

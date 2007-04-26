@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 
 public class OpProjectService extends XService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectService.class);
 
    /**
     * Rollbacks the current<code>transaction</code> and releases the <code>broker</code>. This should be extracted

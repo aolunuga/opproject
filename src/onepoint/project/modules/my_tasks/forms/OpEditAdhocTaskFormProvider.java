@@ -86,14 +86,14 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       dueField.setDateValue(task.getFinish());
 
       // set view mode if no write rights
-      editMode &= OpMyTasksServiceImpl.writeGranted((OpProjectSession) s, task);
+      editMode &= OpMyTasksServiceImpl.editGranted((OpProjectSession) s, task);
 
       //fill project data set
       int index = 0;
       int selectedIndex = 0;
       List resources = new ArrayList();
-      for (Iterator iterator = projectsMap.keySet().iterator(); iterator.hasNext();) {
-         String choice = (String) iterator.next();
+      for (Object o : projectsMap.keySet()) {
+         String choice = (String) o;
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          projectDataSet.addChild(row);
@@ -104,20 +104,20 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          index++;
       }
       XComponent projectChooser = form.findComponent(TASK_PROJECT);
-      projectChooser.setSelectedIndex(new Integer(selectedIndex));
+      projectChooser.setSelectedIndex(selectedIndex);
 
       //fill resource data set
       XComponent resourcetChooser = form.findComponent(TASK_RESOURCE);
       OpResource resource = null;
       Set assignments = task.getAssignments();
-      for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
-         OpAssignment assignment = (OpAssignment) iterator.next();
+      for (Object assignment1 : assignments) {
+         OpAssignment assignment = (OpAssignment) assignment1;
          resource = assignment.getResource();
       }
       index = 0;
       selectedIndex = 0;
-      for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
-         String choice = (String) iterator.next();
+      for (Object resource1 : resources) {
+         String choice = (String) resource1;
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          resourceDataSet.addChild(row);
@@ -126,10 +126,10 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          }
          index++;
       }
-      resourcetChooser.setSelectedIndex(new Integer(selectedIndex));
+      resourcetChooser.setSelectedIndex(selectedIndex);
 
       //fill attachement tab
-      Set attachments = task.getAttachments();
+      Set<OpAttachment> attachments = task.getAttachments();
       addAttachments(form, attachments);
       XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(AD_HOC_RESOURCE_MAP);
       OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
@@ -159,14 +159,12 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    }
 
 
-   private void addAttachments(XComponent form, Set attachments) {
+   private void addAttachments(XComponent form, Set<OpAttachment> attachments) {
       //attachments tab
 
       // Fill attachments tab
       XComponent attachmentSet = form.findComponent(ATTACHMENT_SET);
-      Iterator it = attachments.iterator();
-      while (it.hasNext()) {
-         OpAttachment attachment = (OpAttachment) it.next();
+      for (OpAttachment attachment : attachments) {
          XComponent attachmentRow = new XComponent(XComponent.DATA_ROW);
 
          //0 - type "u" or "d" identifier

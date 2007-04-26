@@ -26,7 +26,7 @@ public class OpRestoreContext extends XContext {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpRestoreContext.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpRestoreContext.class);
 
    /**
     * The broker used for performing db operations.

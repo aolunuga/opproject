@@ -4,14 +4,10 @@
 
 // Controller script for work_slips.oxf.xml
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XValidator;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
 
 function newWorkSlip(event) {
    dialog = XComponent.newDialog();
@@ -32,21 +28,7 @@ function edit(event) {
    }
 }
 
-function info(event) {
-   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
-   if (data_set != null) {
-      selected_rows = data_set.selectedRows();
-      if (selected_rows.size() > 0) {
-         parameters.WorkSlipID = selected_rows[0].getStringValue();
-         parameters.edit_mode = false;
-         dialog = XComponent.newDialog();
-         dialog.open("/modules/work/forms/edit_work_slip.oxf.xml", parameters);
-      }
-   }
-}
-
-function
-delete(event)
+function delete(event)
 {
    data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
    selected_rows = data_set.selectedRows();

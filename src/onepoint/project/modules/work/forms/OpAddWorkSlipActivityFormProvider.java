@@ -46,7 +46,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
       OpActivity activity;
 
       //the existing activities associated with the work slip
-      List existingActivities = new ArrayList();
+      List<Long> existingActivities = new ArrayList<Long>();
 
       //the activities previously added in the data set
       XComponent workDataSet = (XComponent) parameters.get(WORK_DATA_SET);
@@ -55,7 +55,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
             XComponent dataRow = (XComponent) workDataSet.getChild(i);
             OpLocator dataRowLocator =  OpLocator.parseLocator(XValidator.choiceID(dataRow.getStringValue()));
             long activityId = dataRowLocator.getID();
-            existingActivities.add(new Long(activityId));
+            existingActivities.add(activityId);
          }
       }
 
@@ -66,7 +66,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
             XComponent dataRow = (XComponent) newActivitiesDataSet.getChild(i);
             OpLocator dataRowLocator =  OpLocator.parseLocator(XValidator.choiceID(dataRow.getStringValue()));
             long activityId = dataRowLocator.getID();
-            existingActivities.add(new Long(activityId));
+            existingActivities.add(activityId);
          }
       }
 
@@ -86,11 +86,11 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
          resourceMap.put(record[0], record[1]);
       }
 
-      List activityTypes = new ArrayList();
-      activityTypes.add(new Byte(OpActivity.STANDARD));
-      activityTypes.add(new Byte(OpActivity.MILESTONE));
-      activityTypes.add(new Byte(OpActivity.TASK));
-      activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
+      List<Byte> activityTypes = new ArrayList<Byte>();
+      activityTypes.add(OpActivity.STANDARD);
+      activityTypes.add(OpActivity.MILESTONE);
+      activityTypes.add(OpActivity.TASK);
+      activityTypes.add(OpActivity.ADHOC_TASK);
 
       XComponent originalActivitiesDataSet = (XComponent) parameters.get(ORIGINAL_ACTIVITIES);     
       result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
@@ -112,7 +112,12 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
 
          //activity name to be displayed
          activityDataRow = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
-         String choice = XValidator.choice(assignment.locator(), activity.getName());
+         String caption = activity.getName();
+         //if an activity has more than one resource show the name of the resource and the name of the activity
+         if(activity.getAssignments().size() > 1){
+            caption = assignment.getResource().getName() + ": " + caption;
+         }
+         String choice = XValidator.choice(assignment.locator(), caption);
          activityDataRow.setStringValue(choice);
 
          //add a last cell with the assignment id

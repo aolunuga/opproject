@@ -15,8 +15,8 @@
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
       <resource id="Time">Zeitspanne</resource>
-      <resource id="CurrentMonth">Dieses Monat</resource>
-      <resource id="PreviousMonth">Letztes Monat</resource>
+      <resource id="CurrentMonth">Dieser Monat</resource>
+      <resource id="PreviousMonth">Letzter Monat</resource>
       <resource id="CurrentYear">Dieses Jahr</resource>
       <resource id="All">Alle</resource>
 
@@ -43,7 +43,7 @@
       <resource id="Project">Projekt</resource>
       <resource id="NextWeek">Nächste Woche</resource>
       <resource id="Next2Weeks">Nächste 2 Wochen</resource>
-      <resource id="NextMonth">Nächstes Monat</resource>
+      <resource id="NextMonth">Nächster Monat</resource>
       <resource id="Next2Months">Nächste 2 Monate</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
@@ -75,6 +75,8 @@
    <resource-map id="work.error">
       <resource id="DateMissing">Das Datum des Arbeitszettels wurde nicht angeben</resource>
       <resource id="DuplicateDate">Ein Arbeitszettel für das angegebene Datum existiert bereits</resource>
+      <resource id="CreatorMissing">Der Ersteller des Arbeitszettels wurde nicht angegeben</resource>
+      <resource id="WorkRecordsMissing">Das Record-Set des Arbeitszettels ist "null" oder leer</resource>
       <resource id="IncorrectActualEffort">Der Aufwand ist nicht korrekt</resource>
       <resource id="IncorrectRemainingEffort">Der Restaufwand ist nicht korrekt</resource>
       <resource id="IncorrectMaterialCosts">Die Materialkosten sind nicht korrekt</resource>

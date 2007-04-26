@@ -31,7 +31,7 @@ public class OpReportManager implements XResourceInterceptor {
    /**
     * The Logger for this class...
     */
-   private static final XLog logger = XLogFactory.getLogger(OpReportManager.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpReportManager.class);
 
    /**
     * Determines the path to the filesystem, where we expect the report-jars to

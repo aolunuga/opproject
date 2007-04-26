@@ -9,14 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class used for obtaining SQLServer2000 specific statements
+ * Class used for obtaining MSSQLServer2000 specific statements
  *
  * @author horia.chiorean
  */
-public final class OpSQLServerStatement implements OpSqlStatement {
+public final class OpMSSqlStatement implements OpSqlStatement {
 
    /**
-    * The mapping of SQLServer specific types.
+    * The mapping of MsSQLServer specific types.
     */
    private static final Map DB_TYPES = new HashMap();
 
