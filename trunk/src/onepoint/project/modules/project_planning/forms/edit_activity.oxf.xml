@@ -1,4 +1,4 @@
-<form layout="border" width="750" height="450" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
+<form layout="border" width="750" height="470" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
        error-label-ref = "ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes" provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
    <panel layout="border">
 
@@ -17,7 +17,8 @@
       <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
       <data-field id="NotEqualEffortsException" text="${NotEqualEffortsErrorMessage}"/>
       <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
-
+      <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
+      
       <label id ="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>
       <label id ="EditCollectionDialogTitle" text="${EditCollectionActivity}" visible="false"/>
       <label id ="EditMilestoneDialogTitle" text="${EditMilestoneActivity}" visible="false"/>
@@ -55,6 +56,8 @@
             <label x="0" y="8" width="2" text="${Priority}" id="PriorityLabel"/>
             <int-field x="2" y="8" width="3" id="Priority"/>
       			<check-box x="2" y="9" width="3" id="Mandatory" text="${Mandatory}" enabled="false"/>
+            <label x="0" y="10" width="2" text="${Payment}" id="PaymentLabel" visible="false"/>
+            <double-field x="2" y="10" width="3" id="Payment" decimals="2" visible="false"/>
          </tab>
 
          <tab text="${Resources}" layout="border" id="ResourcesTab">

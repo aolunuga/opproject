@@ -26,6 +26,7 @@
    <field name="RemainingEffort" type="Double"/>
    <field name="BaseProceeds" type="Double"/>
    <field name="ActualProceeds" type="Double"/>
+   <field name="Payment" type="Double"/>
    <field name="Deleted" type="Boolean"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>

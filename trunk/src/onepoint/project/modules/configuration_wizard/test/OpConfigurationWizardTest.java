@@ -130,6 +130,6 @@ public class OpConfigurationWizardTest extends OpBaseTestCase {
          }
       }
 
-      return OpConfigurationValuesHandler.MYSQL_DB_TYPE;
+      return OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE;
    }
 }

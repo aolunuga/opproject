@@ -88,7 +88,7 @@ public final class OpSubjectDataSetFactory {
               "left join gr.SubGroupAssignments subGroupAssignment " +
               "left join gr.UserAssignments userAssignment " +
               "group by gr.ID, gr.Name ";
-              groupOrderCriteria.toHibernateQueryString("gr");
+         groupOrderCriteria.toHibernateQueryString("gr");
          query = broker.newQuery(queryString);
       }
       else {
@@ -124,7 +124,7 @@ public final class OpSubjectDataSetFactory {
             dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
             dummyRow.setOutlineLevel(outlineLevel + 1);
             dummyRow.setFiltered(true);
-            dummyRow.setVisible(true);
+            dummyRow.setVisible(false);
             dummyRow.setSelectable(false);
             dataSet.addChild(dummyRow);
          }

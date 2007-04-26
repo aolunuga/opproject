@@ -30,6 +30,7 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="ExternalRate">Außerlich stundensatz</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -40,6 +41,7 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="HourlyRate">Stundensatz</resource>
+      <resource id="ExternalRate">Außerlich stundensatz</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -55,11 +57,19 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
-      <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="InheritPoolRate">Erbt Poolstundensatz</resource>
+      <resource id="HourlyRate">Inner stundensatz</resource>
+      <resource id="ExternalRate">Außerlich stundensatz</resource>
+      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Verantwortlich</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="HourlyRate">Hourly Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AddRateToolTip">Add Rate</resource>
+      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -72,10 +82,18 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
       <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="InheritPoolRate">Erbt Poolstundensatz</resource>
+      <resource id="ExternalRate">Außerlich stundensatz</resource>
+      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Verantwortlich</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="HourlyRate">Hourly Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AddRateToolTip">Add Rate</resource>
+      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -116,6 +134,7 @@
       <resource id="PoolNameNotSpecified">Es wurde kein Poolname vergegeben</resource>
       <resource id="AvailabilityNotValid">Dir eingegebene Verfügbarkeit ist nicht erlaubt</resource>
       <resource id="HourlyRateNotValid">Der eingegebene Stundensatz ist nicht erlaubt</resource>
+      <resource id="ExternalRateNotValid">Der eingegebene Außerlich Stundensatz ist nicht erlaubt</resource>
       <resource id="NameFormatNotSpecified">Das Namensformat wurde nicht angegeben</resource>
       <resource id="NameFormatNotValid">Das Namensformat ist nicht gültig</resource>
       <resource id="ResourceNotFound">Die Ressource wurde nicht gefunden</resource>
@@ -128,6 +147,10 @@
       <resource id="DeletePoolResourceAssignmentsDenied">Die Ressourcenpool konnte nicht gelöscht werden, da seine Ressourcen noch in Projektplänen verwendet wird</resource>
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
+      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
+      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Löschen von Ressouren und Pools</resource>
@@ -139,10 +162,11 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Ressource verändern</resource>
-      <resource id="ConfirmChangeHR">Wenn Sie den Stundensatz dieser Ressource verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of this resource will result in recalculating personnel costs in various project plans.</resource>
+      <resource id="ConfirmChangeHR">Wenn Sie den Stundensatz und/oder den äußerlich stundensatz dieser Ressource verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
       <resource id="ConfirmChangeAvailable">Wenn Sie die Verfügbarkeit dieser Ressource verändern, dann werden die verknüpften Projektpläne neu validiert.</resource>
       <resource id="ConfirmPoolChange">Ressourcenpool verändern</resource>
-      <resource id="ConfirmPoolChangeHR">Wenn Sie den Stundensatz dieses Ressourcenpools verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="ConfirmPoolChangeHR">Wenn Sie den Stundensatz und/oder den äußerlich stundensatz dieses Ressourcenpools verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>

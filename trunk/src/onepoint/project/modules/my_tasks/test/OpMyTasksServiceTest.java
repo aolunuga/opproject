@@ -68,11 +68,11 @@ public class OpMyTasksServiceTest extends OpBaseTestCase {
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, 1d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId = resourceDataFactory.getResourceByName(RESOURCE_NAME).locator();
-      request = resourceDataFactory.createResourceMsg(RESOURCE_NAME + 2, "description", 10d, 9d, false, poolid);
+      request = resourceDataFactory.createResourceMsg(RESOURCE_NAME + 2, "description", 10d, 9d, 1d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res2Id = resourceDataFactory.getResourceByName(RESOURCE_NAME + 2).locator();

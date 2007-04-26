@@ -21,7 +21,7 @@ import java.util.Map;
 public final class OpJasperReportBuilder {
 
    // Class logger.
-   private static final XLog logger = XLogFactory.getLogger(OpJasperReportBuilder.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpJasperReportBuilder.class);
 
    /**
     * Utility class.

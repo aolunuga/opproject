@@ -98,10 +98,10 @@ public class OpMyTasksService extends OpProjectService {
         transaction.commit();
       } catch (XServiceException exc) {
         exc.append(reply);
+        if (transaction != null)
+           transaction.rollback();
         return(reply);
       } finally {
-        if (transaction != null)
-          transaction.rollback();
         broker.close();
       }
       return reply;

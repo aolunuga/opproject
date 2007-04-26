@@ -22,7 +22,7 @@ public final class OpSqlStatementFactory {
     */
    public static final int MYSQL = 1;
    public static final int POSTGRESQL = 2;
-   public static final int SQLSERVER = 3;
+   public static final int MSSQL = 3;
    public static final int ORACLE = 4;
    public static final int DB2 = 5;
 
@@ -34,7 +34,7 @@ public final class OpSqlStatementFactory {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpSqlStatementFactory.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpSqlStatementFactory.class);
 
    /**
     * Cannot create instances of this class.
@@ -60,8 +60,8 @@ public final class OpSqlStatementFactory {
                statement = new OpPostgreSqlStatement();
                break;
             }
-            case SQLSERVER: {
-               statement = new OpSQLServerStatement();
+            case MSSQL: {
+               statement = new OpMSSqlStatement();
                break;
             }
             case ORACLE: {
@@ -69,7 +69,7 @@ public final class OpSqlStatementFactory {
                break;
             }
             case DB2: {
-               statement = new  OpDB2Statement();
+               statement = new OpDB2Statement();
                break;
             }
             default: {

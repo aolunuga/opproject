@@ -31,7 +31,7 @@ public class OpGanttValidator extends XValidator {
    private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
 
-   private static final XLog logger = XLogFactory.getLogger(OpGanttValidator.class);
+   private static final XLog logger = XLogFactory.getClientLogger(OpGanttValidator.class);
 
    // Activity set column indexes (main data set)
    public final static int NAME_COLUMN_INDEX = 0;
@@ -62,6 +62,7 @@ public class OpGanttValidator extends XValidator {
    private final static int ACTUAL_EFFORT_COLUMN_INDEX = 25;
    public final static int VISUAL_RESOURCES_COLUMN_INDEX = 26;
    public final static int RESPONSIBLE_RESOURCE_COLUMN_INDEX = 27;
+   public final static int PAYMENT_COLUMN_INDEX = 29;
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
@@ -219,6 +220,14 @@ public class OpGanttValidator extends XValidator {
       ((XComponent) (data_row.getChild(RESPONSIBLE_RESOURCE_COLUMN_INDEX))).setValue(newValue);
    }
 
+   public static void setPayment(XComponent data_row, double complete) {
+      ((XComponent) (data_row.getChild(PAYMENT_COLUMN_INDEX))).setDoubleValue(complete);
+   }
+
+   public static double getPayment(XComponent data_row) {
+      return ((XComponent) (data_row.getChild(PAYMENT_COLUMN_INDEX))).getDoubleValue();
+   }
+
    /**
     * Sets up the start date of an activity data row
     *
@@ -316,7 +325,7 @@ public class OpGanttValidator extends XValidator {
     * @return double representing the actual effort of the activity
     */
    public static void setActualEffort(XComponent data_row, double actualEffort) {
-     ((XComponent) (data_row.getChild(ACTUAL_EFFORT_COLUMN_INDEX))).setDoubleValue(actualEffort);
+      ((XComponent) (data_row.getChild(ACTUAL_EFFORT_COLUMN_INDEX))).setDoubleValue(actualEffort);
    }
 
    /**
@@ -504,7 +513,7 @@ public class OpGanttValidator extends XValidator {
     *
     * @param data_row the data row
     * @param resource the resource that should be added
-    * @see OpGanttValidator#setResources(onepoint.express.XComponent, ArrayList)
+    * @see OpGanttValidator#setResources(onepoint.express.XComponent,ArrayList)
     */
    public static void addResource(XComponent data_row, String resource) {
       ArrayList resources = getResources(data_row);
@@ -827,11 +836,11 @@ public class OpGanttValidator extends XValidator {
       return null;
    }
 
-   public void setHourBasedResourceView(boolean hourBasedView){
-      this.hourBasedResources = Boolean.valueOf(hourBasedView);   
+   public void setHourBasedResourceView(boolean hourBasedView) {
+      this.hourBasedResources = Boolean.valueOf(hourBasedView);
    }
 
-   public boolean isHourBasedResourceView(){
+   public boolean isHourBasedResourceView() {
       if (hourBasedResources == null) {
          if (data_set.getForm() != null) {
             XComponent hourField = data_set.getForm().findComponent(SHOW_RESOURCE_HOURS);
@@ -1114,7 +1123,7 @@ public class OpGanttValidator extends XValidator {
       isTask = (getStart(activity) == null);
       isTaskCollection = isCollectionTask(activity);
       boolean isScheduledTask = isScheduledTask(activity);
-       if (isTask && isTaskCollection) {
+      if (isTask && isTaskCollection) {
          updateType(activity, COLLECTION_TASK);
          return COLLECTION_TASK;
       }
@@ -1178,7 +1187,7 @@ public class OpGanttValidator extends XValidator {
             if (getStart(next) != null) {
                return false;
             }
-            index ++;
+            index++;
             if (index < data_set.getChildCount()) {
                next = (XComponent) (data_set.getChild(index));
             }
@@ -1211,6 +1220,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
             // a "new collection" will be expanded.
             if (oldType != COLLECTION) {
                activity.expanded(true, false);
@@ -1231,6 +1241,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(true);
             // Clear not-relevant values (or do this during or after validation?)
             setBaseEffort(activity, 0.0d);
             setDuration(activity, 0.0d);
@@ -1264,6 +1275,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
             setPriority(activity, null);
             if (activity.expandable()) {
                activity.expanded(true, false);
@@ -1281,6 +1293,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
             setPriority(activity, null);
             setWorkPhaseStarts(activity, new ArrayList());
             setWorkPhaseFinishes(activity, new ArrayList());
@@ -1303,6 +1316,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
 
             setDuration(activity, 0.0d);
             setStart(activity, null);
@@ -1331,6 +1345,7 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
+            activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
             // Clear values
 
             setDuration(activity, 0.0d);
@@ -1399,7 +1414,7 @@ public class OpGanttValidator extends XValidator {
     */
    //<FIXME> author="Mihai Costin" description="Should be split-up for scheduled activities (have subtasks) and collections (have sub activities)"
    protected void updateCollectionValues(XComponent collection) {
-   //<FIXME>
+      //<FIXME>
       double actualSum = 0;
       double remainingSum = 0;
       double baseSum = 0;
@@ -1625,9 +1640,8 @@ public class OpGanttValidator extends XValidator {
          end = getEnd(activity);
       }
 
-
       // update the values of effort, costs etc for a collection
-      if (OpGanttValidator.getType(activity) == OpGanttValidator.COLLECTION || OpGanttValidator.getType(activity) == OpGanttValidator.SCHEDULED_TASK ) {
+      if (OpGanttValidator.getType(activity) == OpGanttValidator.COLLECTION || OpGanttValidator.getType(activity) == OpGanttValidator.SCHEDULED_TASK) {
          //update duration for collection based on the new end
          updateFinish(activity, getEnd(activity));
          updateCollectionValues(activity);
@@ -1680,7 +1694,7 @@ public class OpGanttValidator extends XValidator {
    protected void validateGanttChart() {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       if (XDisplay.getDefaultDisplay() != null) {
-        calendar = XDisplay.getDefaultDisplay().getCalendar();
+         calendar = XDisplay.getDefaultDisplay().getCalendar();
       }
       List fixed_activities = updateActivityTypes(true);
 
@@ -1933,6 +1947,12 @@ public class OpGanttValidator extends XValidator {
       data_cell.setStringValue(null);
       data_row.addChild(data_cell);
 
+      // Payment (29)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setDoubleValue(0);
+      data_row.addChild(data_cell);            
+
       // Must be done at the end: Might potentially need full data-row
       // TODO: Duration of new activities should be configurable
       double duration = 5 * calendar.getWorkHoursPerDay();
@@ -1959,10 +1979,6 @@ public class OpGanttValidator extends XValidator {
     */
    public void addDataRow(XComponent data_row) {
       addToUndo();
-      // *** TODO: Check for correct values; maybe also return a boolean?
-      // ==> Probably we should also validate here?
-      // *** Note that maybe it would be better if we do not auto-validate
-      // ==> Maybe just "remember" changed fields and call validate manually
       if (data_set.getChildCount() > 0) {
          XComponent lastActivity = (XComponent) data_set.getChild(data_set.getChildCount() - 1);
          if (getType(lastActivity) == TASK) {
@@ -1975,7 +1991,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
-    * @see XValidator#addDataRow(int, onepoint.express.XComponent)
+    * @see XValidator#addDataRow(int,onepoint.express.XComponent)
     */
    public void addDataRow(int index, XComponent data_row) {
       addToUndo();
@@ -1986,7 +2002,7 @@ public class OpGanttValidator extends XValidator {
       if (index > data_set.getChildCount()) {
          index = data_set.getChildCount();
       }
-      XComponent updated_data_row = null;
+      XComponent updated_data_row;
       for (int i = 0; i < data_set.getChildCount(); i++) {
          updated_data_row = (XComponent) (data_set._getChild(i));
          updateIndexListAfterAdd(getSuccessors(updated_data_row), index, Integer.MAX_VALUE, 1);
@@ -1998,7 +2014,7 @@ public class OpGanttValidator extends XValidator {
             previousChild = (XComponent) data_set.getChild(index - 1);
          }
 
-         if (getType(previousChild) == TASK || getType(previousChild) == COLLECTION_TASK ) {
+         if (getType(previousChild) == TASK || getType(previousChild) == COLLECTION_TASK) {
             updateType(data_row, TASK);
          }
 
@@ -2084,13 +2100,14 @@ public class OpGanttValidator extends XValidator {
 
 
    /**
-    * @see XValidator#setDataCellValue(onepoint.express.XComponent, int, Object)
+    * @see XValidator#setDataCellValue(onepoint.express.XComponent,int,Object)
     */
    public void setDataCellValue(XComponent data_row, int column_index, Object value) {
       // *** TODO: Currently only implemented for days -- use workDuration
       // ==> Here we could also check if the correct value-type is set
       // *** In addition, use incremental validation in the future
       // *** TODO: Introduce boolean 'modified'; only validate of value changed
+      data_set.removeAllDummyRows();
       logger.debug("*** setDataCellValue: " + data_row.getIndex() + "," + column_index + " = " + value);
       switch (column_index) {
          case NAME_COLUMN_INDEX:
@@ -2257,7 +2274,7 @@ public class OpGanttValidator extends XValidator {
                ArrayList resources = visualResources;
 
                boolean taskWarning = false;
-                //for tasks only one resource
+               //for tasks only one resource
                if (getType(data_row) == TASK && visualResources.size() > 1) {
                   resources = new ArrayList();
                   resources.add(visualResources.get(0));
@@ -2352,7 +2369,7 @@ public class OpGanttValidator extends XValidator {
             setAttachments(data_row, attachments);
             updateAttachmentAttribute(data_row);
             break;
-         case PRIORITY_COLUMN_INDEX :
+         case PRIORITY_COLUMN_INDEX:
             int priority = ((Integer) value).intValue();
             if (priority < 1 || priority > 9) {
                throw new XValidationException(INVALID_PRIORITY_EXCEPTION);
@@ -2367,6 +2384,11 @@ public class OpGanttValidator extends XValidator {
                setAttributes(data_row, attrs);
             }
             break;
+         case PAYMENT_COLUMN_INDEX: {
+            if (value != null) {
+               setPayment(data_row, ((Double) value).doubleValue());
+            }
+         }
       }
    }
 
@@ -2377,7 +2399,7 @@ public class OpGanttValidator extends XValidator {
             String resource = (String) resources.get(0);
             String caption = XValidator.choiceCaption(resource);
             String resName = getResourceName(caption, null);
-            String id =  XValidator.choiceID(resource);
+            String id = XValidator.choiceID(resource);
             setResponsibleResource(data_row, XValidator.choice(id, resName));
          }
       }
@@ -2402,7 +2424,7 @@ public class OpGanttValidator extends XValidator {
    protected Map getAvailabilityMap() {
       Map resourceAvailability = new HashMap();
       XComponent assignmentSet = getAssignmentSet();
-      for (int j=0; j<assignmentSet.getChildCount(); j++){
+      for (int j = 0; j < assignmentSet.getChildCount(); j++) {
          XComponent row = (XComponent) assignmentSet.getChild(j);
          String assignmentResource = XValidator.choiceID(row.getStringValue());
          Double available = new Double(getAvailable(row));
@@ -2439,13 +2461,13 @@ public class OpGanttValidator extends XValidator {
 
    protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
       if (isProjectMandatory(data_row)) {
-            if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
-                 (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
-               throw new XValidationException(MANDATORY_EXCEPTION);
-            }
+         if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
+              (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
+            throw new XValidationException(MANDATORY_EXCEPTION);
          }
+      }
 
-      if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)){
+      if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
          //activity that will become milestone
          if (subTasks(data_row).size() != 0) {
             throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
@@ -2495,7 +2517,7 @@ public class OpGanttValidator extends XValidator {
       }
 
       if ((OpGanttValidator.getType(data_row) != MILESTONE &&
-          (value != null && getStart(data_row)!=null && ((Date) value).getTime() < getStart(data_row).getTime()))) {
+           (value != null && getStart(data_row) != null && ((Date) value).getTime() < getStart(data_row).getTime()))) {
          //activity that will become milestone
          if (subTasks(data_row).size() != 0) {
             throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
@@ -2530,12 +2552,12 @@ public class OpGanttValidator extends XValidator {
          }
 
          //check if the resource has a negative effort assignment
-         if(!(isPositiveHoursAssigned(resource) && isPositivePercentageAssigned(resource)) && baseEffort > 0){
+         if (!(isPositiveHoursAssigned(resource) && isPositivePercentageAssigned(resource)) && baseEffort > 0) {
             throw new XValidationException(ASSIGNMENT_EXCEPTION);
          }
 
          //if the project has a 0 base effort than delete resource positive effort assignment
-         if(baseEffort == 0){
+         if (baseEffort == 0) {
             resources.set(i, deleteEffortAssignment(resource));
          }
       }
@@ -2674,7 +2696,6 @@ public class OpGanttValidator extends XValidator {
 
       // loop detection
       linksLoop(successors, new Integer(data_row.getIndex()), SUCCESSORS_COLUMN_INDEX);
-
 
 
       ArrayList current_successors = getSuccessors(data_row);
@@ -2817,8 +2838,9 @@ public class OpGanttValidator extends XValidator {
          assignmentSet = new XComponent(XComponent.DATA_SET);
          XComponent form = data_set.getForm();
          if (form != null) {
-            assignmentSet = createAssignmentSet(form.findComponent(ASSIGNMENT_SET));         }
+            assignmentSet = createAssignmentSet(form.findComponent(ASSIGNMENT_SET));
          }
+      }
       return assignmentSet;
    }
 
@@ -3137,16 +3159,14 @@ public class OpGanttValidator extends XValidator {
          }
          /* simutate moving and check for valid outline levels . */
          if (direction < 0) {//upwards
-            if (selectionStart.getOutlineLevel() - ((XComponent) getDataSet().getChild(activityIndex + direction - 1)).getOutlineLevel() > 1)
-            {
+            if (selectionStart.getOutlineLevel() - ((XComponent) getDataSet().getChild(activityIndex + direction - 1)).getOutlineLevel() > 1) {
                // suspend moving
                offset = 0;
                return offset;
             }
          }
          else { //downwords
-            if (selectionStart.getOutlineLevel() - ((XComponent) getDataSet().getChild(activityIndex + childrenSize + 1)).getOutlineLevel() > 1)
-            {
+            if (selectionStart.getOutlineLevel() - ((XComponent) getDataSet().getChild(activityIndex + childrenSize + 1)).getOutlineLevel() > 1) {
                // suspend moving
                offset = 0;
                return offset;
@@ -3394,7 +3414,8 @@ public class OpGanttValidator extends XValidator {
          if (subActivities.size() != 0 || subTasks.size() != 0) {
             try {
                checkDeletedAssignmentsForWorkslips(row, new ArrayList());
-            } catch(XValidationException e){
+            }
+            catch (XValidationException e) {
                rollbackMove(initalValues);
                throw e;
             }
@@ -3590,7 +3611,8 @@ public class OpGanttValidator extends XValidator {
          boolean canChange;
          try {
             canChange = canChangeOutline(data_rows, i, offset);
-         } catch(XValidationException e) {
+         }
+         catch (XValidationException e) {
             canChange = false;
             exception = e;
          }
@@ -3992,12 +4014,13 @@ public class OpGanttValidator extends XValidator {
     * @see XValidator#cutToClipboard(ArrayList)
     */
    public void cutToClipboard(ArrayList selected_rows) {
-      /* copy the selected rows to clipboard */
+      // copy the selected rows to clipboard
       _copyToClipboard(selected_rows, false);
-      /* remove the selected rows from data set first */
+      // remove the selected rows from data set first
       try {
          removeDataRows(selected_rows);
-      } catch (XValidationException e) {
+      }
+      catch (XValidationException e) {
          XComponent clipboard = XDisplay.getClipboard();
          clipboard.removeAllChildren();
          throw e;
@@ -4088,7 +4111,7 @@ public class OpGanttValidator extends XValidator {
          if (getProgressTracked().booleanValue()) {
             //remove complete
             OpGanttValidator.setComplete(row, 0);
-         }         
+         }
          addDataRow(startIndex, dummy);
          children[startIndex + i] = row;
       }
@@ -4104,14 +4127,14 @@ public class OpGanttValidator extends XValidator {
       data_set.removeAllChildren();
       data_set.addAllChildren(children);
 
-      for (int i=0; i<data_set.getChildCount(); i++) {
+      for (int i = 0; i < data_set.getChildCount(); i++) {
          XComponent dataRow = (XComponent) data_set.getChild(i);
          List resources = getResources(dataRow);
          for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
             String resource = (String) iterator.next();
             boolean found = false;
             XComponent assignmentSet = getAssignmentSet();
-            for (int j=0; j<assignmentSet.getChildCount(); j++){
+            for (int j = 0; j < assignmentSet.getChildCount(); j++) {
                XComponent row = (XComponent) assignmentSet.getChild(j);
                String assignmentResource = XValidator.choiceID(row.getStringValue());
                String resourceID = XValidator.choiceID(resource);
@@ -4403,7 +4426,7 @@ public class OpGanttValidator extends XValidator {
          effort = (Double) array.get(3);
          if (effort != null && effort.doubleValue() != oldBaseEffort) {
             setDataCellValue(data_row, BASE_EFFORT_COLUMN_INDEX, effort);
-         }         
+         }
       }
 
       if ((start == null && oldStart != null) || (start != null && !start.equals(oldStart))) {
@@ -4462,8 +4485,8 @@ public class OpGanttValidator extends XValidator {
          try {
             assignmentValue = Double.parseDouble(captionNumber);
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return INVALID_ASSIGNMENT;
          }
          return assignmentValue;
@@ -4488,12 +4511,12 @@ public class OpGanttValidator extends XValidator {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             assignmentValue = Double.parseDouble(captionNumber);
-            if(assignmentValue >= 0){
+            if (assignmentValue >= 0) {
                isPositive = true;
             }
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid number", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid number", e);
          }
          return isPositive;
       }
@@ -4504,8 +4527,8 @@ public class OpGanttValidator extends XValidator {
 
    /**
     * Returns a numerical value representing the percentage a resource is assigned, from an i18n string (given by the user).
-    * @see OpGanttValidator#percentageAssigned(String)
     *
+    * @see OpGanttValidator#percentageAssigned(String)
     */
    public static double localizedPercentageAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
@@ -4515,8 +4538,8 @@ public class OpGanttValidator extends XValidator {
          try {
             assignmentValue = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
          }
-         catch(ParseException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         catch (ParseException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return INVALID_ASSIGNMENT;
          }
          return assignmentValue;
@@ -4539,8 +4562,9 @@ public class OpGanttValidator extends XValidator {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
-         } catch(ParseException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         }
+         catch (ParseException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4564,8 +4588,8 @@ public class OpGanttValidator extends XValidator {
          try {
             hoursAssigned = Double.parseDouble(captionNumber);
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4591,8 +4615,8 @@ public class OpGanttValidator extends XValidator {
             String newCaption = caption.substring(0, caption.lastIndexOf(' '));
             result = assignment.replace(caption, newCaption);
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return result;
          }
       }
@@ -4603,8 +4627,8 @@ public class OpGanttValidator extends XValidator {
             String newCaption = caption.substring(0, caption.lastIndexOf(' '));
             result = assignment.replace(caption, newCaption);
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid nummber", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid nummber", e);
             return result;
          }
       }
@@ -4626,12 +4650,12 @@ public class OpGanttValidator extends XValidator {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = Double.parseDouble(captionNumber);
-            if(hoursAssigned >= 0){
+            if (hoursAssigned >= 0) {
                isPositive = true;
             }
          }
-         catch(NumberFormatException e) {
-            logger.warn(captionNumber+" is not a valid number", e);
+         catch (NumberFormatException e) {
+            logger.warn(captionNumber + " is not a valid number", e);
          }
          return isPositive;
       }
@@ -4823,7 +4847,6 @@ public class OpGanttValidator extends XValidator {
       // *** Distribute effort to resources based on percentages
       // *** TODO: Highly optimizable by special XChoice data type (or use DATA_ROW instead)
 
-
       //update the % of the resources in the activity, if any
       try {
          if (previousEffort != 0) {
@@ -4844,7 +4867,7 @@ public class OpGanttValidator extends XValidator {
 
       if (!isEffortBasedProject()) {
          ArrayList resources = getResources(data_row);
-         resources = planUnNamedResource(data_row,  resources);
+         resources = planUnNamedResource(data_row, resources);
          setResources(data_row, resources);
       }
 
@@ -5001,13 +5024,14 @@ public class OpGanttValidator extends XValidator {
 
       double previousDuration = getDuration(data_row);
       //update the % of the resources in the activity, if any
-      if (!isEffortBasedProject() && getType(data_row)==STANDARD) {
+      if (!isEffortBasedProject() && getType(data_row) == STANDARD) {
          try {
-            updatePercentage(data_row, previousDuration/duration);
+            updatePercentage(data_row, previousDuration / duration);
             ArrayList resources = getResources(data_row);
             resources = planUnNamedResource(data_row, resources);
             setResources(data_row, resources);
-         } catch (XValidationException e) {
+         }
+         catch (XValidationException e) {
             setDuration(data_row, previousDuration);
             throw e;
          }
@@ -5216,17 +5240,17 @@ public class OpGanttValidator extends XValidator {
       }
 
       if (finish != null) {
-            while (time <= finish.getTime()) {
-               if (calendar.isWorkDay(currentDate)) {
-                  if ((nextHoliday != null) && (time == nextHoliday.getTime())) {
-                     nextHoliday = (Date) relevantHolidays.next();
-                  }
-                  else {
+         while (time <= finish.getTime()) {
+            if (calendar.isWorkDay(currentDate)) {
+               if ((nextHoliday != null) && (time == nextHoliday.getTime())) {
+                  nextHoliday = (Date) relevantHolidays.next();
+               }
+               else {
                   durationDays++;
                }
             }
-               time += XCalendar.MILLIS_PER_DAY;
-               currentDate.setTime(time);
+            time += XCalendar.MILLIS_PER_DAY;
+            currentDate.setTime(time);
          }
          duration = durationDays * calendar.getWorkHoursPerDay();
 
@@ -5360,7 +5384,7 @@ public class OpGanttValidator extends XValidator {
       setResourceBaseEfforts(activityRow, new ArrayList());
       for (i = 0; i < individualEffortsPerDay.length; i++) {
          individualEffort = effort * assigneds[i] / sumAssigned;
-         if(getBaseEffort(activityRow) == 0){
+         if (getBaseEffort(activityRow) == 0) {
             individualEffort = 0;
          }
          addResourceBaseEffort(activityRow, individualEffort);
@@ -5409,7 +5433,13 @@ public class OpGanttValidator extends XValidator {
          result = (predictedSum != 0) ? actualSum * 100 / predictedSum : 0;
       }
       else {
-         result = (baseSum != 0) ? 100 * (baseSum - remainingSum) / baseSum : 0;
+         if (remainingSum >= baseSum) {
+            // if there is more work that anticipated the complete sould be 0% not negative.
+            result = 0;
+         }
+         else {
+            result = (baseSum != 0) ? 100 * (baseSum - remainingSum) / baseSum : 0;
+         }
       }
       return result;
    }
@@ -5430,7 +5460,7 @@ public class OpGanttValidator extends XValidator {
          outline = sourceDataRow.getOutlineLevel();
          int diff = targetOutlineLevel - outline;
          if (offset != 0) {
-            for (int i = 0; i<rows.size(); i++) {
+            for (int i = 0; i < rows.size(); i++) {
                XComponent activity = (XComponent) rows.get(i);
                activity.setOutlineLevel(activity.getOutlineLevel() + diff);
             }
@@ -5500,7 +5530,7 @@ public class OpGanttValidator extends XValidator {
       int diff = targetOutlineLevel - outline;
       if (changeOutline) {
          //it is not possible with the current outline level, change outline level
-         for (int i = 0; i<rows.size(); i++) {
+         for (int i = 0; i < rows.size(); i++) {
             XComponent activity = (XComponent) rows.get(i);
             activity.setOutlineLevel(activity.getOutlineLevel() + diff);
          }
@@ -5603,7 +5633,10 @@ public class OpGanttValidator extends XValidator {
    private void addToStack(XComponent data_set, List undo) {
       List rows = new ArrayList();
       for (int i = 0; i < data_set.getChildCount(); i++) {
-         rows.add(data_set.getChild(i));
+         XComponent row = (XComponent) data_set.getChild(i);
+         if (!row.isDummyRow()) {
+            rows.add(row);
+         }
       }
       if (undo.size() >= MAX_UNDO) {
          undo.remove(0);
@@ -5756,10 +5789,10 @@ public class OpGanttValidator extends XValidator {
                }
             }
          }
-         
+
          //do not add the resource availability to resources that have
          //only the name specified in the cell and the base effort is 0
-         if ( !(onlyName  && baseEffort == 0)) {
+         if (!(onlyName && baseEffort == 0)) {
             String percentString = String.valueOf(percent);
             resource = XValidator.choice(id, name + " " + percentString + "%");
          }
@@ -5788,8 +5821,8 @@ public class OpGanttValidator extends XValidator {
          }
          //do not calculate the effortSum only for those resources that are assigned to 0 effortBase activities
          //and have only the name specified in the cell
-         if(!onlyName){
-            if (assigned == INVALID_ASSIGNMENT ) {
+         if (!onlyName) {
+            if (assigned == INVALID_ASSIGNMENT) {
                assigned = getResourceAvailability(choiceID(resource));
             }
             effortSum += assigned * duration / 100.0;
@@ -5809,7 +5842,7 @@ public class OpGanttValidator extends XValidator {
    private void updatePercentage(XComponent data_row, double changeFactor) {
       ArrayList resources = getResources(data_row);
 
-      for (int j=0; j<resources.size(); j++) {
+      for (int j = 0; j < resources.size(); j++) {
          String resource = (String) resources.get(j);
          String id = choiceID(resource);
          String caption = choiceCaption(resource);
@@ -5855,7 +5888,7 @@ public class OpGanttValidator extends XValidator {
       for (int i = 0; i < resources.size(); i++) {
          String resource = (String) resources.get(i);
          double resourceEffort = INVALID_ASSIGNMENT;
-         if(getBaseEffort(dataRow) > 0){
+         if (getBaseEffort(dataRow) > 0) {
             resourceEffort = getIndividualEffort(getDuration(dataRow), resource);
          }
          if (resourceEffort == INVALID_ASSIGNMENT) {
@@ -5881,7 +5914,7 @@ public class OpGanttValidator extends XValidator {
                String parsedHours = String.valueOf(hours);
                resource = choice(choiceID(resource), choiceCaption(resource) + " " + parsedHours + "h");
             }
-            else if(hours != 0){
+            else if (hours != 0) {
                double duration = getDuration(dataRow);
                double percent = hours * 100d / duration;
                resource = choice(choiceID(resource), choiceCaption(resource) + " " + String.valueOf(percent) + "%");
@@ -5899,7 +5932,7 @@ public class OpGanttValidator extends XValidator {
       //remove resources with 0 hours
       Iterator it = resources.iterator();
       Integer index = new Integer(0);
-      while(it.hasNext() && resourcesToRemove.size() > 0) {
+      while (it.hasNext() && resourcesToRemove.size() > 0) {
          it.next();
          if (resourcesToRemove.contains(index)) {
             resourcesToRemove.remove(index);
@@ -5944,6 +5977,7 @@ public class OpGanttValidator extends XValidator {
 
    /**
     * Converts the assignments (hours or %) from a localized form (entered by the user) to an internal form.
+    *
     * @param visualResources a <code>List</code> of <code>String</code> representing a list of visual resource.
     * @return an <code>ArrayList</code> of the same resources, but with the assignments strings locale independent.
     */
@@ -5982,7 +6016,8 @@ public class OpGanttValidator extends XValidator {
 
    /**
     * Creates a special kind of assignment, used for independent planning to plan remaining effort.
-    * @return  a <code>XComponent</code> similar in structure to the resource assignment set entries.
+    *
+    * @return a <code>XComponent</code> similar in structure to the resource assignment set entries.
     */
    private static XComponent createNoResourceAssignment() {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
@@ -5998,6 +6033,7 @@ public class OpGanttValidator extends XValidator {
 
    /**
     * Creates a copy of the assignment set, which contains the "no resource" assignment.
+    *
     * @param originalAssignmentSet a <code>XComponent(DATA_SET)</code> representing the original assignment set.
     * @return a <code>XComponent(DATA_SET)</code> that is a copy of the original, plus the "no resource" assignment.
     */
@@ -6015,7 +6051,8 @@ public class OpGanttValidator extends XValidator {
     * Determines whether for a given activity there is remaining effort that needs to the planned from its original list
     * of assignments.
     * Precondition: all the resource assignments need to be specified in %.
-    * @param dataRow a <code>XComponent(DATA_ROW)</code> representing an activity.
+    *
+    * @param dataRow   a <code>XComponent(DATA_ROW)</code> representing an activity.
     * @param resources an <code>ArrayList</code> of <code>String</code> representing resource assignments.
     * @return a <code>ArrayList</code> of <code>String</code> representing an updated list of assignemts (with or without the unnamed resource).
     */
@@ -6032,7 +6069,7 @@ public class OpGanttValidator extends XValidator {
       double remainingResourceEffort = 0;
       double existingResourceEffort = 0;
 
-      for (int i = 0; i < resources. size(); i++) {
+      for (int i = 0; i < resources.size(); i++) {
          double resourceEffort = 0;
 
          String resourceChoice = (String) resources.get(i);
@@ -6081,6 +6118,7 @@ public class OpGanttValidator extends XValidator {
 
    /**
     * Updates the costs for the given task.
+    *
     * @param task a <code>XComponent</code> representing an activity of type TASK.
     */
    private void updateTaskCosts(XComponent task) {

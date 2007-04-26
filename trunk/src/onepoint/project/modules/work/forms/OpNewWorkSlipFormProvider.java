@@ -27,7 +27,7 @@ import java.util.*;
 
 public class OpNewWorkSlipFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpNewWorkSlipFormProvider.class);
 
    public final static String WORK_RECORD_SET = "WorkRecordSet";
    public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";

@@ -21,7 +21,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpServiceInterceptor.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpServiceInterceptor.class);
 
    /**
     * @see onepoint.service.server.XServiceInterceptor#afterAdvice(onepoint.service.server.XService, java.lang.reflect.Method, Object[])

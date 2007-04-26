@@ -22,6 +22,8 @@ public abstract class OpWorkError {
    public final static int WORK_SLIP_NOT_FOUND = 9;
    public final static int INCORRECT_WORK_SLIP = 10;
    public final static int INCORRECT_ASSIGNMENT = 11;
+   public final static int CREATOR_MISSING = 12;
+   public final static int WORK_RECORDS_MISSING = 13;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";
@@ -33,4 +35,6 @@ public abstract class OpWorkError {
    public final static String DATE_MISSING_NAME = "DateMissing";
    public final static String DUPLICATE_DATE_NAME = "DuplicateDate";
    public final static String WORK_SLIP_NOT_FOUND_NAME = "WorkSlipNotFound";
+   public final static String CREATOR_MISSING_NAME = "CreatorMissing";
+   public final static String WORK_RECORDS_MISSING_NAME = "WorkRecordsMissing";
 }

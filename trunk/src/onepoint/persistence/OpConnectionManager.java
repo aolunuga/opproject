@@ -30,7 +30,7 @@ public final class OpConnectionManager {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpConnectionManager.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpConnectionManager.class);
 
    /**
     * Various SQL state values.

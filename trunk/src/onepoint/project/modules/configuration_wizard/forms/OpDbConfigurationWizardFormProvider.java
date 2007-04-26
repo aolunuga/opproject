@@ -10,7 +10,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
-import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
@@ -33,7 +33,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
    private static final String ERROR_LABEL_FIELD = "ErrorLabel";
 
    /**
-    * @see XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
+    * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
 
@@ -56,7 +56,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
          localizer.setResourceMap(resourceMap);
          XComponent errorLabel = form.findComponent(ERROR_LABEL_FIELD);
          errorLabel.setVisible(true);
-         switch(connectionTestCode) {
+         switch (connectionTestCode) {
             case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
                String text = localizer.localize("${" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
                errorLabel.setText(text);
@@ -87,22 +87,26 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
     * @param dataSet <code>XComponent.DATA_SET</code>
     */
    private void fillDbTypeDataSet(XComponent dataSet) {
-      XComponent dataRow ;
+      XComponent dataRow;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MYSQL_INNO_DB_DISPLAY));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationWizardService.ORACLE_DISPLAY));
       dataSet.addDataRow(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationWizardService.IBM_DB_DISPLAY));
       dataSet.addDataRow(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationWizardService.POSTGRE_DISPLAY));
+      dataSet.addDataRow(dataRow);
+      //MSSQL
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
       dataSet.addDataRow(dataRow);
    }
 }

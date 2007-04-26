@@ -41,8 +41,6 @@ public class OpWorkRecord extends OpObject {
    private OpWorkSlip workSlip;
 
    public void setActualEffort(double actualEffort) {
-     if (actualEffort < 0)
-       throw new IllegalArgumentException("actualEffort must be >= 0");
       this.actualEffort = actualEffort;
    }
 
@@ -51,8 +49,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setRemainingEffort(double remainingEffort) {
-     if (remainingEffort < 0)
-       throw new IllegalArgumentException("remainingEffort must be >= 0");
       this.remainingEffort = remainingEffort;
    }
 
@@ -69,8 +65,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setPersonnelCosts(double actualCosts) {
-     if (actualCosts < 0)
-       throw new IllegalArgumentException("actualCosts must be >= 0");
      this.personnelCosts = actualCosts;
    }
 
@@ -79,8 +73,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setTravelCosts(double travelCosts) {
-     if (travelCosts < 0)
-       throw new IllegalArgumentException("travelCosts must be >= 0");
       this.travelCosts = travelCosts;
    }
 
@@ -89,8 +81,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setMaterialCosts(double materialCosts) {
-     if (materialCosts < 0)
-       throw new IllegalArgumentException("materialCosts must be >= 0");
       this.materialCosts = materialCosts;
    }
 
@@ -99,8 +89,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setExternalCosts(double externalCosts) {
-     if (externalCosts < 0)
-       throw new IllegalArgumentException("externalCosts must be >= 0");
       this.externalCosts = externalCosts;
    }
 
@@ -109,8 +97,6 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setMiscellaneousCosts(double miscellaneousCosts) {
-     if (miscellaneousCosts < 0)
-       throw new IllegalArgumentException("miscellaneousCosts must be >= 0");
       this.miscellaneousCosts = miscellaneousCosts;
    }
 
@@ -156,6 +142,35 @@ public class OpWorkRecord extends OpObject {
     */
    public void setCompleted(boolean completed) {
       this.completed = completed;
+   }
+
+   /**
+    * Test if this <code>OpWorkRecord</code> is valid.
+    *
+    * @return the error code if work-record invalid or 0 if the work-record is valid
+    */
+   public int isValid() {
+      // Actual Efort
+      if (getActualEffort() < 0 || (!getCompleted() && getActualEffort() == 0)) {
+         return OpWorkError.INCORRECT_ACTUAL_EFFORT;
+      }
+      // Material Costs
+      if (getMaterialCosts() < 0) {
+         return OpWorkError.INCORRECT_MATERIAL_COSTS;
+      }
+      // Travel costs
+      if (getTravelCosts() < 0) {
+         return OpWorkError.INCORRECT_TRAVEL_COSTS;
+      }
+      // External costs
+      if (getExternalCosts() < 0) {
+         return OpWorkError.INCORRECT_EXTERNAL_COSTS;
+      }
+      // Miscellaneous Costs
+      if (getMiscellaneousCosts() < 0) {
+         return OpWorkError.INCORRECT_MATERIAL_COSTS;
+      }
+      return 0;
    }
 
 //  /* (non-Javadoc)

@@ -21,7 +21,7 @@ public final class OpEnvironmentManager {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpEnvironmentManager.class);
+   private static final XLog logger = XLogFactory.getClientLogger(OpEnvironmentManager.class);
 
    /**
     * The name of the OS.

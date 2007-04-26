@@ -6,6 +6,7 @@
    <data-set id="CategoryColorDataSet"/>
    <data-field id="EditModeField" boolean-value="false"/>
    <data-field id="PrintTitle"/>
+   <data-field id="DeletePermissionSet"/>
 
 
    <pop-up-menu id="ActivityTablePopupMenu">
@@ -40,8 +41,8 @@
 
    <data-set id="FilterResourcesSet">
       <data-row string-value="all['${All}']"/>
-      <data-row string-value="res['${Responsible}']"/>
       <data-row string-value="man['${Managed}']"/>
+      <data-row string-value="res['${Responsible}']"/>
    </data-set>
 
    <data-set id="ProjectSet">
@@ -62,7 +63,7 @@
                          tooltip="${NewAdhocTooltip}"/>
             <tool-button id="InfoButton" text="${Info}" icon="/icons/info.png"
                          disabled-icon="/icons/info_disabled.png"
-                         on-button-pressed="infoActivity"
+                         on-button-pressed="editActivity"
                          tooltip="${InfoTooltip}"/>
             <tool-button id="DeleteAdhocButton" text="${DeleteAdhoc}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
@@ -89,7 +90,7 @@
          <tab-box id="MyTabBox" stateful="true" flexible="true">
             <tab layout="border" text="${Tasklist}" id="TasklistTab">
                <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
-                          on-double-click="onDoubleClickActivity"
+                          on-double-click="editActivity"
                           flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
                   <!-- The list of columns to show could be editable and dynamic (form-provider) -->
                   <table-column text="" width="0" hidden="true" data-column-index="1"

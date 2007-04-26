@@ -23,7 +23,7 @@ public class OpProjectPlanValidator {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanValidator.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanValidator.class);
 
    /**
     * The project plan that will be validated.

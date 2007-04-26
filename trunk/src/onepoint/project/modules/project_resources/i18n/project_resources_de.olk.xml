@@ -15,5 +15,6 @@
       <resource id="PercentageDeviation">Abw. (%)</resource>
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>
+      <resource id="Total">Summe</resource>
    </resource-map>
 </language-kit>

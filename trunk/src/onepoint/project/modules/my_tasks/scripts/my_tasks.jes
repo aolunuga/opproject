@@ -4,23 +4,14 @@
 
 // Controller script for my_tasks.oxf
 
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/modules/project_planning/scripts/open_activity_details.jes"
-as
-openDetails;
-require
-"onepoint/project/modules/project_planning/scripts/comments.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes" as openDetails;
+require "onepoint/project/modules/project_planning/scripts/comments.jes";
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XValidator;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
 
 function timeUnitChanged(event) {
    // *** Get current choice from choice-field
@@ -125,22 +116,6 @@ function editAdhoc(event) {
    }
 }
 
-function onDoubleClickActivity(event) {
-   form = XDisplay.getActiveForm();
-   dataSet = form.findComponent("ActivitySet");
-   selected_rows = dataSet.selectedRows();
-   if (selected_rows.size() > 0) {
-      row = selected_rows[0];
-      type = row.getChild(1).getValue();
-      if (type == 6) {
-         editActivity(event);
-      }
-      else {
-         openDetails.editActivity(event);
-      }
-   }
-}
-
 function editActivity(event) {
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");
@@ -149,23 +124,7 @@ function editActivity(event) {
       row = selected_rows[0];
       type = row.getChild(1).getValue();
       if (type == 6) {
-         editAdhoc(event);
-      }
-      else {
-         openDetails.editActivity(event);
-      }
-   }
-}
-
-function infoActivity(event) {
-   form = XDisplay.getActiveForm();
-   dataSet = form.findComponent("ActivitySet");
-   selected_rows = dataSet.selectedRows();
-   if (selected_rows.size() > 0) {
-      row = selected_rows[0];
-      type = row.getChild(1).getValue();
-      if (type == 6) {
-         event.editMode = false;
+         event.editMode = true;
          editAdhoc(event);
       }
       else {
@@ -194,10 +153,19 @@ function selectionChanged(event) {
    toolBar = form.findComponent("myTasksToolBar");
    deleteButton = form.findComponent("DeleteAdhocButton");
 
+   // get delete permission for selected row
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      deletePermissionSet = form.findComponent("DeletePermissionSet");
+      permRow = deletePermissionSet.getChild(row.getIndex());
+   }
+
    tableRow = event.event_source;
    dataRow = tableRow.getDataComponent();
    typeCell = dataRow.getChild(1);
-   if (typeCell.getValue() == 6) {
+   if (typeCell.getValue() == 6 && (permRow.getBooleanValue() == true)) {
       deleteButton.setEnabled(true);
    }
    else {

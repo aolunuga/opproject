@@ -3,13 +3,6 @@
  */
 package onepoint.project.modules.work;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-
-import org.hibernate.exception.ConstraintViolationException;
-
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -21,12 +14,17 @@ import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
 /**
  * @author dfreis
  */
 public class OpWorkServiceImpl {
 
-   private static final XLog logger_ = XLogFactory.getLogger(OpWorkServiceImpl.class, true);
+   private static final XLog logger_ = XLogFactory.getServerLogger(OpWorkServiceImpl.class);
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
    /**
@@ -44,19 +42,11 @@ public class OpWorkServiceImpl {
       if (work_slip.getCreator() == null) {
          work_slip.setCreator(session.user(broker));
       }
-      if (!session.isUser(work_slip.getCreator()) && (!session.userIsAdministrator())) {
-         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
-              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only delete work records from his/her work slips
-      }
-
-      //check for mandatory start field
-      if (work_slip.getDate() == null) {
-         throw new XServiceException(session.newError(ERROR_MAP, OpWorkError.DATE_MISSING));
-      }
 
       //validate work record set
-      if (!work_slip.isValid()) {
-         throw new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT));
+      int error = work_slip.isValid();
+      if (error != 0) {
+         throw new XServiceException(session.newError(ERROR_MAP, error));
       }
 
       OpUser user = session.user(broker);
@@ -177,8 +167,9 @@ public class OpWorkServiceImpl {
       //XComponent work_record_set = (XComponent) (request.getArgument(WORK_RECORD_SET));
 
       // validate work record set
-      if (!work_slip.isValid()) {
-         throw new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ACTUAL_EFFORT), true);
+      int error = work_slip.isValid();
+      if (error != 0) {
+         throw new XServiceException(session.newError(ERROR_MAP, error), true);
       }
       // TODO: Error handling (parameters set)?
 

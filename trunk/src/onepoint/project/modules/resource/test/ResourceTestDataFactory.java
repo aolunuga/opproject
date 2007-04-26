@@ -124,8 +124,8 @@ public class ResourceTestDataFactory extends TestDataFactory {
       return result;
    }
 
-   public XMessage createResourceMsg(String name, String description, double available, double hourlyrate, boolean inheritrate, String poolid) {
-      return createResourceMsg(name, description, available, hourlyrate, inheritrate, poolid, null);
+   public XMessage createResourceMsg(String name, String description, double available, double hourlyrate, double externalrate, boolean inheritrate, String poolid) {
+      return createResourceMsg(name, description, available, hourlyrate, externalrate, inheritrate, poolid, null);
    }
 
    /**
@@ -140,32 +140,41 @@ public class ResourceTestDataFactory extends TestDataFactory {
     * @param projects
     * @return
     */
-   public XMessage createResourceMsg(String name, String description, double available, double hourlyrate, boolean inheritrate, String poolid, ArrayList projects) {
+   public XMessage createResourceMsg(String name, String description, double available, double hourlyrate, double externalrate, boolean inheritrate, String poolid, ArrayList projects) {
       HashMap args = new HashMap();
       args.put(OpResource.NAME, name);
       args.put(OpResource.DESCRIPTION, description);
       args.put(OpResource.AVAILABLE, new Double(available));
       args.put(OpResource.HOURLY_RATE, new Double(hourlyrate));
+      args.put(OpResource.EXTERNAL_RATE, new Double(externalrate));
       args.put(OpResource.INHERIT_POOL_RATE, Boolean.valueOf(inheritrate));
       args.put("PoolID", poolid);
       args.put(OpResourceService.PROJECTS, projects);
       args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpResourceService.HOURLY_RATES_SET, new XComponent(XComponent.DATA_SET));
 
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_DATA, args);
       return request;
    }
 
-   public XMessage updateResourceMsg(String id, String name, String description, double available, double hourlyrate, boolean inheritrate, String userid, ArrayList projects) {
+   public XMessage updateResourceMsg(String id, String name, String description, double available, double hourlyrate, double externalrate, boolean inheritrate, String userid, ArrayList projects, XComponent hourlyRatesPeriodDataSet) {
       HashMap args = new HashMap();
       args.put(OpResource.NAME, name);
       args.put(OpResource.DESCRIPTION, description);
       args.put(OpResource.AVAILABLE, new Double(available));
       args.put(OpResource.HOURLY_RATE, new Double(hourlyrate));
+      args.put(OpResource.EXTERNAL_RATE, new Double(externalrate));
       args.put(OpResource.INHERIT_POOL_RATE, Boolean.valueOf(inheritrate));
       args.put("UserID", userid);
       args.put(OpResourceService.PROJECTS, projects);
       args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      if(hourlyRatesPeriodDataSet != null){
+         args.put(OpResourceService.HOURLY_RATES_SET, hourlyRatesPeriodDataSet);
+      }
+      else{
+         args.put(OpResourceService.HOURLY_RATES_SET, new XComponent(XComponent.DATA_SET));
+      }
 
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_ID, id);
@@ -263,11 +272,12 @@ public class ResourceTestDataFactory extends TestDataFactory {
     * @param superid
     * @return
     */
-   public XMessage createPoolMsg(String name, String description, double hourlyrate, String superid) {
+   public XMessage createPoolMsg(String name, String description, double hourlyrate, double externalrate, String superid) {
       HashMap args = new HashMap();
       args.put(OpResourcePool.NAME, name);
       args.put(OpResourcePool.DESCRIPTION, description);
       args.put(OpResourcePool.HOURLY_RATE, new Double(hourlyrate));
+      args.put(OpResourcePool.EXTERNAL_RATE, new Double(externalrate));
       args.put("SuperPoolID", superid);
       args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
@@ -285,11 +295,12 @@ public class ResourceTestDataFactory extends TestDataFactory {
     * @param hourlyrate
     * @return
     */
-   public XMessage updatePoolMsg(String id, String name, String description, Double hourlyrate) {
+   public XMessage updatePoolMsg(String id, String name, String description, Double hourlyrate, Double externalrate) {
       HashMap args = new HashMap();
       args.put(OpResourcePool.NAME, name);
       args.put(OpResourcePool.DESCRIPTION, description);
       args.put(OpResourcePool.HOURLY_RATE, hourlyrate);
+      args.put(OpResourcePool.EXTERNAL_RATE, externalrate);
       args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
       XMessage request = new XMessage();

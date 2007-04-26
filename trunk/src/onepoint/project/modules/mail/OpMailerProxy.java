@@ -14,7 +14,7 @@ import javax.mail.internet.AddressException;
 
 public class OpMailerProxy extends XExpressProxy {
 
-   private static final XLog logger = XLogFactory.getLogger(OpMailerProxy.class,true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpMailerProxy.class);
 
 	 // Class names
 	 public final static String MAILER = OpMailer.class.getName().intern();

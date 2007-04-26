@@ -28,7 +28,7 @@ import java.util.HashMap;
  */
 public class OpClientLauncherStartup {
    /*logger for this class */
-   private static final XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
+   private static final XLog logger = XLogFactory.getClientLogger(XClientLauncherApplication.class);
 
 
    /**

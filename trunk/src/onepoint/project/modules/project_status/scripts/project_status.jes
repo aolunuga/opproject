@@ -4,35 +4,17 @@
 
 // Controller script for project_status.oxf.xml
 
-require
-"onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/error.jes";
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XExtendedComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
 
 
 function newProjectStatus(event) {
    dialog = XComponent.newDialog();
    dialog.open("/modules/project_status/forms/new_project_status.oxf.xml");
-}
-
-function info(event) {
-   project_status_data_set = XDisplay.getActiveForm().findComponent("ProjectStatusDataSet");
-   if (project_status_data_set != null) {
-      selected_rows = project_status_data_set.selectedRows();
-      if (selected_rows.size() > 0) {
-         parameters.edit_mode = false;
-         parameters.project_status_id = selected_rows[0].getStringValue();
-         dialog = XComponent.newDialog();
-         dialog.open("/modules/project_status/forms/edit_project_status.oxf.xml", parameters);
-      }
-   }
 }
 
 function edit(event) {
@@ -48,8 +30,7 @@ function edit(event) {
    }
 }
 
-function
-delete(event)
+function delete(event)
 {
    project_status_data_set = XDisplay.getActiveForm().findComponent("ProjectStatusDataSet");
    selected_rows = project_status_data_set.selectedRows();

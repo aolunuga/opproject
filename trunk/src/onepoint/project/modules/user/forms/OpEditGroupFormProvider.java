@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditGroupFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpEditGroupFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpEditGroupFormProvider.class);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
 

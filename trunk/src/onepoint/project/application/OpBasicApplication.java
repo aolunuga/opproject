@@ -31,7 +31,7 @@ public class OpBasicApplication {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpBasicApplication.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpBasicApplication.class);
    private final String title;
    private static final int ERROR_WIDTH = 400;
    private static final int ERROR_HEIGHT = 100;

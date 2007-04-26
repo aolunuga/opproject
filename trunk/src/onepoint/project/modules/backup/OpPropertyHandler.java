@@ -25,7 +25,7 @@ public class OpPropertyHandler implements XNodeHandler {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpPropertyHandler.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpPropertyHandler.class);
 
    /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)

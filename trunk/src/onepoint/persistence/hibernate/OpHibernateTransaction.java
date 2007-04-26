@@ -12,7 +12,7 @@ import org.hibernate.Transaction;
 
 public final class OpHibernateTransaction implements OpTransaction {
    
-   private static final XLog logger = XLogFactory.getLogger(OpHibernateTransaction.class,true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateTransaction.class);
 
 	private Transaction transaction;
 

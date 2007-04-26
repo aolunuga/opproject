@@ -27,7 +27,7 @@ import java.util.*;
 
 public class OpEditProjectFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpEditProjectFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpEditProjectFormProvider.class);
 
    /**
     * Form field ids and parameter ids.

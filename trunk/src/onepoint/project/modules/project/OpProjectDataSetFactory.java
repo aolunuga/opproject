@@ -696,9 +696,9 @@ public final class OpProjectDataSetFactory {
     * @param dataRows   a <code>List</code> of data rows representing project nodes.
     */
    public static void enableNodes(Map parameters, List dataRows) {
-      boolean enablePortfolios = ((Boolean) parameters.get(ENABLE_PORTFOLIOS)).booleanValue();
-      boolean enableTemplates = ((Boolean) parameters.get(ENABLE_TEMPLATES)).booleanValue();
-      boolean enableProjects = ((Boolean) parameters.get(ENABLE_PROJECTS)).booleanValue();
+      boolean enablePortfolios = (Boolean) parameters.get(ENABLE_PORTFOLIOS);
+      boolean enableTemplates = (Boolean) parameters.get(ENABLE_TEMPLATES);
+      boolean enableProjects = (Boolean) parameters.get(ENABLE_PROJECTS);
       for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
          String choice = dataRow.getStringValue();
@@ -749,10 +749,9 @@ public final class OpProjectDataSetFactory {
       String queryString = "select count(projectNode) from OpProjectNode projectNode where projectNode.Type=?";
       OpQuery query = broker.newQuery(queryString);
       query.setByte(0, type);
-      Number result = new Integer(0);
-      Iterator it = broker.list(query).iterator();
-      while (it.hasNext()) {
-         result = (Number) it.next();
+      Number result = 0;
+      for (Object o : broker.list(query)) {
+         result = (Number) o;
       }
       return result.intValue();
    }
@@ -766,13 +765,13 @@ public final class OpProjectDataSetFactory {
     * @param session current session
     * @return List of project ids.
     */
-   public static List getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
+   public static List<Long> getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
       OpQuery query = broker.newQuery(PROJECT_BY_PERMISSIONS_QUERY);
       List subjectIds = session.getSubjectIds();
 
       query.setCollection("subjectIds", subjectIds);
-      List types = new ArrayList();
-      types.add(new Byte(OpProjectNode.PROJECT));
+      List<Byte> types = new ArrayList<Byte>();
+      types.add(OpProjectNode.PROJECT);
       query.setCollection("projectTypes", types);
       query.setCollection("levels", levels);
       return broker.list(query);
@@ -859,46 +858,84 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
+    * Contains all the resources from projects where the user has atleast MANAGER permissions and all the resources
+    * for which is reposnsible from projects where is CONTRIBUTOR.
     *
     * @param session Current project session (used for db access and current user)
     * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
     */
-   public static Map getProjectToResourceMap(OpProjectSession session) {
-      Map projectsMap = new HashMap();
+   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
+      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
       OpBroker broker = session.newBroker();
       long userId = session.getUserID();
-      List types = new ArrayList();
 
+      // add all the resources for which is responsible from project where the user has contributer access
+      List<Byte> types = new ArrayList<Byte>();
       //add all the projects the user has access to (at least CONTRIBUTOR)
-      types.add(new Byte(OpPermission.CONTRIBUTOR));
-      types.add(new Byte(OpPermission.ADMINISTRATOR));
-      types.add(new Byte(OpPermission.MANAGER));
-
-      List projects = getProjectsByPermissions(session, broker, types);
-      for (int i = 0; i < projects.size(); i++) {
-         Long id = (Long) projects.get(i);
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
-         Set assignments = project.getAssignments();
-         List resources = new ArrayList();
-         for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
-            OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
-            OpResource resource = assignment.getResource();
-            if (resource.getUser() != null && resource.getUser().getID() == userId) {
-               //responsible user for this resource
-               resources.add(XValidator.choice(resource.locator(), resource.getName()));
-            }
-            else {
-               if (session.effectiveAccessLevel(broker, resource.getID()) >= OpPermission.MANAGER) {
-                  //the user is at least manager on the resource
-                  resources.add(XValidator.choice(resource.locator(), resource.getName()));
-               }
-            }
-         }
+      types.add(OpPermission.CONTRIBUTOR);
+      List<Long> projectIds = getProjectsByPermissions(session, broker, types);
+      for (Long id : projectIds) {
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+         List<String> resources = getProjectResources(project, userId, true);
          if (!resources.isEmpty()) {
             projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
          }
       }
+
+      // add all the resources from project where the user has manager access
+      types.clear();
+      types.add(OpPermission.ADMINISTRATOR);
+      types.add(OpPermission.MANAGER);
+      projectIds = getProjectsByPermissions(session, broker, types);
+      for (Long id : projectIds) {
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+         List<String> resources = getProjectResources(project, userId, false);
+         if (!resources.isEmpty()) {
+            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
+         }
+      }
+
       broker.close();
       return projectsMap;
+   }
+
+   /**
+    * Get resources all the project where the user has a given permission level
+    * @param session   the project session
+    * @param broker  the broker used to access data
+    * @param types  the project permission levels required for the curent user
+    * @param responsible  if the user must be responsible for the curent resource
+    * @return a <code>Set&lt;String&gt;</code> of resource choices - e.g. locator['label'].
+    */
+   public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> types, boolean responsible) {
+      long userId = session.getUserID();
+      Set<String> resIds = new HashSet<String>();
+      List<Long> projectIds = getProjectsByPermissions(session, broker, types);
+      for (Long id : projectIds) {
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+         List<String> resources = getProjectResources(project, userId, responsible);
+         resIds.addAll(resources);
+      }
+      return resIds;
+   }
+
+   /**
+    * Get the list of reources linked to a given project
+    * @param project  the project node
+    * @param userId      the used id
+    * @param responsible  to enforce that the given user (userId) is responsible for the returned resources
+    * @return a <code>List&lt;String&gt;</code> of resource choices - e.g. locator['label'].
+    */
+   private static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {
+      List<String> resources = new ArrayList<String>();
+      Set<OpProjectNodeAssignment> assignments = project.getAssignments();
+      for (OpProjectNodeAssignment assignment : assignments) {
+         OpResource resource = assignment.getResource();
+         if (responsible && !(resource.getUser() != null && resource.getUser().getID() == userId)) {
+            continue;
+         }
+         resources.add(XValidator.choice(resource.locator(), resource.getName()));
+      }
+      return resources;
    }
 }

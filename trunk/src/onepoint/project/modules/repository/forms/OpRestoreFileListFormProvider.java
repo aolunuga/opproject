@@ -29,7 +29,7 @@ public class OpRestoreFileListFormProvider implements XFormProvider {
    /**
     * This class logger
     */
-   private final static XLog logger = XLogFactory.getLogger(OpRestoreFileListFormProvider.class, true);
+   private final static XLog logger = XLogFactory.getServerLogger(OpRestoreFileListFormProvider.class);
 
    /**
     * Form component buttons

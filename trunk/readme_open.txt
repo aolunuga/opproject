@@ -94,7 +94,7 @@ be accessible by using the following URL:
    http://localhost:8080/opproject/service
 
 If you did not upgrade from a previous installation you will now be presented with
-the configuration wizard where you have to choose your database type (e.g., MySQL),
+the configuration wizard where you have to choose your database type (e.g., MySQL InnoDB),
 provide a JDBC connect string for your database instance, a database user and a
 password. If you are not familiar with JDBC connect strings please take a look at
 Appendix C.

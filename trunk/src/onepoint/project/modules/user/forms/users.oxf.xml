@@ -17,7 +17,7 @@
                          disabled-icon="/modules/user/icons/new_group_disabled.png"
                          on-button-pressed="newGroup" tooltip="${NewGroupTooltip}"/>
             <tool-button id="Info" text="${Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
-                         on-button-pressed="info" tooltip="${InfoTooltip}"/>
+                         on-button-pressed="edit" tooltip="${InfoTooltip}"/>
             <tool-button id="Delete" text="${Delete}" icon="/icons/delete.png" disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
             <tool-button id="AssignToGroup" text="${AssignToGroup}" icon="/modules/user/icons/assign_to_group.png"

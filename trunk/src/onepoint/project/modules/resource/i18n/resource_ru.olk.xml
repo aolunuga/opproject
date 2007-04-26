@@ -30,6 +30,7 @@
       <resource id="Name">Наименование</resource>
       <resource id="Description">Описание</resource>
       <resource id="HourlyRate">Часовая ставка</resource>
+      <resource id="ExternalRate">Bнешний Часовая ставка</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
@@ -40,6 +41,7 @@
       <resource id="Name">Наименование</resource>
       <resource id="Description">Описание</resource>
       <resource id="HourlyRate">Часовая ставка</resource>
+      <resource id="ExternalRate">Bнешний Часовая ставка</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
@@ -55,11 +57,19 @@
       <resource id="Name">Наименование</resource>
       <resource id="Description">Описание</resource>
       <resource id="Available">Доступность (%)</resource>
-      <resource id="HourlyRate">Часовая ставка</resource>
-      <resource id="InheritPoolRate">Наследовать ставку из пула</resource>
+      <resource id="HourlyRate">Bнутренний Часовая ставка</resource>
+      <resource id="ExternalRate">Bнешний Часовая ставка</resource>
+      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Ответственный пользователь</resource>
       <resource id="SelectUser">Выбрать</resource>
       <resource id="Pool">Пул</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="HourlyRate">Hourly Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AddRateToolTip">Add Rate</resource>
+      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
@@ -72,10 +82,18 @@
       <resource id="Description">Описание</resource>
       <resource id="Available">Доступность (%)</resource>
       <resource id="HourlyRate">Часовая ставка</resource>
-      <resource id="InheritPoolRate">Наследовать ставку из пула</resource>
+      <resource id="ExternalRate">Bнешний Часовая ставка</resource>
+      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Ответственный пользователь</resource>
       <resource id="SelectUser">Выбрать</resource>
       <resource id="Pool">Пул</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
+      <resource id="Start">Start</resource>
+      <resource id="End">Finish</resource>
+      <resource id="HourlyRate">Hourly Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AddRateToolTip">Add Rate</resource>
+      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
@@ -116,6 +134,7 @@
       <resource id="PoolNameNotSpecified">Не указано наименование пула</resource>
       <resource id="AvailabilityNotValid">Данная доступность неверна</resource>
       <resource id="HourlyRateNotValid">Данная часовая ставка неверна</resource>
+      <resource id="ExternalRateNotValid">Данная bнешний часовая ставка неверна</resource>
       <resource id="NameFormatNotSpecified">The name format was not specified</resource>
       <resource id="NameFormatNotValid">The entered name format is not valid</resource>
       <resource id="ResourceNotFound">The resource was not found</resource>
@@ -128,6 +147,10 @@
       <resource id="DeletePoolResourceAssignmentsDenied">Пул не может быть удален, так как его ресурсы уже используются в планах проектов</resource>
       <resource id="ActivityAssignmentsExistError">Ресурс не может быть удален из проекта, так как он уже назначен на работы</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
+      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
+      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Удалить ресурсы или пулы</resource>
@@ -139,10 +162,11 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Изменение ресурса</resource>
-      <resource id="ConfirmChangeHR">Изменение часовой ставки данного ресурса вызовет пересчет затрат в планах связанных проектов</resource>
+      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of this resource will result in recalculating personnel costs in various project plans.</resource>
+      <resource id="ConfirmChangeHR">Изменение часовой ставки данного и/или bнешний часовая ставка ресурса вызовет пересчет затрат в планах связанных проектов</resource>
       <resource id="ConfirmChangeAvailable">Изменение доступности данного ресурса вызовет перепроверку планов связанных проектов</resource>
       <resource id="ConfirmPoolChange">Изменение пула</resource>
-      <resource id="ConfirmPoolChangeHR">Изменение часовой ставки ресурсов данного пула вызовет пересчет затрат в планах связанных проектов</resource>
+      <resource id="ConfirmPoolChangeHR">Изменение часовой ставки и/или bнешний часовая ставка ресурсов данного пула вызовет пересчет затрат в планах связанных проектов</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>

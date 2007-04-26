@@ -15,5 +15,6 @@
       <resource id="PercentageDeviation">Déviation (%)</resource>
       <resource id="SaveCSV">Enregistrer en Tableau...</resource>
       <resource id="SaveImage">Enregistrer en Image...</resource>
+      <resource id="Total">Total</resource>
    </resource-map>
 </language-kit>

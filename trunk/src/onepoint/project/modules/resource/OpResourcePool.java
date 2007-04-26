@@ -15,6 +15,7 @@ public class OpResourcePool extends OpObject {
    public final static String NAME = "Name";
    public final static String DESCRIPTION = "Description";
    public final static String HOURLY_RATE = "HourlyRate";
+   public final static String EXTERNAL_RATE = "ExternalRate";
    public final static String SUPER_POOL = "SuperPool";
    public final static String SUB_POOLS = "SubPools";
    public final static String RESOURCES = "Resources";

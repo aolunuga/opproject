@@ -129,4 +129,32 @@ public class OpHourlyRatesPeriod extends OpObject {
    public void setExternalRate(double externalRate) {
       this.externalRate = externalRate;
    }
+
+   /**
+    * Checks if the fields of the period are valid
+    *
+    * @return  <code>0</code> id all fields have valid values
+    *          the error code corresponding to the error caused by the inccorect field
+    */
+   public int isValid() {
+
+      if (start == null) {
+         return OpResourceError.PERIOD_START_DATE_NOT_VALID;
+      }
+      else if (finish == null) {
+         return OpResourceError.PERIOD_END_DATE_NOT_VALID;
+      }
+      else if (internalRate < 0) {
+         return OpResourceError.HOURLY_RATE_NOT_VALID;
+      }
+      else if (externalRate < 0) {
+         return OpResourceError.EXTERNAL_RATE_NOT_VALID;
+      }
+      else if (!finish.after(start)){
+         return OpResourceError.PERIOD_INTERVAL_NOT_VALID;
+      }
+      else {
+         return 0;
+      }
+   }   
 }

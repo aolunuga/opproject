@@ -58,12 +58,12 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       clean();
       // create resources
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 50d, 2d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 50d, 2d, 2d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId1 = resourceDataFactory.getResourceByName(RES_NAME + 1).locator();
 
-      request = resourceDataFactory.createResourceMsg(RES_NAME + 2, RES_DESCR, 80d, 5d, false, poolid);
+      request = resourceDataFactory.createResourceMsg(RES_NAME + 2, RES_DESCR, 80d, 5d, 3d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId2 = resourceDataFactory.getResourceByName(RES_NAME + 2).locator();

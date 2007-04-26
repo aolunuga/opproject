@@ -18,7 +18,7 @@ public class OpAddCommentFormProvider implements XFormProvider {
 
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
 
-   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 

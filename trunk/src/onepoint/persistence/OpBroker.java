@@ -15,7 +15,7 @@ import java.util.TimeZone;
 import java.util.Calendar;
 
 public class OpBroker {
-   private static final XLog logger = XLogFactory.getLogger(OpBroker.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpBroker.class);
 
    private OpConnection defaultConnection; // Connection to default-source
    // Add object-caching here to broker/cursor instead of connection?!

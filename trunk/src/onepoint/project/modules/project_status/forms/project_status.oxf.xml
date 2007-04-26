@@ -14,7 +14,7 @@
                          disabled-icon="/modules/project_status/icons/new_project_status_disabled.png"
                          on-button-pressed="newProjectStatus" tooltip="${NewProjectStatusTooltip}"/>
             <tool-button id="Info" text="${Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
-                         on-button-pressed="info" tooltip="${InfoTooltip}"/>
+                         on-button-pressed="edit" tooltip="${InfoTooltip}"/>
             <tool-button id="Delete" text="${Delete}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="delete" tooltip="${DeleteTooltip}"/>

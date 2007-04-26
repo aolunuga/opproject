@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditWorkSlipFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class,true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpNewWorkSlipFormProvider.class);
 
    public final static String WORK_SLIP_ID_FIELD = "WorkSlipIDField";
    public final static String WORK_RECORD_SET = "WorkRecordSet";

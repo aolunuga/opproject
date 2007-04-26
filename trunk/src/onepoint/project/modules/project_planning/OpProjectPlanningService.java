@@ -69,7 +69,7 @@ public class OpProjectPlanningService extends OpProjectService {
    private final static OpProjectPlanningErrorMap PLANNING_ERROR_MAP = new OpProjectPlanningErrorMap();
    private final static OpProjectErrorMap PROJECT_ERROR_MAP = new OpProjectErrorMap();
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanningService.class);
 
    public XMessage importActivities(OpProjectSession session, XMessage request) {
 

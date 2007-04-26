@@ -377,6 +377,13 @@ function ok(event) {
          return;
       }
 
+      //payment
+      payment = form.findComponent("Payment").getDoubleValue();
+      if (!activity_set.setDataCellValue(activity_row, 29, payment, form)){
+         validator.setContinuousAction(false);
+         return;
+      }
+
       // Update attachments
       att_array = getAttachments();
       if (!activity_set.setDataCellValue(activity_row, 17, att_array, form)){

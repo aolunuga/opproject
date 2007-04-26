@@ -30,7 +30,7 @@ public class OpOSCacheProvider implements CacheProvider {
    /**
     * Class used for logging.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpOSCacheProvider.class,true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpOSCacheProvider.class);
 
    /**
     * The <tt>OSCache</tt> refresh period property suffix.

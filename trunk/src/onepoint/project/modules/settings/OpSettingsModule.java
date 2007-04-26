@@ -12,7 +12,7 @@ import onepoint.project.modules.backup.OpBackupManager;
 
 public class OpSettingsModule extends OpModule {
 
-   private static final XLog logger = XLogFactory.getLogger(OpSettingsModule.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpSettingsModule.class);
 
    public void start(OpProjectSession session) {
       // Load settings

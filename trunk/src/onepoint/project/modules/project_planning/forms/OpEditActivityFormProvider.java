@@ -33,7 +33,9 @@ import java.util.Iterator;
 
 public class OpEditActivityFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
+   public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
+
+   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
 
    private final static String RESPONSIBLE_RESOURCE_SET = "ResponsibleResourceSet";
    private final static String ACTIVITY_CATEGORY_DATA_SET = "ActivityCategoryDataSet";
@@ -44,9 +46,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
    private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
 
-   public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
-
-   //action that should be performed when a comment is removed 
+   //action that should be performed when a comment is removed
    private static final String REMOVE_COMMENT_ACTION = "removeComment";
    //remove comment button icon
    private static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
@@ -57,6 +57,8 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private static final String NO_RESOURCE_TEXT = "NoResource";
    private static final String COMPLETE = "Complete";
    private static final String NO_CATEGORY_RESOURCE = "NoCategory";
+
+   protected int activityType = -1;
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -73,9 +75,12 @@ public class OpEditActivityFormProvider implements XFormProvider {
          OpObject object = broker.getObject(activityLocator);
          if (object instanceof OpActivity) {
             activity = (OpActivity) object;
+            activityType = activity.getType();
          }
          else if (object instanceof OpActivityVersion) {
-            activity = ((OpActivityVersion) object).getActivity();
+            OpActivityVersion activityVersion = (OpActivityVersion) object;
+            activity = activityVersion.getActivity();
+            activityType = (activity != null) ? activity.getType() : activityVersion.getType();
          }
          // Store resolved activity locator in data-field
          if (activity != null) {

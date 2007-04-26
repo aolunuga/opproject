@@ -32,7 +32,7 @@ import java.util.*;
 
 public class OpProjectAdministrationService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getLogger(OpProjectAdministrationService.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectAdministrationService.class);
 
    public final static int WORKING_VERSION_NUMBER = -1;
    public final static String PROJECT_DATA = "project_data";

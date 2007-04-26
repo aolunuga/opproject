@@ -4,24 +4,16 @@
 
 // Controller script for users.oxf.xml
 
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/scripts/lazyLoad.jes";
-require
-"onepoint/project/modules/user/scripts/open_subject_chooser.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
+require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
 
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XExtendedComponent;
-import
-onepoint.express.XValidator;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 
 function newUser(event) {
    dialog = XComponent.newDialog();
@@ -34,30 +26,6 @@ function newGroup(event) {
    dialog = XComponent.newDialog();
    dialog.setText("Neue Gruppe");
    dialog.open("/modules/user/forms/new_group.oxf.xml");
-}
-
-function info(event) {
-   user_data_set = XDisplay.getActiveForm().findComponent("UserDataSet");
-   if (user_data_set != null) {
-      selected_rows = user_data_set.selectedRows();
-      if (selected_rows.size() > 0) {
-         parameters.edit_mode = false;
-         indicator = selected_rows[0].getChild(0).getStringValue();
-         is_user = indicator.equals("u");
-         if (is_user) {
-            parameters.user_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.setText("Benutzerinformation");
-            dialog.open("/modules/user/forms/edit_user.oxf.xml", parameters);
-         }
-         else {
-            parameters.group_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.setText("Gruppeninformation");
-            dialog.open("/modules/user/forms/edit_group.oxf.xml", parameters);
-         }
-      }
-   }
 }
 
 function edit(event) {
@@ -84,9 +52,7 @@ function edit(event) {
    }
 }
 
-
-function
-delete(event)
+function delete(event)
 {
    // TODO: Show error dialog or message if no subjects are selected
    user_data_set = XDisplay.getActiveForm().findComponent("UserDataSet");

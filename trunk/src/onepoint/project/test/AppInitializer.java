@@ -24,7 +24,7 @@ import java.sql.*;
  */
 public class AppInitializer {
    //Class logger.
-   private static final XLog logger = XLogFactory.getLogger(AppInitializer.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(AppInitializer.class);
 
    static final String SCHEMA_TABLE = "op_schema";
    private static final int SCHEMA_VERSION = 4;

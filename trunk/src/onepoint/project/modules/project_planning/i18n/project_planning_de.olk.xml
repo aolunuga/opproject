@@ -128,6 +128,7 @@
       <resource id="InfoCollectionTaskActivity">Sammelaufgabendetails</resource>
       <resource id="InfoScheduledTaskTitle">Geplante Sammelaufgabendetails</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="AssignmentErrorMessage">Die eingegebene %-Zuweisung ist größer als die globale Verfügbarkeit der Ressource</resource>
 
       <resource id="General">Allgemein</resource>
       <resource id="Name">Name</resource>
@@ -141,7 +142,8 @@
       <resource id="Priority">Priorität</resource>
       <resource id="Mandatory">Verbindlich</resource>
       <resource id="ResponsibleResource">Verantwortliche Ressource</resource>
-
+      <resource id="Payment">Zahlung</resource>
+      
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Zugewiesen</resource>
@@ -243,6 +245,9 @@
    </resource-map>
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJEKTNAVIGATOR</resource>
+   </resource-map>
+   <resource-map id="resource.incorrectFile">
+      <resource id="IncorrectFileName">Incorrect File Name</resource>
    </resource-map>
    <resource-map id="project_planning.error">
       <resource id="CommentNameMissing">Der Betreff wurde nicht angegeben</resource>

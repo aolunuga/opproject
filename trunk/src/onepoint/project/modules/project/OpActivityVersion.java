@@ -78,6 +78,7 @@ public class OpActivityVersion extends OpObject {
    private double baseExternalCosts;
    private double baseMiscellaneousCosts;
    private double baseProceeds;
+   private double payment;
    private boolean expanded;
    private boolean template;
    private OpActivityCategory category;
@@ -338,5 +339,13 @@ public class OpActivityVersion extends OpObject {
 
    public void setBaseProceeds(Double baseProceeds) {
       this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
+   }
+
+   public double getPayment() {
+      return payment;
+   }
+
+   public void setPayment(Double payment) {
+      this.payment = (payment != null) ? payment : 0;
    }
 }

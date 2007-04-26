@@ -21,7 +21,7 @@ public class OpReferenceHandler implements XNodeHandler {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getLogger(OpReferenceHandler.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpReferenceHandler.class);
 
    /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)

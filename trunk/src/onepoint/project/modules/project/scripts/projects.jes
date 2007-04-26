@@ -229,27 +229,6 @@ function editProject(projectId, editMode) {
 /**
  * @IsOverridden
  */
-function info(event) {
-   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
-   selected_rows = project_data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      descriptor = selected_rows[0].getChild(0).getStringValue();
-      is_portfolio = descriptor.equals("f");
-      is_project = descriptor.equals("p");
-
-      if (is_portfolio) {
-         editPortfolio(selected_rows[0].getStringValue(), false);
-      }
-
-      if (is_project) {
-         editProject(selected_rows[0].getStringValue(), false);
-      }
-   }
-}
-
-/**
- * @IsOverridden
- */
 function edit(event) {
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
    selected_rows = project_data_set.selectedRows();
@@ -272,8 +251,7 @@ function edit(event) {
 /**
  * @IsOverridden
  */
-function
-delete(event)
+function delete(event)
 {
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
    selected_rows = project_data_set.selectedRows();

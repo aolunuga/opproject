@@ -20,5 +20,6 @@
       <resource id="Miscellaneous">Divers</resource>
       <resource id="SaveCSV">Enregistrez en Tableau...</resource>
       <resource id="SaveImage">Enregistrez en Image...</resource>
+      <resource id="Total">Total</resource>
    </resource-map>
 </language-kit>

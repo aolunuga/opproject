@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class OpReportServiceTest extends OpBaseTestCase {
    // class logger.
-   private static final XLog logger = XLogFactory.getLogger(OpReportServiceTest.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpReportServiceTest.class);
 
    private OpReportService reportService;
    private OpReportTestDataFactory dataFactory;

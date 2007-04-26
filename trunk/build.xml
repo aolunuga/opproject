@@ -1,5 +1,5 @@
 <project name="opproject - Open" basedir="." default="dist.war">
-
+   
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
 
@@ -114,29 +114,32 @@
 
    <patternset id="standalone.lib.pathid">
       <include name="*.jar"/>
-      <exclude name="*servlet*.jar"/>
-      <exclude name="*mysql*.jar"/>
-      <exclude name="*postgresql*.jar"/>
-      <exclude name="*junit*.jar"/>
-      <exclude name="*jcookie*.jar"/>
-      <exclude name="*clover*.jar"/>
-      <exclude name="*cenquatasks*.jar"/>
-      <exclude name="*opproject*.jar"/>
-      <exclude name="*express4j*.jar"/>
-      <exclude name="*-client*.jar"/>
+      <include name="*.txt"/>
+      <exclude name="*servlet*.*"/>
+      <exclude name="*mysql*.*"/>
+      <exclude name="*postgresql*.*"/>
+      <exclude name="*jtds*.*"/>
+      <exclude name="*junit*.*"/>
+      <exclude name="*jarbundler*.*"/>
+      <exclude name="*jcookie*.*"/>
+      <exclude name="*clover*.*"/>
+      <exclude name="*cenquatasks*.*"/>
+      <exclude name="*opproject*.*"/>
+      <exclude name="*express4j*.*"/>
+      <exclude name="*-client*.*"/>
    </patternset>
 
    <!-- Pattern set for the lib files of the web application -->
    <patternset id="webapp.lib.pathid">
       <include name="*.jar"/>
       <include name="*.txt"/>
-      <exclude name="*servlet*.jar"/>
+      <exclude name="*servlet*.*"/>
       <exclude name="*mysql*.*"/>
-      <exclude name="*jtds*.*"/>
-      <exclude name="*postgresql*.*"/>
+      <exclude name="*hsql*.*"/>
       <exclude name="*junit*.*"/>
-      <exclude name="*jcookie*.jar"/>
-      <exclude name="*retroweaver-all*.jar"/>
+      <exclude name="*jarbundler*.*"/>
+      <exclude name="*jcookie*.*"/>
+      <exclude name="*retroweaver-all*.*"/>
    </patternset>
 
    <!-- Pattern set for the lib files of the applet -->
@@ -175,8 +178,8 @@
       <mkdir dir="${release.dir}"/>
    </target>
 
-   <target name="build.express4j.jars" depends="init" if="express4j.present" description="Build the express lib and copy the jars if present">
-      <ant target="dist" antfile="${express4j.dir}/build.xml" inheritall="false"/>
+   <target name="build.express4j.jars" if="express4j.present" description="Build the express lib and copy the jars if present">
+      <ant target="dist" antfile="build.xml" inheritall="false" dir="${express4j.dir}/"/>
       <!-- Copy express4j libs -->
       <copy todir="${lib.dir}" failonerror="false" overwrite="true">
          <fileset dir="${express4j.dir}/${dist.dir}">
@@ -465,6 +468,58 @@
    </target>
 
 
+   <!--Linux dist-->
+   <target name="generate.Linux.distribution.basic"
+           depends="dist.standalone"
+           description="Generates basic linux distribution">
+      <copy file="${src.dir}/onepoint/project/onepoint.sh"
+            tofile="${dist.basic.dir}/onepoint.sh"/>
+      <zip basedir="${dist.basic.dir}" zipfile="${dist.dir}/${basic.name}-linux.zip"/>
+   </target>
+
+   <!--Generates Windows executable file using Java Application Wrapper- Launch4j-->
+   <target name="generate.Windows.distribution.basic"
+           depends="dist.standalone"
+           description="Generates Windows executable file">
+
+      <property name="executable.file" value="${opproject.launchername}.exe"/>
+      <!--Launch4j task definition-->
+      <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.path}"/>
+      <launch4j>
+         <config headerType="0" jar="${project.basic.jarname}"
+                 outfile="${dist.basic.dir}/${executable.file}" customProcName="false"
+                 dontWrapJar="true" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
+            <jre minVersion="1.4.0"/>
+            <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0" fileDescription="OnePoint Software"
+                         copyright="OnePoint Software GmbH" productVersion="1.0.0.0" txtProductVersion="1.0"
+                         productName="OnePoint Projects" companyName="OnePoint Software GmbH"
+                         internalName="onepoint" originalFilename="${executable.file}"/>
+         </config>
+      </launch4j>
+   </target>
+
+   <!--Mac OS-->
+   <target name="generate.MacOs.distribution.basic"
+           depends="dist.standalone"
+           description="Generates Mac Os executable file">
+      <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
+               classpath="${op.jarbundler.classpath}"/>
+      <jarbundler dir="${dist.basic.dir}" verbose="true" infostring="Onepoint Project"
+                  name="${opproject.launchername.mac}"
+                  icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
+                  mainclass="onepoint.project.application.OpBasicSplasher">
+         <jarfileset dir="${jars.dir}">
+            <include name="${project.basic.jarname}"/>
+            <include name="${express.jarname}"/>
+         </jarfileset>
+         <!--jars from lib will be included in the application bundle-->
+         <jarfileset dir="${lib.dir}">
+            <patternset refid="standalone.lib.pathid"/>
+         </jarfileset>
+      </jarbundler>
+   </target>
+
+
    <!--Copies all needed resources for executing tests-->
    <target name="copy.test.resources" description="Copies all needed resources for executing tests">
       <!-- Now we build jar files for reports and copy them into required place -->
@@ -500,8 +555,8 @@
 
    <!--Executes OnePoint unit tests and generates html report files-->
    <target name="run.tests" depends="clean,build.tests" description="Executes the Onepoint unit tests and generates report">
-      <!-- Run all tests without mock based testss -->
-      <junit printsummary="on" reloading="false">
+      <echo message="Halt On Failuare: ${haltonfailuare}"/>
+      <junit printsummary="on" reloading="false" haltonfailure="${haltonfailuare}">
          <formatter type="xml"/>
          <classpath>
             <path refid="op.tests.classpath"/>

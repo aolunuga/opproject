@@ -128,6 +128,7 @@
       <resource id="InfoTaskActivity">Task Details</resource>
       <resource id="InfoCollectionTaskActivity">Collection Task Details</resource>
       <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
 
       <resource id="General">Основные</resource>
       <resource id="Name">Наименование</resource>
@@ -141,7 +142,8 @@
       <resource id="Priority">Приоритет</resource>
       <resource id="Mandatory">Mandatory</resource>
       <resource id="ResponsibleResource">Responsible Resource</resource>
-
+      <resource id="Payment">Payment</resource>
+      
       <resource id="Resources">Ресурсы</resource>
       <resource id="Resource">Ресурс</resource>
       <resource id="PercentageAssigned">% назначения</resource>
@@ -249,6 +251,10 @@
 
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
+   </resource-map>
+
+   <resource-map id="resource.incorrectFile">
+      <resource id="IncorrectFileName">Incorrect File Name</resource>
    </resource-map>
 
    <resource-map id="project_planning.error">

@@ -12,8 +12,8 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
@@ -35,6 +35,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String START_BEFORE_SET = "StartBeforeSet";
    private final static String PROJECT_SET = "ProjectSet";
    private final static String RESOURCES_SET = "FilterResourcesSet";
+   private final static String DELETE_PERMISSION_SET = "DeletePermissionSet";
 
    // filters
    private final static String START_BEFORE_ID = "start_before_id";
@@ -43,14 +44,13 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
    // start from filter choices
    private final static String ALL = "all";
+   private final static String RESPONSIBLE = "res";
+   private final static String MANAGED = "man";
+
    private final static String NEXT_WEEK = "nw";
    private final static String NEXT_2_WEEKS = "n2w";
    private final static String NEXT_MONTH = "nm";
    private final static String NEXT_2_MONTHS = "n2m";
-
-
-   private final static String RESPONSIBLE = "res";
-   private final static String MANAGED = "man";
 
    private final static String NEW_COMMENT = "NewCommentButton";
    private final static String INFO_BUTTON = "InfoButton";
@@ -59,10 +59,9 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
-
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
-      Map adhocProjectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
+      Map<String, List<String>> adhocProjectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
 
       OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
       if (user.getResources().size() == 0 && adhocProjectsMap.isEmpty()) {
@@ -86,21 +85,20 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
       // Configure activity activityFilter
       XComponent dataSet = form.findComponent(ACTIVITY_SET);
-      List projectChoices = new ArrayList();
+      List<String> projectChoices = new ArrayList<String>();
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
 
       fillResourceFilter(form, adhocProjectsMap);
 
       String filteredResourcesId = getFilteredResourcesId(session, parameters, form);
       boolean all = ALL.equals(filteredResourcesId);
-      boolean responsible = RESPONSIBLE.equals(filteredResourcesId);
       boolean managed = MANAGED.equals(filteredResourcesId);
-      boolean individual = (filteredResourcesId != null && !managed && !responsible && !all);
-
+      boolean responsible = RESPONSIBLE.equals(filteredResourcesId);
+      boolean individual = !(responsible || managed || all);
 
       if (user.getResources().size() != 0) {
 
-         List resourceIds = new ArrayList();
+         List<Long> resourceIds = new ArrayList<Long>();
          if (!individual) {
             OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.User.ID = ?");
             query.setLong(0, session.getUserID());
@@ -108,18 +106,18 @@ public class OpMyTasksFormProvider implements XFormProvider {
          }
          else {
             long resId = OpLocator.parseLocator(filteredResourcesId).getID();
-            resourceIds.add(new Long(resId));
+            resourceIds.add(resId);
          }
 
-         List types = new ArrayList();
-         types.add(new Byte(OpActivity.STANDARD));
-         types.add(new Byte(OpActivity.TASK));
-         types.add(new Byte(OpActivity.MILESTONE));
+         List<Byte> types = new ArrayList<Byte>();
+         types.add(OpActivity.STANDARD);
+         types.add(OpActivity.TASK);
+         types.add(OpActivity.MILESTONE);
 
          //fill project set
          List projectNodes = getProjects(broker, resourceIds, types);
-         for (Iterator it = projectNodes.iterator(); it.hasNext();) {
-            OpProjectNode projectNode = (OpProjectNode) it.next();
+         for (Object projectNode1 : projectNodes) {
+            OpProjectNode projectNode = (OpProjectNode) projectNode1;
             XComponent row = new XComponent(XComponent.DATA_ROW);
             String choice = XValidator.choice(projectNode.locator(), projectNode.getName());
             row.setStringValue(choice);
@@ -129,22 +127,21 @@ public class OpMyTasksFormProvider implements XFormProvider {
          fillProjectAdhocFilter(adhocProjectsMap, projectChoices, projectDataSet);
 
          OpActivityFilter filter = createActivityFilter(session, parameters, form);
-         for (int i = 0; i < resourceIds.size(); i++) {
-            filter.addResourceID(((Long) resourceIds.get(i)).longValue());
+         for (Long resourceId : resourceIds) {
+            filter.addResourceID(resourceId);
          }
          filter.setDependencies(true);
          //activities which are not completed yet
          filter.setCompleted(Boolean.FALSE);
          filter.setAssignmentCompleted(Boolean.FALSE);
          //activity types activityFilter
-         for (Iterator iterator = types.iterator(); iterator.hasNext();) {
-            Byte type = (Byte) iterator.next();
-            filter.addType(type.byteValue());
+         for (Byte type : types) {
+            filter.addType(type);
          }
 
          setFilterStart(session, parameters, form, filter);
          // Configure activity sort order
-         Map sortOrders = new HashMap(2);
+         Map<String, String> sortOrders = new HashMap<String, String>(2);
          sortOrders.put(OpActivity.START, OpObjectOrderCriteria.ASCENDING);
          sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
          OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
@@ -158,38 +155,34 @@ public class OpMyTasksFormProvider implements XFormProvider {
       }
 
       OpActivityFilter activityFilter = createActivityFilter(session, parameters, form);
-      for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
-         List resourcesList = (List) iterator.next();
-         for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
-            String choice = (String) resIt.next();
-            String locatorStr = XValidator.choiceID(choice);
-            if (individual && !locatorStr.equals(filteredResourcesId)) {
-               continue;
-            }
-            boolean isResponsible = isResponsible(session.getUserID(), broker, locatorStr);
-            if (responsible && !isResponsible) {
-               continue;
-            }
-            boolean isManaged = isManaged(session, broker, locatorStr);
-            if (managed && !isManaged) {
-               continue;
-            }
-            OpLocator locator = OpLocator.parseLocator(locatorStr);
-            activityFilter.addResourceID(locator.getID());
-         }
+      if (all) {
+         addAllResources(session, broker, activityFilter);
+      }
+      else if (managed) {
+         addManagedResources(session, broker, activityFilter);
+      }
+      else if (responsible) {
+         addResponsibleResources(session, broker, activityFilter);
+      }
+      else if (individual) {
+         OpLocator locator = OpLocator.parseLocator(filteredResourcesId);
+         activityFilter.addResourceID(locator.getID());
       }
 
       activityFilter.getTypes().clear();
       activityFilter.addType(OpActivity.ADHOC_TASK);
       // Configure activity sort order
-      Map sortOrders = new HashMap(2);
+      Map<String, String> sortOrders = new HashMap<String, String>(2);
       sortOrders.put(OpActivity.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
       sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
       OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
 
       // Retrieve filtered and ordered adhoc tasks
       XComponent adHocSet = new XComponent(XComponent.DATA_SET);
-      OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, adHocSet);
+      // only if the filter has any resources
+      if (!activityFilter.getResourceIds().isEmpty()) {
+         OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, adHocSet);
+      }
       for (int i = 0; i < adHocSet.getChildCount(); i++) {
          XComponent row = (XComponent) adHocSet.getChild(i);
          XComponent effortCell = (XComponent) row.getChild(7); // base effort index
@@ -203,7 +196,94 @@ public class OpMyTasksFormProvider implements XFormProvider {
       XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
       OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
 
+      // fill delete permission data set
+      XComponent deletePermissionSet = form.findComponent(DELETE_PERMISSION_SET);
+      fillDeletePermissionDataSet((OpProjectSession) s, broker, dataSet, deletePermissionSet);
+
       broker.close();
+   }
+
+   /**
+    * Add all the resources accesible for the current user
+    *
+    * @param session        the project session
+    * @param broker         the broker used to access data
+    * @param activityFilter the activity filter where the filtered resources are added.
+    */
+   private void addAllResources(OpProjectSession session, OpBroker broker, OpActivityFilter activityFilter) {
+      List<Byte> types = new ArrayList<Byte>();
+      types.add(OpPermission.ADMINISTRATOR);
+      types.add(OpPermission.MANAGER);
+      Set<String> resIds = OpProjectDataSetFactory.getProjectResources(session, broker, types, false);
+      for (String resId : resIds) {
+         OpLocator locator = OpLocator.parseLocator(resId);
+         activityFilter.addResourceID(locator.getID());
+      }
+      addManagedResources(session, broker, activityFilter);
+   }
+
+   /**
+    * Add managed and responsible resources for the current user
+    *
+    * @param session        the project session
+    * @param broker         the broker used to access data
+    * @param activityFilter the activity filter where the filtered resources are added.
+    */
+   private void addManagedResources(OpProjectSession session, OpBroker broker, OpActivityFilter activityFilter) {
+      List<Byte> types = new ArrayList<Byte>();
+      types.add(OpPermission.ADMINISTRATOR);
+      types.add(OpPermission.MANAGER);
+      types.add(OpPermission.CONTRIBUTOR);
+      types.add(OpPermission.OBSERVER);
+      Set<String> resIds = OpProjectDataSetFactory.getProjectResources(session, broker, types, false);
+      for (String resId : resIds) {
+         OpLocator locator = OpLocator.parseLocator(resId);
+         long id = locator.getID();
+         if (session.effectiveAccessLevel(broker, id) >= OpPermission.MANAGER) {
+            activityFilter.addResourceID(id);
+         }
+      }
+      addResponsibleResources(session, broker, activityFilter);
+   }
+
+   /**
+    * Add responsible resources for the current user
+    *
+    * @param session        the project session
+    * @param broker         the broker used to access data
+    * @param activityFilter the activity filter where the filtered resources are added.
+    */
+   private void addResponsibleResources(OpProjectSession session, OpBroker broker, OpActivityFilter activityFilter) {
+      List<Byte> types = new ArrayList<Byte>();
+      types.add(OpPermission.ADMINISTRATOR);
+      types.add(OpPermission.MANAGER);
+      types.add(OpPermission.CONTRIBUTOR);
+      types.add(OpPermission.OBSERVER);
+      Set<String> resIds = OpProjectDataSetFactory.getProjectResources(session, broker, types, true);
+      for (String resId : resIds) {
+         OpLocator locator = OpLocator.parseLocator(resId);
+         activityFilter.addResourceID(locator.getID());
+      }
+   }
+
+   /**
+    * Fills the delete permission set. For each activity we determine if we have the rights to delete it and we add a propper row in the set.
+    *
+    * @param s                   the session
+    * @param broker              the broker
+    * @param dataSet             the activity dataset
+    * @param deletePermissionSet he delete permission dataset
+    */
+   private void fillDeletePermissionDataSet(OpProjectSession s, OpBroker broker, XComponent dataSet, XComponent deletePermissionSet) {
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         String locator = row.getStringValue();
+         OpActivity activity = (OpActivity) broker.getObject(locator);
+         boolean delete = OpMyTasksServiceImpl.deleteGranted(s, activity);
+         XComponent delRow = new XComponent(XComponent.DATA_ROW);
+         delRow.setBooleanValue(delete);
+         deletePermissionSet.addChild(delRow);
+      }
    }
 
    /**
@@ -215,9 +295,8 @@ public class OpMyTasksFormProvider implements XFormProvider {
     */
    private void fillProjectAdhocFilter(Map adhocProjectsMap, List projectChoices, XComponent projectDataSet) {
       //add projects that are only for adhoc tasks
-      Iterator projectIt = adhocProjectsMap.keySet().iterator();
-      while (projectIt.hasNext()) {
-         String choice = (String) projectIt.next();
+      for (Object o : adhocProjectsMap.keySet()) {
+         String choice = (String) o;
          if (!projectChoices.contains(choice)) {
             XComponent row = new XComponent(XComponent.DATA_ROW);
             row.setStringValue(choice);
@@ -246,12 +325,12 @@ public class OpMyTasksFormProvider implements XFormProvider {
    }
 
    /**
-    * Sets the start form the period filter 
+    * Sets the start form the period filter
     *
-    * @param session
-    * @param parameters
-    * @param form
-    * @param filter
+    * @param session    the project session
+    * @param parameters parameters
+    * @param form       the form
+    * @param filter     the activity filter
     */
    private void setFilterStart(OpProjectSession session, HashMap parameters, XComponent form, OpActivityFilter filter) {
       //get start from choice field or session state
@@ -297,12 +376,12 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private void fillResourceFilter(XComponent form, Map adhocProjectsMap) {
 
       XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
-      List allResources = new ArrayList();
-      Map captionToResourceMap = new HashMap();
-      for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
-         List resourcesList = (List) iterator.next();
-         for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
-            String choice = (String) resIt.next();
+      List<String> allResources = new ArrayList<String>();
+      Map<String, String> captionToResourceMap = new HashMap<String, String>();
+      for (Object o : adhocProjectsMap.values()) {
+         List resourcesList = (List) o;
+         for (Object aResourcesList : resourcesList) {
+            String choice = (String) aResourcesList;
             String caption = XValidator.choiceCaption(choice);
             if (!allResources.contains(caption)) {
                allResources.add(caption);
@@ -311,49 +390,17 @@ public class OpMyTasksFormProvider implements XFormProvider {
          }
       }
       //sort the resources
-      Object[] resourceArray = allResources.toArray();
+      String[] resourceArray = allResources.toArray(new String[0]);
       Arrays.sort(resourceArray);
       allResources = Arrays.asList(resourceArray);
 
-      for (Iterator iterator = allResources.iterator(); iterator.hasNext();) {
-         String caption = (String) iterator.next();
-         String choice = (String) captionToResourceMap.get(caption);
+      for (Object allResource : allResources) {
+         String caption = (String) allResource;
+         String choice = captionToResourceMap.get(caption);
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          resourceDataSet.addChild(row);
       }
-   }
-
-   /**
-    * Checks if the given user (user Id) is the responsible user for the given resource (resourceLocator).
-    *
-    * @param userID          Id of the checked user.
-    * @param broker          object used for db access.
-    * @param resourceLocator Locator of the resource is cheked.
-    * @return True if the given user (user ID) is the responsible user for this resource.
-    */
-   private boolean isResponsible(long userID, OpBroker broker, String resourceLocator) {
-      OpResource resource = (OpResource) broker.getObject(resourceLocator);
-      OpUser user = resource.getUser();
-      if (user != null) {
-         if (user.getID() == userID) {
-            return true;
-         }
-      }
-      return false;
-   }
-
-   /**
-    * Checks if the current user is manager for the given resource (resource locator)
-    *
-    * @param session         Current session.
-    * @param broker          Used for db access
-    * @param resourceLocator Resource
-    * @return true if the current user has effective access level MANAGER or higher on the resource.
-    */
-   private boolean isManaged(OpProjectSession session, OpBroker broker, String resourceLocator) {
-      OpResource resource = (OpResource) broker.getObject(resourceLocator);
-      return session.effectiveAccessLevel(broker, resource.getID()) > OpPermission.MANAGER;
    }
 
    /**
@@ -414,7 +461,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
             Integer selectedIndex = (Integer) stateMap.get(START_TIME_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent startTimeDataSet = form.findComponent(START_BEFORE_SET);
-               if (selectedIndex.intValue() < startTimeDataSet.getChildCount()) {
+               if (selectedIndex < startTimeDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) startTimeDataSet.getChild(selectedIndex.intValue());
                   filteredStartFromId = XValidator.choiceID(dataRow.getStringValue());
                }
@@ -444,12 +491,15 @@ public class OpMyTasksFormProvider implements XFormProvider {
             Integer selectedIndex = (Integer) stateMap.get(RESOURCE_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
-               if (selectedIndex.intValue() < resourceDataSet.getChildCount()) {
+               if (selectedIndex < resourceDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) resourceDataSet.getChild(selectedIndex.intValue());
                   filteredResourceChoiceId = XValidator.choiceID(dataRow.getStringValue());
                }
             }
          }
+      }
+      if (filteredResourceChoiceId == null) {
+         filteredResourceChoiceId = ALL;
       }
       return filteredResourceChoiceId;
    }
@@ -469,18 +519,18 @@ public class OpMyTasksFormProvider implements XFormProvider {
       String filteredProjectChoiceId = (String) parameters.get(PROJECT_CHOICE_ID);
       if (filteredProjectChoiceId == null) {
          //set the default selected index for the project chooser becouse it is populate within this form provider
-         Map stateMap = session.getComponentStateMap(form.getID());
+         Map<String, Integer> stateMap = session.getComponentStateMap(form.getID());
          if (stateMap != null) {
-            Integer selectedIndex = (Integer) stateMap.get(PROJECT_CHOICE_FIELD);
+            Integer selectedIndex = stateMap.get(PROJECT_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent projectDataSet = form.findComponent(PROJECT_SET);
-               if (selectedIndex.intValue() < projectDataSet.getChildCount()) {
+               if (selectedIndex < projectDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) projectDataSet.getChild(selectedIndex.intValue());
                   filteredProjectChoiceId = XValidator.choiceID(dataRow.getStringValue());
                }
             }
             else {
-               Integer defaultSelectedIndex = new Integer(0);
+               Integer defaultSelectedIndex = 0;
                stateMap.put(PROJECT_CHOICE_FIELD, defaultSelectedIndex);
             }
          }

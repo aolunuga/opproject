@@ -96,6 +96,7 @@ public class OpActivity extends OpObject {
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
+   private double payment;
    private boolean deleted;
    private boolean expanded;
    private boolean template;
@@ -448,6 +449,14 @@ public class OpActivity extends OpObject {
 
    public void setActualProceeds(Double actualProceeds) {
       this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
+   }
+
+   public double getPayment() {
+      return payment;
+   }
+
+   public void setPayment(Double payment) {
+      this.payment = (payment != null) ? payment : 0;
    }
 
    /**

@@ -46,7 +46,7 @@ public final class OpInitializer {
    /**
     * This class's logger
     */
-   private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
+   private static final XLog logger = XLogFactory.getServerLogger(OpInitializer.class);
 
    /**
     * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.

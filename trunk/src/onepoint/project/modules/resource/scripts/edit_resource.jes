@@ -34,7 +34,13 @@ function ok_edit(event) {
    resource_data.Available = available;
    hourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.HourlyRate = hourlyRate;
-   resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
+   externalRate = form.findComponent("ExternalRate").getDoubleValue();
+   resource_data.ExternalRate = externalRate;
+   inheritFromPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
+   resource_data.InheritPoolRate = inheritFromPoolRate;
+   originalInherit = !form.findComponent("OriginalInherit").getBooleanValue();
+   hourlyRatesSet = form.findComponent("HourlyRatesSet");
+   resource_data.HourlyRatesSet = hourlyRatesSet;
    userChoice = form.findComponent("UserName").getStringValue();
    if (userChoice != null) {
       resource_data.UserID = XValidator.choiceID(userChoice);
@@ -54,14 +60,41 @@ function ok_edit(event) {
    resource_data.PermissionSet = form.findComponent("PermissionSet");
 
    originalHourlyRate = form.findComponent("OriginalHourlyRate").getDoubleValue();
+   originalExternalRate = form.findComponent("OriginalExternalRate").getDoubleValue();
    originalAvailable = form.findComponent("OriginalAvailable").getDoubleValue();
    saveChanges = true;
-   if (hourlyRate != originalHourlyRate || available != originalAvailable){
+
+   //if the hourlyRates tab was modified that is the priority
+   modifiedPeriods = isModifiedHourlyTab();
+   if (modifiedPeriods.size() > 0) {
+      resource_id = form.findComponent("ResourceID").getStringValue();
+      request = new XMessage;
+      request.setAction("ResourceService.hasAssignmentsInTimePeriod");
+      request.setArgument("resource_id", resource_id);
+      request.setArgument("HourlyRatesSet", hourlyRatesSet);
+      response = XDisplay.getClient().invokeMethod(request);
+      hasAssignments = response.getArgument("AssignmentsInPeriod");
+      if (hasAssignments == true) {
+         //display
+         dialog = XComponent.newDialog();
+         parameters.resource_id = resource_id;
+         parameters.resource_data = resource_data;
+         parameters.changed = "hourlyTab";
+         dialog.open("/modules/resource/forms/confirm_resource_change.oxf.xml", parameters);
+         return;
+      }
+   }
+   if (modifiedPeriods.size() == 0 && (hourlyRate != originalHourlyRate || externalRate != originalExternalRate
+        || originalInherit != inheritFromPoolRate || available != originalAvailable)){
       //display confirm dialogue if resource is assigned on an activity
       resource_id = form.findComponent("ResourceID").getStringValue();
       request = new XMessage;
       request.setAction("ResourceService.hasAssignments");
       request.setArgument("resource_id", resource_id);
+      if(originalInherit != inheritFromPoolRate && hourlyRate == originalHourlyRate && externalRate == originalExternalRate
+           && available == originalAvailable){
+         request.setArgument("checkInherit", true);   
+      }
       response = XDisplay.getClient().invokeMethod(request);
       hasAssignments = response.getArgument("Assignments");      
       if (hasAssignments == true){
@@ -69,11 +102,11 @@ function ok_edit(event) {
          dialog = XComponent.newDialog();
          parameters.resource_id = resource_id;
          parameters.resource_data = resource_data;
-         if (hourlyRate != originalHourlyRate){
-            parameters.hourlyChanged = true;
+         if (hourlyRate != originalHourlyRate || externalRate != originalExternalRate || inheritFromPoolRate != originalInherit){
+            parameters.changed = "firstTab";
          }
          else {
-            parameters.hourlyChanged = false;
+            parameters.changed = "availability";
          }
          dialog.open("/modules/resource/forms/confirm_resource_change.oxf.xml", parameters);
          return;
@@ -134,12 +167,118 @@ function removeProject(event) {
 function inheritPoolRate(event) {
    form = XDisplay.getActiveForm();
    source = event.event_source;
-   shouldInherit = source.getValue();
-   if (shouldInherit == true) {
-      form.findComponent("HourlyRate").setEnabled(false);
+   shouldOverride = source.getValue();
+   if (shouldOverride == true) {
+      form.findComponent("HourlyRate").setEnabled(true);
+      form.findComponent("ExternalRate").setEnabled(true);
    }
    else {
-      form.findComponent("HourlyRate").setEnabled(true);
+      form.findComponent("HourlyRate").setEnabled(false);
+      form.findComponent("ExternalRate").setEnabled(false);
    }
    form.update();
+}
+
+function addRate(before) {
+   rateDataSet = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
+   selected_rows = rateDataSet.selectedRows();
+   data_row = rateDataSet.newDataRow();
+   startDateCell = XComponent.newDataCell();
+   startDateCell.setEnabled(true);
+   endDateCell = XComponent.newDataCell();
+   endDateCell.setEnabled(true);
+   hourlyRateCell = XComponent.newDataCell();
+   hourlyRateCell.setDoubleValue(0.00);
+   hourlyRateCell.setEnabled(true);
+   externalRateCell = XComponent.newDataCell();
+   externalRateCell.setDoubleValue(0.00);
+   externalRateCell.setEnabled(true);
+   data_row.addChild(startDateCell);
+   data_row.addChild(endDateCell);
+   data_row.addChild(hourlyRateCell);
+   data_row.addChild(externalRateCell);
+
+   if (selected_rows.size() > 0) {
+      if (before) {//insert before
+         index = selected_rows[0].getIndex();
+         rateDataSet.addDataRow(index, data_row);
+      }
+      else { //insert after
+         current_row = selected_rows[0];
+         index = current_row.getIndex();
+         rateDataSet.addDataRow(index + 1, data_row);
+      }
+   }
+   else {
+      rateDataSet.addDataRow(data_row);
+   }
+   XDisplay.getActiveForm().findComponent("HourlyRatesTable").update();
+}
+
+function addRateBefore(event) {
+     addRate(true);
+}
+
+function removeRates(event) {
+   rates_data_set = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
+   selected_rows = rates_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      rates_data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("HourlyRatesTable").update();
+   }
+}
+
+//checks if any of the OpHourlyRatesPeriod from the Hourly Rates tab was modified and
+//returns all modified OpHourlyRatesPeriods
+function isModifiedHourlyTab() {
+   newRatesDataSet = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
+   originalRatesDataSet = XDisplay.getActiveForm().findComponent("OriginalHourlyRatesSet");
+   modifiedRates = new ArrayList;
+
+   //add to modified rows the original rows that have changed
+   i = 0;
+   while (i < originalRatesDataSet.getChildCount()) {
+      modified = true;
+      originalRow = originalRatesDataSet.getChild(i);
+      j = 0;
+      while (j < newRatesDataSet.getChildCount()) {
+         newRow = newRatesDataSet.getChild(j);
+         if (originalRow.getChild(0).getDateValue() == newRow.getChild(0).getDateValue() &&
+             originalRow.getChild(1).getDateValue() == newRow.getChild(1).getDateValue() &&
+             originalRow.getChild(2).getDoubleValue() == newRow.getChild(2).getDoubleValue() &&
+             originalRow.getChild(3).getDoubleValue() == newRow.getChild(3).getDoubleValue()) {
+            modified = false;
+            break;
+         }
+         j++;
+      }
+      if(modified){
+         modifiedRates.add(originalRow);
+      }
+      i++;
+   }
+
+   //add to modified rows the newly changed or added rows
+   i = 0;
+   while (i < newRatesDataSet.getChildCount()) {
+      modified = true;
+      newRow = newRatesDataSet.getChild(i);
+      j = 0;
+      while (j < originalRatesDataSet.getChildCount()) {
+         originalRow = originalRatesDataSet.getChild(j);
+         if (originalRow.getChild(0).getDateValue() == newRow.getChild(0).getDateValue() &&
+             originalRow.getChild(1).getDateValue() == newRow.getChild(1).getDateValue() &&
+             originalRow.getChild(2).getDoubleValue() == newRow.getChild(2).getDoubleValue() &&
+             originalRow.getChild(3).getDoubleValue() == newRow.getChild(3).getDoubleValue()) {
+            modified = false;
+            break;
+         }
+         j++;
+      }
+      if (modified){
+         modifiedRates.add(newRow);
+      }
+      i++;
+   }
+   return modifiedRates;
 }
