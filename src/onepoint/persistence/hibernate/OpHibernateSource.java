@@ -39,7 +39,7 @@ public class OpHibernateSource extends OpSource {
    public final static int ORACLE = 5;
    public final static int HSQLDB = 6;
    public final static int IBM_DB2 = 7;
-   public final static int SQLSERVER = 8;
+   public final static int MSSQL = 8;
 
    public final static String INDEX_NAME_PREFIX = "op_";
    public final static String INDEX_NAME_POSTFIX = "_i";
@@ -245,7 +245,7 @@ public class OpHibernateSource extends OpSource {
             return org.hibernate.dialect.HSQLDialect.class;
          case IBM_DB2:
             return org.hibernate.dialect.DB2Dialect.class;
-         case SQLSERVER:
+         case MSSQL:
             return SQLServerDialect.class;
          default:
             throw new IllegalArgumentException("No dialect for this database type " + databaseType);
@@ -364,7 +364,7 @@ public class OpHibernateSource extends OpSource {
             queryString = "select top 1 * from " + tableName;
             break;
          }
-         case SQLSERVER: {
+         case MSSQL: {
             queryString = "select top 1 * from " + tableName;
             break;
          }

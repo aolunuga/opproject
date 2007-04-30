@@ -10,7 +10,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
-import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
@@ -26,7 +26,7 @@ import java.util.HashMap;
  */
 public class OpDbConfigurationWizardFormProvider implements XFormProvider {
 
-   /*form's component ids */
+   //form's component ids
    private static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
    private static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
    private static final String DB_URL_FIELD = "DatabaseUrlTextField";
@@ -90,19 +90,23 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       XComponent dataRow ;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationValuesHandler.MYSQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MY_SQL_DISPLAY));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationValuesHandler.ORACLE_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationWizardService.ORACLE_DISPLAY));
       dataSet.addDataRow(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationValuesHandler.IBM_DB2_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationWizardService.IBM_DB_DISPLAY));
       dataSet.addDataRow(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE));
+      dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationWizardService.POSTGRE_DISPLAY));
+      dataSet.addDataRow(dataRow);
+      //MSSQL
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
       dataSet.addDataRow(dataRow);
    }
 }

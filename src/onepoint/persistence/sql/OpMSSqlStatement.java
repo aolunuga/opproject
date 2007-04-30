@@ -4,16 +4,16 @@
 
 package onepoint.persistence.sql;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class used for obtaining SQLServer2000 specific statements
  *
  * @author horia.chiorean
  */
-public final class OpSQLServerStatement implements OpSqlStatement {
+public final class OpMSSqlStatement implements OpSqlStatement {
 
    /**
     * The mapping of SQLServer specific types.
