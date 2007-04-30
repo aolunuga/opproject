@@ -5,6 +5,8 @@
 package onepoint.project.modules.resource;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAssignmentVersion;
 import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
@@ -27,6 +29,11 @@ public class OpResource extends OpObject {
    public final static String WORK_SLIPS = "WorkSlips";
    public final static String ABSENCES = "Absences";
 
+   public final static int INTERNAL_RATE_INDEX = 0;
+   public final static int EXTERNAL_RATE_INDEX = 1;
+   public final static int INTERNAL_RATE_LIST_INDEX = 0;
+   public final static int EXTERNAL_RATE_LIST_INDEX = 1;
+
    private String name;
    private String description;
    private double available = 100; // Default: 100%
@@ -36,8 +43,8 @@ public class OpResource extends OpObject {
    private OpResourcePool pool;
    private OpUser user;
    private Set projectNodeAssignments;
-   private Set activityAssignments;
-   private Set assignmentVersions;
+   private Set<OpAssignment> activityAssignments;
+   private Set<OpAssignmentVersion> assignmentVersions;
    private Set absences;
    private Set responsibleActivities;
    private Set responsibleActivityVersions;
@@ -107,19 +114,19 @@ public class OpResource extends OpObject {
       return projectNodeAssignments;
    }
 
-   public void setActivityAssignments(Set activityAssignments) {
+   public void setActivityAssignments(Set<OpAssignment> activityAssignments) {
       this.activityAssignments = activityAssignments;
    }
 
-   public Set getActivityAssignments() {
+   public Set<OpAssignment> getActivityAssignments() {
       return activityAssignments;
    }
 
-   public void setAssignmentVersions(Set assignmentVersions) {
+   public void setAssignmentVersions(Set<OpAssignmentVersion> assignmentVersions) {
       this.assignmentVersions = assignmentVersions;
    }
 
-   public Set getAssignmentVersions() {
+   public Set<OpAssignmentVersion> getAssignmentVersions() {
       return assignmentVersions;
    }
 
@@ -164,86 +171,29 @@ public class OpResource extends OpObject {
    }
 
    /**
-    * Returns the internal rate of a resource for a given day. When looking for the internal rate the most
-    * prioritary is the OpHourlyRatesPeriod set and then the resource's hourly rate
+    * Returns a List containing the internal and external rates of a resource for a given day.
+    * When looking for the internal rate the most prioritary is the OpHourlyRatesPeriod set
+    * and then the resource's hourly rate
     * @param aDay - the day for which the internal rate will be returned
-    * @return - the internal rate of a resource for the given day
+    * @return - the <code>List</code> containing the internal and external rates of a resource for the given day
     */
-   public Double getInternalRateForDay(Date aDay){
+   public List<Double> getRatesForDay(Date aDay){
+      List<Double> result = new ArrayList<Double>();
       Double internalRate = null;
-
-      //first look in the set of OpHourlyRatesPeriod
-      if(hourlyRatesPeriods.size() > 0){
-         OpHourlyRatesPeriod hourlyRatePeriod;
-         Iterator<OpHourlyRatesPeriod> iterator = hourlyRatesPeriods.iterator();
-         while (iterator.hasNext()){
-            hourlyRatePeriod = iterator.next();
-            if(hourlyRatePeriod.getStart().getTime() <= aDay.getTime()
-                 && hourlyRatePeriod.getFinish().getTime() >= aDay.getTime()){
-               internalRate = hourlyRatePeriod.getInternalRate();
-            }
-         }
-      }
-
-      // if the resource has no OpHourlyRatesPeriods defined or
-      // if the day is not in one of the OpHourlyRatesPeriods time intervals
-      // we return the resource's hourly rate
-      if(hourlyRatesPeriods.size() == 0 || (hourlyRatesPeriods.size() > 0 && internalRate == null)){
-         internalRate = hourlyRate;
-      }
-
-      return internalRate;
-   }
-
-   /**
-    * Returns a <code>List</code> of internal rates of a resource for a given interval. When looking for the internal rate the most
-    * prioritary is the OpHourlyRatesPeriod set and then the resource's hourly rate
-    * @param start - the begining of the interval
-    * @param end - the end of the interval
-    * @return - the <code>List</code> of internal rates of a resource for the given interval
-    */
-   public List getInternalRateForInterval(Date start, Date end){
-      List<Double> internalRates = new ArrayList<Double>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.setTimeInMillis(start.getTime());
-      calendarStart.set(Calendar.HOUR,0);
-      calendarStart.set(Calendar.MINUTE,0);
-      calendarStart.set(Calendar.SECOND,0);
-      calendarStart.set(Calendar.MILLISECOND,0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.setTimeInMillis(end.getTime());
-      calendarEnd.set(Calendar.HOUR,0);
-      calendarEnd.set(Calendar.MINUTE,0);
-      calendarEnd.set(Calendar.SECOND,0);
-      calendarEnd.set(Calendar.MILLISECOND,0);
-      Double internalDayRate;
-
-      while(!calendarStart.after(calendarEnd)){
-         internalDayRate = getInternalRateForDay(new Date(calendarStart.getTimeInMillis()));
-         internalRates.add(internalDayRate);
-         calendarStart.add(Calendar.DATE,1);
-      }
-
-      return internalRates;
-   }
-
-   /**
-    * Returns the external rate of a resource for a given day. When looking for the external rate the most
-    * prioritary is the OpHourlyRatesPeriod set and then the resource's external rate
-    * @param aDay - the day for which the external rate will be returned
-    * @return - the external rate of a resource for the given day
-    */
-   public Double getExternalRateForDay(Date aDay){
       Double externalRate = null;
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(aDay);
+      calendar.set(Calendar.HOUR,0);
+      calendar.set(Calendar.MINUTE,0);
+      calendar.set(Calendar.SECOND,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      aDay.setTime(calendar.getTimeInMillis());
 
       //first look in the set of OpHourlyRatesPeriod
-      if(hourlyRatesPeriods.size() > 0){
-         OpHourlyRatesPeriod hourlyRatePeriod;
-         Iterator<OpHourlyRatesPeriod> iterator = hourlyRatesPeriods.iterator();
-         while (iterator.hasNext()){
-            hourlyRatePeriod = iterator.next();
-            if(hourlyRatePeriod.getStart().getTime() <= aDay.getTime()
-                 && hourlyRatePeriod.getFinish().getTime() >= aDay.getTime()){
+      if(!hourlyRatesPeriods.isEmpty()){
+         for(OpHourlyRatesPeriod hourlyRatePeriod:hourlyRatesPeriods){
+            if(!hourlyRatePeriod.getStart().after(aDay) && !hourlyRatePeriod.getFinish().before(aDay)){
+               internalRate = hourlyRatePeriod.getInternalRate();
                externalRate = hourlyRatePeriod.getExternalRate();
             }
          }
@@ -251,22 +201,31 @@ public class OpResource extends OpObject {
 
       // if the resource has no OpHourlyRatesPeriods defined or
       // if the day is not in one of the OpHourlyRatesPeriods time intervals
-      // we return the resource's external rate
-      if(hourlyRatesPeriods.size() == 0 || (hourlyRatesPeriods.size() > 0 && externalRate == null)){
+      // we return the resource's hourly rate & external rate
+      if(hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)){
+         internalRate = hourlyRate;
+      }
+      if(hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)){
          externalRate = this.externalRate;
       }
 
-      return externalRate;
+      result.add(INTERNAL_RATE_INDEX, internalRate);
+      result.add(EXTERNAL_RATE_INDEX, externalRate);
+      return result;
    }
 
    /**
-    * Returns a <code>List</code> of external rates of a resource for a given interval. When looking for the external rate the most
-    * prioritary is the OpHourlyRatesPeriod set and then the resource's external rate
+    * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
+    * for a resource for a given interval. When looking for the internal rate the most
+    * prioritary is the OpHourlyRatesPeriod set and then the resource's hourly rate
     * @param start - the begining of the interval
     * @param end - the end of the interval
-    * @return - the <code>List</code> of external rates of a resource for the given interval
+    * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
+    *  for the given interval
     */
-   public List getExternalRateForInterval(Date start, Date end){
+   public List<List> getRatesForInterval(Date start, Date end){
+      List<List> result = new ArrayList<List>();
+      List<Double> internalRates = new ArrayList<Double>();
       List<Double> externalRates = new ArrayList<Double>();
       Calendar calendarStart = Calendar.getInstance();
       calendarStart.setTimeInMillis(start.getTime());
@@ -280,15 +239,20 @@ public class OpResource extends OpObject {
       calendarEnd.set(Calendar.MINUTE,0);
       calendarEnd.set(Calendar.SECOND,0);
       calendarEnd.set(Calendar.MILLISECOND,0);
+      Double internalDayRate;
       Double externalDayRate;
 
       while(!calendarStart.after(calendarEnd)){
-         externalDayRate = getExternalRateForDay(new Date(calendarStart.getTimeInMillis()));
+         internalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis())).get(INTERNAL_RATE_INDEX);
+         internalRates.add(internalDayRate);
+         externalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis())).get(EXTERNAL_RATE_INDEX);
          externalRates.add(externalDayRate);
          calendarStart.add(Calendar.DATE,1);
       }
 
-      return externalRates;
+      result.add(INTERNAL_RATE_LIST_INDEX,internalRates);
+      result.add(EXTERNAL_RATE_LIST_INDEX,externalRates);
+      return result;
    }
 
    /**
@@ -314,11 +278,7 @@ public class OpResource extends OpObject {
             OpHourlyRatesPeriod secondPeriod = periodList.get(j);
             java.util.Date secondStart = secondPeriod.getStart();
             java.util.Date secondEnd = secondPeriod.getFinish();
-            //     currentStart___________currentEnd
-            //          secondStart__________secondEnd
-            //   secondStart_________secondEnd
-            //         secondStart______secondEnd
-            if(!((currentEnd.getTime() < secondStart.getTime()) || (secondEnd.getTime() < currentStart.getTime()))){
+            if(!((currentEnd.before(secondStart)) || (secondEnd.before(currentStart)))){
                return false;
             }
          }

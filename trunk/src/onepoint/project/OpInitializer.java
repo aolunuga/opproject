@@ -165,7 +165,7 @@ public final class OpInitializer {
          int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
 
          //test the db connection
-         int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword);
+         int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
          if (testResult != OpConnectionManager.SUCCESS) {
             logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
             OpConfigurationWizardManager.loadConfigurationWizardModule();

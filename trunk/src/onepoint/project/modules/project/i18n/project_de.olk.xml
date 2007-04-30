@@ -75,6 +75,10 @@
       <resource id="DueTo">Fällig am</resource>
 
       <resource id="Resources">Ressourcen</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="AdjustRates">Adjust Rates</resource>
+      <resource id="HourlyRate">Internal Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
 
       <resource id="Permissions">Berechtigungen</resource>
 
@@ -120,6 +124,10 @@
       <resource id="WorkingVersion">Freigegebener Projektplan</resource>
 
       <resource id="Resources">Ressourcen</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="AdjustRates">Adjust Rates</resource>
+      <resource id="HourlyRate">Internal Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
 

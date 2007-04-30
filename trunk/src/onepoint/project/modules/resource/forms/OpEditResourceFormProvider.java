@@ -167,16 +167,19 @@ public class OpEditResourceFormProvider implements XFormProvider {
       }
 
       //obtain the OpHourlyRatesPeriod associated with this resource
-      OpHourlyRatesPeriod hourlyRatesPeriod;
       XComponent hourlyRatesSet = form.findComponent(HOURLY_RATES_SET);
       XComponent originalHourlyRatesSet = form.findComponent(ORIGINAL_HOURLY_RATES_SET);
+      fillHourlyRatesSets(hourlyRatesSet, originalHourlyRatesSet, resource, editMode);
+
+      broker.close();
+   }
+
+   private void fillHourlyRatesSets(XComponent hourlyRatesSet, XComponent originalHourlyRatesSet,
+        OpResource resource, boolean editMode) {
       XComponent dataRow;
       XComponent dataCell;
 
-      Iterator<OpHourlyRatesPeriod> periods = resource.getHourlyRatesPeriods().iterator();
-      while(periods.hasNext()){
-         hourlyRatesPeriod = periods.next();
-
+      for (OpHourlyRatesPeriod hourlyRatesPeriod : resource.getHourlyRatesPeriods()) {
          dataRow = new XComponent(XComponent.DATA_ROW);
          hourlyRatesSet.addChild(dataRow);
 
@@ -205,12 +208,10 @@ public class OpEditResourceFormProvider implements XFormProvider {
          dataRow.addChild(dataCell);
 
          //set the datarow value to OpHourlyRatesPeriod's locator
-          dataRow.setStringValue(hourlyRatesPeriod.locator());
+         dataRow.setStringValue(hourlyRatesPeriod.locator());
 
          originalHourlyRatesSet.addChild(dataRow.copyData());
       }
-
-      broker.close();
    }
 
 }

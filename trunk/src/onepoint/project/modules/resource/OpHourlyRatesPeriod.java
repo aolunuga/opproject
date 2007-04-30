@@ -5,6 +5,7 @@
 package onepoint.project.modules.resource;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
 
 import java.sql.Date;
 
@@ -19,6 +20,12 @@ public class OpHourlyRatesPeriod extends OpObject {
     * The resource for which the hourly rates are recorded.
     */
    private OpResource resource;
+
+   /**
+    * The project node assignment for which the hourly rates are recorded.
+    */
+   private OpProjectNodeAssignment projectNodeAssignment;
+
 
    /**
     * The start of the hourly rates period.
@@ -56,6 +63,24 @@ public class OpHourlyRatesPeriod extends OpObject {
     */
    public void setResource(OpResource resource) {
       this.resource = resource;
+   }
+
+   /**
+    * Gets the project node assignment of the period.
+    *
+    * @return a <code>OpProjectNodeAssignment</code> entity.
+    */
+   public OpProjectNodeAssignment getProjectNodeAssignment() {
+      return projectNodeAssignment;
+   }
+
+   /**
+    * Sets the project node assignment of the period.
+    *
+    * @param projectNodeAssignment a <code>OpProjectNodeAssignment</code> entity.
+    */
+   public void setProjectNodeAssignment(OpProjectNodeAssignment projectNodeAssignment) {
+      this.projectNodeAssignment = projectNodeAssignment;
    }
 
    /**

@@ -75,7 +75,7 @@ function getReportQuery() {
    if (choice != null && project != null) {
 
       selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, ";
-      selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, activity.RemainingEffort";
+      selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, asgn.RemainingEffort";
       fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
       fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
       whereClause = " where projectNode.ID = ? and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";

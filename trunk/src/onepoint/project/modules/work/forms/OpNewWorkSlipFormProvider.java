@@ -90,7 +90,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       //fill project set
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
-      List projectNodes = OpMyTasksFormProvider.getProjects(broker, resourceIds, activityTypes);
+      List projectNodes = getProjects(broker, resourceIds, activityTypes);
          for (Iterator it = projectNodes.iterator(); it.hasNext();) {
             OpProjectNode projectNode = (OpProjectNode) it.next();
             XComponent row = new XComponent(XComponent.DATA_ROW);
@@ -184,4 +184,26 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       }
       return filteredProjectChoiceId.equals(ALL) ? OpWorkSlipDataSetFactory.ALL_PROJECTS_ID : OpLocator.parseLocator(filteredProjectChoiceId).getID();
    }
+
+   /**
+    * Fills the project data set with the necessary data
+    *
+    * @param resources     <code>List</code> of resources for which the session user is responsible
+    * @param activityTypes <code>ArrayList</code> of activity types
+    * @param broker        Broker object to use for db access.
+    * @return List of projects nodes
+    */
+   private  List getProjects(OpBroker broker, List resources, List activityTypes) {
+      StringBuffer queryBuffer = new StringBuffer("select distinct assignment.ProjectPlan.ProjectNode from OpAssignment assignment ");
+      queryBuffer.append(" where assignment.Resource.ID in (:resourceIds) and assignment.Activity.Type in (:types) and assignment.Activity.Complete < 100");
+      queryBuffer.append(" order by assignment.ProjectPlan.ProjectNode.Name");
+
+      OpQuery query = broker.newQuery(queryBuffer.toString());
+      query.setCollection("resourceIds", resources);
+      query.setCollection("types", activityTypes);
+
+      return broker.list(query);
+
+   }
+
 }

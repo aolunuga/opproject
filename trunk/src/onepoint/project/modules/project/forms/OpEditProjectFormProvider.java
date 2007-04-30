@@ -60,7 +60,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       // Find project in database
       String id_string = (String) (parameters.get(OpProjectAdministrationService.PROJECT_ID));
-      Boolean edit_mode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
+      Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
 
       logger.debug("OpEditProjectFormProvider.prepareForm(): " + id_string);
 
@@ -87,18 +87,18 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       // Downgrade edit mode to view mode if no manager access
       byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
-         edit_mode = Boolean.FALSE;
+      if (editMode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
+         editMode = Boolean.FALSE;
       }
 
-      if (edit_mode.booleanValue()) {
+      if (editMode.booleanValue()) {
          XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
          OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);
       }
 
       // Fill edit-user form with user data
       form.findComponent(PROJECT_ID).setStringValue(id_string);
-      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
+      form.findComponent(EDIT_MODE).setBooleanValue(editMode.booleanValue());
 
       XComponent name = form.findComponent(OpProjectNode.NAME);
       name.setStringValue(project.getName());
@@ -142,72 +142,73 @@ public class OpEditProjectFormProvider implements XFormProvider {
             statusChoice.setSelectedIndex(new Integer(row.getIndex()));
          }
       }
-      statusChoice.setEnabled(edit_mode.booleanValue());
+      statusChoice.setEnabled(editMode.booleanValue());
 
       // Fill in goals
-      XComponent data_set = form.findComponent(GOALS_SET);
-      XComponent data_row = null;
-      XComponent data_cell = null;
+      XComponent dataSet = form.findComponent(GOALS_SET);
+      XComponent dataRow = null;
+      XComponent dataCell = null;
       Iterator goals = project.getGoals().iterator();
       OpGoal goal = null;
       while (goals.hasNext()) {
          goal = (OpGoal) (goals.next());
-         data_row = new XComponent(XComponent.DATA_ROW);
-         data_row.setStringValue(goal.locator());
-         data_set.addChild(data_row);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setBooleanValue(goal.getCompleted());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(goal.getName());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setIntValue(goal.getPriority());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(goal.locator());
+         dataSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(goal.getCompleted());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(goal.getName());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(goal.getPriority());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
       }
-      form.findComponent(GOALS_TABLE_BOX).setEditMode(edit_mode);
+      form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
       //sort goals data set based on goal's name (data cell with index 1)
-      data_set.sort(1);
+      dataSet.sort(1);
 
       // Fill in to dos
-      data_set = form.findComponent(TO_DOS_SET);
+      dataSet = form.findComponent(TO_DOS_SET);
       Iterator to_dos = project.getToDos().iterator();
       OpToDo to_do = null;
       while (to_dos.hasNext()) {
          to_do = (OpToDo) (to_dos.next());
-         data_row = new XComponent(XComponent.DATA_ROW);
-         data_row.setStringValue(to_do.locator());
-         data_set.addChild(data_row);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setBooleanValue(to_do.getCompleted());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(to_do.getName());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setIntValue(to_do.getPriority());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDateValue(to_do.getDue());
-         data_cell.setEnabled(true);
-         data_row.addChild(data_cell);
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(to_do.locator());
+         dataSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(to_do.getCompleted());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(to_do.getName());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(to_do.getPriority());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDateValue(to_do.getDue());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
       }
-      form.findComponent(TODOS_TABLE_BOX).setEditMode(edit_mode); 
+      form.findComponent(TODOS_TABLE_BOX).setEditMode(editMode);
       //sort to dos data set based on to do's name (data cell with index 1)
-      data_set.sort(1);
+      dataSet.sort(1);
 
-      if (!edit_mode.booleanValue()) {
+      if (!editMode.booleanValue()) {
          name.setEnabled(false);
          desc.setEnabled(false);
          start.setEnabled(false);
          end.setEnabled(false);
          budget.setEnabled(false);
+         form.findComponent("ResourcesTable").setEditMode(false);
          form.findComponent("PermissionToolPanel").setVisible(false);
          form.findComponent("ResourcesToolPanel").setVisible(false);
          form.findComponent("GoalsToolPanel").setVisible(false);
@@ -225,7 +226,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //fill the version of the project
       boolean isAdministrator = (session.getAdministratorID() == session.getUserID()) ||
            session.checkAccessLevel(broker, project.getID(), OpPermission.ADMINISTRATOR);
-      boolean isButtonVisible = edit_mode.booleanValue() && isAdministrator && (project.getPlan() != null)
+      boolean isButtonVisible = editMode.booleanValue() && isAdministrator && (project.getPlan() != null)
            && (project.getPlan().getVersions().size() > 0);
       if (project.getPlan() != null) {
          XLocalizer userObjectsLocalizer = new XLocalizer();
@@ -239,24 +240,73 @@ public class OpEditProjectFormProvider implements XFormProvider {
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
               OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         OpPermissionSetFactory.administratePermissionTab(form, editMode.booleanValue(), accessLevel);
       }
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
 
       Iterator assignments = project.getAssignments().iterator();
-      data_set = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
+      dataSet = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
+
       //fill assigned resources set
       while (assignments.hasNext()) {
          OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
          OpResource resource = assignment.getResource();
-         data_row = new XComponent(XComponent.DATA_ROW);
-         data_row.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
-         data_set.addChild(data_row);
+         Double internalRate = assignment.getHourlyRate();
+         Double externalRate = assignment.getExternalRate();
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
+
+         //0 - resource name
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource.getName());
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //1 - resource description
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource.getDescription());
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //2 - adjust rates
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if(internalRate != null || externalRate != null){
+            dataCell.setBooleanValue(true);
+         }
+         else{
+            dataCell.setBooleanValue(false);
+         }
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //3 - internal rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if(internalRate != null){
+            dataCell.setDoubleValue(internalRate);
+            dataCell.setEnabled(editMode);
+         }
+         else{
+            dataCell.setEnabled(false);
+         }
+         dataRow.addChild(dataCell);
+
+         //4 - external rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if(externalRate != null){
+            dataCell.setDoubleValue(externalRate);
+            dataCell.setEnabled(editMode);
+         }
+         else{
+            dataCell.setEnabled(false);
+         }
+         dataRow.addChild(dataCell);
+
+         dataSet.addChild(dataRow);
       }
       //sort assigned resources
-      data_set.sort();
+      dataSet.sort();
 
       broker.close();
    }

@@ -39,8 +39,12 @@ public class OpProjectServiceTest extends OpBaseTestCase {
    private OpProjectAdministrationService service;
    private ProjectTestDataFactory dataFactory;
    private ResourceTestDataFactory resourceDataFactory;
+   private OpResource  resource1;
+   private OpResource  resource2;
    private String resId1;
    private String resId2;
+   private XComponent dataRowRes1;
+   private XComponent dataRowRes2;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -61,12 +65,66 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       XMessage request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 50d, 2d, 2d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
+      resource1 = resourceDataFactory.getResourceByName(RES_NAME + 1);
       resId1 = resourceDataFactory.getResourceByName(RES_NAME + 1).locator();
+
+      dataRowRes1 = new XComponent(XComponent.DATA_ROW);
+      dataRowRes1.setStringValue(XValidator.choice(resource1.locator(), resource1.getName()));
+
+      //0 - resource name
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(resource1.getName());
+      dataRowRes1.addChild(dataCell);
+
+      //1 - resource description
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(resource1.getDescription());
+      dataRowRes1.addChild(dataCell);
+
+      //2 - adjust rates
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setBooleanValue(false);
+      dataRowRes1.addChild(dataCell);
+
+      //3 - internal rate
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRowRes1.addChild(dataCell);
+
+      //4 - external rate
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRowRes1.addChild(dataCell);
 
       request = resourceDataFactory.createResourceMsg(RES_NAME + 2, RES_DESCR, 80d, 5d, 3d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
+      resource2 = resourceDataFactory.getResourceByName(RES_NAME + 2);
       resId2 = resourceDataFactory.getResourceByName(RES_NAME + 2).locator();
+
+      dataRowRes2 = new XComponent(XComponent.DATA_ROW);
+      dataRowRes2.setStringValue(XValidator.choice(resource2.locator(), resource2.getName()));
+
+      //0 - resource name
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(resource2.getName());
+      dataRowRes2.addChild(dataCell);
+
+      //1 - resource description
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(resource2.getDescription());
+      dataRowRes2.addChild(dataCell);
+
+      //2 - adjust rates
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setBooleanValue(false);
+      dataRowRes2.addChild(dataCell);
+
+      //3 - internal rate
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRowRes2.addChild(dataCell);
+
+      //4 - external rate
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRowRes2.addChild(dataCell);      
    }
 
    /**
@@ -214,12 +272,13 @@ public class OpProjectServiceTest extends OpBaseTestCase {
     */
    public void testInsertProject()
         throws Exception {
-      ArrayList resources = new ArrayList();
-      resources.add(resId1);
-      resources.add(resId2);
+      XComponent resouces = new XComponent(XComponent.DATA_SET);
+
+      resouces.addChild(dataRowRes1);
+      resouces.addChild(dataRowRes2);
 
       XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
-           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+           Boolean.FALSE, Boolean.TRUE, resouces, null, null);
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
    }
@@ -268,8 +327,9 @@ public class OpProjectServiceTest extends OpBaseTestCase {
     */
    public void testUpdateProject()
         throws Exception {
-      ArrayList resources = new ArrayList();
-      resources.add(resId1);
+      XComponent resources = new XComponent(XComponent.DATA_SET);
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRowRes2);
       Object[][] goals = {{Boolean.FALSE, "subject", new Integer(5)},
            {Boolean.FALSE, "subject_remove", new Integer(7)}};
       Object[][] todos = {{Boolean.FALSE, "todo", new Integer(1), new Date(System.currentTimeMillis())},
@@ -299,9 +359,9 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       }
 
       String id = dataFactory.getProjectId(PRJ_NAME);
-      resources.clear();
-      resources.add(resId1);
-      resources.add(resId2);
+      resources.removeAllChildren();
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRowRes2);
       Object[][] goals1 = {{Boolean.TRUE, "subject_new", new Integer(1)},
            {Boolean.FALSE, "subject3", new Integer(3)}};
       Object[][] todos1 = {{Boolean.TRUE, "todo_new", new Integer(1), new Date(System.currentTimeMillis())},
@@ -478,6 +538,8 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       broker.updateObject(plan);
 
       OpActivity activity = new OpActivity(OpActivity.STANDARD);
+      activity.setName("Standard Activity");
+      activity.setSequence(0);
       activity.setProjectPlan(plan);
       activity.setStart(new Date(time + 1000));
       activity.setFinish(new Date(time + 61000));
@@ -502,9 +564,9 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       broker.makePersistent(workPeriod);
 
       activity = new OpActivity(OpActivity.TASK);
+      activity.setName("Task Activity");
+      activity.setSequence(1);
       activity.setProjectPlan(plan);
-      activity.setStart(new Date(time + 1500));
-      activity.setFinish(new Date(time + 11500));
       activity.setComplete(80d);
       activity.setTemplate(false);
       activity.setAttachments(new HashSet());
@@ -515,14 +577,6 @@ public class OpProjectServiceTest extends OpBaseTestCase {
       assignment.setActivity(activity);
       assignment.setResource(resourceDataFactory.getResourceById(resId2));
       broker.makePersistent(assignment);
-
-      workPeriod = new OpWorkPeriod();
-      workPeriod.setActivity(activity);
-      workPeriod.setProjectPlan(plan);
-      workPeriod.setStart(new Date(time));
-      workPeriod.setBaseEffort(7.5);
-      workPeriod.setWorkingDays(5);
-      broker.makePersistent(workPeriod);
 
       t.commit();
       broker.close();
@@ -577,15 +631,16 @@ public class OpProjectServiceTest extends OpBaseTestCase {
 
    public void testProjectAndResourcesMapping()
         throws Exception {
-      ArrayList resources1 = new ArrayList();
-      resources1.add(resId1);
-      ArrayList resources2 = new ArrayList();
-      resources2.add(resId1);
-      resources2.add(resId2);
+      XComponent resources1 = new XComponent(XComponent.DATA_SET);
+      resources1.addChild(dataRowRes1);
+
+      XComponent resources2 = new XComponent(XComponent.DATA_SET);
+      resources2.addChild(dataRowRes1);
+      resources2.addChild(dataRowRes2);
 
       XComponent permissions = TestDataFactory.createPermissionSet(OpPermission.ADMINISTRATOR, adminId, OpUser.ADMINISTRATOR_NAME);
       XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(1), null, 1000d, null, null,
-           Boolean.FALSE, Boolean.TRUE, new ArrayList(), null, null, permissions);
+           Boolean.FALSE, Boolean.TRUE, new XComponent(XComponent.DATA_SET), null, null, permissions);
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
       String id = dataFactory.getProjectId(PRJ_NAME);

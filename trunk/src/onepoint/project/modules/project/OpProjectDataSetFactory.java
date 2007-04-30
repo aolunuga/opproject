@@ -870,10 +870,10 @@ public final class OpProjectDataSetFactory {
       long userId = session.getUserID();
 
       // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> types = new ArrayList<Byte>();
+      List<Byte> levels = new ArrayList<Byte>();
       //add all the projects the user has access to (at least CONTRIBUTOR)
-      types.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = getProjectsByPermissions(session, broker, types);
+      levels.add(OpPermission.CONTRIBUTOR);
+      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
       for (Long id : projectIds) {
          OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
          List<String> resources = getProjectResources(project, userId, true);
@@ -883,10 +883,10 @@ public final class OpProjectDataSetFactory {
       }
 
       // add all the resources from project where the user has manager access
-      types.clear();
-      types.add(OpPermission.ADMINISTRATOR);
-      types.add(OpPermission.MANAGER);
-      projectIds = getProjectsByPermissions(session, broker, types);
+      levels.clear();
+      levels.add(OpPermission.ADMINISTRATOR);
+      levels.add(OpPermission.MANAGER);
+      projectIds = getProjectsByPermissions(session, broker, levels);
       for (Long id : projectIds) {
          OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
          List<String> resources = getProjectResources(project, userId, false);
@@ -903,14 +903,14 @@ public final class OpProjectDataSetFactory {
     * Get resources all the project where the user has a given permission level
     * @param session   the project session
     * @param broker  the broker used to access data
-    * @param types  the project permission levels required for the curent user
+    * @param levels  the project permission levels required for the curent user
     * @param responsible  if the user must be responsible for the curent resource
     * @return a <code>Set&lt;String&gt;</code> of resource choices - e.g. locator['label'].
     */
-   public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> types, boolean responsible) {
+   public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> levels, boolean responsible) {
       long userId = session.getUserID();
       Set<String> resIds = new HashSet<String>();
-      List<Long> projectIds = getProjectsByPermissions(session, broker, types);
+      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
       for (Long id : projectIds) {
          OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
          List<String> resources = getProjectResources(project, userId, responsible);
@@ -926,12 +926,12 @@ public final class OpProjectDataSetFactory {
     * @param responsible  to enforce that the given user (userId) is responsible for the returned resources
     * @return a <code>List&lt;String&gt;</code> of resource choices - e.g. locator['label'].
     */
-   private static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {
+   public static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {
       List<String> resources = new ArrayList<String>();
       Set<OpProjectNodeAssignment> assignments = project.getAssignments();
       for (OpProjectNodeAssignment assignment : assignments) {
          OpResource resource = assignment.getResource();
-         if (responsible && !(resource.getUser() != null && resource.getUser().getID() == userId)) {
+         if (responsible && (resource.getUser() == null || resource.getUser().getID() != userId)) {
             continue;
          }
          resources.add(XValidator.choice(resource.locator(), resource.getName()));

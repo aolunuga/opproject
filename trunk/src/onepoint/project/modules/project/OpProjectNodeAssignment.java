@@ -5,7 +5,10 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
+
+import java.util.Set;
 
 public class OpProjectNodeAssignment extends OpObject {
 
@@ -14,10 +17,11 @@ public class OpProjectNodeAssignment extends OpObject {
    public final static String RESOURCE = "Resource";
    public final static String PROJECT_NODE = "ProjectNode";
 
-   private double hourlyRate;
-   private double externalRate;
+   private Double hourlyRate;
+   private Double externalRate;
    private OpResource resource;
    private OpProjectNode projectNode;
+   private Set<OpHourlyRatesPeriod> hourlyRatesPeriods;
 
    public void setResource(OpResource resource) {
       this.resource = resource;
@@ -35,19 +39,27 @@ public class OpProjectNodeAssignment extends OpObject {
       return projectNode;
    }
 
-   public double getExternalRate() {
+   public Double getExternalRate() {
       return externalRate;
    }
 
    public void setExternalRate(Double externalRate) {
-      this.externalRate = (externalRate != null) ? externalRate : 0;
+      this.externalRate = externalRate;
    }
 
-   public double getHourlyRate() {
+   public Double getHourlyRate() {
       return hourlyRate;
    }
 
    public void setHourlyRate(Double hourlyRate) {
-      this.hourlyRate = (hourlyRate != null) ? hourlyRate : 0;
+      this.hourlyRate = hourlyRate;
+   }
+
+   public Set<OpHourlyRatesPeriod> getHourlyRatesPeriods() {
+      return hourlyRatesPeriods;
+   }
+
+   public void setHourlyRatesPeriods(Set<OpHourlyRatesPeriod> hourlyRatesPeriods) {
+      this.hourlyRatesPeriods = hourlyRatesPeriods;
    }
 }

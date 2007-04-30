@@ -3,4 +3,5 @@
    <field name="ExternalRate" type="Double"/>
    <relationship name="Resource" type="OpResource" back-relationship="ProjectNodeAssignments"/>
    <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Assignments"/>
+   <relationship name="HourlyRatesPeriods" type="OpHourlyRatesPeriod" collection-type="Set" back-relationship="ProjectNodeAssignments" inverse="true"/>
 </prototype>

@@ -337,9 +337,43 @@ function addProjectResourceOk(selectedResources) {
       data_row.setStringValue(resource_id.getStringValue());
       dataSet.addDataRow(data_row);
       i++;
+   }  
+   request = new XMessage;
+   request.setAction("ResourceService.addDescriptionToResources");
+   request.setArgument("ResourcesDataSet", dataSet);
+   response = XDisplay.getClient().invokeMethod(request);
+   dataSetService = response.getArgument("ResourcesDataSet");
+   dataSet.removeAllChildren();
+   i = 0;
+   while(i < dataSetService.getChildCount()){
+      row = dataSetService.getChild(i);
+      dataRow = dataSet.newDataRow();
+      dataRow.setStringValue(row.getStringValue());
+      dataSet.addDataRow(dataRow);
+      j=0;
+      while(j < row.getChildCount()){
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(true);
+         if(j < 2){
+            dataCell.setStringValue(row.getChild(j).getStringValue());
+         }
+         if(j == 2){
+            checked = row.getChild(j).getBooleanValue();
+            dataCell.setBooleanValue(checked);
+         }
+         if(j > 2){
+            dataCell.setEnabled(row.getChild(2).getBooleanValue());
+            if(row.getChild(2).getBooleanValue()){
+               dataCell.setDoubleValue(row.getChild(j).getDoubleValue());
+            }
+         }
+         dataRow.addChild(dataCell);
+         j++;
+      }
+      i++;
    }
-   resource_list_box = dialog.findComponent("AssignedResourcesListBox");
-   resource_list_box.update();
+   resourceTable = dialog.findComponent("ResourcesTable");
+   resourceTable.update();
 }
 
 function retrieveChildren(event) {
