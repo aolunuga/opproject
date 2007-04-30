@@ -47,6 +47,8 @@
 
       <resource id="SaveCSV">Сохранить как таблицу...</resource>
       <resource id="SaveImage">Сохранить как изображение...</resource>
+
+      <resource id="NoResourcesForUser">There are no assigned resources for this user</resource>      
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">

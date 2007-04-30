@@ -65,7 +65,14 @@
          <tab text="${Resources}" layout="border" id="ResourcesTab">
             <data-set id="AssignedResourceDataSet"/>
             <data-set id="ReadOnlyResourceDataSet"/>
-            <list-box y="0" id="AssignedResourcesListBox" data-set-ref="AssignedResourceDataSet" flexible="true"/>
+            <table-box id="ResourcesTable" data-set-ref="AssignedResourceDataSet" sidebar-width="0"
+                       flexible="true" stateful="true" edit-mode="true" enabled="true">
+               <table-column text="${Resource}" width="65" sortable="true" data-column-index="0" value-type="String"/>
+               <table-column text="${Description}" width="65" sortable="true" data-column-index="1" value-type="String"/>
+               <table-column text="${AdjustRates}" width="40" sortable="false" on-value-changed="checkAdjust" data-column-index="2" value-type="Boolean"/>
+               <table-column text="${HourlyRate}" width="65" sortable="true" data-column-index="3" value-type="Double"/>
+               <table-column text="${ExternalRate}" width="65" sortable="true" data-column-index="4" value-type="Double"/>
+            </table-box>
             <panel id="ResourcesToolPanel" y="1" layout="flow" direction="east">
                <icon-button icon-type="PlusSign" on-button-pressed="addProjectAssignment"/>
                <icon-button icon-type="MinusSign" on-button-pressed="removeProjectAssignment"/>

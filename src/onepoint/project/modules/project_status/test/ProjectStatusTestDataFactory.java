@@ -87,14 +87,14 @@ public class ProjectStatusTestDataFactory extends TestDataFactory {
    }
 
    /**
-    * Get all the project statuses
+    * Get all the project statuses ordered by sequence
     *
     * @return a <code>List</code> of <code>OpProjectStatus</code>
     */
    public List getAllProjectsStatus() {
       OpBroker broker = session.newBroker();
 
-      OpQuery query = broker.newQuery("from OpProjectStatus");
+      OpQuery query = broker.newQuery("from OpProjectStatus as status order by status.Sequence asc");
       List result = broker.list(query);
       broker.close();
 

@@ -7,6 +7,7 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require "onepoint/project/modules/resource/scripts/hourly_rates.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -113,53 +114,4 @@ function inheritPoolRate(event) {
       form.findComponent("ExternalRate").setEnabled(false);
    }
    form.update();
-}
-
-function addRate(before) {
-   rates_data_set = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
-   selected_rows = rates_data_set.selectedRows();
-   data_row = rates_data_set.newDataRow();
-   startDateCell = XComponent.newDataCell();
-   startDateCell.setEnabled(true);
-   endDateCell = XComponent.newDataCell();
-   endDateCell.setEnabled(true);
-   hourlyRateCell = XComponent.newDataCell();
-   hourlyRateCell.setDoubleValue(0.00);
-   hourlyRateCell.setEnabled(true);
-   externalRateCell = XComponent.newDataCell();
-   externalRateCell.setDoubleValue(0.00);
-   externalRateCell.setEnabled(true);
-   data_row.addChild(startDateCell);
-   data_row.addChild(endDateCell);
-   data_row.addChild(hourlyRateCell);
-   data_row.addChild(externalRateCell);
-
- if (selected_rows.size() > 0) {
-      if (before) {//insert before
-         index = selected_rows[0].getIndex();
-         rates_data_set.addDataRow(index, data_row);
-      }
-      else { //insert after
-         current_row = selected_rows[0];
-         index = current_row.getIndex();
-         rates_data_set.addDataRow(index + 1, data_row);
-      }
-   }
-   else {
-      rates_data_set.addDataRow(data_row);
-   }
-   XDisplay.getActiveForm().findComponent("HourlyRatesTable").update();
-}
-
-function addRateBefore(event) {
-     addRate(true);
-}
-
-function removeRates(event) {
-   rates_data_set = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
-   selected_rows = rates_data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      rates_data_set.removeDataRows(selected_rows);
-      XDisplay.getActiveForm().findComponent("HourlyRatesTable").update();
-   }
 }

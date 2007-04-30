@@ -538,6 +538,7 @@ public abstract class OpActivityDataSetFactory {
       boolean isTask = isStrictlyTask || (activity.getType() == OpActivity.COLLECTION_TASK);
       boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_TASK);
       boolean isMilestone = (activity.getType() == OpActivity.MILESTONE);
+      boolean isAdHocTask = (activity.getType() == OpActivity.ADHOC_TASK);
 
       dataRow.setOutlineLevel(activity.getOutlineLevel());
       dataRow.setExpanded(activity.getExpanded());
@@ -592,8 +593,13 @@ public abstract class OpActivityDataSetFactory {
 
       // BaseEffort (7)
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && !isCollection && !isScheduledTask);
-      dataCell.setDoubleValue(activity.getBaseEffort());
+      dataCell.setEnabled(editable && !isCollection && !isScheduledTask && !isAdHocTask);
+      if (!isAdHocTask) {
+         dataCell.setDoubleValue(activity.getBaseEffort());
+      }
+      else {
+         dataCell.setValue(null);
+      }
       dataRow.addChild(dataCell);
 
       // Predecessors (8)

@@ -7,6 +7,7 @@
    <data-field id="EditModeField" boolean-value="false"/>
    <data-field id="PrintTitle"/>
    <data-field id="DeletePermissionSet"/>
+   <data-field id="NoResourcesForUser" text="${NoResourcesForUser}"/>
 
 
    <pop-up-menu id="ActivityTablePopupMenu">

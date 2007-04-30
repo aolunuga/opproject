@@ -53,7 +53,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     */
    protected static final String PROJECT_NODE_NAME_QUERY_STRING = "select project from OpProjectNode project where project.Name = ?";
 
-   private final static String RESOURCE_LIST = "resource_list";
+   private final static String RESOURCE_SET = "resource_set";
    private final static String VERSIONS_SET = "versions_set";
    private final static String PORTFOLIO_LOCATOR = "PortfolioID";
    private final static String PROJECT_ROW_PARAMETER = "project_row";
@@ -260,15 +260,32 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       //insert project assignments
-      List assignedResources = (ArrayList) request.getArgument(RESOURCE_LIST);
-      if (assignedResources != null && !assignedResources.isEmpty()) {
+      XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
+      if (assignedResourcesSet != null && assignedResourcesSet.getChildCount() > 0) {
          OpResource resource;
          OpProjectNodeAssignment projectNodeAssignment;
-         for (i = 0; i < assignedResources.size(); i++) {
-            resource = (OpResource) (broker.getObject((String) assignedResources.get(i)));
+         Double internalRate;
+         Double externalRate;
+         for (i = 0; i < assignedResourcesSet.getChildCount(); i++) {
+            XComponent dataRow = (XComponent) assignedResourcesSet.getChild(i);
+            resource = (OpResource) (broker.getObject( dataRow.getStringValue()));
+
+            //3 - internal rate
+            internalRate = null;
+            if(((XComponent)dataRow.getChild(3)).getValue() != null){
+               internalRate = ((XComponent)dataRow.getChild(3)).getDoubleValue();
+            }
+            //4 - external rate
+            externalRate = null;
+            if(((XComponent)dataRow.getChild(4)).getValue() != null){
+               externalRate = ((XComponent)dataRow.getChild(4)).getDoubleValue();
+            }
+
             projectNodeAssignment = new OpProjectNodeAssignment();
             projectNodeAssignment.setResource(resource);
             projectNodeAssignment.setProjectNode(project);
+            projectNodeAssignment.setHourlyRate(internalRate);
+            projectNodeAssignment.setExternalRate(externalRate);
             broker.makePersistent(projectNodeAssignment);
             insertContributorPermission(broker, project, resource);
          }
@@ -596,8 +613,8 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       //update project assignments
-      List assignedResources = (ArrayList) request.getArgument(RESOURCE_LIST);
-      reply = updateProjectAssignments(session, broker, project, assignedResources);
+      XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
+      reply = updateProjectAssignments(session, broker, project, assignedResourcesSet);
       if (reply.getError() != null) {
          finalizeSession(t, broker);
          return reply;
@@ -651,10 +668,10 @@ public class OpProjectAdministrationService extends OpProjectService {
     * @param session           <code>OpProjectSession</code> the current session
     * @param broker            <code>OpBroker</code> used for performing business operations.
     * @param project           <code>OpProjectNode</code> representing the project which was edited.
-    * @param assignedResources <code>List</code > of <code>String</code> representing assignment locators.
+    * @param assignedResourcesSet <code>XComponent</code > data set representing assignment locators and the assignment internal and external rates.
     * @return <code>XMessage</code>
     */
-   private XMessage updateProjectAssignments(OpProjectSession session, OpBroker broker, OpProjectNode project, List assignedResources) {
+   private XMessage updateProjectAssignments(OpProjectSession session, OpBroker broker, OpProjectNode project, XComponent assignedResourcesSet) {
       //the reply message
       XMessage reply = new XMessage();
       Iterator projectNodeAssignments = project.getAssignments().iterator();
@@ -672,19 +689,45 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
       }
 
-      if (assignedResources != null && assignedResources.size() > 0) {
-         for (int i = 0; i < assignedResources.size(); i++) {
-            String resourceChoice = (String) assignedResources.get(i);
+      if (assignedResourcesSet != null && assignedResourcesSet.getChildCount() > 0) {
+         Double internalRate;
+         Double externalRate;
+         for (int i = 0; i < assignedResourcesSet.getChildCount(); i++) {
+            XComponent dataRow = (XComponent)assignedResourcesSet.getChild(i);
+            String resourceChoice = dataRow.getStringValue();
             String resourceLocator = OpLocator.parseLocator(resourceChoice).toString();
-            if (!assignmentNodeMap.containsKey(resourceLocator)) { //a new assignment was added
-               OpResource resource = (OpResource) broker.getObject(resourceLocator);
+            internalRate = null;
+            externalRate = null;
+
+            //3 - internal rate
+            if (((XComponent) dataRow.getChild(3)).getValue() != null) {
+               internalRate = ((XComponent) dataRow.getChild(3)).getDoubleValue();
+            }
+            //4 - external rate
+            if (((XComponent) dataRow.getChild(4)).getValue() != null) {
+               externalRate = ((XComponent) dataRow.getChild(4)).getDoubleValue();
+            }
+            OpResource resource = (OpResource) broker.getObject(resourceLocator);
+
+            if (!assignmentNodeMap.containsKey(resourceLocator)) {
+               //a new assignment was added
                OpProjectNodeAssignment assignment = new OpProjectNodeAssignment();
                assignment.setResource(resource);
                assignment.setProjectNode(project);
+               assignment.setHourlyRate(internalRate);
+               assignment.setExternalRate(externalRate);
                broker.makePersistent(assignment);
                insertContributorPermission(broker, project, resource);
             }
             else {
+               //update existing assignments
+               OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignmentNodeMap.get(resourceLocator);
+               assignment.setResource(resource);
+               assignment.setProjectNode(project);
+               assignment.setHourlyRate(internalRate);
+               assignment.setExternalRate(externalRate);
+               broker.updateObject(assignment);
+
                assignmentNodeMap.remove(resourceLocator);
                responsibleUsersMap.remove(resourceLocator);
             }

@@ -44,11 +44,11 @@ public class UserTestDataFactory extends TestDataFactory {
     *
     * @return a list of <code>OpUser</code> instances.
     */
-   public List getAllUsers() {
+   public List<OpUser> getAllUsers() {
       OpBroker broker = session.newBroker();
 
       OpQuery query = broker.newQuery(SELECT_USERS_QUERY);
-      List users = broker.list(query);
+      List<OpUser> users = broker.list(query);
       broker.close();
 
       return users;

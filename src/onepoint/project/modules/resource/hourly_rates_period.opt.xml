@@ -4,4 +4,5 @@
    <field name="InternalRate" type="Double"/>
    <field name="ExternalRate" type="Double"/>
    <relationship name="Resource" type="OpResource" back-relationship="HourlyRatesPeriods"/>
+   <relationship name="ProjectNodeAssignment" type="OpProjectNodeAssignment" back-relationship="HourlyRatesPeriods"/>
 </prototype>

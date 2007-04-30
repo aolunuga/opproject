@@ -54,12 +54,7 @@ function ok_edit(event) {
 
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
-   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   i = 0;
-   while (i < assigned_resource_set.getChildCount()) {
-      assigned_resources[i] = assigned_resource_set.getChild(i).getStringValue();
-      i++;
-   }
+   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");   
    versions_set = XDisplay.getActiveForm().findComponent("VersionsSet");
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
@@ -70,7 +65,7 @@ function ok_edit(event) {
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
    request.setArgument("to_dos_set", to_dos_set);
-   request.setArgument("resource_list", assigned_resources);
+   request.setArgument("resource_set", assigned_resource_set);
    request.setArgument("versions_set", versions_set);
    response = XDisplay.getClient().invokeMethod(request);
 
@@ -181,8 +176,8 @@ function removeProjectAssignment(event){
    selected_rows = assigned_resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
       assigned_resource_data_set.removeDataRows(selected_rows);
-      resource_list_box = form.findComponent("AssignedResourcesListBox");
-      resource_list_box.update();
+      resourceTable = form.findComponent("ResourcesTable");
+      resourceTable.update();
    }
 }
 
@@ -215,5 +210,34 @@ function selectionChanged(event) {
       delete_button.setEnabled(can_delete);
    }
    form.repaint();
+}
+
+function checkAdjust(event) {
+   adjustCell = event.event_source;
+   isChecked = adjustCell.getBooleanValue();
+   hourlyRateCell = adjustCell.getParent().getChild(3);
+   externalRateCell = adjustCell.getParent().getChild(4);
+   resourceID = adjustCell.getParent().getStringValue();
+
+   hourlyRateCell.setEnabled(isChecked);
+   externalRateCell.setEnabled(isChecked);
+   if (isChecked == true) {
+      request = new XMessage;
+      request.setAction("ResourceService.getResourceRates");
+      request.setArgument("resource_id",resourceID);
+      response = XDisplay.getClient().invokeMethod(request);
+      internalRate = response.getArgument("InternalRate");
+      externalRate = response.getArgument("ExternalRate");
+      hourlyRateCell.setDoubleValue(internalRate);
+      externalRateCell.setDoubleValue(externalRate);
+   }
+   else {
+      hourlyRateCell.setValue(null);
+      externalRateCell.setValue(null);
+   }
+   // Update resource table
+   resourceTable = XDisplay.getActiveForm().findComponent("ResourcesTable");
+   resourceTable.doLayout();
+   resourceTable.repaint();
 }
 

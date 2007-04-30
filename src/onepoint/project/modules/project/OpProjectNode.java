@@ -52,7 +52,7 @@ public class OpProjectNode extends OpObject {
    private OpProjectNode templateNode;
    private Set instanceNodes;
    private OpProjectPlan plan;
-   private Set assignments;
+   private Set<OpProjectNodeAssignment> assignments;
    private Set goals;
    private Set toDos;
    private OpProjectStatus status;
@@ -137,11 +137,11 @@ public class OpProjectNode extends OpObject {
       return instanceNodes;
    }
 
-   public void setAssignments(Set assignments) {
+   public void setAssignments(Set<OpProjectNodeAssignment> assignments) {
       this.assignments = assignments;
    }
 
-   public Set getAssignments() {
+   public Set<OpProjectNodeAssignment> getAssignments() {
       return assignments;
    }
 

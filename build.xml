@@ -556,7 +556,7 @@
    <!--Executes OnePoint unit tests and generates html report files-->
    <target name="run.tests" depends="clean,build.tests" description="Executes the Onepoint unit tests and generates report">
       <echo message="Halt On Failuare: ${haltonfailuare}"/>
-      <junit printsummary="on" reloading="false" haltonfailure="${haltonfailuare}">
+      <junit printsummary="on" reloading="false" haltonfailure="${haltonfailuare}" fork="on" forkmode="once">
          <formatter type="xml"/>
          <classpath>
             <path refid="op.tests.classpath"/>

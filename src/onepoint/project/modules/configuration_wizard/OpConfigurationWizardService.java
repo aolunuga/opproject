@@ -77,6 +77,8 @@ public class OpConfigurationWizardService extends OpProjectService {
       DISPLAY_TO_DB_TYPE.put(POSTGRE_DISPLAY, OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, OpConfigurationValuesHandler.HSQL_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
+      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, OpConfigurationValuesHandler.MSSQL_DB_TYPE);
+      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, OpConfigurationValuesHandler.IBM_DB2_DB_TYPE);
    }
 
    /**
@@ -91,7 +93,7 @@ public class OpConfigurationWizardService extends OpProjectService {
       HashMap parameters = (HashMap) (request.getArgument(PARAMETERS));
 
       Boolean isStandaloneParameter = (Boolean) parameters.get("is_standalone");
-      boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter.booleanValue();
+      boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter;
 
       String databaseType = (String) parameters.get("database_type");
       databaseType = DISPLAY_TO_DB_TYPE.get(databaseType);
@@ -126,7 +128,9 @@ public class OpConfigurationWizardService extends OpProjectService {
       //password is not a mandatory field
       String databasePassword = (String) parameters.get("database_password");
 
-      int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword);
+      int dbType = OpConfigurationValuesHandler.DATABASE_TYPES_MAP.get(databaseType);
+
+      int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword, dbType);
       if (errorCode != OpConnectionManager.SUCCESS) {
          response.setError(session.newError(ERROR_MAP, errorCode));
          return response;
@@ -138,7 +142,7 @@ public class OpConfigurationWizardService extends OpProjectService {
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
       Boolean importDemoDataParam = (Boolean) parameters.get("import_demo_data");
-      boolean importDemoData = importDemoDataParam != null && importDemoDataParam.booleanValue();
+      boolean importDemoData = importDemoDataParam != null && importDemoDataParam;
 
       String fileName = (String) parameters.get(DEMO_DATA_FILE_NAME);
       File demodataFile = getDemodataFile(fileName);
@@ -189,10 +193,11 @@ public class OpConfigurationWizardService extends OpProjectService {
     * @param databaseURL      a <code>String</code> representing the db connection url.
     * @param databaseLogin    a <code>String</code> representing the user name of the db connection.
     * @param databasePassword a <code>String</code> representing the db password.
+    * @param dbType           an <code>int</code> representing the db type.
     * @return an <code>int</code> representing an error code or 0, representing no error.
     */
-   private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
-      int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword);
+   private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword, int dbType) {
+      int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword, dbType);
       switch (testResult) {
          case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
             return OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR;
