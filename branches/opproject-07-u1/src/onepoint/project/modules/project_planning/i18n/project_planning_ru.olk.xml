@@ -126,6 +126,7 @@
       <resource id="InfoTaskActivity">Task Details</resource>
       <resource id="InfoCollectionTaskActivity">Collection Task Details</resource>
       <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
 
       <resource id="General">Основные</resource>
       <resource id="Name">Наименование</resource>

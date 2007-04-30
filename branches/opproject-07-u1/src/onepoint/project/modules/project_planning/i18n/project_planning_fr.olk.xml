@@ -82,7 +82,7 @@
       <resource id="LoopErrorMessage">Cette action va provoquer une boucle dans le planning projet</resource>
       <resource id="ResourcesErrorMessage">Cette ressource n'a pas été trouvé dans le groupe de ressource du projet</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
-      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AssignmentErrorMessage">L'affection est invalide par rapport à la disponibilitée</resource>
       <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
       <resource id="RangeErrorMessage">Index is out of range</resource>
       <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
@@ -126,6 +126,7 @@
       <resource id="InfoTaskActivity">Détail de la tâche</resource>
       <resource id="InfoCollectionTaskActivity">Détail de la liste de tâches</resource>
       <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
+      <resource id="AssignmentErrorMessage">L'affection est invalide par rapport à la disponibilitée</resource>
 
       <resource id="General">Généralités </resource>
       <resource id="Name">Nom</resource>

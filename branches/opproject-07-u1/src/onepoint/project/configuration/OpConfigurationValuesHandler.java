@@ -40,9 +40,9 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public final static String MYSQL_INNO_DB_TYPE = "MySQLInnoDB";
    public final static String POSTGRESQL_DB_TYPE = "PostgreSQL";
    public final static String ORACLE_DB_TYPE = "Oracle";
-   public final static String IBM_DB2_DB_TYPE = "IBM DB/2";
+   public final static String IBM_DB2_DB_TYPE = "IBMDB2";
    public final static String HSQL_DB_TYPE = "HSQLDB";
-   public final static String SQLSERVER_DB_TYPE = "SQLServer";
+   public final static String MSSQL_DB_TYPE = "MSSQL";
 
    /**
     * A map from db type name to db type (int constant).
@@ -63,7 +63,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
       DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, new Integer(OpHibernateSource.ORACLE));
       DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, new Integer(OpHibernateSource.HSQLDB));
       DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, new Integer(OpHibernateSource.IBM_DB2));
-      DATABASE_TYPES_MAP.put(SQLSERVER_DB_TYPE, new Integer(OpHibernateSource.SQLSERVER));
+      DATABASE_TYPES_MAP.put(MSSQL_DB_TYPE, new Integer(OpHibernateSource.MSSQL));
    }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
@@ -81,7 +81,8 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
       return new StringBuffer();
    }
 
-   public void addChildNode(XContext context, Object node, String child_name, Object child) {}
+   public void addChildNode(XContext context, Object node, String child_name, Object child) {
+   }
 
    public void addNodeContent(XContext context, Object node, String content) {
       ((StringBuffer) node).append(content);

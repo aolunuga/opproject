@@ -126,6 +126,7 @@
       <resource id="InfoCollectionTaskActivity">Sammelaufgabendetails</resource>
       <resource id="InfoScheduledTaskTitle">Geplante Sammelaufgabendetails</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="AssignmentErrorMessage">Die eingegebene %-Zuweisung ist größer als die globale Verfügbarkeit der Ressource</resource>
 
       <resource id="General">Allgemein</resource>
       <resource id="Name">Name</resource>
