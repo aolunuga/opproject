@@ -39,7 +39,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession)s;
       OpBroker broker = session.newBroker();
       
-      boolean editMode = ((Boolean) parameters.get("edit_mode")).booleanValue();
+      boolean editMode = (Boolean) parameters.get("edit_mode");
       form.findComponent("EditMode").setBooleanValue(editMode);
       String workSlipLocator = (String) parameters.get(WORK_SLIP_ID);
       // TODO: Error handling (not set)
@@ -54,7 +54,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery("select count(resource.ID) from OpResource as resource where resource.User.ID = ?");
       query.setLong(0, session.getUserID());
       Iterator result = broker.list(query).iterator();
-      if (result.hasNext() && (((Integer) result.next()).intValue() == 1)) {
+      if (result.hasNext() && (((Number) result.next()).intValue() == 1)) {
          form.findComponent(RESOURCE_COLUMN_EFFORT).setHidden(true);
          form.findComponent(RESOURCE_COLUMN_COSTS).setHidden(true);
       }
@@ -232,7 +232,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent("EffortTable").setEditMode(paramEditMode);
       form.findComponent("CostsTable").setEditMode(paramEditMode);
 
-      if (!paramEditMode.booleanValue()) {
+      if (!paramEditMode) {
          form.findComponent("EffortTable").setEnabled(false);
          form.findComponent("CostsTable").setEnabled(false);
          form.findComponent("DateField").setEnabled(false);

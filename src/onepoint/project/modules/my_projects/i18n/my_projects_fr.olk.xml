@@ -26,20 +26,20 @@
       <resource id="End">Fin</resource>
 
       <resource id="ProjectResources">Ressources Projet</resource>
-      <resource id="BaseEffort">Base (B/h)</resource>
-      <resource id="ActualEffort">Actuel (A/h)</resource>
+      <resource id="BaseEffort">Base (h)</resource>
+      <resource id="ActualEffort">Actuel (h)</resource>
       <resource id="RemainingEffort">Rem. (h)</resource>
-      <resource id="ProjectedEffort">Prévu (E/h)</resource>
-      <resource id="DeviationEffort">Deviation (D/h)</resource>
-      <resource id="PercentageDeviationEffort">Deviation (D/%)</resource>
+      <resource id="ProjectedEffort">Prévu (h)</resource>
+      <resource id="DeviationEffort">Deviation (h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
 
       <resource id="ProjectCosts">Coût du projet</resource>
-      <resource id="BaseCosts">Base (B/€)</resource>
-      <resource id="ActualCosts">Actuel (A/€)</resource>
+      <resource id="BaseCosts">Base (€)</resource>
+      <resource id="ActualCosts">Actuel (€)</resource>
       <resource id="RemainingCosts">Rem. (€)</resource>
-      <resource id="ProjectedCosts">Prévu (E/€)</resource>
-      <resource id="DeviationCosts">Deviation (D/€)</resource>
-      <resource id="PercentageDeviationCosts">Deviation (D/%)</resource>
+      <resource id="ProjectedCosts">Prévu (€)</resource>
+      <resource id="DeviationCosts">Deviation (€)</resource>
+      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="SaveCSV">Sauvegarder en tableau...</resource>
       <resource id="SaveImage">Sauvegarder en image...</resource>

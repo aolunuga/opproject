@@ -29,6 +29,8 @@ import onepoint.service.server.XLocalServer;
 import onepoint.service.server.XServer;
 import onepoint.service.server.XServiceManager;
 
+import java.util.TimeZone;
+
 /**
  * This is the super class for all test classes used into OnePoint project.
  *
@@ -115,6 +117,9 @@ public class OpBaseTestCase extends TestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
+      
+      //all tests must use GMT dates (same as the application)
+      TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 
       this.server = new XLocalServer();
       this.session = new OpProjectSession();

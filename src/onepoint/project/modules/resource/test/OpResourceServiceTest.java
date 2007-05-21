@@ -6,15 +6,20 @@ package onepoint.project.modules.resource.test;
 import onepoint.express.XComponent;
 import onepoint.persistence.*;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.test.ActivityTestDataFactory;
 import onepoint.project.modules.project.test.ProjectTestDataFactory;
 import onepoint.project.modules.resource.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
+import onepoint.project.modules.work.OpWorkRecord;
+import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.*;
@@ -39,7 +44,9 @@ public class OpResourceServiceTest extends OpBaseTestCase {
 
    private OpResourceService service;
    private ResourceTestDataFactory dataFactory;
+   private ActivityTestDataFactory activityFactory;
    private static final String NEW_NAME = "new_resource";
+   private XCalendar xCalendar;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -52,6 +59,7 @@ public class OpResourceServiceTest extends OpBaseTestCase {
 
       service = getResourceService();
       dataFactory = new ResourceTestDataFactory(session);
+      activityFactory = new ActivityTestDataFactory(session);
 
       clean();
 
@@ -60,6 +68,9 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = getUserService().insertUser(session, request);
       assertNoError(response);
+
+      XCalendar.getDefaultCalendar().configure(null, XLocaleManager.getDefaultLocale(), null, XCalendar.GMT_TIMEZONE);
+      xCalendar = XCalendar.getDefaultCalendar();
    }
 
    /**
@@ -297,6 +308,127 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       assertEquals(2d, resource.getHourlyRate(), 0d);
       assertEquals(1d, resource.getExternalRate(), 0d);
       assertFalse(resource.getInheritPoolRate());
+   }
+
+   /**
+    * Test mapping of HourlyRatesPeriods errors at creation of a resource
+    *
+    * @throws Exception if the test fails
+    */
+   public void testMapHourlyRatesPeriodsErrors()
+        throws Exception {
+       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 1d, false, poolid);
+
+      Calendar calendar = Calendar.getInstance();
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 18,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 22,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
+      ((XComponent)dataRow1.getChild(2)).setDoubleValue(-1d);
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      HashMap args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      XMessage response = service.insertResource(session, request);
+      assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
+
+      ((XComponent)dataRow1.getChild(2)).setDoubleValue(3d);
+      ((XComponent)dataRow1.getChild(3)).setDoubleValue(-1d);
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.insertResource(session, request);
+      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
+
+      ((XComponent)dataRow1.getChild(3)).setDoubleValue(6d);
+      ((XComponent)dataRow1.getChild(0)).setDateValue(null);
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.insertResource(session, request);
+      assertError(response, OpResourceError.PERIOD_START_DATE_NOT_VALID);
+
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(0)).setDateValue(new Date(calendar.getTimeInMillis()));
+      ((XComponent)dataRow1.getChild(1)).setDateValue(null);
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.insertResource(session, request);
+      assertError(response, OpResourceError.PERIOD_END_DATE_NOT_VALID);
+
+      calendar.set(2006, 4, 11,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(1)).setDateValue(new Date(calendar.getTimeInMillis()));
+      
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.insertResource(session, request);
+      assertError(response, OpResourceError.PERIOD_INTERVAL_NOT_VALID);
+
+      calendar.set(2006, 4, 20,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(1)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      args = (HashMap)request.getArgument(OpResourceService.RESOURCE_DATA);
+      args.put(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.insertResource(session, request);
+      assertError(response, OpResourceError.DATE_INTERVAL_OVERLAP);
    }
 
    /**
@@ -642,6 +774,486 @@ public class OpResourceServiceTest extends OpBaseTestCase {
    }
 
    /**
+    * Test the updating of base costs
+    *
+    * @throws Exception if the test fails
+    */
+   public void testUpdateBaseCosts()
+        throws Exception {
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 100d, 4d, 5d, false, null);
+      XMessage response = service.insertResource(session, request);
+      assertNoError(response);
+
+      String id = dataFactory.getResourceId(NAME);
+
+      Calendar calendar = Calendar.getInstance();
+
+      OpResource resource = dataFactory.getResourceById(id);
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
+      OpActivityVersion activityVersion1 = new OpActivityVersion();
+      activityVersion1.setName("ActivityOne");
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activityVersion1.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 18, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activityVersion1.setFinish(new Date(calendar.getTimeInMillis()));
+
+      OpAssignmentVersion assignmentVersion1 = new OpAssignmentVersion();
+      assignmentVersion1.setActivityVersion(activityVersion1);
+      assignmentVersion1.setResource(resource);
+
+      OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
+      planVersion.setVersionNumber(OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      calendar.set(2007, 6, 5, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      planVersion.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      planVersion.setFinish(new Date(calendar.getTimeInMillis()));
+      activityVersion1.setPlanVersion(planVersion);
+      broker.makePersistent(activityVersion1);
+      broker.makePersistent(assignmentVersion1);
+      broker.makePersistent(planVersion);
+
+      OpActivityVersion activityVersion2 = new OpActivityVersion();
+      activityVersion2.setName("ActivityTwo");
+      calendar.set(2007, 6, 22, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activityVersion2.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 28, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activityVersion2.setFinish(new Date(calendar.getTimeInMillis()));
+      activityVersion2.setPlanVersion(planVersion);
+      OpAssignmentVersion assignmentVersion2 = new OpAssignmentVersion();
+      assignmentVersion2.setActivityVersion(activityVersion2);
+      assignmentVersion2.setResource(resource);
+      broker.makePersistent(activityVersion2);
+      broker.makePersistent(assignmentVersion2);
+      t.commit();
+      broker.close();
+
+      // modified only the resource's rates
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 2d, 3d, false,null,null, null);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      String idActivity1 = activityFactory.getActivityVersionId(activityVersion1.getName());
+      activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
+      String idActivity2 = activityFactory.getActivityVersionId(activityVersion2.getName());
+      activityVersion2 = activityFactory.getActivityVersionById(idActivity2);
+
+      double activity1Base = 0d;
+      double activity1Proceeds = 0d;
+      double activity2Base = 0d;
+      double activity2Proceeds = 0d;
+
+      Calendar calendarStart = Calendar.getInstance();
+      calendarStart.set(2007, 6, 16, 0, 0, 0);
+      calendarStart.set(Calendar.MILLISECOND, 0);
+      Calendar calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2007, 6, 18, 0, 0, 0);
+      calendarEnd.set(Calendar.MILLISECOND, 0);
+      while(!calendarStart.after(calendarEnd)){
+         if(xCalendar.isWorkDay(new Date(calendarStart.getTimeInMillis()))){
+            activity1Base += 2 * xCalendar.getWorkHoursPerDay();
+            activity1Proceeds += 3 * xCalendar.getWorkHoursPerDay();
+         }
+         calendarStart.add(Calendar.DATE,1);
+      }
+
+      calendarStart = Calendar.getInstance();
+      calendarStart.set(2007, 6, 22, 0, 0, 0);
+      calendarStart.set(Calendar.MILLISECOND, 0);
+      calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2007, 6, 28, 0, 0, 0);
+      calendarEnd.set(Calendar.MILLISECOND, 0);
+      while(!calendarStart.after(calendarEnd)){
+         if(xCalendar.isWorkDay(new Date(calendarStart.getTimeInMillis()))){
+            activity2Base += 2 * xCalendar.getWorkHoursPerDay();
+            activity2Proceeds += 3 * xCalendar.getWorkHoursPerDay();
+         }
+         calendarStart.add(Calendar.DATE,1);
+      }
+
+      assertEquals(activity1Base, activityVersion1.getBasePersonnelCosts(), 0d);
+      assertEquals(activity1Proceeds, activityVersion1.getBaseProceeds(), 0d);
+      assertEquals(activity2Base, activityVersion2.getBasePersonnelCosts(), 0d);
+      assertEquals(activity2Proceeds, activityVersion2.getBaseProceeds(), 0d);
+
+      // modified only the resource's rates
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null, null);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityVersionId(activityVersion1.getName());
+      activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
+      idActivity2 = activityFactory.getActivityVersionId(activityVersion2.getName());
+      activityVersion2 = activityFactory.getActivityVersionById(idActivity2);
+
+      activity1Base = 0d;
+      activity1Proceeds = 0d;
+      activity2Base = 0d;
+      activity2Proceeds = 0d;
+
+      calendarStart = Calendar.getInstance();
+      calendarStart.set(2007, 6, 16, 0, 0, 0);
+      calendarStart.set(Calendar.MILLISECOND, 0);
+      calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2007, 6, 18, 0, 0, 0);
+      calendarEnd.set(Calendar.MILLISECOND, 0);
+      while(!calendarStart.after(calendarEnd)){
+         if(xCalendar.isWorkDay(new Date(calendarStart.getTimeInMillis()))){
+            activity1Base += 1 * xCalendar.getWorkHoursPerDay();
+            activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+         }
+         calendarStart.add(Calendar.DATE,1);
+      }
+
+      calendarStart = Calendar.getInstance();
+      calendarStart.set(2007, 6, 22, 0, 0, 0);
+      calendarStart.set(Calendar.MILLISECOND, 0);
+      calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2007, 6, 28, 0, 0, 0);
+      calendarEnd.set(Calendar.MILLISECOND, 0);
+      while(!calendarStart.after(calendarEnd)){
+         if(xCalendar.isWorkDay(new Date(calendarStart.getTimeInMillis()))){
+            activity2Base += 1 * xCalendar.getWorkHoursPerDay();
+            activity2Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+         }
+         calendarStart.add(Calendar.DATE,1);
+      }
+
+      assertEquals(activity1Base, activityVersion1.getBasePersonnelCosts(), 0d);
+      assertEquals(activity1Proceeds, activityVersion1.getBaseProceeds(), 0d);
+      assertEquals(activity2Base, activityVersion2.getBasePersonnelCosts(), 0d);
+      assertEquals(activity2Proceeds, activityVersion2.getBaseProceeds(), 0d);
+
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,14,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,17,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(5d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(2d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,18,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,28,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(4d);
+      dataRow2.addChild(dataCell);
+
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+
+      //added an hourly rates period that covers two days from the first activity
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null,dataSet);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityVersionId(activityVersion1.getName());
+      activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
+      idActivity2 = activityFactory.getActivityVersionId(activityVersion2.getName());
+      activityVersion2 = activityFactory.getActivityVersionById(idActivity2);
+
+      activity1Base = 0d;
+      activity1Proceeds = 0d;
+
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 5 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+      }
+      calendar.add(Calendar.DATE, 1);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 5 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+      }
+      calendar.add(Calendar.DATE, 1);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 1 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+      }
+
+      assertEquals(activity1Base, activityVersion1.getBasePersonnelCosts(), 0d);
+      assertEquals(activity1Proceeds, activityVersion1.getBaseProceeds(), 0d);
+      assertEquals(activity2Base, activityVersion2.getBasePersonnelCosts(), 0d);
+      assertEquals(activity2Proceeds, activityVersion2.getBaseProceeds(), 0d);
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      //added two hourly rates periods: one that covers two days from the first activity
+      //                              : one that covers the last day of the first activity and
+      //                                  all the days from the second activity
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null,dataSet);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityVersionId(activityVersion1.getName());
+      activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
+      idActivity2 = activityFactory.getActivityVersionId(activityVersion2.getName());
+      activityVersion2 = activityFactory.getActivityVersionById(idActivity2);
+
+      activity1Base = 0d;
+      activity1Proceeds = 0d;
+      activity2Base = 0d;
+      activity2Proceeds = 0d;
+
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 5 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+      }
+      calendar.add(Calendar.DATE, 1);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 5 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 2 * xCalendar.getWorkHoursPerDay();
+      }
+      calendar.add(Calendar.DATE, 1);
+      if (xCalendar.isWorkDay(new Date(calendar.getTimeInMillis()))) {
+         activity1Base += 3 * xCalendar.getWorkHoursPerDay();
+         activity1Proceeds += 4 * xCalendar.getWorkHoursPerDay();
+      }
+
+      calendarStart = Calendar.getInstance();
+      calendarStart.set(2007, 6, 22, 0, 0, 0);
+      calendarStart.set(Calendar.MILLISECOND, 0);
+      calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2007, 6, 28, 0, 0, 0);
+      calendarEnd.set(Calendar.MILLISECOND, 0);
+      while(!calendarStart.after(calendarEnd)){
+         if(xCalendar.isWorkDay(new Date(calendarStart.getTimeInMillis()))){
+            activity2Base += 3 * xCalendar.getWorkHoursPerDay();
+            activity2Proceeds += 4 * xCalendar.getWorkHoursPerDay();
+         }
+         calendarStart.add(Calendar.DATE,1);
+      }
+
+      assertEquals(activity1Base, activityVersion1.getBasePersonnelCosts(), 0d);
+      assertEquals(activity1Proceeds, activityVersion1.getBaseProceeds(), 0d);
+      assertEquals(activity2Base, activityVersion2.getBasePersonnelCosts(), 0d);
+      assertEquals(activity2Proceeds, activityVersion2.getBaseProceeds(), 0d);
+   }
+
+   /**
+    * Test the updating of actual costs
+    *
+    * @throws Exception if the test fails
+    */
+   public void testUpdateActualCosts()
+        throws Exception {
+
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 100d, 4d, 5d, false, null);
+      XMessage response = service.insertResource(session, request);
+      assertNoError(response);
+
+      String id = dataFactory.getResourceId(NAME);
+
+      Calendar calendar = Calendar.getInstance();
+
+      OpResource resource = dataFactory.getResourceById(id);
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
+      OpActivity activity1 = new OpActivity();
+      activity1.setName("ActivityOne");
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 18, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setFinish(new Date(calendar.getTimeInMillis()));
+
+      OpAssignment assignment1 = new OpAssignment();
+      assignment1.setActivity(activity1);
+      assignment1.setResource(resource);
+
+      broker.makePersistent(activity1);
+      broker.makePersistent(assignment1);
+
+      OpActivity activity2 = new OpActivity();
+      activity2.setName("ActivityTwo");
+      calendar.set(2007, 6, 22, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 28, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setFinish(new Date(calendar.getTimeInMillis()));
+      OpAssignment assignment2 = new OpAssignment();
+      assignment2.setActivity(activity2);
+      assignment2.setResource(resource);
+
+      broker.makePersistent(activity2);
+      broker.makePersistent(assignment2);
+
+      OpWorkRecord workRecord1 = new OpWorkRecord();
+      workRecord1.setAssignment(assignment1);
+      workRecord1.setActualEffort(3d);
+      OpWorkRecord workRecord2 = new OpWorkRecord();
+      workRecord2.setAssignment(assignment1);
+      workRecord2.setActualEffort(2d);
+      OpWorkRecord workRecord3 = new OpWorkRecord();
+      workRecord3.setAssignment(assignment2);
+      workRecord3.setActualEffort(4d);
+      OpWorkRecord workRecord4 = new OpWorkRecord();
+      workRecord4.setAssignment(assignment2);
+      workRecord4.setActualEffort(2d);
+
+      OpWorkSlip workSlip1 = new OpWorkSlip();
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      workSlip1.setDate(new Date(calendar.getTimeInMillis()));
+      workRecord1.setWorkSlip(workSlip1);
+      workRecord3.setWorkSlip(workSlip1);
+      OpWorkSlip workSlip2 = new OpWorkSlip();
+      calendar.set(2007, 6, 22, 0, 0, 0);
+      workSlip2.setDate(new Date(calendar.getTimeInMillis()));
+      workRecord2.setWorkSlip(workSlip2);
+      workRecord4.setWorkSlip(workSlip2);
+
+      broker.makePersistent(workRecord1);
+      broker.makePersistent(workRecord2);
+      broker.makePersistent(workRecord3);
+      broker.makePersistent(workRecord4);
+      broker.makePersistent(workSlip1);
+      broker.makePersistent(workSlip2);
+
+      t.commit();
+      broker.close();
+
+      // modified only the resource's rates
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 2d, 3d, false, null, null, null);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      String idActivity1 = activityFactory.getActivityId(activity1.getName());
+      activity1 = activityFactory.getActivityById(idActivity1);
+      String idActivity2 = activityFactory.getActivityId(activity2.getName());
+      activity2 = activityFactory.getActivityById(idActivity2);
+
+      assertEquals(10d, activity1.getActualPersonnelCosts(), 0d);
+      assertEquals(15d, activity1.getActualProceeds(), 0d);
+      assertEquals(12d, activity2.getActualPersonnelCosts(), 0d);
+      assertEquals(18d, activity2.getActualProceeds(), 0d);
+
+      // modified only the resource's rates
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null, null);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityId(activity1.getName());
+      activity1 = activityFactory.getActivityById(idActivity1);
+      idActivity2 = activityFactory.getActivityId(activity2.getName());
+      activity2 = activityFactory.getActivityById(idActivity2);
+
+      assertEquals(5d, activity1.getActualPersonnelCosts(), 0d);
+      assertEquals(10d, activity1.getActualProceeds(), 0d);
+      assertEquals(6d, activity2.getActualPersonnelCosts(), 0d);
+      assertEquals(12d, activity2.getActualProceeds(), 0d);
+
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,14,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,17,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(5d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(2d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,18,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,28,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(4d);
+      dataRow2.addChild(dataCell);
+
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+
+      //added an hourly rates period which includes the first work slip
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null,dataSet);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityId(activity1.getName());
+      activity1 = activityFactory.getActivityById(idActivity1);
+      idActivity2 = activityFactory.getActivityId(activity2.getName());
+      activity2 = activityFactory.getActivityById(idActivity2);
+
+      assertEquals(17d, activity1.getActualPersonnelCosts(), 0d);
+      assertEquals(10d, activity1.getActualProceeds(), 0d);
+      assertEquals(22d, activity2.getActualPersonnelCosts(), 0d);
+      assertEquals(12d, activity2.getActualProceeds(), 0d);
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      //added two hourly rates periods: one which includes the first work slip
+      //                              : one which includes the second work slip
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 100d, 1d, 2d, false,null,null,dataSet);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      idActivity1 = activityFactory.getActivityId(activity1.getName());
+      activity1 = activityFactory.getActivityById(idActivity1);
+      idActivity2 = activityFactory.getActivityId(activity2.getName());
+      activity2 = activityFactory.getActivityById(idActivity2);
+
+      assertEquals(21d, activity1.getActualPersonnelCosts(), 0d);
+      assertEquals(14d, activity1.getActualProceeds(), 0d);
+      assertEquals(26d, activity2.getActualPersonnelCosts(), 0d);
+      assertEquals(16d, activity2.getActualProceeds(), 0d);
+   }
+
+   /**
     * Test the user import
     *
     * @throws Exception if the test fails
@@ -749,27 +1361,107 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_ID, id);
       response = service.hasAssignments(session, request);
+      assertNotNull(response);
       assertFalse(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+
+      Calendar calendar = Calendar.getInstance();
 
       OpResource resource = dataFactory.getResourceById(id);
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
-      OpActivity activity = new OpActivity();
-      OpAssignment assignment = new OpAssignment();
-      assignment.setActivity(activity);
-      assignment.setResource(resource);
-      OpActivityVersion version = new OpActivityVersion();
-      version.setActivity(activity);
-      broker.makePersistent(activity);
-      broker.makePersistent(assignment);
-      broker.makePersistent(version);
+
+      OpActivity activity1 = new OpActivity();
+      calendar.set(2007, 6, 16, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 18, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setFinish(new Date(calendar.getTimeInMillis()));
+      OpAssignment assignment1 = new OpAssignment();
+      assignment1.setActivity(activity1);
+      assignment1.setResource(resource);
+      broker.makePersistent(activity1);
+      broker.makePersistent(assignment1);
+
+      OpActivity activity2 = new OpActivity();
+      calendar.set(2007, 6, 22, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2007, 6, 28, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setFinish(new Date(calendar.getTimeInMillis()));
+      OpAssignment assignment2 = new OpAssignment();
+      assignment2.setActivity(activity2);
+      assignment2.setResource(resource);
+      broker.makePersistent(activity2);
+      broker.makePersistent(assignment2);
       t.commit();
       broker.close();
 
+      //activities are uncovered - return true
       request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_ID, id);
       response = service.hasAssignments(session, request);
+      assertNotNull(response);
       assertTrue(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,14,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,17,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,18,0,0,0);;
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2007,6,28,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow1);
+      dataSet.addChild(dataRow2);
+
+      //the activities are covered by hourly rates periods - return false
+      request.setArgument(OpResourceService.RESOURCE_ID, id);
+      request.setArgument(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.hasAssignments(session, request);
+      assertNotNull(response);
+      assertFalse(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+
+      dataSet = new XComponent(XComponent.DATA_SET);
+      dataSet.addChild(dataRow2);
+      
+      //the activities are not covered by hourly rates periods - return true
+      request.setArgument(OpResourceService.RESOURCE_ID, id);
+      request.setArgument(OpResourceService.HOURLY_RATES_SET, dataSet);
+      response = service.hasAssignments(session, request);
+      assertNotNull(response);
+      assertTrue(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+
    }
 
    /**
@@ -2038,6 +2730,11 @@ public class OpResourceServiceTest extends OpBaseTestCase {
       deleteAllObjects(OpAssignmentVersion.ASSIGNMENT_VERSION);
       deleteAllObjects(OpProjectPlanVersion.PROJECT_PLAN_VERSION);
       deleteAllObjects(OpActivityVersion.ACTIVITY_VERSION);
+      deleteAllObjects(OpWorkRecord.WORK_RECORD);
+      deleteAllObjects(OpWorkSlip.WORK_SLIP);
+      deleteAllObjects(OpAssignment.ASSIGNMENT);
+      deleteAllObjects(OpProjectPlan.PROJECT_PLAN);
+      deleteAllObjects(OpActivity.ACTIVITY);
 
       ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
       List projectList = projectDataFactory.getAllProjects();

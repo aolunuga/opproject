@@ -1,0 +1,275 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Helper script for new/edit project
+
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+import onepoint.express.XComponent;
+
+function checkAdjust(event) {
+   adjustCell = event.event_source;
+   isChecked = adjustCell.getBooleanValue();
+   hourlyRateCell = adjustCell.getParent().getChild(3);
+   externalRateCell = adjustCell.getParent().getChild(4);
+   resourceID = adjustCell.getParent().getStringValue();
+
+   hourlyRateCell.setEnabled(isChecked);
+   externalRateCell.setEnabled(isChecked);
+   if (isChecked == true) {
+      request = new XMessage;
+      request.setAction("ResourceService.getResourceRates");
+      request.setArgument("resource_id",resourceID);
+      response = XDisplay.getClient().invokeMethod(request);
+      internalRate = response.getArgument("InternalRate");
+      externalRate = response.getArgument("ExternalRate");
+      hourlyRateCell.setDoubleValue(internalRate);
+      externalRateCell.setDoubleValue(externalRate);
+   }
+   else {
+      hourlyRateCell.setValue(null);
+      externalRateCell.setValue(null);
+   }
+   // Update resource table
+   resourceTable = XDisplay.getActiveForm().findComponent("ResourcesTable");
+   resourceTable.doLayout();
+   resourceTable.repaint();
+}
+
+function removeProjectAssignment(event){
+   form = XDisplay.getActiveForm();
+   assigned_resource_data_set = form.findComponent("AssignedResourceDataSet");
+   selected_rows = assigned_resource_data_set.selectedRows();
+   childRows = new ArrayList;
+   if(selected_rows.size() > 0)
+   {
+      i = 0;
+      while (i < selected_rows.size()) {
+         dataRow = selected_rows.get(i);
+         childRows.addAll(dataRow.getSubRows());
+         i++;
+      }
+      assigned_resource_data_set.removeDataRows(childRows);
+      assigned_resource_data_set.removeDataRows(selected_rows);
+      resourceTable = form.findComponent("ResourcesTable");
+      resourceTable.update();
+   }
+}
+
+function addProjectAssignment(event){
+   assigned_resource_data_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   i = 0;
+   j = 0;
+   while (i < assigned_resource_data_set.getChildCount()) {
+      if(assigned_resource_data_set.getChild(i).getOutlineLevel() == 0){
+         resource_ids[j] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
+         j++;
+      }
+      i++;
+   }
+   readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
+   index = 0;
+   while (index < readonly_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      j++;
+      index++;
+   }
+   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
+}
+
+function removeToDos(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+   }
+}
+
+function addToDo(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setEnabled(true);
+   date = new Date;
+   data_cell.setDateValue(date);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+}
+
+function removeGoals(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+   }
+}
+
+function addGoal(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+}
+
+function addRate(event) {
+   form = XDisplay.getActiveForm();
+   ratesDataSet = form.findComponent("AssignedResourceDataSet");
+   selectedRows = ratesDataSet.selectedRows();
+   if (selectedRows.size() > 0) {
+      dataRow = ratesDataSet.newDataRow();
+      index = selectedRows[0].getIndex();
+      if (selectedRows[0].getOutlineLevel() == 0)
+      {
+         selectedRows[0].setExpanded(true);
+         dataRow.setOutlineLevel(1);
+
+         //0 - resource name --- null
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
+
+         //1 resource description --- null
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
+
+         //2 adjust rates --- null
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
+
+         //3 internal rate/project/resource --- null
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
+
+         //4 external rate/project/resource --- null
+         dataCell = XComponent.newDataCell();
+         dataCell.setEnabled(false);
+         dataRow.addChild(dataCell);
+
+         //5 - start date - today
+         dataCell = XComponent.newDataCell();
+         dataCell.setDateValue(form.findComponent("Today").getDateValue());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+
+         //6 - end date - last day of year
+         dataCell = XComponent.newDataCell();
+         dataCell.setDateValue(form.findComponent("EndOfYear").getDateValue());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+
+         //7 - internal rate per period - default 0
+         dataCell = XComponent.newDataCell();
+         dataCell.setDoubleValue(0);
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+
+         //8 - external rate per period - default 0
+         dataCell = XComponent.newDataCell();
+         dataCell.setDoubleValue(0);
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+
+         ratesDataSet.addDataRow(index + 1, dataRow);
+      }
+   }
+   form.findComponent("HourlyRatesTable").update();
+}
+
+function removeRates(event) {
+   form = XDisplay.getActiveForm();
+   ratesDataSet = form.findComponent("AssignedResourceDataSet");
+   selectedRows = ratesDataSet.selectedRows();
+   erasableRows = new ArrayList;
+
+   i = 0;
+   while(i < selectedRows.size()){
+      if(selectedRows.get(i).getOutlineLevel() == 1){
+         erasableRows.add(selectedRows.get(i));
+      }
+      i++;
+   }
+
+   if (erasableRows.size() > 0) {
+      ratesDataSet.removeDataRows(erasableRows);
+      form.findComponent("HourlyRatesTable").update();
+   }
+}
+
+function activateRates(event) {
+   filterEnableRows(false);
+}
+
+function deactivateRates(event) {
+   filterEnableRows(true);
+}
+
+function filterEnableRows(filtered){
+   form = XDisplay.getActiveForm();
+   ratesDataSet = form.findComponent("AssignedResourceDataSet");
+
+
+   //on activate - filter is off for all rows
+   //            - rows with outline level = 0 will be disabled
+   //on deactivate - filtering is on for all rows with outlineLevel = 1
+   //              - rows with outline level = 0 will be enabled
+   i = 0;
+   while (i < ratesDataSet.getChildCount()) {
+      dataRow = ratesDataSet.getChild(i);
+
+      if(!filtered){
+         dataRow.setFiltered(filtered);
+      }
+      else {
+         if(dataRow.getOutlineLevel() == 1){
+            dataRow.setFiltered(filtered);
+         }
+      }
+      if (dataRow.getOutlineLevel() == 0) {
+         j = 0;
+         while (j < dataRow.getChildCount()) {
+            dataRow.getChild(j).setEnabled(filtered);
+            j++;
+         }
+         if (dataRow.getChild(3).getValue() == null && filtered) {
+            dataRow.getChild(3).setEnabled(false);
+         }
+         if (dataRow.getChild(4).getValue() == null && filtered) {
+            dataRow.getChild(4).setEnabled(false);
+         }
+      }
+      i++;
+   }
+}

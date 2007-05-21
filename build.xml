@@ -504,9 +504,12 @@
            description="Generates Mac Os executable file">
       <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
                classpath="${op.jarbundler.classpath}"/>
-      <jarbundler dir="${dist.basic.dir}" verbose="true" infostring="Onepoint Project"
+      <jarbundler dir="${dist.basic.dir}" verbose="true" infostring="Onepoint Project, copyright OnePoint Software GmbH 2007"
                   name="${opproject.launchername.mac}"
                   icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
+      	          shortname="${opproject.launchername.mac}"
+                  version="${version}"
+                  jvmversion="1.4+"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">
             <include name="${project.basic.jarname}"/>

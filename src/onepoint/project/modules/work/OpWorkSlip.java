@@ -18,13 +18,14 @@ public class OpWorkSlip extends OpObject {
    public final static String DATE = "Date";
    public final static String RESOURCE = "Resource";
    public final static String RECORDS = "Records";
+   public final static String CREATOR = "Creator";
 
    private int number = -1;
    private Date date;
    private OpUser creator;
    private Set<OpWorkRecord> records;
 
-   protected void setNumber(int number) {
+   public void setNumber(int number) {
       this.number = number;
    }
 

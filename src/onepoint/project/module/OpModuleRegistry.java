@@ -6,15 +6,15 @@ package onepoint.project.module;
 
 import java.util.*;
 
-public class OpModuleRegistry {
+public class OpModuleRegistry implements Iterable<OpModule>{
    /*list of module files*/
-   private List moduleFiles;
+   private List<OpModuleFile> moduleFiles;
    /*insertion order map of modules <module name,OpModule> */
-   private Map modules;
+   private Map<String, OpModule> modules;
 
   public OpModuleRegistry() {
-    moduleFiles = new ArrayList();
-    modules = new LinkedHashMap();
+    moduleFiles = new ArrayList<OpModuleFile>();
+    modules = new LinkedHashMap<String,OpModule>();
   }
 
    /**
@@ -45,7 +45,7 @@ public class OpModuleRegistry {
     * @return <code>OpModule</code> the value asociated for this key or <code>null</code> if no value with this key exists.
     */
    public final OpModule getModule(String name) {
-      return (OpModule) (modules.get(name));
+      return modules.get(name);
    }
 
    /**
@@ -62,7 +62,7 @@ public class OpModuleRegistry {
     *
     * @return <code>Iterator</code>
     */
-   public final Iterator getModules() {
+   public final Iterator<OpModule> iterator() {
       return modules.values().iterator();
    }
 

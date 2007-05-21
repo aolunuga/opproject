@@ -54,13 +54,6 @@ public class OpConfigurationWizardService extends OpProjectService {
     */
    private static final OpDbConfigurationWizardErrorMap ERROR_MAP = new OpDbConfigurationWizardErrorMap();
 
-   /**
-    * The path and names for the demodata
-    */
-   private static final String DEMODATA_DIR = "demodata";
-   private static final String DEMODATA_FILE = "demodata.opx.xml";
-   private static final String DEMO_DATA_FILE_NAME = "demo_data_file_name";
-
    public static final String MYSQL_INNO_DB_DISPLAY = "MySQL InnoDB";
    public static final String ORACLE_DISPLAY = "Oracle";
    public static final String IBM_DB_DISPLAY = "IBM DB/2";
@@ -75,10 +68,6 @@ public class OpConfigurationWizardService extends OpProjectService {
       DISPLAY_TO_DB_TYPE.put(IBM_DB_DISPLAY, OpConfigurationValuesHandler.IBM_DB2_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(MSSQL_DISPLAY, OpConfigurationValuesHandler.MSSQL_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(POSTGRE_DISPLAY, OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, OpConfigurationValuesHandler.HSQL_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, OpConfigurationValuesHandler.MSSQL_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, OpConfigurationValuesHandler.IBM_DB2_DB_TYPE);
    }
 
    /**
@@ -96,7 +85,9 @@ public class OpConfigurationWizardService extends OpProjectService {
       boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter;
 
       String databaseType = (String) parameters.get("database_type");
-      databaseType = DISPLAY_TO_DB_TYPE.get(databaseType);
+      if (DISPLAY_TO_DB_TYPE.get(databaseType) != null) {
+         databaseType = DISPLAY_TO_DB_TYPE.get(databaseType);
+      }
       String databaseDriver = (String) onepoint.project.configuration.OpConfiguration.DATABASE_DRIVERS.get(databaseType);
 
       //response message
@@ -138,52 +129,12 @@ public class OpConfigurationWizardService extends OpProjectService {
 
       //the configuration file name
       String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
-
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
-
-      Boolean importDemoDataParam = (Boolean) parameters.get("import_demo_data");
-      boolean importDemoData = importDemoDataParam != null && importDemoDataParam;
-
-      String fileName = (String) parameters.get(DEMO_DATA_FILE_NAME);
-      File demodataFile = getDemodataFile(fileName);
-
-      //if demodata is to be imported, make sure the file exists
-      if (importDemoData && demodataFile == null) {
-         response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.NONEXISTENT_DEMODATA));
-         return response;
-      }
 
       Map initParams = OpInitializer.init(OpInitializer.getProductCode());
       response.setArgument("initParams", initParams);
 
-      if (importDemoData) {
-         try {
-            OpInitializer.restoreSchemaFromFile(demodataFile.getCanonicalPath(), session);
-         }
-         catch (Exception e) {
-            logger.error("Cannot import demodata because:" + e.getMessage(), e);
-            return response;
-         }
-      }
       return response;
-   }
-
-   /**
-    * Gets the demodata file.
-    *
-    * @param fileName Name of the demo data file (if null, a default will be used)
-    * @return a <code>File</code> object representing the demodata, or null if the demodata doesn't exist.
-    */
-   private File getDemodataFile(String fileName) {
-      if (fileName == null) {
-         fileName = DEMODATA_FILE;
-      }
-      String demodataBackupFilePath = DEMODATA_DIR + "/" + fileName;
-      File demodataBackupFile = new File(".", demodataBackupFilePath);
-      if (!demodataBackupFile.exists() || demodataBackupFile.isDirectory()) {
-         return null;
-      }
-      return demodataBackupFile;
    }
 
    /**
@@ -210,6 +161,9 @@ public class OpConfigurationWizardService extends OpProjectService {
          }
          case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
             return OpDbConfigurationWizardError.JDBC_DRIVER_ERROR;
+         }
+         case OpConnectionManager.INVALID_MYSQL_ENGINE: {
+            return OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE;
          }
       }
       return testResult;

@@ -7,9 +7,11 @@ package onepoint.project.modules.backup;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.xml.XContext;
 
 import java.util.*;
+import java.sql.SQLException;
 
 public class OpRestoreContext extends XContext {
 
@@ -107,6 +109,20 @@ public class OpRestoreContext extends XContext {
     */
    List getBackupMembers(String prototypeName) {
       return (List) backupMembersMap.get(prototypeName);
+   }
+
+   /**
+    * Writes the schema version table with the value of the schema from the backup file. 
+    * @param schemaVersionNr a <code>String</code> representing the value of the schema version.
+    */
+   void writeSchemaVersion(String schemaVersionNr) {
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      try {
+         hibernateSource.createSchemaTable(Integer.valueOf(schemaVersionNr));
+      }
+      catch (SQLException e) {
+         logger.error("Cannot restore schema table because:" + e.getMessage(), e);
+      }
    }
 
    /**

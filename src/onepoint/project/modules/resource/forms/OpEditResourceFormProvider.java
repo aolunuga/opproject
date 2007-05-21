@@ -174,6 +174,13 @@ public class OpEditResourceFormProvider implements XFormProvider {
       broker.close();
    }
 
+   /**
+    * Fills the hourlyRatesPeriod data set with the values of the HourlyRatesPeriods associated with the resource
+    * @param hourlyRatesSet - the data set which will contain the resource's HourlyRatesPeriods
+    * @param originalHourlyRatesSet - a copy of the data set for storing original values
+    * @param resource - the resource whose HourlyRatesPeriods will be stored in the data set
+    * @param editMode - a <code>boolean</code> parameter indicating the state of the data set (editable/not editable)
+    */
    private void fillHourlyRatesSets(XComponent hourlyRatesSet, XComponent originalHourlyRatesSet,
         OpResource resource, boolean editMode) {
       XComponent dataRow;

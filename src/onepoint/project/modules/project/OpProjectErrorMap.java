@@ -34,5 +34,11 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.LOOP_ASSIGNMENT_ERROR, OpProjectError.LOOP_ASSIGNMENT_ERROR_NAME);
+      registerErrorCode(OpProjectError.INTERNAL_RATE_NOT_VALID, OpProjectError.INTERNAL_RATE_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.EXTERNAL_RATE_NOT_VALID, OpProjectError.EXTERNAL_RATE_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.PERIOD_START_DATE_NOT_VALID, OpProjectError.PERIOD_START_DATE_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.PERIOD_END_DATE_NOT_VALID, OpProjectError.PERIOD_END_DATE_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.PERIOD_INTERVAL_NOT_VALID, OpProjectError.PERIOD_INTERVAL_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.DATE_INTERVAL_OVERLAP, OpProjectError.DATE_INTERVAL_OVERLAP_NAME);
    }
 }

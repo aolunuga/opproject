@@ -56,7 +56,7 @@ public class OpProjectPlanningModule extends OpModule {
          query.setByte(0, OpProjectNode.PROJECT);
 
          Iterator result = broker.iterate(query);
-         List projectPlans = new ArrayList();
+         List<Long> projectPlans = new ArrayList<Long>();
          //validate the tasks & collection tasks.
          while (result.hasNext()) {
             OpProjectNode projectNode = (OpProjectNode) result.next();
@@ -68,13 +68,13 @@ public class OpProjectPlanningModule extends OpModule {
 
             //same update for all the activity versions from all the project versions.
             Set allVersions = projectPlan.getVersions();
-            for (Iterator planVersionsIterator = allVersions.iterator(); planVersionsIterator.hasNext();) {
-               OpProjectPlanVersion planVersion = (OpProjectPlanVersion) planVersionsIterator.next();
+            for (Object allVersion : allVersions) {
+               OpProjectPlanVersion planVersion = (OpProjectPlanVersion) allVersion;
 
                updateTasksVersions(planVersion.getID(), projectNode, session);
                updateActivityVersionsAndChildren(planVersion.getID(), session);
             }
-            projectPlans.add(new Long(projectPlan.getID()));
+            projectPlans.add(projectPlan.getID());
          }
          broker.close();
 
@@ -88,9 +88,9 @@ public class OpProjectPlanningModule extends OpModule {
       OpBroker broker = session.newBroker();
 
       //validate all the project plans (this includes also the work phase -> work period upgrade)
-      for (Iterator iterator = projectPlanIds.iterator(); iterator.hasNext();) {
-         Long projectPlanId = (Long) iterator.next();
-         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId.longValue());
+      for (Object projectPlanId1 : projectPlanIds) {
+         Long projectPlanId = (Long) projectPlanId1;
+         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
          new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
       }
       broker.close();
@@ -179,9 +179,8 @@ public class OpProjectPlanningModule extends OpModule {
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();
 
-
          Long activityId = (Long) result[0];
-         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId.longValue());
+         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId);
          int activityType = activity.getType();
          int totalChildCount = activity.getSubActivities().size();
          int subTasksCount = ((Number) result[1]).intValue();
@@ -200,9 +199,8 @@ public class OpProjectPlanningModule extends OpModule {
             query.setLong(0, activity.getID());
             query.setByte(1, OpActivity.TASK);
             query.setByte(2, OpActivity.COLLECTION_TASK);
-            Iterator subTasksIterator = broker.list(query).iterator();
-            while (subTasksIterator.hasNext()) {
-               OpActivity subTask = (OpActivity) subTasksIterator.next();
+            for (Object o : broker.list(query)) {
+               OpActivity subTask = (OpActivity) o;
                subTask.setStart(activity.getStart());
                subTask.setFinish(activity.getFinish());
                subTask.setDuration(activity.getDuration());
@@ -242,7 +240,7 @@ public class OpProjectPlanningModule extends OpModule {
          Object[] result = (Object[]) it.next();
 
          Long activityVersionId = (Long) result[0];
-         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId.longValue());
+         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId);
          int activityVersionType = activityVersion.getType();
          int totalChildCount = activityVersion.getSubActivityVersions().size();
          int subTaskVersionsCount = ((Number) result[1]).intValue();
@@ -261,9 +259,8 @@ public class OpProjectPlanningModule extends OpModule {
             query.setLong(0, activityVersion.getID());
             query.setByte(1, OpActivity.TASK);
             query.setByte(2, OpActivity.COLLECTION_TASK);
-            Iterator subTaskVersionsIterator = broker.list(query).iterator();
-            while (subTaskVersionsIterator.hasNext()) {
-               OpActivityVersion subTaskVersion = (OpActivityVersion) subTaskVersionsIterator.next();
+            for (Object o : broker.list(query)) {
+               OpActivityVersion subTaskVersion = (OpActivityVersion) o;
                subTaskVersion.setStart(activityVersion.getStart());
                subTaskVersion.setFinish(activityVersion.getFinish());
                subTaskVersion.setDuration(activityVersion.getDuration());

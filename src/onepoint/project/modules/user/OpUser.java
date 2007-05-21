@@ -247,7 +247,7 @@ public class OpUser extends OpSubject {
     * @return boolean flag indicating passwords equality
     */
    public boolean validatePassword(String password) {
-      return (this.password.equals(password == null ? BLANK_PASSWORD : password));
+      return (this.password.equalsIgnoreCase(password == null ? BLANK_PASSWORD : password));
    }
 
    /**

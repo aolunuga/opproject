@@ -30,8 +30,8 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.util.XEnvironmentManager;
 import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -450,6 +450,8 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
+         checkActivitiesBaseEffort(dataSet, broker, session);
+
          OpTransaction t = broker.newTransaction();
 
          // Check if project plan already exists (create if not)
@@ -508,6 +510,37 @@ public class OpProjectPlanningService extends OpProjectService {
          finalizeSession(null, broker);
       }
    }
+
+
+   /**
+    * Checks if the base effort on the activities in the data set has valid values with regard to the actual effort.
+    *
+    * @param dataSet Data set containig the client side activities.
+    * @param broker  Broker used to access db
+    * @param session Current session used to generate the eventual errors.
+    */
+   private void checkActivitiesBaseEffort(XComponent dataSet, OpBroker broker, OpProjectSession session) {
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         String locator = row.getStringValue();
+         if (locator != null) {
+            OpActivity activity;
+            if (OpLocator.parseLocator(locator).getPrototype().getInstanceClass() == OpActivity.class) {
+               activity = (OpActivity) broker.getObject(locator);
+            }
+            else {
+               OpActivityVersion version = (OpActivityVersion) broker.getObject(locator);
+               activity = version.getActivity();
+            }
+            if (activity != null) {
+               if (activity.getActualEffort() > OpGanttValidator.getBaseEffort(row)) {
+                  throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR));
+               }
+            }
+         }
+      }
+   }
+
 
    public XMessage revertActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.revertActivities");

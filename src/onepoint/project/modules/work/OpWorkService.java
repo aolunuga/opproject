@@ -31,20 +31,20 @@ public class OpWorkService extends OpProjectService {
    public final static String WORK_RECORD_SET = "work_record_set";
    public final static String WORK_SLIP_ID = "work_slip_id";
    public final static String WORK_SLIP_IDS = "work_slip_ids";
-   /*work record data column indexes */
-   private final int TASK_NAME_COLOMN_INDEX = 0;
-   private final int ACTUAL_EFFORT_COLOMN_INDEX = 1;
-   private final int REMAINING_EFFORT_COLOMN_INDEX = 2;
-   private final int MATERIAL_COSTS_COLOMN_INDEX = 3;
-   private final int TRAVEL_COSTS_COLOMN_INDEX = 4;
-   private final int EXTERNAL_COSTS_COLOMN_INDEX = 5;
-   private final int MISCELLANEOUS_COSTS_COLOMN_INDEX = 6;
-   private final int COMMENT_COLOMN_INDEX = 7;
+
+   //work record data column indexes
+   private final int ACTUAL_EFFORT_COLUMN_INDEX = 1;
+   private final int REMAINING_EFFORT_COLUMN_INDEX = 2;
+   private final int MATERIAL_COSTS_COLUMN_INDEX = 3;
+   private final int TRAVEL_COSTS_COLUMN_INDEX = 4;
+   private final int EXTERNAL_COSTS_COLUMN_INDEX = 5;
+   private final int MISCELLANEOUS_COSTS_COLUMN_INDEX = 6;
+   private final int COMMENT_COLUMN_INDEX = 7;
    private final int COMPLETED_COLUMN_INDEX = 10;
 
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
-   private OpWorkServiceImpl serviceImpl_ = new OpWorkServiceImpl();
+   private OpWorkServiceImpl serviceImpl = new OpWorkServiceImpl();
 
    public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.insertWorkSlip()");
@@ -57,87 +57,10 @@ public class OpWorkService extends OpProjectService {
       XComponent workRecordSet = (XComponent) (request.getArgument(WORK_RECORD_SET));
       OpBroker broker = session.newBroker();
 
-      OpWorkRecord workRecord;
-      XComponent dataRow;
-      XComponent dataCell;
-      OpAssignment assignment;
-      int errorCode = 0;
       // hashset should be ArraySet
       Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>(workRecordSet.getChildCount());
 
-      for (int i = 0; i < workRecordSet.getChildCount(); i++) {
-         dataRow = (XComponent) workRecordSet.getChild(i);
-         //work slip's resource record
-         workRecord = new OpWorkRecord();
-         dataCell = (XComponent) dataRow.getChild(TASK_NAME_COLOMN_INDEX);
-         assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(dataCell.getStringValue())));
-         workRecord.setAssignment(assignment);
-
-         //complete
-         dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setCompleted(dataCell.getBooleanValue());
-         }
-
-         // actual effort data cell
-         dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setActualEffort(dataCell.getDoubleValue());
-         }
-
-         // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
-         dataCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setRemainingEffort(dataCell.getDoubleValue());
-            // Must be negative if remaining effort is lower than original remaining effort
-            workRecord.setRemainingEffortChange(dataCell.getDoubleValue() - assignment.getRemainingEffort());
-         }
-
-         // Material Costs data cell
-         dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setMaterialCosts(dataCell.getDoubleValue());
-         }
-
-         // Travel costs
-         dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setTravelCosts(dataCell.getDoubleValue());
-         }
-
-         // External costs
-         dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setExternalCosts(dataCell.getDoubleValue());
-         }
-
-         // Miscellaneous Costs
-         dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-         if (dataCell.getValue() != null) {
-            workRecord.setMiscellaneousCosts(dataCell.getDoubleValue());
-         }
-
-         // Optional comment
-         dataCell = (XComponent) dataRow.getChild(COMMENT_COLOMN_INDEX);
-         if (dataCell.getStringValue() != null) {
-            workRecord.setComment(dataCell.getStringValue());
-         }
-
-         //Set the personnel costs for the work record
-         workRecord.setPersonnelCosts(assignment.getResource().getHourlyRate() * workRecord.getActualEffort());
-
-         // Add only if valid
-         if (workRecord.isValid() == 0) {
-            //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
-            workRecordsToAdd.add(workRecord);
-         }
-         else {
-            // Keep the first error code
-            if(errorCode == 0) {
-               errorCode = workRecord.isValid();
-            }
-         }
-      }
+      int errorCode = createWorkRecords(workRecordSet, broker, workRecordsToAdd);
 
       // if no works records are valid throw an exception
       if (workRecordsToAdd.isEmpty() && errorCode != 0) {
@@ -151,7 +74,7 @@ public class OpWorkService extends OpProjectService {
 
       try {
          // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
-         serviceImpl_.insertMyWorkSlip(session, broker, workSlip);
+         serviceImpl.insertMyWorkSlip(session, broker, workSlip);
          t.commit();
       }
       catch (XServiceException exc) {
@@ -168,6 +91,96 @@ public class OpWorkService extends OpProjectService {
       return null;
    }
 
+   /**
+    * Creates a set of work records using the information given in the workRecord data set.
+    * Will collect the work records in the given workRecords set.
+    *
+    * @param workRecordSet data set component with the work records information
+    * @param broker        Broker used for db access
+    * @param workRecords   set that will contain the created works records
+    * @return the first error message returned by the work record validation method
+    */
+   private int createWorkRecords(XComponent workRecordSet, OpBroker broker, Set<OpWorkRecord> workRecords) {
+      XComponent dataRow;
+      OpWorkRecord workRecord;
+      XComponent dataCell;
+      OpAssignment assignment;
+      int errorCode = 0;
+      for (int i = 0; i < workRecordSet.getChildCount(); i++) {
+         dataRow = (XComponent) workRecordSet.getChild(i);
+         //work slip's resource record
+         workRecord = new OpWorkRecord();
+         assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(dataRow.getStringValue())));
+         workRecord.setAssignment(assignment);
+
+         //complete
+         dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setCompleted(dataCell.getBooleanValue());
+         }
+
+         // actual effort data cell
+         dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setActualEffort(dataCell.getDoubleValue());
+         }
+
+         // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
+         dataCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setRemainingEffort(dataCell.getDoubleValue());
+            // Must be negative if remaining effort is lower than original remaining effort
+            workRecord.setRemainingEffortChange(dataCell.getDoubleValue() - assignment.getRemainingEffort());
+         }
+
+         // Material Costs data cell
+         dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setMaterialCosts(dataCell.getDoubleValue());
+         }
+
+         // Travel costs
+         dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setTravelCosts(dataCell.getDoubleValue());
+         }
+
+         // External costs
+         dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setExternalCosts(dataCell.getDoubleValue());
+         }
+
+         // Miscellaneous Costs
+         dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLUMN_INDEX);
+         if (dataCell.getValue() != null) {
+            workRecord.setMiscellaneousCosts(dataCell.getDoubleValue());
+         }
+
+         // Optional comment
+         dataCell = (XComponent) dataRow.getChild(COMMENT_COLUMN_INDEX);
+         if (dataCell.getStringValue() != null) {
+            workRecord.setComment(dataCell.getStringValue());
+         }
+
+         //Set the personnel costs for the work record
+         workRecord.setPersonnelCosts(assignment.getResource().getHourlyRate() * workRecord.getActualEffort());
+
+         // Add only if valid
+         if (workRecord.isValid() == 0) {
+            //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
+            workRecords.add(workRecord);
+         }
+         else {
+            // Keep the first error code
+            if (errorCode == 0) {
+               errorCode = workRecord.isValid();
+            }
+         }
+      }
+      return errorCode;
+   }
+
    public XMessage editWorkSlip(OpProjectSession session, XMessage request) {
       logger.info("OpWorkService.editWorkSlip()");
 
@@ -180,7 +193,7 @@ public class OpWorkService extends OpProjectService {
 
       try {
 
-         OpWorkSlip workSlip = serviceImpl_.getMyWorkSlipByIdString(session, broker, workSlipId);
+         OpWorkSlip workSlip = serviceImpl.getMyWorkSlipByIdString(session, broker, workSlipId);
 
          if (workSlip == null) {
             XMessage reply = new XMessage();
@@ -189,115 +202,44 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
-         XComponent dataRow;
-         XComponent dataCell;
-         OpAssignment assignment;
-         OpWorkRecord workRecord;
          // HashSet should be ArraySet
          Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>(workRecordSet.getChildCount());
 
-         // strategy: create new records and replace existing ones within OpWorkSlip
-         //           call updateMyWorkSlip which updates all records accordingly.
-
-         for (int i = 0; i < workRecordSet.getChildCount(); i++) {
-            dataRow = (XComponent) workRecordSet.getChild(i);
-
-            //work slip's resource record
-            workRecord = new OpWorkRecord();
-            workRecord.setWorkSlip(workSlip);
-            assignment = (OpAssignment) (broker.getObject(XValidator.choiceID(dataRow.getStringValue())));
-            workRecord.setAssignment(assignment);
-
-            //complete
-            dataCell = (XComponent) dataRow.getChild(COMPLETED_COLUMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setCompleted(dataCell.getBooleanValue());
-            }
-
-            // actual effort data cell
-            dataCell = (XComponent) dataRow.getChild(ACTUAL_EFFORT_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setActualEffort(dataCell.getDoubleValue());
-            }
-
-            // Remaining effort is more complicated: Store estimation value and value change (for rollback and editing)
-            dataCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setRemainingEffort(dataCell.getDoubleValue());
-               // Must be negative if remaining effort is lower than original remaining effort
-               workRecord.setRemainingEffortChange(dataCell.getDoubleValue() - assignment.getRemainingEffort());
-            }
-
-            // Material Costs data cell
-            dataCell = (XComponent) dataRow.getChild(MATERIAL_COSTS_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setMaterialCosts(dataCell.getDoubleValue());
-            }
-
-            // Travel costs
-            dataCell = (XComponent) dataRow.getChild(TRAVEL_COSTS_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setTravelCosts(dataCell.getDoubleValue());
-            }
-
-            // External costs
-            dataCell = (XComponent) dataRow.getChild(EXTERNAL_COSTS_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setExternalCosts(dataCell.getDoubleValue());
-            }
-
-            // Miscellaneous Costs
-            dataCell = (XComponent) dataRow.getChild(MISCELLANEOUS_COSTS_COLOMN_INDEX);
-            if (dataCell.getValue() != null) {
-               workRecord.setMiscellaneousCosts(dataCell.getDoubleValue());
-            }
-
-            // Optional comment
-            dataCell = (XComponent) dataRow.getChild(COMMENT_COLOMN_INDEX);
-            if (dataCell.getStringValue() != null) {
-               workRecord.setComment(dataCell.getStringValue());
-            }
-
-            //Set the personnel costs for the work record
-            workRecord.setPersonnelCosts(assignment.getResource().getHourlyRate() * workRecord.getActualEffort());
-
-            if (workRecord.isValid() == 0) {
-               //Because addWorkRecord() performs hibernate queries, we only persist the work records at the end
-               workRecordsToAdd.add(workRecord);
-            }
-            else {
-               XMessage reply = new XMessage();
-               reply.setError(session.newError(ERROR_MAP, workRecord.isValid()));
-               return reply;
-            }
-         }
          t = broker.newTransaction();
+
+         //remove all work records from the work slip
+         serviceImpl.deleteWorkRecords(broker, workSlip);
+
+         //insert all the new work records
+         int errorCode = createWorkRecords(workRecordSet, broker, workRecordsToAdd);
+         if (workRecordsToAdd.isEmpty() && errorCode != 0) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, errorCode));
+            finalizeSession(t, broker);
+            return reply;
+         }
+
          workSlip.setRecords(workRecordsToAdd);
+         serviceImpl.insertWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 
          //validate work record set
          int error = workSlip.isValid();
          if (error != 0) {
             XMessage reply = new XMessage();
             reply.setError(session.newError(ERROR_MAP, error));
+            finalizeSession(t, broker);
             return reply;
          }
 
-         serviceImpl_.updateMyWorkSlip(session, broker, workSlip);
          t.commit();
 
          logger.info("/OpWorkService.editWorkSlip()");
          return null;
       }
       catch (XServiceException exc) {
-         if (t != null) {
-            t.rollback();
-         }
+         finalizeSession(t, broker);
          XMessage reply = new XMessage();
-         exc.append(reply);
-         return (reply);
-      }
-      finally {
-         broker.close();
+         return exc.append(reply);
       }
    }
 
@@ -311,11 +253,11 @@ public class OpWorkService extends OpProjectService {
 
       LinkedList<OpWorkSlip> to_delete = new LinkedList<OpWorkSlip>();
       for (Object id_string : id_strings) {
-         to_delete.add(serviceImpl_.getMyWorkSlipByIdString(session, broker, (String) id_string));
+         to_delete.add(serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string));
       }
 
       try {
-         serviceImpl_.deleteMyWorkSlips(session, broker, to_delete.iterator());
+         serviceImpl.deleteMyWorkSlips(session, broker, to_delete.iterator());
          t.commit();
       }
       catch (XServiceException exc) {
@@ -331,4 +273,13 @@ public class OpWorkService extends OpProjectService {
       logger.info("/OpWorkService.deleteWorkSlip()");
       return null;
    }
+
+   /* (non-Javadoc)
+    * @see onepoint.project.OpProjectService#getServiceImpl()
+    */
+   @Override
+   public Object getServiceImpl() {
+      return serviceImpl;
+   }
+
 }

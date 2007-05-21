@@ -8,6 +8,7 @@ import onepoint.express.XValidator;
 import onepoint.persistence.*;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.ResourceTestDataFactory;
@@ -272,13 +273,82 @@ public class OpProjectServiceTest extends OpBaseTestCase {
     */
    public void testInsertProject()
         throws Exception {
-      XComponent resouces = new XComponent(XComponent.DATA_SET);
+      XComponent resources = new XComponent(XComponent.DATA_SET);
 
-      resouces.addChild(dataRowRes1);
-      resouces.addChild(dataRowRes2);
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRowRes2);
 
       XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
-           Boolean.FALSE, Boolean.TRUE, resouces, null, null);
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      XMessage response = service.insertProject(session, request);
+      assertNoError(response);
+   }
+
+   /**
+    * Test happy-flow creation of a project with OpHourlyRatesPeriods
+    *
+    * @throws Exception if the test fails
+    */
+   public void testInsertProjectWithHourlyRatesPeriods()
+        throws Exception {
+      XComponent resources = new XComponent(XComponent.DATA_SET);
+
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRow1.setOutlineLevel(1);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      Calendar calendar = Calendar.getInstance();
+      calendar.set(2006, 4, 13, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 18, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataRow2.setOutlineLevel(1);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 22, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRow1);
+      resources.addChild(dataRowRes2);
+      resources.addChild(dataRow2);
+
+      XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
    }
@@ -321,6 +391,119 @@ public class OpProjectServiceTest extends OpBaseTestCase {
    }
 
    /**
+    * Test mapping of HourlyRatesPeriods errors at creation of a project
+    *
+    * @throws Exception if the test fails
+    */
+   public void testMapHourlyRatesPeriodsErrors()
+        throws Exception {
+       XComponent resources = new XComponent(XComponent.DATA_SET);
+
+      Calendar calendar = Calendar.getInstance();
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRow1.setOutlineLevel(1);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 18,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataRow2.setOutlineLevel(1);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 22,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
+      ((XComponent) dataRow1.getChild(OpProjectAdministrationService.INTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(-1d);
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRow1);
+      resources.addChild(dataRow2);
+      resources.addChild(dataRowRes2);
+
+      XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      XMessage response = service.insertProject(session, request);
+      assertError(response, OpProjectError.INTERNAL_RATE_NOT_VALID);
+
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.INTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(3d);
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.EXTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(-1d);
+      request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.EXTERNAL_RATE_NOT_VALID);
+
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.EXTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(6d);
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(null);
+
+      request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.PERIOD_START_DATE_NOT_VALID);
+
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(null);
+
+      request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.PERIOD_END_DATE_NOT_VALID);
+
+      calendar.set(2006, 4, 11,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.PERIOD_INTERVAL_NOT_VALID);
+
+      calendar.set(2006, 4, 20,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      ((XComponent)dataRow1.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+       request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.DATE_INTERVAL_OVERLAP);
+   }
+
+   /**
     * Test project update, happy flow.
     *
     * @throws Exception if the test fails
@@ -360,8 +543,61 @@ public class OpProjectServiceTest extends OpBaseTestCase {
 
       String id = dataFactory.getProjectId(PRJ_NAME);
       resources.removeAllChildren();
+
+      Calendar calendar = Calendar.getInstance();
+      XComponent dataRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRow1.setOutlineLevel(1);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      dataRow1.addChild(dataCell);
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 18,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      dataRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow1.addChild(dataCell);
+
+      XComponent dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataRow2.setOutlineLevel(1);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 22,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
       resources.addChild(dataRowRes1);
+      resources.addChild(dataRow1);
+      resources.addChild(dataRow2);
       resources.addChild(dataRowRes2);
+
       Object[][] goals1 = {{Boolean.TRUE, "subject_new", new Integer(1)},
            {Boolean.FALSE, "subject3", new Integer(3)}};
       Object[][] todos1 = {{Boolean.TRUE, "todo_new", new Integer(1), new Date(System.currentTimeMillis())},
@@ -370,6 +606,776 @@ public class OpProjectServiceTest extends OpBaseTestCase {
            Boolean.FALSE, Boolean.TRUE, resources, ProjectTestDataFactory.createDataSet(goal_ids, goals1), ProjectTestDataFactory.createDataSet(todo_ids, todos1));
       response = service.updateProject(session, request);
       assertNoError(response);
+
+      project = dataFactory.getProjectByName(PRJ_NAME + 1);
+      assertEquals(2,project.getAssignments().size());
+      for(OpProjectNodeAssignment assignment : project.getAssignments()){
+         if(assignment.getResource().getID() == resource1.getID()){
+            assertEquals(2,assignment.getHourlyRatesPeriods().size());
+         }
+         else{
+            assertEquals(0,assignment.getHourlyRatesPeriods().size());
+         }
+      }
+
+      dataRow2 = new XComponent(XComponent.DATA_ROW);
+      dataRow2.setOutlineLevel(1);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 25,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(16d);
+      dataRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(12d);
+      dataRow2.addChild(dataCell);
+
+      XComponent dataRow3 = new XComponent(XComponent.DATA_ROW);
+      dataRow3.setOutlineLevel(1);
+      dataRow3.addChild(dataCell);
+      dataRow3.addChild(dataCell);
+      dataRow3.addChild(dataCell);
+      dataRow3.addChild(dataCell);
+      dataRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 5, 10,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006,5, 20,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      dataRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      dataRow3.addChild(dataCell);
+
+      resources.removeAllChildren();
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRow2);
+      resources.addChild(dataRowRes2);
+      resources.addChild(dataRow3);
+
+      request = ProjectTestDataFactory.updateProjectMsg(id, PRJ_NAME + 1, new Date(System.currentTimeMillis()), null, 100d, null, null,
+           Boolean.FALSE, Boolean.TRUE, resources, ProjectTestDataFactory.createDataSet(goal_ids, goals1), ProjectTestDataFactory.createDataSet(todo_ids, todos1));
+      response = service.updateProject(session, request);
+      assertNoError(response);
+
+      project = dataFactory.getProjectByName(PRJ_NAME + 1);
+      assertEquals(2,project.getAssignments().size());
+      for(OpProjectNodeAssignment assignment : project.getAssignments()){
+         if(assignment.getResource().getID() == resource1.getID()){
+            assertEquals(1,assignment.getHourlyRatesPeriods().size());
+         }
+         else{
+            assertEquals(1,assignment.getHourlyRatesPeriods().size());
+         }
+      }
+   }
+
+   public void testModifiedRatesForResourcesTab()
+      throws Exception {
+
+      ((XComponent) dataRowRes1.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(true);
+      ((XComponent) dataRowRes1.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(0);
+      ((XComponent) dataRowRes1.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(7);
+      ((XComponent) dataRowRes2.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(true);
+      ((XComponent) dataRowRes2.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(5);
+      ((XComponent) dataRowRes2.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(3);
+
+      XComponent resources = new XComponent(XComponent.DATA_SET);
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRowRes2);
+      Object[][] goals = {{Boolean.FALSE, "subject", new Integer(5)},
+           {Boolean.FALSE, "subject_remove", new Integer(7)}};
+      Object[][] todos = {{Boolean.FALSE, "todo", new Integer(1), new Date(System.currentTimeMillis())},
+           {Boolean.FALSE, "todo_remove", new Integer(6), new Date(System.currentTimeMillis())}};
+      XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.TRUE, Boolean.TRUE, resources, goals, todos);
+      XMessage response = service.insertProject(session, request);
+      assertNoError(response);
+
+      OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
+
+      Calendar calendarStart = Calendar.getInstance();
+      calendarStart.set(2006, 4, 15,0,0,0);
+      calendarStart.set(Calendar.MILLISECOND,0);
+      Calendar calendarEnd = Calendar.getInstance();
+      calendarEnd.set(2006, 4, 20,0,0,0);
+      calendarEnd.set(Calendar.MILLISECOND,0);
+
+      request = new XMessage();
+      request.setArgument(OpActivity.NAME, "Activity1");
+      request.setArgument(OpActivity.START, new Date(calendarStart.getTimeInMillis()));
+      request.setArgument(OpActivity.FINISH, new Date(calendarEnd.getTimeInMillis()));
+      request.setArgument(OpActivity.PROJECT_PLAN, project.getPlan());
+
+      OpActivity activity1 = new OpActivity();
+      activity1.setStart(new Date(calendarStart.getTimeInMillis()));
+      activity1.setFinish(new Date(calendarEnd.getTimeInMillis()));
+      activity1.setName("Activity 1");
+      activity1.setProjectPlan(project.getPlan());
+
+      calendarStart.set(2006, 4, 10,0,0,0);
+      calendarStart.set(Calendar.MILLISECOND,0);
+      calendarEnd.set(2006, 4, 12,0,0,0);
+      calendarEnd.set(Calendar.MILLISECOND,0);
+
+      OpActivity activity2 = new OpActivity();
+
+      activity2.setStart(new Date(calendarStart.getTimeInMillis()));
+      activity2.setFinish(new Date(calendarEnd.getTimeInMillis()));
+      activity2.setName("Activity 2");
+      activity2.setProjectPlan(project.getPlan());
+
+      OpAssignment activityAssignment1 = new OpAssignment();
+      activityAssignment1.setResource(resource1);
+      activityAssignment1.setProjectPlan(project.getPlan());
+      activityAssignment1.setActivity(activity1);
+
+      OpAssignment activityAssignment2 = new OpAssignment();
+      activityAssignment2.setResource(resource1);
+      activityAssignment2.setProjectPlan(project.getPlan());
+      activityAssignment2.setActivity(activity2);
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
+      broker.makePersistent(activity1);
+      broker.makePersistent(activity2);
+      broker.makePersistent(activityAssignment1);
+      broker.makePersistent(activityAssignment2);
+
+      t.commit();
+      broker.close();
+
+      //nothing changed - return false
+      XComponent newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(dataRowRes2);
+      XComponent originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request = new XMessage();
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+
+      response = service.checkModifiedRates(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      //change the internal rate of resource one to 5 - this will affect resource's the activity - return true
+      XComponent newDataRow = dataRowRes1.copyData();
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(5d);
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(newDataRow);
+      newDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      //insert two periods for resource one so that they do not entirely cover the activitie's periods
+      //but do not change any of the rates in the resource tab - return false
+      Calendar calendar = Calendar.getInstance();
+      XComponent periodRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow1.setOutlineLevel(1);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      calendar.set(2006, 4, 13,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+
+      XComponent periodRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow2.setOutlineLevel(1);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      calendar.set(2006, 4, 25,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 27,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(22d);
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(22d);
+      periodRow2.addChild(dataCell);
+
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      //change the rate of resource one to 5d - this will affect it's activities - return true
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(newDataRow);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      //insert two periods for resource one so that they cover the activitie's periods
+      //but do not change any of the rates in the resource tab - return false
+      periodRow1 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow1.setOutlineLevel(1);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      calendar.set(2006, 4, 10,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 20,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+
+      periodRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow2.setOutlineLevel(1);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      calendar.set(2006, 4, 5,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 9,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(22d);
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(22d);
+      periodRow2.addChild(dataCell);
+
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      //change the rate of the first resource to 5d - this resource's activities are covered by periods - return false
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(newDataRow);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      ((XComponent)dataRowRes1.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(2);
+      ((XComponent)dataRowRes1.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(2);
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(false);
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setValue(null);
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setValue(null);
+
+      periodRow1 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow1.setOutlineLevel(1);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      calendar.set(2006, 4, 10,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19,0,0,0);
+      calendar.set(Calendar.MILLISECOND,0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(21d);
+      periodRow1.addChild(dataCell);
+
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(newDataRow);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(true);
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(15d);
+      ((XComponent)newDataRow.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(15d);
+
+      newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(newDataRow);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      originalDataSet = new XComponent(XComponent.DATA_SET);
+      originalDataSet.addChild(dataRowRes1);
+      originalDataSet.addChild(dataRowRes2);
+
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      request.setArgument(OpProjectAdministrationService.ORIGINAL_RESOURCE_SET, originalDataSet);
+      response = service.checkModifiedRates(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS)).booleanValue());
+   }
+
+   /**
+    * Test if the project's assignments have activities in the time periods of the OpHourlyRatesPeriods set
+    *
+    * @throws Exception if the test fails
+    */
+   public void testHaveAssignmentsInTimePeriod()
+        throws Exception {
+
+      XComponent resources = new XComponent(XComponent.DATA_SET);
+      ((XComponent)dataRowRes1.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(true);
+      ((XComponent)dataRowRes1.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(15d);
+      ((XComponent)dataRowRes1.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(16d);
+      ((XComponent)dataRowRes2.getChild(OpProjectAdministrationService.ADJUST_RATES_COLUMN_INDEX)).setBooleanValue(true);
+      ((XComponent)dataRowRes2.getChild(OpProjectAdministrationService.INTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(12d);
+      ((XComponent)dataRowRes2.getChild(OpProjectAdministrationService.EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).setDoubleValue(13d);
+
+      resources.addChild(dataRowRes1);
+      resources.addChild(dataRowRes2);
+      Object[][] goals = {{Boolean.FALSE, "subject", new Integer(5)},
+           {Boolean.FALSE, "subject_remove", new Integer(7)}};
+      Object[][] todos = {{Boolean.FALSE, "todo", new Integer(1), new Date(System.currentTimeMillis())},
+           {Boolean.FALSE, "todo_remove", new Integer(6), new Date(System.currentTimeMillis())}};
+      XMessage request = ProjectTestDataFactory.createProjectMsg(PRJ_NAME, new Date(System.currentTimeMillis()), 1000d, null, null,
+           Boolean.TRUE, Boolean.TRUE, resources, goals, todos);
+      XMessage response = service.insertProject(session, request);
+      assertNoError(response);
+
+      OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
+
+      resource1 = resourceDataFactory.getResourceByName(RES_NAME + 1);
+      resource2 = resourceDataFactory.getResourceByName(RES_NAME + 2);
+
+      OpProjectNodeAssignment projectNodeAssignment1 = new OpProjectNodeAssignment();
+      OpProjectNodeAssignment projectNodeAssignment2 = new OpProjectNodeAssignment();
+      for (OpProjectNodeAssignment resourceAssignment : resource1.getProjectNodeAssignments()) {
+         for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
+            if (resourceAssignment.getID() == projectAssignment.getID()) {
+               projectNodeAssignment1 = projectAssignment;
+            }
+         }
+      }
+      for (OpProjectNodeAssignment resourceAssignment : resource2.getProjectNodeAssignments()) {
+         for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
+            if (resourceAssignment.getID() == projectAssignment.getID()) {
+               projectNodeAssignment2 = projectAssignment;
+            }
+         }
+      }
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
+      Calendar calendar = Calendar.getInstance();
+      OpActivity activity1 = new OpActivity();
+      OpAssignment activityAssignment1 = new OpAssignment();
+      activityAssignment1.setActivity(activity1);
+      activityAssignment1.setResource(resource1);
+      activityAssignment1.setProjectPlan(project.getPlan());
+
+      calendar.set(2006, 3, 25, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 27, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity1.setFinish(new Date(calendar.getTimeInMillis()));
+      activity1.setName("activity1");
+      activity1.setProjectPlan(project.getPlan());
+
+      broker.makePersistent(activity1);
+      broker.makePersistent(activityAssignment1);
+
+      OpActivity activity2 = new OpActivity();
+      OpAssignment activityAssignment2 = new OpAssignment();
+      activityAssignment2.setActivity(activity2);
+      activityAssignment2.setResource(resource1);
+      activityAssignment2.setProjectPlan(project.getPlan());
+
+      calendar.set(2006, 4, 7, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 4, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity2.setFinish(new Date(calendar.getTimeInMillis()));
+      activity2.setName("activity2");
+      activity2.setProjectPlan(project.getPlan());
+
+      broker.makePersistent(activity2);
+      broker.makePersistent(activityAssignment2);
+
+      OpActivity activity3 = new OpActivity();
+      OpAssignment activityAssignment3 = new OpAssignment();
+      activityAssignment3.setActivity(activity3);
+      activityAssignment3.setResource(resource2);
+      activityAssignment3.setProjectPlan(project.getPlan());
+
+      calendar.set(2006, 3, 20, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity3.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 21, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      activity3.setFinish(new Date(calendar.getTimeInMillis()));
+      activity3.setName("activity3");
+      activity3.setProjectPlan(project.getPlan());
+
+      broker.makePersistent(activity3);
+      broker.makePersistent(activityAssignment3);
+
+      OpHourlyRatesPeriod hourlyRatesPeriod1 = new OpHourlyRatesPeriod();
+      calendar.set(2006, 3, 20, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod1.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 26, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod1.setFinish(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod1.setInternalRate(9d);
+      hourlyRatesPeriod1.setExternalRate(3d);
+      hourlyRatesPeriod1.setProjectNodeAssignment(projectNodeAssignment1);
+
+      OpHourlyRatesPeriod hourlyRatesPeriod2 = new OpHourlyRatesPeriod();
+      calendar.set(2006, 3, 29, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod2.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod2.setFinish(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod2.setInternalRate(6d);
+      hourlyRatesPeriod2.setExternalRate(0d);
+      hourlyRatesPeriod2.setProjectNodeAssignment(projectNodeAssignment1);
+
+      OpHourlyRatesPeriod hourlyRatesPeriod3 = new OpHourlyRatesPeriod();
+      calendar.set(2006, 4, 13, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod3.setStart(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 4, 19, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod3.setFinish(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod3.setInternalRate(2d);
+      hourlyRatesPeriod3.setExternalRate(2d);
+      hourlyRatesPeriod3.setProjectNodeAssignment(projectNodeAssignment2);
+
+      broker.makePersistent(hourlyRatesPeriod1);
+      broker.makePersistent(hourlyRatesPeriod2);
+      broker.makePersistent(hourlyRatesPeriod3);
+
+      t.commit();
+      broker.close();
+
+      XComponent periodRow1 = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow1.setOutlineLevel(1);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      periodRow1.addChild(dataCell);
+      calendar.set(2006, 3, 20, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 3, 26, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(9d);
+      periodRow1.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(3d);
+      periodRow1.addChild(dataCell);
+
+
+      XComponent periodRow2 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow2.setOutlineLevel(1);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      periodRow2.addChild(dataCell);
+      calendar.set(2006, 3, 29, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 3, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(6d);
+      periodRow2.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(0d);
+      periodRow2.addChild(dataCell);
+
+      XComponent periodRow3 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow3.setOutlineLevel(1);
+      periodRow3.addChild(dataCell);
+      periodRow3.addChild(dataCell);
+      periodRow3.addChild(dataCell);
+      periodRow3.addChild(dataCell);
+      periodRow3.addChild(dataCell);
+      calendar.set(2006, 4, 13, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 4, 19, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(2d);
+      periodRow3.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(2d);
+      periodRow3.addChild(dataCell);
+
+      XComponent newDataSet = new XComponent(XComponent.DATA_SET);
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+
+      //nothing changed - return false
+      request.setArgument(OpProjectAdministrationService.PROJECT_ID, project.locator());
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, newDataSet);
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //extend the period of resource two to 3/25/2006 - 4/30/206 - this won't affect it's activity - return false
+      calendar.set(2006, 3, 25, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));     
+      calendar.set(2006, 4, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //extend the period of resource two to 3/21/2006 - 4/30/206 - this will affect it's activity - return true
+      calendar.set(2006, 3, 21, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 4, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //delete the second period of resource one this will not affect any of it's activities - return false
+      calendar.set(2006, 4, 13, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 4, 19, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow3.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      newDataSet.removeAllChildren();
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //insert a new period for resource two from 3/22/2006 - 3/26/2006 this will not affect it's activitie - return false
+      XComponent periodRow4 = new XComponent(XComponent.DATA_ROW);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      periodRow4.setOutlineLevel(1);
+      periodRow4.addChild(dataCell);
+      periodRow4.addChild(dataCell);
+      periodRow4.addChild(dataCell);
+      periodRow4.addChild(dataCell);
+      periodRow4.addChild(dataCell);
+      calendar.set(2006, 3, 22, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow4.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      calendar.set(2006, 3, 26, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      dataCell.setDateValue(new Date(calendar.getTimeInMillis()));
+      periodRow4.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(19d);
+      periodRow4.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(19d);
+      periodRow4.addChild(dataCell);
+
+      newDataSet.removeAllChildren();
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+      newDataSet.addChild(periodRow4);
+      
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertFalse(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //extend second period of resource one to 3/24/2006 - 3/30/206 - this will affect it's activities - return true
+      calendar.set(2006, 3, 24, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow2.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow2.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      newDataSet.removeAllChildren();
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //delete the first period of resource one - this will affect it's activities - return true
+      calendar.set(2006, 3, 29, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow2.getChild(OpProjectAdministrationService.PERIOD_START_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+      calendar.set(2006, 3, 30, 0, 0, 0);
+      calendar.set(Calendar.MILLISECOND, 0);
+      ((XComponent)periodRow2.getChild(OpProjectAdministrationService.PERIOD_END_DATE)).setDateValue(new Date(calendar.getTimeInMillis()));
+
+      newDataSet.removeAllChildren();
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
+
+      //change the rate of the first period of resource one - this will affect it's activities - return true
+      ((XComponent)periodRow1.getChild(OpProjectAdministrationService.INTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(10d);
+      ((XComponent)periodRow1.getChild(OpProjectAdministrationService.EXTERNAL_PERIOD_RATE_COLUMN_INDEX)).setDoubleValue(4d);
+
+      newDataSet.removeAllChildren();
+      newDataSet.addChild(dataRowRes1);
+      newDataSet.addChild(periodRow1);
+      newDataSet.addChild(periodRow2);
+      newDataSet.addChild(dataRowRes2);
+      newDataSet.addChild(periodRow3);
+
+      response = service.haveAssignmentsInTimePeriod(session, request);
+      assertTrue(((Boolean) response.getArgument(OpProjectAdministrationService.HAS_ASSIGNMENTS_IN_TIME_PERIOD)).booleanValue());
    }
 
    public void testUpdateProjectError()

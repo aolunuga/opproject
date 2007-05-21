@@ -92,6 +92,7 @@
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
@@ -265,5 +266,6 @@
       <resource id="ProjectCheckInError">Es ist ein Fehler aufgetreten bei der Freigabe des Projektplans</resource>
       <resource id="ProjectRevertError">Es ist ein Fehler aufgetreten beim Verwerfen der Arbeitskopie</resource>
       <resource id="ProjectSaveError">Es ist ein Fehler aufgetreten beim Speichern der Arbeitskopie</resource>
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
    </resource-map>
 </language-kit>

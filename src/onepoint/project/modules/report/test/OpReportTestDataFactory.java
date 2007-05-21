@@ -79,14 +79,14 @@ public class OpReportTestDataFactory {
       String endDate = "2007-12-31";
 
       Map fieldsMap = new HashMap();
-      fieldsMap.put("sum_material", new Integer(4));
-      fieldsMap.put("sum_external", new Integer(5));
-      fieldsMap.put("cat_name", new Integer(0));
-      fieldsMap.put("sum_travel", new Integer(3));
-      fieldsMap.put("sum_actualeffort", new Integer(1));
-      fieldsMap.put("cat_description", new Integer(7));
-      fieldsMap.put("sum_misc", new Integer(6));
-      fieldsMap.put("sum_personnel", new Integer(2));
+      fieldsMap.put("sum_material", 4);
+      fieldsMap.put("sum_external", 5);
+      fieldsMap.put("cat_name", 0);
+      fieldsMap.put("sum_travel", 3);
+      fieldsMap.put("sum_actualeffort", 1);
+      fieldsMap.put("cat_description", 7);
+      fieldsMap.put("sum_misc", 6);
+      fieldsMap.put("sum_personnel", 2);
 
       Map queryMap = new HashMap();
       queryMap.put("queryString", "select category.Name, sum(activity.ActualEffort), sum(activity.ActualPersonnelCosts), " +
@@ -95,19 +95,19 @@ public class OpReportTestDataFactory {
            "category.Activities activity  where activity.Start >= ? and activity.Finish <= ? and " +
            "activity.Deleted = false and activity.Template = false and category.Active = true group by " +
            "category.Name, category.Description order by category.Name");
-      queryMap.put("queryParams", Arrays.asList(new Date[]{Date.valueOf(startDate), Date.valueOf(endDate)}));
+      queryMap.put("queryParams", Arrays.asList(Date.valueOf(startDate), Date.valueOf(endDate)));
 
       Map parametersMap = new HashMap();
       parametersMap.put("fromDate", Date.valueOf(startDate));
       parametersMap.put("toDate", Date.valueOf(endDate));
-      parametersMap.put("UserId", new Long(userId));
+      parametersMap.put("UserId", userId);
 
       XMessage request = new XMessage();
       request.setArgument(OpReportService.FIELDS, fieldsMap);
       request.setArgument(OpReportService.NAME, REPORT_NAME);
       request.setArgument(OpReportService.QUERY_MAP, queryMap);
       request.setArgument(OpReportService.PARAMETERS, parametersMap);
-      request.setArgument(OpReportService.FORMATS, Arrays.asList(new String[]{format}));
+      request.setArgument(OpReportService.FORMATS, Arrays.asList(format));
 
       return request;
    }

@@ -7,6 +7,7 @@ package onepoint.project.modules.resource;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentVersion;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
@@ -42,7 +43,7 @@ public class OpResource extends OpObject {
    private double externalRate;
    private OpResourcePool pool;
    private OpUser user;
-   private Set projectNodeAssignments;
+   private Set<OpProjectNodeAssignment> projectNodeAssignments;
    private Set<OpAssignment> activityAssignments;
    private Set<OpAssignmentVersion> assignmentVersions;
    private Set absences;
@@ -106,11 +107,11 @@ public class OpResource extends OpObject {
       return user;
    }
 
-   public void setProjectNodeAssignments(Set projectNodeAssignments) {
+   public void setProjectNodeAssignments(Set<OpProjectNodeAssignment> projectNodeAssignments) {
       this.projectNodeAssignments = projectNodeAssignments;
    }
 
-   public Set getProjectNodeAssignments() {
+   public Set<OpProjectNodeAssignment> getProjectNodeAssignments() {
       return projectNodeAssignments;
    }
 
@@ -252,6 +253,34 @@ public class OpResource extends OpObject {
 
       result.add(INTERNAL_RATE_LIST_INDEX,internalRates);
       result.add(EXTERNAL_RATE_LIST_INDEX,externalRates);
+      return result;
+   }
+
+   /**
+    * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
+    * for a resource for a given list of days. When looking for the internal rate the most
+    * prioritary is the OpHourlyRatesPeriod set and then the resource's hourly rate
+    *
+    * @param daysList - the list of days for which the rates will be returned
+    * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
+    *         for the given interval
+    */
+   public List<List> getRatesForListOfDays(List<Date> daysList) {
+      List<List> result = new ArrayList<List>();
+      List<Double> internalRates = new ArrayList<Double>();
+      List<Double> externalRates = new ArrayList<Double>();
+      Double internalDayRate;
+      Double externalDayRate;
+
+      for (Date day : daysList) {
+         internalDayRate = getRatesForDay(day).get(INTERNAL_RATE_INDEX);
+         internalRates.add(internalDayRate);
+         externalDayRate = getRatesForDay(day).get(EXTERNAL_RATE_INDEX);
+         externalRates.add(externalDayRate);
+      }
+
+      result.add(INTERNAL_RATE_LIST_INDEX, internalRates);
+      result.add(EXTERNAL_RATE_LIST_INDEX, externalRates);
       return result;
    }
 

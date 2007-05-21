@@ -178,6 +178,8 @@ public class OpRepositoryService extends OpProjectService {
          OpInitializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
          //invalidate all server sessions except the current one
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
+         //clear everything from the current session
+         projectSession.clearSession();
       }
       catch (Exception e) {
          logger.error("Cannot restore repository because:" + e.getMessage(), e);
@@ -208,6 +210,8 @@ public class OpRepositoryService extends OpProjectService {
          OpInitializer.resetDbSchema();
          //invalidate all server sessions
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
+         //clear this session
+         projectSession.clearSession();
       }
       catch (Exception e) {
          logger.error("An error occured during reset:" + e.getMessage(), e);

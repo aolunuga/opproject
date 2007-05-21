@@ -4,7 +4,6 @@
 package onepoint.project.modules.resource.test;
 
 import onepoint.project.modules.resource.OpHourlyRatesPeriod;
-import onepoint.project.modules.resource.OpResourceError;
 import onepoint.project.test.OpBaseTestCase;
 
 import java.sql.Date;
@@ -74,30 +73,30 @@ public class OpHourlyRatesPeriodTest extends OpBaseTestCase {
 
       period.setInternalRate(-4d);
       period.setExternalRate(6d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.HOURLY_RATE_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.INTERNAL_RATE_NOT_VALID, period.isValid());
 
       period.setInternalRate(4d);
       period.setExternalRate(-7d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.EXTERNAL_RATE_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.EXTERNAL_RATE_NOT_VALID, period.isValid());
 
       period.setExternalRate(7d);
       period.setStart(null);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.PERIOD_START_DATE_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_START_DATE_NOT_VALID, period.isValid());
 
       calendar.set(2006, 4, 21, 0, 0, 0);
       calendar.set(Calendar.MILLISECOND, 0);
       period.setStart(new Date(calendar.getTimeInMillis()));
       period.setFinish(null);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.PERIOD_END_DATE_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_END_DATE_NOT_VALID, period.isValid());
 
       calendar.set(2006, 4, 21, 0, 0, 0);
       calendar.set(Calendar.MILLISECOND, 0);
       period.setFinish(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.PERIOD_INTERVAL_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
 
       calendar.set(2006, 4, 19, 0, 0, 0);
       calendar.set(Calendar.MILLISECOND, 0);
       period.setFinish(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpResourceError.PERIOD_INTERVAL_NOT_VALID, period.isValid());
+      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_INTERVAL_NOT_VALID, period.isValid());
    }
 }

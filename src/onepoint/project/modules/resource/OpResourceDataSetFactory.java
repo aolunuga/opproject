@@ -121,7 +121,7 @@ public final class OpResourceDataSetFactory {
         int childrenOutlineLevel, Map poolColumnsSelector, Map resourceColumnsSelector, List filteredLocators) {
 
       OpBroker broker = session.newBroker();
-      OpQuery query = null;
+      OpQuery query;
       if (poolId == -1) {
          String queryString = "select pool.ID, count(pools.ID)+count(resources.ID) from OpResourcePool as pool " +
               "left join pool.SubPools pools " +
@@ -140,14 +140,14 @@ public final class OpResourceDataSetFactory {
          query.setLong(0, poolId);
       }
 
-      Map subEntityMap = new HashMap();
-      List poolIds = new ArrayList();
+      Map<Long, Number> subEntityMap = new HashMap<Long, Number>();
+      List<Long> poolIds = new ArrayList<Long>();
       List results = broker.list(query);
       for (int i = 0; i < results.size(); i++) {
          Object result[] = (Object[]) results.get(i);
          Long id = (Long) result[0];
          poolIds.add(id);
-         Integer subEntities = (Integer) result[1];
+         Number subEntities = (Number) result[1];
          subEntityMap.put(id, subEntities);
       }
 
@@ -218,7 +218,7 @@ public final class OpResourceDataSetFactory {
          }
          dataSet.addChild(dataRow);
 
-         Integer subCount = ((Integer) subEntityMap.get(new Long(id)));
+         Number subCount = subEntityMap.get(id);
          if (subCount != null && subCount.intValue() > 0 && !allChildrenFiltered(subPool, filteredLocators)) {
             //add dummy child
             XComponent dummyRow = new XComponent(XComponent.DATA_ROW);

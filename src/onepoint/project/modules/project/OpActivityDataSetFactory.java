@@ -1173,8 +1173,15 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getBaseEffort() != baseEffort) {
             update = true;
             activity.setBaseEffort(baseEffort);
-            double remainingEffort = OpGanttValidator.calculateRemainingEffort(baseEffort, activity.getActualEffort(), activity.getComplete());
-            activity.setRemainingEffort(remainingEffort);
+            if (activity.getProjectPlan().getProgressTracked()) {
+               activity.setRemainingEffort(baseEffort - activity.getActualEffort());
+               complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
+               activity.setComplete(complete);
+            }
+            else {
+               double remainingEffort = OpGanttValidator.calculateRemainingEffort(baseEffort, activity.getActualEffort(), activity.getComplete());
+               activity.setRemainingEffort(remainingEffort);
+            }
          }
 
          if (activity.getType() != OpGanttValidator.getType(dataRow)) {
@@ -1316,7 +1323,6 @@ public abstract class OpActivityDataSetFactory {
       double baseCosts = 0.0d;
       double assigned = 0;
       int i = 0;
-      int maxActivitySequence = dataSet.getChildCount();
       int activitySequence = 0;
 
       ArrayList reusableAssignments = new ArrayList();
@@ -1324,7 +1330,7 @@ public abstract class OpActivityDataSetFactory {
          assignment = (OpAssignment) assignments.next();
          activitySequence = assignment.getActivity().getSequence();
          boolean reusable = false;
-         if (activitySequence < maxActivitySequence) { // activity was not deleted on the client
+         if (!deletedActivity(assignment.getActivity(), dataSet)) { // activity was not deleted on the client
             dataRow = (XComponent) dataSet.getChild(activitySequence);
             resourceList = OpGanttValidator.getResources(dataRow);
             resourceBaseEffortList = OpGanttValidator.getResourceBaseEfforts(dataRow);
@@ -1368,8 +1374,16 @@ public abstract class OpActivityDataSetFactory {
 
                   if (assignment.getBaseEffort() != baseEffort) {
                      assignment.setBaseEffort(baseEffort);
-                     double remaining = OpGanttValidator.calculateRemainingEffort(baseEffort, assignment.getActualEffort(), assignment.getComplete());
-                     assignment.setRemainingEffort(remaining);
+                     if (tracking && (baseEffort >= assignment.getActualEffort())) {
+                        double remaining = baseEffort - assignment.getActualEffort();
+                        assignment.setRemainingEffort(remaining);
+                        complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, remaining);
+                        assignment.setComplete(complete);
+                     }
+                     else {
+                        double remaining = OpGanttValidator.calculateRemainingEffort(baseEffort, assignment.getActualEffort(), assignment.getComplete());
+                        assignment.setRemainingEffort(remaining);
+                     }
                      update = true;
                   }
 
@@ -1476,7 +1490,6 @@ public abstract class OpActivityDataSetFactory {
       double baseEffort = 0.0d;
       ArrayList reusableWorkPeriods = new ArrayList();
       boolean update;
-      int maxActivitySequence = dataSet.getChildCount();
       int activitySequence = 0;
 
       while (workPeriodsIt.hasNext()) {
@@ -1485,7 +1498,7 @@ public abstract class OpActivityDataSetFactory {
          Date periodStart = workPeriod.getStart();
          update = false;
          boolean reusable = false;
-         if (activitySequence < maxActivitySequence) { // activity was not deleted on client
+         if (!deletedActivity(workPeriod.getActivity(), dataSet)) { // activity was not deleted on client
             dataRow = (XComponent) dataSet.getChild(activitySequence);
             Map workPeriods = getWorkPeriods(dataRow);
             List activitiPeriodValues = (List) workPeriods.get(periodStart);
@@ -1677,7 +1690,7 @@ public abstract class OpActivityDataSetFactory {
          int activitySequence = activity.getSequence();
          int i;
          boolean reusable = false;
-         if (activitySequence < maxActivitySequence) { // activity was not deleted on client
+         if (!deletedActivity(activity, dataSet)) { // activity was not deleted on client
             XComponent dataRow = (XComponent) dataSet.getChild(activity.getSequence());
             ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
             for (i = attachmentList.size() - 1; i >= 0; i--) {
@@ -1825,7 +1838,7 @@ public abstract class OpActivityDataSetFactory {
          dependency = (OpDependency) dependencies.next();
          successorActivitySequence = dependency.getSuccessorActivity().getSequence();
          boolean reusable = false;
-         if (successorActivitySequence < maxActivitySequence) { // successor activity was not deleted on client
+         if (!deletedActivity(dependency.getSuccessorActivity(), dataSet)) { // successor activity was not deleted on client
             successorDataRow = (XComponent) dataSet.getChild(successorActivitySequence);
             predecessorIndexes = OpGanttValidator.getPredecessors(successorDataRow);
             if (predecessorIndexes.remove(new Integer(dependency.getPredecessorActivity().getSequence()))) {
@@ -1952,4 +1965,24 @@ public abstract class OpActivityDataSetFactory {
          }
       }
    }
+
+   /**
+    * Checks if a given activity entity was deletd on the client using the data set received.
+    *
+    * @param activity
+    * @param dataSet
+    * @return true if the activity was deleted
+    */
+   private static boolean deletedActivity(OpActivity activity, XComponent dataSet) {
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         String locator = dataRow.getStringValue();
+         long id = OpLocator.parseLocator(locator).getID();
+         if (id == activity.getID()) {
+            return false;
+         }
+      }
+      return true;
+   }
+
 }

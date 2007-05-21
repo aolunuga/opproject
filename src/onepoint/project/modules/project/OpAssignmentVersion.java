@@ -15,6 +15,7 @@ public class OpAssignmentVersion extends OpObject {
    public final static String COMPLETE = "Complete";
    public final static String BASE_EFFORT = "BaseEffort";
    public final static String BASE_COSTS = "BaseCosts";
+   public final static String BASE_PROCEEDS = "BaseProceeds";
    public final static String PLAN_VERSION = "PlanVersion";
    public final static String RESOURCE = "Resource";
    public final static String ACTIVITY_VERSION = "ActivityVersion";
@@ -23,6 +24,7 @@ public class OpAssignmentVersion extends OpObject {
    private double complete;
    private double baseEffort; // Person-hours
    private double baseCosts; // Personnel costs
+   private double baseProceeds; //External costs
    private OpProjectPlanVersion planVersion;
    private OpResource resource;
    private OpActivityVersion activityVersion;
@@ -57,6 +59,14 @@ public class OpAssignmentVersion extends OpObject {
 
    public double getBaseCosts() {
       return baseCosts;
+   }
+
+   public double getBaseProceeds() {
+      return baseProceeds;
+   }
+
+   public void setBaseProceeds(Double baseProceeds) {
+      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 
    public void setPlanVersion(OpProjectPlanVersion planVersion) {

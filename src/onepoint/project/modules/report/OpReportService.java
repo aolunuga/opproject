@@ -73,7 +73,7 @@ public class OpReportService extends OpProjectService {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpReportService.class);
 
-   private static final List SUPPORTED_FORMATS = Arrays.asList(new String[]{REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV});
+   private static final List SUPPORTED_FORMATS = Arrays.asList(REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV);
 
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
@@ -101,17 +101,26 @@ public class OpReportService extends OpProjectService {
       try {
          JasperPrint compiledReport = createJasperPrint(session, request);
          // TODO: Location is "too hard-coded"
-         StringBuffer pathBuffer = new StringBuffer(SAVED_REPORTS_PATH);
+         if (SAVED_REPORTS_PATH.indexOf(' ') > -1) {
+            logger.warn("The report path: " + SAVED_REPORTS_PATH + " contains spaces. " +
+                 "This could stop the application from opening generated reports.");
+         }
          //create the saved reports directory if not exists
-         File saveReportsDirectory = new File(pathBuffer.toString());
+         File saveReportsDirectory = new File(SAVED_REPORTS_PATH);
          if (!saveReportsDirectory.exists()) {
             saveReportsDirectory.mkdir();
          }
-         pathBuffer.append(xrm.getLocalizedJasperFileName(name));
-         pathBuffer.append('-');
-         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh_mm_ss");
+
+         StringBuffer pathBuffer = new StringBuffer(SAVED_REPORTS_PATH);
+         String filename = xrm.getLocalizedJasperFileName(name);
+         if (filename == null || filename.length() == 0) {
+            throw new IOException("Invalid report name.");
+         }
+         pathBuffer.append(filename.replaceAll("\\s", "_")); // replace all the white spaces with '_' to evoid problems on MacOS
+         pathBuffer.append("_-_");
+         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss");
          pathBuffer.append(dateFormat.format(new Date()));
-         pathBuffer.append(".").append(format.toLowerCase());
+         pathBuffer.append('.').append(format.toLowerCase());
 
          String path = pathBuffer.toString();
 
@@ -421,7 +430,6 @@ public class OpReportService extends OpProjectService {
     * @param session       a <code>OpProjectSession</code> representing the application session.
     */
    private void putSubreportParameters(Map subReportData, Map parametersMap, OpBroker broker, OpProjectSession session) {
-      Iterator it = subReportData.keySet().iterator();
       for (Object o : subReportData.keySet()) {
          String subReportDatasourceName = (String) o;
          Map subReportMap = (Map) subReportData.get(subReportDatasourceName);

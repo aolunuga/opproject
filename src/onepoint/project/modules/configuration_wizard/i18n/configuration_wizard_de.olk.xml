@@ -11,8 +11,7 @@
       <resource id="SelectFolder">Datenbankordner auswählen</resource>
       <resource id="Select">Ändern</resource>
       <resource id="OK">OK</resource>
-      <resource id="ImportDemoData">Demodaten importieren</resource>
-   </resource-map>   
+   </resource-map>
    <resource-map id="configuration_wizard.error">
       <resource id="DatabaseUrlMissing">Der Datenbank Connect-String wurde nicht angegeben</resource>
       <resource id="DatabasePathMissing">Das Datenbankordner wurde nicht angegeben</resource>
@@ -21,7 +20,6 @@
       <resource id="InvalidConnectionString">Der Connect-String ist ungültig</resource>
       <resource id="GeneralConnectionError">Keine Verbindung zur Datenbank</resource>
       <resource id="JDBCDriverError">Der JDBC-Treiber für die ausgewählte Datenbank kann nicht geladen werden</resource>
-      <resource id="NonExistentDemoData">Die Demodaten-Datei wurde nicht gefunden</resource>
-      <resource id="DemodataImportFailure">Die Demodaten-Datei konnte nicht importiert werden</resource>
+      <resource id="InvalidMySqlEngine">Sie verwenden eine nicht-transaktionelle Datenbank was zu Dateninkonsistenzen führen kann. Bitte nehmen Sie zwecks Datenbank-Upgrade-Instruktionen das README-Datei zur Hand</resource>
    </resource-map>
 </language-kit>

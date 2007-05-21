@@ -349,27 +349,24 @@ function addProjectResourceOk(selectedResources) {
       row = dataSetService.getChild(i);
       dataRow = dataSet.newDataRow();
       dataRow.setStringValue(row.getStringValue());
+      dataRow.setOutlineLevel(row.getOutlineLevel());
+      dataRow.setFiltered(row.getFiltered());
+      dataRow.setExpanded(row.getExpanded());
       dataSet.addDataRow(dataRow);
       j=0;
       while(j < row.getChildCount()){
          dataCell = XComponent.newDataCell();
-         dataCell.setEnabled(true);
-         if(j < 2){
-            dataCell.setStringValue(row.getChild(j).getStringValue());
-         }
-         if(j == 2){
-            checked = row.getChild(j).getBooleanValue();
-            dataCell.setBooleanValue(checked);
-         }
-         if(j > 2){
-            dataCell.setEnabled(row.getChild(2).getBooleanValue());
-            if(row.getChild(2).getBooleanValue()){
-               dataCell.setDoubleValue(row.getChild(j).getDoubleValue());
-            }
+         dataCell.setEnabled(row.getChild(j).getEnabled());
+         if(row.getChild(j).getValue() != null){
+            dataCell.setValue(row.getChild(j).getValue());
          }
          dataRow.addChild(dataCell);
          j++;
       }
+      i++;
+   }
+   i = 0;
+   while(i < dataSet.getChildCount()){
       i++;
    }
    resourceTable = dialog.findComponent("ResourcesTable");

@@ -15,6 +15,7 @@ import onepoint.persistence.OpLocator;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
@@ -22,6 +23,7 @@ import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.util.XCalendar;
 
 import java.util.*;
 
@@ -43,6 +45,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
+   private final static String ORIGINAL_RESOURCE_DATA_SET = "OriginalResourceDataSet";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
    private final static String PROJECT_INFO = "project.Info";
@@ -53,7 +56,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
    private final static String FORM_WORKING_VERSION_NUMBER = "WorkingVersionNumber";
    private final static String GOALS_TABLE_BOX = "GoalsTableBox";
-   private final static String TODOS_TABLE_BOX = "ToDosTableBox";
+   private final static String TODOS_TABLE_BOX = "ToDosTableBox";   
+   private final static String TODAY_DATE_FIELD = "Today";
+   private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -145,62 +150,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
       statusChoice.setEnabled(editMode.booleanValue());
 
       // Fill in goals
-      XComponent dataSet = form.findComponent(GOALS_SET);
-      XComponent dataRow = null;
-      XComponent dataCell = null;
-      Iterator goals = project.getGoals().iterator();
-      OpGoal goal = null;
-      while (goals.hasNext()) {
-         goal = (OpGoal) (goals.next());
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(goal.locator());
-         dataSet.addChild(dataRow);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setBooleanValue(goal.getCompleted());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(goal.getName());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setIntValue(goal.getPriority());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-      }
-      form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
-      //sort goals data set based on goal's name (data cell with index 1)
-      dataSet.sort(1);
+      fillGoalsDataSet(form, project, editMode);
 
       // Fill in to dos
-      dataSet = form.findComponent(TO_DOS_SET);
-      Iterator to_dos = project.getToDos().iterator();
-      OpToDo to_do = null;
-      while (to_dos.hasNext()) {
-         to_do = (OpToDo) (to_dos.next());
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(to_do.locator());
-         dataSet.addChild(dataRow);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setBooleanValue(to_do.getCompleted());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(to_do.getName());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setIntValue(to_do.getPriority());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(to_do.getDue());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-      }
-      form.findComponent(TODOS_TABLE_BOX).setEditMode(editMode);
-      //sort to dos data set based on to do's name (data cell with index 1)
-      dataSet.sort(1);
+      fillToDosDataSet(form, project, editMode);
 
       if (!editMode.booleanValue()) {
          name.setEnabled(false);
@@ -246,67 +199,12 @@ public class OpEditProjectFormProvider implements XFormProvider {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
 
-      Iterator assignments = project.getAssignments().iterator();
-      dataSet = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
+      //fill the resources & hourly rates periods data set
+      fillResourcesDataSet(form, project, editMode);
 
-      //fill assigned resources set
-      while (assignments.hasNext()) {
-         OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
-         OpResource resource = assignment.getResource();
-         Double internalRate = assignment.getHourlyRate();
-         Double externalRate = assignment.getExternalRate();
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
-
-         //0 - resource name
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(resource.getName());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //1 - resource description
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(resource.getDescription());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //2 - adjust rates
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if(internalRate != null || externalRate != null){
-            dataCell.setBooleanValue(true);
-         }
-         else{
-            dataCell.setBooleanValue(false);
-         }
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //3 - internal rate
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if(internalRate != null){
-            dataCell.setDoubleValue(internalRate);
-            dataCell.setEnabled(editMode);
-         }
-         else{
-            dataCell.setEnabled(false);
-         }
-         dataRow.addChild(dataCell);
-
-         //4 - external rate
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if(externalRate != null){
-            dataCell.setDoubleValue(externalRate);
-            dataCell.setEnabled(editMode);
-         }
-         else{
-            dataCell.setEnabled(false);
-         }
-         dataRow.addChild(dataCell);
-
-         dataSet.addChild(dataRow);
-      }
-      //sort assigned resources
-      dataSet.sort();
+      //set the date of today and end of year on the form
+      form.findComponent(TODAY_DATE_FIELD).setDateValue(XCalendar.today());      
+      form.findComponent(END_OF_YEAR_DATE_FIELD).setDateValue(XCalendar.lastDayOfYear());
 
       broker.close();
    }
@@ -384,5 +282,227 @@ public class OpEditProjectFormProvider implements XFormProvider {
          Integer versionNumber = versionNumbers[i];
          versionsDataSet.addChild((XView) rowsMap.get(versionNumber));
       }
+   }
+
+   // Fill in goals
+   private void fillGoalsDataSet(XComponent form, OpProjectNode project, boolean editMode) {
+      XComponent dataSet = form.findComponent(GOALS_SET);
+      XComponent dataRow = null;
+      XComponent dataCell = null;
+      for(OpGoal goal : project.getGoals()){
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(goal.locator());
+         dataSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(goal.getCompleted());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(goal.getName());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(goal.getPriority());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+      }
+      form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
+      //sort goals data set based on goal's name (data cell with index 1)
+      dataSet.sort(1);
+   }
+
+   //fill to dos data set
+   private void fillToDosDataSet(XComponent form, OpProjectNode project, boolean editMode){
+      XComponent dataSet = form.findComponent(TO_DOS_SET);
+      XComponent dataRow;
+      XComponent dataCell;
+
+      for(OpToDo toDo : project.getToDos()){
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(toDo.locator());
+         dataSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(toDo.getCompleted());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(toDo.getName());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(toDo.getPriority());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDateValue(toDo.getDue());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);         
+      }
+      form.findComponent(TODOS_TABLE_BOX).setEditMode(editMode);
+      //sort to dos data set based on to do's name (data cell with index 1)
+      dataSet.sort(1);
+   }
+
+   //fill assigned resources set
+   private void fillResourcesDataSet(XComponent form, OpProjectNode project, boolean editMode) {
+      XComponent dataSet = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
+      XComponent originalDataSet = form.findComponent(ORIGINAL_RESOURCE_DATA_SET);
+      XComponent dataRow;
+      XComponent dataCell;
+
+      for(OpProjectNodeAssignment assignment : project.getAssignments()){
+         OpResource resource = assignment.getResource();
+         Double internalRate = assignment.getHourlyRate();
+         Double externalRate = assignment.getExternalRate();
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
+
+         //0 - resource name
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource.getName());
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //1 - resource description
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource.getDescription());
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //2 - adjust rates
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (internalRate != null || externalRate != null) {
+            dataCell.setBooleanValue(true);
+         }
+         else {
+            dataCell.setBooleanValue(false);
+         }
+         dataCell.setEnabled(editMode);
+         dataRow.addChild(dataCell);
+
+         //3 - internal project rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (internalRate != null) {
+            dataCell.setDoubleValue(internalRate);
+            dataCell.setEnabled(editMode);
+         }
+         else {
+            dataCell.setEnabled(false);
+         }
+         dataRow.addChild(dataCell);
+
+         //4 - external project rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (externalRate != null) {
+            dataCell.setDoubleValue(externalRate);
+            dataCell.setEnabled(editMode);
+         }
+         else {
+            dataCell.setEnabled(false);
+         }
+         dataRow.addChild(dataCell);
+
+         //5 - start date - null
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRow.addChild(dataCell);
+
+         //6 - end date - null
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRow.addChild(dataCell);
+
+         //7 - internal period rate - null
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRow.addChild(dataCell);
+
+         //8 - external period rate - null
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRow.addChild(dataCell);
+
+         //expand the row if the assignment has hourly rates periods
+         if(!assignment.getHourlyRatesPeriods().isEmpty()){
+            dataRow.setExpanded(true);
+         }
+         dataSet.addChild(dataRow);
+         //if this assignment has hourly rates periods corresponding to it
+         dataSet.addAllChildren(fillHourlyRatesPeriod(assignment, editMode));
+
+         for(int i = 0; i < dataSet.getChildCount(); i++){
+            dataRow = (XComponent) dataSet.getChild(i);
+            originalDataSet.addChild(dataRow.copyData());
+         }
+      }
+   }
+
+   /**
+    * Returns an array of data rows containing the hourly rates periods that belong to the assignment.
+    * @param assignment - the <code>OpProjectNodeAssignment</code> whose hourly rates periods are returned.
+    * @param editMode
+    * @return - an array of data rows containing the hourly rates periods that belong to the assignment.
+    */
+   private XComponent[] fillHourlyRatesPeriod(OpProjectNodeAssignment assignment, boolean editMode){
+      XComponent[] result = new XComponent[0];
+      if (assignment.getHourlyRatesPeriods() != null) {
+         result = new XComponent[assignment.getHourlyRatesPeriods().size()];
+         XComponent dataRow;
+         XComponent dataCell;
+         OpHourlyRatesPeriod hourlyRatesPeriod;
+         int i = 0;
+
+         Iterator<OpHourlyRatesPeriod> iterator = assignment.getHourlyRatesPeriods().iterator();
+         while (iterator.hasNext()) {
+            hourlyRatesPeriod = iterator.next();
+            dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setOutlineLevel(1);
+            dataRow.setFiltered(true);
+
+            //0 - resource name - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataRow.addChild(dataCell);
+
+            //1 - resource description - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataRow.addChild(dataCell);
+
+            //2 - adjust rates - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataRow.addChild(dataCell);
+
+            //3 - internal project rate - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataRow.addChild(dataCell);
+
+            //4 - external project rate - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataRow.addChild(dataCell);
+
+            //5 - start date
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataCell.setDateValue(hourlyRatesPeriod.getStart());
+            dataCell.setEnabled(editMode);
+            dataRow.addChild(dataCell);
+
+            //6 - end date - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataCell.setDateValue(hourlyRatesPeriod.getFinish());
+            dataCell.setEnabled(editMode);
+            dataRow.addChild(dataCell);
+
+            //7 - internal period rate
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataCell.setDoubleValue(hourlyRatesPeriod.getInternalRate());
+            dataCell.setEnabled(editMode);
+            dataRow.addChild(dataCell);
+
+            //8 - external period rate - null
+            dataCell = new XComponent(XComponent.DATA_CELL);
+            dataCell.setDoubleValue(hourlyRatesPeriod.getExternalRate());
+            dataCell.setEnabled(editMode);
+            dataRow.addChild(dataCell);
+
+            result[i] = dataRow;
+            i++;
+         }
+      }          
+      return result;
    }
 }

@@ -38,8 +38,8 @@
            <table-box id="ProjectsTable" data-set-ref="ProjectsSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu">
               <table-column text="${Project}" width="250" sortable="true"  data-column-index="0"/>
               <table-column text="${Status}" width="65" data-column-index="1"/>
-              <table-column width="60" text="${Start}" value-type="Date" data-column-index="14" sortable="true"/>
-              <table-column width="60" text="${End}" value-type="Date" data-column-index="15" sortable="true"/>
+              <table-column text="${Start}" width="60" value-type="Date" data-column-index="14" sortable="true"/>
+              <table-column text="${End}" width="60" value-type="Date" data-column-index="15" sortable="true"/>
               <table-column text="${Complete}" width="80" sortable="true" data-column-index="2"  value-type="PercentageBar"/>
               <table-column text="${Resources}" width="80" sortable="true" data-column-index="16"  value-type="PercentageBar"/>
               <table-column text="${Costs}" width="80" sortable="true" data-column-index="17"  value-type="PercentageBar"/>

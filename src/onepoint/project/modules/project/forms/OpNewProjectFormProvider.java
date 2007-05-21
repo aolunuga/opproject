@@ -14,6 +14,7 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.service.server.XSession;
+import onepoint.util.XCalendar;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,6 +36,8 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
    private final static String GOALS_TABLE_BOX = "GoalsTableBox";
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
+   private final static String TODAY_DATE_FIELD = "Today";
+   private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -96,6 +99,9 @@ public class OpNewProjectFormProvider implements XFormProvider {
       form.findComponent(TODOS_TABLE_BOX).setEditMode(true);
       broker.close();
 
+      //set the date of today and end of year on the form
+      form.findComponent(TODAY_DATE_FIELD).setDateValue(XCalendar.today());
+      form.findComponent(END_OF_YEAR_DATE_FIELD).setDateValue(XCalendar.lastDayOfYear());
    }
 
 }

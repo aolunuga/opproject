@@ -10,6 +10,7 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.test.TestDataFactory;
@@ -131,6 +132,9 @@ public class ProjectTestDataFactory extends TestDataFactory {
       OpProjectNode project = (OpProjectNode) broker.getObject(locator);
       // just to inialize the collection
       project.getAssignments().size();
+      for(OpProjectNodeAssignment assignment : project.getAssignments()){
+         assignment.getHourlyRatesPeriods().size();
+      }
       project.getDynamicResources().size();
       project.getGoals().size();
       project.getInstanceNodes().size();
@@ -315,12 +319,12 @@ public class ProjectTestDataFactory extends TestDataFactory {
    }
 
    public static XMessage createProjectMsg(String name, Date date, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos) {
-      return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, goals, todos, new XComponent(XComponent.DATA_SET));
+        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos) {
+      return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, new XComponent(XComponent.DATA_SET));
    }
 
    public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos, XComponent dataSet) {
+        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos, XComponent dataSet) {
       HashMap args = new HashMap();
       args.put(OpProjectNode.NAME, name);
       args.put(OpProjectNode.START, date);
@@ -336,7 +340,7 @@ public class ProjectTestDataFactory extends TestDataFactory {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, createDataSet(goals));
       request.setArgument(OpProjectAdministrationService.TO_DOS_SET, createDataSet(todos));
-      request.setArgument("resource_set", resouces);
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, resources);
       return request;
    }
 

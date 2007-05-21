@@ -555,9 +555,23 @@ function updateBaseEffortSum(event) {
    updateEffortSum(mainIndex, 7);
 }
 
+function getActivityForm() {
+   frame = XDisplay.findFrame("ProjectContentFrame");
+   form = frame.getChild(0);
+   return form;
+}
+
 function updateEffortSum(mainIndex, footerIndex) {
-   listFooterDataSet = XDisplay.getActiveForm().findComponent("ActivityListFooter");
-   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   form = XDisplay.getActiveForm();
+   listFooterDataSet = form.findComponent("ActivityListFooter");
+   if (listFooterDataSet == null) {
+      form = getActivityForm();
+      if (form == null) {
+         return;
+      }
+      listFooterDataSet = form.findComponent("ActivityListFooter");
+   }
+   activity_data_set = form.findComponent("ActivitySet");
    updateSum(activity_data_set, mainIndex, listFooterDataSet, footerIndex);
 }
 
@@ -592,8 +606,16 @@ function updateMiscSum(event) {
 }
 
 function updateCostSum(mainIndex, index) {
-   footerDataSet = XDisplay.getActiveForm().findComponent("ActivityCostsFooter");
-   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   form = XDisplay.getActiveForm();
+   footerDataSet = form.findComponent("ActivityCostsFooter");
+   if (footerDataSet == null) {
+      form = getActivityForm();
+      if (form == null) {
+         return;
+      }
+      footerDataSet = form.findComponent("ActivityCostsFooter");
+   }
+   activity_data_set = form.findComponent("ActivitySet");
    updateSum(activity_data_set, mainIndex, footerDataSet, index);
 }
 
@@ -602,8 +624,17 @@ function updateSum(mainDataSet, mainIndex, footerDataSet, footerIndex) {
    row = footerDataSet.getChild(0);
    cell = row.getChild(footerIndex);
    cell.setDoubleValue(sum);
-   XDisplay.getActiveForm().findComponent("ActivityTable").update();
-   XDisplay.getActiveForm().findComponent("CostTable").update();
+   form = XDisplay.getActiveForm();
+   table = form.findComponent("ActivityTable");
+   if (table == null) {
+      form = getActivityForm();
+      if (form == null) {
+         return;
+      }
+      table = form.findComponent("ActivityTable");
+   }
+   table.update();
+   form.findComponent("CostTable").update();
 }
 
 

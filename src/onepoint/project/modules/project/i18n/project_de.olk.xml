@@ -77,8 +77,9 @@
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Resource</resource>
       <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="HourlyRate">Internal Rate</resource>
+      <resource id="InternalRate">Internal Rate</resource>
       <resource id="ExternalRate">External Rate</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
 
       <resource id="Permissions">Berechtigungen</resource>
 
@@ -126,10 +127,11 @@
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Resource</resource>
       <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="HourlyRate">Internal Rate</resource>
+      <resource id="InternalRate">Internal Rate</resource>
       <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
+      <resource id="HourlyRates">Hourly Rates</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
@@ -187,6 +189,12 @@
       <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
       <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
+      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
+      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
+      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
+      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
+      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>
@@ -202,6 +210,14 @@
       <resource id="ConfirmStartDateFuture">Verschiebung des Startdatums</resource>
       <resource id="ConfirmStartDateFutureText">Eine Verschiebung des Startdatums in die Zukunft verschiebt auch alle Vorgänge adäquat</resource>
       <resource id="Ok">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+
+    <resource-map id="project.change">
+      <resource id="ConfirmChange">Modify Project</resource>
+      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of the assignments will result in recalculating personnel costs in various project plans.</resource>
+      <resource id="ConfirmChangeHR">Changing the hourly rate and/or external rate of the assignments will result in recalculating personnel costs in various project plans.</resource>
+      <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
 
