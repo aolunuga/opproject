@@ -6,6 +6,8 @@
    <field name="RemainingEffort" type="Double"/>
    <field name="BaseCosts" type="Double"/>
    <field name="ActualCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
+   <field name="ActualProceeds" type="Double"/>
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="ActivityAssignments"/>
    <relationship name="Resource" type="OpResource" back-relationship="ActivityAssignments"/>
    <relationship name="Activity" type="OpActivity" back-relationship="Assignments"/>

@@ -47,7 +47,7 @@ public class OpWorkSlipDataSetFactory {
    public static Iterator getAssignments(OpBroker broker, List resourceIds, List activityTypes, Date start, long projectNodeId) {
       StringBuffer buffer = new StringBuffer();
       buffer.append("select assignment, activity from OpAssignment as assignment inner join assignment.Activity as activity ");
-      buffer.append("where assignment.Resource.ID in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type)");
+      buffer.append("where assignment.Resource.ID in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type) and activity.Deleted = false");
       if (start != null) {
          buffer.append(" and activity.Start < :startBefore");
       }

@@ -59,7 +59,7 @@ function editActivity(event) {
          disabledFieldsIds[0] = "PersonnelCosts";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, true);
       }
       if (activity_type == 1) {
          titleComponentId = "CollectionDialogTitle";
@@ -80,7 +80,7 @@ function editActivity(event) {
          hiddenTabsIds[0] = "ResourcesTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
       if (activity_type == 2) {
          titleComponentId = "MilestoneDialogTitle";
@@ -92,7 +92,7 @@ function editActivity(event) {
          hiddenTabsIds[0] = "CostsTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
       if (activity_type == 3) {
          titleComponentId = "TaskDialogTitle";
@@ -106,7 +106,7 @@ function editActivity(event) {
          hiddenTabsIds[0] = "PredecessorTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
       if (activity_type == 4) {
          titleComponentId = "CollectionTaskDialogTitle";
@@ -128,7 +128,7 @@ function editActivity(event) {
          hiddenTabsIds[1] = "ResourcesTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
       if (activity_type == 5) {
          titleComponentId = "ScheduledTaskTitle";
@@ -145,7 +145,7 @@ function editActivity(event) {
          hiddenTabsIds[0] = "ResourcesTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
-         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds);
+         baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
    }
 }
@@ -194,7 +194,7 @@ function getEditDialogForm() {
  * @param hiddenFieldIds - a List<String> representing the ids of the fields which should be hidden, according to the activity type.
  * @param hiddenTabIds - a List<String> representing the ids of the tabs which should be hidden.
  */
-function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldIds, hiddenTabsIds) {
+function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldIds, hiddenTabsIds, checkAvailability) {
    activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    selected_rows = activity_data_set.selectedRows();
    selected_indices = activity_data_set.selectedIndices();
@@ -212,6 +212,9 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          title = dialog_form.findComponent(titleComponentId).getText();
       }
       dialog.setText(title);
+
+      //if availability should be checked for added resources
+      dialog_form.findComponent("CheckAvailability").setBooleanValue(checkAvailability);
 
       //fill the project edit mode
       dialog_form.findComponent("EditModeField").setBooleanValue(edit_mode);

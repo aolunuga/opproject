@@ -66,8 +66,6 @@
       <resource id="HourlyRates">Hourly Rates</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
       <resource id="AddRateToolTip">Add Rate</resource>
       <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
@@ -90,8 +88,6 @@
       <resource id="HourlyRates">Hourly Rates</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
       <resource id="AddRateToolTip">Add Rate</resource>
       <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>

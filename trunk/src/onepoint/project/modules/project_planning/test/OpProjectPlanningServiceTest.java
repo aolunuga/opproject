@@ -138,7 +138,7 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
-      activity.setAssignments(new HashSet());
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       assignment = new OpAssignment();
@@ -234,7 +234,7 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
-      activity.setAssignments(new HashSet());
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       assignment = new OpAssignment();
@@ -246,8 +246,11 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
 
       t.commit();
 
-      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), 1, true);
-      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, 1);
+      // create a Project plan version
+      t = broker.newTransaction();
+      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, true);
+      t.commit();
+      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       assertNotNull(planVersion);
 
       broker.close();
@@ -259,7 +262,7 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       response = service.revertActivities(session, request);
       assertNoError(response);
       broker = session.newBroker();
-      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, 1);
+      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       broker.close();
       assertNull(planVersion);
    }
@@ -292,7 +295,7 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);
       activity.setTemplate(false);
-      activity.setAssignments(new HashSet());
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       assignment = new OpAssignment();
@@ -305,8 +308,11 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
 
       t.commit();
 
-      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), 1, true);
-      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, 1);
+      // create a Project plan version
+      t = broker.newTransaction();
+      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, true);
+      t.commit();
+      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       assertNotNull(planVersion);
 
       broker.close();

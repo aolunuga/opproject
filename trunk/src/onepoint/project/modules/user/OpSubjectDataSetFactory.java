@@ -110,11 +110,11 @@ public final class OpSubjectDataSetFactory {
       while (results.hasNext()) {
          Object[] record = (Object[]) results.next();
          Long subGroupID = (Long) record[0];
-         subGroup = (OpGroup) broker.getObject(OpGroup.class, subGroupID.longValue());
+         subGroup = (OpGroup) broker.getObject(OpGroup.class, subGroupID);
          if (filteredSubjectIds != null && filteredSubjectIds.contains(subGroup.locator())) {
             continue;
          }
-         Integer subRowsNr = (Integer) record[1];
+         Number subRowsNr = (Number) record[1];
          XComponent row = retrieveSubjectRow(subGroup, outlineLevel, localizer, simpleStructure);
          dataSet.addChild(row);
          if (subRowsNr.intValue() != 0 && !allChildrenFiltered(subGroup, filteredSubjectIds)) {

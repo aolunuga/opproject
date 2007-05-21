@@ -5,6 +5,8 @@
 package onepoint.project.modules.documents;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpAttachment;
+import onepoint.project.modules.project.OpAttachmentVersion;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,14 +14,20 @@ import java.util.Set;
 public class OpContent extends OpObject {
    
    public final static String CONTENT = "OpContent";
+   public final static String MEDIA_TYPE = "MediaType";
+   public final static String ATTACHMENTS = "Attachments";
+   public final static String ATTACHMENT_VERSIONS = "AttachmentVersions";
+   public final static String DOCUMENTS = "Documents";
+   public final static String SIZE = "Size";
+   public final static String BYTES = "Bytes";
 
    private int refCount;
    private String mediaType; // MIME-type
    private long size;
    private byte[] bytes; // TODO: Use OpBlobUserType; what about streaming?
-   private Set attachments = new HashSet();
-   private Set attachmentVersions = new HashSet();
-   private Set documents = new HashSet();
+   private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
+   private Set<OpAttachmentVersion> attachmentVersions = new HashSet<OpAttachmentVersion>();
+   private Set<OpDocument> documents = new HashSet<OpDocument>();
 
    public void setRefCount(int refCount) {
       this.refCount = refCount;
@@ -53,27 +61,27 @@ public class OpContent extends OpObject {
       return bytes;
    }
    
-   public void setAttachments(Set attachments) {
+   public void setAttachments(Set<OpAttachment> attachments) {
       this.attachments = attachments;
    }
    
-   public Set getAttachments() {
+   public Set<OpAttachment> getAttachments() {
       return attachments;
    }
 
-   public Set getDocuments() {
+   public Set<OpDocument> getDocuments() {
       return documents;
    }
 
-   public void setDocuments(Set documents) {
+   public void setDocuments(Set<OpDocument> documents) {
       this.documents = documents;
    }
 
-   public Set getAttachmentVersions() {
+   public Set<OpAttachmentVersion> getAttachmentVersions() {
       return attachmentVersions;
    }
 
-   public void setAttachmentVersions(Set attachmentVersions) {
+   public void setAttachmentVersions(Set<OpAttachmentVersion> attachmentVersions) {
       this.attachmentVersions = attachmentVersions;
    }
 }

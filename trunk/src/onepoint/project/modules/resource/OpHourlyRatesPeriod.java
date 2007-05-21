@@ -47,6 +47,12 @@ public class OpHourlyRatesPeriod extends OpObject {
     */
    private double externalRate;
 
+   public static int PERIOD_START_DATE_NOT_VALID = 1;
+   public static int PERIOD_END_DATE_NOT_VALID = 2;
+   public static int INTERNAL_RATE_NOT_VALID = 3;
+   public static int EXTERNAL_RATE_NOT_VALID = 4;
+   public static int PERIOD_INTERVAL_NOT_VALID = 5;
+
    /**
     * Gets the resource of the period.
     *
@@ -164,19 +170,19 @@ public class OpHourlyRatesPeriod extends OpObject {
    public int isValid() {
 
       if (start == null) {
-         return OpResourceError.PERIOD_START_DATE_NOT_VALID;
+         return PERIOD_START_DATE_NOT_VALID;
       }
       else if (finish == null) {
-         return OpResourceError.PERIOD_END_DATE_NOT_VALID;
+         return PERIOD_END_DATE_NOT_VALID;
       }
       else if (internalRate < 0) {
-         return OpResourceError.HOURLY_RATE_NOT_VALID;
+         return INTERNAL_RATE_NOT_VALID;
       }
       else if (externalRate < 0) {
-         return OpResourceError.EXTERNAL_RATE_NOT_VALID;
+         return EXTERNAL_RATE_NOT_VALID;
       }
-      else if (!finish.after(start)){
-         return OpResourceError.PERIOD_INTERVAL_NOT_VALID;
+      else if (finish.before(start)){
+         return PERIOD_INTERVAL_NOT_VALID;
       }
       else {
          return 0;

@@ -3,6 +3,9 @@
    <data-field id="EditMode"/>
    <data-field id="OriginalStartDate"/>
    <data-field id="WorkingVersionNumber"/>
+   <data-field id="Today"/>
+   <data-field id="EndOfYear"/>
+   
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
    <tab-box y="0">
@@ -57,18 +60,39 @@
 
    <tab text="${Resources}" layout="border" id="ResourcesTab">
       <data-set id="AssignedResourceDataSet"/>
+      <data-set id="OriginalResourceDataSet"/>
       <data-set id="ReadOnlyResourceDataSet"/>
       <table-box id="ResourcesTable" data-set-ref="AssignedResourceDataSet" sidebar-width="0"
                  flexible="true" stateful="true" edit-mode="true">
-         <table-column text="${Resource}" width="65" sortable="true" data-column-index="0" value-type="String"/>
-         <table-column text="${Description}" width="65" sortable="true" data-column-index="1" value-type="String"/>
-         <table-column text="${AdjustRates}" width="40" sortable="false" on-value-changed="checkAdjust" data-column-index="2" value-type="Boolean"/>
-         <table-column text="${HourlyRate}" width="65" sortable="true" data-column-index="3" value-type="Double"/>
-         <table-column text="${ExternalRate}" width="65" sortable="true" data-column-index="4" value-type="Double"/>
+         <table-column text="${Resource}" width="65" data-column-index="0" value-type="String"/>
+         <table-column text="${Description}" width="65" data-column-index="1" value-type="String"/>
+         <table-column text="${AdjustRates}" width="40" on-value-changed="checkAdjust" data-column-index="2" value-type="Boolean"/>
+         <table-column text="${InternalRate}" width="65" data-column-index="3" value-type="Double"/>
+         <table-column text="${ExternalRate}" width="65" data-column-index="4" value-type="Double"/>
       </table-box>
       <panel id="ResourcesToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addProjectAssignment"/>
          <icon-button icon-type="MinusSign" on-button-pressed="removeProjectAssignment"/>
+      </panel>
+   </tab>
+
+   <tab text="${HourlyRates}" layout="border" id="HourlyRatesTab"
+        on-tab-activated="activateRates" on-tab-deactivated="deactivateRates">
+      <table-box id="HourlyRatesTable" data-set-ref="AssignedResourceDataSet" sidebar-width="0"
+                 flexible="true" edit-mode="true" stateful="true" tree-column-index="0">
+
+         <table-column text="${Resource}" width="65" sortable="true" data-column-index="0" value-type="String"/>
+         <table-column text="${Description}" width="65" sortable="true" data-column-index="1" value-type="String"/>
+         <table-column text="${Start}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
+         <table-column text="${End}" width="65" sortable="true" data-column-index="6" value-type="Date"/>
+         <table-column text="${InternalRate}" width="65" sortable="true" data-column-index="7"
+                       value-type="Double"/>
+         <table-column text="${ExternalRate}" width="65" sortable="true" data-column-index="8"
+                       value-type="Double"/>
+      </table-box>
+      <panel id="HourlyRatesTableToolBar" y="1" layout="flow" direction="east" visible="true">
+         <icon-button icon-type="PlusSign" on-button-pressed="addRate"/>
+         <icon-button icon-type="MinusSign" on-button-pressed="removeRates"/>
       </panel>
    </tab>
 

@@ -61,7 +61,7 @@ public final class OpModuleManager {
          // *** Add built-in modules here or hard-code completely?
       }
       // Register prototypes and tools for all modules
-      Iterator modules = moduleRegistry.getModules();
+      Iterator modules = moduleRegistry.iterator();
       OpModule module;
       Iterator prototypes;
       OpPrototype prototype;
@@ -173,7 +173,7 @@ public final class OpModuleManager {
    public static void setup() {
       // Invoke setup callbacks (for setting up a new instance)
       OpProjectSession setupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.getModules();
+      Iterator modules = moduleRegistry.iterator();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.setup(setupSession);
@@ -184,7 +184,7 @@ public final class OpModuleManager {
    public static void start() {
       // Invoke start callbacks
       OpProjectSession startupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.getModules();
+      Iterator modules = moduleRegistry.iterator();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.start(startupSession);
@@ -195,7 +195,7 @@ public final class OpModuleManager {
    public static void stop() {
       // *** Write module-registry?
       OpProjectSession shutdownSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.getModules();
+      Iterator modules = moduleRegistry.iterator();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.stop(shutdownSession);
@@ -211,7 +211,7 @@ public final class OpModuleManager {
     */
    public static void upgrade(int dbVersion) {
       OpProjectSession session = new OpProjectSession();
-      Iterator modules = moduleRegistry.getModules();
+      Iterator modules = moduleRegistry.iterator();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.upgrade(session, dbVersion);

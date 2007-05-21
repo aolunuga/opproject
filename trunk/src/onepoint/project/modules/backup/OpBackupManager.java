@@ -7,6 +7,7 @@ package onepoint.project.modules.backup;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.util.XEnvironmentManager;
 import onepoint.xml.XDocumentWriter;
@@ -37,6 +38,7 @@ public class OpBackupManager {
     */
    public final static String OPP_BACKUP = "opp-backup";
    public final static String VERSION = "version";
+   public final static String SCHEMA_VERSION = "schema-version";
 
    public final static String PROTOTYPES = "prototypes";
    public final static String PROTOTYPE = "prototype";
@@ -693,11 +695,11 @@ public class OpBackupManager {
       writer.writeHeader1_0();
       HashMap attributes = new HashMap();
 
-      // Write root elements (pilot release uses version="0")
-      attributes.put(VERSION, new StringBuffer().append(CURRENT_VERSION_NUMBER).toString());
+      // Write root elements
+      attributes.put(VERSION, String.valueOf(CURRENT_VERSION_NUMBER));
+      attributes.put(SCHEMA_VERSION, String.valueOf(OpHibernateSource.SCHEMA_VERSION));
       writer.writeStartElement(OPP_BACKUP, attributes, false);
       attributes.clear();
-
 
       // Export prototype order
       List allMembers = exportPrototypes(writer);

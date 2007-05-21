@@ -10,6 +10,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpFilter;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpService;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.resource.XLocale;
@@ -34,9 +35,14 @@ import java.util.*;
  *
  */
 
-public class OpUserServiceImpl{
+public class OpUserServiceImpl implements OpService {
 
   private static final XLog logger_ = XLogFactory.getServerLogger(OpUserServiceImpl.class);
+
+  /**
+   * The name of this service.
+   */
+  public static final String SERVICE_NAME = "UserService";
 
   /**
    * the map containing all error types.
@@ -707,5 +713,12 @@ public class OpUserServiceImpl{
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
     }
     broker.deleteObject(group);
+  }
+  
+  /* (non-Javadoc)
+   * @see onepoint.project.OpService#getName()
+   */
+  public String getName() {
+     return SERVICE_NAME;
   }
 }

@@ -7,6 +7,7 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/project/scripts/helper_project.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -54,11 +55,58 @@ function ok_edit(event) {
 
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
-   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");   
+   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   original_resource_set = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
    versions_set = XDisplay.getActiveForm().findComponent("VersionsSet");
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
-   
+
+   //if the hourlyRates tab was modified that is the priority
+   modifiedPeriods = isModifiedHourlyTab();
+    if (modifiedPeriods.size() > 0) {
+      request = new XMessage;
+      request.setAction("ProjectService.haveAssignmentsInTimePeriod");
+      request.setArgument("resource_set", assigned_resource_set);
+      request.setArgument("project_id", project_id);
+      response = XDisplay.getClient().invokeMethod(request);
+      hasAssignments = response.getArgument("AssignmentsInPeriod");
+      if (hasAssignments == true) {
+         //display
+         dialog = XComponent.newDialog();
+         parameters.project_id = project_id;
+         parameters.project_data = project_data;
+         parameters.goals_set = goals_set;
+         parameters.to_dos_set = to_dos_set;
+         parameters.resource_set = assigned_resource_set;
+         parameters.versions_set = versions_set;
+         parameters.changed = "hourlyTab";
+         dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
+         return;
+      }
+    }
+
+    //check if the rates from the resource tab were modified
+   request = new XMessage;
+   request.setAction("ProjectService.checkModifiedRates");
+   request.setArgument("resource_set", assigned_resource_set);
+   request.setArgument("original_resource_set", original_resource_set);
+   request.setArgument("project_id", project_id);
+   response = XDisplay.getClient().invokeMethod(request);
+   hasAssignments = response.getArgument("Assignments");
+   if (hasAssignments == true) {
+      //display
+      dialog = XComponent.newDialog();
+      parameters.project_id = project_id;
+      parameters.project_data = project_data;
+      parameters.goals_set = goals_set;
+      parameters.to_dos_set = to_dos_set;
+      parameters.resource_set = assigned_resource_set;
+      parameters.versions_set = versions_set;
+      parameters.changed = "resourceTab";
+      dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
+      return;
+   }
+
    request = new XMessage;
    request.setAction("ProjectService.updateProject");
    request.setArgument("project_id", project_id);
@@ -79,67 +127,6 @@ function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
 
-function addGoal(event) {
-   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
-   data_row = data_set.newDataRow();
-   data_set.addDataRow(data_row);
-   data_cell = XComponent.newDataCell();
-   data_cell.setBooleanValue(false);
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   data_cell = XComponent.newDataCell();
-   data_cell.setStringValue("");
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   data_cell = XComponent.newDataCell();
-   data_cell.setIntValue(5);
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
-}
-
-function removeGoals(event) {
-   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
-   selected_rows = data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      data_set.removeDataRows(selected_rows);
-      XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
-   }
-}
-
-function addToDo(event) {
-   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
-   data_row = data_set.newDataRow();
-   data_set.addDataRow(data_row);
-   data_cell = XComponent.newDataCell();
-   data_cell.setBooleanValue(false);
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   data_cell = XComponent.newDataCell();
-   data_cell.setStringValue("");
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   data_cell = XComponent.newDataCell();
-   data_cell.setIntValue(5);
-   data_cell.setEnabled(true);
-   data_row.addChild(data_cell);
-   data_cell = XComponent.newDataCell();
-   data_cell.setEnabled(true);
-   date = new Date;
-   data_cell.setDateValue(date);
-   data_row.addChild(data_cell);
-   XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
-}
-
-function removeToDos(event) {
-   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
-   selected_rows = data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      data_set.removeDataRows(selected_rows);
-      XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
-   }
-}
-
 function removeVersions(event) {
    data_set = XDisplay.getActiveForm().findComponent("VersionsSet");
    selected_rows = data_set.selectedRows();
@@ -150,34 +137,6 @@ function removeVersions(event) {
       form = dialog.loadForm("/modules/project/forms/confirm_version_delete.oxf.xml");
       form.findComponent("SelectedVersions").setListValue(selected_rows);
       dialog.open();
-   }
-}
-
-function addProjectAssignment(event){
-   assigned_resource_data_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   i = 0;
-   while (i < assigned_resource_data_set.getChildCount()) {
-      resource_ids[i] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
-      i++;
-   }
-   readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
-   index = 0;
-   while (index < readonly_resource_data_set.getChildCount()) {
-      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
-      i++;
-      index++;
-   }
-   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
-}
-
-function removeProjectAssignment(event){
-   form = XDisplay.getActiveForm();
-   assigned_resource_data_set = form.findComponent("AssignedResourceDataSet");
-   selected_rows = assigned_resource_data_set.selectedRows();
-   if (selected_rows.size() > 0) {
-      assigned_resource_data_set.removeDataRows(selected_rows);
-      resourceTable = form.findComponent("ResourcesTable");
-      resourceTable.update();
    }
 }
 
@@ -212,32 +171,64 @@ function selectionChanged(event) {
    form.repaint();
 }
 
-function checkAdjust(event) {
-   adjustCell = event.event_source;
-   isChecked = adjustCell.getBooleanValue();
-   hourlyRateCell = adjustCell.getParent().getChild(3);
-   externalRateCell = adjustCell.getParent().getChild(4);
-   resourceID = adjustCell.getParent().getStringValue();
+//checks if any of the OpHourlyRatesPeriod from the Hourly Rates tab was modified and
+//returns all modified OpHourlyRatesPeriods
+function isModifiedHourlyTab() {
+   newRatesDataSet = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   originalRatesDataSet = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
+   modifiedRates = new ArrayList;
 
-   hourlyRateCell.setEnabled(isChecked);
-   externalRateCell.setEnabled(isChecked);
-   if (isChecked == true) {
-      request = new XMessage;
-      request.setAction("ResourceService.getResourceRates");
-      request.setArgument("resource_id",resourceID);
-      response = XDisplay.getClient().invokeMethod(request);
-      internalRate = response.getArgument("InternalRate");
-      externalRate = response.getArgument("ExternalRate");
-      hourlyRateCell.setDoubleValue(internalRate);
-      externalRateCell.setDoubleValue(externalRate);
+   //add to modified rows the original rows that have changed
+   i = 0;
+   while (i < originalRatesDataSet.getChildCount()) {
+      modified = true;
+      originalRow = originalRatesDataSet.getChild(i);
+      if (originalRow.getOutlineLevel() == 1) {
+         j = 0;
+         while (j < newRatesDataSet.getChildCount()) {
+            newRow = newRatesDataSet.getChild(j);
+            if (newRow.getOutlineLevel() == 1) {
+               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
+                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
+                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
+                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
+                  modified = false;
+                  break;
+               }
+            }
+            j++;
+         }
+         if (modified) {
+            modifiedRates.add(originalRow);
+         }
+      }
+      i++;
    }
-   else {
-      hourlyRateCell.setValue(null);
-      externalRateCell.setValue(null);
+   //add to modified rows the newly changed or added rows
+   i = 0;
+   while (i < newRatesDataSet.getChildCount()) {
+      modified = true;
+      newRow = newRatesDataSet.getChild(i);
+      if (newRow.getOutlineLevel() == 1) {
+         j = 0;
+         while (j < originalRatesDataSet.getChildCount()) {
+            originalRow = originalRatesDataSet.getChild(j);
+            if (originalRow.getOutlineLevel() == 1) {
+               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
+                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
+                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
+                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
+                  modified = false;
+                  break;
+               }
+            }
+            j++;
+         }
+         if (modified) {
+            modifiedRates.add(newRow);
+         }
+      }
+      i++;
    }
-   // Update resource table
-   resourceTable = XDisplay.getActiveForm().findComponent("ResourcesTable");
-   resourceTable.doLayout();
-   resourceTable.repaint();
+   return modifiedRates;
 }
-

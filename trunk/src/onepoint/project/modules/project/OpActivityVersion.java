@@ -9,6 +9,8 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class OpActivityVersion extends OpObject {
@@ -60,6 +62,10 @@ public class OpActivityVersion extends OpObject {
    public final static int HAS_ATTACHMENTS = OpGanttValidator.HAS_ATTACHMENTS;
    public final static int HAS_COMMENTS = OpGanttValidator.HAS_COMMENTS;
 
+   //Start & End date indexes
+   public final static int START_DATE_LIST_INDEX = 0;
+   public final static int END_DATE_LIST_INDEX = 1;
+
    private String name;
    private String description;
    private byte type = STANDARD;
@@ -86,7 +92,7 @@ public class OpActivityVersion extends OpObject {
    private OpActivityVersion superActivityVersion;
    private Set subActivityVersions; // *** Could also be a List (via sequence)
    private OpProjectPlanVersion planVersion;
-   private Set assignmentVersions;
+   private Set<OpAssignmentVersion> assignmentVersions;
    private Set workPeriodVersions;
    private Set successorVersions;
    private Set predecessorVersions;
@@ -285,11 +291,11 @@ public class OpActivityVersion extends OpObject {
       return planVersion;
    }
 
-   public void setAssignmentVersions(Set assignmentVersions) {
+   public void setAssignmentVersions(Set<OpAssignmentVersion> assignmentVersions) {
       this.assignmentVersions = assignmentVersions;
    }
 
-   public Set getAssignmentVersions() {
+   public Set<OpAssignmentVersion> getAssignmentVersions() {
       return assignmentVersions;
    }
 
@@ -347,5 +353,45 @@ public class OpActivityVersion extends OpObject {
 
    public void setPayment(Double payment) {
       this.payment = (payment != null) ? payment : 0;
+   }
+
+   /**
+    * Returns a <code>List</code> containing two dates: a start date and an end date.
+    * if the activity is a STANDARD one then the list will contain it's start and end dates,
+    * if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
+    *    from the activity's end date, the project's end date and the project'a plan end date. The first one
+    *    (in this order) that is found not null will be returned.
+    * @return - a <code>List</code> containing two dates: a start date and an end date.
+    * if the activity is a STANDARD one then the list will contain it's start and end dates,
+    * if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
+    *    from the activity's end date, the project's end date and the project'a plan end date. The first one
+    *    (in this order) that is found not null will be returned.
+    */
+   public List<Date> getStartEndDateByType(){
+      List<Date> dates = null;
+
+      if(type == STANDARD){
+         dates = new ArrayList<Date>();
+         dates.add(START_DATE_LIST_INDEX, start);
+         dates.add(END_DATE_LIST_INDEX, finish);
+      }
+
+      if(type == TASK){
+         dates = new ArrayList<Date>();
+         dates.add(START_DATE_LIST_INDEX, start);
+         if(finish != null){
+            dates.add(END_DATE_LIST_INDEX, finish);
+         }
+         else{
+            if(planVersion.getProjectPlan().getProjectNode().getFinish() != null){
+               dates.add(END_DATE_LIST_INDEX, planVersion.getProjectPlan().getProjectNode().getFinish());
+            }
+            else{
+               dates.add(END_DATE_LIST_INDEX, planVersion.getProjectPlan().getFinish());
+            }
+         }
+      }
+
+      return dates;
    }
 }

@@ -246,4 +246,13 @@ public class OpMyTasksService extends OpProjectService {
      }
      return reply;
    }
+   
+   /* (non-Javadoc)
+    * @see onepoint.project.OpProjectService#getServiceImpl()
+    */
+    @Override
+    public Object getServiceImpl() {
+       return serviceImpl;
+    }
+
 }

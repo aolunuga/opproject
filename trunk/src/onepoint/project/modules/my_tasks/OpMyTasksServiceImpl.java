@@ -4,12 +4,23 @@
 
 package onepoint.project.modules.my_tasks;
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.SortedSet;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpConnection;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpService;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
@@ -21,11 +32,6 @@ import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XServiceException;
 
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-
 /**
  * Service Implementation for MyTasks.
  * This class is capable of inserting updating and deleting
@@ -35,7 +41,13 @@ import java.util.Set;
  *
  * @author dfreis
  */
-public class OpMyTasksServiceImpl {
+public class OpMyTasksServiceImpl implements OpService {
+
+   /**
+    * The name of this service.
+    */
+   public static final String SERVICE_NAME = "MyTasksService";
+
    private static final XLog LOGGER =
         XLogFactory.getServerLogger(OpMyTasksServiceImpl.class);
    private static final String MAX_ACTIVITY_SEQUENCE =
@@ -78,24 +90,35 @@ public class OpMyTasksServiceImpl {
     */
    public static final byte TYPE_ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
-   private static final String ALL_ROOT_ACTIVITIES =
+   private static final String ALL_MY_ACTIVITIES =
         "select activity from OpActivity as activity"
              + " inner join activity.Assignments as assignment"
-             + " where assignment.Resource.ID in (:resourceIds)"
-             + " and activity.SuperActivity = null" // no parent
+             + " where assignment.Resource in (:resources)"
+//             + " and activity.SuperActivity = null" // no parent
 //    + " and activity.ProjectPlan.ID :project" 
              + " and activity.Deleted = false"
              + " order by activity.Sequence";
 
-   private static final String ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE =
+   private static final String ALL_ROOT_ACTIVITIES =
+      "select activity from OpActivity as activity"
+      + " inner join activity.Assignments as assignment"
+      + " where ( assignment.Resource in (:resources)"
+      + " or activity.Type = 1 )"      
+      + " and activity.SuperActivity = null" // no parent
+//  + " and activity.ProjectPlan.ID :project" 
+      + " and activity.Deleted = false"
+      + " order by activity.Sequence";
+
+   private static final String ALL_MY_ACTIVITIES_OF_GIVEN_TYPE =
         "select activity from OpActivity as activity"
              + " inner join activity.Assignments as assignment"
-             + " where assignment.Resource.ID in (:resourceIds)"
-             + " and activity.SuperActivity = null" // no parent
+             + " where assignment.Resource in (:resources)"
+//             + " and activity.SuperActivity = null" // no parent
 //    + " and activity.ProjectPlan.ID :project" 
              + " and activity.Type in (:types)" // = 6 == ADHOC_TASK
              + " and activity.Deleted = false"
              + " order by activity.Sequence";
+
 
 // private static final Criteria ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE = 
 // new Criteria(OpActivity.class)
@@ -117,14 +140,63 @@ public class OpMyTasksServiceImpl {
     */
 
    public final Iterator<OpActivity> getRootTasks(
+        final OpProjectSession session, final OpBroker broker) {
+      // get myResourceIds
+      OpUser user = session.user(broker);
+      HashSet<Long> sortedResources = new HashSet<Long>();
+      for (OpResource resource : user.getResources()) {
+         sortedResources.add(resource.getID());
+      }
+      
+      // get all activity collections
+      OpQuery query = broker.newQuery(
+            "select activity from OpActivity as activity"+
+            " where activity.Deleted = false"+
+            " order by activity.Sequence");
+
+      LinkedList<OpActivity> ret = new LinkedList<OpActivity>();
+      Iterator iter = broker.iterate(query);
+      OpActivity to_add;
+      while (iter.hasNext()) {
+         to_add = (OpActivity)iter.next();
+         if (readGranted(session, to_add)) {
+            Iterator<OpAssignment> assignmentIter = to_add.getAssignments().iterator();
+            OpAssignment assignment;
+            if (!assignmentIter.hasNext()) { // has no assignments
+               ret.add(to_add);
+            } 
+            else {
+               while (assignmentIter.hasNext()) {
+                  assignment = assignmentIter.next();
+                  if (sortedResources.contains(assignment.getResource().getID())) {
+                     ret.add(to_add);
+                  }
+               }
+            }
+         }
+      }
+      return(ret.iterator());
+   }
+
+   /**
+    * Returns an iterator over all tasks that do not have a parent
+    * task (= root) and the user is allowed to see.
+    *
+    * @param session the session of the user
+    * @param broker  the broker to use.
+    * @return an iterator over all tasks that do not have a parent.
+    *         task and are allowed for the user to be seen.
+    */
+
+   public final Iterator<OpActivity> getMyTasks(
         OpProjectSession session, OpBroker broker) {
       // get myResourceIds
       OpUser user = session.user(broker);
       Set<OpResource> resources = user.getResources();
 
       // construct query
-      OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES);
-      query.setCollection("resourceIds", resources);
+      OpQuery query = broker.newQuery(ALL_MY_ACTIVITIES);
+      query.setCollection("resources", resources);
 
       // type save required...
       final Iterator iter = broker.iterate(query);
@@ -156,14 +228,14 @@ public class OpMyTasksServiceImpl {
     *         user to be seen.
     */
 
-   public final Iterator<OpActivity> getRootTasks(
+   public final Iterator<OpActivity> getMyTasks(
         OpProjectSession session, OpBroker broker, BitSet types) {
       // get myResourceIds
       OpUser user = session.user(broker);
       Set<OpResource> resources = user.getResources();
       // construct query
-      OpQuery query = broker.newQuery(ALL_ROOT_ACTIVITIES_OF_GIVEN_TYPE);
-      query.setCollection("resourceIds", resources);
+      OpQuery query = broker.newQuery(ALL_MY_ACTIVITIES_OF_GIVEN_TYPE);
+      query.setCollection("resources", resources);
       LinkedList<Integer> type_list = new LinkedList<Integer>();
       for (int bit = types.nextSetBit(0); bit >= 0; bit = types.nextSetBit(bit + 1)) {
          type_list.add(bit);
@@ -187,21 +259,41 @@ public class OpMyTasksServiceImpl {
    }
 
    /**
+    * Returns the parent activity for the given one.
+    * The user must have sufficient privileged to see these tasks.
+    *
+    * @param session  the session of the user
+    * @param broker   the broker to use.
+    * @param activity the activity to get the parent for.
+    * @return the parent activity.
+    */
+   public final OpActivity getParentTask(
+        OpProjectSession session, OpBroker broker, OpActivity activity) {
+      OpActivity parent = activity.getSuperActivity();
+      if (parent == null) {
+         return null;
+      }
+      if (readGranted(session, parent)) {
+         return parent;
+      }
+      return null;
+   }
+
+   /**
     * Returns an iterator over all child tasks that have the given
-    * common parent activity. The user must have sufficient
-    * privileged to see these tasks.
+    * common parent activity and match one of the given types.
+    * The user must have sufficient privileged to see these tasks.
     *
     * @param session  the session of the user
     * @param broker   the broker to use.
     * @param activity the parent task to get the children for.
-    * @return an iterator over all tasks representing children of
-    *         the given activity.
+    * @return an iterator over all tasks representing children of the given activity.
     */
    public final Iterator<OpActivity> getChildTasks(
         OpProjectSession session, OpBroker broker, OpActivity activity) {
       return getChildTasks(session, broker, activity, null);
    }
-
+   
    /**
     * Returns an iterator over all child tasks that have the given
     * common parent activity and match one of the given types.
@@ -215,14 +307,35 @@ public class OpMyTasksServiceImpl {
     */
    public final Iterator<OpActivity> getChildTasks(
         OpProjectSession session, OpBroker broker, OpActivity activity, BitSet types) {
+      // get myResourceIds
+      OpUser user = session.user(broker);
+      HashSet<Long> sortedResources = new HashSet<Long>();
+      for (OpResource resource : user.getResources()) {
+         sortedResources.add(resource.getID());
+      }
+      
       LinkedList<OpActivity> ret = new LinkedList<OpActivity>();
       Iterator<OpActivity> iter = activity.getSubActivities().iterator();
       OpActivity to_add;
       while (iter.hasNext()) {
          to_add = iter.next();
          if (readGranted(session, to_add)) {
-            if (types == null || types.get(to_add.getType())) {
-               ret.add(to_add);
+            Iterator<OpAssignment> assignmentIter = to_add.getAssignments().iterator();
+            OpAssignment assignment;
+            if (!assignmentIter.hasNext()) { // has no assignments
+               if (types == null || types.get(to_add.getType())) {
+                  ret.add(to_add);
+               }
+            } 
+            else {
+               while (assignmentIter.hasNext()) {
+                  assignment = assignmentIter.next();
+                  if (sortedResources.contains(assignment.getResource().getID())) {
+                     if (types == null || types.get(to_add.getType())) {
+                        ret.add(to_add);
+                     }
+                  }
+               }
             }
          }
       }
@@ -521,6 +634,17 @@ public class OpMyTasksServiceImpl {
     * @return true if the user has rights to create adhoc task
     */
    public static boolean createGranted(OpProjectSession session, OpActivity activity) {
+      if (session == null) {
+         throw new IllegalArgumentException("session is null");
+      }
+      if (activity == null) {
+         throw new IllegalArgumentException("activity is null");
+      }
+      // check if logged in
+      if (!session.isLoggedOn()) {
+         LOGGER.info("not logged in!");
+         return false;
+      }
       // create rights include admin rights
       if (basicRightsCheck(session)) {
          return true;
@@ -632,5 +756,12 @@ public class OpMyTasksServiceImpl {
          broker.close();
       }
       return false;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.project.OpService#getName()
+    */
+   public String getName() {
+      return SERVICE_NAME;
    }
 }

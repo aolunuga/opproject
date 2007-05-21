@@ -69,7 +69,6 @@ public class OpProjectPlanValidator {
     *                  Can be <code>null</code>.
     */
    public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
-      OpTransaction tx = broker.newTransaction();
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
@@ -77,8 +76,6 @@ public class OpProjectPlanValidator {
       logger.info("Revalidating working version plan for " + projectNode.getName());
       OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
-
-      tx.commit();
    }
 
    /**

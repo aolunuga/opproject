@@ -92,9 +92,11 @@ function ok_edit(event) {
       request = new XMessage;
       request.setAction("ResourceService.hasAssignments");
       request.setArgument("resource_id", resource_id);
-      if(originalInherit != inheritFromPoolRate && hourlyRate == originalHourlyRate && externalRate == originalExternalRate
-           && available == originalAvailable){
-         request.setArgument("checkInherit", true);   
+      request.setArgument("HourlyRatesSet", hourlyRatesSet);
+      if(originalInherit != inheritFromPoolRate){
+         request.setArgument("checkInherit", true);
+         request.setArgument("newHourlyRate", hourlyRate);
+         request.setArgument("newExternalRate", externalRate);
       }
       response = XDisplay.getClient().invokeMethod(request);
       hasAssignments = response.getArgument("Assignments");      

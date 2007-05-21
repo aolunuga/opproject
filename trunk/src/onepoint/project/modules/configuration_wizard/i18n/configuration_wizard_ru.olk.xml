@@ -11,7 +11,6 @@
       <resource id="SelectFolder">Select Database Folder</resource>
       <resource id="Select">Change</resource>
       <resource id="OK">OK</resource>
-      <resource id="ImportDemoData">Import demo data</resource>            
    </resource-map>
    <resource-map id="configuration_wizard.error">
       <resource id="DatabaseUrlMissing">The database connect string was not specified</resource>
@@ -21,7 +20,6 @@
       <resource id="InvalidConnectionString">The connect string is invalid</resource>
       <resource id="GeneralConnectionError">Cannot connect to the database</resource>
       <resource id="JDBCDriverError">Cannot load the JDBC driver for the given database type</resource>
-      <resource id="NonExistentDemoData">Could not find demo data file</resource>
-      <resource id="DemodataImportFailure">Cannot import demo data file</resource>
+      <resource id="InvalidMySqlEngine">You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>      
    </resource-map>
 </language-kit>

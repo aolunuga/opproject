@@ -11,6 +11,8 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpFilter;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpService;
+import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 
 /**
  * Service Implementation for Project Administration.
@@ -20,7 +22,12 @@ import onepoint.project.OpProjectSession;
  * @author dfreis
  */
 
-public class OpProjectAdministrationServiceImpl {
+public class OpProjectAdministrationServiceImpl implements OpService {
+
+   /**
+    * The name of this service.
+    */
+   public static final String SERVICE_NAME = "ProjectService";
 
    /**
     * the portfolio type.
@@ -37,6 +44,19 @@ public class OpProjectAdministrationServiceImpl {
     */
    public static final int TYPE_ALL = TYPE_PORTFOLIO + TYPE_PROJECT;
 
+   /**
+    * Returns the project plan identified by the given id.
+    * @param session the session within any operation will be performed.
+    * @param broker the broker to perform any operation.
+    * @param id the id of the project plan to get.
+    * @return the requested project plan or <code>null</code> if no 
+    * project was found for the given id.
+    */
+   public final OpProjectPlan getProjectPlanMyId(
+         final OpProjectSession session, final OpBroker broker, final long id) {
+      return (OpProjectPlan) broker.getObject(OpProjectPlan.class, id);
+   }
+   
    /**
     * Returns the top level portfolio or null if the user does not
     * have sufficient rights.
@@ -109,4 +129,12 @@ public class OpProjectAdministrationServiceImpl {
       }
       return children.iterator();
    }
+   
+   /* (non-Javadoc)
+    * @see onepoint.project.OpService#getName()
+    */
+   public String getName() {
+      return SERVICE_NAME;
+   }
+   
 }

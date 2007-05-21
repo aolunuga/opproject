@@ -77,6 +77,11 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
                errorLabel.setText(text);
                break;
             }
+            case OpConnectionManager.INVALID_MYSQL_ENGINE: {
+               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
          }
       }
    }

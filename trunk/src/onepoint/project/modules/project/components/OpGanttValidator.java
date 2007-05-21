@@ -128,6 +128,7 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
+   public final static String INVALID_BASE_EFFORT_EXCEPTION = "InvalidBaseEffortException";
 
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -2313,8 +2314,8 @@ public class OpGanttValidator extends XValidator {
 
                setResources(data_row, resources);
 
-               //duration stays the same.
-               updateDuration(data_row, getDuration(data_row));
+               //effort stays the same.
+               updateBaseEffort(data_row, getDuration(data_row));
 
                //construct the resource availability map
                updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
@@ -2460,6 +2461,11 @@ public class OpGanttValidator extends XValidator {
    }
 
    protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
+
+      if (getActualEffort(data_row) > base_effort) {
+         throw new XValidationException(INVALID_BASE_EFFORT_EXCEPTION);
+      }
+
       if (isProjectMandatory(data_row)) {
          if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
               (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
@@ -4861,8 +4867,7 @@ public class OpGanttValidator extends XValidator {
          }
       }
       catch (XValidationException e) {
-         setBaseEffort(data_row, previousEffort);
-         throw e;
+         logger.info("Resource % > resource available. Duration will be updated.");
       }
 
       if (!isEffortBasedProject()) {

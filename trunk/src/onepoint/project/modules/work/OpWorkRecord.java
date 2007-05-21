@@ -31,6 +31,7 @@ public class OpWorkRecord extends OpObject {
    private double remainingEffort = 0; // Estimated remaining effort in hours
    private double remainingEffortChange = 0; // Change of remaining effort in hours
    private double personnelCosts = 0;
+   private double actualProceeds = 0;
    private double travelCosts = 0;
    private double materialCosts = 0;
    private double externalCosts = 0;
@@ -70,6 +71,14 @@ public class OpWorkRecord extends OpObject {
 
    public double getPersonnelCosts() {
       return personnelCosts;
+   }
+
+   public void setActualProceeds(Double actualProceeds) {
+      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0 ;
+   }
+
+   public double getActualProceeds() {
+      return actualProceeds;
    }
 
    public void setTravelCosts(double travelCosts) {

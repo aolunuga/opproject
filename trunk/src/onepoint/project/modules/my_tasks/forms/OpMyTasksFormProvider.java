@@ -60,7 +60,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String NEW_ADHOC = "NewAdhocButton";
 
    private final static String NO_RESOURCES_FOR_USER_ID = "NoResourcesForUser";
-   private final static String ERROR_LABEL_ID = "ErrorLabel";
+   private final static String MESSAGE_LABEL_ID = "MessageLabel";
 
    /**
     * A list of activity types to filter after
@@ -230,7 +230,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
       form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
 
       //show the error
-      XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
+      XComponent errorLabel = form.findComponent(MESSAGE_LABEL_ID);
       errorLabel.setText(form.findComponent(NO_RESOURCES_FOR_USER_ID).getText());
       errorLabel.setVisible(true);
    }

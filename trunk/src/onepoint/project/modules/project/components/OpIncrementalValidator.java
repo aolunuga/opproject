@@ -199,8 +199,9 @@ public class OpIncrementalValidator extends OpGanttValidator {
                resources = prepareResources(data_row, resources);
                addToUndo();
                setResources(data_row, resources);
-               //duration stays the same.
-               updateDuration(data_row, getDuration(data_row));
+               //effort stays the same.
+               updateBaseEffort(data_row, getBaseEffort(data_row));
+
                //construct the resource availability map
                updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
                updateResponsibleResource(data_row);

@@ -85,6 +85,7 @@
                           on-value-changed="filterChanged" stateful="true" selected-index="0"/>
          </panel>
          <label y="1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <label y="1" id="MessageLabel" visible="false"  style-ref="label-center-default"/>
       </panel>
 
       <panel layout="border">

@@ -408,12 +408,12 @@ public final class OpProjectDataSetFactory {
          queryString.append("projectNode.SuperNode is null");
       }
 
-      List typeParams = new ArrayList();
+      List<Byte> typeParams = new ArrayList<Byte>();
       queryString.append(" and ( ");
       boolean filterAdded = false;
       if ((types & PORTFOLIOS) == PORTFOLIOS) {
          queryString.append("projectNode.Type = ?");
-         typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
+         typeParams.add(OpProjectNode.PORTFOLIO);
          filterAdded = true;
       }
 
@@ -422,7 +422,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(new Byte(OpProjectNode.PROJECT));
+         typeParams.add(OpProjectNode.PROJECT);
          filterAdded = true;
       }
 
@@ -431,7 +431,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(new Byte(OpProjectNode.TEMPLATE));
+         typeParams.add(OpProjectNode.TEMPLATE);
       }
       queryString.append(" )");
       OpQuery query = broker.newQuery(queryString.toString());
@@ -444,14 +444,13 @@ public final class OpProjectDataSetFactory {
       else {
          paramStartIndex = 0;
       }
-      for (int i = 0; i < typeParams.size(); i++) {
-         query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
+      for (Object typeParam : typeParams) {
+         query.setByte(paramStartIndex++, (Byte) typeParam);
       }
 
-      Map result = new HashMap();
-      Iterator queryResultIterator = broker.list(query).iterator();
-      while (queryResultIterator.hasNext()) {
-         Long id = (Long) queryResultIterator.next();
+      Map<Long, Number> result = new HashMap<Long, Number>();
+      for (Object o : broker.list(query)) {
+         Long id = (Long) o;
 
          StringBuffer childCountQuery = new StringBuffer("select count(subNode.ID) from OpProjectNode parentNode left join parentNode.SubNodes subNode");
          childCountQuery.append(" where parentNode.ID=? ");
@@ -478,14 +477,14 @@ public final class OpProjectDataSetFactory {
          childCountQuery.append(" group by parentNode.ID");
 
          OpQuery childQuery = broker.newQuery(childCountQuery.toString());
-         childQuery.setLong(0, id.longValue());
+         childQuery.setLong(0, id);
          for (int i = 0; i < typeParams.size(); i++) {
-            childQuery.setByte(i + 1, ((Byte) typeParams.get(i)).byteValue());
+            childQuery.setByte(i + 1, (Byte) typeParams.get(i));
          }
-         Long count = new Long(0);
+         Number count = 0;
          Iterator childCountIterator = broker.list(childQuery).iterator();
          if (childCountIterator.hasNext()) {
-            count = new Long(((Number) childCountIterator.next()).longValue());
+            count = (Number) childCountIterator.next();
          }
          result.put(id, count);
       }

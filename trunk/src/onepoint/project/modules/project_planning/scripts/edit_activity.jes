@@ -251,7 +251,7 @@ function ok(event) {
       // *** Note: Ideally, percentage-field has range 0-m (min/max) and step of 10
       // ==> Where m is maximum for this particular resource (global availability)
       resources_tab = form.findComponent("ResourcesTab");
-      if (resources_tab.getVisible() == true) {
+      if (!resources_tab.isHidden()) {
          ass = form.findComponent("AssignmentSet");
          ass_project = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
          ass_array = new ArrayList;

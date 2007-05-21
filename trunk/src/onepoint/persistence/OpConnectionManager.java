@@ -8,11 +8,9 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.hibernate.OpHibernateSource;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Map;
+import java.sql.*;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class that performs various operations on database connections.
@@ -29,6 +27,7 @@ public final class OpConnectionManager {
    public static final int INVALID_CONNECTION_STRING_EXCEPTION = 2;
    public static final int GENERAL_CONNECTION_EXCEPTION = 3;
    public static final int MISSINING_DRIVER_EXCEPTION = 4;
+   public static final int INVALID_MYSQL_ENGINE = 5;
 
    /**
     * This class logger.
@@ -73,10 +72,15 @@ public final class OpConnectionManager {
          Class.forName(databaseDriver);
          conn = DriverManager.getConnection(databaseURL, databaseLogin, databasePassword);
          conn.getMetaData();
-         return SUCCESS;
+         if (dbType == OpHibernateSource.MYSQL_INNODB && !isInnoDb(conn)) {
+            return INVALID_MYSQL_ENGINE;
+         }
+         else {
+            return SUCCESS;
+         }
       }
       catch (SQLException e) {
-         logger.error("Invalid db connection parameters (code " + e.getErrorCode() + " )");
+         logger.error("Invalid db connection parameters (code " + e.getErrorCode() + " )", e);
          String sqlState = e.getSQLState();
          if (sqlState == null) {
             return GENERAL_CONNECTION_EXCEPTION;
@@ -93,18 +97,79 @@ public final class OpConnectionManager {
          return GENERAL_CONNECTION_EXCEPTION;
       }
       catch (ClassNotFoundException e) {
-         logger.error("Cannot load jdbc driver " + databaseDriver);
+         logger.error("Cannot load jdbc driver " + databaseDriver, e);
          return MISSINING_DRIVER_EXCEPTION;
       }
       finally {
-         if (conn != null) {
-            try {
-               conn.close();
+         closeJDBCObjects(conn, null, null);
+      }
+   }
+
+   /**
+    * Closes a series of JDBC objects.
+    * @param conn a <code>Connection</code> object.
+    * @param st a <code>Statement</code> object.
+    * @param rs a <code>ResultSet</code> object.
+    */
+    public static void closeJDBCObjects(Connection conn, Statement st, ResultSet rs) {
+      if (rs != null) {
+         try {
+            rs.close();
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close Result Set", e);
+         }
+      }
+      if (st != null) {
+         try {
+            st.close();
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close SQL statement", e);
+         }
+      }
+      if (conn != null) {
+         try {
+            conn.close();
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close jdbc connection ", e);
+         }
+      }
+   }
+
+   /**
+    * Checks the given db connection (when the db type is MySQL) to see whether the storage engine is InnoDB or not.
+    *
+    * @param connection a <code>Connection</code> object, representing a MySQL connection.
+    * @return <code>true</code> if the MySQL storage is InnoDB, false otherwise (including the case when the storage engine can't be determined).
+    */
+   private static boolean isInnoDb(Connection connection) {
+      Statement st = null;
+       ResultSet rs = null;
+      try {
+         st = connection.createStatement();
+         st.execute("SHOW TABLE STATUS LIKE '" + OpHibernateSource.TABLE_NAME_PREFIX + "%' ");
+         rs = st.getResultSet();
+         while (rs.next()) {
+            String tableName = rs.getString("Name");
+            //for compatibility with clients which already had (before this code) the schema ta
+            if (OpHibernateSource.SCHEMA_TABLE.equalsIgnoreCase(tableName)) {
+               continue;
             }
-            catch (SQLException e) {
-               logger.error("Cannot close jdbc connection ", e);
+            String engine = rs.getString("Engine");
+            if (!"InnoDb".equalsIgnoreCase(engine.trim())) {
+               return false;
             }
          }
+         return true;
+      }
+      catch (SQLException e) {
+         logger.error("Cannot determine engine type for MySQL " , e);
+         return false;
+      }
+      finally {
+         closeJDBCObjects(null, st, rs);
       }
    }
 }

@@ -52,6 +52,8 @@ public interface OpQuery {
 
    public void setParameter(int index, Object o);
 
+   public void setParameter(String name, Object o);
+
    public void setFirstResult(int objectIndex);
 
    public void setMaxResults(int count);

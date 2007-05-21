@@ -54,6 +54,11 @@ public final class OpInitializer {
    private static final Map<String, Boolean> PRODUCT_CODES_MAP = new HashMap<String, Boolean>();
 
    /**
+    * needed for initialization of multipled servlets
+    */
+   private static final Object MUTEX = new Object();
+
+   /**
     * Run level of the application.
     */
    private static byte runLevel = 0;
@@ -82,6 +87,11 @@ public final class OpInitializer {
     * Flag indicatig whether the language settings have been initialized or not.
     */
    private static boolean languageInitialized = false;
+
+   /**
+    * state of initialization
+    */
+   private static boolean initialized = false;
 
    /**
     * Initialize the product codes map
@@ -124,113 +134,120 @@ public final class OpInitializer {
     * @return <code>Map</code> of init parameters.
     */
    public static Map init(String productCode) {
-      //set the product code
-      OpInitializer.productCode = productCode;
-
-      logger.info("Application initialization started");
-      initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-      try {
-         initLanguageResources();
-
-         // Read configuration file
-         OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
-         String projectPath = OpEnvironmentManager.getOnePointHome();
-         onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-
-         if (configuration == null) {
-            logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-            //prepare the db wizard
-            logger.info("Initializing db configuration wizard module...");
-            OpConfigurationWizardManager.loadConfigurationWizardModule();
-            return initParams; //show db configuration wizard frame
-         }
-         else {
-            OpInitializer.configuration = configuration;
-         }
-
-         // initialize logging facility
-
-         String logFile = configuration.getLogFile();
-         if (logFile != null && !new File(logFile).isAbsolute()) {
-            logFile = projectPath + "/" + logFile;
-         }
-         XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
-
-         //get the db connection parameters
-         String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
-         String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
-         String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
-         String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
-         int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
-
-         //test the db connection
-         int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
-         if (testResult != OpConnectionManager.SUCCESS) {
-            logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
-            OpConfigurationWizardManager.loadConfigurationWizardModule();
-            connectionTestCode = testResult;
+      synchronized (MUTEX) {
+         if (initialized) {
             return initParams;
          }
+         //set the product code
+         OpInitializer.productCode = productCode;
 
-         // set smtp host for OpMailer
-         OpMailer.setSMTPHostName(configuration.getSMTPServer());
-
-         //set the debugging level for scripts
-         XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
-
-         logger.info("Configuration loaded; Application is configured");
-         runLevel = 1;
+         logger.info("Application initialization started");
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
-         // Load modules and register prototypes
+         try {
+            initLanguageResources();
 
-         OpModuleManager.load();
+            // Read configuration file
+            OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
+            String projectPath = OpEnvironmentManager.getOnePointHome();
+            onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
 
-         logger.info("Registered modules loaded");
-         runLevel = 2;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+            if (configuration == null) {
+               logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+               //prepare the db wizard
+               logger.info("Initializing db configuration wizard module...");
+               OpConfigurationWizardManager.loadConfigurationWizardModule();
+               return initParams; //show db configuration wizard frame
+            }
+            else {
+               OpInitializer.configuration = configuration;
+            }
 
-         // Load and register default source
-         OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-         if (defaultSource != null) {
-            defaultSource.close();
+            // initialize logging facility
+
+            String logFile = configuration.getLogFile();
+            if (logFile != null && !new File(logFile).isAbsolute()) {
+               logFile = projectPath + "/" + logFile;
+            }
+            XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
+
+            //get the db connection parameters
+            String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
+            String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
+            String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
+            String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
+            int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
+
+	          //test the db connection
+  	        int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
+            connectionTestCode = testResult;
+            if (testResult != OpConnectionManager.SUCCESS) {
+     	 	       logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+        	     OpConfigurationWizardManager.loadConfigurationWizardModule();
+            	 return initParams;
+	         	}
+	         	
+            // set smtp host for OpMailer
+            OpMailer.setSMTPHostName(configuration.getSMTPServer());
+
+            //set the debugging level for scripts
+            XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
+
+            logger.info("Configuration loaded; Application is configured");
+            runLevel = 1;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            // Load modules and register prototypes
+
+            OpModuleManager.load();
+
+            logger.info("Registered modules loaded");
+            runLevel = 2;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            // Load and register default source
+            OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+            if (defaultSource != null) {
+               defaultSource.close();
+            }
+            defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+            OpSourceManager.registerSource(defaultSource);
+            OpSourceManager.setDefaultSource(defaultSource);
+            defaultSource.open();
+
+            logger.info("Access to database is OK");
+            runLevel = 3;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //if db schema doesn't exist, create it
+            createEmptySchema();
+
+            logger.info("Repository status is OK");
+            runLevel = 4;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //update db schema
+            updateDBSchema();
+
+            logger.info("Updated database schema is OK");
+            runLevel = 5;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //Start registered modules
+            OpModuleManager.start();
+
+            logger.info("Registered modules started; Application started");
+            runLevel = 6;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
          }
-         defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
-         OpSourceManager.registerSource(defaultSource);
-         OpSourceManager.setDefaultSource(defaultSource);
-         defaultSource.open();
+         catch (Exception e) {
+            logger.fatal("Cannot start the application", e);
+         }
+         initialized = true;
 
-         logger.info("Access to database is OK");
-         runLevel = 3;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //if db schema doesn't exist, create it
-         createEmptySchema();
-
-         logger.info("Repository status is OK");
-         runLevel = 4;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //update db schema
-         updateDBSchema();
-
-         logger.info("Updated database schema is OK");
-         runLevel = 5;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //Start registered modules
-         OpModuleManager.start();
-
-         logger.info("Registered modules started; Application started");
-         runLevel = 6;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+         return initParams;
       }
-      catch (Exception e) {
-         logger.fatal("Cannot start the application", e);
-      }
-      return initParams;
-   }
+    }
 
    /**
     * Initializes the default language settings.
@@ -263,8 +280,8 @@ public final class OpInitializer {
     */
    private static void updateDBSchema() {
       OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-      if (defaultSource.needSchemaUpgrading()) {
-         int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
+      int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
+      if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
          logger.info("Updating DB schema from version " + existingVersionNr + "...");
          OpPersistenceManager.updateSchema();
          defaultSource.updateSchemaVersionNumber();

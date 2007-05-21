@@ -6,6 +6,7 @@
    <!-- field name="TravelTime" type="Double"/ -->
    <!-- field name="PrivateCar" type="Double"/ -->
    <field name="PersonnelCosts" type="Double"/>
+   <field name="ActualProceeds" type="Double"/>
    <field name="TravelCosts" type="Double"/>
    <field name="MaterialCosts" type="Double"/>
    <field name="ExternalCosts" type="Double"/>

@@ -32,6 +32,8 @@ public class WorkTestDataFactory extends TestDataFactory {
         double travel, double external, double misc) {
       XComponent workSet = new XComponent(XComponent.DATA_SET);
       XComponent row = new XComponent(XComponent.DATA_ROW);
+      //row id
+      row.setStringValue(XValidator.choice(id, name));
       workSet.addChild(row);
       // 0. Name and Id
       XComponent cell = new XComponent(XComponent.DATA_CELL);
