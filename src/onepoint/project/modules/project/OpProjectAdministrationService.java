@@ -455,7 +455,8 @@ public class OpProjectAdministrationService extends OpProjectService {
             }
             // subject data cell
             data_cell = (XComponent) (data_row.getChild(1));
-            if (!goal.getName().equals(data_cell.getStringValue())) {
+            if ((goal.getName() != null && !goal.getName().equals(data_cell.getStringValue())) ||
+                 (goal.getName() == null && data_cell.getStringValue() != null)) {
                goal.setName(data_cell.getStringValue());
                updated = true;
             }
@@ -533,7 +534,8 @@ public class OpProjectAdministrationService extends OpProjectService {
                updated = true;
             }
             data_cell = (XComponent) (data_row.getChild(1));
-            if (!to_do.getName().equals(data_cell.getStringValue())) {
+            if (to_do.getName() != null && !to_do.getName().equals(data_cell.getStringValue()) ||
+               (to_do.getName() == null && data_cell.getStringValue() != null)) {
                to_do.setName(data_cell.getStringValue());
                updated = true;
             }

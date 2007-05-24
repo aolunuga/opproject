@@ -9,6 +9,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
+import java.util.Iterator;
 import java.util.Set;
 
 public class OpActivity extends OpObject {
@@ -450,5 +451,55 @@ public class OpActivity extends OpObject {
       return base;
    }
 
+   /**
+    * Recalculates the base personnell costs for this activity by summing up the base personnel
+    * costs of its assignments.
+    *
+    * @return a <code>double</code> representing the activitie's base personnel costs.
+    */
+   public double recalculateBasePersonnelCosts() {
+      double sum = 0;
+      if (this.getSubActivities().size() > 0) {
+         Iterator subactivitiesIterator = this.getSubActivities().iterator();
+         while (subactivitiesIterator.hasNext()) {
+            OpActivity subActivity = (OpActivity) subactivitiesIterator.next();
+            sum += subActivity.recalculateBasePersonnelCosts();
+         }
+      }
+      else {
+         Iterator assignmentsIterator = assignments.iterator();
+         while (assignmentsIterator.hasNext()) {
+            OpAssignment assignment = (OpAssignment) assignmentsIterator.next();
+            sum += assignment.getBaseCosts();
+         }
+      }
+      this.setBasePersonnelCosts(sum);
+      return sum;
+   }
 
+   /**
+    * Recalculates the actual  personnel costs for this activity by summing up the actual personnel
+    * costs of its assignments.
+    *
+    * @return a <code>double</code> representing the activity's actual personnel costs.
+    */
+   public double recalculateActualPersonnelCosts() {
+      double sum = 0;
+      if (this.getSubActivities().size() > 0) {
+         Iterator subactivitiesIterator = this.getSubActivities().iterator();
+         while (subactivitiesIterator.hasNext()) {
+            OpActivity subActivity = (OpActivity) subactivitiesIterator.next();
+            sum += subActivity.recalculateActualPersonnelCosts();
+         }
+      }
+      else {
+         Iterator assignmentsIterator = assignments.iterator();
+         while (assignmentsIterator.hasNext()) {
+            OpAssignment assignment = (OpAssignment) assignmentsIterator.next();
+            sum += assignment.getActualCosts();
+         }
+      }
+      this.setActualPersonnelCosts(sum);
+      return sum;
+   }
 }

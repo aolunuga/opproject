@@ -20,12 +20,13 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.util.OpEnvironmentManager;
-import onepoint.util.XEncodingHelper;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -37,7 +38,7 @@ public class OpReportService extends OpProjectService {
 
    public final static String JASPER_REPORTS_PATH = "/modules/report/jasperreports/";
 
-   public final static String SAVED_REPORTS_PATH = "/reports/";
+   public final static String SAVED_REPORTS_PATH = XEnvironmentManager.TMP_DIR;
 
    public final static OpReportErrorMap ERROR_MAP = new OpReportErrorMap();
 
@@ -96,26 +97,31 @@ public class OpReportService extends OpProjectService {
          }
       }
 
-      StringBuffer pathBuffer = new StringBuffer();
       OpReportManager xrm = OpReportManager.getReportManager(session);
 
       try {
          JasperPrint compiledReport = createJasperPrint(session, request);
-
          // TODO: Location is "too hard-coded"
-         pathBuffer = new StringBuffer(OpEnvironmentManager.getOnePointHome());
-         pathBuffer.append(SAVED_REPORTS_PATH);
+         if (SAVED_REPORTS_PATH.indexOf(' ') > -1) {
+            logger.warn("The report path: " + SAVED_REPORTS_PATH + " contains spaces. " +
+                 "This could stop the application from opening generated reports.");
+         }
          //create the saved reports directory if not exists
-         File saveReportsDirectory = new File(pathBuffer.toString());
+         File saveReportsDirectory = new File(SAVED_REPORTS_PATH);
          if (!saveReportsDirectory.exists()) {
             saveReportsDirectory.mkdir();
          }
-         pathBuffer.append(xrm.getLocalizedJasperFileName(name));
-         pathBuffer.append('-');
-         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh_mm_ss");
-         pathBuffer.append(dateFormat.format(new Date()));
-         pathBuffer.append(".").append(format.toLowerCase());
 
+         StringBuffer pathBuffer = new StringBuffer(SAVED_REPORTS_PATH);
+         String filename = xrm.getLocalizedJasperFileName(name);
+         if (filename == null || filename.length() == 0) {
+            throw new IOException("Invalid report name.");
+         }
+         pathBuffer.append(filename.replaceAll("\\s", "_")); // replace all the white spaces with '_' to evoid problems on MacOS
+         pathBuffer.append("_-_");
+         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss");
+         pathBuffer.append(dateFormat.format(new Date()));
+         pathBuffer.append('.').append(format.toLowerCase());
 
          String path = pathBuffer.toString();
 

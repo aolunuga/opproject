@@ -11,7 +11,6 @@
       <resource id="SelectFolder">Sélectionner le dossier de base de données</resource>
       <resource id="Select">Changer</resource>
       <resource id="OK">OK</resource>
-      <resource id="ImportDemoData">Importer les données exemples</resource>            
    </resource-map>
    <resource-map id="configuration_wizard.error">
       <resource id="DatabaseUrlMissing">La chaîne de connection à la base de données n'a pas été spécifiée</resource>
@@ -21,7 +20,6 @@
       <resource id="InvalidConnectionString">La chaîne de connection est invalide</resource>
       <resource id="GeneralConnectionError">Impossible de se connecter à la base de données</resource>
       <resource id="JDBCDriverError">Impossible de charger le driver de base de données</resource>
-      <resource id="NonExistentDemoData">Impossible de trouver le fichier de données exemples</resource>
-      <resource id="DemodataImportFailure">Impossible d'importer les données exemples</resource>
+      <resource id="InvalidMySQLEngine">WARNING: You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>      
    </resource-map>
 </language-kit>

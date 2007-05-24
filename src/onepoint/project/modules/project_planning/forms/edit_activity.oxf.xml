@@ -10,6 +10,7 @@
       <data-field id="ActivityIDField"/>
       <data-field id="EditModeField"/>
       <data-field id="ActivityDuration"/>
+      <data-field id="CheckAvailability"/>
       <data-field id="LoopException" text="{$LoopErrorMessage}"/>
       <data-field id="MandatoryException" text="{$MandatoryErrorMessage}"/>
       <data-field id="RangeException" text="{$RangeErrorMessage}"/>
@@ -17,6 +18,7 @@
       <data-field id="WorkRecordsExistException" text="{$WorkRecordsExistErrorMessage}"/>
       <data-field id="NotEqualEffortsException" text="{$NotEqualEffortsErrorMessage}"/>
       <data-field id="InvalidPriorityException" text="{$InvalidPriorityErrorMessage}"/>
+      <data-field id="InvalidBaseEffortException" text="{$InvalidBaseEffortErrorMessage}"/>
       <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
 
       <label id ="EditStandardDialogTitle" text="{$EditStandardActivity}" visible="false"/>

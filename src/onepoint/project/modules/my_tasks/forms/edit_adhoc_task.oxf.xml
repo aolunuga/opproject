@@ -21,7 +21,7 @@
             <label x="0" y="1" width="2" text="{$Description}" id="DescriptionLabel"/>
             <text-box x="2" y="1" width="3" id="Description"/>
             <label x="0" y="2" width="2" text="{$Priority}" id="PriorityLabel"/>
-            <int-field x="2" y="2" width="3" id="Priority"/>
+            <int-field x="2" y="2" width="3" id="Priority" upper-limit="9" lower-limit="1"/>
             <label x="0" y="3" width="2" text="{$DueDate}" id="DueDateLabel"/>
             <date-field x="2" y="3" width="3" id="DueDate"/>
             <label x="0" y="4" width="2" text="{$Project}"/>

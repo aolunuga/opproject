@@ -17,8 +17,8 @@
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
       <resource id="Time">Zeitspanne</resource>
-      <resource id="CurrentMonth">Dieses Monat</resource>
-      <resource id="PreviousMonth">Letztes Monat</resource>
+      <resource id="CurrentMonth">Dieser Monat</resource>
+      <resource id="PreviousMonth">Letzter Monat</resource>
       <resource id="CurrentYear">Dieses Jahr</resource>
       <resource id="All">Alle</resource>
 

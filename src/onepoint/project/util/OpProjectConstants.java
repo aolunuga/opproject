@@ -21,6 +21,7 @@ public interface OpProjectConstants {
    public static final String DUMMY_ROW_ID = "DummyChildId";
    public static final String REFRESH_PARAM = "refresh";
    public static final String PROJECT_PACKAGE = "onepoint/project";
+   public static final String DB_CONNECTION_CODE = "connectionCode";
 
    /**
     * General application flavour codes.

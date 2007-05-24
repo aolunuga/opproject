@@ -421,6 +421,7 @@ public class OpConfiguration {
     */
    private static void initDatabaseDriversMap() {
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_DB_TYPE, "com.mysql.jdbc.Driver");
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, "com.mysql.jdbc.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.ORACLE_DB_TYPE, "oracle.jdbc.driver.OracleDriver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, "com.ibm.db2.jcc.DB2Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE, "org.postgresql.Driver");

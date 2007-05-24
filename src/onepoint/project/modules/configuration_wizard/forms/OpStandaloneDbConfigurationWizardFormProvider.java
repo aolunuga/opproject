@@ -23,7 +23,7 @@ public class OpStandaloneDbConfigurationWizardFormProvider implements XFormProvi
    /**
     * HSQL parameters
     */
-   private static final String HSQL_DB_DIR = "/OnePoint Project Data";
+   private static final String HSQL_DB_DIR = "/Onepoint Project Data";
    private static final String HSQL_DB_USER = "sa";
    private static final String HSQL_DB_PASSWORD = "";
    private static final String HSQL_DB_DEFAULT_FILENAME = "opproject";

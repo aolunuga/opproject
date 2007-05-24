@@ -103,7 +103,12 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
          ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(((StringBuffer) node).toString());
       }
       else if (name == DATABASE_URL) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseUrl(((StringBuffer) node).toString());
+         OpConfiguration.DatabaseConfiguration configuration = ((OpConfiguration) parent).getDatabaseConfiguration();
+         String databaseUrl = ((StringBuffer) node).toString();
+         if (configuration.getDatabaseType() == OpHibernateSource.HSQLDB) {
+            databaseUrl = databaseUrl.replaceAll("[\\\\]","/");
+         }
+         configuration.setDatabaseUrl(databaseUrl);
       }
       else if (name == DATABASE_LOGIN) {
          ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(((StringBuffer) node).toString());

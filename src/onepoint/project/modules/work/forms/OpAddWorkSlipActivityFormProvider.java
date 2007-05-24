@@ -100,7 +100,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
          if (!progressTracked && activity.getType() == OpActivity.MILESTONE) {
             continue;
          }
-
+         
          if (existingActivities.contains(new Long(assignment.getID()))) {         
             continue;
          }

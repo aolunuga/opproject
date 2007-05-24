@@ -82,7 +82,7 @@
 
       <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
       <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
-      <resource id="Status">Project Status</resource>
+      <resource id="Status">Projektstatus</resource>
       <resource id="NoStatus">(Keiner)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
@@ -120,8 +120,8 @@
       <resource id="DeleteVersions">Versionen löschen</resource>
 
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Status">Project Status</resource>
-      <resource id="NoStatus">(No Status)</resource>
+      <resource id="Status">Projektstatus</resource>
+      <resource id="NoStatus">(Keiner)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>

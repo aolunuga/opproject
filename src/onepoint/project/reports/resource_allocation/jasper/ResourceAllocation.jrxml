@@ -78,6 +78,12 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 	<variable name="totCost" class="java.lang.Double" resetType="Report" calculation="Sum">
 		<variableExpression><![CDATA[$V{remCost}]]></variableExpression>
 	</variable>
+	<variable name="po_description_var" class="java.lang.String" resetType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[$F{po_description} == null ? "" : $F{po_description}]]></variableExpression>
+	</variable>
+	<variable name="rs_description_var" class="java.lang.String" resetType="Page" calculation="Nothing">
+		<variableExpression><![CDATA[$F{rs_description} == null ? "" : $F{rs_description}]]></variableExpression>
+	</variable>
 
 		<group  name="Pool" isStartNewPage="true" >
 			<groupExpression><![CDATA[$F{po_name}]]></groupExpression>
@@ -153,12 +159,12 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 		<group  name="Resource" isStartNewPage="true" >
 			<groupExpression><![CDATA[$F{rs_name}]]></groupExpression>
 			<groupHeader>
-			<band height="54"  isSplitAllowed="true" >
+			<band height="100"  isSplitAllowed="true" >
 				<line direction="BottomUp">
 					<reportElement
 						mode="Opaque"
 						x="0"
-						y="53"
+						y="99"
 						width="530"
 						height="0"
 						forecolor="#000000"
@@ -170,7 +176,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<reportElement
 						mode="Opaque"
 						x="405"
-						y="33"
+						y="79"
 						width="40"
 						height="19"
 						forecolor="#5E728B"
@@ -186,7 +192,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<reportElement
 						mode="Opaque"
 						x="445"
-						y="33"
+						y="79"
 						width="85"
 						height="19"
 						forecolor="#5E728B"
@@ -202,7 +208,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<reportElement
 						mode="Opaque"
 						x="0"
-						y="33"
+						y="79"
 						width="250"
 						height="19"
 						forecolor="#5E728B"
@@ -214,13 +220,13 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$R{tableHeader_Activity}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Page" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
 						x="0"
 						y="7"
 						width="528"
-						height="19"
+						height="71"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
 						key="tableHeader_Taskname-15"/>
@@ -229,15 +235,15 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="12" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[msg("{0}  <==>  {1}",
-    msg($R{groupHeader_Pool},$F{po_name},$F{po_description}),
-    msg($R{groupHeader_Resource},$F{rs_name},$F{rs_description})
+    msg($R{groupHeader_Pool},$F{po_name},$V{po_description_var}),
+    msg($R{groupHeader_Resource},$F{rs_name},$V{rs_description_var})
 )]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
 						x="292"
-						y="33"
+						y="79"
 						width="60"
 						height="19"
 						forecolor="#5E728B"
@@ -253,7 +259,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<reportElement
 						mode="Opaque"
 						x="352"
-						y="33"
+						y="79"
 						width="53"
 						height="19"
 						forecolor="#5E728B"
@@ -341,7 +347,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 			</band>
 		</title>
 		<pageHeader>
-			<band height="71"  isSplitAllowed="true" >
+			<band height="61"  isSplitAllowed="true" >
 				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
@@ -558,10 +564,10 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.util.Date"><![CDATA[new Date()]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="404"
+						x="368"
 						y="9"
 						width="126"
 						height="18"
@@ -569,10 +575,26 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 						backcolor="#FFFFFF"
 						key="pageNumber_pageBottom_String"/>
 					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-					<textElement textAlignment="Right" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="10" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.String"><![CDATA[msg($R{pageNumber_pageBottom_String}, $V{PAGE_NUMBER},$V{PAGE_NUMBER})]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[msg($R{pageNumber_pageBottom_String}, $V{PAGE_NUMBER})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Report" hyperlinkType="None"  hyperlinkTarget="Self" >
+					<reportElement
+						mode="Transparent"
+						x="493"
+						y="9"
+						width="15"
+						height="18"
+						forecolor="#5E7786"
+						backcolor="#FFFFFF"
+						key="textField-32"/>
+					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
+						<font fontName="Helvetica" pdfFontName="Helvetica" size="10" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<textFieldExpression   class="java.lang.Integer"><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
 				</textField>
 			</band>
 		</pageFooter>

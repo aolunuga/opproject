@@ -53,9 +53,14 @@ public final class OpInitializer {
    private static final Map PRODUCT_CODES_MAP = new HashMap();
 
    /**
+    * needed for initialization of multipled servlets
+    */
+   private static final Object MUTEX = new Object();
+
+   /**
     * Run level of the application.
     */
-   private static byte runLevel = 0;
+   private static byte runLevel = OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue();
 
    /**
     * The code of the db connection test
@@ -76,6 +81,16 @@ public final class OpInitializer {
     * The product code used in the initialization process
     */
    private static String productCode = null;
+
+   /**
+    * Flag indicating whether the language settings have been intialized or not.
+    */
+   private static boolean languageSettingsInitialized = false;
+
+   /**
+    * state of initialization
+    */
+   private static boolean initialized = false;
 
    /**
     * Initialize the product codes map
@@ -118,16 +133,129 @@ public final class OpInitializer {
     * @return <code>Map</code> of init parameters.
     */
    public static Map init(String productCode) {
-      //set the product code
-      OpInitializer.productCode = productCode;
+      synchronized (MUTEX) {
+         if (initialized) {
+            return initParams;
+         }
+         //set the product code
+         OpInitializer.productCode = productCode;
 
-      logger.info("Application initialization started");
-      initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+         logger.info("Application initialization started");
+         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
-      try {
-         XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
+         try {
+            XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
+            initializeLanguageResources();
+
+            // Read configuration file
+            OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
+            String projectPath = OpEnvironmentManager.getOnePointHome();
+            onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+
+            if (configuration == null) {
+               logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+               //prepare the db wizard
+               logger.info("Initializing db configuration wizard module...");
+               OpConfigurationWizardManager.loadConfigurationWizardModule();
+               return initParams; //show db configuration wizard frame
+            }
+            else {
+               OpInitializer.configuration = configuration;
+            }
+
+            // initialize logging facility
+
+            String logFile = configuration.getLogFile();
+            if (logFile != null && !new File(logFile).isAbsolute()) {
+               logFile = projectPath + "/" + logFile;
+            }
+            XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
+
+            //get the db connection parameters
+            String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
+            String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
+            String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
+            String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
+            int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
+
+            //test the db connection
+            int testResult = OpConnectionManager.testConnection(databaseType, databaseDriver, databaseUrl, databaseLogin, databasePassword);
+            connectionTestCode = testResult;
+            //the invalid mysql engine is not a blocker in this version
+            if (testResult != OpConnectionManager.SUCCESS && testResult != OpConnectionManager.INVALID_MYSQL_ENGINE) {
+               logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+               OpConfigurationWizardManager.loadConfigurationWizardModule();
+               return initParams;
+            }
+
+            // set smtp host for OpMailer
+            OpMailer.setSMTPHostName(configuration.getSMTPServer());
+
+            //set the debugging level for scripts
+            XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
+
+            logger.info("Configuration loaded; Application is configured");
+            runLevel = 1;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            // Load modules and register prototypes
+
+            OpModuleManager.load();
+
+            logger.info("Registered modules loaded");
+            runLevel = 2;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            // Load and register default source
+            OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+            if (defaultSource != null) {
+               defaultSource.close();
+            }
+            defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+            OpSourceManager.registerSource(defaultSource);
+            OpSourceManager.setDefaultSource(defaultSource);
+            defaultSource.open();
+
+            logger.info("Access to database is OK");
+            runLevel = 3;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //if db schema doesn't exist, create it
+            createEmptySchema();
+
+            logger.info("Repository status is OK");
+            runLevel = 4;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //update db schema
+            updateDBSchema();
+
+            logger.info("Updated database schema is OK");
+            runLevel = 5;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+
+            //Start registered modules
+            OpModuleManager.start();
+
+            logger.info("Registered modules started; Application started");
+            runLevel = 6;
+            initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+         }
+         catch (Exception e) {
+            logger.fatal("Cannot start the application", e);
+         }
+      }
+      initialized = true;
+      return initParams;
+   }
+
+   /**
+    * Initializes the language settings for the application.
+    */
+   private static void initializeLanguageResources() {
+      if (!languageSettingsInitialized) {
          // Attention: Locale map must be loaded and set before starting up modules
-            XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
+         XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
          if (locale_map != null) {
             XLocaleManager.setLocaleMap(locale_map);
          }
@@ -149,104 +277,8 @@ public final class OpInitializer {
          main_fr_file.setFileName("/i18n/main_fr.olk.xml");
          XLanguageKit main_fr = main_fr_file.loadLanguageKit();
          XLocaleManager.registerLanguageKit(main_fr);
-
-         // Read configuration file
-         OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
-         String projectPath = OpEnvironmentManager.getOnePointHome();
-         onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-
-         if (configuration == null) {
-            logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-            //prepare the db wizard
-            logger.info("Initializing db configuration wizard module...");
-            OpConfigurationWizardManager.loadConfigurationWizardModule();
-            return initParams; //show db configuration wizard frame
-         }
-         else {
-            OpInitializer.configuration = configuration;
-         }
-
-         // initialize logging facility
-
-         String logFile = configuration.getLogFile();
-         if (logFile != null && !new File(logFile).isAbsolute()) {
-            logFile = projectPath + "/" + logFile;  
-         }
-         XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
-
-         //get the db connection parameters
-         String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
-         String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
-         String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
-         String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
-         int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
-
-         //test the db connection
-         int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword);
-         if (testResult != OpConnectionManager.SUCCESS) {
-            logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
-            OpConfigurationWizardManager.loadConfigurationWizardModule();
-            connectionTestCode = testResult;
-            return initParams;
-         }
-
-         // set smtp host for OpMailer
-         OpMailer.setSMTPHostName(configuration.getSMTPServer());
-
-         //set the debugging level for scripts
-         XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
-
-         logger.info("Configuration loaded; Application is configured");
-         runLevel = 1;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         // Load modules and register prototypes
-
-         OpModuleManager.load();
-
-         logger.info("Registered modules loaded");
-         runLevel = 2;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         // Load and register default source
-         OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-         if (defaultSource != null) {
-            defaultSource.close();
-         }
-         defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
-         OpSourceManager.registerSource(defaultSource);
-         OpSourceManager.setDefaultSource(defaultSource);
-         defaultSource.open();
-
-         logger.info("Access to database is OK");
-         runLevel = 3;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //if db schema doesn't exist, create it
-         createEmptySchema();
-
-         logger.info("Repository status is OK");
-         runLevel = 4;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //update db schema
-         updateDBSchema();
-
-         logger.info("Updated database schema is OK");
-         runLevel = 5;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-         //Start registered modules
-         OpModuleManager.start();
-
-         logger.info("Registered modules started; Application started");
-         runLevel = 6;
-         initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
+         languageSettingsInitialized = true;
       }
-      catch (Exception e) {
-         logger.fatal("Cannot start the application", e);
-      }
-      return initParams;
    }
 
    /**
@@ -361,10 +393,10 @@ public final class OpInitializer {
     * Restores the db schema from the given file, via the backup manager. The restore drops the existent schema
     * and creates a new one.
     *
-    * @param filePath a <code>String</code> path to an existent backup file.
+    * @param filePath       a <code>String</code> path to an existent backup file.
     * @param projectSession a <code>OpProjectSession</code> representing an application session.
     * @throws SQLException if the db schema cannot be droped or created.
-    * @throws IOException if the repository cannot be restored from the given file.
+    * @throws IOException  if the repository cannot be restored from the given file.
     */
    public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {

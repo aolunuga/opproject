@@ -51,6 +51,7 @@ public class OpHibernateSource extends OpSource {
 
    public final static String HSQLDB_TYPE = "file:";
    public final static String HSQLDB_JDBC_CONNECTION_PREFIX = "jdbc:hsqldb:" + HSQLDB_TYPE;
+   public final static String SCHEMA_TABLE = "op_schema";
 
    /**
     * Strings representing prototype prefixes
@@ -60,11 +61,10 @@ public class OpHibernateSource extends OpSource {
    /**
     * Db schema related constants
     */
-   static final String SCHEMA_TABLE = "op_schema";
    private static final int SCHEMA_VERSION = 4;
    private static final String VERSION_COLUMN = "op_version";
 
-   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
+   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int) " ;
    private static final String INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(0)";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
@@ -294,6 +294,11 @@ public class OpHibernateSource extends OpSource {
       configuration.setProperty("hibernate.connection.password", password);
       configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
 
+      //Important: the following setting is critical for MySQL to store all dates in GMT
+      if (databaseType == MYSQL_INNODB || databaseType == MYSQL) {
+         configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
+      }
+      
       //connection pool configuration override
       if (connectionPoolMinSize != null) {
          configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
@@ -536,9 +541,9 @@ public class OpHibernateSource extends OpSource {
       // Set mapping
       mapping = buffer.toString();
 
-      System.err.println("***MAPPING\n---\n");
-      System.err.println(mapping);
-      System.err.println("\n");
+//      System.err.println("***MAPPING\n---\n");
+//      System.err.println(mapping);
+//      System.err.println("\n");
 
       logger.debug(mapping);
    }
@@ -854,7 +859,7 @@ public class OpHibernateSource extends OpSource {
          statement = jdbcConnection.createStatement();
 
          if (!existsTable(SCHEMA_TABLE)) {
-            statement.execute(CREATE_SCHEMA_TABLE_STATEMENT);
+            statement.execute(getCreateSchemaTableStatement());
             statement.executeUpdate(INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT);
             jdbcConnection.commit();
             logger.info("Created table op_schema for versioning");
@@ -882,6 +887,17 @@ public class OpHibernateSource extends OpSource {
          session.close();
       }
       return -1;
+   }
+
+   /**
+    * Returns a string representing the SQL statement for creating the op_schema table.
+   * @return a <code>String</code> representing an SQL "create" statement.
+    */
+   private String getCreateSchemaTableStatement() {
+      if (databaseType == MYSQL || databaseType == MYSQL_INNODB) {
+         return CREATE_SCHEMA_TABLE_STATEMENT + "  ENGINE=InnoDB";
+      }
+      return CREATE_SCHEMA_TABLE_STATEMENT;
    }
 
    public void clear() {

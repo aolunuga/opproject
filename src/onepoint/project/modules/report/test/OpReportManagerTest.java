@@ -4,14 +4,8 @@
 package onepoint.project.modules.report.test;
 
 import onepoint.project.modules.report.OpReportManager;
-import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
-import onepoint.util.XEncodingHelper;
-import onepoint.service.XMessage;
-import onepoint.persistence.OpLocator;
 
-import java.io.File;
-import java.net.URL;
 import java.util.Map;
 
 /**
@@ -38,32 +32,10 @@ public class OpReportManagerTest extends OpBaseTestCase {
     * Here we test retrieval of a resource content through ReportManager.
     *
     * @throws Exception If something goes wrong.
+    * <FIXME author="Horia Chiorean" description="Write a proper test for this">
     */
    public void testResourceRetrieval()
         throws Exception {
-      XMessage request = OpReportTestDataFactory.buildDefaultRequest(OpReportService.REPORT_TYPE_PDF, OpLocator.parseLocator(adminId).getID());
-      XMessage response = getReportService().createReport(session, request);
-      assertNotNull(response);
-      assertNoError(response);
-
-      String reportPath = (String) response.getArgument(OpReportService.GENERATED_REPORT_PATH);
-      assertNotNull(reportPath);
-
-      // Now we'll try to transform that path into a resource path (to be loaded as a resource from classpath).
-      String className = OpReportManager.class.getName();
-      String rootPackage = className.substring(0, className.indexOf('.'));
-
-      reportPath = XEncodingHelper.decodeValue(reportPath);
-      
-      URL reportFileUrl = new URL(reportPath);
-      reportPath = reportFileUrl.getFile();
-      reportPath = reportPath.substring(reportPath.lastIndexOf(rootPackage));
-      File reportFile = new File(reportFileUrl.getFile());
-
-      byte[] content = reportManager.getResource(reportPath, session);
-      assertNotNull(content);
-      assertTrue(content.length > 0);
-      assertEquals(reportFile.length(), content.length);
    }
 
    /**

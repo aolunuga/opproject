@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
 // Reporting script for resource_allocation.oxf.xml
@@ -15,16 +15,11 @@ function chooseProject(event) {
 }
 
 function runQuery() {
-
-   Console.println("PROJECT_EFFORT.runQuery()");
-
    form = XDisplay.findFrame("QueryFrame").currentForm();
-   Console.println(form.getID());
-
    // *** Refresh form w/data-fields as parameters and a special boolean parameter runQuery=true
-
    choice = form.findComponent("ProjectLocatorField").getStringValue();
-   if (choice != null) {
+   project = form.findComponent("ProjectNameField").getStringValue();
+   if (choice != null && project != null) {
       parameters.RunQuery = true;
       parameters.ProjectLocator = XValidator.choiceID(choice);
       XDisplay.findFrame("QueryFrame").refreshForm(parameters);
@@ -37,13 +32,12 @@ function runQuery() {
  * Creates a request that will be invoked when executing this report.
  */
 function createRequest() {
-   Console.println("ResourceAllocation.createRequest()");
-
    form = XDisplay.findFrame("QueryFrame").currentForm();
    choice = form.findComponent("ProjectLocatorField").getStringValue();
+   project = form.findComponent("ProjectNameField").getStringValue();
    errorLabel = form.findComponent("ErrorLabel");
 
-   if (choice != null) {
+   if (choice != null && project != null) {
       if (errorLabel.getVisible()) {
          errorLabel.setVisible(false);
          form.doLayout();
@@ -76,19 +70,22 @@ function createRequest() {
 function getReportQuery() {
    form = XDisplay.findFrame("QueryFrame").currentForm();
    choice = form.findComponent("ProjectLocatorField").getStringValue();
+   project = form.findComponent("ProjectNameField").getStringValue();
 
-   selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, ";
-   selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, activity.RemainingEffort";
-   fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
-   fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
-   whereClause = " where projectNode.ID = ? and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";
+   if (choice != null && project != null) {
 
-   queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
-   Console.println("Resource allocation query:" + queryString);
+      selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, ";
+      selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, asgn.RemainingEffort";
+      fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
+      fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
+      whereClause = " where projectNode.ID = ? and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";
 
-   query.queryString = queryString;
-   query.queryParams[0] = XValidator.choiceID(choice);
+      queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
+      Console.println("Resource allocation query:" + queryString);
 
+      query.queryString = queryString;
+      query.queryParams[0] = XValidator.choiceID(choice);
+   }
    return query;
 }
 

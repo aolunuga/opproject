@@ -58,6 +58,8 @@ public class OpGanttValidatorTest extends TestCase {
    private String WORKER2_ID = "OpResource.18.xid";
    private final String WORKER2 = WORKER2_ID +"['Worker2']";
 
+   private final double DOUBLE_ERROR_MARGIN = Math.pow(10, -4);
+
    /**
     * @see junit.framework.TestCase#setUp()
     */
@@ -2205,8 +2207,10 @@ public class OpGanttValidatorTest extends TestCase {
       validator.setDataCellValue(testedActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, new Double(60.0));
 
       ArrayList efforts = OpGanttValidator.getResourceBaseEfforts(testedActivity);
-      assertEquals("Effort for resource 1 is not correct", new Double(40), efforts.get(0));
-      assertEquals("Effort for resource 2 is not correct", new Double(20), efforts.get(1));
+      assertEquals("Effort for resource 1 is not correct", 40,
+           ((Double)efforts.get(0)).doubleValue(), DOUBLE_ERROR_MARGIN);
+      assertEquals("Effort for resource 2 is not correct", 20,
+           ((Double)efforts.get(1)).doubleValue(), DOUBLE_ERROR_MARGIN);
    }
 
 

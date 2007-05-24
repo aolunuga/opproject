@@ -3,7 +3,9 @@
  */
 package onepoint.project.modules.project_status.test;
 
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectStatus;
 import onepoint.project.test.TestDataFactory;
@@ -92,7 +94,7 @@ public class ProjectStatusTestDataFactory extends TestDataFactory {
    public List getAllProjectsStatus() {
       OpBroker broker = session.newBroker();
 
-      OpQuery query = broker.newQuery("from OpProjectStatus");
+      OpQuery query = broker.newQuery("from OpProjectStatus as status order by status.Sequence asc");
       List result = broker.list(query);
       broker.close();
 

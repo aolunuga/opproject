@@ -54,6 +54,10 @@ public class OpOpenApplet extends XExpressApplet {
       if (runLevel != null) {
          parameters.put(OpProjectConstants.RUN_LEVEL, runLevel);
       }
+      String dbConnectionCode = getParameter(OpProjectConstants.DB_CONNECTION_CODE);
+      if (dbConnectionCode != null) {
+         parameters.put(OpProjectConstants.DB_CONNECTION_CODE, dbConnectionCode);
+      }
       return parameters;
    }
 

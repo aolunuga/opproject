@@ -364,6 +364,7 @@ public class ProjectTestDataFactory extends TestDataFactory {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, goals);
       request.setArgument(OpProjectAdministrationService.TO_DOS_SET, todos);
+      request.setArgument("versions_set", new XComponent(XComponent.DATA_SET));
       request.setArgument("resource_list", resouces);
       return request;
    }
