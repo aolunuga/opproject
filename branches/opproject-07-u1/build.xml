@@ -1,4 +1,4 @@
-<project name="opproject-07-u1" basedir="." default="dist.applet">
+<project name="opproject-07-u2" basedir="." default="dist.war">
 
    <!-- Sets property references that are used throught the build file -->
    <property name="op.jdk.target" value="1.4"/>
@@ -18,15 +18,16 @@
    <property name="op.license.file" value="license.txt"/>
    <property name="op.readme.open.file" value="readme_open.txt"/>
    <property name="op.readme.basic.file" value="readme_basic.txt"/>
-   <property name="op.keystore" value="${op.security.dir}/onePoint.ks"/>
+   <property name="op.keystore" value="${op.security.dir}/onepoint.ks"/>
    <property name="op.keystore.password" value="onepoint"/>
    <property name="op.keystore.key" value="onepoitkey"/>
    <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="project.basic.jarname" value="opproject-07-be.jar"/>
-   <property name="project.open.jarname" value="opproject-07.jar"/>
-   <property name="project.client.jarname" value="opproject-client-07.jar"/>
+   <property name="op.release.name" value="opproject-07-u2"/>
+   <property name="project.basic.jarname" value="${op.release.name}-be.jar"/>
+   <property name="project.open.jarname" value=".jar"/>
+   <property name="project.client.jarname" value="opproject-client-07-u2.jar"/>
    <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client-07.jar"/>
+   <property name="express.client.jarname" value="express4j-client-07-u2.jar"/>
    <property name="op.zip.root.dir" value="opproject"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
@@ -39,7 +40,7 @@
    <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
    <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
-   <property name="release.root.filename" value="opproject-07-u1"/>
+   <property name="release.root.filename" value="opproject-07-u2"/>
 
    <!-- Classpath reference -->
    <path id="op.classpath">
@@ -126,11 +127,8 @@
    <!-- Pattern set for the lib files of the web application -->
    <patternset id="webapp.lib.pathid">
       <include name="*.jar"/>
-      <include name="*.txt"/>
       <exclude name="*servlet*.jar"/>
       <exclude name="*mysql*.*"/>
-      <exclude name="*jtds*.*"/>
-      <exclude name="*postgresql*.*"/>
       <exclude name="*junit*.*"/>
       <exclude name="*jcookie*.jar"/>
    </patternset>
@@ -293,7 +291,7 @@
    </macrodef>
 
    <!-- Performs all the tasks necessary to create the web application -->
-   <target name="dist.applet" description="Performs the initialization, build and war tasks">
+   <target name="dist.war" description="Performs the initialization, build and war tasks">
 
       <mkdir dir="${jars.dir}"/>
 
@@ -529,7 +527,7 @@
       </zip>
 
       <!--war release [for applet version] -->
-      <antcall target="dist.applet"/>
+      <antcall target="dist.war"/>
       <copy file="${op.readme.open.file}" tofile="${op.release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${op.release.dir}/${release.root.filename}-open.zip">
          <fileset dir="${op.dist.dir}">
@@ -538,6 +536,11 @@
          <zipfileset file="${op.release.dir}/readme.txt"/>
          <zipfileset dir="${op.demodata.dir}" prefix="${op.demodata.dir}"/>
          <zipfileset file="${op.license.file}"/>
+         <zipfileset file="opproject-tutorial-07-en.pdf"/>
+         <zipfileset dir="${op.lib.dir}" prefix="licenses">
+            <include name="*.txt"/>
+            <exclude name="mysql*.txt"/>
+         </zipfileset>
       </zip>
       <delete dir="${op.dist.dir}"/>
       <!--<delete dir="${op.jars.dir}"/>-->
