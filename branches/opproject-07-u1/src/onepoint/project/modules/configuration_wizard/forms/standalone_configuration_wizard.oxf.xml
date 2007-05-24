@@ -20,7 +20,6 @@
             <label x="0" y="1" width="2" text="{$DatabaseLocation}" style-ref="header-label-default"/>
             <text-field x="2" y="1" width="2" id="HSQLDbPathTextField" enabled="false"/>
             <button x="4" y="1" width="1" id="selectButton" text="{$Select}" on-button-pressed="selectFolder"/>
-            <check-box x="2" y="2" width="3" id="ImportDemoData" text="{$ImportDemoData}" boolean-value="false"/>
             <button x="2" y="3" width="2" id="okButton" text="{$OK}" on-button-pressed="connect"/>
          </panel>
       </panel>

@@ -38,6 +38,11 @@ function ok(event) {
    }
 
    assignment_data_set = previous_dialog.getChild(1).findComponent("AssignmentSet");
+   shouldCheckAvailability = previous_dialog.getChild(1).findComponent("CheckAvailability").getBooleanValue();
+   if (shouldCheckAvailability == null) {
+      shouldCheckAvailability = false;
+   }
+
    form = XDisplay.getActiveForm();
    resource_data_set = form.findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();
@@ -46,7 +51,7 @@ function ok(event) {
       assignment = form.findComponent("Assigned").getDoubleValue();
       availability = getResourceAvailability(XValidator.choiceID(resource));
 
-      if (assignment < 0 || assignment > availability){
+      if (shouldCheckAvailability && (assignment < 0 || assignment > availability)) {
          //make visible the error label
          errorLabel = form.findComponent("ErrorLabel");
          errorLabel.setVisible(true);

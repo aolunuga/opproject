@@ -18,6 +18,7 @@ import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.UserTestDataFactory;
 import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
 
 import java.io.BufferedInputStream;
 import java.net.URL;
@@ -325,7 +326,8 @@ public class OpProjectPlanningServiceTest extends OpBaseTestCase {
       XMessage response = service.createTemporaryFile(session, request);
       assertNoError(request);
       String url = (String) response.getArgument("attachmentUrl");
-      BufferedInputStream bis = (BufferedInputStream) new URL(url).getContent();
+      assertTrue(XEncodingHelper.isValueEncoded(url));
+      BufferedInputStream bis = (BufferedInputStream) new URL(XEncodingHelper.decodeValue(url)).getContent();
       byte[] bytes = new byte[content.length];
       assertEquals(content.length, bis.read(bytes));
       assertTrue(Arrays.equals(content, bytes));

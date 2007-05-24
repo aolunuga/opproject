@@ -13,6 +13,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
+import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -591,48 +592,79 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    /**
     * Updates the base personnel costs of the assignemnts of the activities that are checked out at the moment when the
-    * resource is updated.
+    * resource is updated and the actual costs of all activities, assignments and workrecords
+    * where the resource is involved..
     *
     * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param resource a <code>OpResource</code> representing the resource that has been updated.
     */
    private void updatePersonnelCosts(OpBroker broker, OpResource resource) {
+      updateBasePersonnelCosts(broker, resource);
+      updateActualPersonnelCosts(broker, resource);
+   }
+
+   /**
+    * Updates the actual personnel costs of all assignments, work records and activities where
+    * the resource is involved.
+    * @param broker a  <code>OpBroker</code> used for persistence operations.
+    * @param resource a <code>OpResource</code> whoes hourly rate has changed.
+    */
+   private void updateActualPersonnelCosts(OpBroker broker, OpResource resource) {
+      double newHourlyRate = resource.getHourlyRate();
+      Iterator assignments = resource.getActivityAssignments().iterator();
+      while (assignments.hasNext()) {
+         //update the actual costs of the assignment
+         OpAssignment assignment = (OpAssignment) assignments.next();
+         double newAssignmentActualCost = 0;
+         Iterator workRecords = assignment.getWorkRecords().iterator();
+         while (workRecords.hasNext()) {
+            OpWorkRecord workRecord = (OpWorkRecord) workRecords.next();
+            double newWorkRecordActualCost = workRecord.getActualEffort() * newHourlyRate;
+            workRecord.setPersonnelCosts(newWorkRecordActualCost);
+            broker.updateObject(workRecord);
+            newAssignmentActualCost += newWorkRecordActualCost;
+         }
+         assignment.setActualCosts(newAssignmentActualCost);
+         broker.updateObject(assignment);
+
+         //update the actual costs of the assignment's activity and super-activities
+         OpActivity activity = assignment.getActivity();
+         activity.recalculateActualPersonnelCosts();
+         broker.updateObject(activity);
+
+         while (activity.getSuperActivity() != null) {
+            OpActivity superActivity = activity.getSuperActivity();
+            superActivity.recalculateActualPersonnelCosts();
+            broker.updateObject(superActivity);
+            activity = superActivity;
+         }
+      }
+   }
+
+   /**
+    * Updates the base personnel costs of all the assignment and activity versions where
+    * the resource is involved.
+    * @param broker  a <code>OpBroker</code> used for persistence operations.
+    * @param resource an <code>OpResource</code> representing the resource whoes rate has changed.
+    */
+   private void updateBasePersonnelCosts(OpBroker broker, OpResource resource) {
       Iterator it = getAssignmentsForWorkingVersions(broker, resource.getID());
       while (it.hasNext()) {
          OpAssignmentVersion assignmentVersion = (OpAssignmentVersion) it.next();
          assignmentVersion.setBaseCosts(assignmentVersion.getBaseEffort() * resource.getHourlyRate());
          broker.updateObject(assignmentVersion);
 
+         //recalculate activities and super activities
          OpActivityVersion activityVersion = assignmentVersion.getActivityVersion();
-         double oldPersonnelCosts = activityVersion.getBasePersonnelCosts();
-         double baseEffort = activityVersion.getBaseEffort();
+         activityVersion.recalculateBasePersonnelCosts();
+         broker.updateObject(activityVersion);
 
-         double sumAssigned = 0;
-         OpQuery query = broker.newQuery("select sum(assignment.Assigned) from OpAssignmentVersion assignment where assignment.ActivityVersion.ID=?");
-         query.setLong(0, activityVersion.getID());
-         sumAssigned = ((Double) broker.list(query).iterator().next()).doubleValue();
-
-         double personnelCosts = 0;
-         Iterator it1 = activityVersion.getAssignmentVersions().iterator();
-         while (it1.hasNext()) {
-            OpAssignmentVersion assignment = ((OpAssignmentVersion) it1.next());
-            OpResource assignmentResource = assignment.getResource();
-            double assignmentProportion = assignment.getAssigned() / sumAssigned;
-            personnelCosts += assignmentProportion * baseEffort * assignmentResource.getHourlyRate();
-         }
-         //update activity
-         activityVersion.setBasePersonnelCosts(personnelCosts);
-
-         //update all super activities
          while (activityVersion.getSuperActivityVersion() != null) {
             OpActivityVersion superActivityVersion = activityVersion.getSuperActivityVersion();
-            double costsDifference = activityVersion.getBasePersonnelCosts() - oldPersonnelCosts;
-            oldPersonnelCosts = superActivityVersion.getBasePersonnelCosts();
-            superActivityVersion.setBasePersonnelCosts(superActivityVersion.getBasePersonnelCosts() + costsDifference);
-            broker.updateObject(activityVersion);
+            superActivityVersion.recalculateBasePersonnelCosts();
+            broker.updateObject(superActivityVersion);
             activityVersion = superActivityVersion;
          }
-         broker.updateObject(activityVersion);
       }
    }
 
@@ -960,7 +992,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       // TODO: Maybe add force-flag (like there was before falsely for delete-group)
       // (Deny deletion of not-empty pools if force flag deleteIfNotEmpty is not set)
-      ArrayList id_strings = (ArrayList) (request.getArgument(POOL_IDS));
+      List id_strings = (List) (request.getArgument(POOL_IDS));
       logger.debug("OpResourceService.deletePools(): pool_ids = " + id_strings);
 
       OpBroker broker = session.newBroker();

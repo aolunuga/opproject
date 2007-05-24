@@ -60,8 +60,10 @@ public class OpUserService extends OpProjectService {
    public final static String ASSIGNED_GROUPS = "assigned_groups";
 
    // email pattern ex : eXpress@onepoint.at
-   private final static String EMAIL_REG_EXP = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
-
+   // note: to restrictive! - did not allow any foreign character like german umlauts 
+   //private final static String EMAIL_REG_EXP = "^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]";
+   private final static String EMAIL_REG_EXP = "^.+@[^\\.].*\\.[a-z]{2,}$";
+   
    // *** Where do we provide the XML-code to register the service?
    // ==> Maybe the most consistent way it to include it in the module
 

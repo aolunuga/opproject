@@ -3,6 +3,7 @@
       <resource id="Login">Benutzername</resource>
       <resource id="Password">Passwort</resource>
       <resource id="OK">OK</resource>
+      <resource id="MySQLEngineWarning">ACHTUNG: Sie verwenden eine nicht-transaktionelle Datenbank was zu Dateninkonsistenzen führen kann. Bitte nehmen Sie zwecks Datenbank-Upgrade-Instruktionen das README-Datei zur Hand</resource>            
    </resource-map>
    <resource-map id="main.levels">
       <resource id="runLevel0">Konfigurationsdatei konnte nicht geladen werden</resource>

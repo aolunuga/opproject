@@ -54,14 +54,7 @@ public class OpConfigurationWizardService extends OpProjectService {
     */
    private static final OpDbConfigurationWizardErrorMap ERROR_MAP = new OpDbConfigurationWizardErrorMap();
 
-   /**
-    * The path and names for the demodata
-    */
-   private static final String DEMODATA_DIR = "demodata";
-   private static final String DEMODATA_FILE = "demodata.opx.xml";
-   private static final String DEMO_DATA_FILE_NAME = "demo_data_file_name";
-
-   public static final String MY_SQL_DISPLAY = "MySQL";
+   public static final String MY_SQL_INNODB_DISPLAY = "MySQL InnoDB";
    public static final String ORACLE_DISPLAY = "Oracle";
    public static final String IBM_DB_DISPLAY = "IBM DB/2";
    public static final String MSSQL_DISPLAY = "Microsoft SQL Server";
@@ -70,13 +63,11 @@ public class OpConfigurationWizardService extends OpProjectService {
    private static final Map DISPLAY_TO_DB_TYPE = new HashMap();
 
    static {
-      DISPLAY_TO_DB_TYPE.put(MY_SQL_DISPLAY, OpConfigurationValuesHandler.MYSQL_DB_TYPE);
+      DISPLAY_TO_DB_TYPE.put(MY_SQL_INNODB_DISPLAY, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(ORACLE_DISPLAY, OpConfigurationValuesHandler.ORACLE_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(IBM_DB_DISPLAY, OpConfigurationValuesHandler.IBM_DB2_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(MSSQL_DISPLAY, OpConfigurationValuesHandler.MSSQL_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(POSTGRE_DISPLAY, OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, OpConfigurationValuesHandler.HSQL_DB_TYPE);
-      DISPLAY_TO_DB_TYPE.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
    }
 
    /**
@@ -94,7 +85,9 @@ public class OpConfigurationWizardService extends OpProjectService {
       boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter.booleanValue();
 
       String databaseType = (String) parameters.get("database_type");
-      databaseType = (String) DISPLAY_TO_DB_TYPE.get(databaseType);
+      if (DISPLAY_TO_DB_TYPE.get(databaseType) != null) {
+         databaseType = (String) DISPLAY_TO_DB_TYPE.get(databaseType);
+      }
       String databaseDriver = (String) onepoint.project.configuration.OpConfiguration.DATABASE_DRIVERS.get(databaseType);
 
       //response message
@@ -126,7 +119,8 @@ public class OpConfigurationWizardService extends OpProjectService {
       //password is not a mandatory field
       String databasePassword = (String) parameters.get("database_password");
 
-      int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword);
+      int errorCode = testConnectionParameters(((Integer) OpConfigurationValuesHandler.DATABASE_TYPES_MAP.get(databaseType)).intValue(),
+           databaseDriver, databaseURL, databaseLogin, databasePassword);
       if (errorCode != OpConnectionManager.SUCCESS) {
          response.setError(session.newError(ERROR_MAP, errorCode));
          return response;
@@ -134,66 +128,27 @@ public class OpConfigurationWizardService extends OpProjectService {
 
       //the configuration file name
       String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
-
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
-
-      Boolean importDemoDataParam = (Boolean) parameters.get("import_demo_data");
-      boolean importDemoData = importDemoDataParam != null && importDemoDataParam.booleanValue();
-
-      String fileName = (String) parameters.get(DEMO_DATA_FILE_NAME);
-      File demodataFile = getDemodataFile(fileName);
-
-      //if demodata is to be imported, make sure the file exists
-      if (importDemoData && demodataFile == null) {
-         response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.NONEXISTENT_DEMODATA));
-         return response;
-      }
 
       Map initParams = OpInitializer.init(OpInitializer.getProductCode());
       response.setArgument("initParams", initParams);
 
-      if (importDemoData) {
-         try {
-            OpInitializer.restoreSchemaFromFile(demodataFile.getCanonicalPath(), session);
-         }
-         catch (Exception e) {
-            logger.error("Cannot import demodata because:" + e.getMessage(), e);
-            return response;
-         }
-      }
       return response;
-   }
-
-   /**
-    * Gets the demodata file.
-    *
-    * @param fileName Name of the demo data file (if null, a default will be used)
-    * @return a <code>File</code> object representing the demodata, or null if the demodata doesn't exist.
-    */
-   private File getDemodataFile(String fileName) {
-      if (fileName == null) {
-         fileName = DEMODATA_FILE;
-      }
-      String demodataBackupFilePath = DEMODATA_DIR + "/" + fileName;
-      File demodataBackupFile = new File(".", demodataBackupFilePath);
-      if (!demodataBackupFile.exists() || demodataBackupFile.isDirectory()) {
-         return null;
-      }
-      return demodataBackupFile;
    }
 
    /**
     * Checks whether the given db connection parameters are ok to establish a db connection.
     *
-    * @param databaseDriver a <code>String</code> representing the database driver class.
-    * @param databaseURL a <code>String</code> representing the db connection url.
-    * @param databaseLogin a <code>String</code> representing the user name of the db connection.
+    * @param dbType a <code>int</code> constant representing the type of the db.
+    * @param databaseDriver   a <code>String</code> representing the database driver class.
+    * @param databaseURL      a <code>String</code> representing the db connection url.
+    * @param databaseLogin    a <code>String</code> representing the user name of the db connection.
     * @param databasePassword a <code>String</code> representing the db password.
     * @return an <code>int</code> representing an error code or 0, representing no error.
     */
-   private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
-      int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword);
-      switch(testResult) {
+   private int testConnectionParameters(int dbType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
+      int testResult = OpConnectionManager.testConnection(dbType, databaseDriver, databaseURL, databaseLogin, databasePassword);
+      switch (testResult) {
          case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
             return OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR;
          }
@@ -206,6 +161,9 @@ public class OpConfigurationWizardService extends OpProjectService {
          case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
             return OpDbConfigurationWizardError.JDBC_DRIVER_ERROR;
          }
+         case OpConnectionManager.INVALID_MYSQL_ENGINE: {
+            return OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE;
+         }
       }
       return testResult;
    }
@@ -214,11 +172,11 @@ public class OpConfigurationWizardService extends OpProjectService {
     * Writes the configuration file for the application, based on the information from the configuration wizard.
     *
     * @param configurationFileName a <code>String</code> representing the name of the application configuration file.
-    * @param databaseType a <code>String</code> representing the db type.
-    * @param databaseDriver a <code>String</code> representing the path to the db driver.
-    * @param databaseURL a <code>String</code> representing the db connection string.
-    * @param databaseLogin a <code>String</code> representing the user name in the db config.
-    * @param databasePassword a <code>String</code> representing the user password in the db.
+    * @param databaseType          a <code>String</code> representing the db type.
+    * @param databaseDriver        a <code>String</code> representing the path to the db driver.
+    * @param databaseURL           a <code>String</code> representing the db connection string.
+    * @param databaseLogin         a <code>String</code> representing the user name in the db config.
+    * @param databasePassword      a <code>String</code> representing the user password in the db.
     */
    private void writeConfigurationFile(String configurationFileName, String databaseType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       try {

@@ -6,14 +6,10 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.usertype.UserType;
 
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Arrays;
 
@@ -114,53 +110,7 @@ public class OpBlobUserType implements UserType {
          preparedStatement.setNull(i, Types.BLOB);
       }
       else {
-         if (DATABASE_TYPE == OpHibernateSource.ORACLE) {
-            performOracleNullSafeSet(preparedStatement, object, i);
-         }
-         else {
-            preparedStatement.setBlob(i, Hibernate.createBlob((byte[]) object));
-         }
-      }
-   }
-
-   /**
-    * @see org.hibernate.usertype.UserType#nullSafeSet(java.sql.PreparedStatement, Object, int)
-    */
-   private void performOracleNullSafeSet(PreparedStatement preparedStatement, Object object, int i) {
-      if (preparedStatement instanceof com.mchange.v2.c3p0.C3P0ProxyStatement) {
-         try {
-            Field connInnerField = preparedStatement.getConnection().getClass().getDeclaredField("inner");
-            connInnerField.setAccessible(true);
-            Connection realConnection = (Connection) connInnerField.get(preparedStatement.getConnection());
-
-            Class oracleBlobClass = Class.forName("oracle.sql.BLOB");
-            /*create blob object using createTemporary static method*/
-            Method createTemporaryMethod = oracleBlobClass.getDeclaredMethod("createTemporary",
-                                                               new Class[]{Connection.class, boolean.class, int.class});
-            Field durationSessionField = oracleBlobClass.getDeclaredField("DURATION_SESSION");
-            Object[] args = new Object[]{realConnection, Boolean.FALSE, durationSessionField.get(null)};
-            Object blob = createTemporaryMethod.invoke(null, args);
-            /* open blob*/
-            Method openBlobMethod = oracleBlobClass.getDeclaredMethod("open", new Class[]{int.class});
-            Field modeReadWriteField = oracleBlobClass.getDeclaredField("MODE_READWRITE");
-            openBlobMethod.invoke(blob, new Object[]{modeReadWriteField.get(null)});
-            /*get blob's output stream */
-            Method getBinaryOutputStreamMethod = oracleBlobClass.getDeclaredMethod("getBinaryOutputStream", new Class[]{});
-            OutputStream out = (OutputStream) getBinaryOutputStreamMethod.invoke(blob, new Object[]{});
-
-            out.write((byte[]) object);
-            out.flush();
-            out.close();
-
-            /*close blob */
-            Method closeBlobMethod = oracleBlobClass.getDeclaredMethod("close", new Class[]{});
-            closeBlobMethod.invoke(blob, new Object[]{});
-
-            preparedStatement.setBlob(i, (java.sql.Blob) blob);
-         }
-         catch (Exception e) {
-            logger.error("Error while insert blob type ", e);
-         }
+         preparedStatement.setBytes(i, (byte[]) object);
       }
    }
 

@@ -44,7 +44,7 @@
    </resource-map>
 
    <resource-map id="settings.calendar">
-     <resource id="HourInitial">ч</resource>
+      <resource id="HourInitial">ч</resource>
       <resource id="DayInitial">д</resource>
       <resource id="WeekInitial">н</resource>
       <resource id="January">Январь</resource>

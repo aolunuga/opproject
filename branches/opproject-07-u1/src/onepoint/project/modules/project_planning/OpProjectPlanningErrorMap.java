@@ -31,6 +31,7 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.PROJECT_REVERT_ERROR, OpProjectPlanningError.PROJECT_REVERT_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.PROJECT_SAVE_ERROR, OpProjectPlanningError.PROJECT_SAVE_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST, OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST_NAME);
+      registerErrorCode(OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR_NAME);
 
    }
 }

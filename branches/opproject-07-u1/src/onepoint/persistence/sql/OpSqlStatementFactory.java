@@ -69,7 +69,7 @@ public final class OpSqlStatementFactory {
                break;
             }
             case DB2: {
-               statement = new  OpDB2Statement();
+               statement = new OpDB2Statement();
                break;
             }
             default: {

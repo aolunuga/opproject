@@ -30,6 +30,7 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.util.XEncodingHelper;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -304,13 +305,10 @@ public class OpProjectPlanningService extends OpProjectService {
          //update all super activities
          while (activity.getSuperActivity() != null) {
             OpActivity superActivity = activity.getSuperActivity();
-            double costsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
-            currentPersonnelCosts = superActivity.getBasePersonnelCosts();
-            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + costsDifference);
-            broker.updateObject(activity);
+            superActivity.recalculateBasePersonnelCosts();
+            broker.updateObject(superActivity);
             activity = superActivity;
          }
-         broker.updateObject(activity);
       }
 
       return changed;
@@ -448,10 +446,12 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
-         OpTransaction t = broker.newTransaction();
-
          // Check if project plan already exists (create if not)
          OpProjectPlan projectPlan = project.getPlan();
+
+         checkActivitiesBaseEffort(dataSet, broker, session);
+
+         OpTransaction t = broker.newTransaction();
 
          // Archive current project plan to new project plan version
          OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
@@ -506,6 +506,36 @@ public class OpProjectPlanningService extends OpProjectService {
          finalizeSession(null, broker);
       }
    }
+
+   /**
+    * Checks if the base effort on the activities in the data set has valid values with regard to the actual effort.
+    *
+    * @param dataSet Data set containig the client side activities.
+    * @param broker  Broker used to access db
+    * @param session Current session used to generate the eventual errors.
+    */
+   private void checkActivitiesBaseEffort(XComponent dataSet, OpBroker broker, OpProjectSession session) {
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         String locator = row.getStringValue();
+         if (locator != null) {
+            OpActivity activity;
+            if (OpLocator.parseLocator(locator).getPrototype().getInstanceClass() == OpActivity.class) {
+               activity = (OpActivity) broker.getObject(locator);
+            }
+            else {
+               OpActivityVersion version = (OpActivityVersion) broker.getObject(locator);
+               activity = version.getActivity();
+            }
+            if (activity != null) {
+               if (activity.getActualEffort() > OpGanttValidator.getBaseEffort(row)) {
+                  throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR));
+               }
+            }
+         }
+      }
+   }
+
 
    public XMessage revertActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.revertActivities");
@@ -641,7 +671,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
          //multi-user means remote
          if (OpInitializer.isMultiUser()) {
-            response.setArgument(ATTACHMENT_URL, location);
+            response.setArgument(ATTACHMENT_URL, XEncodingHelper.encodeValue(location));
             response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
          }
          else {
@@ -714,7 +744,7 @@ public class OpProjectPlanningService extends OpProjectService {
          fos.write(content);
          fos.flush();
          fos.close();
-         return temporaryFile.getCanonicalFile().toURL().toExternalForm();
+         return XEncodingHelper.encodeValue(temporaryFile.getCanonicalFile().toURL().toExternalForm());
       }
       catch (IOException e) {
          logger.error("Cannot create temporary attachment file on server", e);

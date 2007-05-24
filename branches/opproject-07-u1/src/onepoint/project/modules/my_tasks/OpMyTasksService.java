@@ -304,7 +304,7 @@ public class OpMyTasksService extends OpProjectService {
             OpActivity activity = (OpActivity) broker.getObject(locator);
             if (activity.getType() == OpActivity.ADHOC_TASK) {
                //check access level
-               if (session.effectiveAccessLevel(broker, activity.getProjectPlan().getID()) >= OpPermission.MANAGER) {
+               if (session.effectiveAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID()) >= OpPermission.MANAGER) {
                   boolean hasWorkSlips = false;
                   for (Iterator iterator = activity.getAssignments().iterator(); iterator.hasNext();) {
                      OpAssignment assignment = (OpAssignment) iterator.next();

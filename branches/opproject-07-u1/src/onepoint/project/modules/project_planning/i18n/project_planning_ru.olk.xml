@@ -91,6 +91,7 @@
       <resource id="WorkRecordsExistErrorMessage">По данной задаче уже внесен табель</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Импорт плана проекта</resource>
       <resource id="ExportProjectTitle">Экспорт плана проекта</resource>
@@ -267,6 +268,8 @@
       <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
    </resource-map>
 
 </language-kit>

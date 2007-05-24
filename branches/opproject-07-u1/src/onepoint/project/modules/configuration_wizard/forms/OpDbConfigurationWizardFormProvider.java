@@ -33,7 +33,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
    private static final String ERROR_LABEL_FIELD = "ErrorLabel";
 
    /**
-    * @see XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
+    * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
 
@@ -56,7 +56,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
          localizer.setResourceMap(resourceMap);
          XComponent errorLabel = form.findComponent(ERROR_LABEL_FIELD);
          errorLabel.setVisible(true);
-         switch(connectionTestCode) {
+         switch (connectionTestCode) {
             case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
                String text = localizer.localize("{$" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
                errorLabel.setText(text);
@@ -77,6 +77,11 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
                errorLabel.setText(text);
                break;
             }
+            case OpConnectionManager.INVALID_MYSQL_ENGINE: {
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE_NAME + "}");
+               errorLabel.setText(text);
+               break;
+            }
          }
       }
    }
@@ -87,10 +92,10 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
     * @param dataSet <code>XComponent.DATA_SET</code>
     */
    private void fillDbTypeDataSet(XComponent dataSet) {
-      XComponent dataRow ;
+      XComponent dataRow;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MY_SQL_DISPLAY));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MY_SQL_INNODB_DISPLAY));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);

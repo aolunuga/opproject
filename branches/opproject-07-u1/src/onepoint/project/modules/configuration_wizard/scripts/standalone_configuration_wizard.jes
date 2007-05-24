@@ -25,7 +25,6 @@ function connect(event) {
    config.database_login = form.findComponent("HSQLDbLoginDataField").getStringValue();
    config.database_password = form.findComponent("HSQLDbPasswordDataField").getStringValue();
    config.is_multi_user = false;
-   config.import_demo_data = form.findComponent("ImportDemoData").getBooleanValue();
 
    //save configuration file
    request = new XMessage;

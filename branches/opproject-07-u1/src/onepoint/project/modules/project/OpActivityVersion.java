@@ -9,6 +9,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
+import java.util.Iterator;
 import java.util.Set;
 
 public class OpActivityVersion extends OpObject {
@@ -330,4 +331,31 @@ public class OpActivityVersion extends OpObject {
    public void setResponsibleResource(OpResource responsibleResource) {
       this.responsibleResource = responsibleResource;
    }
+
+   /**
+    * Recalculates the base personnell costs for this activity by summing up the base personnel
+    * costs of its assignments.
+    *
+    * @return a <code>double</code> representing the activitie's base personnel costs.
+    */
+   public double recalculateBasePersonnelCosts() {
+      double sum = 0;
+      if (this.getSubActivityVersions().size() > 0) {
+         Iterator subactivitiesIterator = this.getSubActivityVersions().iterator();
+         while (subactivitiesIterator.hasNext()) {
+            OpActivityVersion subActivityVersion = (OpActivityVersion) subactivitiesIterator.next();
+            sum += subActivityVersion.recalculateBasePersonnelCosts();
+         }
+      }
+      else {
+         Iterator assignmentsIterator = this.getAssignmentVersions().iterator();
+         while (assignmentsIterator.hasNext()) {
+            OpAssignmentVersion assignmentVersion = (OpAssignmentVersion) assignmentsIterator.next();
+            sum += assignmentVersion.getBaseCosts();
+         }
+      }
+      this.setBasePersonnelCosts(sum);
+      return sum;
+   }
+
 }

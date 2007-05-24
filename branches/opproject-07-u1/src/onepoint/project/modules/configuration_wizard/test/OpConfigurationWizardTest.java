@@ -55,7 +55,6 @@ public class OpConfigurationWizardTest extends OpBaseTestCase {
       params.put("database_url", dbURL);
       params.put("database_login", dbUserName);
       params.put("database_password", dbPassword);
-      params.put("import_demo_data", Boolean.FALSE);
       params.put("is_multi_user", Boolean.FALSE);
 
       XMessage request = new XMessage();
@@ -100,16 +99,6 @@ public class OpConfigurationWizardTest extends OpBaseTestCase {
       request.setArgument("parameters", new HashMap(params));
       response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.INVALID_CREDENTIALS);
-
-      params.put("database_login", dbUserName);
-      params.put("database_password", dbPassword);
-      params.put("import_demo_data", Boolean.TRUE);
-      params.put("demo_data_file_name", "invalid_demodata.xml");
-
-      request = new XMessage();
-      request.setArgument("parameters", new HashMap(params));
-      response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
-      assertError(response, OpDbConfigurationWizardError.NONEXISTENT_DEMODATA);
    }
 
    /**

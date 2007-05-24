@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-   <database-type>MySQL</database-type>
+   <database-type>MySQLInnoDB</database-type>
    <database-driver>com.mysql.jdbc.Driver</database-driver>
    <database-url>jdbc:mysql:///opproject_test</database-url>
    <database-login>root</database-login>

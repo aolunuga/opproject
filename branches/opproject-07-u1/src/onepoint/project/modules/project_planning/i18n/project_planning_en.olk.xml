@@ -91,6 +91,7 @@
       <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
       <resource id="ExportProjectTitle">Export Project Plan</resource>
@@ -259,13 +260,15 @@
       <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
       <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
       <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
-      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contain work slips</resource>
 
       <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
       <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>
       <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
    </resource-map>
 
 </language-kit>
