@@ -141,7 +141,7 @@ execute the following steps after installing MySQL:
 
    (1) Open a command line window (DOS shell) und change into the "demodata"
        directory
-   (2) Type "mysql ï¿½u root -p" and enter the root password which you specified
+   (2) Type "mysql –u root -p" and enter the root password which you specified
        when installing MySQL
    (3) mysql> source createdb.sql;
    (4) mysql> quit
@@ -149,7 +149,7 @@ execute the following steps after installing MySQL:
 Alternatively, you can create a new database and a new user in MySQL also
 manually:
 
-   (1) Open a command line window (DOS shell) und type "mysql ï¿½u root -p" and
+   (1) Open a command line window (DOS shell) und type "mysql –u root -p" and
        enter the root password which you specified when installing MySQL
    (2) mysql> create database opproject;
    (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
@@ -163,7 +163,7 @@ Appendix B: Executing a SQL file in MySQL
 In order to execute a SQL file in MySQL you have to do the following:
 
    (1) Open a command line window (DOS shell) und type
-       "mysql ï¿½u opproject -p opproject" and enter the password you specified
+       "mysql –u opproject -p opproject" and enter the password you specified
        when creating the database user
    (2) mysql> source demodata07.sql;
    (3) mysql> quit
