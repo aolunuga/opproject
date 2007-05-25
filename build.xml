@@ -508,7 +508,7 @@
 
    </target>
 
-   <target name="release" description="Packages the project sources into a release archive.">
+   <target name="release" depends="clean" description="Packages the project sources into a release archive.">
 
       <mkdir dir="${op.release.dir}"/>
 
