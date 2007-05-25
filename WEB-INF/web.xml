@@ -11,13 +11,6 @@
       Onepoint Project 07 Open Edition (c) 2007 OnePoint Software GmbH
    </description>
 
-   <!-- Listeners -->
-   <listener>
-      <listener-class>
-         onepoint.service.server.XClearSessionListener
-      </listener-class>
-   </listener>
-
    <servlet>
       <servlet-name>OpProjectServlet</servlet-name>
       <servlet-class>onepoint.project.servlet.OpOpenServlet</servlet-class>
@@ -35,7 +28,7 @@
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>
-         <param-value>express4j-client-07.1.jar,opproject-client-07.1.jar,jcookie-0.8b.jar</param-value>
+         <param-value>express4j-client-07-u2.jar,opproject-client-07-u2.jar,jcookie-0.8b.jar</param-value>
       </init-param>
    </servlet>
 
@@ -43,8 +36,7 @@
       <servlet-name>OpProjectServlet</servlet-name>
       <url-pattern>/service</url-pattern>
    </servlet-mapping>
-   <!-- Session time-out is 30 minutes -->
    <session-config>
-      <session-timeout>30</session-timeout>
+      <session-timeout>720</session-timeout>
    </session-config>
 </web-app>

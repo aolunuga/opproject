@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project.test;
@@ -10,13 +10,13 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.test.TestDataFactory;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -85,7 +85,7 @@ public class ProjectTestDataFactory extends TestDataFactory {
 
       broker.close();
       if (projId != null) {
-         return OpLocator.locatorString(OpProjectNode.PROJECT_NODE, projId);
+         return OpLocator.locatorString(OpProjectNode.PROJECT_NODE, projId.longValue());
       }
       return null;
    }
@@ -132,9 +132,6 @@ public class ProjectTestDataFactory extends TestDataFactory {
       OpProjectNode project = (OpProjectNode) broker.getObject(locator);
       // just to inialize the collection
       project.getAssignments().size();
-      for(OpProjectNodeAssignment assignment : project.getAssignments()){
-         assignment.getHourlyRatesPeriods().size();
-      }
       project.getDynamicResources().size();
       project.getGoals().size();
       project.getInstanceNodes().size();
@@ -166,7 +163,7 @@ public class ProjectTestDataFactory extends TestDataFactory {
 
       broker.close();
       if (projId != null) {
-         return OpLocator.locatorString(OpProjectNode.PROJECT_NODE, projId);
+         return OpLocator.locatorString(OpProjectNode.PROJECT_NODE, projId.longValue());
       }
       return null;
    }
@@ -176,11 +173,11 @@ public class ProjectTestDataFactory extends TestDataFactory {
     *
     * @return a <code>List</code> of <code>OpProjectNode</code>
     */
-   public List<OpProjectNode> getAllProjects() {
+   public List getAllProjects() {
       OpBroker broker = session.newBroker();
 
       OpQuery query = broker.newQuery("from OpProjectNode as project where project.Type = 3");
-      List<OpProjectNode> result = broker.list(query);
+      List result = broker.list(query);
       broker.close();
 
       return result;
@@ -245,7 +242,7 @@ public class ProjectTestDataFactory extends TestDataFactory {
 
       broker.close();
       if (projId != null) {
-         return OpLocator.locatorString(OpProjectPlan.PROJECT_PLAN, projId);
+         return OpLocator.locatorString(OpProjectPlan.PROJECT_PLAN, projId.longValue());
       }
       return null;
    }
@@ -319,17 +316,17 @@ public class ProjectTestDataFactory extends TestDataFactory {
    }
 
    public static XMessage createProjectMsg(String name, Date date, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos) {
-      return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, new XComponent(XComponent.DATA_SET));
+        Boolean calcMode, Boolean prgTrk, ArrayList resouces, Object[][] goals, Object[][] todos) {
+      return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, goals, todos, new XComponent(XComponent.DATA_SET));
    }
 
    public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos, XComponent dataSet) {
+        Boolean calcMode, Boolean prgTrk, ArrayList resouces, Object[][] goals, Object[][] todos, XComponent dataSet) {
       HashMap args = new HashMap();
       args.put(OpProjectNode.NAME, name);
       args.put(OpProjectNode.START, date);
       args.put(OpProjectNode.FINISH, finishDate);
-      args.put(OpProjectNode.BUDGET, budget);
+      args.put(OpProjectNode.BUDGET, new Double(budget));
       args.put(OpProjectNode.STATUS, status);
       args.put("PortfolioID", portfolio);
       args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
@@ -340,22 +337,22 @@ public class ProjectTestDataFactory extends TestDataFactory {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, createDataSet(goals));
       request.setArgument(OpProjectAdministrationService.TO_DOS_SET, createDataSet(todos));
-      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, resources);
+      request.setArgument("resource_list", resouces);
       return request;
    }
 
    public static XMessage updateProjectMsg(String id, String name, Date date, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos) {
+        Boolean calcMode, Boolean prgTrk, ArrayList resouces, Object[][] goals, Object[][] todos) {
       return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos));
    }
 
    public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
-        Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos) {
+        Boolean calcMode, Boolean prgTrk, ArrayList resouces, XComponent goals, XComponent todos) {
       HashMap args = new HashMap();
       args.put(OpProjectNode.NAME, name);
       args.put(OpProjectNode.START, startDate);
       args.put(OpProjectNode.FINISH, finishDate);
-      args.put(OpProjectNode.BUDGET, budget);
+      args.put(OpProjectNode.BUDGET, new Double(budget));
       args.put(OpProjectNode.STATUS, status);
       args.put("PortfolioID", portfolio);
       args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
@@ -367,8 +364,8 @@ public class ProjectTestDataFactory extends TestDataFactory {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, goals);
       request.setArgument(OpProjectAdministrationService.TO_DOS_SET, todos);
-      request.setArgument("resource_set", resources);
       request.setArgument("versions_set", new XComponent(XComponent.DATA_SET));
+      request.setArgument("resource_list", resouces);
       return request;
    }
 
@@ -411,7 +408,8 @@ public class ProjectTestDataFactory extends TestDataFactory {
             String id = ids != null && ids.size() > i ? (String) ids.get(i) : null;
             row.setValue(id);
             data_set.addChild(row);
-            for (Object o : objects) {
+            for (int j = 0; j < objects.length; j++) {
+               Object o = objects[j];
                XComponent cell = new XComponent(XComponent.DATA_CELL);
                row.addChild(cell);
                cell.setValue(o);

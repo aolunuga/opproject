@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -16,7 +16,7 @@ import java.util.Iterator;
 
 public class OpModuleLoader extends XLoader {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpModuleLoader.class);
+   private static final XLog logger = XLogFactory.getLogger(OpModuleLoader.class,true);
 
    public final static XSchema MODULE_SCHEMA = new OpModuleSchema();
 
@@ -62,12 +62,12 @@ public class OpModuleLoader extends XLoader {
       logger.info("Services of module '" + module.getName() + "' loaded.");
       // Load language-kits
       logger.info("Loading language-kits of module '" + module.getName() + "'...");
-      Iterator language_kit_paths = module.getLanguageKitPaths();
+      Iterator language_kit_files = module.getLanguageKitFiles();
       ArrayList language_kits = new ArrayList();
-      OpLanguageKitPath language_kit_path = null;
-      while (language_kit_paths.hasNext()) {
-         language_kit_path = (OpLanguageKitPath) (language_kit_paths.next());
-         language_kits.addAll(language_kit_path.loadLanguageKits());
+      OpLanguageKitFile language_kit_file = null;
+      while (language_kit_files.hasNext()) {
+         language_kit_file = (OpLanguageKitFile) (language_kit_files.next());
+         language_kits.add(language_kit_file.loadLanguageKit());
       }
       module.setLanguageKits(language_kits);
       logger.info("Language-kits of module '" + module.getName() + "' loaded.");

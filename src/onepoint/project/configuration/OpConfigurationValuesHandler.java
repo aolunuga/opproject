@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.configuration;
@@ -36,6 +36,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
     * Database types
     */
    public final static String DERBY_DB_TYPE = "Derby";
+   public final static String MYSQL_DB_TYPE = "MySQL";
    public final static String MYSQL_INNO_DB_TYPE = "MySQLInnoDB";
    public final static String POSTGRESQL_DB_TYPE = "PostgreSQL";
    public final static String ORACLE_DB_TYPE = "Oracle";
@@ -46,7 +47,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    /**
     * A map from db type name to db type (int constant).
     */
-   public final static Map<String, Integer> DATABASE_TYPES_MAP;
+   public final static Map DATABASE_TYPES_MAP;
 
    /**
     * Db password encrypted attribute.
@@ -54,14 +55,15 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    final static String ENCRYPTED_ATTRIBUTE = "encrypted";
 
    static {
-      DATABASE_TYPES_MAP = new HashMap<String, Integer>();
-      DATABASE_TYPES_MAP.put(DERBY_DB_TYPE, OpHibernateSource.DERBY);
-      DATABASE_TYPES_MAP.put(MYSQL_INNO_DB_TYPE, OpHibernateSource.MYSQL_INNODB);
-      DATABASE_TYPES_MAP.put(POSTGRESQL_DB_TYPE, OpHibernateSource.POSTGRESQL);
-      DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, OpHibernateSource.ORACLE);
-      DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, OpHibernateSource.HSQLDB);
-      DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, OpHibernateSource.IBM_DB2);
-      DATABASE_TYPES_MAP.put(MSSQL_DB_TYPE, OpHibernateSource.MSSQL);
+      DATABASE_TYPES_MAP = new HashMap();
+      DATABASE_TYPES_MAP.put(DERBY_DB_TYPE, new Integer(OpHibernateSource.DERBY));
+      DATABASE_TYPES_MAP.put(MYSQL_DB_TYPE, new Integer(OpHibernateSource.MYSQL));
+      DATABASE_TYPES_MAP.put(MYSQL_INNO_DB_TYPE, new Integer(OpHibernateSource.MYSQL_INNODB));
+      DATABASE_TYPES_MAP.put(POSTGRESQL_DB_TYPE, new Integer(OpHibernateSource.POSTGRESQL));
+      DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, new Integer(OpHibernateSource.ORACLE));
+      DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, new Integer(OpHibernateSource.HSQLDB));
+      DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, new Integer(OpHibernateSource.IBM_DB2));
+      DATABASE_TYPES_MAP.put(MSSQL_DB_TYPE, new Integer(OpHibernateSource.MSSQL));
    }
 
    public Object newNode(XContext context, String name, HashMap attributes) {

@@ -5,6 +5,7 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">Neuer Arbeitszettel</resource>
       <resource id="Info">Info</resource>
+      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="Number">Nummer</resource>
       <resource id="Resource">Ressource</resource>
@@ -12,6 +13,7 @@
 
       <resource id="NewWorkSlipTooltip">Neuen Arbeitszettel erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählten Arbeitszettel anzeigen</resource>
+      <resource id="EditTooltip">Metainformation für ausgewählten Arbeitszettel bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Arbeitszettel löschen</resource>
 
       <resource id="Time">Zeitspanne</resource>
@@ -26,7 +28,7 @@
       <resource id="Date">Datum</resource>
       <resource id="Task">Aufgabe</resource>
       <resource id="Project">Projekt</resource>
-      <resource id="AssignmentEffort">Geplant</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
@@ -43,7 +45,7 @@
       <resource id="Project">Projekt</resource>
       <resource id="NextWeek">Nächste Woche</resource>
       <resource id="Next2Weeks">Nächste 2 Wochen</resource>
-      <resource id="NextMonth">Nächster Monat</resource>
+      <resource id="NextMonth">Nächstes Monat</resource>
       <resource id="Next2Months">Nächste 2 Monate</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
@@ -56,7 +58,7 @@
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Aufwand</resource>
       <resource id="Costs">Kosten</resource>
-      <resource id="AssignmentEffort">Geplant</resource>
+      <resource id="AssignmentEffort">Geplant</resource>      
       <resource id="Worktime">Aufwand</resource>
       <resource id="RemainingEffort">Verbleibend</resource>
       <resource id="Material">Material</resource>
@@ -75,8 +77,6 @@
    <resource-map id="work.error">
       <resource id="DateMissing">Das Datum des Arbeitszettels wurde nicht angeben</resource>
       <resource id="DuplicateDate">Ein Arbeitszettel für das angegebene Datum existiert bereits</resource>
-      <resource id="CreatorMissing">Der Ersteller des Arbeitszettels wurde nicht angegeben</resource>
-      <resource id="WorkRecordsMissing">Das Record-Set des Arbeitszettels ist "null" oder leer</resource>
       <resource id="IncorrectActualEffort">Der Aufwand ist nicht korrekt</resource>
       <resource id="IncorrectRemainingEffort">Der Restaufwand ist nicht korrekt</resource>
       <resource id="IncorrectMaterialCosts">Die Materialkosten sind nicht korrekt</resource>

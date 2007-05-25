@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.backup;
@@ -7,7 +7,6 @@ package onepoint.project.modules.backup;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.util.XEnvironmentManager;
 import onepoint.xml.XDocumentWriter;
@@ -38,7 +37,6 @@ public class OpBackupManager {
     */
    public final static String OPP_BACKUP = "opp-backup";
    public final static String VERSION = "version";
-   public final static String SCHEMA_VERSION = "schema-version";
 
    public final static String PROTOTYPES = "prototypes";
    public final static String PROTOTYPE = "prototype";
@@ -60,7 +58,7 @@ public class OpBackupManager {
    /**
     * This class's logger
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpBackupManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpBackupManager.class, true);
 
    /**
     * The size of a page, when performing backup.
@@ -695,11 +693,11 @@ public class OpBackupManager {
       writer.writeHeader1_0();
       HashMap attributes = new HashMap();
 
-      // Write root elements
-      attributes.put(VERSION, String.valueOf(CURRENT_VERSION_NUMBER));
-      attributes.put(SCHEMA_VERSION, String.valueOf(OpHibernateSource.SCHEMA_VERSION));
+      // Write root elements (pilot release uses version="0")
+      attributes.put(VERSION, new StringBuffer().append(CURRENT_VERSION_NUMBER).toString());
       writer.writeStartElement(OPP_BACKUP, attributes, false);
       attributes.clear();
+
 
       // Export prototype order
       List allMembers = exportPrototypes(writer);

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user;
@@ -88,7 +88,7 @@ public final class OpSubjectDataSetFactory {
               "left join gr.SubGroupAssignments subGroupAssignment " +
               "left join gr.UserAssignments userAssignment " +
               "group by gr.ID, gr.Name ";
-         groupOrderCriteria.toHibernateQueryString("gr");
+              groupOrderCriteria.toHibernateQueryString("gr");
          query = broker.newQuery(queryString);
       }
       else {
@@ -110,11 +110,11 @@ public final class OpSubjectDataSetFactory {
       while (results.hasNext()) {
          Object[] record = (Object[]) results.next();
          Long subGroupID = (Long) record[0];
-         subGroup = (OpGroup) broker.getObject(OpGroup.class, subGroupID);
+         subGroup = (OpGroup) broker.getObject(OpGroup.class, subGroupID.longValue());
          if (filteredSubjectIds != null && filteredSubjectIds.contains(subGroup.locator())) {
             continue;
          }
-         Number subRowsNr = (Number) record[1];
+         Integer subRowsNr = (Integer) record[1];
          XComponent row = retrieveSubjectRow(subGroup, outlineLevel, localizer, simpleStructure);
          dataSet.addChild(row);
          if (subRowsNr.intValue() != 0 && !allChildrenFiltered(subGroup, filteredSubjectIds)) {
@@ -124,7 +124,7 @@ public final class OpSubjectDataSetFactory {
             dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
             dummyRow.setOutlineLevel(outlineLevel + 1);
             dummyRow.setFiltered(true);
-            dummyRow.setVisible(false);
+            dummyRow.setVisible(true);
             dummyRow.setSelectable(false);
             dataSet.addChild(dummyRow);
          }

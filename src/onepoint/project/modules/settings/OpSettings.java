@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -27,7 +27,7 @@ import java.util.*;
 
 public class OpSettings {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpSettings.class);
+   private static final XLog logger = XLogFactory.getLogger(OpSettings.class, true);
    // Available settings
    public static final String USER_LOCALE = "User_Locale";
 
@@ -45,8 +45,8 @@ public class OpSettings {
    //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
 
-   public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.MONDAY).toString();
-   public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.FRIDAY).toString();
+   public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.MONDAY).toString();
+   public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.FRIDAY).toString();
    public static final String CALENDAR_DAY_WORK_TIME_DEFAULT = "8";
    public static final String CALENDAR_WEEK_WORK_TIME_DEFAULT = "40";
    public static final String ALLOW_EMPTY_PASSWORD_DEFAULT = Boolean.toString(false);
@@ -79,13 +79,13 @@ public class OpSettings {
    private static Map holidayCalendars = null;
 
    /**
-    * Plannig settings which are specific to the calendar.
+    * Settings which are specific to the calendar.
     */
-   private static XCalendar.PlanningSettings planningSettings = null;
+   private static HashMap planningSettings = new HashMap();
 
    static {
       // Set defaults
-      defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE.getLanguage());
+      defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE_LANGUAGE);
 
       defaults.put(CALENDAR_FIRST_WORKDAY, CALENDAR_FIRST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_LAST_WORKDAY, CALENDAR_LAST_WORKDAY_DEFAULT);
@@ -103,7 +103,7 @@ public class OpSettings {
 
    public static boolean applySettings(OpProjectSession session) {
       // Apply settings to current environment
-      fillPlanningSettings();
+      fillWithPlanningSettings(planningSettings);
 
       String reportScheduleName = get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
@@ -118,14 +118,24 @@ public class OpSettings {
    }
 
    /**
-    * Initializes the planning settings which are to be used by the calendar.
+    * Apply all the global settings which are related to the application calendar.
+    * The locale specific calendar settings are added when the user signs in.
     *
+    * @param calendarSettings
+    * @return
     */
-   private static void fillPlanningSettings() {
+   public static Map fillWithPlanningSettings(Map calendarSettings) {
       Integer firstWorkday = Integer.valueOf(get(CALENDAR_FIRST_WORKDAY));
+      calendarSettings.put(XCalendar.FIRST_WORKDAY_KEY, firstWorkday);
+
       Integer lastWorkday = Integer.valueOf(get(CALENDAR_LAST_WORKDAY));
+      calendarSettings.put(XCalendar.LAST_WORKDAY_KEY, lastWorkday);
+
       Double dayWorkTime = new Double(get(CALENDAR_DAY_WORK_TIME));
+      calendarSettings.put(XCalendar.WORKHOURS_PERDAY_KEY, dayWorkTime);
+
       Double weekWorkTime = new Double(get(CALENDAR_WEEK_WORK_TIME));
+      calendarSettings.put(XCalendar.WORKHOURS_PERWEEK_KEY, weekWorkTime);
 
       String id = get(CALENDAR_HOLIDAYS_LOCATION);
       TreeSet holidaysDates = new TreeSet();
@@ -135,8 +145,8 @@ public class OpSettings {
             holidaysDates = new TreeSet(holidayManager.getHolidayDates());
          }
       }
-      planningSettings = new XCalendar.PlanningSettings(firstWorkday.intValue(), lastWorkday.intValue(), dayWorkTime.doubleValue(),
-           weekWorkTime.doubleValue(), holidaysDates);
+      calendarSettings.put(XCalendar.HOLIDAYS_KEY, holidaysDates);
+      return calendarSettings;
    }
 
    public static void loadSettings(OpProjectSession session) {
@@ -273,16 +283,25 @@ public class OpSettings {
       return value;
    }
 
-   public static void configureServerCalendar(OpProjectSession session) {
-      logger.info("Calendar is configured using locale : " + session.getID());
-      XLocale locale = session.getLocale();
-      TimeZone clientTimezone = session.getClientTimeZone();
+   /**
+    * Returns a clone of the calendar settings map.
+    *
+    * @return a <code>Map</code> of settings related to the calendar.
+    */
+   public static Map getPlanningSettings() {
+      return (Map) planningSettings.clone();
+   }
 
+   public static XCalendar configureDefaultCalendar(XLocale userLocale) {
+      logger.info("Calendar is configured using locale : " + userLocale.getID());
       //initialize the calendar instance which will be on the server and also sent to client
-      XCalendar calendar = new XCalendar();
-      XLanguageResourceMap calendarI18nMap = XLocaleManager.findResourceMap(locale.getID(), CALENDAR_RESOURCE_MAP_ID);
-      XLocalizer localizer = XLocalizer.getLocalizer(calendarI18nMap);
-      calendar.configure(planningSettings, locale, localizer, clientTimezone);
-      session.setCalendar(calendar);
+      //<FIXME author="Horia Chiorean" description="In the remote case, this means that always the last signed in user will have his settings...">
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      //<FIXME>
+      Map calendarSettings = getPlanningSettings();
+      XLanguageResourceMap userCalendarI18nMap = XLocaleManager.findResourceMap(userLocale.getID(), CALENDAR_RESOURCE_MAP_ID);
+      XLocalizer userLocalizer = XLocalizer.getLocalizer(userCalendarI18nMap);
+      calendar.configure(calendarSettings, userLocale, userLocalizer);
+      return calendar;
    }
 }

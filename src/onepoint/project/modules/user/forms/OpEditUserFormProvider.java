@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditUserFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpEditUserFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEditUserFormProvider.class, true);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
    private final static String ADD_TO_GROUP = "AddToGroupButton";
@@ -30,8 +30,8 @@ public class OpEditUserFormProvider implements XFormProvider {
    private final static String PASSWORD_RETYPED = "PasswordRetyped";
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
-   public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
+   public final static String MANAGER_LEVEL_CAPTION = "{$ManagerLevel}";
+   public final static String STANDARD_LEVEL_CAPTION = "{$StandardLevel}";
    public final static String RESOURCE_MAP = "user.edit_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {

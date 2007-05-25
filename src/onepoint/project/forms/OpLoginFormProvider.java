@@ -1,13 +1,15 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
@@ -29,6 +31,7 @@ public class OpLoginFormProvider implements XFormProvider {
     */
    private static final String SESSION_EXPIRED = "sessionExpired";
    private static final String ERROR_LABEL_ID = "ErrorLabel";
+   private static final String MYSQL_ENGINE_WARNING_ID = "MySQLEngineWarning";
 
    /**
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -47,6 +50,15 @@ public class OpLoginFormProvider implements XFormProvider {
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
          errorLabel.setText(errorText);
          errorLabel.setVisible(true);
+      }
+      else {
+         //check for an invalid engine type
+         String dbConnectionCode = (String) parameters.get(OpProjectConstants.DB_CONNECTION_CODE);
+         if (dbConnectionCode != null && Integer.valueOf(dbConnectionCode).intValue() == OpConnectionManager.INVALID_MYSQL_ENGINE) {
+            XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
+            errorLabel.setText(form.findComponent(MYSQL_ENGINE_WARNING_ID).getStringValue());
+            errorLabel.setVisible(true);
+         }
       }
 
       //check whether the session has expired
@@ -91,7 +103,7 @@ public class OpLoginFormProvider implements XFormProvider {
       if (sessionExpiredParameter != null) {
          XLocalizer localizer = XLocaleManager.createLocalizer(localeId, "main.error");
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
-         errorLabel.setText(localizer.localize("${SessionExpired}"));
+         errorLabel.setText(localizer.localize("{$SessionExpired}"));
          errorLabel.setVisible(true);
       }
    }

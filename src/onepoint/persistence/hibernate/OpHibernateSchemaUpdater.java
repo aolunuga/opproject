@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -44,7 +44,7 @@ public final class OpHibernateSchemaUpdater {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSchemaUpdater.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateSchemaUpdater.class, true);
 
    /**
     * Constants used in the various JDBC method calls
@@ -82,6 +82,7 @@ public final class OpHibernateSchemaUpdater {
     * Initialize the db types map.
     */
    static {
+      DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL_INNODB), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.POSTGRESQL), new Integer(OpSqlStatementFactory.POSTGRESQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MSSQL), new Integer(OpSqlStatementFactory.MSSQL));

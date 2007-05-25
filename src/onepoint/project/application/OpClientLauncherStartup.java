@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.application;
@@ -28,7 +28,7 @@ import java.util.HashMap;
  */
 public class OpClientLauncherStartup {
    /*logger for this class */
-   private static final XLog logger = XLogFactory.getClientLogger(XClientLauncherApplication.class);
+   private static final XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
 
 
    /**

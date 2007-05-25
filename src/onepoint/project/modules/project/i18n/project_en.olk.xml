@@ -23,6 +23,7 @@
       <resource id="NewProject">New Project</resource>
       <resource id="Move">Move</resource>
       <resource id="Info">Properties</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
@@ -36,6 +37,7 @@
       <resource id="NewProjectTooltip">Create new project</resource>
       <resource id="MoveTooltip">Move the selected project or portfolio to a different portfolio</resource>
       <resource id="InfoTooltip">View meta information for the selected project or portfolio</resource>
+      <resource id="EditTooltip">Edit meta information for the selected project or portfolio</resource>
       <resource id="DeleteTooltip">Delete selected projects and portfolios</resource>
 
    </resource-map>
@@ -75,11 +77,6 @@
       <resource id="DueTo">Due</resource>
 
       <resource id="Resources">Resources</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
 
       <resource id="Permissions">Permissions</resource>
 
@@ -117,21 +114,14 @@
       <resource id="CreatedOn">Created On</resource>
       <resource id="DeleteVersions">Delete versions</resource>
 
-      <resource id="WorkingVersion">Checked out Project Plan</resource>
-
       <resource id="Permissions">Permissions</resource>
 
       <resource id="CalculationMode">Effort-based planning</resource>
       <resource id="ProgressTracked">Enable progress tracking</resource>
 
       <resource id="Resources">Resources</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
 
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
@@ -185,12 +175,6 @@
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
       <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
-      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
-      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
    </resource-map>
 
    <resource-map id="project.delete">
@@ -207,14 +191,6 @@
       <resource id="ConfirmStartDateFuture">Moving of the Start Date</resource>
       <resource id="ConfirmStartDateFutureText">Moving the start date into the future also moves all activities respectively</resource>
       <resource id="Ok">OK</resource>
-      <resource id="Cancel">Cancel</resource>
-   </resource-map>
-
-    <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>
-      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of the assignments will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="ConfirmChangeHR">Changing the hourly rate and/or external rate of the assignments will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 

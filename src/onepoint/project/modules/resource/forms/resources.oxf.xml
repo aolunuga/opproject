@@ -8,29 +8,30 @@
       <data-row icon="/modules/resource/icons/resource.png"/>
    </data-set>
    <data-set id="ResourceDataSet" stateful="true" on-expand="expandDataSet"/>
-
-   <panel layout="border" style-ref="compact-panel-default">
-
-      <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar id="ResourceToolbar">
-            <tool-button id="NewPoolButton" text="${NewPool}" disabled-icon="/modules/resource/icons/new_pool_disabled.png" icon="/modules/resource/icons/new_pool.png" on-button-pressed="newPool" tooltip="${NewPoolTooltip}"/>
-            <tool-button id="NewResourceButton" text="${NewResource}" disabled-icon="/modules/resource/icons/new_resource_disabled.png" icon="/modules/resource/icons/new_resource.png" on-button-pressed="newResource" tooltip="${NewResourceTooltip}"/>
-            <tool-button id="PropertiesButton" text="${Properties}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="edit" tooltip="${InfoTooltip}"/>
-            <tool-button id="MoveButton" text="${Move}" disabled-icon="/icons/move_disabled.png" icon="/icons/move.png" on-button-pressed="move" tooltip="${MoveTooltip}"/>
-            <tool-button id="DeleteButton" text="${Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
-            <tool-button id="AssignToProjectButton" text="${AssignToProject}" disabled-icon="/modules/resource/icons/assign_to_project_disabled.png" icon="/modules/resource/icons/assign_to_project.png" on-button-pressed="assignToProject" tooltip="${AssignToProjectTooltip}"/>
-            <tool-button id="ImportUserButton" text="${ImportUser}" disabled-icon="/modules/resource/icons/import_user_disabled.png" icon="/modules/resource/icons/import_user.png" on-button-pressed="importUser" tooltip="${ImportUsersTooltip}"/>
-            <!-- Question: Is reuse user, group necessary -->
-         </tool-bar>
-      </panel>
-      <table-box id="ResourceTreeTable" data-set-ref="ResourceDataSet" tree-column-index="0" y="0" icon-set-ref="IconSet" flexible="true" on-double-click="edit" on-row-select="selectionChanged">
-         <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-         <table-column width="180" text="${Name}" sortable="true" data-column-index="1" value-type="Choice"/>
-         <table-column width="270" text="${Description}" sortable="true" data-column-index="2"/>
-      </table-box>
-
-      <status-bar y="1"/>
-
-   </panel>
-
+	
+    <panel layout="border" style-ref="compact-panel-default">
+		
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar id="ResourceToolbar">
+      <tool-button id="NewPoolButton" text="{$NewPool}" disabled-icon="/modules/resource/icons/new_pool_disabled.png" icon="/modules/resource/icons/new_pool.png" on-button-pressed="newPool" tooltip="{$NewPoolTooltip}"/>
+      <tool-button id="NewResourceButton" text="{$NewResource}" disabled-icon="/modules/resource/icons/new_resource_disabled.png" icon="/modules/resource/icons/new_resource.png" on-button-pressed="newResource" tooltip="{$NewResourceTooltip}"/>
+      <tool-button id="PropertiesButton" text="{$Properties}" disabled-icon="/icons/info_disabled.png" icon="/icons/info.png" on-button-pressed="info" tooltip="{$InfoTooltip}"/>
+      <tool-button id="EditButton" text="{$Edit}" disabled-icon="/icons/edit_disabled.png" icon="/icons/edit.png" on-button-pressed="edit" tooltip="{$EditTooltip}"/>
+      <tool-button id="MoveButton" text="{$Move}" disabled-icon="/icons/move_disabled.png"  icon="/icons/move.png" on-button-pressed="move" tooltip="{$MoveTooltip}"/>
+      <tool-button id="DeleteButton" text="{$Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
+      <tool-button id="AssignToProjectButton" text="{$AssignToProject}" disabled-icon="/modules/resource/icons/assign_to_project_disabled.png" icon="/modules/resource/icons/assign_to_project.png" on-button-pressed="assignToProject" tooltip="{$AssignToProjectTooltip}"/>
+      <tool-button id="ImportUserButton" text="{$ImportUser}" disabled-icon="/modules/resource/icons/import_user_disabled.png" icon="/modules/resource/icons/import_user.png" on-button-pressed="importUser" tooltip="{$ImportUsersTooltip}"/>
+      <!-- Question: Is reuse user, group necessary -->
+   </tool-bar>
+		</panel>
+   <table-box id="ResourceTreeTable" data-set-ref="ResourceDataSet" tree-column-index="0" y="0" icon-set-ref="IconSet" flexible="true" on-double-click="info" on-row-select="selectionChanged">
+      <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+      <table-column width="180" text="{$Name}" sortable="true" data-column-index="1" value-type="Choice"/>
+      <table-column width="270" text="{$Description}" sortable="true" data-column-index="2"/>
+   </table-box>
+		
+	<status-bar y="1"/>
+		
+	</panel>
+		
 </form>

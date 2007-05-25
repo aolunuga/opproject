@@ -5,6 +5,7 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">New Work Slip</resource>
       <resource id="Info">Properties</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Number">Number</resource>
       <resource id="Resource">Resource</resource>
@@ -12,6 +13,7 @@
 
       <resource id="NewWorkSlipTooltip">Create new work slip</resource>
       <resource id="InfoTooltip">View meta information for the selected work slip</resource>
+      <resource id="EditTooltip">Edit meta information for the selected work slip</resource>
       <resource id="DeleteTooltip">Delete selected work slips</resource>
 
       <resource id="Time">Time Period</resource>
@@ -76,8 +78,6 @@
    </resource-map>
    <resource-map id="work.error">
       <resource id="DateMissing">The work slip date was not specified</resource>
-      <resource id="CreatorMissing">The work slip creator was not specified</resource>
-      <resource id="WorkRecordsMissing">The work slip has no valid work records</resource>
       <resource id="DuplicateDate">A work slip for the specified date exists already</resource>
       <resource id="IncorrectActualEffort">Incorrect Actual Effort</resource>
       <resource id="IncorrectRemainingEffort">Incorrect Remaining Effort</resource>

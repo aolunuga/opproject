@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_project.oxf.xml
@@ -7,7 +7,6 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require "onepoint/project/modules/project/scripts/helper_project.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -56,64 +55,22 @@ function ok_edit(event) {
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
    assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   original_resource_set = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
+   i = 0;
+   while (i < assigned_resource_set.getChildCount()) {
+      assigned_resources[i] = assigned_resource_set.getChild(i).getStringValue();
+      i++;
+   }
    versions_set = XDisplay.getActiveForm().findComponent("VersionsSet");
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
-
-   //if the hourlyRates tab was modified that is the priority
-   modifiedPeriods = isModifiedHourlyTab();
-    if (modifiedPeriods.size() > 0) {
-      request = new XMessage;
-      request.setAction("ProjectService.haveAssignmentsInTimePeriod");
-      request.setArgument("resource_set", assigned_resource_set);
-      request.setArgument("project_id", project_id);
-      response = XDisplay.getClient().invokeMethod(request);
-      hasAssignments = response.getArgument("AssignmentsInPeriod");
-      if (hasAssignments == true) {
-         //display
-         dialog = XComponent.newDialog();
-         parameters.project_id = project_id;
-         parameters.project_data = project_data;
-         parameters.goals_set = goals_set;
-         parameters.to_dos_set = to_dos_set;
-         parameters.resource_set = assigned_resource_set;
-         parameters.versions_set = versions_set;
-         parameters.changed = "hourlyTab";
-         dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
-         return;
-      }
-    }
-
-    //check if the rates from the resource tab were modified
-   request = new XMessage;
-   request.setAction("ProjectService.checkModifiedRates");
-   request.setArgument("resource_set", assigned_resource_set);
-   request.setArgument("original_resource_set", original_resource_set);
-   request.setArgument("project_id", project_id);
-   response = XDisplay.getClient().invokeMethod(request);
-   hasAssignments = response.getArgument("Assignments");
-   if (hasAssignments == true) {
-      //display
-      dialog = XComponent.newDialog();
-      parameters.project_id = project_id;
-      parameters.project_data = project_data;
-      parameters.goals_set = goals_set;
-      parameters.to_dos_set = to_dos_set;
-      parameters.resource_set = assigned_resource_set;
-      parameters.versions_set = versions_set;
-      parameters.changed = "resourceTab";
-      dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
-      return;
-   }
-
+   
    request = new XMessage;
    request.setAction("ProjectService.updateProject");
    request.setArgument("project_id", project_id);
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
    request.setArgument("to_dos_set", to_dos_set);
-   request.setArgument("resource_set", assigned_resource_set);
+   request.setArgument("resource_list", assigned_resources);
    request.setArgument("versions_set", versions_set);
    response = XDisplay.getClient().invokeMethod(request);
 
@@ -125,6 +82,67 @@ function ok_edit(event) {
 
 function cancel(event) {
    XDisplay.getActiveWindow().close();
+}
+
+function addGoal(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+}
+
+function removeGoals(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+   }
+}
+
+function addToDo(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setEnabled(true);
+   date = new Date;
+   data_cell.setDateValue(date);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+}
+
+function removeToDos(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+   }
 }
 
 function removeVersions(event) {
@@ -140,95 +158,33 @@ function removeVersions(event) {
    }
 }
 
-function selectionChanged(event) {
+function addProjectAssignment(event){
+   assigned_resource_data_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   i = 0;
+   while (i < assigned_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
+      i++;
+   }
+   readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
+   index = 0;
+   while (index < readonly_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      i++;
+      index++;
+   }
+   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
+}
 
+function removeProjectAssignment(event){
    form = XDisplay.getActiveForm();
-   version_number = form.findComponent("WorkingVersionNumber");
-   version_set = form.findComponent("VersionsSet");
-   selected_rows = version_set.selectedRows();
-
-   delete_button = form.findComponent("RemoveVersionButton");
-   delete_button.setEnabled(true);
-
-   can_delete = true;
-   //determine if the working version is among the selected ones
+   assigned_resource_data_set = form.findComponent("AssignedResourceDataSet");
+   selected_rows = assigned_resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      
-      i = 0;
-      while (i < selected_rows.size()) {
-         if (selected_rows[i].getChild(0).getStringValue() == version_number.getStringValue()) {
-            can_delete = false;
-            break;
-         }
-         i++;
-      }
+      assigned_resource_data_set.removeDataRows(selected_rows);
+      resource_list_box = form.findComponent("AssignedResourcesListBox");
+      resource_list_box.update();
    }
 
-   if (!can_delete) {
-      delete_button = form.findComponent("RemoveVersionButton");
-      delete_button.setEnabled(can_delete);
-   }
-   form.repaint();
 }
 
-//checks if any of the OpHourlyRatesPeriod from the Hourly Rates tab was modified and
-//returns all modified OpHourlyRatesPeriods
-function isModifiedHourlyTab() {
-   newRatesDataSet = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   originalRatesDataSet = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
-   modifiedRates = new ArrayList;
 
-   //add to modified rows the original rows that have changed
-   i = 0;
-   while (i < originalRatesDataSet.getChildCount()) {
-      modified = true;
-      originalRow = originalRatesDataSet.getChild(i);
-      if (originalRow.getOutlineLevel() == 1) {
-         j = 0;
-         while (j < newRatesDataSet.getChildCount()) {
-            newRow = newRatesDataSet.getChild(j);
-            if (newRow.getOutlineLevel() == 1) {
-               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
-                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
-                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
-                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
-                  modified = false;
-                  break;
-               }
-            }
-            j++;
-         }
-         if (modified) {
-            modifiedRates.add(originalRow);
-         }
-      }
-      i++;
-   }
-   //add to modified rows the newly changed or added rows
-   i = 0;
-   while (i < newRatesDataSet.getChildCount()) {
-      modified = true;
-      newRow = newRatesDataSet.getChild(i);
-      if (newRow.getOutlineLevel() == 1) {
-         j = 0;
-         while (j < originalRatesDataSet.getChildCount()) {
-            originalRow = originalRatesDataSet.getChild(j);
-            if (originalRow.getOutlineLevel() == 1) {
-               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
-                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
-                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
-                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
-                  modified = false;
-                  break;
-               }
-            }
-            j++;
-         }
-         if (modified) {
-            modifiedRates.add(newRow);
-         }
-      }
-      i++;
-   }
-   return modifiedRates;
-}

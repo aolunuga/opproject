@@ -7,6 +7,7 @@
       <resource id="NewResource">Nouvelle Ressource</resource>
       <resource id="Properties">Propriétés</resource>
       <resource id="Move">Déplacer</resource>
+      <resource id="Edit">Modifier</resource>
       <resource id="Delete">Supprimer</resource>
       <resource id="AssignToProject">Affecter au projet</resource>
       <resource id="ImportUser">Importer les Utilisateurs</resource>
@@ -17,6 +18,7 @@
       <resource id="NewResourceTooltip">Creer une nouvelle ressource</resource>
       <resource id="InfoTooltip">Voir les informations pour les ressources ou groupes choisis</resource>
       <resource id="MoveTooltip">Déplacer les ressources ou groupes choisis vers un autre groupe</resource>
+      <resource id="EditTooltip">Modifier les meta information pour les ressources ou groupes choisis</resource>
       <resource id="DeleteTooltip">Supprimer les ressources et groupes choisis</resource>
       <resource id="AssignToProjectTooltip">Affecter les ressources choisies à un projet</resource>
       <resource id="ImportUsersTooltip">Importer les utilisateurs comme ressources</resource>
@@ -30,7 +32,6 @@
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
       <resource id="HourlyRate">Taux Horaire</resource>
-      <resource id="ExternalRate">Taux Horaire Externe</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
@@ -41,7 +42,6 @@
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
       <resource id="HourlyRate">Taux Horaire</resource>
-      <resource id="ExternalRate">Taux Horaire Externe</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
@@ -57,19 +57,11 @@
       <resource id="Name">Nom</resource>
       <resource id="Description">Descriptions</resource>
       <resource id="Available">Disponibilité (%)</resource>
-      <resource id="HourlyRate">Taux Horaire Intérieur</resource>
-      <resource id="ExternalRate">Taux Horaire Externe</resource>
-      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
+      <resource id="HourlyRate">Taux Horaire</resource>
+      <resource id="InheritPoolRate">Héritez du taux du groupe</resource>
       <resource id="ResponsibleUser">Utilisateur responsable</resource>
       <resource id="SelectUser">Choisir</resource>
       <resource id="Pool">Groupe</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
-      <resource id="Start">Start</resource>
-      <resource id="End">Finish</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="AddRateToolTip">Add Rate</resource>
-      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
@@ -82,18 +74,10 @@
       <resource id="Description">Description</resource>
       <resource id="Available">Disponibilité (%)</resource>
       <resource id="HourlyRate">Taux Horaire</resource>
-      <resource id="ExternalRate">Taux Horaire Externe</resource>
-      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
+      <resource id="InheritPoolRate">Héritez du taux du groupe</resource>
       <resource id="ResponsibleUser">Utilisateur responsable</resource>
       <resource id="SelectUser">Choisir</resource>
       <resource id="Pool">Groupe</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
-      <resource id="Start">Start</resource>
-      <resource id="End">Finish</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="AddRateToolTip">Add Rate</resource>
-      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
@@ -134,7 +118,6 @@
       <resource id="PoolNameNotSpecified">Le nom du groupe n'a pas été indiqué</resource>
       <resource id="AvailabilityNotValid">La disponibilité est invalide</resource>
       <resource id="HourlyRateNotValid">Le taux horaire est invalide</resource>
-      <resource id="ExternalRateNotValid">Le taux horaire externe est invalide</resource>
       <resource id="NameFormatNotSpecified">Le nom du format n'a pas été indiqué</resource>
       <resource id="NameFormatNotValid">Le nom du format est invalide</resource>
       <resource id="ResourceNotFound">La ressource n'a pas été trouvée</resource>
@@ -146,11 +129,6 @@
       <resource id="DeleteResourceAssignmentsDenied">La ressource ne peut pas être supprimée, puisqu'elle est encore employée dans des planning projet</resource>
       <resource id="DeletePoolResourceAssignmentsDenied">Le groupe ne peut pas être supprimée, tant que les ressources de ce groupe sont employée dans des planning projet</resource>
       <resource id="ActivityAssignmentsExistError">La ressource ne peut pas être supprimée du projet car elle est affectée à une ou plusieurs tâches</resource>
-      <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
-      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Supprimer les ressources ou groupes</resource>
@@ -162,11 +140,10 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Modifier la Ressource</resource>
-      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of this resource will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="ConfirmChangeHR">Modifier le taux horaire et/ou le taux horaire externe de cette ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
+      <resource id="ConfirmChangeHR">Modifier le taux horaire de cette ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
       <resource id="ConfirmChangeAvailable">Modifier la disponibilité de cette ressource entrainera une revalidation des plannings associés.</resource>
       <resource id="ConfirmPoolChange">Modifier le Groupe</resource>
-      <resource id="ConfirmPoolChangeHR">Modifier le taux horaire et/ou le taux horaire externe de cet groupe de ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
+      <resource id="ConfirmPoolChangeHR">Modifier le taux horaire de cet groupe de ressource aura pour consequence de recalculer les coûts personnel dans divers planning de projet.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>

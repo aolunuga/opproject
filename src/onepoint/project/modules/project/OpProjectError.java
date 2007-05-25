@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -33,13 +33,6 @@ public interface OpProjectError {
 
    public final static int LOOP_ASSIGNMENT_ERROR = 21;
 
-   public final static int INTERNAL_RATE_NOT_VALID = 22;
-   public final static int EXTERNAL_RATE_NOT_VALID = 23;
-   public final static int PERIOD_START_DATE_NOT_VALID = 24;
-   public final static int PERIOD_END_DATE_NOT_VALID = 25;
-   public final static int PERIOD_INTERVAL_NOT_VALID = 26;
-   public final static int DATE_INTERVAL_OVERLAP = 27;
-
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -62,10 +55,4 @@ public interface OpProjectError {
    public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
    public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
    public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
-   public final static String INTERNAL_RATE_NOT_VALID_NAME = "InternalRateNotValid";
-   public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";
-   public final static String PERIOD_START_DATE_NOT_VALID_NAME = "PeriodStartDateNotValid";
-   public final static String PERIOD_END_DATE_NOT_VALID_NAME = "PeriodEndDateNotValid";
-   public final static String PERIOD_INTERVAL_NOT_VALID_NAME = "PeriodIntervalNotValid";
-   public final static String DATE_INTERVAL_OVERLAP_NAME = "DateIntervalOverlap";
 }

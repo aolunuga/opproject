@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -36,8 +36,8 @@ public class OpProjectNode extends OpObject {
    public final static byte TEMPLATE = 4;
 
    // Root portfolio name and description
-   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "${RootProjectPortfolioName}";
-   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "${RootProjectPortfolioDescription}";
+   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "{$RootProjectPortfolioName}";
+   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "{$RootProjectPortfolioDescription}";
    public final static String ROOT_PROJECT_PORTFOLIO_ID_QUERY = "select portfolio.ID from OpProjectNode as portfolio where portfolio.Name = '"
          + ROOT_PROJECT_PORTFOLIO_NAME + "' and portfolio.Type = " + PORTFOLIO;
 
@@ -52,9 +52,9 @@ public class OpProjectNode extends OpObject {
    private OpProjectNode templateNode;
    private Set instanceNodes;
    private OpProjectPlan plan;
-   private Set<OpProjectNodeAssignment> assignments;
-   private Set<OpGoal> goals;
-   private Set<OpToDo> toDos;
+   private Set assignments;
+   private Set goals;
+   private Set toDos;
    private OpProjectStatus status;
 
    public void setName(String name) {
@@ -137,11 +137,11 @@ public class OpProjectNode extends OpObject {
       return instanceNodes;
    }
 
-   public void setAssignments(Set<OpProjectNodeAssignment> assignments) {
+   public void setAssignments(Set assignments) {
       this.assignments = assignments;
    }
 
-   public Set<OpProjectNodeAssignment> getAssignments() {
+   public Set getAssignments() {
       return assignments;
    }
 
@@ -153,19 +153,19 @@ public class OpProjectNode extends OpObject {
       return plan;
    }
 
-   public void setGoals(Set<OpGoal> goals) {
+   public void setGoals(Set goals) {
       this.goals = goals;
    }
 
-   public Set<OpGoal> getGoals() {
+   public Set getGoals() {
       return goals;
    }
 
-   public void setToDos(Set<OpToDo> toDos) {
+   public void setToDos(Set toDos) {
       this.toDos = toDos;
    }
 
-   public Set<OpToDo> getToDos() {
+   public Set getToDos() {
       return toDos;
    }
 

@@ -20,6 +20,5 @@
       <resource id="Miscellaneous">Miscellaneous</resource>
       <resource id="SaveCSV">Сохранить как таблицу...</resource>
       <resource id="SaveImage">Сохранить как изображение...</resource>
-      <resource id="Total">Total</resource>
    </resource-map>
 </language-kit>

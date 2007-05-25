@@ -4,7 +4,7 @@
    </resource-map>
    <resource-map id="settings.settings">
       <resource id="Settings">Parametres</resource>
-      <resource id="UserLocale">Langue par défaut</resource>
+      <resource id="UserLocale">Langue par défaut</resource>      
       <resource id="TimeControl">Parametres Temps</resource>
       <resource id="FirstWorkday">Premier jour de travail de la semaine</resource>
       <resource id="LastWorkday">Dernier jour de travail de la semaine</resource>

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.forms;
@@ -31,18 +31,15 @@ public class OpActivitiesFormProvider implements XFormProvider {
    public final static String PROJECT_ID = "project_id";
    public final static String VALIDATE_PLAN = "validatePlan";
 
-   protected final static String ACTIVITY_SET = "ActivitySet";
-   protected final static String EDIT_MODE_FIELD = "EditModeField";
-   protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
-   protected final static String TOTAL_STRING = "Total";
-       
-   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class,true);
+
 
    private final static String ASSIGNMENT_SET = OpGanttValidator.ASSIGNMENT_SET;
    private final static String CALCULATION_MODE = OpGanttValidator.CALCULATION_MODE;
    private final static String PROGRESS_TRACKED = OpGanttValidator.PROGRESS_TRACKED;
-   private final static String PROJECT_TEMPLATE = OpGanttValidator.PROJECT_TEMPLATE;
+   private final static String PROJECT_TEMPLATE  = OpGanttValidator.PROJECT_TEMPLATE;
 
+   private final static String ACTIVITY_SET = "ActivitySet";
    private final static String PROJECT_NAME_SET = "ProjectNameSet";
    private final static String PRINT_TITLE = "PrintTitle";
    private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
@@ -56,6 +53,9 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    private final static String PROJECT_ID_FIELD = "ProjectIDField";
    private final static String WORKING_PLAN_VERSION_ID_FIELD = "WorkingPlanVersionIDField";
+   private final static String EDIT_MODE_FIELD = "EditModeField";
+
+   protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
 
    private final static String GANTT_CHART_TOGGLE_BAR = "GanttToggleBar";
    private final static String EDIT_BUTTON = "EditButton";
@@ -65,7 +65,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String CHECK_IN_BUTTON = "CheckInButton";
    private final static String REVERT_BUTTON = "RevertButton";
    private final static String PRINT_BUTTON = "PrintButton";
-
+   
    private final static String RESOURCES_COLUMN = "ResourcesColumn";
    private final static String COMPLETE_COLUMN = "PercentCompleteColumn";
 
@@ -80,17 +80,6 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String GANTT_TOOL_BAR = "GanttToolBar";
    private final static String ACTIVITY_TABLE_TOOL_BAR = "ActivityTableToolBar";
    private final static String TIME_CHOOSER = "TimeUnitChooser";
-
-   private final static String ACTIVITY_LIST_FOOTER_DATA_SET = "ActivityListFooter";
-   private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
-   private final static int FOOTER_BASE_EFFORT_INDEX = 7;
-   private final static int FOOTER_PERSONNEL_INDEX = 2;
-   private final static int FOOTER_TRAVEL_INDEX = 3;
-   private final static int FOOTER_MATERIAL_INDEX = 4;
-   private final static int FOOTER_EXTERNAL_INDEX = 5;
-   private final static int FOOTER_MISC_INDEX = 6;
-   private final static int ACTIVITY_TABLE_COLUMNS = 11;
-   private final static int COST_TABLE_COLUMNS = 7;
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -107,9 +96,8 @@ public class OpActivitiesFormProvider implements XFormProvider {
          // Get open project-ID from parameters and se project-ID session variable
          session.setVariable(PROJECT_ID, project_id_string);
       }
-      else {
+      else
          project_id_string = (String) (session.getVariable(PROJECT_ID));
-      }
       // *** TODO: Store open project-ID in database (user preferences?)
 
       XComponent activityDataSet = form.findComponent(ACTIVITY_SET);
@@ -228,14 +216,14 @@ public class OpActivitiesFormProvider implements XFormProvider {
             if (edit_mode) {
                // Show working plan version (if one exists already)
                OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                    project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+                     project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
 
                if (workingPlanVersion != null) {
                   // Set working plan version ID
                   form.findComponent(WORKING_PLAN_VERSION_ID_FIELD).setStringValue(workingPlanVersion.locator());
                   activityDataSet.setValue(showHours);
                   OpActivityVersionDataSetFactory.retrieveActivityVersionDataSet(broker, workingPlanVersion,
-                       activityDataSet, true);
+                        activityDataSet, true);
                }
                else {
                   // form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
@@ -264,78 +252,11 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       broker.close();
 
-      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
-      if (validator != null) {
-         if (validateProjectPlan.booleanValue()) {
-            validator.validateDataSet();
-         }
+      if (validateProjectPlan.booleanValue() && activityDataSet.validator() != null) {
+         activityDataSet.validator().validateDataSet();
       }
 
-      setFooterData(form, activityDataSet);
       logger.info("/OpActivitiesFormProvider.prepareForm()");
-
-   }
-
-   /**
-    * Fills the footer data sets with the initial info.
-    *
-    * @param form
-    * @param activityDataSet
-    */
-   private void setFooterData(XComponent form, XComponent activityDataSet) {
-      XComponent listFooterDataSet = form.findComponent(ACTIVITY_LIST_FOOTER_DATA_SET);
-      XComponent costsFooterDataSet = form.findComponent(ACTIVITY_COST_FOOTER_DATA_SET);
-      //add the right nr of cells for each data set
-      XComponent row = new XComponent(XComponent.DATA_ROW);
-      for (int i = 0; i < ACTIVITY_TABLE_COLUMNS; i++) {
-         row.addChild(new XComponent(XComponent.DATA_CELL));
-      }
-      ((XComponent) row.getChild(2)).setStringValue(form.findComponent(TOTAL_STRING).getText());
-      listFooterDataSet.addChild(row);
-
-      row = new XComponent(XComponent.DATA_ROW);
-      for (int i = 0; i < COST_TABLE_COLUMNS; i++) {
-         row.addChild(new XComponent(XComponent.DATA_CELL));
-      }
-      ((XComponent) row.getChild(1)).setStringValue(form.findComponent(TOTAL_STRING).getText());
-      costsFooterDataSet.addChild(row);
-
-      //update effort sum
-      double sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, 0);
-      row = (XComponent) listFooterDataSet.getChild(0);
-      XComponent footerCell = (XComponent) row.getChild(FOOTER_BASE_EFFORT_INDEX);
-      footerCell.setValue(sum);
-
-      //update cost sums
-      //personnel costs
-      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_PERSONNEL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_PERSONNEL_INDEX);
-      footerCell.setValue(sum);
-
-      //travel costs
-      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_TRAVEL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_TRAVEL_INDEX);
-      footerCell.setValue(sum);
-
-      //material costs
-      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_MATERIAL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_MATERIAL_INDEX);
-      footerCell.setValue(sum);
-
-      //external costs
-      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_EXTERNAL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_EXTERNAL_INDEX);
-      footerCell.setValue(sum);
-
-      //misc costs
-      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_MISC_INDEX);
-      footerCell.setValue(sum);
 
    }
 
@@ -384,7 +305,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    protected void enableComponentsForNoOpenProject(XComponent form) {
       form.findComponent(ACTIVITY_GANTT_CHART).setEditMode(false);
-      form.findComponent(TIME_CHOOSER).setEnabled(false);
+      form.findComponent(TIME_CHOOSER).setEnabled(false);      
       form.findComponent(ACTIVITY_GANTT_CHART).setPopUpMenuRef(null);
       form.findComponent(ACTIVITY_TABLE).setPopUpMenuRef(null);
       form.findComponent(COSTS_TABLE).setPopUpMenuRef(null);
@@ -422,17 +343,17 @@ public class OpActivitiesFormProvider implements XFormProvider {
    protected void registerEventHandlersForButtons(XComponent form, XComponent activityDataSet) {
       XComponent button;
       button = form.findComponent(ACTIVITY_UNDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
       button = form.findComponent(GANTT_UNDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
       button = form.findComponent(COST_UNDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
       button = form.findComponent(ACTIVITY_REDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
       button = form.findComponent(GANTT_REDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
       button = form.findComponent(COST_REDO_BUTTON);
-      activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
+      activityDataSet.registerEventHandler(button , XComponent.COMPONENT_EVENT);
    }
 
 }

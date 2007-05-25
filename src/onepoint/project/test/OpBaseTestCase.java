@@ -1,5 +1,9 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+/**
+ * Copyright 2006 CodeBox GmbH. 
+ * All Rights Reserved.
+ *
+ * This software is the proprietary information of CodeBox GmbH.
+ * Use is subject to license terms.
  */
 package onepoint.project.test;
 
@@ -117,16 +121,16 @@ public class OpBaseTestCase extends TestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-      
+
       //all tests must use GMT dates (same as the application)
       TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-
+      
       this.server = new XLocalServer();
       this.session = new OpProjectSession();
       this.session.setServer(this.server);
 
       // Authenticate user to be sure that he has access.
-      logIn(OpUser.ADMINISTRATOR_NAME, OpUser.BLANK_PASSWORD);
+      logIn(OpUser.ADMINISTRATOR_NAME, OpUserService.BLANK_PASSWORD);
 
       OpBroker broker = session.newBroker();
       // administrator
@@ -155,7 +159,7 @@ public class OpBaseTestCase extends TestCase {
     * Log-in Administrator user.
     */
    protected void logIn() {
-      logIn(OpUser.ADMINISTRATOR_NAME, OpUser.BLANK_PASSWORD);
+      logIn(OpUser.ADMINISTRATOR_NAME, OpUserService.BLANK_PASSWORD);
    }
 
    /**
@@ -216,14 +220,18 @@ public class OpBaseTestCase extends TestCase {
     * @param errorCode expected error code.
     */
    public static void assertError(XMessage message, int errorCode) {
-      assertNotNull("XMessage is null, expected to contain an error!", message);
-      XError error = message.getError();
-      assertNotNull("Error message should have been returned", error);
-      int foundErrorCode = error.getCode();
-      // do not check error code in case DUMMY code was used.
-      assertTrue("Invalid error code. (got: "+foundErrorCode+", but expected: "+errorCode+")", errorCode == DUMMY_ERROR_CODE || errorCode == foundErrorCode);
-      assertNotNull("Error should contain an error name.", error.getName());
-      assertNotNull("Error should contain an error message.", error.getName());
+      if (message != null) {
+         XError error = message.getError();
+         assertNotNull("Error message should have been returned", error);
+         int foundErrorCode = error.getCode();
+         // do not check error code in case DUMMY code was used.
+         assertTrue("Invalid error code.", errorCode == DUMMY_ERROR_CODE || errorCode == foundErrorCode);
+         assertNotNull("Error should contain an error name.", error.getName());
+         assertNotNull("Error should contain an error message.", error.getName());
+      }
+      else {
+         //message is null <=> no error (success)
+      }
    }
 
    // ----- Helper Methods ------

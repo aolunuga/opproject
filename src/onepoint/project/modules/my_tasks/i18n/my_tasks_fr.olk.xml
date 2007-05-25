@@ -5,13 +5,15 @@
 
    <resource-map id="my_tasks.my_tasks">
 
-      <resource id="NewAdhoc">Nouvelle Tâche</resource>
-      <resource id="DeleteAdhoc">Supprimer</resource>
-      <resource id="NewComment">Nouveau Commentaire</resource>
+      <resource id="NewAdhoc">Nouvelle tâche</resource>
+      <resource id="EditAdhoc">Editer la tâche</resource>
+      <resource id="DeleteAdhoc">Supprimer la tâche</resource>
+      <resource id="NewComment">Nouveau commentaire</resource>
       <resource id="Info">Propriétés</resource>
       <resource id="Print">Imprimer</resource>
 
-      <resource id="NewAdhocTooltip">Créer une nouvelle tâche ad hoc</resource>      
+      <resource id="NewAdhocTooltip">Créer une nouvelle tâche ad hoc</resource>
+      <resource id="EditAdhocTooltip">Editer la tâche ad hoc sélectionnée</resource>
       <resource id="DeleteAdhocTooltip">Supprimer la tâche ad hoc sélectionnée</resource>
       <resource id="NewCommentTooltip">Création d'un nouveau commentaire</resource>
       <resource id="InfoTooltip">Voir les propriétés de l'activité</resource>
@@ -47,8 +49,6 @@
 
       <resource id="SaveCSV">Sauvegarder en tableau...</resource>
       <resource id="SaveImage">Sauvegarder en image...</resource>
-
-      <resource id="NoResourcesForUser">There are no assigned resources for this user</resource>      
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
@@ -103,8 +103,6 @@
       <resource id="ExistingWorkSlipError">Les tâches Ad Hoc ne peuvent être supprimées car elles sont référencées</resource>
       <resource id="InsuficientPermissions">Vous ne disposez pas des droits suffisants pour effectuer cette opération</resource>
       <resource id="InvalidPriorityErrorMessage">La priorité saisie est invalide (1-9)</resource>      
-      <resource id="InvalidTypeError">Type of Task is not valid.</resource>
-      <resource id="TaskNotFoundError">Missing Task</resource>
    </resource-map>
 
 </language-kit>

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 public class OpImportUserFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpImportUserFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpImportUserFormProvider.class, true);
 
    private final static String USER_DATA_SET = "UserDataSet";
    private final static String POOL_ID = "PoolID";

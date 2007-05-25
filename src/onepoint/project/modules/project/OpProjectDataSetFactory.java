@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -31,19 +31,11 @@ public final class OpProjectDataSetFactory {
    public final static int PROJECT_ICON_INDEX = 2;
 
    // Type filter
-   // FIXME(dfreis Mar 22, 2007 3:04:24 PM)
-   // should really be the same as in OpProjectNode!!!!
-
    public final static int PORTFOLIOS = 1;
    public final static int TEMPLATES = 2;
    public final static int PROJECTS = 4;
    public final static int PROGRAMS = 8;
    public final static int ALL_TYPES = PORTFOLIOS + TEMPLATES + PROJECTS + PROGRAMS;
-
-   public final static int ALL_PROJECT_NODE_TYPES = OpProjectNode.PORTFOLIO +
-        OpProjectNode.TEMPLATE +
-        OpProjectNode.PROJECT +
-        OpProjectNode.PROGRAM;
 
    public final static String PROJECT_OBJECTS = "project.objects";
 
@@ -408,12 +400,12 @@ public final class OpProjectDataSetFactory {
          queryString.append("projectNode.SuperNode is null");
       }
 
-      List<Byte> typeParams = new ArrayList<Byte>();
+      List typeParams = new ArrayList();
       queryString.append(" and ( ");
       boolean filterAdded = false;
       if ((types & PORTFOLIOS) == PORTFOLIOS) {
          queryString.append("projectNode.Type = ?");
-         typeParams.add(OpProjectNode.PORTFOLIO);
+         typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
          filterAdded = true;
       }
 
@@ -422,7 +414,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(OpProjectNode.PROJECT);
+         typeParams.add(new Byte(OpProjectNode.PROJECT));
          filterAdded = true;
       }
 
@@ -431,7 +423,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(OpProjectNode.TEMPLATE);
+         typeParams.add(new Byte(OpProjectNode.TEMPLATE));
       }
       queryString.append(" )");
       OpQuery query = broker.newQuery(queryString.toString());
@@ -444,13 +436,14 @@ public final class OpProjectDataSetFactory {
       else {
          paramStartIndex = 0;
       }
-      for (Object typeParam : typeParams) {
-         query.setByte(paramStartIndex++, (Byte) typeParam);
+      for (int i = 0; i < typeParams.size(); i++) {
+         query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
       }
 
-      Map<Long, Number> result = new HashMap<Long, Number>();
-      for (Object o : broker.list(query)) {
-         Long id = (Long) o;
+      Map result = new HashMap();
+      Iterator queryResultIterator = broker.list(query).iterator();
+      while (queryResultIterator.hasNext()) {
+         Long id = (Long) queryResultIterator.next();
 
          StringBuffer childCountQuery = new StringBuffer("select count(subNode.ID) from OpProjectNode parentNode left join parentNode.SubNodes subNode");
          childCountQuery.append(" where parentNode.ID=? ");
@@ -477,14 +470,14 @@ public final class OpProjectDataSetFactory {
          childCountQuery.append(" group by parentNode.ID");
 
          OpQuery childQuery = broker.newQuery(childCountQuery.toString());
-         childQuery.setLong(0, id);
+         childQuery.setLong(0, id.longValue());
          for (int i = 0; i < typeParams.size(); i++) {
-            childQuery.setByte(i + 1, (Byte) typeParams.get(i));
+            childQuery.setByte(i + 1, ((Byte) typeParams.get(i)).byteValue());
          }
-         Number count = 0;
+         Long count = new Long(0);
          Iterator childCountIterator = broker.list(childQuery).iterator();
          if (childCountIterator.hasNext()) {
-            count = (Number) childCountIterator.next();
+            count = new Long(((Number) childCountIterator.next()).longValue());
          }
          result.put(id, count);
       }
@@ -549,7 +542,7 @@ public final class OpProjectDataSetFactory {
    public static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
+      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 " + "and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
@@ -695,9 +688,9 @@ public final class OpProjectDataSetFactory {
     * @param dataRows   a <code>List</code> of data rows representing project nodes.
     */
    public static void enableNodes(Map parameters, List dataRows) {
-      boolean enablePortfolios = (Boolean) parameters.get(ENABLE_PORTFOLIOS);
-      boolean enableTemplates = (Boolean) parameters.get(ENABLE_TEMPLATES);
-      boolean enableProjects = (Boolean) parameters.get(ENABLE_PROJECTS);
+      boolean enablePortfolios = ((Boolean) parameters.get(ENABLE_PORTFOLIOS)).booleanValue();
+      boolean enableTemplates = ((Boolean) parameters.get(ENABLE_TEMPLATES)).booleanValue();
+      boolean enableProjects = ((Boolean) parameters.get(ENABLE_PROJECTS)).booleanValue();
       for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
          String choice = dataRow.getStringValue();
@@ -748,9 +741,10 @@ public final class OpProjectDataSetFactory {
       String queryString = "select count(projectNode) from OpProjectNode projectNode where projectNode.Type=?";
       OpQuery query = broker.newQuery(queryString);
       query.setByte(0, type);
-      Number result = 0;
-      for (Object o : broker.list(query)) {
-         result = (Number) o;
+      Number result = new Integer(0);
+      Iterator it = broker.list(query).iterator();
+      while (it.hasNext()) {
+         result = (Number) it.next();
       }
       return result.intValue();
    }
@@ -764,13 +758,13 @@ public final class OpProjectDataSetFactory {
     * @param session current session
     * @return List of project ids.
     */
-   public static List<Long> getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
+   public static List getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
       OpQuery query = broker.newQuery(PROJECT_BY_PERMISSIONS_QUERY);
       List subjectIds = session.getSubjectIds();
 
       query.setCollection("subjectIds", subjectIds);
-      List<Byte> types = new ArrayList<Byte>();
-      types.add(OpProjectNode.PROJECT);
+      List types = new ArrayList();
+      types.add(new Byte(OpProjectNode.PROJECT));
       query.setCollection("projectTypes", types);
       query.setCollection("levels", levels);
       return broker.list(query);
@@ -779,162 +773,46 @@ public final class OpProjectDataSetFactory {
    /**
     * Creates a map of projects->resources for the current session user taking into account also his permissions over
     * the resources.
-    * Gets a set containing all {@link OpProjectNode}s
-    * (Portfolios, Projects and/or Templates) representing
-    * direct children of the given parent.
-    *
-    * @param broker   the broker to perform any operation.
-    * @param types    bitset, one of (
-    * @param parentId the id of the parent to get child nodes.
-    * @return a set containing all children nodes.
-    * @pre none
-    * @post none
-    */
-
-   public static Set<OpProjectNode> getProjectNodes(OpBroker broker, int types, long parentId) {
-      StringBuffer queryString = new StringBuffer("select projectNode from OpProjectNode as projectNode where ");
-      if (parentId != -1) {
-         queryString.append("projectNode.SuperNode.ID = ?");
-      }
-      else {
-         queryString.append("projectNode.SuperNode is null");
-      }
-
-      List<Byte> typeParams = new ArrayList<Byte>();
-      boolean filterAdded = false;
-
-      if ((types & ALL_PROJECT_NODE_TYPES) == ALL_PROJECT_NODE_TYPES) {
-      }
-      else {
-         queryString.append(" and (");
-         if ((types & OpProjectNode.PORTFOLIO) == OpProjectNode.PORTFOLIO) {
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
-            filterAdded = true;
-         }
-         if ((types & OpProjectNode.PROJECT) == OpProjectNode.PROJECT) {
-            if (filterAdded) {
-               queryString.append(" or ");
-            }
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.PROJECT));
-            filterAdded = true;
-         }
-
-         if ((types & OpProjectNode.TEMPLATE) == OpProjectNode.TEMPLATE) {
-            if (filterAdded) {
-               queryString.append(" or ");
-            }
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.TEMPLATE));
-         }
-
-         queryString.append(" )");
-      }
-      OpQuery query = broker.newQuery(queryString.toString());
-
-      //set the query parameters (based on the filtered types)
-      // set parent id
-      int paramStartIndex = 0;
-      if (parentId != -1) {
-         query.setLong(0, parentId);
-         ++paramStartIndex;
-      }
-      for (int i = 0; i < typeParams.size(); i++) {
-         query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
-      }
-
-      List children = broker.list(query);
-      Iterator childrenIterator = children.iterator();
-      OpProjectNode node;
-      HashSet<OpProjectNode> result = new HashSet<OpProjectNode>(children.size());
-      while (childrenIterator.hasNext()) {
-         node = (OpProjectNode) childrenIterator.next();
-         result.add(node);
-      }
-      return result;
-   }
-
-   /**
-    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
-    * Contains all the resources from projects where the user has atleast MANAGER permissions and all the resources
-    * for which is reposnsible from projects where is CONTRIBUTOR.
     *
     * @param session Current project session (used for db access and current user)
     * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
     */
-   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
+   public static Map getProjectToResourceMap(OpProjectSession session) {
+      Map projectsMap = new HashMap();
       OpBroker broker = session.newBroker();
       long userId = session.getUserID();
+      List types = new ArrayList();
 
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
       //add all the projects the user has access to (at least CONTRIBUTOR)
-      levels.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, true);
+      types.add(new Byte(OpPermission.CONTRIBUTOR));
+      types.add(new Byte(OpPermission.ADMINISTRATOR));
+      types.add(new Byte(OpPermission.MANAGER));
+
+      List projects = getProjectsByPermissions(session, broker, types);
+      for (int i = 0; i < projects.size(); i++) {
+         Long id = (Long) projects.get(i);
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+         Set assignments = project.getAssignments();
+         List resources = new ArrayList();
+         for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
+            OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
+            OpResource resource = assignment.getResource();
+            if (resource.getUser() != null && resource.getUser().getID() == userId) {
+               //responsible user for this resource
+               resources.add(XValidator.choice(resource.locator(), resource.getName()));
+            }
+            else {
+               if (session.effectiveAccessLevel(broker, resource.getID()) >= OpPermission.MANAGER) {
+                  //the user is at least manager on the resource
+                  resources.add(XValidator.choice(resource.locator(), resource.getName()));
+               }
+            }
+         }
          if (!resources.isEmpty()) {
             projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
          }
       }
-
-      // add all the resources from project where the user has manager access
-      levels.clear();
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, false);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
       broker.close();
       return projectsMap;
-   }
-
-   /**
-    * Get resources all the project where the user has a given permission level
-    * @param session   the project session
-    * @param broker  the broker used to access data
-    * @param levels  the project permission levels required for the curent user
-    * @param responsible  if the user must be responsible for the curent resource
-    * @return a <code>Set&lt;String&gt;</code> of resource choices - e.g. locator['label'].
-    */
-   public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> levels, boolean responsible) {
-      long userId = session.getUserID();
-      Set<String> resIds = new HashSet<String>();
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, responsible);
-         resIds.addAll(resources);
-      }
-      return resIds;
-   }
-
-   /**
-    * Get the list of reources linked to a given project
-    * @param project  the project node
-    * @param userId      the used id
-    * @param responsible  to enforce that the given user (userId) is responsible for the returned resources
-    * @return a <code>List&lt;String&gt;</code> of resource choices - e.g. locator['label'].
-    */
-   public static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {
-      List<String> resources = new ArrayList<String>();
-      Set<OpProjectNodeAssignment> assignments = project.getAssignments();
-      for (OpProjectNodeAssignment assignment : assignments) {
-         OpResource resource = assignment.getResource();
-         if (responsible && (resource.getUser() == null || resource.getUser().getID() != userId)) {
-            continue;
-         }
-         resources.add(XValidator.choice(resource.locator(), resource.getName()));
-      }
-      return resources;
    }
 }

@@ -5,6 +5,7 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">Новый табель</resource>
       <resource id="Info">Свойства</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Удалить</resource>
       <resource id="Number">Номер табеля</resource>
       <resource id="Resource">Ресурс</resource>
@@ -12,6 +13,7 @@
 		
       <resource id="NewWorkSlipTooltip">Внести новый табель фактических трудозатрат</resource>
       <resource id="InfoTooltip">Показать мета-данные для указанного табеля</resource>      
+      <resource id="EditTooltip">Edit meta information for the selected work slip</resource>
       <resource id="DeleteTooltip">Удалить указанный табель</resource>
 
       <resource id="Time">Time Period</resource>
@@ -77,8 +79,6 @@
   <resource-map id="work.error">
     <resource id="DateMissing">Не указана дата табеля</resource>
     <resource id="DuplicateDate">На указанную дату табель уже внесен</resource>
-    <resource id="CreatorMissing">The work slip creator was not specified (en)</resource>
-    <resource id="WorkRecordsMissing">The work slip has no valid work records (en)</resource>
     <resource id="IncorrectActualEffort">Неверное значение текущего объема работ</resource>
     <resource id="IncorrectRemainingEffort">Неверное значение остатка объема работ</resource>
     <resource id="IncorrectMaterialCosts">Incorrect Material Costs</resource>

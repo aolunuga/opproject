@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.resource_utilization.test;
@@ -72,23 +72,23 @@ public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
    public void testExpandResourcePool()
         throws Exception {
       // pool son of root
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 72d, 36d, rootId);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 72d, rootId);
       XMessage response = resourceService.insertPool(session, request);
       assertNoError(response);
       String son1Id = dataFactory.getResourcePoolId(POOL_NAME + 1);
       // pool son of 1
-      request = dataFactory.createPoolMsg(POOL_NAME + 11, POOL_DESCRIPTION, 33d, 50d, son1Id);
+      request = dataFactory.createPoolMsg(POOL_NAME + 11, POOL_DESCRIPTION, 33d, son1Id);
       response = resourceService.insertPool(session, request);
       assertNoError(response);
       dataFactory.getResourcePoolId(POOL_NAME + 11);
 
       // pool son of root
-      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 23d, 25d, rootId);
+      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 23d, rootId);
       response = resourceService.insertPool(session, request);
       assertNoError(response);
       String son2Id = dataFactory.getResourcePoolId(POOL_NAME + 2);
       // resource son of 2
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 535d, 31d, false, son2Id);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 535d, false, son2Id);
       response = resourceService.insertResource(session, request);
       assertNoError(response);
 

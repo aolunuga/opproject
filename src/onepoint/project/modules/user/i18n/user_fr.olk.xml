@@ -86,12 +86,13 @@
       <resource id="ManagerLevel">Manager</resource>
       <resource id="StandardLevel">Standard</resource>
    </resource-map>
-   <resource-map id="user.users">
-      <resource id="NewGroup">Nouveau Groupe</resource>
-      <resource id="NewUser">Nouveau Utilisateur</resource>
-      <resource id="Properties">Propriétés</resource>
-      <resource id="Delete">Supprimer</resource>
-      <resource id="AssignToGroup">Ajouter au groupe</resource>
+	<resource-map id="user.users">
+		<resource id="NewGroup">Nouveau Groupe</resource>
+		<resource id="NewUser">Nouveau Utilisateur</resource>
+		<resource id="Properties">Propriétés</resource>
+		<resource id="Edit">Modifier</resource>
+		<resource id="Delete">Supprimer</resource>
+		<resource id="AssignToGroup">Ajouter au groupe</resource>
       <resource id="Search">Chercher</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
@@ -100,6 +101,7 @@
       <resource id="NewGroupTooltip">Creer un nouveau groupe d'utilisateur</resource>
       <resource id="NewUserTooltip">Creer un nouveau utilisateur</resource>
       <resource id="InfoTooltip">Voir les informations pour l'utilisateur ou groupe choisi</resource>
+      <resource id="EditTooltip">Modifier les informations pour l'utilisateur ou groupe choisi</resource>
       <resource id="DeleteTooltip">Supprimer les utilisateurs et groupes choisis</resource>
       <resource id="AssignToGroupTooltip">Ajouter les utilisateurs et groupes choisis � un groupe</resource>
 				
@@ -120,7 +122,7 @@
       <resource id="AdministratorDescription">L'administrateur a des droits partout</resource>
       <resource id="EveryoneDisplayName">Tout le monde</resource>
       <resource id="EveryoneDescription">Tout les utilisateurs sont d'office dans ce groupe</resource>
-   </resource-map>  
+   </resource-map>   
    <resource-map id="user.error">
       <resource id="PasswordMismatch">Le Mot de passe est invalide</resource>
       <resource id="UserUnknown">Le nom de l'utilisateur est inconu</resource>

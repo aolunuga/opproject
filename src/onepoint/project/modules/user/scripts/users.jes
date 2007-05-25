@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for users.oxf.xml
@@ -28,6 +28,30 @@ function newGroup(event) {
    dialog.open("/modules/user/forms/new_group.oxf.xml");
 }
 
+function info(event) {
+   user_data_set = XDisplay.getActiveForm().findComponent("UserDataSet");
+   if (user_data_set != null) {
+      selected_rows = user_data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         parameters.edit_mode = false;
+         indicator = selected_rows[0].getChild(0).getStringValue();
+         is_user = indicator.equals("u");
+         if (is_user) {
+            parameters.user_id = selected_rows[0].getStringValue();
+            dialog = XComponent.newDialog();
+            dialog.setText("Benutzerinformation");
+            dialog.open("/modules/user/forms/edit_user.oxf.xml", parameters);
+         }
+         else {
+            parameters.group_id = selected_rows[0].getStringValue();
+            dialog = XComponent.newDialog();
+            dialog.setText("Gruppeninformation");
+            dialog.open("/modules/user/forms/edit_group.oxf.xml", parameters);
+         }
+      }
+   }
+}
+
 function edit(event) {
    user_data_set = XDisplay.getActiveForm().findComponent("UserDataSet");
    if (user_data_set != null) {
@@ -51,6 +75,7 @@ function edit(event) {
       }
    }
 }
+
 
 function delete(event)
 {
@@ -119,6 +144,9 @@ function selectionChanged(event) {
 
    is_admin_role = form.findComponent("AdminRoleDataField").getBooleanValue();
    if (is_admin_role) {
+      edit_button = form.findComponent("Edit");
+      edit_button.setEnabled(true);
+
       delete_button = form.findComponent("Delete");
       delete_button.setEnabled(true);
 
@@ -174,6 +202,6 @@ function expandDataSet(event) {
    request.setAction("UserService.expandGroup");
    request.setArgument("source_group_locator", locator);
    request.setArgument("outlineLevel", outlineLevel);
-
+   
    expandNode(sourceGroup, 3, request);
 }

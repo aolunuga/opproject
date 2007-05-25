@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -7,8 +7,6 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-
-import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -27,7 +25,7 @@ import java.util.List;
 
 public class OpHibernateConnection extends OpConnection {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateConnection.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateConnection.class, true);
 
    private Session session;
 
@@ -209,7 +207,7 @@ public class OpHibernateConnection extends OpConnection {
 
       try {
          //first execute any custom drop statements (only for MySQL necessary at the moment)
-         if (source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
+         if (source.getDatabaseType() == OpHibernateSource.MYSQL || source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
             customDropScripts = customSchemaUpdater.generateDropConstraintScripts(connection.getMetaData());
             softExecuteDDLScript((String[]) customDropScripts.toArray(new String[]{}));
          }
@@ -259,10 +257,6 @@ public class OpHibernateConnection extends OpConnection {
          // *** TODO: Throw OpPersistenceException
       }
    }
-
-//   public boolean contains(Object obj) {
-//     return(_session.contains(obj));
-//   }
 
    public OpObject getObject(Class c, long id) {
       OpObject object = null;
@@ -369,60 +363,4 @@ public class OpHibernateConnection extends OpConnection {
       return session.connection();
    }
 
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#flush()
-   */
-  @Override
-  public void flush() {
-    session.flush();
-  }
-
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#setFlushOnCommitMode()
-   */
-  @Override
-  public void setFlushMode(int flushMode) {
-     switch (flushMode) {
-     case FLUSH_MODE_NEVER:
-     {
-        session.setFlushMode(FlushMode.NEVER);
-        break;
-     }
-     case FLUSH_MODE_COMMIT:
-     {
-        session.setFlushMode(FlushMode.COMMIT);
-        break;
-     }
-     case FLUSH_MODE_AUTO:
-     {
-        session.setFlushMode(FlushMode.AUTO);
-        break;
-     }
-     case FLUSH_MODE_ALWAYS:
-     {
-        session.setFlushMode(FlushMode.ALWAYS);
-        break;
-     }
-     default:
-     {
-        throw new IllegalArgumentException("unsupported flush mode: "+flushMode);
-     }
-     }
-  }
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#getFlushMode()
-   */
-  @Override
-  public int getFlushMode() {
-     FlushMode mode = session.getFlushMode();
-     if (mode.equals(FlushMode.NEVER))
-        return FLUSH_MODE_NEVER;
-     if (mode.equals(FlushMode.COMMIT))
-        return FLUSH_MODE_COMMIT;
-     if (mode.equals(FlushMode.AUTO))
-        return FLUSH_MODE_AUTO;
-     if (mode.equals(FlushMode.ALWAYS))
-        return FLUSH_MODE_ALWAYS;
-     return(-1);
-  }
 }

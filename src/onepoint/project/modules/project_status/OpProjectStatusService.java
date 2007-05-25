@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_status;
@@ -23,7 +23,7 @@ import java.util.*;
  */
 public class OpProjectStatusService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectStatusService.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectStatusService.class, true);
 
    public final static String PROJECT_STATUS_ID = "project_status_id";
    private final static String PROJECT_STATUS_IDS = "project_status_ids";

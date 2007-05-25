@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository.forms;
@@ -29,7 +29,7 @@ public class OpRestoreFileListFormProvider implements XFormProvider {
    /**
     * This class logger
     */
-   private final static XLog logger = XLogFactory.getServerLogger(OpRestoreFileListFormProvider.class);
+   private final static XLog logger = XLogFactory.getLogger(OpRestoreFileListFormProvider.class, true);
 
    /**
     * Form component buttons

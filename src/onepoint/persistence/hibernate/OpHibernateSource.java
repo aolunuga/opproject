@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -25,7 +25,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The logger used in this class.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSource.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateSource.class, true);
 
    /**
     * Constant that defines
@@ -33,12 +33,13 @@ public class OpHibernateSource extends OpSource {
 
    // Hibernate source that is always auto-mapped
    public final static int DERBY = 1; // Default database type
-   public final static int MYSQL_INNODB = 2;
-   public final static int POSTGRESQL = 3;
-   public final static int ORACLE = 4;
-   public final static int HSQLDB = 5;
-   public final static int IBM_DB2 = 6;
-   public final static int MSSQL = 7;
+   public final static int MYSQL = 2;
+   public final static int MYSQL_INNODB = 3;
+   public final static int POSTGRESQL = 4;
+   public final static int ORACLE = 5;
+   public final static int HSQLDB = 6;
+   public final static int IBM_DB2 = 7;
+   public final static int MSSQL = 8;
 
    public final static String INDEX_NAME_PREFIX = "op_";
    public final static String INDEX_NAME_POSTFIX = "_i";
@@ -53,11 +54,6 @@ public class OpHibernateSource extends OpSource {
    public final static String SCHEMA_TABLE = "op_schema";
 
    /**
-    * The latest schema version
-    */
-   public static final int SCHEMA_VERSION = 5;
-
-   /**
     * Strings representing prototype prefixes
     */
    private static final List PROTOTYPE_PREFIXES = Arrays.asList(new String[]{"X", "Op"});
@@ -65,10 +61,11 @@ public class OpHibernateSource extends OpSource {
    /**
     * Db schema related constants
     */
+   private static final int SCHEMA_VERSION = 4;
    private static final String VERSION_COLUMN = "op_version";
-   private static final String VERSION_PLACEHOLDER = "#";
-   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int) ENGINE=InnoDB";
-   private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
+
+   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int) " ;
+   private static final String INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(0)";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
 
@@ -236,6 +233,8 @@ public class OpHibernateSource extends OpSource {
       switch (databaseType) {
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
+         case MYSQL:
+            return org.hibernate.dialect.MySQLDialect.class;
          case MYSQL_INNODB:
             return org.hibernate.dialect.MySQLInnoDBDialect.class;
          case POSTGRESQL:
@@ -296,10 +295,10 @@ public class OpHibernateSource extends OpSource {
       configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
 
       //Important: the following setting is critical for MySQL to store all dates in GMT
-      if (databaseType == MYSQL_INNODB) {
+      if (databaseType == MYSQL_INNODB || databaseType == MYSQL) {
          configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
       }
-
+      
       //connection pool configuration override
       if (connectionPoolMinSize != null) {
          configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
@@ -346,6 +345,10 @@ public class OpHibernateSource extends OpSource {
       Session session = sessionFactory.openSession();
       String queryString = "select * from " + tableName;
       switch (this.databaseType) {
+         case MYSQL: {
+            queryString += " limit 1";
+            break;
+         }
          case MYSQL_INNODB: {
             queryString += " limit 1";
             break;
@@ -538,9 +541,9 @@ public class OpHibernateSource extends OpSource {
       // Set mapping
       mapping = buffer.toString();
 
-      System.err.println("***MAPPING\n---\n");
-      System.err.println(mapping);
-      System.err.println("\n");
+//      System.err.println("***MAPPING\n---\n");
+//      System.err.println(mapping);
+//      System.err.println("\n");
 
       logger.debug(mapping);
    }
@@ -582,9 +585,10 @@ public class OpHibernateSource extends OpSource {
             buffer.append(newColumnName(field.getName()));
             buffer.append('"');
 
-            // Exception for MySQL: Use mediumblob (otherwise very limited storage capability)
+            // Exception for MySQL: Use mediumblob (otherwise very limited
+            // storage capability)
             if ((field.getTypeID() == OpType.CONTENT)) {
-               if (databaseType == MYSQL_INNODB) {
+               if ((databaseType == MYSQL) || (databaseType == MYSQL_INNODB)) {
                   buffer.append(" sql-type=\"mediumblob\"");
                }
                if ((databaseType == IBM_DB2)) {
@@ -818,10 +822,26 @@ public class OpHibernateSource extends OpSource {
          logger.error("Cannot update db schema number", e);
       }
       finally {
-         //the jdbc connection is closed by Hibernate
-         OpConnectionManager.closeJDBCObjects(null, statement, null);
+         if (statement != null) {
+            try {
+               statement.close();
+            }
+            catch (SQLException e) {
+               logger.error("Cannot close statement:" + e.getMessage(), e);
+            }
+         }
          session.close();
       }
+   }
+
+   /**
+    * Checks whether the db schema needs upgrading or not.
+    *
+    * @return <code>true</code> if the db schema needs upgrading.
+    */
+   public boolean needSchemaUpgrading() {
+      int existingVersionNumber = this.getExistingSchemaVersionNumber();
+      return existingVersionNumber < SCHEMA_VERSION;
    }
 
    /**
@@ -836,8 +856,15 @@ public class OpHibernateSource extends OpSource {
       Statement statement = null;
       ResultSet rs = null;
       try {
-         createSchemaTable(SCHEMA_VERSION);
          statement = jdbcConnection.createStatement();
+
+         if (!existsTable(SCHEMA_TABLE)) {
+            statement.execute(getCreateSchemaTableStatement());
+            statement.executeUpdate(INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT);
+            jdbcConnection.commit();
+            logger.info("Created table op_schema for versioning");
+         }
+
          rs = statement.executeQuery(GET_SCHEMA_VERSION_STATEMENT);
          rs.next();
          return rs.getInt(VERSION_COLUMN);
@@ -846,41 +873,31 @@ public class OpHibernateSource extends OpSource {
          logger.error("Cannot get version number ", e);
       }
       finally {
-         //the connection object is closed by Hibernate
-         OpConnectionManager.closeJDBCObjects(null, statement, rs);
+         try {
+            if (rs != null) {
+               rs.close();
+            }
+            if (statement != null) {
+               statement.close();
+            }
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close result set and statement", e);
+         }
          session.close();
       }
       return -1;
    }
 
    /**
-    * Creates the schema table and inserts the given version number if the schema table doesn't exist..
-    *
-    * @param versionNumber a <code>int</code> representing the schema version.
+    * Returns a string representing the SQL statement for creating the op_schema table.
+   * @return a <code>String</code> representing an SQL "create" statement.
     */
-   public void createSchemaTable(int versionNumber)
-        throws SQLException {
-      if (!existsTable(SCHEMA_TABLE)) {
-         Session session = sessionFactory.openSession();
-         Connection jdbcConnection = session.connection();
-         Statement statement = null;
-         try {
-            statement = jdbcConnection.createStatement();
-            statement.execute(CREATE_SCHEMA_TABLE_STATEMENT);
-            statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
-            jdbcConnection.commit();
-            logger.info("Created table op_schema for versioning");
-         }
-         catch (SQLException e) {
-            logger.error("Cannot create schema version or insert version number because:" + e.getMessage(), e);
-            throw  e;
-         }
-         finally {
-            //the connection object is closed by Hibernate
-            OpConnectionManager.closeJDBCObjects(null, statement, null);
-            session.close();
-         }
+   private String getCreateSchemaTableStatement() {
+      if (databaseType == MYSQL || databaseType == MYSQL_INNODB) {
+         return CREATE_SCHEMA_TABLE_STATEMENT + "  ENGINE=InnoDB";
       }
+      return CREATE_SCHEMA_TABLE_STATEMENT;
    }
 
    public void clear() {

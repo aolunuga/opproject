@@ -1,13 +1,10 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.report.test;
 
-import onepoint.persistence.OpLocator;
 import onepoint.project.modules.report.OpReportManager;
-import onepoint.project.modules.report.OpReportService;
 import onepoint.project.test.OpBaseTestCase;
-import onepoint.service.XMessage;
 
 import java.util.Map;
 
@@ -35,20 +32,10 @@ public class OpReportManagerTest extends OpBaseTestCase {
     * Here we test retrieval of a resource content through ReportManager.
     *
     * @throws Exception If something goes wrong.
+    * <FIXME author="Horia Chiorean" description="Write a proper test for this">
     */
    public void testResourceRetrieval()
         throws Exception {
-      XMessage request = OpReportTestDataFactory.buildDefaultRequest(OpReportService.REPORT_TYPE_PDF, OpLocator.parseLocator(adminId).getID());
-      XMessage response = getReportService().createReport(session, request);
-      assertNotNull(response);
-      assertNoError(response);
-
-      byte[] content = reportManager.getResource("/work_report.jes", session); // from path cache
-      assertNotNull(content);
-      assertTrue(content.length > 0);
-      content = reportManager.getResource("jasper/logo.png", session); // from classpath
-      assertNotNull(content);
-      assertTrue(content.length > 0);
    }
 
    /**

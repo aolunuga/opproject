@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Open activity details script
@@ -343,15 +343,6 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       mandatory_field.setBooleanValue(mandatory);
       if (is_template && edit_mode) {
          mandatory_field.setEnabled(true);
-      }
-
-      //payment
-      data_cell = data_row.getChild(29);
-      field_id = "Payment";
-      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
-         paymentField = dialog_form.findComponent(field_id);
-         paymentField.setDoubleValue(data_cell.getDoubleValue());
-         setFieldEditMode(edit_mode, paymentField, disabledFieldsIds);
       }
 
       //Fill project assignment set & responsible resource

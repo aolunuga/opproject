@@ -1,16 +1,9 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
 // Event-script for login.oxf.xml
 
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/scripts/authenticate.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/authenticate.jes";
 
-import
-onepoint.express.XDisplay;
+import onepoint.express.XDisplay;
 
 function showForm(event) {
    XDisplay.requestViewerFocus();
@@ -20,9 +13,8 @@ function ok(event) {
    form = XDisplay.getActiveForm();
    login = form.findComponent("Login").getStringValue();
    password = form.findComponent("Password").getStringValue();
-   remember = form.findComponent("Remember").getValue();
 
-   response = authenticate(login, password, remember);
+   response = authenticate(login, password);
 
    if (handleError(form, response, "ErrorLabel") == true) {
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml");

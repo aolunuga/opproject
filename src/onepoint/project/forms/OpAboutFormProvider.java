@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.forms;
@@ -37,7 +37,7 @@ public class OpAboutFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpAboutFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpAboutFormProvider.class, true);
 
    /**
     * The map of [product_code, description] for the different flavours of the application.

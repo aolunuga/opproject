@@ -1,20 +1,20 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
 
 import java.util.*;
 
-public class OpModuleRegistry implements Iterable<OpModule>{
+public class OpModuleRegistry {
    /*list of module files*/
-   private List<OpModuleFile> moduleFiles;
+   private List moduleFiles;
    /*insertion order map of modules <module name,OpModule> */
-   private Map<String, OpModule> modules;
+   private Map modules;
 
   public OpModuleRegistry() {
-    moduleFiles = new ArrayList<OpModuleFile>();
-    modules = new LinkedHashMap<String,OpModule>();
+    moduleFiles = new ArrayList();
+    modules = new LinkedHashMap();
   }
 
    /**
@@ -45,7 +45,7 @@ public class OpModuleRegistry implements Iterable<OpModule>{
     * @return <code>OpModule</code> the value asociated for this key or <code>null</code> if no value with this key exists.
     */
    public final OpModule getModule(String name) {
-      return modules.get(name);
+      return (OpModule) (modules.get(name));
    }
 
    /**
@@ -62,7 +62,7 @@ public class OpModuleRegistry implements Iterable<OpModule>{
     *
     * @return <code>Iterator</code>
     */
-   public final Iterator<OpModule> iterator() {
+   public final Iterator getModules() {
       return modules.values().iterator();
    }
 

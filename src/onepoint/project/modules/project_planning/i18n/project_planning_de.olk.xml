@@ -78,8 +78,6 @@
       <resource id="Undo">Rückgängig</resource>
       <resource id="Redo">Wiederherstellen</resource>
 
-      <resource id="Total">Summe</resource>
-
       <resource id="LoopErrorMessage">Diese Aktion würde einen Kreis im Projektplan erzeugen</resource>
       <resource id="ResourcesErrorMessage">Der Ressourcenname konnte im Projektressourcepool nicht gefunden werden</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand</resource>
@@ -92,8 +90,9 @@
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
-      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
-
+      <resource id="InvalidBaseEffortErrorMessage">Der eingegebene Basis-Aufwand ist geringer als der aktuelle Aufwand der Aktivität</resource>
+      
+     
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
       <resource id="FileWriteError">Die Datei konnte nicht geschrieben werden</resource>
@@ -128,7 +127,7 @@
       <resource id="InfoTaskActivity">Aufgabendetails</resource>
       <resource id="InfoCollectionTaskActivity">Sammelaufgabendetails</resource>
       <resource id="InfoScheduledTaskTitle">Geplante Sammelaufgabendetails</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidPriorityErrorMessage">Die eingegebene Priorität ist nicht gültig</resource>
       <resource id="AssignmentErrorMessage">Die eingegebene %-Zuweisung ist größer als die globale Verfügbarkeit der Ressource</resource>
 
       <resource id="General">Allgemein</resource>
@@ -143,8 +142,7 @@
       <resource id="Priority">Priorität</resource>
       <resource id="Mandatory">Verbindlich</resource>
       <resource id="ResponsibleResource">Verantwortliche Ressource</resource>
-      <resource id="Payment">Zahlung</resource>
-      
+
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Zugewiesen</resource>
@@ -160,10 +158,10 @@
       <resource id="Misc">Sonstige (€)</resource>
 
       <resource id="Attachments">Anlagen</resource>
-      <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
-      <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
-      <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
-      <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
+	  <resource id="AddLinkAttachmentTooltip">Linkanlage hinzufügen</resource>
+	  <resource id="RemoveAttachmentTooltip">Anlage löschen</resource>
+	  <resource id="ViewAttachmentTooltip">Anlage anzeigen</resource>
 
       <resource id="Title">Titel</resource>
       <resource id="Location">Link</resource>
@@ -231,7 +229,6 @@
       <resource id="Select">Auswahl</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
-      <resource id="ChooseDocument">Dokument auswaehlen</resource>
    </resource-map>
    <resource-map id="project_planning.activity_details">
       <resource id="Name">Name</resource>
@@ -247,9 +244,6 @@
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJEKTNAVIGATOR</resource>
    </resource-map>
-   <resource-map id="resource.incorrectFile">
-      <resource id="IncorrectFileName">Incorrect File Name</resource>
-   </resource-map>
    <resource-map id="project_planning.error">
       <resource id="CommentNameMissing">Der Betreff wurde nicht angegeben</resource>
       <resource id="CommentNotFound">Der Betreff wurde nicht gefunden</resource>
@@ -259,13 +253,14 @@
       <resource id="MsProjectFileReadError">Die Microsoft Project Datei kann nicht gelesen werden</resource>
       <resource id="MsProjectFileWriteError">Der Projektplan konnte nicht in das Microsoft Project Format exportiert werden</resource>
       <resource id="InsuficientAttachmentPermissions">Sie haben nicht die notwendigen Rechte um diese Anlage einzusehen</resource>
-      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips (en)</resource>
+      <resource id="ImportErrorWorkRecordsExist">Sie können keine neuen Aktivitäten importieren, weil alte Aktivitäten Arbeitszettel enthalten</resource>
 
       <resource id="ProjectCheckedInError">Der Projektplan kann nicht bearbeitet werden, da keine Arbeitskopie existiert</resource>
       <resource id="ProjectCheckOutError">Es ist ein Fehler aufgetreten bei der Erstellung der Arbeitskopie</resource>
       <resource id="ProjectCheckInError">Es ist ein Fehler aufgetreten bei der Freigabe des Projektplans</resource>
       <resource id="ProjectRevertError">Es ist ein Fehler aufgetreten beim Verwerfen der Arbeitskopie</resource>
       <resource id="ProjectSaveError">Es ist ein Fehler aufgetreten beim Speichern der Arbeitskopie</resource>
-      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
+
+      <resource id="InvalidBaseEffortError">Der eingegebene Basis-Aufwand ist geringer als der aktuelle Aufwand der Aktivität</resource>      
    </resource-map>
 </language-kit>

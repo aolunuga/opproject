@@ -11,19 +11,19 @@
 
          <panel layout="table" style-ref="login-panel-default">
             <label y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-            <label x="0" y="1" width="2" text="${DatabaseType}" style-ref="label-emphasized-default"/>
+            <label x="0" y="1" width="2" text="{$DatabaseType}" style-ref="label-emphasized-default"/>
             <choice-field x="2" y="1" width="3" id="DatabaseTypeChoiceField" data-set-ref="DBTypeDataSet" on-value-changed="dbTypeChanged"/>
 
-            <label x="0" y="3" width="2" text="${DatabaseUrl}" style-ref="label-emphasized-default"/>
+            <label x="0" y="3" width="2" text="{$DatabaseUrl}" style-ref="label-emphasized-default"/>
             <text-field x="2" y="3" width="3" id="DatabaseUrlTextField"/>
 
-            <label x="0" y="4" width="2" text="${DatabaseLogin}" style-ref="label-emphasized-default"/>
+            <label x="0" y="4" width="2" text="{$DatabaseLogin}" style-ref="label-emphasized-default"/>
             <text-field x="2" y="4" width="3" id="DatabaseLoginTextField" value="opproject"/>
 
-            <label x="0" y="5" width="2" text="${DatabasePassword}"/>
+            <label x="0" y="5" width="2" text="{$DatabasePassword}"/>
             <text-field x="2" y="5" width="3" id="DatabasePasswordTextField" value="opproject" secret="true"/>
 
-            <button x="2" y="7" width="2" id="okButton" text="${Connect}" on-button-pressed="connect"/>
+            <button x="2" y="7" width="2" id="okButton" text="{$Connect}" on-button-pressed="connect"/>
          
          </panel>
 		  

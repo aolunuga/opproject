@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource;
@@ -121,7 +121,7 @@ public final class OpResourceDataSetFactory {
         int childrenOutlineLevel, Map poolColumnsSelector, Map resourceColumnsSelector, List filteredLocators) {
 
       OpBroker broker = session.newBroker();
-      OpQuery query;
+      OpQuery query = null;
       if (poolId == -1) {
          String queryString = "select pool.ID, count(pools.ID)+count(resources.ID) from OpResourcePool as pool " +
               "left join pool.SubPools pools " +
@@ -140,14 +140,14 @@ public final class OpResourceDataSetFactory {
          query.setLong(0, poolId);
       }
 
-      Map<Long, Number> subEntityMap = new HashMap<Long, Number>();
-      List<Long> poolIds = new ArrayList<Long>();
+      Map subEntityMap = new HashMap();
+      List poolIds = new ArrayList();
       List results = broker.list(query);
       for (int i = 0; i < results.size(); i++) {
          Object result[] = (Object[]) results.get(i);
          Long id = (Long) result[0];
          poolIds.add(id);
-         Number subEntities = (Number) result[1];
+         Integer subEntities = (Integer) result[1];
          subEntityMap.put(id, subEntities);
       }
 
@@ -218,10 +218,10 @@ public final class OpResourceDataSetFactory {
          }
          dataSet.addChild(dataRow);
 
-         Number subCount = subEntityMap.get(id);
+         Integer subCount = ((Integer) subEntityMap.get(new Long(id)));
          if (subCount != null && subCount.intValue() > 0 && !allChildrenFiltered(subPool, filteredLocators)) {
             //add dummy child
-            XComponent dummyRow = new XComponent(XComponent.DATA_ROW);
+            XComponent dummyRow = new XComponent(XComponent.DATA_SET);
             dummyRow.setStringValue(OpProjectConstants.DUMMY_ROW_ID);
             dummyRow.setOutlineLevel(childrenOutlineLevel + 1);
             dummyRow.setVisible(false);

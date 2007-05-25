@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.report;
@@ -31,25 +31,31 @@ public class OpReportManager implements XResourceInterceptor {
    /**
     * The Logger for this class...
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpReportManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpReportManager.class, true);
+
+   /**
+    * This is the path to the current tempdir.
+    */
+   private final static String TEMPDIR_PATH = System.getProperty("java.io.tmpdir");
+
 
    /**
     * Determines the path to the filesystem, where we expect the report-jars to
     * reside.
     */
-   private final static String REPORT_JAR_PATH = OpEnvironmentManager.getOnePointHome() + File.separator + "reportjars";
+   private final static String REPORT_JAR_PATH = OpEnvironmentManager.getOnePointHome() + "/reportjars";
 
    /**
     * Is the base part of the path where the Jasperfiles to be included in the
     * filesystem reside...
     */
-   private final static String REPORT_JAR_WORKINGPATH_BASE = XEnvironmentManager.TMP_DIR + "opp_work";
+   private final static String REPORT_JAR_WORKINGPATH_BASE = TEMPDIR_PATH.concat(XEnvironmentManager.FILE_SEPARATOR).concat("opp_work").concat(XEnvironmentManager.FILE_SEPARATOR);
 
    /**
     * Is the base part of the path where the forms and scripts to be included
     * in the filesystem reside...
     */
-   private final static String REPORT_JAR_EXPRESSPATH_BASE = XEnvironmentManager.TMP_DIR + "opp_work";
+   private final static String REPORT_JAR_EXPRESSPATH_BASE = TEMPDIR_PATH.concat(XEnvironmentManager.FILE_SEPARATOR).concat("opp_work").concat(XEnvironmentManager.FILE_SEPARATOR);
 
    /**
     * the text for the readme to be generated in the REPORT_JAR_PATH dir, if we
@@ -143,8 +149,8 @@ public class OpReportManager implements XResourceInterceptor {
       this.expressFilePathCache = new HashMap();
       // we can do some initialization-stuff here...
       reportsDir = new File(REPORT_JAR_PATH);
-      if (!reportsDir.exists()) {
-         reportsDir.mkdirs();
+      if (!reportsDir.isDirectory()) {
+         reportsDir.mkdir();
          File readme = new File(reportsDir, "readme.txt");
          try {
             readme.createNewFile();
@@ -159,30 +165,30 @@ public class OpReportManager implements XResourceInterceptor {
       }
 
       this.localeId = session.getLocale().getID();
-      this.userSpecificString = (new Long(session.getUserID())).toString().concat(File.separator);
+      this.userSpecificString = (new Long(session.getUserID())).toString().concat(XEnvironmentManager.FILE_SEPARATOR);
 
       String tempFilename = REPORT_JAR_EXPRESSPATH_BASE;
       File tempFile = new File(tempFilename);
       if (!tempFile.exists()) {
-         tempFile.mkdirs();
+         tempFile.mkdir();
       }
 
       tempFilename = REPORT_JAR_WORKINGPATH_BASE;
       tempFile = new File(tempFilename);
       if (!tempFile.exists()) {
-         tempFile.mkdirs();
+         tempFile.mkdir();
       }
 
-      tempFilename = REPORT_JAR_EXPRESSPATH_BASE.concat(File.separator).concat(userSpecificString);
+      tempFilename = REPORT_JAR_EXPRESSPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString);
       tempFile = new File(tempFilename);
       if (!tempFile.exists()) {
-         tempFile.mkdirs();
+         tempFile.mkdir();
       }
 
-      tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(File.separator).concat(userSpecificString);
+      tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString);
       tempFile = new File(tempFilename);
       if (!tempFile.exists()) {
-         tempFile.mkdirs();
+         tempFile.mkdir();
       }
       // now restore state, from last use...
       // with this one we also have all our important caches back, as the lastDirScan-member is set to 0, we will do a
@@ -200,7 +206,7 @@ public class OpReportManager implements XResourceInterceptor {
     * @return OpReportManager for this session.
     */
    public synchronized static OpReportManager getReportManager(OpProjectSession s) {
-      String sessionSpecificString = String.valueOf(s.getUserID()).concat(File.separator);
+      String sessionSpecificString = String.valueOf(s.getUserID()).concat(XEnvironmentManager.FILE_SEPARATOR);
       OpReportManager instance = null;
 
       Set resourceInterceptors = s.getResourceInterceptors();
@@ -324,8 +330,8 @@ public class OpReportManager implements XResourceInterceptor {
       this.jasperReports = new HashMap();
       this.expressFilePathCache = new HashMap();
       // and to get no problems with next restart...
-      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(File.separator).concat(userSpecificString);
-      File cacheFile = new File(tempFilename.concat(File.separator).concat(JASPERREPORTSCACHENAME));
+      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString);
+      File cacheFile = new File(tempFilename.concat(XEnvironmentManager.FILE_SEPARATOR).concat(JASPERREPORTSCACHENAME));
       cacheFile.delete();
    }
 
@@ -338,7 +344,7 @@ public class OpReportManager implements XResourceInterceptor {
     */
    public String getReportJarExpressFilesPath(String reportName) {
       String reportPathName = reportName.replace('.', '_');
-      return REPORT_JAR_EXPRESSPATH_BASE.concat(File.separator).concat(userSpecificString).concat(reportPathName);
+      return REPORT_JAR_EXPRESSPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString).concat(reportPathName);
    }
 
    /**
@@ -350,7 +356,7 @@ public class OpReportManager implements XResourceInterceptor {
     */
    public String getReportJarJasperFilesPath(String reportName) {
       String reportPathName = reportName.replace('.', '_');
-      return REPORT_JAR_WORKINGPATH_BASE.concat(File.separator).concat(userSpecificString).concat(reportPathName).concat(File.separator).concat(JASPER_SUBDIR_NAME);
+      return REPORT_JAR_WORKINGPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString).concat(reportPathName).concat(XEnvironmentManager.FILE_SEPARATOR).concat(JASPER_SUBDIR_NAME);
    }
 
    /**
@@ -471,7 +477,7 @@ public class OpReportManager implements XResourceInterceptor {
 
    private synchronized void persistState() {
       boolean persistOk = true;
-      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(File.separator).concat(userSpecificString);
+      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString);
       File tempFile = new File(tempFilename);
       FileOutputStream fos = null;
       ObjectOutputStream oos = null;
@@ -479,7 +485,7 @@ public class OpReportManager implements XResourceInterceptor {
          tempFile.mkdir();
       }
       try {
-         fos = new FileOutputStream(tempFilename.concat(File.separator).concat(JASPERREPORTSCACHENAME));
+         fos = new FileOutputStream(tempFilename.concat(XEnvironmentManager.FILE_SEPARATOR).concat(JASPERREPORTSCACHENAME));
          oos = new ObjectOutputStream(fos);
          oos.writeObject(jasperReports);
          oos.flush();
@@ -512,11 +518,11 @@ public class OpReportManager implements XResourceInterceptor {
 
    private synchronized void restoreState() {
       boolean restoreOk = true;
-      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(File.separator).concat(userSpecificString);
+      String tempFilename = REPORT_JAR_WORKINGPATH_BASE.concat(XEnvironmentManager.FILE_SEPARATOR).concat(userSpecificString);
       FileInputStream fis = null;
       ObjectInputStream ois = null;
       try {
-         fis = new FileInputStream(tempFilename.concat(File.separator).concat(JASPERREPORTSCACHENAME));
+         fis = new FileInputStream(tempFilename.concat(XEnvironmentManager.FILE_SEPARATOR).concat(JASPERREPORTSCACHENAME));
          ois = new ObjectInputStream(fis);
          jasperReports = (HashMap) ois.readObject();
       }
@@ -543,7 +549,7 @@ public class OpReportManager implements XResourceInterceptor {
                logger.warn(e);
             }
          }
-         File cacheFile = new File(tempFilename.concat(File.separator).concat(JASPERREPORTSCACHENAME));
+         File cacheFile = new File(tempFilename.concat(XEnvironmentManager.FILE_SEPARATOR).concat(JASPERREPORTSCACHENAME));
          cacheFile.delete();
          restoreOk = false;
       }
@@ -621,7 +627,7 @@ public class OpReportManager implements XResourceInterceptor {
    public void updateReportCacheEntry(String reportName) {
       removeReportEntries(reportName);
       checkReportJar(new File(reportsDir.getAbsolutePath().concat(
-           File.separator).concat(reportName)), false);
+           XEnvironmentManager.FILE_SEPARATOR).concat(reportName)), false);
       persistState();
    }
 
@@ -653,7 +659,7 @@ public class OpReportManager implements XResourceInterceptor {
          return false;
       }
       String name = jarFilePath.getName();
-      Long lastModified = jarFilePath.lastModified();
+      Long lastModified = new Long(jarFilePath.lastModified());
       boolean needCreation = jasperReports.get(name) == null;
       if (!needCreation) {
          // even if we had that report already, it might be outdated and thus needs refinement...
@@ -778,7 +784,7 @@ public class OpReportManager implements XResourceInterceptor {
                putToCache = false;
             }
 
-            String targetFilename = baseDir.concat(File.separator).concat(entryName);
+            String targetFilename = baseDir.concat(XEnvironmentManager.FILE_SEPARATOR).concat(entryName);
             File target = new File(targetFilename);
 
             //check that the mandatory files are there
@@ -832,7 +838,7 @@ public class OpReportManager implements XResourceInterceptor {
 
             if (targetFilename.endsWith(REPORTFILE_SOURCE_EXTENSION)) {
                // now do the trick to enable weak scanning...
-               ((HashMap) reportDescription.get(REPORTJAR_ENTRY_JASPERENTRIES)).put(target.getAbsolutePath(), target.lastModified());
+               ((HashMap) reportDescription.get(REPORTJAR_ENTRY_JASPERENTRIES)).put(target.getAbsolutePath(), new Long(target.lastModified()));
             }
          }
 

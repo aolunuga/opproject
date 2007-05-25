@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 require "onepoint/project/scripts/authenticate.jes";
 
@@ -12,7 +12,7 @@ function ok(event) {
    if (!multiUser) {
       defaultUserName = form.findComponent("DefaultUserName").getStringValue();
       defaultPassword = form.findComponent("DefaultPassword").getStringValue();
-      authenticate(defaultUserName, defaultPassword, false);
+      authenticate(defaultUserName, defaultPassword);
       //show login form
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", null);
    }

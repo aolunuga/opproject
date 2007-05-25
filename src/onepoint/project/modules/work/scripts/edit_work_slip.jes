@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_work_slip.oxf.xml
@@ -22,7 +22,10 @@ function ok(event) {
       request.setArgument("work_slip_id", work_slip_locator);
       request.setArgument("work_record_set", data_set);
       response = XDisplay.getClient().invokeMethod(request);
-      
+
+      if (response.getArgument("warning") != null) {
+         cancel(event);
+      }
       if (handleError(form, response, "ErrorLabel") == true) {
          XDisplay.getActiveWindow().close();
          XDisplay.findFrame("MainFrame").refreshForm();
@@ -37,56 +40,12 @@ function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
 
-function addWorkSlip(event) {
+function addWorkSlip(event){
    form = XDisplay.getActiveForm();
    work_slip_locator = form.findComponent("WorkSlipIDField").getStringValue();
    new_activities = form.findComponent("NewAddedActivities");
-   work_data_set = form.findComponent("WorkRecordSet");
-   original_data_set = form.findComponent("OriginalDatabaseActivities");
    parameters.WorkSlipIDField = work_slip_locator;
    parameters.NewAddedActivities = new_activities;
-   parameters.OriginalActivities = original_data_set;
-   parameters.WorkDataSet = work_data_set;
-   
    dialog = XComponent.newDialog();
    dialog.open("/modules/work/forms/add_work_slip_activity.oxf.xml", parameters);
-}
-
-function updateAllViews(){
-   XDisplay.getActiveForm().findComponent("EffortTable").update();
-   XDisplay.getActiveForm().findComponent("CostsTable").update();   
-}
-
-function removeWorkSlips(event) {
-
-   data_set = XDisplay.getActiveForm().findComponent("WorkRecordSet");
-   new_activities = XDisplay.getActiveForm().findComponent("NewAddedActivities");
-   removedActivities = new ArrayList;
-   data_set.completeSelection();
-   selected_rows = data_set.selectedRows();
-
-   if (selected_rows.size() > 0) {
-      j = 0;
-      while (j < selected_rows.size()){
-         dataRowWorkSelected = selected_rows.get(j);
-
-         if (new_activities != null) {
-            i = 0;
-            while (i < new_activities.getChildCount()) {
-
-               dataRowNew = new_activities.getChild(i);
-               if(dataRowNew.getStringValue() == dataRowWorkSelected.getStringValue()){
-                  removedActivities.add(dataRowNew);
-               }
-               break;
-               i++;
-            }
-         }
-         j++;
-      }
-
-      new_activities.removeDataRows(removedActivities);
-      data_set.removeDataRows(selected_rows);
-      updateAllViews();
-   }
 }

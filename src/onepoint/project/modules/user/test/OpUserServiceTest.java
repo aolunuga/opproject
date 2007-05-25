@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class OpUserServiceTest extends OpBaseTestCase {
    // class logger.
-   private static final XLog logger = XLogFactory.getServerLogger(OpUserServiceTest.class);
+   private static final XLog logger = XLogFactory.getLogger(OpUserServiceTest.class, true);
 
    // Password used for tests.
    private static final String TEST_PASS = new OpSHA1().calculateHash("password");
@@ -142,7 +142,7 @@ public class OpUserServiceTest extends OpBaseTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME.toLowerCase());
-      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 
@@ -195,7 +195,7 @@ public class OpUserServiceTest extends OpBaseTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME);
-      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 
@@ -1308,39 +1308,25 @@ public class OpUserServiceTest extends OpBaseTestCase {
     *
     * @throws Exception If somethign goes wrong.
     */
-   //<FIXME author="Mihai Costin" description="request parameter should be updated for each method call!!">  
    public void testMethodsSecurity()
         throws Exception {
 
-      createDefaultUser();
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
-      assertNotNull(user);
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+           DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
-      createDefaultGroup();
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
-      assertNotNull(group);
-
-      // create supergroup
-      String superGroupName = "SuperGroup";
-      Map groupData = UserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
       XMessage request = new XMessage();
-      request.setArgument(OpUserService.GROUP_DATA, groupData);
-      XMessage response = userService.insertGroup(session, request);
+
+      // first try with lower case (for all letters)
+      request.setArgument(OpUserService.USER_DATA, userData);
+      XMessage response = userService.insertUser(session, request);
       assertNoError(response);
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
-      assertNotNull(superGroup);
 
       //log-out Administrator
       logOut();
       logIn(TEST_USER_NAME, TEST_PASS);
 
       // now try to call secured methods.
-      List subIds = Arrays.asList(new String[]{user.locator()});
-      
       request = new XMessage();
-      request.setArgument(OpUserService.TARGET_GROUP_ID, superGroup.locator());
-      request.setArgument(OpUserService.SUBJECT_IDS,  subIds);
-
       try {
          // check insertUser method security
          response = userService.insertUser(session, request);

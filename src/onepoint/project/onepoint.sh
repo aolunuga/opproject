@@ -1,4 +1,3 @@
-#must have a valid jdk home, please define one if not aldeay defined
-#JAVA_HOME=/usr/local/bin/jdk/bin
-
-$JAVA_HOME/bin/java -jar opproject-07-be.jar
+#must have a valid jdk
+export JAVA_HOME=/usr/local/bin/jdk1.5.0_07/bin
+$JAVA_HOME/java -jar opproject-06.1-be.jar

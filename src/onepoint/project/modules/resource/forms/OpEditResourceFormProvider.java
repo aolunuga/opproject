@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -13,7 +13,6 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourceService;
@@ -35,22 +34,13 @@ public class OpEditResourceFormProvider implements XFormProvider {
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ORIGINAL_AVAILABLE = "OriginalAvailable";
    private final static String ORIGINAL_HOURLY_RATE = "OriginalHourlyRate";
-   private final static String ORIGINAL_EXTERNAL_RATE = "OriginalExternalRate";
-   private final static String ORIGINAL_INHERIT = "OriginalInherit";
+   private final static String USER_BUTTON = "SelectUserButton";
+   private final static String USER_FIELD = "UserName";
    private final static String USER_LABEL = "ResponsibleUserLabel";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String HOURLY_RATE = "HourlyRate";
    private final static String HOURLY_RATE_LABEL = "HourlyRateLabel";
-   private final static String EXTERNAL_RATE = "ExternalRate";
-   private final static String EXTERNAL_RATE_LABEL = "ExternalRateLabel";
    private final static String INHERIT_POOL_RATE = "InheritPoolRate";
-   private static final String PROJECT_TOOL_PANEL = "ProjectToolPanel";
-   private static final String CANCEL = "Cancel";
-   private static final String HOURLY_RATES_SET = "HourlyRatesSet";
-   private static final String ORIGINAL_HOURLY_RATES_SET = "OriginalHourlyRatesSet";
-   private static final String HOURLY_RATES_TABLE = "HourlyRatesTable";
-   private static final String ADD_RATE_BUTTON = "AddRateButton";
-   private static final String REMOVE_RATE_BUTTON = "RemoveRateButton";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -58,67 +48,64 @@ public class OpEditResourceFormProvider implements XFormProvider {
 
       // Find user in database      
       String id_string = (String) (parameters.get(OpResourceService.RESOURCE_ID));
-      Boolean editMode = (Boolean) parameters.get(OpResourceService.EDIT_MODE);
+      Boolean edit_mode = (Boolean) parameters.get(OpResourceService.EDIT_MODE);
 
       OpResource resource = (OpResource) (broker.getObject(id_string));
 
       // Downgrade edit mode to view mode if no manager access
       byte accessLevel = session.effectiveAccessLevel(broker, resource.getID());
-      if (editMode && (accessLevel < OpPermission.MANAGER)) {
-         editMode = Boolean.FALSE;
+      if (edit_mode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
+         edit_mode = Boolean.FALSE;
       }
 
       if ((accessLevel < OpPermission.MANAGER)) {
          form.findComponent(HOURLY_RATE).setVisible(false);
          form.findComponent(HOURLY_RATE_LABEL).setVisible(false);
-         form.findComponent(EXTERNAL_RATE).setVisible(false);
-         form.findComponent(EXTERNAL_RATE_LABEL).setVisible(false);
          form.findComponent(INHERIT_POOL_RATE).setVisible(false);
       }
 
       // Fill edit-user form with user data
       // *** Use class-constants for text-field IDs?
       form.findComponent(RESOURCE_ID).setStringValue(id_string);
-      form.findComponent(EDIT_MODE).setBooleanValue(editMode);
+      form.findComponent(EDIT_MODE).setBooleanValue(edit_mode.booleanValue());
       XComponent name = form.findComponent(OpResource.NAME);
       name.setStringValue(resource.getName());
       XComponent desc = form.findComponent(OpResource.DESCRIPTION);
       desc.setStringValue(resource.getDescription());
       XComponent available = form.findComponent(OpResource.AVAILABLE);
       available.setDoubleValue(resource.getAvailable());
-      XComponent hourlyRate = form.findComponent(HOURLY_RATE);
-      hourlyRate.setDoubleValue(resource.getHourlyRate());
-      XComponent externalRate = form.findComponent(EXTERNAL_RATE);
-      externalRate.setDoubleValue(resource.getExternalRate());
+      XComponent hourly_rate = form.findComponent(HOURLY_RATE);
+      hourly_rate.setDoubleValue(resource.getHourlyRate());
 
       //save available and hourly rate for later confirm dialog
       XComponent originalAvailable = form.findComponent(ORIGINAL_AVAILABLE);
       originalAvailable.setDoubleValue(resource.getAvailable());
-      XComponent originalHourlyRate = form.findComponent(ORIGINAL_HOURLY_RATE);
-      originalHourlyRate.setDoubleValue(resource.getHourlyRate());
-      XComponent originalExternalRate = form.findComponent(ORIGINAL_EXTERNAL_RATE);
-      originalExternalRate.setDoubleValue(resource.getExternalRate());
+      XComponent originalHourly_rate = form.findComponent(ORIGINAL_HOURLY_RATE);
+      originalHourly_rate.setDoubleValue(resource.getHourlyRate());
 
       XComponent inherit_pool_rate = form.findComponent(INHERIT_POOL_RATE);
-      inherit_pool_rate.setBooleanValue(!resource.getInheritPoolRate());
-      XComponent originalInheritPoolRate = form.findComponent(ORIGINAL_INHERIT);
-      originalInheritPoolRate.setBooleanValue(!resource.getInheritPoolRate());
+      inherit_pool_rate.setBooleanValue(resource.getInheritPoolRate());
       if (resource.getInheritPoolRate()) {
-         hourlyRate.setEnabled(false);
-         externalRate.setEnabled(false);
+         hourly_rate.setEnabled(false);
       }
 
       OpUser user = resource.getUser();
       if (user != null) {
+         // *** TODO: Use real choice-field (opens associated chooser dialog)
+         // *** Meanwhile: Use a work-around
+         // ==> Disabled text-field showing user name
+         // ==> Data-field containing user ID
+         // ==> Normal button launching chooser
          XLocalizer localizer = new XLocalizer();
          localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
-         XComponent userName = form.findComponent(USER_NAME);
-         userName.setStringValue(XValidator.choice(user.locator(), localizer.localize(user.getDisplayName())));
+         XComponent user_name_text_field = form.findComponent(USER_NAME);
+         user_name_text_field.setStringValue(localizer.localize(user.getDisplayName()));
+         XComponent user_id_data_field = form.findComponent("SelectedUserDataField");
+         user_id_data_field.setStringValue(user.locator());
       }
 
       XComponent assigned_project_data_set = form.findComponent(ASSIGNED_PROJECT_DATA_SET);
-
       // configure project assignment sort order
       OpObjectOrderCriteria projectOrderCriteria = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
       StringBuffer assignmentQuery = new StringBuffer("select assignment.ProjectNode from OpResource as resource inner join resource.ProjectNodeAssignments as assignment where assignment.Resource.ID = ?");
@@ -127,8 +114,8 @@ public class OpEditResourceFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery(assignmentQuery.toString());
       query.setLong(0, resource.getID());
       Iterator i = broker.iterate(query);
-      OpProjectNode project;
-      XComponent data_row;
+      OpProjectNode project = null;
+      XComponent data_row = null;
       while (i.hasNext()) {
          project = (OpProjectNode) (i.next());
          data_row = new XComponent(XComponent.DATA_ROW);
@@ -136,89 +123,33 @@ public class OpEditResourceFormProvider implements XFormProvider {
          assigned_project_data_set.addChild(data_row);
       }
 
-      form.findComponent(HOURLY_RATES_TABLE).setEditMode(editMode);
-      if (!editMode) {
+      if (!edit_mode.booleanValue()) {
          name.setEnabled(false);
          desc.setEnabled(false);
          available.setEnabled(false);
-         hourlyRate.setEnabled(false);
-         externalRate.setEnabled(false);
+         hourly_rate.setEnabled(false);
          inherit_pool_rate.setEnabled(false);
          form.findComponent(USER_NAME).setEnabled(false);
-         form.findComponent(PROJECT_TOOL_PANEL).setVisible(false);
-         form.findComponent(CANCEL).setVisible(false);
-         form.findComponent(HOURLY_RATES_TABLE).setEnabled(false);
-         form.findComponent(ADD_RATE_BUTTON).setVisible(false);
-         form.findComponent(REMOVE_RATE_BUTTON).setVisible(false);
+         form.findComponent("ProjectToolPanel").setVisible(false);
+         form.findComponent("SelectUserButton").setVisible(false);
+         form.findComponent("Cancel").setVisible(false);
          String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoResource").getText();
          form.setText(title);
       }
 
       if (!OpInitializer.isMultiUser()) {
-         form.findComponent(USER_NAME).setVisible(false);
+         form.findComponent(USER_BUTTON).setVisible(false);
          form.findComponent(USER_LABEL).setVisible(false);
+         form.findComponent(USER_FIELD).setVisible(false);
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
       else {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, editMode, accessLevel);
+         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
       }
-
-      //obtain the OpHourlyRatesPeriod associated with this resource
-      XComponent hourlyRatesSet = form.findComponent(HOURLY_RATES_SET);
-      XComponent originalHourlyRatesSet = form.findComponent(ORIGINAL_HOURLY_RATES_SET);
-      fillHourlyRatesSets(hourlyRatesSet, originalHourlyRatesSet, resource, editMode);
-
       broker.close();
-   }
-
-   /**
-    * Fills the hourlyRatesPeriod data set with the values of the HourlyRatesPeriods associated with the resource
-    * @param hourlyRatesSet - the data set which will contain the resource's HourlyRatesPeriods
-    * @param originalHourlyRatesSet - a copy of the data set for storing original values
-    * @param resource - the resource whose HourlyRatesPeriods will be stored in the data set
-    * @param editMode - a <code>boolean</code> parameter indicating the state of the data set (editable/not editable)
-    */
-   private void fillHourlyRatesSets(XComponent hourlyRatesSet, XComponent originalHourlyRatesSet,
-        OpResource resource, boolean editMode) {
-      XComponent dataRow;
-      XComponent dataCell;
-
-      for (OpHourlyRatesPeriod hourlyRatesPeriod : resource.getHourlyRatesPeriods()) {
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         hourlyRatesSet.addChild(dataRow);
-
-         //start date - 0
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(hourlyRatesPeriod.getStart());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //end date - 1
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(hourlyRatesPeriod.getFinish());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //internal hourly rate - 2
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(hourlyRatesPeriod.getInternalRate());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //external hourly rate - 3
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(hourlyRatesPeriod.getExternalRate());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //set the datarow value to OpHourlyRatesPeriod's locator
-         dataRow.setStringValue(hourlyRatesPeriod.locator());
-
-         originalHourlyRatesSet.addChild(dataRow.copyData());
-      }
    }
 
 }

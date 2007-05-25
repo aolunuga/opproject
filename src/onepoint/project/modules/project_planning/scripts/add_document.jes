@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for add_document.oxf.xml
@@ -77,10 +77,8 @@ function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
 
-function select(event) {   
-   form = XDisplay.getActiveForm();
-   title = form.findComponent("DialogTitle").getText();
-   document_path = XDisplay.showFileDialog(title, true, null,"*.*");
+function select(event) {
+   document_path = XDisplay.showFileDialog("Dokument auswaehlen", true, null);
    if (document_path != null) {
       document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
       document_path_field.setStringValue(document_path);

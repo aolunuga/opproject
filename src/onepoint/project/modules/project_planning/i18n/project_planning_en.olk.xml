@@ -1,8 +1,8 @@
 <language-kit locale="en">
 
    <resource-map id="project_planning.module">
-      <resource id="PlanningTool">Planning</resource>
-   </resource-map>
+        <resource id="PlanningTool">Planning</resource>
+    </resource-map>
 
    <resource-map id="project_planning.activities">
       <resource id="EditPlan">Edit</resource>
@@ -12,7 +12,7 @@
       <resource id="ExportProject">Export</resource>
       <resource id="Revert">Revert</resource>
       <resource id="Print">Print</resource>
-
+	   
       <resource id="Cut">Cut</resource>
       <resource id="Copy">Copy</resource>
       <resource id="Paste">Paste</resource>
@@ -77,9 +77,7 @@
       <resource id="CopyActivities">Copy activities</resource>
       <resource id="PasteActivities">Paste activities</resource>
       <resource id="Undo">Undo</resource>
-      <resource id="Redo">Redo</resource>
-
-      <resource id="Total">Total</resource>
+      <resource id="Redo">Redo</resource>      
 
       <resource id="LoopErrorMessage">This action would cause a loop in the project plan</resource>
       <resource id="ResourcesErrorMessage">The resource name could not be found in the project's resource pool</resource>
@@ -92,7 +90,7 @@
       <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
       <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
@@ -143,7 +141,6 @@
       <resource id="Priority">Priority</resource>
       <resource id="Mandatory">Mandatory</resource>
       <resource id="ResponsibleResource">Responsible Resource</resource>
-      <resource id="Payment">Payment</resource>
 
       <resource id="Resources">Resources</resource>
       <resource id="Resource">Resource</resource>
@@ -160,10 +157,10 @@
       <resource id="Misc">Miscellaneous (€)</resource>
 
       <resource id="Attachments">Attachments</resource>
-      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
-      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
-      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
-      <resource id="ViewAttachmentTooltip">View attachment</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+	  <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+	  <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+	  <resource id="ViewAttachmentTooltip">View attachment</resource>
 
       <resource id="Title">Title</resource>
       <resource id="Location">Location</resource>
@@ -198,7 +195,7 @@
 
       <resource id="Subject">Subject</resource>
       <resource id="Text">Text</resource>
-
+	   
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -235,7 +232,6 @@
       <resource id="Select">Select</resource>
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
-      <resource id="ChooseDocument">Select a document</resource>
    </resource-map>
 
    <resource-map id="project_planning.activity_details">
@@ -254,10 +250,6 @@
       <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
    </resource-map>
 
-   <resource-map id="resource.incorrectFile">
-      <resource id="IncorrectFileName">Incorrect File Name</resource>
-   </resource-map>
-
    <resource-map id="project_planning.error">
       <resource id="CommentNameMissing">The subject was not specified</resource>
       <resource id="CommentNotFound">The comment was not found</resource>
@@ -268,14 +260,15 @@
       <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
       <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
       <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
-      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contain work slips</resource>
 
       <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
       <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>
       <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
-      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
    </resource-map>
 
 </language-kit>

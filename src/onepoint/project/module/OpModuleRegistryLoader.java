@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class OpModuleRegistryLoader extends XLoader {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpModuleRegistryLoader.class);
+   private static final XLog logger = XLogFactory.getLogger(OpModuleRegistryLoader.class,true);
 
    // Does not use resource loader: Might in the future contain licensing information
 

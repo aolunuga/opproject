@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository.forms;
@@ -11,6 +11,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.report.OpReport;
@@ -19,7 +20,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -38,12 +38,12 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpRepositoryFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpRepositoryFormProvider.class, true);
 
    /**
     * Error id for creating the backup directory
     */
-   private static final String BACKUP_DIR_ERROR = "${BackupDirectoryError}";
+   private static final String BACKUP_DIR_ERROR = "{$BackupDirectoryError}";
 
    /**
     * Form component ids.

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_projects.forms;
@@ -16,10 +16,7 @@ import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactor
 import onepoint.project.modules.user.OpPermission;
 import onepoint.service.server.XSession;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Form provider for my projects tool.
@@ -66,9 +63,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
 
       //projectMap = new HashMap();
-      for (Object projectNodeID : projectNodeIDs) {
-         Long id = (Long) projectNodeID;
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+      for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {
+         Long id = (Long) iterator.next();
+         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
          XComponent row = createProjectRow(projectNode, broker);
          projectsDataSet.addChild(row);
       }
@@ -80,24 +77,24 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    }
 
    private List getLevelsForChoice(String permission) {
-      List<Byte> levels = new ArrayList<Byte>();
+      List levels = new ArrayList();
       if (OBSERVER.equals(permission)) {
          //show all projects the user has at least read access to
-         levels.add(OpPermission.OBSERVER);
-         levels.add(OpPermission.CONTRIBUTOR);
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.OBSERVER));
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       else if (CONTRIB.equals(permission)) {
          //show projects the user has at least contributor permissions to
-         levels.add(OpPermission.CONTRIBUTOR);
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       else if (MANAGER.equals(permission)) {
          //show projects the user has at least manager permissions to
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       return levels;
    }
@@ -120,7 +117,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          if (stateMap != null) {
             Integer state = (Integer) stateMap.get(PROJECT_CHOICE_FIELD);
             if (state != null) {
-               selectedIndex = state;
+               selectedIndex = state.intValue();
                String value = (String) ((XComponent) chooser.getDataSetComponent().getChild(selectedIndex)).getValue();
                projectChoice = XValidator.choiceID(value);
             }
@@ -133,7 +130,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
             projectChoice = DEFAULT_VALUE;
             selectedIndex = DEFAULT_PROJECT_CHOICE_FIELD_INDEX;
          }
-         chooser.setSelectedIndex(selectedIndex);
+         chooser.setSelectedIndex(new Integer(selectedIndex));
       }
       return projectChoice;
    }
@@ -169,9 +166,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       XComponent dataCell;
 
-      ArrayList<Byte> activityTypes = new ArrayList<Byte>();
-      activityTypes.add(OpActivity.STANDARD);
-      activityTypes.add(OpActivity.COLLECTION);
+      ArrayList activityTypes = new ArrayList();
+      activityTypes.add(new Byte(OpActivity.STANDARD));
+      activityTypes.add(new Byte(OpActivity.COLLECTION));
 
       double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode.getID(), activityTypes);
 

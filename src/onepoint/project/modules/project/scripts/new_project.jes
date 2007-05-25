@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for new_project.oxf.xml
@@ -7,7 +7,6 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require "onepoint/project/modules/project/scripts/helper_project.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -34,7 +33,12 @@ function ok(event) {
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
 
-   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");  
+   assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   i = 0;
+   while (i < assigned_resource_set.getChildCount()) {
+      assigned_resources[i] = assigned_resource_set.getChild(i).getStringValue();
+      i++;
+   }
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
    
@@ -43,7 +47,7 @@ function ok(event) {
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
    request.setArgument("to_dos_set", to_dos_set);
-   request.setArgument("resource_set", assigned_resource_set);
+   request.setArgument("resource_list", assigned_resources);
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {
@@ -65,3 +69,93 @@ function ok(event) {
 function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
+
+function addGoal(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+}
+
+function removeGoals(event) {
+   data_set = XDisplay.getActiveForm().findComponent("GoalsSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+   }
+}
+
+function addToDo(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   data_row = data_set.newDataRow();
+   data_set.addDataRow(data_row);
+   data_cell = XComponent.newDataCell();
+   data_cell.setBooleanValue(false);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setStringValue("");
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setIntValue(5);
+   data_cell.setEnabled(true);
+   data_row.addChild(data_cell);
+   data_cell = XComponent.newDataCell();
+   data_cell.setEnabled(true);
+   date = new Date;
+   data_cell.setDateValue(date);
+   data_row.addChild(data_cell);
+   XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+}
+
+function removeToDos(event) {
+   data_set = XDisplay.getActiveForm().findComponent("ToDosSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      data_set.removeDataRows(selected_rows);
+      XDisplay.getActiveForm().findComponent("ToDosTableBox").update();
+   }
+}
+
+function addProjectAssignment(event){
+   assigned_resource_data_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
+   i = 0;
+   while (i < assigned_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(assigned_resource_data_set.getChild(i).getStringValue());
+      i++;
+   }
+   readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
+   index = 0;
+   while (index < readonly_resource_data_set.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      i++;
+      index++;
+   }
+   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
+}
+
+function removeProjectAssignment(event){
+   form = XDisplay.getActiveForm();
+   assigned_resource_data_set = form.findComponent("AssignedResourceDataSet");
+   selected_rows = assigned_resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      assigned_resource_data_set.removeDataRows(selected_rows);
+      resource_list_box = form.findComponent("AssignedResourcesListBox");
+      resource_list_box.update();
+   }
+}
+

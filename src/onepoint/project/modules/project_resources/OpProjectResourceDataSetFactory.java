@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_resources;
@@ -136,9 +136,6 @@ public final class OpProjectResourceDataSetFactory {
       data_cell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(base, deviation));
       data_row.addChild(data_cell);// 6 %deviation
       data_set.addChild(data_row);
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setDoubleValue(activity.getType());
-      data_row.addChild(data_cell);// 7 Type/Style
 
       // Add resource summaries
       addResourceSummary(activity, resource_summaries.values(), data_set);
@@ -170,30 +167,26 @@ public final class OpProjectResourceDataSetFactory {
          data_row.setOutlineLevel(outline_level);
          data_row.setExpanded(true);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(resource_summary.getResourceName()); // 0 resource name
+         data_cell.setStringValue(resource_summary.getResourceName());
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(resourceBase);// 1 resource base
+         data_cell.setDoubleValue(resourceBase);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(resourceActual);// 2 resource actual
+         data_cell.setDoubleValue(resourceActual);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(resourceRemaining);// 3 resoruce remaining
+         data_cell.setDoubleValue(resourceRemaining);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(resourcePredicted);// 4 resource predicted
+         data_cell.setDoubleValue(resourcePredicted);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(deviation);// 5 resource deviation
+         data_cell.setDoubleValue(deviation);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         double percentDeviation = OpActivityDataSetFactory.calculatePercentDeviation(resourceBase, deviation);
-         data_cell.setDoubleValue(percentDeviation);// 6 resource deviation
+         data_cell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(resourceBase, deviation));
          data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setByteValue((byte)0);// 7 type/style
-         data_row.addChild(data_cell);         
          data_set.addChild(data_row);
       }
    }

@@ -4,10 +4,10 @@
 
 package onepoint.project;
 
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceInterceptor;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +21,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpServiceInterceptor.class);
+   private static final XLog logger = XLogFactory.getLogger(OpServiceInterceptor.class, true);
 
    /**
     * @see onepoint.service.server.XServiceInterceptor#afterAdvice(onepoint.service.server.XService, java.lang.reflect.Method, Object[])

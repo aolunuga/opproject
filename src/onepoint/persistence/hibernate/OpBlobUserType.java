@@ -1,9 +1,11 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.usertype.UserType;
 
@@ -18,7 +20,10 @@ import java.util.Arrays;
  * @author horia.chiorean
  */
 public class OpBlobUserType implements UserType {
-
+   /**
+    * Logger for this class
+    */
+   private static final XLog logger = XLogFactory.getLogger(OpBlobUserType.class, true);
    /**
     * The sql type(s) this type maps to.
     */

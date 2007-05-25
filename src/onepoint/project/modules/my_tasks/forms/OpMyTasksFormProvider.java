@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_tasks.forms;
@@ -10,10 +10,9 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermission;
@@ -36,7 +35,6 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String START_BEFORE_SET = "StartBeforeSet";
    private final static String PROJECT_SET = "ProjectSet";
    private final static String RESOURCES_SET = "FilterResourcesSet";
-   private final static String DELETE_PERMISSION_SET = "DeletePermissionSet";
 
    // filters
    private final static String START_BEFORE_ID = "start_before_id";
@@ -45,231 +43,186 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
    // start from filter choices
    private final static String ALL = "all";
-   private final static String RESPONSIBLE = "res";
-   private final static String MANAGED = "man";
-   private final static List<String> RESOURCE_FILTER_OPTIONS = Arrays.asList(ALL, RESPONSIBLE, MANAGED);
-
    private final static String NEXT_WEEK = "nw";
    private final static String NEXT_2_WEEKS = "n2w";
    private final static String NEXT_MONTH = "nm";
    private final static String NEXT_2_MONTHS = "n2m";
+
+
+   private final static String RESPONSIBLE = "res";
+   private final static String MANAGED = "man";
 
    private final static String NEW_COMMENT = "NewCommentButton";
    private final static String INFO_BUTTON = "InfoButton";
    private final static String PRINT_BUTTON = "PrintButton";
    private final static String NEW_ADHOC = "NewAdhocButton";
 
-   private final static String NO_RESOURCES_FOR_USER_ID = "NoResourcesForUser";
-   private final static String MESSAGE_LABEL_ID = "MessageLabel";
 
-   /**
-    * A list of activity types to filter after
-    */
-   private final static List<Byte> TYPES_FILTER_LIST = Arrays.asList(OpActivity.STANDARD, OpActivity.MILESTONE,  OpActivity.TASK,  OpActivity.ADHOC_TASK);
-
-   /**
-    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)  
-    */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
+
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
-
-      Map<String, List<String>> projectsResourcesMap = this.getProjectToResourcesViewMap(session);
-
-      //check the case when the current user doesn't  see any resources
-      if (projectsResourcesMap.isEmpty()) {
-         handleNoResources(form);
-         broker.close();
-         return;
-      }
+      Map adhocProjectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
 
       OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
+      if (user.getResources().size() == 0 && adhocProjectsMap.isEmpty()) {
+         form.findComponent(NEW_COMMENT).setEnabled(false);
+         form.findComponent(INFO_BUTTON).setEnabled(false);
+         form.findComponent(PRINT_BUTTON).setEnabled(false);
+         form.findComponent(NEW_ADHOC).setEnabled(false);
+         form.findComponent(PROJECT_CHOICE_FIELD).setEnabled(false);
+         form.findComponent(START_TIME_CHOICE_FIELD).setEnabled(false);
+         form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
+         return; // TODO: UI-level error -- no resource associated with this user
+      }
+
       form.findComponent(PRINT_TITLE).setStringValue(user.getName());
 
-      //fill this form's filters
-      this.fillResourceFilter(form, projectsResourcesMap);
-      this.fillProjectFilter(form, projectsResourcesMap);
+      String showHoursPref = user.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+      if (showHoursPref == null) {
+         showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+      }
+      Boolean showHours = Boolean.valueOf(showHoursPref);
 
+      // Configure activity activityFilter
       XComponent dataSet = form.findComponent(ACTIVITY_SET);
+      List projectChoices = new ArrayList();
+      XComponent projectDataSet = form.findComponent(PROJECT_SET);
 
-      //create the activity filter
-      OpActivityFilter activityFilter = createActivityFilter(session, broker, parameters, form, user.getResources(), projectsResourcesMap);
-      //retrieve the activities
-      this.fillActivityDataSet(activityFilter, user, broker, dataSet);
+      fillResourceFilter(form, adhocProjectsMap);
 
-      // check buttons that need enabling or disabling
-      this.checkButtons(dataSet, form, projectsResourcesMap);
+      String filteredResourcesId = getFilteredResourcesId(session, parameters, form);
+      boolean all = ALL.equals(filteredResourcesId);
+      boolean responsible = RESPONSIBLE.equals(filteredResourcesId);
+      boolean managed = MANAGED.equals(filteredResourcesId);
+      boolean individual = (filteredResourcesId != null && !managed && !responsible && !all);
+
+
+      if (user.getResources().size() != 0) {
+
+         List resourceIds = new ArrayList();
+         if (!individual) {
+            OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.User.ID = ?");
+            query.setLong(0, session.getUserID());
+            resourceIds = broker.list(query);
+         }
+         else {
+            long resId = OpLocator.parseLocator(filteredResourcesId).getID();
+            resourceIds.add(new Long(resId));
+         }
+
+         List types = new ArrayList();
+         types.add(new Byte(OpActivity.STANDARD));
+         types.add(new Byte(OpActivity.TASK));
+         types.add(new Byte(OpActivity.MILESTONE));
+
+         //fill project set
+         List projectNodes = getProjects(broker, resourceIds, types);
+         for (Iterator it = projectNodes.iterator(); it.hasNext();) {
+            OpProjectNode projectNode = (OpProjectNode) it.next();
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            String choice = XValidator.choice(projectNode.locator(), projectNode.getName());
+            row.setStringValue(choice);
+            projectChoices.add(choice);
+            projectDataSet.addDataRow(row);
+         }
+         fillProjectAdhocFilter(adhocProjectsMap, projectChoices, projectDataSet);
+
+         OpActivityFilter filter = createActivityFilter(session, parameters, form);
+         for (int i = 0; i < resourceIds.size(); i++) {
+            filter.addResourceID(((Long) resourceIds.get(i)).longValue());
+         }
+         filter.setDependencies(true);
+         //activities which are not completed yet
+         filter.setCompleted(Boolean.FALSE);
+         filter.setAssignmentCompleted(Boolean.FALSE);
+         //activity types activityFilter
+         for (Iterator iterator = types.iterator(); iterator.hasNext();) {
+            Byte type = (Byte) iterator.next();
+            filter.addType(type.byteValue());
+         }
+
+         setFilterStart(session, parameters, form, filter);
+         // Configure activity sort order
+         Map sortOrders = new HashMap(2);
+         sortOrders.put(OpActivity.START, OpObjectOrderCriteria.ASCENDING);
+         sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
+         OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
+
+         // Retrieve filtered and ordered activity data-set
+         dataSet.setValue(showHours);
+         OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, filter, orderCriteria, dataSet);
+      }
+      else {
+         fillProjectAdhocFilter(adhocProjectsMap, projectChoices, projectDataSet);
+      }
+
+      OpActivityFilter activityFilter = createActivityFilter(session, parameters, form);
+      for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
+         List resourcesList = (List) iterator.next();
+         for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
+            String choice = (String) resIt.next();
+            String locatorStr = XValidator.choiceID(choice);
+            if (individual && !locatorStr.equals(filteredResourcesId)) {
+               continue;
+            }
+            boolean isResponsible = isResponsible(session.getUserID(), broker, locatorStr);
+            if (responsible && !isResponsible) {
+               continue;
+            }
+            boolean isManaged = isManaged(session, broker, locatorStr);
+            if (managed && !isManaged) {
+               continue;
+            }
+            OpLocator locator = OpLocator.parseLocator(locatorStr);
+            activityFilter.addResourceID(locator.getID());
+         }
+      }
+
+      activityFilter.getTypes().clear();
+      activityFilter.addType(OpActivity.ADHOC_TASK);
+      // Configure activity sort order
+      Map sortOrders = new HashMap(2);
+      sortOrders.put(OpActivity.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
+      sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
+      OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
+
+      // Retrieve filtered and ordered adhoc tasks
+      XComponent adHocSet = new XComponent(XComponent.DATA_SET);
+      OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, adHocSet);
+      for (int i = 0; i < adHocSet.getChildCount(); i++) {
+         XComponent row = (XComponent) adHocSet.getChild(i);
+         XComponent effortCell = (XComponent) row.getChild(7); // base effort index
+         effortCell.setValue(null);
+         effortCell.setEnabled(false);
+         dataSet.addChild(row);
+      }
+      disableButtons(dataSet, form, adhocProjectsMap);
 
       // fill category color data set
       XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
       OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
 
-      // fill delete permission data set
-      XComponent deletePermissionSet = form.findComponent(DELETE_PERMISSION_SET);
-      fillDeletePermissionDataSet((OpProjectSession) s, broker, dataSet, deletePermissionSet);
-
       broker.close();
-   }
-
-   /**
-    * Fills the activity data-set with data.
-    * @param activityFilter a <code>OpActivityFilter</code> used to retrieve activities.
-    * @param user a <code>OpUser</code> representing the current user.
-    * @param broker a <code>OpBroker</code> used for db operations.
-    * @param dataSet  a <code>XComponent(DATA_SET)</code> representing the activity data-set.
-    */
-   private void fillActivityDataSet(OpActivityFilter activityFilter, OpUser user, OpBroker broker, XComponent dataSet) {
-      //only makes sense to retrieve any activities if we have projects and resources set
-      if (activityFilter.getProjectNodeIds().isEmpty() || activityFilter.getResourceIds().isEmpty()) {
-         return;
-      }
-
-      // Configure activity sort order
-      Map<String, String> sortOrders = new HashMap<String, String>(2);
-      sortOrders.put(OpActivity.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
-      sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
-      OpObjectOrderCriteria orderCriteria = new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
-
-      // Retrieve filtered and ordered activity data-set
-      XComponent unsortedDataSet = new XComponent(XComponent.DATA_SET);
-      Boolean showHours = getShowHoursPreference(user);
-      unsortedDataSet.setValue(showHours);
-      OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, unsortedDataSet);
-      this.sortActivityDataSet(unsortedDataSet, dataSet);
-   }
-
-   /**
-    * Returns a map of projects and list of resources for each project, where the current user is
-    * at least observer on the project.
-    *
-    * @param session Current project session (used for db access and current user)
-    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
-    */
-   private  Map<String, List<String>> getProjectToResourcesViewMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
-      OpBroker broker = session.newBroker();
-      long userId = session.getUserID();
-
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
-
-      //add only the responsible resources for the projects where the user is either OBSERVER or CONTRIBUTOR
-      levels.add(OpPermission.OBSERVER);
-      levels.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = OpProjectDataSetFactory.getProjectResources(project, userId, true);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
-      //add all the resources for the projects where the user is either ADMINISTRATOR or MANAGER
-      levels.clear();
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      projectIds = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         //the list of project resources includes resources for which the user is responsible
-         List<String> resources = OpProjectDataSetFactory.getProjectResources(project, userId, false);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-      broker.close();
-      return projectsMap;
-   }
-
-   /**
-    * Sorts an actviity data-set after the start date of non-ad-hoc task activities, and copies the result into another dataset.
-    * @param unsortedDataSet a <code>XComponent(DATA_SET)</code> representing an unsorted data-set.
-    * @param sortedDataSet a <code>XComponent(DATA_SET)</code> representing a data-set where to place the sorted rows.
-    */
-   private void sortActivityDataSet(XComponent unsortedDataSet, XComponent sortedDataSet) {
-      List<XComponent> adHocTasks= new ArrayList<XComponent>();
-      for (int i = 0; i < unsortedDataSet.getChildCount(); i++) {
-         XComponent activityRow = (XComponent) unsortedDataSet.getChild(i);
-         if (OpGanttValidator.getType(activityRow) == OpGanttValidator.ADHOC_TASK) {
-            adHocTasks.add(activityRow);
-         }
-         else {
-            sortedDataSet.addChild(activityRow);
-         }
-      }
-      unsortedDataSet.removeAllChildren();
-      sortedDataSet.sort(OpGanttValidator.START_COLUMN_INDEX);
-      sortedDataSet.addAllChildren(adHocTasks.toArray(new XComponent[]{}));
-   }
-
-   /**
-    * Gets the user preferences to show the assignment values in % or in hours.
-    * @param user a <code>OpUser</code> representing the current user.
-    * @return a <code>Boolean</code> indicating whether to show assignments in hours or not.
-    */
-   private Boolean getShowHoursPreference(OpUser user) {
-      String showHoursPref = user.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-      if (showHoursPref == null) {
-         showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
-      }
-      return  Boolean.valueOf(showHoursPref);
-   }
-
-   /**
-    * Handles the case when there are no resources for the current user.
-    * @param form  a <code>XComponent(FORM)</code> representing the my tasks form.
-    */
-   private void handleNoResources(XComponent form) {
-      form.findComponent(NEW_COMMENT).setEnabled(false);
-      form.findComponent(INFO_BUTTON).setEnabled(false);
-      form.findComponent(PRINT_BUTTON).setEnabled(false);
-      form.findComponent(NEW_ADHOC).setEnabled(false);
-      form.findComponent(PROJECT_CHOICE_FIELD).setEnabled(false);
-      form.findComponent(START_TIME_CHOICE_FIELD).setEnabled(false);
-      form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(false);
-
-      //show the error
-      XComponent errorLabel = form.findComponent(MESSAGE_LABEL_ID);
-      errorLabel.setText(form.findComponent(NO_RESOURCES_FOR_USER_ID).getText());
-      errorLabel.setVisible(true);
-   }
-
-
-   /**
-    * Fills the delete permission set. For each activity we determine if we have the rights to delete it and we add a propper row in the set.
-    *
-    * @param s                   the session
-    * @param broker              the broker
-    * @param dataSet             the activity dataset
-    * @param deletePermissionSet he delete permission dataset
-    */
-   private void fillDeletePermissionDataSet(OpProjectSession s, OpBroker broker, XComponent dataSet, XComponent deletePermissionSet) {
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         XComponent row = (XComponent) dataSet.getChild(i);
-         String locator = row.getStringValue();
-         OpActivity activity = (OpActivity) broker.getObject(locator);
-         boolean delete = OpMyTasksServiceImpl.deleteGranted(s, activity);
-         XComponent delRow = new XComponent(XComponent.DATA_ROW);
-         delRow.setBooleanValue(delete);
-         deletePermissionSet.addChild(delRow);
-      }
    }
 
    /**
     * Fills up the project filter data set.
     *
-    * @param projectsResourcesMap a <code>Map</code> containing all the project where the current user is at least observer and the list of resources on these projects.
-    * @param form a <code>XComponent(FORM)</code> representing the current form.
+    * @param adhocProjectsMap project->list of resources map
+    * @param projectChoices   List with project filter choices already added to the data set.
+    * @param projectDataSet   Project filter data set.
     */
-   private void fillProjectFilter(XComponent form, Map<String, List<String>> projectsResourcesMap) {
-      XComponent projectDataSet = form.findComponent(PROJECT_SET);
-
+   private void fillProjectAdhocFilter(Map adhocProjectsMap, List projectChoices, XComponent projectDataSet) {
       //add projects that are only for adhoc tasks
-      for (String projectChoice : projectsResourcesMap.keySet()) {
-         XComponent row = new XComponent(XComponent.DATA_ROW);
-         row.setStringValue(projectChoice);
-         projectDataSet.addDataRow(row);
+      Iterator projectIt = adhocProjectsMap.keySet().iterator();
+      while (projectIt.hasNext()) {
+         String choice = (String) projectIt.next();
+         if (!projectChoices.contains(choice)) {
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            row.setStringValue(choice);
+            projectDataSet.addDataRow(row);
+         }
       }
    }
 
@@ -280,7 +233,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * @param form             current form
     * @param adhocProjectsMap project->(list of resources) map.
     */
-   private void checkButtons(XComponent dataSet, XComponent form, Map adhocProjectsMap) {
+   private void disableButtons(XComponent dataSet, XComponent form, Map adhocProjectsMap) {
       //if dataset is empty, disable all the buttons
       if (dataSet.getChildCount() == 0) {
          form.findComponent(NEW_COMMENT).setEnabled(false);
@@ -293,64 +246,78 @@ public class OpMyTasksFormProvider implements XFormProvider {
    }
 
    /**
-    * Gets the start form the period filter
+    * Sets the start form the period filter 
     *
-    * @param session    the project session
-    * @param filteredStartFromRequestParam a <code>String<code> representing the value of the "start from" request parameter
-    * @param form       the form
-    *
-    * @return a <code>Date</code> representing the start date for the filter
+    * @param session
+    * @param parameters
+    * @param form
+    * @param filter
     */
-   private Date getFilterStart(OpProjectSession session, String filteredStartFromRequestParam , XComponent form) {
+   private void setFilterStart(OpProjectSession session, HashMap parameters, XComponent form, OpActivityFilter filter) {
       //get start from choice field or session state
-      String filteredStartFromId = getFilteredStartBeforeId(session, filteredStartFromRequestParam, form);
+      String filteredStartFromId = getFilteredStartBeforeId(session, parameters, form);
 
-      //retrieve the server calendar and initialize it
-      XCalendar serverCalendar = session.getCalendar();
-      Calendar calendarGMT = serverCalendar.getCalendar();
-      calendarGMT.setTimeInMillis(System.currentTimeMillis());
-      calendarGMT.set(Calendar.HOUR, 0);
-      calendarGMT.set(Calendar.MINUTE, 0);
-      calendarGMT.set(Calendar.SECOND, 0);
+      boolean isFilterNextWeek = filteredStartFromId != null && filteredStartFromId.equals(NEXT_WEEK);
+      boolean isFilterNext2Weeks = filteredStartFromId != null && filteredStartFromId.equals(NEXT_2_WEEKS);
+      boolean isFilterNextMonth = filteredStartFromId != null && filteredStartFromId.equals(NEXT_MONTH);
+      boolean isFilterNext2Months = filteredStartFromId != null && filteredStartFromId.equals(NEXT_2_MONTHS);
 
-      if (filteredStartFromId.equals(NEXT_WEEK)) {
-        calendarGMT.setTimeInMillis(calendarGMT.getTimeInMillis() + XCalendar.MILLIS_PER_WEEK);
+      //<FIXME author="Mihai Costin" description="XCalendar should be used here instead of Calendar. Hour/min should be set to 0"
+      if (isFilterNextWeek) {
+         Date start = new Date(System.currentTimeMillis() + XCalendar.MILLIS_PER_WEEK * 1);
+         filter.setStartTo(start);
       }
-      else if (filteredStartFromId.equals(NEXT_2_WEEKS)) {
-         calendarGMT.setTimeInMillis(calendarGMT.getTimeInMillis() + XCalendar.MILLIS_PER_WEEK * 2);
+      else if (isFilterNext2Weeks) {
+         Date start = new Date(System.currentTimeMillis() + XCalendar.MILLIS_PER_WEEK * 2);
+         filter.setStartTo(start);
       }
-      else if (filteredStartFromId.equals(NEXT_MONTH)) {
-         calendarGMT.set(Calendar.MONTH, calendarGMT.get(Calendar.MONTH) + 1);
+      else if (isFilterNextMonth) {
+         Calendar now = Calendar.getInstance();
+         //skip to next month
+         now.set(Calendar.MONTH, now.get(Calendar.MONTH) + 1);
+         Date start = new Date(now.getTime().getTime());
+         filter.setStartTo(start);
       }
-      else if  (filteredStartFromId.equals(NEXT_2_MONTHS)) {
-         calendarGMT.set(Calendar.MONTH, calendarGMT.get(Calendar.MONTH) + 2);
+      else if (isFilterNext2Months) {
+         Calendar now = Calendar.getInstance();
+         //skip to next 2 months
+         now.set(Calendar.MONTH, now.get(Calendar.MONTH) + 2);
+         Date start = new Date(now.getTime().getTime());
+         filter.setStartTo(start);
       }
-      else {
-         return null;
-      }
-      return new Date(calendarGMT.getTimeInMillis());
+      //</FIXME>
    }
 
    /**
     * Fills up the resource filter data set.
     *
     * @param form             Current form (the filter data set is in)
-    * @param projectsResourcesMap Map of (project) -> (list of resources)
+    * @param adhocProjectsMap Map of (project) -> (list of resources)
     */
-   private void fillResourceFilter(XComponent form, Map<String, List<String>> projectsResourcesMap) {
+   private void fillResourceFilter(XComponent form, Map adhocProjectsMap) {
+
       XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
-      Set<String> allResources = new TreeSet<String>();
-      Map<String, String> captionToResourceMap = new HashMap<String, String>();
-      for (List<String> resourcesList : projectsResourcesMap.values()) {
-         for (String resourceChoice : resourcesList) {
-            String caption = XValidator.choiceCaption(resourceChoice);
+      List allResources = new ArrayList();
+      Map captionToResourceMap = new HashMap();
+      for (Iterator iterator = adhocProjectsMap.values().iterator(); iterator.hasNext();) {
+         List resourcesList = (List) iterator.next();
+         for (Iterator resIt = resourcesList.iterator(); resIt.hasNext();) {
+            String choice = (String) resIt.next();
+            String caption = XValidator.choiceCaption(choice);
+            if (!allResources.contains(caption)) {
                allResources.add(caption);
-               captionToResourceMap.put(caption, resourceChoice);
+               captionToResourceMap.put(caption, choice);
+            }
          }
       }
+      //sort the resources
+      Object[] resourceArray = allResources.toArray();
+      Arrays.sort(resourceArray);
+      allResources = Arrays.asList(resourceArray);
 
-      for (String caption : allResources) {
-         String choice = captionToResourceMap.get(caption);
+      for (Iterator iterator = allResources.iterator(); iterator.hasNext();) {
+         String caption = (String) iterator.next();
+         String choice = (String) captionToResourceMap.get(caption);
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          resourceDataSet.addChild(row);
@@ -358,51 +325,75 @@ public class OpMyTasksFormProvider implements XFormProvider {
    }
 
    /**
+    * Checks if the given user (user Id) is the responsible user for the given resource (resourceLocator).
+    *
+    * @param userID          Id of the checked user.
+    * @param broker          object used for db access.
+    * @param resourceLocator Locator of the resource is cheked.
+    * @return True if the given user (user ID) is the responsible user for this resource.
+    */
+   private boolean isResponsible(long userID, OpBroker broker, String resourceLocator) {
+      OpResource resource = (OpResource) broker.getObject(resourceLocator);
+      OpUser user = resource.getUser();
+      if (user != null) {
+         if (user.getID() == userID) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Checks if the current user is manager for the given resource (resource locator)
+    *
+    * @param session         Current session.
+    * @param broker          Used for db access
+    * @param resourceLocator Resource
+    * @return true if the current user has effective access level MANAGER or higher on the resource.
+    */
+   private boolean isManaged(OpProjectSession session, OpBroker broker, String resourceLocator) {
+      OpResource resource = (OpResource) broker.getObject(resourceLocator);
+      return session.effectiveAccessLevel(broker, resource.getID()) > OpPermission.MANAGER;
+   }
+
+   /**
     * Creates an activity filter and sets the projects on it using the filter project choice.
     *
     * @param session    Current session. used to obtain the project filter
-    * @param broker a <code>OpBroker</code> used for db operations.
     * @param parameters Form parameters.
     * @param form       Current form
-    * @param responsibleResources a <code>Set(OpResource)</code> representing the responsible resources for the current user.
-    * @param projectResourcesMap a <code>Map</code> of project ids and a list of resources for each project.
-    * @return an <code>OpActivityFilter</code> instance.
+    * @return An activity filter.
     */
-   private OpActivityFilter createActivityFilter(OpProjectSession session, OpBroker broker, HashMap parameters,
-        XComponent form,  Set<OpResource> responsibleResources, Map<String, List<String>> projectResourcesMap) {
+   private OpActivityFilter createActivityFilter(OpProjectSession session, HashMap parameters, XComponent form) {
       OpActivityFilter filter = new OpActivityFilter();
-      filter.setDependencies(true);
-      filter.setCompleted(Boolean.FALSE);
-      filter.setAssignmentCompleted(Boolean.FALSE);
-
-      //add the type filters
-      for (byte type : TYPES_FILTER_LIST) {
-         filter.addType(type);
-      }
-
-      //set the start of the filter according the filter from the UI
-      String filteredStartRequestParam = (String) parameters.get(START_BEFORE_ID);
-      Date startDate = getFilterStart(session, filteredStartRequestParam, form);
-      if (startDate != null) {
-         filter.setStartTo(startDate);
-      }
-
-      //add project ids to the activity filter, according to the UI
-      String projectChoiceId = (String) parameters.get(PROJECT_CHOICE_ID);
-      String projectOptionId = activateProjectFilterOptionId(projectChoiceId, session, form);
-      List<Long> projectIds = getFilteredProjectIds(projectOptionId, projectResourcesMap);
-      for (long projectId : projectIds) {
-         filter.addProjectNodeID(projectId);
-      }
-
-      //add the resource ids to the filter, according to the UI
-      String resourceChoiceId = (String) parameters.get(RESOURCE_CHOICE_ID);
-      String resourceOptionId = activateResourceFilterOptionId(session, resourceChoiceId, form);
-      List<Long> resourceIds = getFilteredResourceIds(session, broker, resourceOptionId, responsibleResources, projectResourcesMap);
-      for (long resourceId : resourceIds) {
-         filter.addResourceID(resourceId);
+      //get project from choice field or reset session state
+      String filteredProjectChoiceId = getFilteredProjectChoiceId(session, parameters, form);
+      boolean isAll = filteredProjectChoiceId == null || filteredProjectChoiceId.equals(ALL);
+      if (!isAll) {
+         filter.addProjectNodeID(OpLocator.parseLocator(filteredProjectChoiceId).getID());
       }
       return filter;
+   }
+
+   /**
+    * Fills the project data set with the necessary data
+    *
+    * @param resources     <code>List</code> of resources for which the session user is responsible
+    * @param activityTypes <code>ArrayList</code> of activity types
+    * @param broker        Broker object to use for db access.
+    * @return List of projects nodes
+    */
+   public static List getProjects(OpBroker broker, List resources, List activityTypes) {
+      StringBuffer queryBuffer = new StringBuffer("select distinct assignment.ProjectPlan.ProjectNode from OpAssignment assignment ");
+      queryBuffer.append(" where assignment.Resource.ID in (:resourceIds) and assignment.Activity.Type in (:types) and assignment.Activity.Complete < 100");
+      queryBuffer.append(" order by assignment.ProjectPlan.ProjectNode.Name");
+
+      OpQuery query = broker.newQuery(queryBuffer.toString());
+      query.setCollection("resourceIds", resources);
+      query.setCollection("types", activityTypes);
+
+      return broker.list(query);
+
    }
 
    /**
@@ -410,28 +401,30 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * If it's not found there, the search is performed in <code>form</code>'s state map kept on the <code>session<code>.
     *
     * @param session    <code>OpProjectSession</code> the session
-    * @param filteredStartFromRequestParam a <code>String<code> representing the value of the "start from" request parameter
+    * @param parameters <code>Map<code> of parameters
     * @param form       <code>XComponent.FORM</code> for which this class is provider
     * @return <code>String</code> representing the value of the choice field selection.
     */
-   private String getFilteredStartBeforeId(OpProjectSession session, String filteredStartFromRequestParam, XComponent form) {
-      if (filteredStartFromRequestParam == null) { //get start id from form's state
+   private String getFilteredStartBeforeId(OpProjectSession session, Map parameters, XComponent form) {
+      //get start from choice field
+      String filteredStartFromId = (String) parameters.get(START_BEFORE_ID);
+      if (filteredStartFromId == null) { //get start id from form's state
          Map stateMap = session.getComponentStateMap(form.getID());
          if (stateMap != null) {
             Integer selectedIndex = (Integer) stateMap.get(START_TIME_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent startTimeDataSet = form.findComponent(START_BEFORE_SET);
-               if (selectedIndex < startTimeDataSet.getChildCount()) {
+               if (selectedIndex.intValue() < startTimeDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) startTimeDataSet.getChild(selectedIndex.intValue());
-                  filteredStartFromRequestParam = XValidator.choiceID(dataRow.getStringValue());
+                  filteredStartFromId = XValidator.choiceID(dataRow.getStringValue());
                }
             }
          }
       }
-      if (filteredStartFromRequestParam == null) {
-         filteredStartFromRequestParam = NEXT_MONTH; //default value for period filter
+      if (filteredStartFromId == null) {
+         filteredStartFromId = NEXT_MONTH; //default value for period filter
       }
-      return filteredStartFromRequestParam;
+      return filteredStartFromId;
    }
 
    /**
@@ -439,117 +432,63 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * If it's not found there, the search is performed in <code>form</code>'s state map kept on the <code>session<code>.
     *
     * @param session    <code>OpProjectSession</code> the session
-    * @param resourceChoiceId <code>String<code> representing the user selected option from the resources filter
+    * @param parameters <code>Map<code> of parameters
     * @param form       <code>XComponent.FORM</code> for which this class is provider
     * @return <code>String</code> representing the value of the choice field selection.
     */
-   private String activateResourceFilterOptionId(OpProjectSession session, String resourceChoiceId, XComponent form) {
-      if (resourceChoiceId == null) {
+   private String getFilteredResourcesId(OpProjectSession session, Map parameters, XComponent form) {
+      String filteredResourceChoiceId = (String) parameters.get(RESOURCE_CHOICE_ID);
+      if (filteredResourceChoiceId == null) {
          Map stateMap = session.getComponentStateMap(form.getID());
          if (stateMap != null) {
             Integer selectedIndex = (Integer) stateMap.get(RESOURCE_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
-               if (selectedIndex < resourceDataSet.getChildCount()) {
+               if (selectedIndex.intValue() < resourceDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) resourceDataSet.getChild(selectedIndex.intValue());
-                  resourceChoiceId = XValidator.choiceID(dataRow.getStringValue());
+                  filteredResourceChoiceId = XValidator.choiceID(dataRow.getStringValue());
                }
             }
          }
       }
-      return (resourceChoiceId != null) ? resourceChoiceId : ALL;
+      return filteredResourceChoiceId;
    }
 
-   /**
-    * Returns a list of resource ids, representing those ids which should be used when filtering the activities.
-    * @param session  a <code>OpProjectSession</code> instance representing the server session.
-    * @param broker  a <code>OpBroker</code> used for db operations.
-    * @param resourceOptionId  a <code>String</code> representing the option of the resource filter (from the UI).
-    * @param responsibleResources a <code>Set(OpResource)</code> representing the responsible resources for the current user.
-    * @param projectResourcesMap a <code>Map</code> of project ids and a list of resources for each project.
-    * @return  a <code>List(Long)</code> representing a list of resource ids.
-    */
-   private List<Long> getFilteredResourceIds(OpProjectSession session, OpBroker broker,
-        String resourceOptionId, Set<OpResource> responsibleResources, Map<String, List<String>> projectResourcesMap) {
-      List<Long> result = new ArrayList<Long>();
-
-      //only if the option id is a <real> resource locator
-      if (! RESOURCE_FILTER_OPTIONS.contains(resourceOptionId)) {
-         long resourceId = OpLocator.parseLocator(resourceOptionId).getID();
-         result.add(resourceId);
-         return result;
-      }
-
-      for (List<String> resourcesList : projectResourcesMap.values()) {
-         for (String resourceChoice : resourcesList) {
-            String resourceLocator = XValidator.choiceID(resourceChoice);
-            OpResource resource = (OpResource) broker.getObject(resourceLocator);
-            boolean acceptResource = true;
-
-            if (resourceOptionId.equals(MANAGED) && session.effectiveAccessLevel(broker, resource.getID()) <  OpPermission.MANAGER) {
-               acceptResource = false;
-             }
-             else if (resourceOptionId.equals(RESPONSIBLE) && !responsibleResources.contains(resource)) {
-               acceptResource = false;
-             }
-
-            if (acceptResource) {
-                result.add(resource.getID());
-            }
-         }
-      }
-      return result;
-   }
 
    /**
     * Returns the value of the <code>PROJECT_CHOICE_ID</code>(choice field selection) from the <code>parameters</code> list.
     * If it's not found there,default selected index is set in <code>form</code>'s state map.
     *
-    * @param projectOptionId <code>String<code> representing the locator of a project (may be null)
-    * @param projectResourcesMap a <code>Map</code> of project ids and a list of resources for each project.
+    * @param session    <code>OpProjectSession</code> the session
+    * @param parameters <code>Map<code> of parameters
+    * @param form       <code>XComponent.FORM</code> for which this class is provider
     * @return <code>String</code> representing the value of the choice field selection.
     */
-   private List<Long> getFilteredProjectIds(String projectOptionId, Map<String, List<String>> projectResourcesMap) {
-      List<Long> result = new ArrayList<Long>();
-      if (projectOptionId.equals(ALL)) {
-         for (String projectChoice : projectResourcesMap.keySet()) {
-            String projectLocator = XValidator.choiceID(projectChoice);
-            result.add(OpLocator.parseLocator(projectLocator).getID());
-         }
-      }
-      else {
-         result.add(OpLocator.parseLocator(projectOptionId).getID());
-      }
-      return result;
-   }
-
-   /**
-    * Activates an entry from the project filter, according to the request parameter.
-    * @param projectChoiceId a <code>String</code>  representing the request parameter.
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param form a <code>XComponent(FORM)</code> representing the my_tasks form.
-    * @return a <code>String</code> representing the option value from the projects filter.
-    */
-   private String activateProjectFilterOptionId(String projectChoiceId, OpProjectSession session, XComponent form) {
-      if (projectChoiceId == null) {
+   private String getFilteredProjectChoiceId(OpProjectSession session, Map parameters, XComponent form) {
+      //get project id from choice field
+      String filteredProjectChoiceId = (String) parameters.get(PROJECT_CHOICE_ID);
+      if (filteredProjectChoiceId == null) {
          //set the default selected index for the project chooser becouse it is populate within this form provider
-         Map<String, Integer> stateMap = session.getComponentStateMap(form.getID());
+         Map stateMap = session.getComponentStateMap(form.getID());
          if (stateMap != null) {
-            Integer selectedIndex = stateMap.get(PROJECT_CHOICE_FIELD);
+            Integer selectedIndex = (Integer) stateMap.get(PROJECT_CHOICE_FIELD);
             if (selectedIndex != null) {
                XComponent projectDataSet = form.findComponent(PROJECT_SET);
-               if (selectedIndex < projectDataSet.getChildCount()) {
+               if (selectedIndex.intValue() < projectDataSet.getChildCount()) {
                   XComponent dataRow = (XComponent) projectDataSet.getChild(selectedIndex.intValue());
-                  projectChoiceId = XValidator.choiceID(dataRow.getStringValue());
+                  filteredProjectChoiceId = XValidator.choiceID(dataRow.getStringValue());
                }
             }
             else {
-               Integer defaultSelectedIndex = 0;
+               Integer defaultSelectedIndex = new Integer(0);
                stateMap.put(PROJECT_CHOICE_FIELD, defaultSelectedIndex);
             }
          }
       }
-      return (projectChoiceId != null) ? projectChoiceId : ALL ;
+      if (filteredProjectChoiceId == null) {
+         filteredProjectChoiceId = ALL;
+      }
+      return filteredProjectChoiceId;
    }
 
 }

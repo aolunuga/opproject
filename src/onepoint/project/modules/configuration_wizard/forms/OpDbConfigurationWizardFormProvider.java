@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard.forms;
@@ -26,7 +26,7 @@ import java.util.HashMap;
  */
 public class OpDbConfigurationWizardFormProvider implements XFormProvider {
 
-   /*form's component ids */
+   //form's component ids
    private static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
    private static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
    private static final String DB_URL_FIELD = "DatabaseUrlTextField";
@@ -58,27 +58,27 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
          errorLabel.setVisible(true);
          switch (connectionTestCode) {
             case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.INVALID_CONNECTION_STRING_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CONNECTION_STRING_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.MISSINING_DRIVER_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.INVALID_CREDENTIALS_EXCEPTION: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_CREDENTIALS_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_CREDENTIALS_NAME + "}");
                errorLabel.setText(text);
                break;
             }
             case OpConnectionManager.INVALID_MYSQL_ENGINE: {
-               String text = localizer.localize("${" + OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE_NAME + "}");
+               String text = localizer.localize("{$" + OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE_NAME + "}");
                errorLabel.setText(text);
                break;
             }
@@ -95,7 +95,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       XComponent dataRow;
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MYSQL_INNO_DB_DISPLAY));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MY_SQL_INNODB_DISPLAY));
       dataSet.addDataRow(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);

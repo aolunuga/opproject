@@ -20,6 +20,6 @@
       <resource id="InvalidConnectionString">The connect string is invalid</resource>
       <resource id="GeneralConnectionError">Cannot connect to the database</resource>
       <resource id="JDBCDriverError">Cannot load the JDBC driver for the given database type</resource>
-      <resource id="InvalidMySqlEngine">You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>
+      <resource id="InvalidMySQLEngine">WARNING: You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>      
    </resource-map>
 </language-kit>

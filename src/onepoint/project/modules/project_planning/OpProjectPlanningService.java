@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -31,7 +31,6 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -69,12 +68,12 @@ public class OpProjectPlanningService extends OpProjectService {
    private final static OpProjectPlanningErrorMap PLANNING_ERROR_MAP = new OpProjectPlanningErrorMap();
    private final static OpProjectErrorMap PROJECT_ERROR_MAP = new OpProjectErrorMap();
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanningService.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanningService.class, true);
 
    public XMessage importActivities(OpProjectSession session, XMessage request) {
 
       String projectId = (String) (request.getArgument(PROJECT_ID));
-      boolean editMode = (Boolean) (request.getArgument(EDIT_MODE));
+      boolean editMode = ((Boolean) (request.getArgument(EDIT_MODE))).booleanValue();
       byte[] file = (byte[]) (request.getArgument(BYTES_ARRAY_FIELD));
 
       XMessage reply = new XMessage();
@@ -306,13 +305,10 @@ public class OpProjectPlanningService extends OpProjectService {
          //update all super activities
          while (activity.getSuperActivity() != null) {
             OpActivity superActivity = activity.getSuperActivity();
-            double costsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
-            currentPersonnelCosts = superActivity.getBasePersonnelCosts();
-            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + costsDifference);
-            broker.updateObject(activity);
+            superActivity.recalculateBasePersonnelCosts();
+            broker.updateObject(superActivity);
             activity = superActivity;
          }
-         broker.updateObject(activity);
       }
 
       return changed;
@@ -450,12 +446,12 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
+         // Check if project plan already exists (create if not)
+         OpProjectPlan projectPlan = project.getPlan();
+
          checkActivitiesBaseEffort(dataSet, broker, session);
 
          OpTransaction t = broker.newTransaction();
-
-         // Check if project plan already exists (create if not)
-         OpProjectPlan projectPlan = project.getPlan();
 
          // Archive current project plan to new project plan version
          OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
@@ -510,7 +506,6 @@ public class OpProjectPlanningService extends OpProjectService {
          finalizeSession(null, broker);
       }
    }
-
 
    /**
     * Checks if the base effort on the activities in the data set has valid values with regard to the actual effort.
@@ -676,7 +671,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
          //multi-user means remote
          if (OpInitializer.isMultiUser()) {
-            response.setArgument(ATTACHMENT_URL, location);
+            response.setArgument(ATTACHMENT_URL, XEncodingHelper.encodeValue(location));
             response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
          }
          else {
@@ -740,16 +735,16 @@ public class OpProjectPlanningService extends OpProjectService {
          suffix = location.substring(extensionIndex, location.length());
       }
       if (prefix.length() < 3) {
-         prefix = "file" + prefix;
+         prefix += ".tmp";
       }
 
       try {
-         File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
+         File temporaryFile = File.createTempFile(prefix, suffix);
          FileOutputStream fos = new FileOutputStream(temporaryFile);
          fos.write(content);
          fos.flush();
          fos.close();
-         return XEncodingHelper.encodeValue(temporaryFile.getName());
+         return XEncodingHelper.encodeValue(temporaryFile.getCanonicalFile().toURL().toExternalForm());
       }
       catch (IOException e) {
          logger.error("Cannot create temporary attachment file on server", e);
@@ -1045,7 +1040,7 @@ public class OpProjectPlanningService extends OpProjectService {
       int commentsCount = comment.getSequence();
 
       //create the comment panel
-      XComponent commentPanel = OpEditActivityFormProvider.createPanel(comment, resourceMap, localizer, enableCommentRemoving, session.getCalendar());
+      XComponent commentPanel = OpEditActivityFormProvider.createPanel(comment, resourceMap, localizer, enableCommentRemoving);
 
       StringBuffer commentsBuffer = new StringBuffer();
       commentsBuffer.append(commentsCount);

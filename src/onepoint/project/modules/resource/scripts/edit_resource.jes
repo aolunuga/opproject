@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_resource.oxf.xml
@@ -8,7 +8,6 @@ require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/user/scripts/open_subject_chooser.jes";
 require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require "onepoint/project/modules/resource/scripts/hourly_rates.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -35,20 +34,8 @@ function ok_edit(event) {
    resource_data.Available = available;
    hourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.HourlyRate = hourlyRate;
-   externalRate = form.findComponent("ExternalRate").getDoubleValue();
-   resource_data.ExternalRate = externalRate;
-   inheritFromPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
-   resource_data.InheritPoolRate = inheritFromPoolRate;
-   originalInherit = !form.findComponent("OriginalInherit").getBooleanValue();
-   hourlyRatesSet = form.findComponent("HourlyRatesSet");
-   resource_data.HourlyRatesSet = hourlyRatesSet;
-   userChoice = form.findComponent("UserName").getStringValue();
-   if (userChoice != null) {
-      resource_data.UserID = XValidator.choiceID(userChoice);
-   }
-   else {
-      resource_data.UserID = null;
-   }
+   resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
+   resource_data.UserID = form.findComponent("SelectedUserDataField").getStringValue();
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -61,43 +48,14 @@ function ok_edit(event) {
    resource_data.PermissionSet = form.findComponent("PermissionSet");
 
    originalHourlyRate = form.findComponent("OriginalHourlyRate").getDoubleValue();
-   originalExternalRate = form.findComponent("OriginalExternalRate").getDoubleValue();
    originalAvailable = form.findComponent("OriginalAvailable").getDoubleValue();
    saveChanges = true;
-
-   //if the hourlyRates tab was modified that is the priority
-   modifiedPeriods = isModifiedHourlyTab();
-   if (modifiedPeriods.size() > 0) {
-      resource_id = form.findComponent("ResourceID").getStringValue();
-      request = new XMessage;
-      request.setAction("ResourceService.hasAssignmentsInTimePeriod");
-      request.setArgument("resource_id", resource_id);
-      request.setArgument("HourlyRatesSet", hourlyRatesSet);
-      response = XDisplay.getClient().invokeMethod(request);
-      hasAssignments = response.getArgument("AssignmentsInPeriod");
-      if (hasAssignments == true) {
-         //display
-         dialog = XComponent.newDialog();
-         parameters.resource_id = resource_id;
-         parameters.resource_data = resource_data;
-         parameters.changed = "hourlyTab";
-         dialog.open("/modules/resource/forms/confirm_resource_change.oxf.xml", parameters);
-         return;
-      }
-   }
-   if (modifiedPeriods.size() == 0 && (hourlyRate != originalHourlyRate || externalRate != originalExternalRate
-        || originalInherit != inheritFromPoolRate || available != originalAvailable)){
+   if (hourlyRate != originalHourlyRate || available != originalAvailable){
       //display confirm dialogue if resource is assigned on an activity
       resource_id = form.findComponent("ResourceID").getStringValue();
       request = new XMessage;
       request.setAction("ResourceService.hasAssignments");
       request.setArgument("resource_id", resource_id);
-      request.setArgument("HourlyRatesSet", hourlyRatesSet);
-      if(originalInherit != inheritFromPoolRate){
-         request.setArgument("checkInherit", true);
-         request.setArgument("newHourlyRate", hourlyRate);
-         request.setArgument("newExternalRate", externalRate);
-      }
       response = XDisplay.getClient().invokeMethod(request);
       hasAssignments = response.getArgument("Assignments");      
       if (hasAssignments == true){
@@ -105,11 +63,11 @@ function ok_edit(event) {
          dialog = XComponent.newDialog();
          parameters.resource_id = resource_id;
          parameters.resource_data = resource_data;
-         if (hourlyRate != originalHourlyRate || externalRate != originalExternalRate || inheritFromPoolRate != originalInherit){
-            parameters.changed = "firstTab";
+         if (hourlyRate != originalHourlyRate){
+            parameters.hourlyChanged = true;
          }
          else {
-            parameters.changed = "availability";
+            parameters.hourlyChanged = false;
          }
          dialog.open("/modules/resource/forms/confirm_resource_change.oxf.xml", parameters);
          return;
@@ -138,9 +96,10 @@ function selectUser(event) {
 
 function addResourceSubject(subject) {
    form = XDisplay.getActiveForm();
+   selected_user_data_field = form.findComponent("SelectedUserDataField");
+   selected_user_data_field.setStringValue(subject);
    user_name_field = form.findComponent("UserName");
-   user_name_field.setStringValue(subject);
-   user_name_field.update();
+   user_name_field.setStringValue(XValidator.choiceCaption(subject));
 }
 
 function addProject(event) {
@@ -170,69 +129,12 @@ function removeProject(event) {
 function inheritPoolRate(event) {
    form = XDisplay.getActiveForm();
    source = event.event_source;
-   shouldOverride = source.getValue();
-   if (shouldOverride == true) {
-      form.findComponent("HourlyRate").setEnabled(true);
-      form.findComponent("ExternalRate").setEnabled(true);
+   shouldInherit = source.getValue();
+   if (shouldInherit == true) {
+      form.findComponent("HourlyRate").setEnabled(false);
    }
    else {
-      form.findComponent("HourlyRate").setEnabled(false);
-      form.findComponent("ExternalRate").setEnabled(false);
+      form.findComponent("HourlyRate").setEnabled(true);
    }
    form.update();
-}
-
-//checks if any of the OpHourlyRatesPeriod from the Hourly Rates tab was modified and
-//returns all modified OpHourlyRatesPeriods
-function isModifiedHourlyTab() {
-   newRatesDataSet = XDisplay.getActiveForm().findComponent("HourlyRatesSet");
-   originalRatesDataSet = XDisplay.getActiveForm().findComponent("OriginalHourlyRatesSet");
-   modifiedRates = new ArrayList;
-
-   //add to modified rows the original rows that have changed
-   i = 0;
-   while (i < originalRatesDataSet.getChildCount()) {
-      modified = true;
-      originalRow = originalRatesDataSet.getChild(i);
-      j = 0;
-      while (j < newRatesDataSet.getChildCount()) {
-         newRow = newRatesDataSet.getChild(j);
-         if (originalRow.getChild(0).getDateValue() == newRow.getChild(0).getDateValue() &&
-             originalRow.getChild(1).getDateValue() == newRow.getChild(1).getDateValue() &&
-             originalRow.getChild(2).getDoubleValue() == newRow.getChild(2).getDoubleValue() &&
-             originalRow.getChild(3).getDoubleValue() == newRow.getChild(3).getDoubleValue()) {
-            modified = false;
-            break;
-         }
-         j++;
-      }
-      if(modified){
-         modifiedRates.add(originalRow);
-      }
-      i++;
-   }
-
-   //add to modified rows the newly changed or added rows
-   i = 0;
-   while (i < newRatesDataSet.getChildCount()) {
-      modified = true;
-      newRow = newRatesDataSet.getChild(i);
-      j = 0;
-      while (j < originalRatesDataSet.getChildCount()) {
-         originalRow = originalRatesDataSet.getChild(j);
-         if (originalRow.getChild(0).getDateValue() == newRow.getChild(0).getDateValue() &&
-             originalRow.getChild(1).getDateValue() == newRow.getChild(1).getDateValue() &&
-             originalRow.getChild(2).getDoubleValue() == newRow.getChild(2).getDoubleValue() &&
-             originalRow.getChild(3).getDoubleValue() == newRow.getChild(3).getDoubleValue()) {
-            modified = false;
-            break;
-         }
-         j++;
-      }
-      if (modified){
-         modifiedRates.add(newRow);
-      }
-      i++;
-   }
-   return modifiedRates;
 }

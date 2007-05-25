@@ -1,10 +1,9 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
 
-import onepoint.error.XLocalizableException;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
@@ -352,6 +351,7 @@ public abstract class OpActivityDataSetFactory {
          queryBuffer.append(order.toHibernateQueryString("activity"));
       }
 
+      System.err.println("QUERY " + queryBuffer.toString());
       OpQuery query = broker.newQuery(queryBuffer.toString());
       // Note: We expect collections, booleans, dates and doubles
       Object value = null;
@@ -537,8 +537,6 @@ public abstract class OpActivityDataSetFactory {
       boolean isStrictlyTask = (activity.getType() == OpActivity.TASK);
       boolean isTask = isStrictlyTask || (activity.getType() == OpActivity.COLLECTION_TASK);
       boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_TASK);
-      boolean isMilestone = (activity.getType() == OpActivity.MILESTONE);
-      boolean isAdHocTask = (activity.getType() == OpActivity.ADHOC_TASK);
 
       dataRow.setOutlineLevel(activity.getOutlineLevel());
       dataRow.setExpanded(activity.getExpanded());
@@ -593,13 +591,8 @@ public abstract class OpActivityDataSetFactory {
 
       // BaseEffort (7)
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && !isCollection && !isScheduledTask && !isAdHocTask);
-      if (!isAdHocTask) {
-         dataCell.setDoubleValue(activity.getBaseEffort());
-      }
-      else {
-         dataCell.setValue(null);
-      }
+      dataCell.setEnabled(editable && !isCollection && !isScheduledTask);
+      dataCell.setDoubleValue(activity.getBaseEffort());
       dataRow.addChild(dataCell);
 
       // Predecessors (8)
@@ -736,12 +729,6 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
       dataRow.addChild(dataCell);
 
-      // Payment (29)
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && isMilestone);
-      dataCell.setDoubleValue(activity.getPayment());
-      dataRow.addChild(dataCell);
-
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -772,6 +759,7 @@ public abstract class OpActivityDataSetFactory {
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
+         System.err.println("***MAP-ACT_V " + record[0] + " -> " + record[1]);
          activityVersionIdMap.put(record[0], record[1]);
       }
 
@@ -1014,7 +1002,7 @@ public abstract class OpActivityDataSetFactory {
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
       if (activity == null) {
          // Insert a new activity
-         activity = new OpActivity(OpGanttValidator.getType(dataRow));
+         activity = new OpActivity();
          activity.setProjectPlan(projectPlan);
          activity.setTemplate(projectPlan.getTemplate());
 
@@ -1044,6 +1032,7 @@ public abstract class OpActivityDataSetFactory {
          }
          activity.setDuration(OpGanttValidator.getDuration(dataRow));
          activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
+         activity.setType((OpGanttValidator.getType(dataRow)));
          if (categoryChoice != null) {
             category = (OpActivityCategory) broker.getObject(XValidator.choiceID(categoryChoice));
             activity.setCategory(category);
@@ -1058,15 +1047,9 @@ public abstract class OpActivityDataSetFactory {
          activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
          activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
          activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         if (activity.getType() == OpGanttValidator.MILESTONE) {
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
-         if (OpGanttValidator.getPriority(dataRow) != null) {
-            activity.setPriority(OpGanttValidator.getPriority(dataRow).byteValue());
-         }
-         else {
-            activity.setPriority((byte) 0);
-         }
+         byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
+         activity.setPriority(priority);
+
          activity.setActualEffort(0);
 
          double complete = OpGanttValidator.getComplete(dataRow);
@@ -1080,6 +1063,7 @@ public abstract class OpActivityDataSetFactory {
          activity.setActualMaterialCosts(0);
          activity.setActualExternalCosts(0);
          activity.setActualMiscellaneousCosts(0);
+
          broker.makePersistent(activity);
 
       }
@@ -1173,7 +1157,7 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getBaseEffort() != baseEffort) {
             update = true;
             activity.setBaseEffort(baseEffort);
-            if (activity.getProjectPlan().getProgressTracked()) {
+            if (activity.getProjectPlan().getProgressTracked() && (activity.getActualEffort() <= baseEffort)) {
                activity.setRemainingEffort(baseEffort - activity.getActualEffort());
                complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
                activity.setComplete(complete);
@@ -1258,10 +1242,7 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setPriority(validatorPriority);
          }
-         if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
-            update = true;
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
+
          if (update) {
             broker.updateObject(activity);
          }
@@ -1330,6 +1311,7 @@ public abstract class OpActivityDataSetFactory {
          assignment = (OpAssignment) assignments.next();
          activitySequence = assignment.getActivity().getSequence();
          boolean reusable = false;
+
          if (!deletedActivity(assignment.getActivity(), dataSet)) { // activity was not deleted on the client
             dataRow = (XComponent) dataSet.getChild(activitySequence);
             resourceList = OpGanttValidator.getResources(dataRow);
@@ -1338,7 +1320,7 @@ public abstract class OpActivityDataSetFactory {
             for (i = resourceList.size() - 1; i >= 0; i--) {
                resourceChoice = (String) resourceList.get(i);
                String resourceChoiceId = XValidator.choiceID(resourceChoice);
-               //ignore invible resources
+               //ignore invisible resources
                if (resourceChoiceId.equals(OpGanttValidator.NO_RESOURCE_ID)) {
                   continue;
                }
@@ -1374,7 +1356,7 @@ public abstract class OpActivityDataSetFactory {
 
                   if (assignment.getBaseEffort() != baseEffort) {
                      assignment.setBaseEffort(baseEffort);
-                     if (tracking && (baseEffort >= assignment.getActualEffort())) {
+                     if (tracking) {
                         double remaining = baseEffort - assignment.getActualEffort();
                         assignment.setRemainingEffort(remaining);
                         complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, remaining);
@@ -1408,10 +1390,6 @@ public abstract class OpActivityDataSetFactory {
          }
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
-               //check if the assignemnt still has work records - if so => error
-               if (!assignment.getWorkRecords().isEmpty()) {
-                  throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
-               }
                reusableAssignments.add(assignment);
                //break links to activity
                OpActivity activity = assignment.getActivity();
@@ -1680,14 +1658,12 @@ public abstract class OpActivityDataSetFactory {
 
    private static ArrayList updateOrDeleteAttachments(OpBroker broker, XComponent dataSet, Iterator attachments) {
       ArrayList reusableAttachments = new ArrayList();
-      int maxActivitySequence = dataSet.getChildCount();
       while (attachments.hasNext()) {
          OpAttachment attachment = (OpAttachment) attachments.next();
          OpActivity activity = attachment.getActivity();
          if (activity.getType() == OpActivity.ADHOC_TASK) {
             continue; // exclude attachments from ADHOC_TASKs
          }
-         int activitySequence = activity.getSequence();
          int i;
          boolean reusable = false;
          if (!deletedActivity(activity, dataSet)) { // activity was not deleted on client
@@ -1790,39 +1766,6 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   /**
-    * @param descriptor
-    * @param choice
-    * @return
-    * @pre
-    * @post
-    */
-   public static OpAttachment createAttachment(OpActivity activity, OpProjectPlan plan,
-        String descriptor, String choice, String name,
-        String contentId, byte[] content_data) {
-      OpAttachment attachment = new OpAttachment();
-      attachment.setProjectPlan(plan);
-      attachment.setActivity(activity);
-      attachment.setLinked(LINKED_ATTACHMENT_DESCRIPTOR.equals(descriptor));
-      attachment.setName(name);
-      attachment.setLocation(contentId);
-      OpContent content = null;
-      String mimeType = null;
-
-      if (!attachment.getLinked()) {
-         String filePath = attachment.getLocation();
-         int index = filePath.lastIndexOf(".");
-         if (index != -1) {
-            String type = filePath.substring(index, filePath.length());
-            mimeType = OpContentManager.getFileMimeType(type);
-         }
-         content = OpContentManager.newContent(content_data, mimeType);
-         attachment.setContent(content);
-         content.getAttachments().add(attachment);
-      }
-      return (attachment);
-   }
-
    private static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
       OpDependency dependency = null;
       XComponent predecessorDataRow = null;
@@ -1831,7 +1774,6 @@ public abstract class OpActivityDataSetFactory {
       ArrayList successorIndexes = null;
       ArrayList reusableDependencys = new ArrayList();
 
-      int maxActivitySequence = dataSet.getChildCount();
       int successorActivitySequence = 0;
 
       while (dependencies.hasNext()) {
@@ -1966,12 +1908,13 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
+
    /**
     * Checks if a given activity entity was deletd on the client using the data set received.
     *
-    * @param activity
-    * @param dataSet
-    * @return true if the activity was deleted
+    * @param activity entity that has to be checked if it was removed in client side.
+    * @param dataSet  data set containing the client side activity information.
+    * @return true if the activity was deleted.
     */
    private static boolean deletedActivity(OpActivity activity, XComponent dataSet) {
       for (int i = 0; i < dataSet.getChildCount(); i++) {

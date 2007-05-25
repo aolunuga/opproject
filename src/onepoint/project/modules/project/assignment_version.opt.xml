@@ -3,7 +3,6 @@
    <field name="Complete" type="Double"/>
    <field name="BaseEffort" type="Double"/>
    <field name="BaseCosts" type="Double"/>
-   <field name="BaseProceeds" type="Double"/>
    <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="AssignmentVersions"/>
    <relationship name="Resource" type="OpResource" back-relationship="AssignmentVersions"/>
    <relationship name="ActivityVersion" type="OpActivityVersion" back-relationship="AssignmentVersions"/>

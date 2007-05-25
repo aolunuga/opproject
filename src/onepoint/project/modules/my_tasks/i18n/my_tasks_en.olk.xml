@@ -6,12 +6,14 @@
    <resource-map id="my_tasks.my_tasks">
 
       <resource id="NewAdhoc">New Task</resource>
+      <resource id="EditAdhoc">Edit</resource>
       <resource id="DeleteAdhoc">Delete</resource>
       <resource id="NewComment">New Comment</resource>
       <resource id="Info">Properties</resource>
       <resource id="Print">Print</resource>
 
       <resource id="NewAdhocTooltip">Create new ad hoc task</resource>
+      <resource id="EditAdhocTooltip">Edit the selected ad hoc task</resource>
       <resource id="DeleteAdhocTooltip">Delete the selected ad hoc tasks</resource>
       <resource id="NewCommentTooltip">Create new comment</resource>
       <resource id="InfoTooltip">View activity properties</resource>
@@ -47,8 +49,6 @@
 
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>
-
-      <resource id="NoResourcesForUser">There are no assigned resources for this user</resource>
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
@@ -86,14 +86,14 @@
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 
-   <resource-map id="my_tasks.delete">
-      <resource id="ConfirmDelete">Delete Ad Hoc Tasks</resource>
-      <resource id="NoSelectionMessage">Please select one or more ad hoc tasks which should be deleted</resource>
-      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected ad hoc task?</resource>
-      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected ad hoc tasks?</resource>
-      <resource id="OK">OK</resource>
-      <resource id="Cancel">Cancel</resource>
-   </resource-map>
+    <resource-map id="my_tasks.delete">
+       <resource id="ConfirmDelete">Delete Ad Hoc Tasks</resource>
+       <resource id="NoSelectionMessage">Please select one or more ad hoc tasks which should be deleted</resource>
+       <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected ad hoc task?</resource>
+       <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected ad hoc tasks?</resource>
+       <resource id="OK">OK</resource>
+       <resource id="Cancel">Cancel</resource>
+    </resource-map>
 
    <resource-map id="my_tasks.error">
       <resource id="EmptyName">The task name was not set</resource>
@@ -102,9 +102,7 @@
       <resource id="NoResourceError">There was no resource assigned</resource>
       <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
       <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
-      <resource id="InvalidTypeError">Type of Task is not valid.</resource>
-      <resource id="TaskNotFoundError">Missing Task</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
    </resource-map>
 
 </language-kit>

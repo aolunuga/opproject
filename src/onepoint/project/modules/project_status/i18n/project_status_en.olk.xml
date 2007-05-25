@@ -8,16 +8,18 @@
 
       <resource id="NewProjectStatus">New Project Status</resource>
       <resource id="Properties">Properties</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Up">Move Up</resource>
       <resource id="Down">Move Down</resource>
-
+      
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
       <resource id="Color">Color</resource>
 
       <resource id="NewProjectStatusTooltip">Create new project status</resource>
       <resource id="InfoTooltip">View meta information for the selected project status</resource>
+      <resource id="EditTooltip">Edit meta information for the selected project status</resource>
       <resource id="DeleteTooltip">Delete selected project status objects</resource>
       <resource id="UpTooltip">Move the selected project status objects up</resource>
       <resource id="DownTooltip">Move the selected project status objects down</resource>
@@ -56,10 +58,10 @@
    </resource-map>
 
    <resource-map id="project_status.error">
-      <resource id="StatusNameNotSpecified">The project status name was not specified</resource>
-      <resource id="StatusNameNotUnique">The project status name is already used</resource>
-      <resource id="StatusNotFound">The project status could not be found</resource>
-      <resource id="InsufficientPrivileges">Only Administrator is allowed to manage project objects</resource>
+      <resource id="ProjectStatusNameNotSpecified">The project status name was not specified</resource>
+      <resource id="ProjectStatusNameNotUnique">The project status name is already used</resource>
+      <resource id="ProjectStatusNotFound">The project status could not be found</resource>
+      <resource id="InsuffcientPrivileges">Only Administrator is allowed to manage project objects</resource>
    </resource-map>
 
 </language-kit>

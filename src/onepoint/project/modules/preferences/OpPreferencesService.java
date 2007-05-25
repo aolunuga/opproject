@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.preferences;
@@ -69,8 +69,8 @@ public class OpPreferencesService extends OpProjectService {
          if (!session.getLocale().getID().equals(language)) {
             XLocale newLocale = XLocaleManager.findLocale(language);
             session.setLocale(newLocale);
-            OpSettings.configureServerCalendar(session);
-            reply.setArgument(OpProjectConstants.CALENDAR, session.getCalendar());
+            XCalendar calendar = OpSettings.configureDefaultCalendar(newLocale);
+            reply.setArgument(OpProjectConstants.CALENDAR, calendar);
          }
       }
 

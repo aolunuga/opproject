@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for db_configuration_wizard.oxf.xml
@@ -38,7 +38,7 @@ function connect(event) {
       login = form.findComponent("DefaultLogin").getStringValue();
       password = form.findComponent("DefaultPassword").getStringValue();
       //perform silent authentication (without login form)
-      authenticate(login, password, false);
+      authenticate(login, password);
       //show login form
       XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", params);
    }
@@ -47,7 +47,7 @@ function connect(event) {
 function selectFolder(event) {
    form = XDisplay.getActiveForm();
    defaultName = form.findComponent("HSQLDbDefaultName").getStringValue();
-   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultName, null);
+   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultName);
    if (path != null) {
       form.findComponent("HSQLDbPathTextField").setStringValue(path);
       form.repaint();

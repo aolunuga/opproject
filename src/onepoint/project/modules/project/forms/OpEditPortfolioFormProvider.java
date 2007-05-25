@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class OpEditPortfolioFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpEditPortfolioFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class, true);
 
    private final static String PORTFOLIO_ID = "PortfolioID";
    private final static String EDIT_MODE = "EditMode";

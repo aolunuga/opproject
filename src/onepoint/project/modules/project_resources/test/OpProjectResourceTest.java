@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project_resources.test;
@@ -59,15 +59,15 @@ public class OpProjectResourceTest extends OpBaseTestCase {
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg("resource1", "description", 50d, 1d, 1d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg("resource1", "description", 50d, 1d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res1Id = resourceDataFactory.getResourceByName("resource1").locator();
-      request = resourceDataFactory.createResourceMsg("resource2", "description", 70d, 7d, 7d, false, poolid);
+      request = resourceDataFactory.createResourceMsg("resource2", "description", 70d, 7d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res2Id = resourceDataFactory.getResourceByName("resource2").locator();
-      request = resourceDataFactory.createResourceMsg("resource3", "description", 20d, 24d, 13d, false, poolid);
+      request = resourceDataFactory.createResourceMsg("resource3", "description", 20d, 24d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res3Id = resourceDataFactory.getResourceByName("resource3").locator();

@@ -90,6 +90,7 @@
       <resource id="NewGroup">Добавить группу</resource>
       <resource id="NewUser">Новый пользователь</resource>
       <resource id="Properties">Свойства</resource>
+		<resource id="Edit">Изменить</resource>
       <resource id="Delete">Удалить</resource>
       <resource id="AssignToGroup">Добавить в группу</resource>
       <resource id="Search">Поиск</resource>
@@ -100,6 +101,7 @@
       <resource id="NewGroupTooltip">Создать новую группу пользователей</resource>
       <resource id="NewUserTooltip">Создать нового пользователя</resource>
       <resource id="InfoTooltip">Показать мета-данные для указанного пользователя или группы</resource>
+      <resource id="EditTooltip">Изменить мета-данные для указанного пользователя или группы</resource>
       <resource id="DeleteTooltip">Удалить указанного пользователя или группу</resource>
       <resource id="AssignToGroupTooltip">Добавить указанного пользователя или группу в другую группу</resource>
 				

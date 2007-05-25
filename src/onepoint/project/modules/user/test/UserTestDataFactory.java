@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.user.test;
@@ -44,11 +44,11 @@ public class UserTestDataFactory extends TestDataFactory {
     *
     * @return a list of <code>OpUser</code> instances.
     */
-   public List<OpUser> getAllUsers() {
+   public List getAllUsers() {
       OpBroker broker = session.newBroker();
 
       OpQuery query = broker.newQuery(SELECT_USERS_QUERY);
-      List<OpUser> users = broker.list(query);
+      List users = broker.list(query);
       broker.close();
 
       return users;

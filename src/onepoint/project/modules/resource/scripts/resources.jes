@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 
@@ -53,12 +53,54 @@ function newResource(event) {
    dialog.open("/modules/resource/forms/new_resource.oxf.xml", parameters);
 }
 
-function move(event) {
+function info(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+   if (resource_data_set !=null){
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false);
+      parameters.edit_mode = false;
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_pool = descriptor.equals("p");
+      if (is_pool) {
+         parameters.pool_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
+      } else {
+         parameters.resource_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
+      }
    }
+   }
+}
+function move(event) {
+      resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
+      selected_rows = resource_data_set.selectedRows();
+      if (selected_rows.size() > 0) {
+         openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false);
+      }
+//<FIXME author="Horia Chiorean" description="Check whether any elements need filtering">
+//   filteredIds = new ArrayList;
+//   i = 0;
+//   while (i < selected_rows.size()) {
+//      selectedRow = selected_rows[i];
+//      //filter out the parent
+//      parentRow = selectedRow.getParentInDataSet();
+//      filteredIds.add(parentRow.getStringValue());
+//
+//      //filter out the selected row
+//      filteredIds.add(selectedRow.getStringValue());
+//
+//      //filter out the children of the selected row
+//      subRows = selectedRow.getSubRows();
+//      j = 0;
+//      while (j < subRows.size()) {
+//         subRow = subRows[j];
+//         filteredIds.add(subRow.getStringValue());
+//         j++;
+//      }
+//      i++;
+//   }
 }
 
 function moveResourceOK(selectedPools) {
@@ -91,7 +133,7 @@ function moveResourceOK(selectedPools) {
    }
 
    if (firstErrorResponse != null) {
-      showWarning(firstErrorResponse, true, "MainFrame", "refreshForm", null);
+      showWarning(firstErrorResponse, true, "MainFrame", "refreshForm",  null);
    }
    else {
       refreshForm();
@@ -213,23 +255,23 @@ function getChildrenIds(row) {
 
 function edit(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
-   if (resource_data_set != null) {
-      selected_rows = resource_data_set.selectedRows();
-      if (selected_rows.size() > 0) {
-         parameters.edit_mode = true;
-         descriptor = selected_rows[0].getChild(0).getStringValue();
-         is_pool = descriptor.equals("p");
-         if (is_pool) {
-            parameters.pool_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
-         }
-         else {
-            parameters.resource_id = selected_rows[0].getStringValue();
-            dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
-         }
+   if (resource_data_set != null){
+   selected_rows = resource_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.edit_mode = true;
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_pool = descriptor.equals("p");
+      if (is_pool) {
+         parameters.pool_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/resource/forms/edit_pool.oxf.xml", parameters);
       }
+      else {
+         parameters.resource_id = selected_rows[0].getStringValue();
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
+      }
+   }
    }
 }
 
@@ -259,7 +301,7 @@ function assignToProjectOK(projectChoices) {
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
       i = 0;
-      while (i < selected_rows.size()) {
+      while (i<selected_rows.size()) {
          resources[i] = selected_rows[i].getStringValue();
          i++;
       }
@@ -336,6 +378,8 @@ function selectionChanged(event) {
    propertiesButton.setEnabled(true);
    moveButton = form.findComponent("MoveButton");
    moveButton.setEnabled(true);
+   editButton = form.findComponent("EditButton");
+   editButton.setEnabled(true);
    assignToProjectButton = form.findComponent("AssignToProjectButton");
    assignToProjectButton.setEnabled(true);
    deleteButton = form.findComponent("DeleteButton");
@@ -375,6 +419,7 @@ function selectionChanged(event) {
       if (effectiveNodePermission < managerPermission) {
          //the user isn't at least manager on the selected node
          moveButton.setEnabled(false);
+         editButton.setEnabled(false);
          assignToProjectButton.setEnabled(false);
       }
 

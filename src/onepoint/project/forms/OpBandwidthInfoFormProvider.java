@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.forms;
@@ -8,7 +8,6 @@ import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
-import onepoint.project.OpProjectSession;
 
 import java.util.HashMap;
 
@@ -29,8 +28,7 @@ public class OpBandwidthInfoFormProvider implements XFormProvider {
 
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
 
-      OpProjectSession projectSession = (OpProjectSession) session;
-      XCalendar calendar = projectSession.getCalendar();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       Double minValue = (Double) parameters.get(MIN_VALUE);
       String minValueString = calendar.localizedDoubleToString(minValue.doubleValue(), 2);

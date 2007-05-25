@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -24,7 +24,7 @@ import java.util.*;
 
 public abstract class OpActivityVersionDataSetFactory {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpActivityVersionDataSetFactory.class);
+   private static final XLog logger = XLogFactory.getLogger(OpActivityVersionDataSetFactory.class, true);
 
    public static void retrieveActivityVersionDataSet(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataSet, boolean editable) {
@@ -183,7 +183,6 @@ public abstract class OpActivityVersionDataSetFactory {
       boolean isStrictlyTask = (activityVersion.getType() == OpActivity.TASK);
       boolean isTask = (isStrictlyTask || activityVersion.getType() == OpActivityVersion.COLLECTION_TASK);
       boolean isScheduledTask = (activityVersion.getType() == OpActivityVersion.SCHEDULED_TASK);
-      boolean isMilestone = (activityVersion.getType() == OpActivityVersion.MILESTONE);
 
       dataRow.setOutlineLevel(activityVersion.getOutlineLevel());
       dataRow.setExpanded(activityVersion.getExpanded());
@@ -384,12 +383,6 @@ public abstract class OpActivityVersionDataSetFactory {
       dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
       dataRow.addChild(dataCell);
 
-      //Payment (29)
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && isMilestone);
-      dataCell.setDoubleValue(activityVersion.getPayment());
-      dataRow.addChild(dataCell);
-      
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -670,10 +663,6 @@ public abstract class OpActivityVersionDataSetFactory {
          byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
          activityVersion.setPriority(priority);
 
-         //only milestone can have payments
-         if (activityVersion.getType() == OpGanttValidator.MILESTONE) {
-            activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
          broker.makePersistent(activityVersion);
 
       }
@@ -838,10 +827,7 @@ public abstract class OpActivityVersionDataSetFactory {
             update = true;
             activityVersion.setPriority(validatorValue);
          }
-         if (activityVersion.getPayment() != OpGanttValidator.getPayment(dataRow)) {
-            update = true;
-            activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
+
          if (update) {
             broker.updateObject(activityVersion);
          }

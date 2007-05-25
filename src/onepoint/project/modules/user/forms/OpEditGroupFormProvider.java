@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditGroupFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpEditGroupFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEditGroupFormProvider.class,true);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
 

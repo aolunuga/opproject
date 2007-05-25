@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for new_resource.oxf.xml
@@ -7,7 +7,6 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require "onepoint/project/modules/resource/scripts/hourly_rates.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -23,16 +22,8 @@ function ok(event) {
    resource_data.Description = form.findComponent("Description").getStringValue();
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
-   resource_data.ExternalRate = form.findComponent("ExternalRate").getDoubleValue();
-   resource_data.InheritPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();   
-   resource_data.HourlyRatesSet = form.findComponent("HourlyRatesSet");
-   userChoice = form.findComponent("UserName").getStringValue();
-   if (userChoice != null) {
-      resource_data.UserID = XValidator.choiceID(userChoice);
-   }
-   else {
-      resource_data.UserID = null;
-   }
+   resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
+   resource_data.UserID = form.findComponent("SelectedUserDataField").getStringValue();
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -74,9 +65,10 @@ function selectUser(event) {
 
 function addResourceSubject(subject) {
    form = XDisplay.getActiveForm();
+   selected_user_data_field = form.findComponent("SelectedUserDataField");
+   selected_user_data_field.setStringValue(subject);
    user_name_field = form.findComponent("UserName");
-   user_name_field.setStringValue(subject);
-   user_name_field.update();
+   user_name_field.setStringValue(XValidator.choiceCaption(subject));
 }
 
 function addProject(event) {
@@ -104,14 +96,12 @@ function removeProject(event) {
 function inheritPoolRate(event) {
    form = XDisplay.getActiveForm();
    source = event.event_source;
-   shouldOverride = source.getValue();
-   if (shouldOverride == true) {
-      form.findComponent("HourlyRate").setEnabled(true);
-      form.findComponent("ExternalRate").setEnabled(true);
+   shouldInherit = source.getValue();
+   if (shouldInherit == true) {
+      form.findComponent("HourlyRate").setEnabled(false);
    }
    else {
-      form.findComponent("HourlyRate").setEnabled(false);
-      form.findComponent("ExternalRate").setEnabled(false);
+      form.findComponent("HourlyRate").setEnabled(true);
    }
    form.update();
 }

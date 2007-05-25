@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project_status.test;
@@ -87,7 +87,7 @@ public class ProjectStatusTestDataFactory extends TestDataFactory {
    }
 
    /**
-    * Get all the project statuses ordered by sequence
+    * Get all the project statuses
     *
     * @return a <code>List</code> of <code>OpProjectStatus</code>
     */

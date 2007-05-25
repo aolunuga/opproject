@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 package onepoint.project.modules.report;
 
@@ -21,7 +21,7 @@ import java.util.Map;
 public final class OpJasperReportBuilder {
 
    // Class logger.
-   private static final XLog logger = XLogFactory.getServerLogger(OpJasperReportBuilder.class);
+   private static final XLog logger = XLogFactory.getLogger(OpJasperReportBuilder.class, true);
 
    /**
     * Utility class.

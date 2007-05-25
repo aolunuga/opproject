@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project;
@@ -14,7 +14,7 @@ import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
-import onepoint.project.module.OpLanguageKitPath;
+import onepoint.project.module.OpLanguageKitFile;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,12 +45,12 @@ public final class OpInitializer {
    /**
     * This class's logger
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpInitializer.class);
+   private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
 
    /**
     * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
     */
-   private static final Map<String, Boolean> PRODUCT_CODES_MAP = new HashMap<String, Boolean>();
+   private static final Map PRODUCT_CODES_MAP = new HashMap();
 
    /**
     * needed for initialization of multipled servlets
@@ -61,7 +60,7 @@ public final class OpInitializer {
    /**
     * Run level of the application.
     */
-   private static byte runLevel = 0;
+   private static byte runLevel = OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue();
 
    /**
     * The code of the db connection test
@@ -71,7 +70,7 @@ public final class OpInitializer {
    /**
     * Map containg information about the initialization steps taken by the initializer
     */
-   private static Map<String, String> initParams = new HashMap<String, String>();
+   private static Map initParams = new HashMap();
 
    /**
     * The configuration object initialized by this class
@@ -84,9 +83,9 @@ public final class OpInitializer {
    private static String productCode = null;
 
    /**
-    * Flag indicatig whether the language settings have been initialized or not.
+    * Flag indicating whether the language settings have been intialized or not.
     */
-   private static boolean languageInitialized = false;
+   private static boolean languageSettingsInitialized = false;
 
    /**
     * state of initialization
@@ -145,7 +144,8 @@ public final class OpInitializer {
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          try {
-            initLanguageResources();
+            XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
+            initializeLanguageResources();
 
             // Read configuration file
             OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
@@ -178,15 +178,16 @@ public final class OpInitializer {
             String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
             int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
 
-	          //test the db connection
-  	        int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
+            //test the db connection
+            int testResult = OpConnectionManager.testConnection(databaseType, databaseDriver, databaseUrl, databaseLogin, databasePassword);
             connectionTestCode = testResult;
-            if (testResult != OpConnectionManager.SUCCESS) {
-     	 	       logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
-        	     OpConfigurationWizardManager.loadConfigurationWizardModule();
-            	 return initParams;
-	         	}
-	         	
+            //the invalid mysql engine is not a blocker in this version
+            if (testResult != OpConnectionManager.SUCCESS && testResult != OpConnectionManager.INVALID_MYSQL_ENGINE) {
+               logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+               OpConfigurationWizardManager.loadConfigurationWizardModule();
+               return initParams;
+            }
+
             // set smtp host for OpMailer
             OpMailer.setSMTPHostName(configuration.getSMTPServer());
 
@@ -243,36 +244,41 @@ public final class OpInitializer {
          catch (Exception e) {
             logger.fatal("Cannot start the application", e);
          }
-         initialized = true;
-
-         return initParams;
       }
-    }
+      initialized = true;
+      return initParams;
+   }
 
    /**
-    * Initializes the default language settings.
+    * Initializes the language settings for the application.
     */
-   private static void initLanguageResources() {
-      if (languageInitialized) {
-         return;
-      }
+   private static void initializeLanguageResources() {
+      if (!languageSettingsInitialized) {
+         // Attention: Locale map must be loaded and set before starting up modules
+         XLocaleMap locale_map = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
+         if (locale_map != null) {
+            XLocaleManager.setLocaleMap(locale_map);
+         }
 
-      XResourceBroker.setResourcePath(OpProjectConstants.PROJECT_PACKAGE);
-      // Attention: Locale map must be loaded and set before starting up modules
-      XLocaleMap localeMap = new XLocaleMapLoader().loadLocaleMap("/locales.olm.xml");
-      if (localeMap != null) {
-         XLocaleManager.setLocaleMap(localeMap);
+         // load language resources for main application forms (e.g. login.oxf)
+         OpLanguageKitFile main_en_file = new OpLanguageKitFile();
+         main_en_file.setFileName("/i18n/main_en.olk.xml");
+         XLanguageKit main_en = main_en_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_en);
+         OpLanguageKitFile main_de_file = new OpLanguageKitFile();
+         main_de_file.setFileName("/i18n/main_de.olk.xml");
+         XLanguageKit main_de = main_de_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_de);
+         OpLanguageKitFile main_ru_file = new OpLanguageKitFile();
+         main_ru_file.setFileName("/i18n/main_ru.olk.xml");
+         XLanguageKit main_ru = main_ru_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_ru);
+         OpLanguageKitFile main_fr_file = new OpLanguageKitFile();
+         main_fr_file.setFileName("/i18n/main_fr.olk.xml");
+         XLanguageKit main_fr = main_fr_file.loadLanguageKit();
+         XLocaleManager.registerLanguageKit(main_fr);
+         languageSettingsInitialized = true;
       }
-
-      // load language resources for main application forms (e.g. login.oxf)
-      OpLanguageKitPath mainPath = new OpLanguageKitPath("/i18n");
-      List kits = mainPath.loadLanguageKits();
-      for (Object kit1 : kits) {
-         XLanguageKit kit = (XLanguageKit) kit1;
-         XLocaleManager.registerLanguageKit(kit);
-      }
-
-      languageInitialized = true;
    }
 
    /**
@@ -280,8 +286,8 @@ public final class OpInitializer {
     */
    private static void updateDBSchema() {
       OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-      int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
-      if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
+      if (defaultSource.needSchemaUpgrading()) {
+         int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
          logger.info("Updating DB schema from version " + existingVersionNr + "...");
          OpPersistenceManager.updateSchema();
          defaultSource.updateSchemaVersionNumber();
@@ -314,11 +320,11 @@ public final class OpInitializer {
     * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
     */
    public static boolean isMultiUser() {
-      Boolean isMultiUser = PRODUCT_CODES_MAP.get(productCode);
+      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
       if (isMultiUser == null) {
          throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
       }
-      return isMultiUser;
+      return isMultiUser.booleanValue();
    }
 
 
@@ -344,10 +350,10 @@ public final class OpInitializer {
       if (runLevelParameter != null) {
          XLocalizer localizer = XLocaleManager.createLocalizer(localeId, mapId);
 
-         int runLevel = Integer.valueOf(runLevelParameter);
+         int runLevel = Integer.valueOf(runLevelParameter).intValue();
          int successRunLevel = getSuccessRunLevel();
          if (runLevel < successRunLevel) {
-            String resourceId = "${" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
+            String resourceId = "{$" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
             return localizer.localize(resourceId);
          }
       }

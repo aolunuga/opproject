@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings.forms;
@@ -10,8 +10,8 @@ import onepoint.express.server.XFormProvider;
 import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpInitializer;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
@@ -21,15 +21,16 @@ import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.util.XCalendar;
 
-import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 public class OpSettingsFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getServerLogger(OpSettingsFormProvider.class);
+   private static XLog logger = XLogFactory.getLogger(OpSettingsFormProvider.class, true);
 
    public static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
    public static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";
@@ -50,7 +51,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    public static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
    public static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
    public static final String SAVE_BUTTON = "Save";
-   public static final String SELECT_CALENDAR = "${SelectCalendar}";
+   public static final String SELECT_CALENDAR = "{$SelectCalendar}";
 
    // Resource map names
    public static final String SETTINGS_SETTINGS = "settings.settings";
@@ -89,7 +90,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String dayWorkTimeString = OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
       double dayWorkTime;
       try {
-         dayWorkTime = Double.valueOf(dayWorkTimeString);
+         dayWorkTime = Double.valueOf(dayWorkTimeString).doubleValue();
       }
       catch (NumberFormatException e) {
          dayWorkTime = 0;
@@ -101,7 +102,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String weekWorkTimeString = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       double weekWorkTime;
       try {
-         weekWorkTime = Double.valueOf(weekWorkTimeString);
+         weekWorkTime = Double.valueOf(weekWorkTimeString).doubleValue();
       }
       catch (NumberFormatException e) {
          weekWorkTime = 0;
@@ -112,7 +113,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
       double available = 0;
       try {
-         available = Double.valueOf(resourceMaxAvailability);
+         available = Double.valueOf(resourceMaxAvailability).doubleValue();
       }
       catch (NumberFormatException e) {
          logger.warn("Error in parsing double number " + resourceMaxAvailability);
@@ -121,7 +122,7 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
       XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval));
+      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval).intValue());
       OpProjectDatesModule projectDatesModule = (OpProjectDatesModule) OpModuleManager.getModuleRegistry().getModule(OpProjectDatesModule.MODULE_NAME);
       if (!projectDatesModule.enableMilestoneControllingIntervalSetting()) {
          milestoneControllingIntervalField.setEnabled(false);
@@ -129,15 +130,15 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       String emptyPasswordValue = OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD);
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
-      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue));
+      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue).booleanValue());
 
       String showHours = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
-      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours));
+      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours).booleanValue());
 
       String reportsRemovePeriod = OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
       XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod));
+      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod).intValue());
 
       String emailFromAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
@@ -184,8 +185,8 @@ public class OpSettingsFormProvider implements XFormProvider {
          //use an intermediate data set in order to sort
          XComponent sorterDataSet = new XComponent(XComponent.DATA_SET);
          XComponent dataRow;
-         for (Object key : keys) {
-            String id = (String) key;
+         for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
+            String id = (String) iterator.next();
             OpHolidayCalendar manager = (OpHolidayCalendar) holidayMap.get(id);
             String label = manager.getLabel();
             if (label == null) {
@@ -216,7 +217,7 @@ public class OpSettingsFormProvider implements XFormProvider {
                selectedIndex = i + 1;
             }
          }
-         holidays.setSelectedIndex(selectedIndex);
+         holidays.setSelectedIndex(new Integer(selectedIndex));
          ((XComponent) holidaysDataSet.getChild(selectedIndex)).setSelected(true);
       }
       else {
@@ -229,8 +230,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       String val;
       int selectedIndex = -1;
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SUNDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Sunday}")));
+      val = "" + XCalendar.SUNDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Sunday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 0;
@@ -238,8 +239,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.MONDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Monday}")));
+      val = "" + XCalendar.MONDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Monday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 1;
@@ -247,8 +248,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.TUESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Tuesday}")));
+      val = "" + XCalendar.TUESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Tuesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 2;
@@ -256,8 +257,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.WEDNESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Wednesday}")));
+      val = "" + XCalendar.WEDNESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Wednesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 3;
@@ -265,8 +266,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.THURSDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Thursday}")));
+      val = "" + XCalendar.THURSDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Thursday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 4;
@@ -274,8 +275,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.FRIDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Friday}")));
+      val = "" + XCalendar.FRIDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Friday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 5;
@@ -283,14 +284,14 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SATURDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Saturday}")));
+      val = "" + XCalendar.SATURDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Saturday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 6;
       }
       data_set.addChild(data_row);
 
-      choice.setSelectedIndex(selectedIndex);
+      choice.setSelectedIndex(new Integer(selectedIndex));
    }
 }

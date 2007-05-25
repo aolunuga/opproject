@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -13,12 +13,6 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    private OpSource source; // The source the connection belongs to
 
-   public static final int FLUSH_MODE_NEVER = 0;
-   public static final int FLUSH_MODE_COMMIT = 1;
-   public static final int FLUSH_MODE_AUTO = 2;
-   public static final int FLUSH_MODE_ALWAYS = 3;
-   
-   
    public OpConnection(OpSource source) {
       this.source = source;
    }
@@ -41,8 +35,6 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    public abstract OpObject getObject(Class c, long id);
 
-//   public abstract boolean contains(Object obj);
-     
    public abstract void updateObject(OpObject object);
 
    public abstract void deleteObject(OpObject object);
@@ -52,8 +44,6 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
    public abstract Iterator iterate(OpQuery query);
 
    public abstract int execute(OpQuery query);
-
-   public abstract void flush();
 
    public abstract OpTransaction newTransaction();
 
@@ -68,8 +58,4 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
    public abstract boolean isValid();
 
    public abstract boolean isOpen();
-
-   public abstract void setFlushMode(int flushMode);
-
-   public abstract int getFlushMode();
 }

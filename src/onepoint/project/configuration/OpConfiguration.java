@@ -1,8 +1,4 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
-/*
  * (c) 2005 OnePoint Software GmbH (Graz/Austria)
  * All rights reserved
  */
@@ -424,6 +420,7 @@ public class OpConfiguration {
     * Performs static initialization of the database drivers map
     */
    private static void initDatabaseDriversMap() {
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_DB_TYPE, "com.mysql.jdbc.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, "com.mysql.jdbc.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.ORACLE_DB_TYPE, "oracle.jdbc.driver.OracleDriver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, "com.ibm.db2.jcc.DB2Driver");

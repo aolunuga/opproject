@@ -1,24 +1,17 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for activities.oxf.xml
 
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/modules/project_planning/scripts/open_activity_details.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes";
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XValidator;
-import
-onepoint.util.XCalendar;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+import onepoint.util.XCalendar;
 
 function timeUnitChanged(event) {
    // *** Get current choice from choice-field
@@ -68,7 +61,7 @@ function editActivities(event) {
       showWarning(response, warning, "ProjectContentFrame", "refreshForm", args);
    }
    else {
-      success = handleError(XDisplay.getActiveForm(), response, "ValidationErrorLabel");
+      success = handleError(XDisplay.getActiveForm(),response,"ValidationErrorLabel");
       if (success) {
          parameters.project_id = project_id;
          XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
@@ -88,8 +81,6 @@ function saveActivities(event) {
    working_plan_version_id = working_plan_version_id_field.getStringValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
 
-   activity_set.removeDummyRows();
-
    XDisplay.setWaitingCursor();
    request = new XMessage;
    request.setAction("PlanningService.saveActivities");
@@ -108,19 +99,14 @@ function saveActivities(event) {
 function importActivities(event) {
 
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(importProject, true, null, "mpp,mpx");
+   fileName = XDisplay.showFileDialog(importProject, true, null);
    if (fileName == null) {
-      showErrorDialog("resource.incorrectFile", "IncorrectFileName", null, null);      
       return;
    }
    edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
-
-   activity_set.removeDummyRows();
-   XDisplay.getActiveForm().findComponent("ActivityTable").update();
-   XDisplay.getActiveForm().findComponent("CostTable").update();
 
    parameters.ProjectId = project_id;
    parameters.EditMode = edit_mode;
@@ -133,17 +119,13 @@ function importActivities(event) {
 function exportActivities(event) {
 
    exportProject = XDisplay.getActiveForm().findComponent("ExportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(exportProject, false, null, "mpx");
+   fileName = XDisplay.showFileDialog(exportProject, false, null);
    if (fileName == null) {
       return;
    }
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
-
-   activity_set.removeDummyRows();
-   XDisplay.getActiveForm().findComponent("ActivityTable").update();
-   XDisplay.getActiveForm().findComponent("CostTable").update();
 
    request = new XMessage;
    request.setAction("PlanningService.exportActivities");
@@ -167,7 +149,7 @@ function exportActivities(event) {
    }
 }
 
-function getPrintTitle(tabBox) {
+function getPrintTitle(tabBox){
    cur_tab = tabBox.getIntValue();
    tabName = tabBox.getChild(cur_tab + 1).getText();
    printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
@@ -177,7 +159,7 @@ function getPrintTitle(tabBox) {
 }
 
 
-function getCurrentTabId(tabBox) {
+function getCurrentTabId(tabBox){
    cur_tab = tabBox.getIntValue();
    tab = tabBox.getChild(cur_tab + 1);
    tabId = tab.getID();
@@ -188,11 +170,6 @@ function getCurrentTabId(tabBox) {
 function print(event) {
    tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
    tabId = getCurrentTabId(tabBox);
-
-   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
-   activity_set.removeDummyRows();
-   XDisplay.getActiveForm().findComponent("ActivityTable").update();
-   XDisplay.getActiveForm().findComponent("CostTable").update();
 
    if (tabId == "TasklistTab") {
       title = getPrintTitle(tabBox);
@@ -223,16 +200,19 @@ function autoSave(event) {
       Console.println("   Project id set");
       edit_mode = event.sourceForm.findComponent("EditModeField").getBooleanValue();
       if (edit_mode) {
+         Console.println("      Edit mode is on: Auto-save activities");
          working_plan_version_id_field = event.sourceForm.findComponent("WorkingPlanVersionIDField");
          working_plan_version_id = working_plan_version_id_field.getStringValue();
+         Console.println("AUTO-SAVING activity data set");
+         Console.println(project_id);
          activity_set = event.sourceForm.findComponent("ActivitySet");
-         activity_set.removeDummyRows();
          request = new XMessage;
          request.setAction("PlanningService.saveActivities");
          request.setArgument("project_id", project_id);
          request.setArgument("working_plan_version_id", working_plan_version_id);
          request.setArgument("activity_set", activity_set);
          response = XDisplay.getClient().invokeMethod(request);
+         Console.println("/AUTO-SAVING activity data set");
       }
    }
 }
@@ -248,7 +228,6 @@ function checkInActivities(event) {
    working_plan_version_id_field = XDisplay.getActiveForm().findComponent("WorkingPlanVersionIDField");
    working_plan_version_id = working_plan_version_id_field.getStringValue();
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
-   activity_set.removeDummyRows();
    request = new XMessage;
    request.setAction("PlanningService.checkInActivities");
    request.setArgument("project_id", project_id);
@@ -275,7 +254,7 @@ function revertActivities(event) {
 }
 
 
-function updateAllViews() {
+function updateAllViews(){
    XDisplay.getActiveForm().findComponent("ActivityTable").update();
    XDisplay.getActiveForm().findComponent("CostTable").update();
    XDisplay.getActiveForm().findComponent("ActivityGanttChart").resetCalendar();
@@ -404,8 +383,8 @@ function pasteActivities(event) {
 
    table = null;
    if (tabId == "TasklistTab") {
-      activityTable = XDisplay.getActiveForm().findComponent("ActivityTable");
-      table = activityTable;
+     activityTable = XDisplay.getActiveForm().findComponent("ActivityTable");
+     table = activityTable;
    }
    else {
       if (tabId == "CostsProjectionTab") {
@@ -414,11 +393,10 @@ function pasteActivities(event) {
       }
    }
 
-   insert = false;
-   //replace/insert
+   insert = false; //replace/insert
    selected_rows = null;
 
-   if (table != null) {
+   if (table != null ) {
       //the tables - get only full selected rows
       table.removeSorting();
       activity_data_set.completeSelection();
@@ -462,57 +440,50 @@ function saveActivitiesImage(event) {
 }
 
 function saveCostsImage(event) {
-   XDisplay.getActiveForm().findComponent("CostTable").saveAsImage("Save Costs");
+  XDisplay.getActiveForm().findComponent("CostTable").saveAsImage("Save Costs");
 }
 
 function saveGanttImage(event) {
-   XDisplay.getActiveForm().findComponent("ActivityGanttChart").saveAsImage("Save Gantt");
+  XDisplay.getActiveForm().findComponent("ActivityGanttChart").saveAsImage("Save Gantt");
 }
 
 
-function saveActivitiesCSVFile(event) {
+
+function saveActivitiesCSVFile(event){
    activity_table = XDisplay.getActiveForm().findComponent("ActivityTable");
    activity_table.saveAsCSV("Save Activities");
 }
 
-function saveCostsCSVFile(event) {
+function saveCostsCSVFile(event){
    cost_table = XDisplay.getActiveForm().findComponent("CostTable");
    cost_table.saveAsCSV("Save Costs");
 }
 
-function enableActivitiesPopUp(event) {
+function enableActivitiesPopUp(event){
    //filter pop up menu if project plan is not in edit mode
    edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
-   if (!edit_mode) {
+   if (!edit_mode){
       pop_up_menu = event.popUp;
-      pop_up_menu.getChild(0).setEnabled(false);
-      //cutActivities
-      pop_up_menu.getChild(1).setEnabled(false);
-      //copyActivities
-      pop_up_menu.getChild(2).setEnabled(false);
-      //pasteActivities
-      pop_up_menu.getChild(4).setEnabled(false);
-      //addActivityBefore
-      pop_up_menu.getChild(5).setEnabled(false);
-      //addActivityAfter
-      pop_up_menu.getChild(6).setEnabled(false);
-      //removeActivities
-      pop_up_menu.getChild(8).setEnabled(false);
-      //editActivity
-      pop_up_menu.getChild(10).setEnabled(false);
-      //validateActivities
-   }
+      pop_up_menu.getChild(0).setEnabled(false);//cutActivities
+      pop_up_menu.getChild(1).setEnabled(false);//copyActivities
+      pop_up_menu.getChild(2).setEnabled(false);//pasteActivities
+      pop_up_menu.getChild(4).setEnabled(false);//addActivityBefore
+      pop_up_menu.getChild(5).setEnabled(false);//addActivityAfter
+      pop_up_menu.getChild(6).setEnabled(false);//removeActivities
+      pop_up_menu.getChild(8).setEnabled(false);//editActivity
+      pop_up_menu.getChild(10).setEnabled(false);//validateActivities
+  }
 
 }
 
 
-function undo(event) {
+function undo(event){
    activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    activity_data_set.dataSetUndo();
    updateAllViews();
 }
 
-function redo(event) {
+function redo(event){
    activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    activity_data_set.dataSetRedo();
    updateAllViews();
@@ -543,131 +514,8 @@ function compareChoiceResources(dataCaption, editValue) {
    return result;
 }
 
-function validateActivities(event) {
+function validateActivities(event){
    activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    validator = activity_data_set.validator();
    validator.validateDataSet();
-}
-
-function updateBaseEffortSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateEffortSum(mainIndex, 7);
-}
-
-function getActivityForm() {
-   frame = XDisplay.findFrame("ProjectContentFrame");
-   form = frame.getChild(0);
-   return form;
-}
-
-function updateEffortSum(mainIndex, footerIndex) {
-   form = XDisplay.getActiveForm();
-   listFooterDataSet = form.findComponent("ActivityListFooter");
-   if (listFooterDataSet == null) {
-      form = getActivityForm();
-      if (form == null) {
-         return;
-      }
-      listFooterDataSet = form.findComponent("ActivityListFooter");
-   }
-   activity_data_set = form.findComponent("ActivitySet");
-   updateSum(activity_data_set, mainIndex, listFooterDataSet, footerIndex);
-}
-
-function updatePersonnelSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 2);
-}
-
-function updateTravelSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 3);
-}
-
-function updateMaterialSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 4);
-}
-
-function updateExternalSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 5);
-}
-
-function updateMiscSum(event) {
-   dataCell = event.event_source;
-   mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 6);
-}
-
-function updateCostSum(mainIndex, index) {
-   form = XDisplay.getActiveForm();
-   footerDataSet = form.findComponent("ActivityCostsFooter");
-   if (footerDataSet == null) {
-      form = getActivityForm();
-      if (form == null) {
-         return;
-      }
-      footerDataSet = form.findComponent("ActivityCostsFooter");
-   }
-   activity_data_set = form.findComponent("ActivitySet");
-   updateSum(activity_data_set, mainIndex, footerDataSet, index);
-}
-
-function updateSum(mainDataSet, mainIndex, footerDataSet, footerIndex) {
-   sum = mainDataSet.calculateDoubleSum(mainIndex, 0);
-   row = footerDataSet.getChild(0);
-   cell = row.getChild(footerIndex);
-   cell.setDoubleValue(sum);
-   form = XDisplay.getActiveForm();
-   table = form.findComponent("ActivityTable");
-   if (table == null) {
-      form = getActivityForm();
-      if (form == null) {
-         return;
-      }
-      table = form.findComponent("ActivityTable");
-   }
-   table.update();
-   form.findComponent("CostTable").update();
-}
-
-
-function updateSums(event) {
-   //base effort
-   mainIndex = 7;
-   updateEffortSum(mainIndex, 7);
-
-   //pers. cost
-   mainIndex = 11;
-   updateCostSum(mainIndex, 2);
-
-   //travel
-   mainIndex = 12;
-   updateCostSum(mainIndex, 3);
-
-   //material
-   mainIndex = 13;
-   updateCostSum(mainIndex, 4);
-
-   //external
-   mainIndex = 14;
-   updateCostSum(mainIndex, 5);
-
-   //misc
-   mainIndex = 15;
-   updateCostSum(mainIndex, 6);
-}
-
-/**
- * Handler used when activating the planning table (is not used here)
- * @Overridden
- */
-function activatePlanningTable(event) {
-
 }

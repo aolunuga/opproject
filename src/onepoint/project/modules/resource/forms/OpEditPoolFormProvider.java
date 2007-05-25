@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -25,7 +25,6 @@ public class OpEditPoolFormProvider implements XFormProvider {
    private final static String EDIT_MODE = "EditMode";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ORIGINAL_HOURLY_RATE = "OriginalHourlyRate";
-   private final static String ORIGINAL_EXTERNAL_RATE = "OriginalExternalRate";
    private final static String RESOURCE_OBJECTS = "resource.objects";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
 
@@ -60,20 +59,15 @@ public class OpEditPoolFormProvider implements XFormProvider {
          desc.setStringValue("");
       }
       // TODO: Should be of type double
-      XComponent hourlyRate = form.findComponent(OpResourcePool.HOURLY_RATE);
-      hourlyRate.setDoubleValue(pool.getHourlyRate());
-      XComponent externalRate = form.findComponent(OpResourcePool.EXTERNAL_RATE);
-      externalRate.setDoubleValue(pool.getExternalRate());
-      XComponent originalHourlyRate = form.findComponent(ORIGINAL_HOURLY_RATE);
-      originalHourlyRate.setDoubleValue(pool.getHourlyRate());
-      XComponent originalExternalRate = form.findComponent(ORIGINAL_EXTERNAL_RATE);
-      originalExternalRate.setDoubleValue(pool.getExternalRate());
+      XComponent hourly_rate = form.findComponent(OpResourcePool.HOURLY_RATE);
+      hourly_rate.setDoubleValue(pool.getHourlyRate());
+      XComponent originalHourly_rate = form.findComponent(ORIGINAL_HOURLY_RATE);
+      originalHourly_rate.setDoubleValue(pool.getHourlyRate());
 
       if (!edit_mode.booleanValue()) {
          name.setEnabled(false);
          desc.setEnabled(false);
-         hourlyRate.setEnabled(false);
-         externalRate.setEnabled(false);
+         hourly_rate.setEnabled(false);
          form.findComponent("Cancel").setVisible(false);
          String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoPool").getText();
          form.setText(title);

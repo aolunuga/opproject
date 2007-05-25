@@ -6,34 +6,36 @@
    <data-set id="UserDataSet" stateful="true" on-expand="expandDataSet"/>
    <data-field id="AdminRoleDataField"/>
 
-   <panel layout="border" style-ref="compact-panel-default">
+    <panel layout="border" style-ref="compact-panel-default">
 
-      <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar>
-            <tool-button id="NewUser" text="${NewUser}" icon="/modules/user/icons/new_user.png"
-                         disabled-icon="/modules/user/icons/new_user_disabled.png"
-                         on-button-pressed="newUser" tooltip="${NewUserTooltip}"/>
-            <tool-button id="NewGroup" text="${NewGroup}" icon="/modules/user/icons/new_group.png"
-                         disabled-icon="/modules/user/icons/new_group_disabled.png"
-                         on-button-pressed="newGroup" tooltip="${NewGroupTooltip}"/>
-            <tool-button id="Info" text="${Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
-                         on-button-pressed="edit" tooltip="${InfoTooltip}"/>
-            <tool-button id="Delete" text="${Delete}" icon="/icons/delete.png" disabled-icon="/icons/delete_disabled.png"
-                         on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
-            <tool-button id="AssignToGroup" text="${AssignToGroup}" icon="/modules/user/icons/assign_to_group.png"
-                         disabled-icon="/modules/user/icons/assign_to_group_disabled.png" on-button-pressed="assignToGroup"
-                         tooltip="${AssignToGroupTooltip}"/>
-         </tool-bar>
-      </panel>
-      <table-box x="0" y="0" id="UserTreeTable" tree-column-index="0" data-set-ref="UserDataSet" icon-set-ref="IconSet"
-                 flexible="true" on-double-click="edit" on-row-select="selectionChanged">
-         <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-         <!-- column with index '0' is hidded: Denotes whether user/group -->
-         <table-column width="180" text="${Name}" sortable="true" data-column-index="1" value-type="Choice"/>
-         <table-column width="270" text="${Description}" sortable="true" data-column-index="2"/>
-      </table-box>
-      <status-bar y="1"/>
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar>
+      <tool-button id="NewUser" text="{$NewUser}" icon="/modules/user/icons/new_user.png"
+                   disabled-icon="/modules/user/icons/new_user_disabled.png"
+                   on-button-pressed="newUser" tooltip="{$NewUserTooltip}"/>
+      <tool-button id="NewGroup" text="{$NewGroup}" icon="/modules/user/icons/new_group.png"
+                   disabled-icon="/modules/user/icons/new_group_disabled.png"
+                   on-button-pressed="newGroup" tooltip="{$NewGroupTooltip}"/>
+      <tool-button id="Info" text="{$Properties}" icon="/icons/info.png" disabled-icon="/icons/info_disabled.png"
+                   on-button-pressed="info" tooltip="{$InfoTooltip}"/>
+      <tool-button id="Edit" text="{$Edit}" icon="/icons/edit.png" disabled-icon="/icons/edit_disabled.png"
+                   on-button-pressed="edit" tooltip="{$EditTooltip}"/>
+      <tool-button id="Delete" text="{$Delete}" icon="/icons/delete.png" disabled-icon="/icons/delete_disabled.png"
+                   on-button-pressed="delete" tooltip="{$DeleteTooltip}"/>
+      <tool-button id="AssignToGroup" text="{$AssignToGroup}" icon="/modules/user/icons/assign_to_group.png"
+                   disabled-icon="/modules/user/icons/assign_to_group_disabled.png" on-button-pressed="assignToGroup"
+                   tooltip="{$AssignToGroupTooltip}"/>
+   </tool-bar>
+	</panel>
+   <table-box x="0" y="0" id="UserTreeTable" tree-column-index="0" data-set-ref="UserDataSet" icon-set-ref="IconSet"
+              flexible="true" on-double-click="info" on-row-select="selectionChanged">
+      <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+      <!-- column with index '0' is hidded: Denotes whether user/group -->
+      <table-column width="180" text="{$Name}" sortable="true" data-column-index="1" value-type="Choice"/>
+      <table-column width="270" text="{$Description}" sortable="true" data-column-index="2"/>
+   </table-box>
+	<status-bar y="1"/>
 
-   </panel>
+	</panel>
 
 </form>

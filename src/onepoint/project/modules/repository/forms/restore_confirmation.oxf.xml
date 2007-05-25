@@ -1,6 +1,6 @@
 <form width="450" height="100"
       layout="border" resource-map-ref="repository.restore_confirmation"
-      text="${RestoreConfirmation}"
+      text="{$RestoreConfirmation}"
       script="/modules/repository/scripts/restore_confirmation.jes"
       default-button-ref="okButton" start-focus-ref="AdminPasswordField"
       provider-class="onepoint.project.modules.repository.forms.OpRestoreConfirmationFormProvider">
@@ -8,13 +8,13 @@
    <panel y="0" layout="border">
       <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
       <panel y="0" layout="table" style-ref="table-panel-default">
-         <label id="SingleUserConfirmationMessage" text="${SimpleConfirmMessage}" x="0" y="0" width="5" visible="false"/>
-         <label id="MultiUserConfirmationMessage" text="${AdminPasswordRequest}" x="0" y="0" width="2" visible="false"/>
+         <label id="SingleUserConfirmationMessage" text="{$SimpleConfirmMessage}" x="0" y="0" width="5" visible="false"/>
+         <label id="MultiUserConfirmationMessage" text="{$AdminPasswordRequest}" x="0" y="0" width="2" visible="false"/>
          <text-field x="2" y="0" width="3" id="AdminPasswordField" secret="true" visible="false"/>            
       </panel>
       <panel y="1" layout="flow" direction="west">
-         <button id="cancelButton" text="${Cancel}" on-button-pressed="cancel"/>
-         <button id="okButton" text="${OK}" on-button-pressed="ok"/>
+         <button id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+         <button id="okButton" text="{$OK}" on-button-pressed="ok"/>
       </panel>
    </panel>
 </form>

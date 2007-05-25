@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.work;
@@ -27,15 +27,14 @@ public class OpWorkRecord extends OpObject {
    public final static String ASSIGNMENT = "Assignment";
    public final static String WORK_SLIP = "WorkSlip";
 
-   private double actualEffort = 0; // Additional actual effort in hours
-   private double remainingEffort = 0; // Estimated remaining effort in hours
-   private double remainingEffortChange = 0; // Change of remaining effort in hours
-   private double personnelCosts = 0;
-   private double actualProceeds = 0;
-   private double travelCosts = 0;
-   private double materialCosts = 0;
-   private double externalCosts = 0;
-   private double miscellaneousCosts = 0;
+   private double actualEffort; // Additional actual effort in hours
+   private double remainingEffort; // Estimated remaining effort in hours
+   private double remainingEffortChange; // Change of remaining effort in hours
+   private double personnelCosts;
+   private double travelCosts;
+   private double materialCosts;
+   private double externalCosts;
+   private double miscellaneousCosts;
    private boolean completed;
    private String comment;
    private OpAssignment assignment;
@@ -66,19 +65,11 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setPersonnelCosts(double actualCosts) {
-     this.personnelCosts = actualCosts;
+      this.personnelCosts = actualCosts;
    }
 
    public double getPersonnelCosts() {
       return personnelCosts;
-   }
-
-   public void setActualProceeds(Double actualProceeds) {
-      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0 ;
-   }
-
-   public double getActualProceeds() {
-      return actualProceeds;
    }
 
    public void setTravelCosts(double travelCosts) {
@@ -152,92 +143,4 @@ public class OpWorkRecord extends OpObject {
    public void setCompleted(boolean completed) {
       this.completed = completed;
    }
-
-   /**
-    * Test if this <code>OpWorkRecord</code> is valid.
-    *
-    * @return the error code if work-record invalid or 0 if the work-record is valid
-    */
-   public int isValid() {
-      // Actual Efort
-      if (getActualEffort() < 0 || (!getCompleted() && getActualEffort() == 0)) {
-         return OpWorkError.INCORRECT_ACTUAL_EFFORT;
-      }
-      // Material Costs
-      if (getMaterialCosts() < 0) {
-         return OpWorkError.INCORRECT_MATERIAL_COSTS;
-      }
-      // Travel costs
-      if (getTravelCosts() < 0) {
-         return OpWorkError.INCORRECT_TRAVEL_COSTS;
-      }
-      // External costs
-      if (getExternalCosts() < 0) {
-         return OpWorkError.INCORRECT_EXTERNAL_COSTS;
-      }
-      // Miscellaneous Costs
-      if (getMiscellaneousCosts() < 0) {
-         return OpWorkError.INCORRECT_MATERIAL_COSTS;
-      }
-      return 0;
-   }
-
-//  /* (non-Javadoc)
-//   * @see onepoint.persistence.OpObject#equals(java.lang.Object)
-//   */
-//  @Override
-//  public boolean equals(Object other) {
-//    try {
-//      OpWorkRecord other_record = (OpWorkRecord)other;
-//      if (!super.equals(other_record))
-//        return(false);
-//      if (this == other)
-//        return(true);
-//      return((actualEffort == other_record.actualEffort) &&
-//             (remainingEffort == other_record.remainingEffort) &&
-//             (remainingEffortChange == other_record.remainingEffortChange) &&
-//             (personnelCosts == other_record.personnelCosts) &&
-//             (travelCosts == other_record.travelCosts) &&
-//             (materialCosts == other_record.materialCosts) &&
-//             (externalCosts == other_record.externalCosts) &&
-//             (miscellaneousCosts == other_record.miscellaneousCosts) &&
-//             (completed == other_record.completed) &&
-//             (comment == null ? other_record.comment == null : comment.equals(other_record.comment)) &&
-//             (assignment == null ? other_record.assignment == null : assignment.equals(other_record.assignment)) &&
-//             (workSlip == null ? other_record.workSlip == null : workSlip.equals(other_record.workSlip)));
-//    }
-//    catch (ClassCastException exc) {
-//      return(false);
-//    }
-//  } 
-  
-//  /* (non-Javadoc)
-//   * @see onepoint.persistence.OpObject#hashCode()
-//   */
-//  @Override
-//  public int hashCode() {
-//    int hash = super.hashCode();    
-//    long bits = Double.doubleToLongBits(actualEffort);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(remainingEffort);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(remainingEffortChange);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(personnelCosts);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(travelCosts);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(materialCosts);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(externalCosts);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    bits = Double.doubleToLongBits(miscellaneousCosts);
-//    hash = hash * 31 + (int)(bits ^ (bits >>> 32));
-//    hash = hash * 31 + (completed ? 1231 : 1237);
-//    hash = hash * 31 + (assignment == null ? 0 : assignment.hashCode());
-//    hash = hash * 31 + (workSlip == null ? 0 : workSlip.hashCode());
-//    return(hash);
-//   }
-//    return super.hashCode();
-//  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.documents;
@@ -20,7 +20,7 @@ public final class OpContentManager {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpContentManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpContentManager.class, true);
 
    /**
     * This is private class.

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.sql;
@@ -9,14 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class used for obtaining MSSQLServer2000 specific statements
+ * Class used for obtaining SQLServer2000 specific statements
  *
  * @author horia.chiorean
  */
 public final class OpMSSqlStatement implements OpSqlStatement {
 
    /**
-    * The mapping of MsSQLServer specific types.
+    * The mapping of SQLServer specific types.
     */
    private static final Map DB_TYPES = new HashMap();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.util;
@@ -21,7 +21,7 @@ public final class OpEnvironmentManager {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpEnvironmentManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEnvironmentManager.class);
 
    /**
     * The name of the OS.

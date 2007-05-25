@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.forms;
@@ -33,9 +33,7 @@ import java.util.Iterator;
 
 public class OpEditActivityFormProvider implements XFormProvider {
 
-   public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
-
-   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
 
    private final static String RESPONSIBLE_RESOURCE_SET = "ResponsibleResourceSet";
    private final static String ACTIVITY_CATEGORY_DATA_SET = "ActivityCategoryDataSet";
@@ -46,7 +44,9 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
    private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
 
-   //action that should be performed when a comment is removed
+   public final static String PROJECT_EDIT_ACTIVITY = "project_planning.EditActivity";
+
+   //action that should be performed when a comment is removed 
    private static final String REMOVE_COMMENT_ACTION = "removeComment";
    //remove comment button icon
    private static final String REMOVE_COMMENT_ICON = "/icons/minus_s.png";
@@ -57,8 +57,6 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private static final String NO_RESOURCE_TEXT = "NoResource";
    private static final String COMPLETE = "Complete";
    private static final String NO_CATEGORY_RESOURCE = "NoCategory";
-
-   protected int activityType = -1;
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -75,12 +73,9 @@ public class OpEditActivityFormProvider implements XFormProvider {
          OpObject object = broker.getObject(activityLocator);
          if (object instanceof OpActivity) {
             activity = (OpActivity) object;
-            activityType = activity.getType();
          }
          else if (object instanceof OpActivityVersion) {
-            OpActivityVersion activityVersion = (OpActivityVersion) object;
-            activity = activityVersion.getActivity();
-            activityType = (activity != null) ? activity.getType() : activityVersion.getType();
+            activity = ((OpActivityVersion) object).getActivity();
          }
          // Store resolved activity locator in data-field
          if (activity != null) {
@@ -193,7 +188,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       while (result.hasNext()) {
          record = (Object[]) result.next();
          comment = (OpActivityComment) record[0];
-         commentPanel = createPanel(comment, resourceMap, localizer, enableCommentRemoving, session.getCalendar());
+         commentPanel = createPanel(comment, resourceMap, localizer, enableCommentRemoving);
          commentsPanel.addChild(commentPanel);
          count++;
       }
@@ -207,10 +202,9 @@ public class OpEditActivityFormProvider implements XFormProvider {
     * @param resourceMap           language resource map
     * @param localizer             localizer used for the name of the comment creator
     * @param enableCommentRemoving enable/disable remove dialog button
-    * @param calendar a <code>XCalendar</code> representing the client's calendar.
     * @return an <code>XComponent</code> representing the comment panel
     */
-   public static XComponent createPanel(OpActivityComment comment, XLanguageResourceMap resourceMap, XLocalizer localizer, boolean enableCommentRemoving, XCalendar calendar) {
+   public static XComponent createPanel(OpActivityComment comment, XLanguageResourceMap resourceMap, XLocalizer localizer, boolean enableCommentRemoving) {
       XComponent commentPanel;
       StringBuffer subjectBuffer;
       XComponent subjectLabel;
@@ -228,6 +222,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       commentPanel.setLayout("flow");
       commentPanel.setDirection(XComponent.SOUTH);
       commentPanel.setStyle(XComponent.DEFAULT_LAYOUT_PANEL_STYLE);
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       // Subject in bold font
       subjectBuffer = new StringBuffer();

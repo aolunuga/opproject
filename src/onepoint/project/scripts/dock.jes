@@ -1,7 +1,3 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
 // Event-script for dock.oxf.xml
 
 import onepoint.express.XComponent;

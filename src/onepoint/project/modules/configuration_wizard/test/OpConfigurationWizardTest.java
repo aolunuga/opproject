@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.configuration_wizard.test;
@@ -119,6 +119,6 @@ public class OpConfigurationWizardTest extends OpBaseTestCase {
          }
       }
 
-      return OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE;
+      return OpConfigurationValuesHandler.MYSQL_DB_TYPE;
    }
 }

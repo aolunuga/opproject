@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -12,7 +12,7 @@ import org.hibernate.Transaction;
 
 public final class OpHibernateTransaction implements OpTransaction {
    
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateTransaction.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateTransaction.class,true);
 
 	private Transaction transaction;
 

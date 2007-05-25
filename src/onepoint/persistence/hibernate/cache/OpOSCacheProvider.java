@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate.cache;
@@ -30,7 +30,7 @@ public class OpOSCacheProvider implements CacheProvider {
    /**
     * Class used for logging.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpOSCacheProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpOSCacheProvider.class,true);
 
    /**
     * The <tt>OSCache</tt> refresh period property suffix.

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -13,14 +13,16 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class OpSettingsService extends OpProjectService {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpSettingsService.class);
+   private static final XLog logger = XLogFactory.getLogger(OpSettingsService.class, true);
 
    // Form parameters
    public static final String NEW_SETTINGS = "new_settings";
@@ -33,10 +35,7 @@ public class OpSettingsService extends OpProjectService {
 
    public XMessage saveSettings(OpProjectSession session, XMessage request) {
       logger.debug("OpSettingsService.saveSettings()");
-
-      Map<Object, Object> newSettings = (Map) request.getArgument(NEW_SETTINGS);
-      // create a copy of the settings to not affect REQUEST content.
-      newSettings = newSettings != null ? new HashMap<Object, Object>(newSettings) : null;
+      Map newSettings = (HashMap) request.getArgument(NEW_SETTINGS);
 
       XMessage reply = new XMessage();
 
@@ -80,7 +79,7 @@ public class OpSettingsService extends OpProjectService {
 
       //week work time validation
       boolean weekWorkChanged = false;
-      int workingDaysPerWeek = session.getCalendar().countWeekdays(firstWorkDay, lastWorkDay);
+      int workingDaysPerWeek = XCalendar.getDefaultCalendar().countWeekdays(firstWorkDay, lastWorkDay);
       double weekWorkTime;
       Double weekWorkTimeDouble = (Double) newSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (weekWorkTimeDouble == null) {
@@ -171,8 +170,9 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.ALLOW_EMPTY_PASSWORD, allowEmptyPassword.toString());
       }
 
-      for (Map.Entry<Object, Object> entry1 : newSettings.entrySet()) {
-         Map.Entry entry = (Map.Entry) entry1;
+      Iterator iterator = newSettings.entrySet().iterator();
+      while (iterator.hasNext()) {
+         Map.Entry entry = (Map.Entry) iterator.next();
          OpSettings.set((String) entry.getKey(), (String) entry.getValue());
       }
 
@@ -181,8 +181,8 @@ public class OpSettingsService extends OpProjectService {
       // Apply new settings
       boolean changedLanguage = OpSettings.applySettings(session);
 
-      OpSettings.configureServerCalendar(session);
-      reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
+      XCalendar calendar = OpSettings.configureDefaultCalendar(session.getLocale());
+      reply.setVariable(OpProjectConstants.CALENDAR, calendar);
 
       if (!OpInitializer.isMultiUser() && changedLanguage) {
          reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);

@@ -3,11 +3,12 @@
    <resource-map id="project_status.module">
       <resource id="ProjectStatusTool">Projektstatus</resource>
    </resource-map>
-
+   
    <resource-map id="project_status.project_status">
 
       <resource id="NewProjectStatus">Neuer Projektstatus</resource>
       <resource id="Properties">Eigenschaften</resource>
+      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="Up">Nach oben</resource>
       <resource id="Down">Nach unten</resource>
@@ -18,6 +19,7 @@
 
       <resource id="NewProjectStatusTooltip">Neuen Projektstatus anlegen</resource>
       <resource id="InfoTooltip">Meta-Information des ausgewählten Projektstatus einsehen</resource>
+      <resource id="EditTooltip">Meta-Information des ausgewählten Projektstatus bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Projektstatusobjekte löschen</resource>
       <resource id="UpTooltip">Ausgewählte Projektstatusobjekte nach oben verschieben</resource>
       <resource id="DownTooltip">Ausgewählte Projektstatusobjekte nach unten verschieben</resource>
@@ -56,10 +58,10 @@
    </resource-map>
 
    <resource-map id="project_status.error">
-      <resource id="StatusNameNotSpecified">Es wurde kein Projektstatusname vergeben</resource>
-      <resource id="StatusNameNotUnique">Der Projektstatusname wird bereits verwendet</resource>
-      <resource id="StatusNotFound">Der Projektstatus konnte nicht gefunden werden</resource>
-      <resource id="InsufficientPrivileges">Nur der Administrator darf Projektstatusobjekte verwalten</resource>
+      <resource id="ProjectStatusNameNotSpecified">Es wurde kein Projektstatusname vergeben</resource>
+      <resource id="ProjectStatusNameNotUnique">Der Projektstatusname wird bereits verwendet</resource>
+      <resource id="ProjectStatusNotFound">Der Projektstatus konnte nicht gefunden werden</resource>
+      <resource id="InsuffcientPrivileges">Nur der Administrator darf Projektstatusobjekte verwalten</resource>
    </resource-map>
-
+   
 </language-kit>

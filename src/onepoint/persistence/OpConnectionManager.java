@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -32,7 +32,7 @@ public final class OpConnectionManager {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpConnectionManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpConnectionManager.class, true);
 
    /**
     * Various SQL state values.
@@ -41,13 +41,13 @@ public final class OpConnectionManager {
    private static final String INVALID_CONNECTION_STRING_SQLSTATE = "08001";
    private static final String EXEC_PHASE_ERRORS_SQLSTATE_ORCL = "72000";    // SQL execute phase errors
 
-   private static final Map<Integer, Map<String, Integer>> EXCEPTIONAL_SQLSTATES;
+   private static final Map EXCEPTIONAL_SQLSTATES;
 
    static {
-      Map<String, Integer> oracleSqlstates = new HashMap<String, Integer>();
-      oracleSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_ORCL, INVALID_CREDENTIALS_EXCEPTION);
-      EXCEPTIONAL_SQLSTATES = new HashMap<Integer, Map<String, Integer>>();
-      EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.ORACLE, oracleSqlstates);
+      Map  oracleSqlstates = new HashMap();
+      oracleSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_ORCL, Integer.valueOf(INVALID_CREDENTIALS_EXCEPTION));
+      EXCEPTIONAL_SQLSTATES = new HashMap();
+      EXCEPTIONAL_SQLSTATES.put(Integer.valueOf(OpHibernateSource.ORACLE), oracleSqlstates);
    }
 
    /**
@@ -58,21 +58,20 @@ public final class OpConnectionManager {
 
    /**
     * Tests that a connection can be established to an underlying database, with the given parameters.
-    *
-    * @param databaseDriver   a <code>String</code> representing the database driver class name.
-    * @param databaseURL      a <code>String</code> representing a connect URL.
-    * @param databaseLogin    a <code>String</code> representing the user that attempts to connects.
+    * @param dbType a <code>int</code> constant, representing the type of the database.
+    * @param databaseDriver a <code>String</code> representing the database driver class name.
+    * @param databaseURL a <code>String</code> representing a connect URL.
+    * @param databaseLogin a <code>String</code> representing the user that attempts to connects.
     * @param databasePassword a <code>String</code> representing the password of the db connection.
-    * @param dbType           an <code>int</code> representing the db type.
     * @return a <code>int</code> representing a return code (either success or smth else).
     */
-   public static int testConnection(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword, int dbType) {
+   public static int testConnection(int dbType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       Connection conn = null;
       try {
          Class.forName(databaseDriver);
          conn = DriverManager.getConnection(databaseURL, databaseLogin, databasePassword);
          conn.getMetaData();
-         if (dbType == OpHibernateSource.MYSQL_INNODB && !isInnoDb(conn)) {
+         if ((dbType == OpHibernateSource.MYSQL || dbType == OpHibernateSource.MYSQL_INNODB) && !isInnoDb(conn)) {
             return INVALID_MYSQL_ENGINE;
          }
          else {
@@ -83,7 +82,7 @@ public final class OpConnectionManager {
          logger.error("Invalid db connection parameters (code " + e.getErrorCode() + " )", e);
          String sqlState = e.getSQLState();
          if (sqlState == null) {
-            return GENERAL_CONNECTION_EXCEPTION;
+            return GENERAL_CONNECTION_EXCEPTION;   
          }
          if (sqlState.equalsIgnoreCase(INVALID_CREDENTIALS_SQLSTATE)) {
             return INVALID_CREDENTIALS_EXCEPTION;
@@ -91,8 +90,9 @@ public final class OpConnectionManager {
          if (sqlState.equalsIgnoreCase(INVALID_CONNECTION_STRING_SQLSTATE)) {
             return INVALID_CONNECTION_STRING_EXCEPTION;
          }
-         if (EXCEPTIONAL_SQLSTATES.containsKey(dbType) && EXCEPTIONAL_SQLSTATES.get(dbType).containsKey(sqlState)) {
-            return EXCEPTIONAL_SQLSTATES.get(dbType).get(sqlState);
+         if (EXCEPTIONAL_SQLSTATES.containsKey(Integer.valueOf(dbType)) &&
+              ((Map) EXCEPTIONAL_SQLSTATES.get(Integer.valueOf(dbType))).containsKey(sqlState)) {
+            return ((Integer) ((Map) EXCEPTIONAL_SQLSTATES.get(Integer.valueOf(dbType))).get(sqlState)).intValue();
          }
          return GENERAL_CONNECTION_EXCEPTION;
       }
@@ -111,7 +111,7 @@ public final class OpConnectionManager {
     * @param st a <code>Statement</code> object.
     * @param rs a <code>ResultSet</code> object.
     */
-    public static void closeJDBCObjects(Connection conn, Statement st, ResultSet rs) {
+   private static void closeJDBCObjects(Connection conn, Statement st, ResultSet rs) {
       if (rs != null) {
          try {
             rs.close();

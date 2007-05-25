@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.my_tasks.test;
@@ -68,11 +68,11 @@ public class OpMyTasksServiceTest extends OpBaseTestCase {
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, 1d, false, poolid);
+      XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, false, poolid);
       XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       resId = resourceDataFactory.getResourceByName(RESOURCE_NAME).locator();
-      request = resourceDataFactory.createResourceMsg(RESOURCE_NAME + 2, "description", 10d, 9d, 1d, false, poolid);
+      request = resourceDataFactory.createResourceMsg(RESOURCE_NAME + 2, "description", 10d, 9d, false, poolid);
       response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res2Id = resourceDataFactory.getResourceByName(RESOURCE_NAME + 2).locator();
@@ -128,15 +128,15 @@ public class OpMyTasksServiceTest extends OpBaseTestCase {
 
       String prjChoice = XValidator.choice(projId, PROJECT_NAME);
       String resChoice = XValidator.choice(resId, RESOURCE_NAME);
-      XMessage request = MyTasksTestDataFactory.addAdhocMsg(null, null, 1, null, null, null);
+      XMessage request = MyTasksTestDataFactory.addAdhocMsg(null, null, 0, null, null, null);
       XMessage response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.EMPTY_NAME_ERROR_CODE);
 
-      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 1, null, null, null);
+      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 0, null, null, null);
       response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.NO_PROJECT_ERROR_CODE);
 
-      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 1, null, prjChoice, null);
+      request = MyTasksTestDataFactory.addAdhocMsg(ACTIVITY_NAME, null, 0, null, prjChoice, null);
       response = service.addAdhocTask(session, request);
       assertError(response, OpMyTasksError.NO_RESOURCE_ERROR_CODE);
 

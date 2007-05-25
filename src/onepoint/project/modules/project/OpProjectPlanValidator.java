@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -23,7 +23,7 @@ public class OpProjectPlanValidator {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanValidator.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanValidator.class, true);
 
    /**
     * The project plan that will be validated.
@@ -69,6 +69,7 @@ public class OpProjectPlanValidator {
     *                  Can be <code>null</code>.
     */
    public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
+      OpTransaction tx = broker.newTransaction();
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
@@ -76,6 +77,8 @@ public class OpProjectPlanValidator {
       logger.info("Revalidating working version plan for " + projectNode.getName());
       OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+
+      tx.commit();
    }
 
    /**

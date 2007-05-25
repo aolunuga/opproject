@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 package onepoint.project.modules.project.components.test;
 
@@ -54,9 +54,9 @@ public class OpGanttValidatorTest extends TestCase {
    private static final String MILESTONE_ID = "Milestone";
 
    private String WORKER1_ID = "OpResource.16.xid";
-   private final String WORKER1 = WORKER1_ID + "['Worker1']";
+   private final String WORKER1 = WORKER1_ID +"['Worker1']";
    private String WORKER2_ID = "OpResource.18.xid";
-   private final String WORKER2 = WORKER2_ID + "['Worker2']";
+   private final String WORKER2 = WORKER2_ID +"['Worker2']";
 
    private final double DOUBLE_ERROR_MARGIN = Math.pow(10, -4);
 
@@ -67,8 +67,9 @@ public class OpGanttValidatorTest extends TestCase {
         throws Exception {
       super.setUp();
 
-      XDisplay display = new XDisplay(null);
-      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+      XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
+      Map calendarSettings = defaultCalendar.getCalendarSettings();
+      defaultCalendar.configure(calendarSettings, new XLocale("de", ""), null);
 
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
@@ -142,7 +143,7 @@ public class OpGanttValidatorTest extends TestCase {
       validator = getValidator();
 
       //set Work records map
-      for (int i = 0; i < testDataSet.getChildCount(); i++) {
+      for (int i=0; i<testDataSet.getChildCount(); i++) {
          XComponent row = (XComponent) testDataSet.getChild(i);
          OpGanttValidator.setWorkRecords(row, new HashMap());
       }
@@ -907,22 +908,17 @@ public class OpGanttValidatorTest extends TestCase {
       assertNull("The name is not null ", OpGanttValidator.getName(dataRow));
       assertEquals("The type is not correct ", OpGanttValidator.STANDARD, OpGanttValidator.getType(dataRow));
       assertEquals("The % complete is not correct ", 0.0d, OpGanttValidator.getComplete(dataRow), 0);
-      // different for weekdays and wekends
-      if (!XCalendar.getDefaultCalendar().isWorkDay(XCalendar.today())) {
-         assertEquals("The start date is not correct ", XCalendar.getDefaultCalendar().nextWorkDay(XCalendar.today()), OpGanttValidator.getStart(dataRow));
-      }
-      else {
-         assertEquals("The start date is not correct ", XCalendar.today(), OpGanttValidator.getStart(dataRow));
-      }
+      assertEquals("The start date is not correct ", XCalendar.today(), OpGanttValidator.getStart(dataRow));
 
       long endTime = XCalendar.today().getTime();
       Date expectedEndDate = new Date(endTime);
       int index = 0;
       while (index < WORKING_DAYS_IN_A_WEEK - 1) {
          expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
-         if (validator.getCalendar().isWorkDay(expectedEndDate)) {
-            index++; // increment days just for working days
+         if (!validator.getCalendar().isWorkDay(expectedEndDate)) {
+            expectedEndDate = validator.getCalendar().nextWorkDay(expectedEndDate);
          }
+         index ++;
       }
       assertEquals("The end date is not correct ", expectedEndDate, OpGanttValidator.getEnd(dataRow));
 
@@ -1199,8 +1195,7 @@ public class OpGanttValidatorTest extends TestCase {
       try {
          validator.setDataCellValue(activity0, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, successors);
          fail("The list of sucessors shouldn't have changed ");
-      }
-      catch (XValidationException e) {
+      } catch(XValidationException e){
          //out of range exception
          assertEquals("Expected RangeException", OpGanttValidator.RANGE_EXCEPTION, e.getMessage());
       }
@@ -1213,8 +1208,7 @@ public class OpGanttValidatorTest extends TestCase {
       try {
          validator.setDataCellValue(activity1, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, newSucessor);
          fail("Loop should have been detected");
-      }
-      catch (OpActivityLoopException e) {
+      }catch(OpActivityLoopException e){
          //expected exception
       }
 
@@ -1222,7 +1216,7 @@ public class OpGanttValidatorTest extends TestCase {
 
       ArrayList newResources = new ArrayList();
       newResources.add(WORKER1);
-      OpGanttValidator.setResources(activity0, newResources);
+      OpGanttValidator.setResources(activity0,newResources);
       assertEquals("The resources have not changed ", newResources, OpGanttValidator.getResources(activity0));
 
       double travelCosts = 40.5;
@@ -1328,7 +1322,7 @@ public class OpGanttValidatorTest extends TestCase {
       XView secondRow = validator.getDataSet().getChild(secondRowIndex);
       rowsToMove.add(secondRow);
 
-      validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, -1));
+      validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent)secondRow, -1));
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(5));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(6));
       ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
@@ -1546,7 +1540,7 @@ public class OpGanttValidatorTest extends TestCase {
       rowsToMove.add(secondRow);
 
       //move the activities over the bellow collection
-      int offset = validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, 1);
+      int offset = validator.getMovingOffset((XComponent)firstRow, (XComponent)secondRow, 1);
       validator.moveDataRows(rowsToMove, offset);
       int newFirstRowIndex = firstRowIndex + offset;
       assertEquals("The first row has not been moved down ", firstRow,
@@ -1850,7 +1844,7 @@ public class OpGanttValidatorTest extends TestCase {
       XComponent clipBoard = XDisplay.getClipboard();
       assertEquals("The clipboard should have 2 items", 2, clipBoard.getChildCount());
       //check for null value assigned to activity data row
-      for (int index = 0; index < clipBoard.getChildCount(); index++) {
+      for (int index = 0; index < clipBoard.getChildCount(); index ++) {
          Object activityValue = ((XComponent) clipBoard.getChild(index)).getValue();
          assertNull("The activity" + index + " value is not wrong", activityValue);
       }
@@ -1924,7 +1918,7 @@ public class OpGanttValidatorTest extends TestCase {
       assertEquals("The clipboard doesn't contain the cut data", 2, clipboard.getChildCount());
 
       //check for not null value assigned to activity data row
-      for (int index = 0; index < clipboard.getChildCount(); index++) {
+      for (int index = 0; index < clipboard.getChildCount(); index ++) {
          Object activityValue = ((XComponent) clipboard.getChild(index)).getValue();
          assertNotNull("The activity " + index + "'s value is not wrong", activityValue);
       }
@@ -2090,24 +2084,24 @@ public class OpGanttValidatorTest extends TestCase {
       //4 work phases
       ArrayList expectedStarts = new ArrayList();
       Calendar defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, Calendar.OCTOBER, 4);
+      defCalendar.set(2004, XCalendar.OCTOBER, 4);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 11);
+      defCalendar.set(2004, XCalendar.OCTOBER, 11);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 18);
+      defCalendar.set(2004, XCalendar.OCTOBER, 18);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 25);
+      defCalendar.set(2004, XCalendar.OCTOBER, 25);
       expectedStarts.add(defCalendar.getTime());
 
       ArrayList expectedEnds = new ArrayList();
       defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, Calendar.OCTOBER, 8);
+      defCalendar.set(2004, XCalendar.OCTOBER, 8);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 15);
+      defCalendar.set(2004, XCalendar.OCTOBER, 15);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 22);
+      defCalendar.set(2004, XCalendar.OCTOBER, 22);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 29);
+      defCalendar.set(2004, XCalendar.OCTOBER, 29);
       expectedEnds.add(defCalendar.getTime());
 
       ArrayList expectedEfforts = new ArrayList();
@@ -2152,24 +2146,24 @@ public class OpGanttValidatorTest extends TestCase {
       //4 work phases
       ArrayList expectedStarts = new ArrayList();
       Calendar defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, Calendar.OCTOBER, 4);
+      defCalendar.set(2004, XCalendar.OCTOBER, 4);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 11);
+      defCalendar.set(2004, XCalendar.OCTOBER, 11);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 18);
+      defCalendar.set(2004, XCalendar.OCTOBER, 18);
       expectedStarts.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 25);
+      defCalendar.set(2004, XCalendar.OCTOBER, 25);
       expectedStarts.add(defCalendar.getTime());
 
       ArrayList expectedEnds = new ArrayList();
       defCalendar = XCalendar.getDefaultCalendar().getCalendar();
-      defCalendar.set(2004, Calendar.OCTOBER, 8);
+      defCalendar.set(2004, XCalendar.OCTOBER, 8);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 15);
+      defCalendar.set(2004, XCalendar.OCTOBER, 15);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 22);
+      defCalendar.set(2004, XCalendar.OCTOBER, 22);
       expectedEnds.add(defCalendar.getTime());
-      defCalendar.set(2004, Calendar.OCTOBER, 29);
+      defCalendar.set(2004, XCalendar.OCTOBER, 29);
       expectedEnds.add(defCalendar.getTime());
 
       ArrayList expectedEfforts = new ArrayList();
@@ -2206,8 +2200,8 @@ public class OpGanttValidatorTest extends TestCase {
 
       ArrayList resources = new ArrayList();
       resources.add(WORKER2);
-      resources.add(WORKER1_ID + "['Worker 1 50%']");
-      validator.setDataCellValue(testedActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      resources.add(WORKER1_ID+"['Worker 1 50%']");
+      validator.setDataCellValue(testedActivity,OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
 
       //a week (5 days) (res1 - eff 40), (res2 - eff 20)
       validator.setDataCellValue(testedActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, new Double(60.0));

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -61,7 +61,7 @@ public final class OpModuleManager {
          // *** Add built-in modules here or hard-code completely?
       }
       // Register prototypes and tools for all modules
-      Iterator modules = moduleRegistry.iterator();
+      Iterator modules = moduleRegistry.getModules();
       OpModule module;
       Iterator prototypes;
       OpPrototype prototype;
@@ -173,7 +173,7 @@ public final class OpModuleManager {
    public static void setup() {
       // Invoke setup callbacks (for setting up a new instance)
       OpProjectSession setupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.setup(setupSession);
@@ -184,7 +184,7 @@ public final class OpModuleManager {
    public static void start() {
       // Invoke start callbacks
       OpProjectSession startupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.start(startupSession);
@@ -195,7 +195,7 @@ public final class OpModuleManager {
    public static void stop() {
       // *** Write module-registry?
       OpProjectSession shutdownSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.stop(shutdownSession);
@@ -211,7 +211,7 @@ public final class OpModuleManager {
     */
    public static void upgrade(int dbVersion) {
       OpProjectSession session = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
+      Iterator modules = moduleRegistry.getModules();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
          module.upgrade(session, dbVersion);

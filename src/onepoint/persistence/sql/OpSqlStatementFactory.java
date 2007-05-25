@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.sql;
@@ -34,7 +34,7 @@ public final class OpSqlStatementFactory {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpSqlStatementFactory.class);
+   private static final XLog logger = XLogFactory.getLogger(OpSqlStatementFactory.class, true);
 
    /**
     * Cannot create instances of this class.

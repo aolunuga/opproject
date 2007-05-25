@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.report;
@@ -24,7 +24,7 @@ public class OpReportDataSource implements JRDataSource {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpReportDataSource.class);
+   private static final XLog logger = XLogFactory.getLogger(OpReportDataSource.class, true);
 
    /**
     * The map of [reportFieldName, reportFieldIndex] pairs.

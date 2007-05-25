@@ -5,6 +5,7 @@
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">Nouveau CRA</resource>
       <resource id="Info">Propriétés</resource>
+      <resource id="Edit">Modifier</resource>
       <resource id="Delete">Supprimer</resource>
       <resource id="Number">Numéro</resource>
       <resource id="Resource">Ressource</resource>
@@ -12,6 +13,7 @@
 
       <resource id="NewWorkSlipTooltip">Créer un nouveau CRA</resource>
       <resource id="InfoTooltip">Voir les meta information des CRA choisis</resource>
+      <resource id="EditTooltip">Modifier les meta information des CRA choisis</resource>
       <resource id="DeleteTooltip">Supprimer les CRA choisis</resource>
 
       <resource id="Time">Période De Temps</resource>
@@ -77,8 +79,6 @@
    <resource-map id="work.error">
       <resource id="DateMissing">La date du CRA n'a pas été indiquée</resource>
       <resource id="DuplicateDate">Un CRA pour la date indiquée existe déjà</resource>
-      <resource id="CreatorMissing">The work slip creator was not specified (en)</resource>
-      <resource id="WorkRecordsMissing">The work slip has no valid work records (en)</resource>
       <resource id="IncorrectActualEffort">Effort Actuel Invalide</resource>
       <resource id="IncorrectRemainingEffort">Effort Obligatoire Invalide</resource>
       <resource id="IncorrectMaterialCosts">Coûts Materiel Invalide</resource>
