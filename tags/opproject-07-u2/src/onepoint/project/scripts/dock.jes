@@ -1,0 +1,46 @@
+// Event-script for dock.oxf.xml
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+
+function NavigationBox_onButtonPressed(event) {
+   form_location = event.event_source.getStringValue();
+   main_frame = XDisplay.findFrame("MainFrame");
+   main_frame.showForm(form_location);
+}
+
+function expandDivision(event){
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setIntValue(division.getLastIntValue());
+   division.setResizeable(true);
+   division.doLayout();
+   division.getParent().repaint();
+}
+
+function collapseDivision(event){
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setLastIntValue(division.getIntValue());
+   division.setResizeable(false);
+   division.setIntValue(20);
+   division.doLayout();
+   division.getParent().repaint();
+}
+
+function resizeDivision(event) {
+   dockFrame = XDisplay.findFrame("DockFrame");
+   division = dockFrame.getParent();
+   division.setLastIntValue(division.getIntValue());
+   division.setResizeable(false);
+   division.setIntValue(division.getIntValue() + event.modifiers);
+   division.doLayout();
+   division.getParent().repaint();
+}
+
+function showForm(event) {
+   dockFrame = XDisplay.findFrame("DockFrame");
+   form = dockFrame.getChild(0);
+   box = form.findComponent("NavigationBox");
+   box.requestFocus();
+}

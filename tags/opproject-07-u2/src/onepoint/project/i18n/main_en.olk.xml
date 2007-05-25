@@ -1,0 +1,51 @@
+<language-kit locale="en">
+   <resource-map id="main.login">
+      <resource id="Login">Login</resource>
+      <resource id="Password">Password</resource>
+      <resource id="OK">OK</resource>
+      <resource id="MySQLEngineWarning">WARNING: You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>
+   </resource-map>
+   <resource-map id="main.levels">
+      <resource id="runLevel0">Could not load configuration file</resource>
+      <resource id="runLevel1">Could not load registered modules</resource>
+      <resource id="runLevel2">Cannont configure persistence support to access the database</resource>
+      <resource id="runLevel3">Repository structure could not be set up</resource>
+      <resource id="runLevel4">Could not update database schema</resource>
+      <resource id="runLevel5">Could not start registered modules</resource>
+   </resource-map>
+   <resource-map id="main.header">
+      <resource id="ClearResourceCache">Clear Resource Cache</resource>
+      <resource id="ClearImageCache">Clear Image Cache</resource>
+      <resource id="GetBandwidthInfo">Show Bandwidth Information</resource>
+      <resource id="SignOff">Sign off</resource>
+      <resource id="Quit">Quit</resource>      
+   </resource-map>
+   <resource-map id="main.dock">
+      <resource id="ToolDock">TOOL DOCK</resource>
+   </resource-map>
+
+   <resource-map id="main.about">
+      <resource id="OK">OK</resource>
+      <resource id="About">About Onepoint Project</resource>
+      <resource id="Version">Version: </resource>
+      <resource id="CurrentVersion">most current version: </resource>
+   </resource-map>
+
+   <resource-map id="main.bandwidth">
+      <resource id="OK">OK</resource>
+      <resource id="BandwidthInfo">Measured Bandwidth (Kb/s)</resource>
+      <resource id="MinVal">Minimum</resource>
+      <resource id="MaxVal">Maximum</resource>
+      <resource id="AvgVal">Average</resource>
+   </resource-map>
+
+   <resource-map id="main.error">
+      <resource id="Error">Error</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Warning">Warning</resource>
+      <resource id="SessionExpired">Your user session has expired. Please log in again.</resource>
+      <resource id="InsuficientViewPermissions">You do not have sufficient privileges to view this information</resource>
+      <resource id="InvalidSession">You must be signed on in order to view this information</resource>
+      <resource id="InvalidFileURL">Could not open file, because of an invalid request format</resource>
+   </resource-map>
+</language-kit>

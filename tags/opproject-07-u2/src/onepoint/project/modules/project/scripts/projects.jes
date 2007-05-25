@@ -1,0 +1,369 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
+
+function newPortfolio(event) {
+   // Check if portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      if (is_portfolio) {
+         parameters.super_portfolio_id = selected_rows[0].getStringValue();
+         parameters.super_portfolio_index = selected_rows[0].getIndex();
+      }
+   }
+
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/new_portfolio.oxf.xml", parameters);
+}
+
+function getNewProjectParameters() {
+   parameters = null;
+   // Check if portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      if (is_portfolio) {
+         parameters.portfolio_id = selected_rows[0].getStringValue();
+         parameters.portfolio_index = selected_rows[0].getIndex();
+      }
+   }
+   return parameters;
+}
+
+/**
+ * @IsOverridden
+ */
+function newProject(event) {
+   parameters = getNewProjectParameters();
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/new_project.oxf.xml", parameters);
+}
+
+function move(event) {
+   // Check if a project/portfolio is selected
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      openProjectChooser("MainFrame", "moveOk", null, null, false, true, false, null, false);
+   }
+}
+
+function moveOk(portfolioChoice) {
+   portfolioId = XValidator.choiceID(portfolioChoice);
+   
+   resource_data_set = XDisplay.findFrame("MainFrame").currentForm().findComponent("ProjectDataSet");
+   selected_rows = resource_data_set.selectedRows();
+
+   projectNodeIds = getPortfolioIds(selected_rows);
+   projectsAndTemplatesIds = getProjectsAndTemplatesIds(selected_rows, projectNodeIds);
+   projectNodeIds.addAll(projectsAndTemplatesIds);
+
+   request = new XMessage;
+   request.setAction("ProjectService.moveProjectNode");
+   request.setArgument("project_ids", projectNodeIds);
+   request.setArgument("portfolio_id", portfolioId);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (response.getError() != null) {
+      showWarning(response, true, "MainFrame", "refreshForm", null);
+   }
+   else {
+      refreshForm();
+   }
+}
+
+function refreshForm(){
+   XDisplay.findFrame("MainFrame").refreshForm();
+}
+
+
+/**
+ * Gets all the portfolios from a list of selected rows.
+ */
+function getPortfolioIds(selectedRows) {
+   result = new ArrayList;
+   rowsList = new ArrayList;
+   i = 0;
+   while (i < selectedRows.size()) {
+      selectedRow = selectedRows[i];
+      descriptor = selectedRow.getChild(0).getStringValue();
+      isPortfolio = descriptor.equals("f");
+      if (isPortfolio) {
+         currentId = selectedRow.getStringValue();
+
+         //make sure none of the children of the given pool are selected
+         childrenIds = getChildrenIds(selectedRow);
+         j = 0;
+         while (j < childrenIds.size()) {
+            childId = childrenIds[j];
+            if (result.contains(childId)) {
+               result.remove(childId);
+            }
+            j++;
+         }
+         result.add(currentId);
+
+         //if any of the parents of the given row is selected, remove the current row
+         parentIds = getParentIds(selectedRow);
+         j = 0;
+         while (j < parentIds.size()) {
+            parentId = parentIds[j];
+            if (result.contains(parentId)) {
+               result.remove(currentId);
+               //break
+               j = parentIds.size();
+            }
+            else {
+               j++;
+            }
+         }
+      }
+      i++;
+   }
+
+   return result;
+}
+
+/**
+ * Returns a list of projects and template ids whose parent portfolios aren't found among the given list of portfolios.
+ */
+function getProjectsAndTemplatesIds(selectedRows, portfolioIds) {
+   result = new ArrayList;
+   i = 0;
+   while (i < selectedRows.size()) {
+      selectedRow = selectedRows[i];
+      descriptor = selectedRow.getChild(0).getStringValue();
+      isProject = descriptor.equals("t");
+      isTemplate = descriptor.equals("p");
+      if (isProject || isTemplate) {
+         parentIds = getParentIds(selectedRow);
+         foundAmongstPortfolios = false;
+         j = 0;
+         while (j < parentIds.size()) {
+            portfolioId = parentIds[j];
+            if (portfolioIds.contains(portfolioId)) {
+               foundAmongstPortfolios = true;
+               //some sort of break....
+               j = parentIds.size();
+            }
+            else {
+               j++;
+            }
+         }
+         if (!foundAmongstPortfolios) {
+            result.add(selectedRow.getStringValue());
+         }
+      }
+      i++;
+   }
+   return result;
+}
+
+/**
+ * Returns a List<String> with all the ids (recursively) of the parents of a data-row inside a data-set.
+ */
+function getParentIds(row) {
+   result = new ArrayList;
+   parentRow = row.getParentInDataSet();
+   while (parentRow.getOutlineLevel() > 0) {
+      result.add(parentRow.getStringValue());
+      parentRow = parentRow.getParentInDataSet();
+   }
+   result.add(parentRow.getStringValue());
+   return result;
+}
+
+/**
+ * Returns a List<String> with all the ids of the children of the given row
+ */
+function getChildrenIds(row) {
+   result = new ArrayList;
+   i = 0;
+   subRows = row.getSubRows();
+   while (i < subRows.size()) {
+      result.add(subRows[i].getStringValue());
+      i++;
+   }
+   return result;
+}
+
+function editPortfolio(portfolioId, editMode) {
+   parameters.edit_mode = editMode;
+   parameters.portfolio_id = portfolioId;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/edit_portfolio.oxf.xml", parameters);
+}
+
+/**
+ * @IsOverridden
+ */
+function editProject(projectId, editMode) {
+   parameters.edit_mode = editMode;
+   parameters.project_id = projectId;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project/forms/edit_project.oxf.xml", parameters);
+}
+
+/**
+ * @IsOverridden
+ */
+function info(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      is_portfolio = descriptor.equals("f");
+      is_project = descriptor.equals("p");
+
+      if (is_portfolio) {
+         editPortfolio(selected_rows[0].getStringValue(), false);
+      }
+
+      if (is_project) {
+         editProject(selected_rows[0].getStringValue(), false);
+      }
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function edit(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+
+      is_portfolio = descriptor.equals("f");
+      is_project = descriptor.equals("p");
+
+      if (is_portfolio) {
+         editPortfolio(selected_rows[0].getStringValue(), true);
+      }
+
+      if (is_project) {
+         editProject(selected_rows[0].getStringValue(), true);
+      }
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function delete(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      parameters.rows = selected_rows;
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/project/forms/confirm_project_delete.oxf.xml", parameters);
+   }
+}
+
+/**
+ * @IsOverridden
+ */
+function selectionChanged(event) {
+   //project form
+   form = XDisplay.getActiveForm();
+   //toolbar
+   toolbar = form.findComponent("ProjectToolbar");
+
+   //toolbar buttons
+   newProjectButton = form.findComponent("NewProjectButton");
+   newProjectButton.setEnabled(true);
+   newPortfolioButton = form.findComponent("NewPortfolioButton");
+   newPortfolioButton.setEnabled(true);
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(true);
+   moveButton = form.findComponent("MoveButton");
+   moveButton.setEnabled(true);
+   editButton = form.findComponent("EditButton");
+   editButton.setEnabled(true);
+   deleteButton = form.findComponent("DeleteButton");
+   deleteButton.setEnabled(true);
+
+   //permissions
+   rootPortfolioPermission = form.findComponent("RootPortfolioPermission").getByteValue();
+   managerPermission = form.findComponent("ManagerPermission").getByteValue();
+
+   tableRow = event.event_source;
+   dataRow = tableRow.getDataComponent();
+   if (dataRow != null) {
+      descriptor = dataRow.getChild(0).getStringValue();
+      effectiveProjectNodePermission = dataRow.getChild(5).getByteValue();
+      if (descriptor.equals("f")) {
+         //portfolio was selected
+         if (effectiveProjectNodePermission < managerPermission) {
+            //the user isn't at least manager on the selected node
+            newProjectButton.setEnabled(false);
+            newPortfolioButton.setEnabled(false);
+         }
+      }
+      else {
+         //project was selected
+         if (rootPortfolioPermission < managerPermission) {
+            //the user isn't at least manager on the root portfolio
+            newProjectButton.setEnabled(false);
+            newPortfolioButton.setEnabled(false);
+         }
+      }
+
+      //these buttons apply to all types of project nodes
+      if (effectiveProjectNodePermission < managerPermission) {
+         //the user isn't at least manager on the selected node
+         moveButton.setEnabled(false);
+         editButton.setEnabled(false);
+      }
+
+      //for the delete button we must also check parent permissions
+      parentRow = dataRow.getParentInDataSet();
+      effectiveParentPermission = parentRow.getChild(5).getByteValue();
+      if (effectiveParentPermission < managerPermission) {
+         deleteButton.setEnabled(false);
+      }
+
+   }
+   toolbar.doLayout();
+   toolbar.repaint();
+}
+
+function addProjectResourceOk(selectedResources){
+   dialog = XDisplay.getActiveForm();
+   dataSet = dialog.findComponent("AssignedResourceDataSet");
+   i = 0;
+   while (i < selectedResources.size()) {
+      resource_id = selectedResources[i];
+      data_row = dataSet.newDataRow();
+      data_row.setStringValue(resource_id.getStringValue());
+      dataSet.addDataRow(data_row);
+      i++;
+   }
+   resource_list_box = dialog.findComponent("AssignedResourcesListBox");
+   resource_list_box.update();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectNode");
+   request.setArgument("project_row", dataRow);
+
+   expandNode(dataRow, 9, request);
+}
+

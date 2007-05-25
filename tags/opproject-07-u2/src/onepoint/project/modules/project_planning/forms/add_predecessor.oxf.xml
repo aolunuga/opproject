@@ -1,0 +1,15 @@
+<form layout="border" width="240" height="144" text="{$AddPredecessor}" resource-map-ref="project_planning.AddPredecessor" script="/modules/project_planning/scripts/add_predecessor.jes">
+
+   <data-set id="ActivityDataSet"/>
+
+   <panel layout="border">
+      <list-box y="0" id="ActivityList" data-set-ref="ActivityDataSet" flexible="true"/>
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="cancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+   </panel>
+
+</form>

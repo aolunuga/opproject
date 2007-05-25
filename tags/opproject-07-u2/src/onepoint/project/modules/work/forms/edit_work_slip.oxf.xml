@@ -1,0 +1,65 @@
+<form layout="border" width="900" height="540" text="{$EditWorkSlip}" resource-map-ref="work.edit_work_slip"
+      provider-class="onepoint.project.modules.work.forms.OpEditWorkSlipFormProvider"
+      script="/modules/work/scripts/edit_work_slip.jes"
+      default-button-ref="okButton">
+   <!-- Maybe have a white background (border element w/white background) for the user data -->
+   <!-- data-set id="ActivitySet"/ -->
+   <data-field id="WorkSlipIDField"/>
+   <data-field id="EditMode"/>
+   <data-set id="WorkRecordSet"/>
+   <data-set id="NewAddedActivities"/>
+   <panel layout="border">
+	   
+      <panel layout="table" y="-1">
+         <label x="0" y="0" width="10" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <label x="0" y="1" width="2" text="{$Date}"/>
+         <date-field x="2" y="1" width="3" id="DateField" enabled="false"/>
+	  </panel>
+	   
+	  <panel layout="border">
+		  
+      <tab-box flexible="true">
+
+         <tab text="{$Effort}" layout="border">
+            <table-box id="EffortTable" data-set-ref="WorkRecordSet" edit-mode="true">
+               <table-column width="300" text="{$Task}" data-column-index="0" value-type="Choice" data-set-ref="ActivitySet"/>
+               <table-column width="100" text="{$Project}" data-column-index="13" value-type="String"/>
+               <table-column width="70" text="{$AssignmentEffort}" data-column-index="14" value-type="Double"/>
+               <table-column width="80" text="{$Resource}" data-column-index="8" value-type="String" id="ResourceColumnEffort"/>
+               <table-column width="70" text="{$Worktime}" data-column-index="1" value-type="Double" sortable="true" on-value-changed="workTimeEntered"/>
+               <table-column width="70" text="{$RemainingEffort}" data-column-index="2"  on-value-changed="remainingEntered" value-type="Double" sortable="true"/>
+               <table-column width="40" text="{$Completed}" data-column-index="10" on-value-changed="completedEntered" value-type="Boolean" sortable="false"/>
+               <table-column width="80" text="{$Comment}" data-column-index="7" value-type="String" sortable="true"/>
+            </table-box>
+         </tab>
+
+         <tab text="{$Costs}" layout="border">
+            <table-box id="CostsTable" data-set-ref="WorkRecordSet" edit-mode="true">
+               <table-column width="300" text="{$Task}" data-column-index="0" value-type="Choice" data-set-ref="ActivitySet"/>
+               <table-column width="100" text="{$Project}" data-column-index="13" value-type="String"/>
+               <table-column width="80" text="{$Resource}" data-column-index="8" value-type="String" id="ResourceColumnCosts"/>
+               <table-column width="70" text="{$Material}" data-column-index="3" value-type="Double" sortable="true"/>
+               <table-column width="70" text="{$Travel}" data-column-index="4" value-type="Double" sortable="true"/>
+               <table-column width="70" text="{$External}" data-column-index="5" value-type="Double" sortable="true"/>
+               <table-column width="70" text="{$Misc}" data-column-index="6" value-type="Double" sortable="true"/>
+            </table-box>
+         </tab>
+
+      </tab-box>
+	   
+	      <panel y="1" layout="flow" direction="east">
+	         <icon-button icon-type="PlusSign" id="WorkSlipAddIcon" on-button-pressed="addWorkSlip"/>
+		  </panel>
+		  
+	</panel>
+	   
+   <panel y="1" layout="flow" direction="west">
+      <panel layout="border">
+         <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+         <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+      </panel>
+   </panel>
+
+   </panel>
+
+</form>

@@ -1,0 +1,19 @@
+<language-kit locale="de">
+   <resource-map id="project_resources.module">
+      <resource id="ProjectResourcesTool">Ressourcen</resource>
+   </resource-map>
+   <resource-map id="project_resources.project_resources">
+      <resource id="ProjectResources">Projektressourcen</resource>
+      <resource id="Print">Drucken</resource>
+      <resource id="PrintTooltip">Diese Ansicht drucken</resource>
+      <resource id="ActivityOrResource">Vorgang/Ressource</resource>
+      <resource id="Base">Plan (h)</resource>
+      <resource id="Actual">Ist (h)</resource>
+      <resource id="Remaining">Rest (h)</resource>
+      <resource id="Projected">Erwartet (h)</resource>
+      <resource id="Deviation">Abw. (h)</resource>
+      <resource id="PercentageDeviation">Abw. (%)</resource>
+      <resource id="SaveCSV">Als Tabelle speichern...</resource>
+      <resource id="SaveImage">Als Bild speichern...</resource>
+   </resource-map>
+</language-kit>

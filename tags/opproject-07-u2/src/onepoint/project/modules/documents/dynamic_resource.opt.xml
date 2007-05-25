@@ -1,0 +1,6 @@
+<prototype name="OpDynamicResource" instance-class="onepoint.project.modules.documents.OpDynamicResource">
+   <field name="Locale" type="String"/>
+   <field name="Name" type="String" indexed="true"/>
+   <field name="Value" type="String"/>
+   <relationship name="Object" type="OpObject" back-relationship="DynamicResources"/>
+</prototype>

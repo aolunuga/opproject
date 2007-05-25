@@ -1,0 +1,50 @@
+<service name="ProjectService" class="onepoint.project.modules.project.OpProjectAdministrationService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="insertProject">
+      <parameter name="project_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateProject">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="project_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteProjects">
+      <parameter name="project_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="insertPortfolio">
+      <parameter name="portfolio_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updatePortfolio">
+      <parameter name="portfolio_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="portfolio_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deletePortfolios">
+      <parameter name="portfolio_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="insertTemplate">
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="saveAsTemplate">
+      <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateTemplate">
+      <parameter name="template_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="template_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="deleteTemplates">
+      <parameter name="template_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="assignToProject">
+      <parameter name="resource_ids" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="target_project_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="moveProjectNode">
+      <parameter name="project_ids" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="portfolio_id" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="expandProjectNode">
+      <parameter name="project_row" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
+   <method name="expandProjectChooserNode">
+      <parameter name="project_row" instance-class="onepoint.express.XComponent" mode="input"/>
+   </method>
+</service>

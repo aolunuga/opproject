@@ -1,0 +1,35 @@
+<form layout="border" width="750" height="450" text="{$ImportUser}" resource-map-ref="resource.ImportUser" provider-class="onepoint.project.modules.resource.forms.OpImportUserFormProvider" script="/modules/resource/scripts/import_user.jes">
+   <data-set id="UserDataSet"/>
+   <data-set id="PoolDataSet"/>
+
+   <panel id="tp" y="0" layout="border">
+   <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default" />
+   <tab-box>
+   <tab text="{$General}" layout="border" id="GeneralTab">
+      <list-box y="0" id="UserList" tree="false" data-set-ref="UserDataSet" flexible="true"/>
+      <panel y="1" layout="table">
+         <label x="0" y="0" width="2" text="{$Pool}"/><choice-field x="2" y="0" width="3" id="PoolList" data-set-ref="PoolDataSet"/>
+         <label x="0" y="1" width="2" text="{$Available}"/><double-field x="2" y="1" width="3" id="Available" double-value="100"/>
+         <label x="0" y="2" width="2" text="{$HourlyRate}"/><double-field x="2" y="2" width="3" id="HourlyRate"/>
+         <check-box x="2" y="3" width="3" text="{$InheritPoolRate}" id="InheritPoolRate" boolean-value="true"/>
+      </panel>
+   </tab>
+   <tab text="{$Projects}" layout="border" id="ProjectsTab">
+      <data-set id="AssignedProjectDataSet"/>
+      <list-box y="0" id="AssignedProjectListBox" data-set-ref="AssignedProjectDataSet" flexible="true"/>
+      <panel y="1" layout="flow" direction="east">
+         <icon-button icon-type="PlusSign" on-button-pressed="addProject"/>
+         <icon-button icon-type="MinusSign" on-button-pressed="removeProject"/>
+      </panel>
+   </tab>
+   </tab-box>
+
+   <panel y="1" layout="flow" direction="west">
+	  <panel layout="border">
+      <button x="0" id="OkButton" text="{$OK}" on-button-pressed="ok"/>
+      <button x="1" id="CancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
+	  </panel>
+   </panel>
+
+   </panel>
+</form>

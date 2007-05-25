@@ -1,0 +1,42 @@
+<module name="project" caption="Projekte" version="0.8" class="onepoint.project.modules.project.OpProjectModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/project/project_node.opt.xml"/>
+      <prototype-file file-name="/modules/project/project_node_assignment.opt.xml"/>
+      <prototype-file file-name="/modules/project/project_plan.opt.xml"/>
+      <prototype-file file-name="/modules/project/activity.opt.xml"/>
+      <prototype-file file-name="/modules/project/assignment.opt.xml"/>
+      <prototype-file file-name="/modules/project/attachment.opt.xml"/>
+      <prototype-file file-name="/modules/project/work_period.opt.xml"/>
+      <prototype-file file-name="/modules/project/dependency.opt.xml"/>
+      <prototype-file file-name="/modules/project/activity_comment.opt.xml"/>
+      <prototype-file file-name="/modules/project/project_plan_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/activity_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/assignment_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/attachment_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/work_period_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/dependency_version.opt.xml"/>
+      <prototype-file file-name="/modules/project/goal.opt.xml"/>
+      <prototype-file file-name="/modules/project/to_do.opt.xml"/>
+      <prototype-file file-name="/modules/project/activity_category.opt.xml"/>
+      <prototype-file file-name="/modules/project/project_status.opt.xml"/>
+   </prototype-files>
+   <service-files>
+      <service-file file-name="/modules/project/project_service.osd.xml"/>
+   </service-files>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/project/i18n/project_en.olk.xml"/>
+      <language-kit-file file-name="/modules/project/i18n/project_de.olk.xml"/>
+      <language-kit-file file-name="/modules/project/i18n/project_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/project/i18n/project_fr.olk.xml"/>
+   </language-kit-files>
+   <tool-groups>
+      <tool-group name="projects" caption="{$ProjectsToolGroup}"/>
+      <tool-group name="my" caption="{$MyToolGroup}"/>
+      <tool-group name="reports" caption="{$ReportsToolGroup}"/>
+	    <tool-group name="resources" caption="{$ResourcesToolGroup}"/>
+	    <tool-group name="system" caption="{$SystemToolGroup}" administrator-only="true"/>
+   </tool-groups>
+   <tools>
+      <tool name="projects" caption="{$ProjectsAdministrationTool}" group-ref="projects" icon="/modules/project/icons/project_tool.png" start-form="/modules/project/forms/projects.oxf.xml" selected="true"/>
+   </tools>
+</module>
