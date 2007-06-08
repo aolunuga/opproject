@@ -1,46 +1,16 @@
-<project name="opproject-07-u2" basedir="." default="dist.war">
+<project name="opproject-07u2" basedir="." default="dist.war">
 
    <!-- Sets property references that are used throught the build file -->
-   <property name="op.jdk.target" value="1.4"/>
-   <property name="op.jdk.source" value="1.4"/>
-   <property name="op.src.dir" value="src"/>
-   <property name="op.build.dir" value="build"/>
-   <property name="op.dist.dir" value="dist"/>
-   <property name="op.release.dir" value="release"/>
-   <property name="op.lib.dir" value="lib"/>
-   <property name="op.applet.dir" value="applet"/>
-   <property name="op.jars.dir" value="jars"/>
-   <property name="op.reportsjar.dir" value="reportjars"/>
-   <property name="op.calendars.dir" value="calendars"/>
-   <property name="op.rootpackage.name" value="onepoint"/>
-   <property name="op.security.dir" value="security"/>
-   <property name="op.demodata.dir" value="demodata"/>
-   <property name="op.license.file" value="license.txt"/>
-   <property name="op.readme.open.file" value="readme_open.txt"/>
-   <property name="op.readme.basic.file" value="readme_basic.txt"/>
-   <property name="op.keystore" value="${op.security.dir}/onepoint.ks"/>
-   <property name="op.keystore.password" value="onepoint"/>
-   <property name="op.keystore.key" value="onepoitkey"/>
-   <property name="op.reports.dir" value="onepoint/project/reports"/>
-   <property name="op.release.name" value="opproject-07-u2"/>
-   <property name="project.basic.jarname" value="${op.release.name}-be.jar"/>
-   <property name="project.open.jarname" value=".jar"/>
-   <property name="project.client.jarname" value="opproject-client-07-u2.jar"/>
-   <property name="op.warname" value="opproject"/>
-   <property name="express.client.jarname" value="express4j-client-07-u2.jar"/>
-   <property name="op.zip.root.dir" value="opproject"/>
+   <property file="build.properties"/>
+
+   <property name="op.dist.dir" value="${op.dist.main.dir}/${op.dist.root.dir}"/>
+   <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
+   <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
 
    <property name="build.dir" value="${op.build.dir}/classes"/>
    <property name="test.dir" value="${op.build.dir}/tests"/>
    <property name="applet.dir" value="${op.build.dir}/${op.applet.dir}"/>
    <property name="jars.dir" value="${op.build.dir}/${op.jars.dir}"/>
-   <property name="webxml.file" value="WEB-INF/web.xml"/>
-   <property name="webimages.dir" value="images"/>
-
-   <property name="report.jars.base" value="${op.dist.dir}/${op.reportsjar.dir}"/>
-   <property name="calendars.dir" value="${op.dist.dir}/${op.calendars.dir}"/>
-
-   <property name="release.root.filename" value="opproject-07-u2"/>
 
    <!-- Classpath reference -->
    <path id="op.classpath">
@@ -153,7 +123,7 @@
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
       <delete dir="${op.build.dir}"/>
-      <delete dir="${op.dist.dir}"/>
+      <delete dir="${op.dist.main.dir}"/>
       <delete dir="${op.release.dir}"/>
    </target>
 
@@ -163,8 +133,7 @@
          <mkdir dir="${build.dir}"/>
          <javac srcdir="${op.src.dir}" destdir="${build.dir}"
                 classpathref="op.classpath" debug="true"
-                target="${op.jdk.target}" source="${op.jdk.source}" deprecation="on"
-              >
+                target="${op.jdk.target}" source="${op.jdk.source}" deprecation="on">
             <patternset refid="compile.pathid"/>
          </javac>
       </sequential>
@@ -199,7 +168,7 @@
       <compile/>
 
       <!--opproject.jar -->
-      <build.main.jar target="${op.dist.dir}/${project.open.jarname}"/>
+      <build.main.jar target="${op.dist.dir}/${project.basic.jarname}"/>
 
       <!--build reports-->
       <jar.reports/>
@@ -207,6 +176,28 @@
       <!--copy to dist dir registry.xml-->
       <copy todir="${op.dist.dir}">
          <fileset dir="${op.src.dir}/onepoint/project" includes="registry.oxr.xml"/>
+      </copy>
+
+      <copy file="${op.readme.basic.file}" tofile="${op.dist.dir}/readme.txt" overwrite="true"/>
+      <copy file="${op.tutorial.basic.file}" todir="${op.dist.dir}" overwrite="true"/>
+      <copy file="${op.license.file}" todir="${op.dist.dir}" overwrite="true"/>
+      <copy todir="${op.dist.dir}/lib">
+         <fileset dir="${op.lib.dir}">
+            <include name="*.jar"/>
+            <exclude name="*jtds*.*"/>
+            <exclude name="*mysql*.*"/>
+            <exclude name="*postgres*.*"/>
+            <exclude name="*servlet*.*"/>
+         </fileset>
+      </copy>
+      <copy todir="${op.dist.dir}/licenses">
+         <fileset dir="${op.lib.dir}">
+            <include name="*.txt"/>
+            <exclude name="*jtds*.*"/>
+            <exclude name="*mysql*.*"/>
+            <exclude name="*postgres*.*"/>
+            <exclude name="*servlet*.*"/>
+         </fileset> 
       </copy>
 
    </target>
@@ -514,16 +505,16 @@
 
       <!--src release-->
       <zip zipfile="${op.release.dir}/${release.root.filename}-src.zip" >
-         <zipfileset dir="${op.src.dir}" prefix="${op.zip.root.dir}/${op.src.dir}"/>
-         <zipfileset dir="${op.lib.dir}" prefix="${op.zip.root.dir}/${op.lib.dir}"/>
-         <zipfileset dir="META-INF" prefix="${op.zip.root.dir}/META-INF"/>
-         <zipfileset file="build.xml"  prefix="${op.zip.root.dir}"/>
-         <zipfileset dir="WEB-INF" prefix="${op.zip.root.dir}/WEB-INF"/>
-         <zipfileset dir="${op.security.dir}" prefix="${op.zip.root.dir}/${op.security.dir}"/>
-         <zipfileset dir="${op.demodata.dir}" prefix="${op.zip.root.dir}/${op.demodata.dir}"/>
-         <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
-         <zipfileset file="${op.readme.basic.file}" prefix="${op.zip.root.dir}"/>
-         <zipfileset file="${op.readme.open.file}" prefix="${op.zip.root.dir}"/>
+         <zipfileset dir="${op.src.dir}" prefix="${op.dist.root.dir}/${op.src.dir}"/>
+         <zipfileset dir="${op.lib.dir}" prefix="${op.dist.root.dir}/${op.lib.dir}"/>
+         <zipfileset dir="META-INF" prefix="${op.dist.root.dir}/META-INF"/>
+         <zipfileset file="build.xml"  prefix="${op.dist.root.dir}"/>
+         <zipfileset dir="WEB-INF" prefix="${op.dist.root.dir}/WEB-INF"/>
+         <zipfileset dir="${op.security.dir}" prefix="${op.dist.root.dir}/${op.security.dir}"/>
+         <zipfileset dir="${op.demodata.dir}" prefix="${op.dist.root.dir}/${op.demodata.dir}"/>
+         <zipfileset file="${op.license.file}" prefix="${op.dist.root.dir}"/>
+         <zipfileset file="${op.readme.basic.file}" prefix="${op.dist.root.dir}"/>
+         <zipfileset file="${op.readme.open.file}" prefix="${op.dist.root.dir}"/>
       </zip>
 
       <!--war release [for applet version] -->
@@ -547,14 +538,8 @@
 
       <!--standalone release -->
       <antcall target="dist.standalone"/>
-      <copy file="${op.readme.basic.file}" tofile="${op.release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${op.release.dir}/${release.root.filename}-basic.zip">
-         <zipfileset dir="${op.dist.dir}" prefix="${op.zip.root.dir}"/>
-         <zipfileset dir="${op.lib.dir}"
-                     excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *junit*, *servlet*"
-                     prefix="${op.zip.root.dir}/${op.lib.dir}"/>
-         <zipfileset file="${op.license.file}" prefix="${op.zip.root.dir}"/>
-         <zipfileset file="${op.release.dir}/readme.txt" prefix="${op.zip.root.dir}"/>
+         <zipfileset dir="${op.dist.dir}" prefix="${op.dist.root.dir}"/>
       </zip>
       <delete dir="${op.dist.dir}"/>
       
