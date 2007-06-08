@@ -48,11 +48,6 @@ public final class OpInitializer {
    private static final XLog logger = XLogFactory.getLogger(OpInitializer.class, true);
 
    /**
-    * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
-    */
-   private static final Map PRODUCT_CODES_MAP = new HashMap();
-
-   /**
     * needed for initialization of multipled servlets
     */
    private static final Object MUTEX = new Object();
@@ -77,10 +72,6 @@ public final class OpInitializer {
     */
    private static OpConfiguration configuration = null;
 
-   /**
-    * The product code used in the initialization process
-    */
-   private static String productCode = null;
 
    /**
     * Flag indicating whether the language settings have been intialized or not.
@@ -92,15 +83,6 @@ public final class OpInitializer {
     */
    private static boolean initialized = false;
 
-   /**
-    * Initialize the product codes map
-    */
-   static {
-      PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
-   }
 
    /**
     * This class should not be instantiated
@@ -138,7 +120,7 @@ public final class OpInitializer {
             return initParams;
          }
          //set the product code
-         OpInitializer.productCode = productCode;
+         OpEnvironmentManager.setProductCode(productCode);
 
          logger.info("Application initialization started");
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
@@ -320,11 +302,7 @@ public final class OpInitializer {
     * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
     */
    public static boolean isMultiUser() {
-      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
-      if (isMultiUser == null) {
-         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
-      }
-      return isMultiUser.booleanValue();
+      return OpEnvironmentManager.isMultiUser();
    }
 
 
@@ -334,7 +312,7 @@ public final class OpInitializer {
     * @return a <code>String</code> representing the product code, which indicates the flavour of the application.
     */
    public static String getProductCode() {
-      return productCode;
+      return OpEnvironmentManager.getProductCode();
    }
 
    /**

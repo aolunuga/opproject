@@ -6,7 +6,6 @@ package onepoint.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
-import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
@@ -16,6 +15,7 @@ import onepoint.service.XMessage;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
 import onepoint.service.server.XSession;
+import onepoint.persistence.OpConnectionManager;
 
 import java.util.HashMap;
 

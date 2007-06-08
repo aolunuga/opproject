@@ -105,6 +105,7 @@ public class OpConfigurationWizardService extends OpProjectService {
          return response;
       }
       else if (isStandalone) {
+         OpEnvironmentManager.setDataFolderPathFromDbPath(databaseURL);
          StringBuffer dbUrl = new StringBuffer(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX);
          dbUrl.append(XEnvironmentManager.convertPathToSlash(databaseURL));
          databaseURL = dbUrl.toString();

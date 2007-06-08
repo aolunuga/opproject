@@ -4,6 +4,7 @@
  */
 package onepoint.project.configuration;
 
+import onepoint.project.util.OpProjectConstants;
 import onepoint.util.XBase64;
 
 import java.util.HashMap;
@@ -45,10 +46,11 @@ public class OpConfiguration {
    private String logFile;
    private String logLevel;
    private String secureService;
+
    /**
     * Name of the default backup directory
     */
-   private String backupPath = "backup";
+   private String backupPath = OpProjectConstants.DEFAULT_BACKUP_FOLDER_NAME;
 
    /**
     * Flag that indicates whether source debugging should be used or not for script files.

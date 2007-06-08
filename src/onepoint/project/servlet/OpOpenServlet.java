@@ -11,12 +11,12 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.util.XEncodingHelper;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
-import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
 
 import javax.servlet.ServletContext;

@@ -182,6 +182,7 @@
       <resource id="WorkRecordsExistErrorMessage">There exist work slips for this resource assignment</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>

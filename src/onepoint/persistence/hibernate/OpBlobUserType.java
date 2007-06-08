@@ -6,10 +6,14 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.usertype.UserType;
 
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Arrays;
 

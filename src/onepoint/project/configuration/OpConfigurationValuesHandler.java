@@ -5,6 +5,7 @@
 package onepoint.project.configuration;
 
 import onepoint.persistence.hibernate.OpHibernateSource;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
 
@@ -107,6 +108,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
          String databaseUrl = ((StringBuffer) node).toString();
          if (configuration.getDatabaseType() == OpHibernateSource.HSQLDB) {
             databaseUrl = databaseUrl.replaceAll("[\\\\]","/");
+            OpEnvironmentManager.setDataFolderPathFromDbPath(databaseUrl.replaceFirst(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, ""));
          }
          configuration.setDatabaseUrl(databaseUrl);
       }

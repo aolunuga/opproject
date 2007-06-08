@@ -45,9 +45,9 @@ public final class OpConnectionManager {
 
    static {
       Map  oracleSqlstates = new HashMap();
-      oracleSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_ORCL, Integer.valueOf(INVALID_CREDENTIALS_EXCEPTION));
+      oracleSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_ORCL, new Integer(INVALID_CREDENTIALS_EXCEPTION));
       EXCEPTIONAL_SQLSTATES = new HashMap();
-      EXCEPTIONAL_SQLSTATES.put(Integer.valueOf(OpHibernateSource.ORACLE), oracleSqlstates);
+      EXCEPTIONAL_SQLSTATES.put(new Integer(OpHibernateSource.ORACLE), oracleSqlstates);
    }
 
    /**
@@ -90,9 +90,9 @@ public final class OpConnectionManager {
          if (sqlState.equalsIgnoreCase(INVALID_CONNECTION_STRING_SQLSTATE)) {
             return INVALID_CONNECTION_STRING_EXCEPTION;
          }
-         if (EXCEPTIONAL_SQLSTATES.containsKey(Integer.valueOf(dbType)) &&
-              ((Map) EXCEPTIONAL_SQLSTATES.get(Integer.valueOf(dbType))).containsKey(sqlState)) {
-            return ((Integer) ((Map) EXCEPTIONAL_SQLSTATES.get(Integer.valueOf(dbType))).get(sqlState)).intValue();
+         if (EXCEPTIONAL_SQLSTATES.containsKey(new Integer(dbType)) &&
+              ((Map) EXCEPTIONAL_SQLSTATES.get(new Integer(dbType))).containsKey(sqlState)) {
+            return ((Integer) ((Map) EXCEPTIONAL_SQLSTATES.get(new Integer(dbType))).get(sqlState)).intValue();
          }
          return GENERAL_CONNECTION_EXCEPTION;
       }

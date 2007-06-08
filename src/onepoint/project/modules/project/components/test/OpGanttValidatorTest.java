@@ -908,17 +908,24 @@ public class OpGanttValidatorTest extends TestCase {
       assertNull("The name is not null ", OpGanttValidator.getName(dataRow));
       assertEquals("The type is not correct ", OpGanttValidator.STANDARD, OpGanttValidator.getType(dataRow));
       assertEquals("The % complete is not correct ", 0.0d, OpGanttValidator.getComplete(dataRow), 0);
+      // different for weekdays and wekends
+      if (!XCalendar.getDefaultCalendar().isWorkDay(XCalendar.today())) {
+         assertEquals("The start date is not correct ", XCalendar.getDefaultCalendar().nextWorkDay(XCalendar.today()), OpGanttValidator.getStart(dataRow));
+      }
+      else {
       assertEquals("The start date is not correct ", XCalendar.today(), OpGanttValidator.getStart(dataRow));
+      }
 
       long endTime = XCalendar.today().getTime();
       Date expectedEndDate = new Date(endTime);
       int index = 0;
-      while (index < WORKING_DAYS_IN_A_WEEK - 1) {
-         expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
-         if (!validator.getCalendar().isWorkDay(expectedEndDate)) {
-            expectedEndDate = validator.getCalendar().nextWorkDay(expectedEndDate);
+      while (index < WORKING_DAYS_IN_A_WEEK) {
+         if (validator.getCalendar().isWorkDay(expectedEndDate)) {
+            index++;
          }
-         index ++;
+         if(index < WORKING_DAYS_IN_A_WEEK){
+            expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
+         }
       }
       assertEquals("The end date is not correct ", expectedEndDate, OpGanttValidator.getEnd(dataRow));
 
