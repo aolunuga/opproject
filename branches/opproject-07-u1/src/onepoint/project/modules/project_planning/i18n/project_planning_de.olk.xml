@@ -182,7 +182,8 @@
       <resource id="InvalidCostErrorMessage">Der eingegebene Kostenwert ist ungültig</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die diese Ressourcenzuweisung referenzieren</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand</resource>
-
+      <resource id="InvalidBaseEffortErrorMessage">Der eingegebene Basis-Aufwand ist geringer als der aktuelle Aufwand der Aktivität</resource>
+     
       <resource id="NoCategory">(Keine)</resource>
       <resource id="NoResource">(Keine)</resource>
 

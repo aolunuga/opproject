@@ -9,6 +9,8 @@ import onepoint.log.XLogFactory;
 import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -42,6 +44,31 @@ public final class OpEnvironmentManager {
     * The environment properties.
     */
    private static Properties envProps = new Properties();
+
+   /**
+    * Path of the data folder (containing backup and repository folders)
+    */
+   private static String ONEPOINT_DATA_FOLDER_PATH;
+
+   /**
+    * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
+    */
+   private static final Map PRODUCT_CODES_MAP = new HashMap();
+
+   /**
+    * Initialize the product codes map
+    */
+   static {
+      PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
+   }
+
+   /**
+    * The product code used in the initialization process
+    */
+   private static String productCode = null;
 
    /**
     * Initializes the command variable of the environment manager according to the type of OS.
@@ -119,6 +146,7 @@ public final class OpEnvironmentManager {
    public static String getOnePointHome() {
       return getEnvironmentVariable(ONEPOINT_HOME);
    }
+
    /**
     * Sets the home directory path of the application.
     *
@@ -126,6 +154,37 @@ public final class OpEnvironmentManager {
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
+   }
+
+   /**
+    * Returns the product code - one of the keys in PRODUCT_CODES_MAP
+    *
+    * @return product code.
+    */
+   public static String getProductCode() {
+      return productCode;
+   }
+
+   /**
+    * sets the product code
+    *
+    * @param productCode new product code
+    */
+   public static void setProductCode(String productCode) {
+      OpEnvironmentManager.productCode = productCode;
+   }
+
+   /**
+    * Returns the value of the multi-user flag, using the product code.
+    *
+    * @return true if the application is in multi-user mode
+    */
+   public static boolean isMultiUser() {
+      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
+      if (isMultiUser == null) {
+         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
+      }
+      return isMultiUser.booleanValue();
    }
 
    /**
@@ -165,5 +224,69 @@ public final class OpEnvironmentManager {
          }
       }
    }
+
+   /**
+    * @return The path to the onepoint data directory. This path is system dependent.
+    */
+   public static String getOnepointDataFolderPath() {
+      if (isMultiUser()) {
+         return getOnePointHome();
+      }
+      else {
+         if (ONEPOINT_DATA_FOLDER_PATH == null) {
+            String userHome = System.getProperty("user.home");
+            String path;
+            if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
+               //$HOME/Library/Application Support/Onepoint Project
+               path = userHome + File.separator + "Library" + File.separator + "Application Support" +
+                    File.separator + "Onepoint Project";
+            }
+            else {
+               //$HOME/Onepoint Project
+               path = userHome + File.separator + "Onepoint Project";
+            }
+            setOnepointDataFolderPath(path);
+         }
+      }
+      return ONEPOINT_DATA_FOLDER_PATH;
+   }
+
+   /**
+    * Sets the value of the data folder path. Also, creates the folder defind by this path if it doesnt exist.
+    *
+    * @param dataDirPath new path of the data folder
+    */
+   private static void setOnepointDataFolderPath(String dataDirPath) {
+      ONEPOINT_DATA_FOLDER_PATH = dataDirPath;
+      File dataDir = new File(ONEPOINT_DATA_FOLDER_PATH);
+      if (!dataDir.exists() || !dataDir.isDirectory()) {
+         dataDir.mkdir();
+      }
+   }
+
+   /**
+    * Sets the data folder path using a given db path.
+    *
+    * @param databaseURL data base folders path
+    */
+   public static void setDataFolderPathFromDbPath(String databaseURL) {
+      File url = new File(databaseURL);
+      String dataDirPath;
+      File parentFile = url.getParentFile();
+      
+      String parentName = parentFile.getName();
+      dataDirPath = parentFile.getAbsolutePath();
+      if (parentName.equals(OpProjectConstants.DEFAULT_HSQL_DB_DIR)) {
+         //use the parent folder as the data folder
+         File secondLevelParent = parentFile.getParentFile();
+         if (secondLevelParent != null) {
+            dataDirPath = parentFile.getParentFile().getAbsolutePath();
+         }
+      }
+      
+      setOnepointDataFolderPath(dataDirPath);
+   }
+
+
 }
 

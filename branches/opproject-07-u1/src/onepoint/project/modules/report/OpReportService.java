@@ -20,13 +20,13 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
 import java.net.MalformedURLException;

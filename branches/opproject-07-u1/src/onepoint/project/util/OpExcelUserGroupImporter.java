@@ -1,12 +1,27 @@
 /*
- * Copyright(c) Onepoint Software GmbH 2007. All Rights Reserved.
- *
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */ 
 
 /**
  * 
  */
 package onepoint.project.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
@@ -18,25 +33,32 @@ import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.user.*;
+import onepoint.project.modules.user.OpContact;
+import onepoint.project.modules.user.OpGroup;
+import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpUserError;
+import onepoint.project.modules.user.OpUserService;
 import onepoint.project.test.Constants;
+import onepoint.resource.XLanguageResourceMap;
+import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocaleMapLoader;
+import onepoint.resource.XLocalizer;
 import onepoint.resource.XResourceBroker;
 import onepoint.service.XMessage;
 import onepoint.service.server.XLocalServer;
 import onepoint.service.server.XServiceManager;
+
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
-import java.io.*;
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Script used to import user, groups, resources and pools from an predefined xml file.
@@ -57,7 +79,7 @@ public class OpExcelUserGroupImporter {
 
    private static final Short DEPARTMENT_POS = new Short((short)-1);
    private static final Short USERS_POS = new Short((short)-2);
-   
+
    /**
     * Header field section - firstname
     */
@@ -74,14 +96,14 @@ public class OpExcelUserGroupImporter {
     * Header field section - username
     */
    private static final String USERNAME = "K\u00fcrzel";
-   
+
    /**
     * indicates the end of the data section within the xls sheet. 
     */
    private static final String END_OF_ROW_DELIMITER = "* RM = Ressourcen Manager";
 
    private static final String LANGUAGE = "de";
-   
+
    /**
     * the title of the sheet
     */
@@ -96,12 +118,12 @@ public class OpExcelUserGroupImporter {
     * list storing all department data 
     */
    private List departmentData = new LinkedList();
-   
+
    /**
     * map storing the header fields and there corresponding column positions
     */
    private HashMap headerData = null;
-   
+
    /**
     * the user service
     */
@@ -116,7 +138,7 @@ public class OpExcelUserGroupImporter {
     * the express server
     */
    private XLocalServer server;
-   
+
    /**
     * the onepoint project session 
     */
@@ -127,18 +149,18 @@ public class OpExcelUserGroupImporter {
     */
    private boolean replace = false;
 
-	 /**
-	  * the current department for internal use during parser only
-	  */
-	 private TreeMap currentDepartment;
-   
+   /**
+    * the current department for internal use during parser only
+    */
+   private TreeMap currentDepartment;
+
    /**
     * Default constructor, setting up the onepoint system.
     */
    public OpExcelUserGroupImporter() {
       //all tests must use GMT dates (same as the application)
       TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-      
+
       String projectHome = OpEnvironmentManager.getOnePointHome();
       //if not found among OS environment variables, set it to the working dir.
       if (projectHome == null) {
@@ -221,14 +243,14 @@ public class OpExcelUserGroupImporter {
       HSSFSheet sheet = workbook.getSheetAt(0);
       logger.info("sheet name at 0 has '"+(sheet.getLastRowNum()-sheet.getFirstRowNum()+1)+"' rows");
       //HSSFFormulaEvaluator evaluator = new HSSFFormulaEvaluator(sheet, workbook);
-      
+
       int rowPos = sheet.getFirstRowNum();
       while (rowPos <= sheet.getLastRowNum()) {
          HSSFRow row = sheet.getRow(rowPos++);
          if (row == null) {
             continue;
          }
-         
+
          Iterator cellIter = row.cellIterator();
          HSSFCell cell;
          TreeMap cellData = new TreeMap();
@@ -259,7 +281,7 @@ public class OpExcelUserGroupImporter {
                cellData.put(new Short(cell.getCellNum()), cell.getStringCellValue());
                break;
             default:
-//               System.err.println("DEF: "+cell);
+//             System.err.println("DEF: "+cell);
                break;
             }
          }
@@ -278,13 +300,13 @@ public class OpExcelUserGroupImporter {
          if (rowData.size() == 1) { 
             Object cell = rowData.values().iterator().next();
             if (cell instanceof String) { // either title or department
-              if (title == null) {
-                 title  = (String)cell;
-                 return;
-              }
-              departmentData.add(rowData);
-              currentDepartment = rowData;
-              return;
+               if (title == null) {
+                  title  = (String)cell;
+                  return;
+               }
+               departmentData.add(rowData);
+               currentDepartment = rowData;
+               return;
             }
             return;
          }
@@ -309,7 +331,7 @@ public class OpExcelUserGroupImporter {
                value = value.replaceAll("  ", " ");
                headerData.put(value, headerEntry.getKey());
             }
-//            System.out.println("Header: "+headerData.keySet());
+//          System.out.println("Header: "+headerData.keySet());
          } 
          catch (ClassCastException exc) {
             logger.warn("wrong type (non String) in header: ", exc);
@@ -355,7 +377,7 @@ public class OpExcelUserGroupImporter {
       if (ret == null) {
          return(null);
       }
-         
+
       // cut leading and trailing spaces
       if (ret instanceof String) {
          String val = (String) ret;
@@ -390,7 +412,7 @@ public class OpExcelUserGroupImporter {
       if (ret == null) {
          return(null);
       }
-  
+
       // cut leading and trailing spaces
       if (ret instanceof Double) {
          return (Double) ret;
@@ -419,7 +441,7 @@ public class OpExcelUserGroupImporter {
       System.out.println("creating resources...");
 
       Iterator iter = userData.iterator();
-      
+
       Map user;
       while (iter.hasNext()) {
          user = (Map) iter.next();
@@ -428,32 +450,29 @@ public class OpExcelUserGroupImporter {
          Double exthourlyrate = getDoubleValue(user, "Stundensatz extern");
 
          String departmentName = getStringValue((Map) user.get(DEPARTMENT_POS), "KSt");
-         String poolid = null;
+         OpResourcePool pool = null;
+         XComponent permSet = null;
          OpBroker broker = session.newBroker();
          try {
             OpQuery query = broker.newQuery(SELECT_RESOURCEPOOL_BY_NAME_QUERY);
             query.setString(0, departmentName);
             Iterator departmentIt = broker.iterate(query);
             if (departmentIt.hasNext()) {
-               OpResourcePool department = (OpResourcePool) departmentIt.next();
-               poolid = department.locator();
+               pool = (OpResourcePool) departmentIt.next();
             }
             else {
                System.err.println("WARNING: no resource pool found for resource '"+userName+
-                                  "' Resource will be created within root resource pool!");  
-               OpResourcePool rootPool = OpResourceService.findRootPool(broker);
-               if (rootPool != null) {
-                  poolid = rootPool.locator();
-               }
+               "' Resource will be created within root resource pool!");  
+               pool = OpResourceService.findRootPool(broker);
             }
+            permSet  = getResourceDefaultPermission(broker, pool);
          }
          finally {
             broker.close();
          }
-         
+
          String managerName = getStringValue((Map) user.get(DEPARTMENT_POS), LASTNAME);
          OpUser manager = getUserForName(managerName);
-         XComponent permSet = new XComponent(XComponent.DATA_SET);
          if (manager != null) {
             // create permissions
             XComponent row = new XComponent(XComponent.DATA_ROW);
@@ -469,14 +488,33 @@ public class OpExcelUserGroupImporter {
             row.setValue(XValidator.choice(manager.locator(), managerName));
             permSet.addChild(row);
          }         
-         
+
          OpUser responsible = getUserForName(userName);
-         createResource(userName, "", 100d, 
+         int ret = createResource(userName, "", 100d, 
                inthourlyrate == null ? 0d : inthourlyrate.doubleValue(),
-               exthourlyrate == null ? 0d : exthourlyrate.doubleValue(), 
-               false, poolid, null, 
-               responsible == null ? null : responsible.locator(),
-               permSet);
+                     exthourlyrate == null ? 0d : exthourlyrate.doubleValue(), 
+                           false, pool.locator(), null, 
+                           responsible == null ? null : responsible.locator(),
+                                 permSet);
+         if (ret == OpUserError.PERMISSION_LEVEL_ERROR) {
+            // create pool without permissions
+            System.err.println("Note: trying to create resource without permissions");
+            OpBroker broker2 = session.newBroker();
+            try {
+               permSet = getResourceDefaultPermission(broker2, pool);
+               ret = createResource(userName, "", 100d, 
+                     inthourlyrate == null ? 0d : inthourlyrate.doubleValue(),
+                           exthourlyrate == null ? 0d : exthourlyrate.doubleValue(), 
+                                 false, pool.locator(), null, 
+                                 responsible == null ? null : responsible.locator(),
+                                       permSet);
+            }
+            finally {
+               if (broker2.isOpen()) {
+                  broker2.close();
+               }
+            }
+         }
       }
       System.out.println("all resources created");
    }
@@ -508,20 +546,19 @@ public class OpExcelUserGroupImporter {
    private void createPools() {
       System.out.println("creating pools...");
       // find root pool
-      String rootPoolId = null;
+      OpResourcePool rootPool = null;
+      XComponent permSet = null;
       OpBroker broker = session.newBroker();
       try {
-         OpResourcePool rootPool = OpResourceService.findRootPool(broker);
-         if (rootPool != null) {
-            rootPoolId = rootPool.locator();
-         }
+         rootPool = OpResourceService.findRootPool(broker);
+         permSet = getPoolDefaultPermission(broker, rootPool);
       }
       finally {
          broker.close();
       }
-      
+
       Iterator iter = departmentData.iterator();
-      
+
       Map department;
       while (iter.hasNext()) {
          department = (Map) iter.next();
@@ -529,7 +566,7 @@ public class OpExcelUserGroupImporter {
 
          String managerName = getStringValue(department, LASTNAME);
          OpUser manager = getUserForName(managerName);
-         XComponent permSet = new XComponent(XComponent.DATA_SET);
+
          if (manager != null) {
             // create permissions
             XComponent row = new XComponent(XComponent.DATA_ROW);
@@ -545,14 +582,30 @@ public class OpExcelUserGroupImporter {
             row.setValue(XValidator.choice(manager.locator(), managerName));
             permSet.addChild(row);
          }         
-  
-         
-         createPool(name, "", 0d, 0d, rootPoolId, permSet);
+
+         int ret = createPool(name, "", 0d, 0d, rootPool.locator(), permSet);
+
+         if (ret == OpUserError.PERMISSION_LEVEL_ERROR) {
+            // create pool without permissions
+            System.err.println("Note: trying to create pool without permissions");
+            // need a new broker here! - old one will be closed
+            OpBroker broker2 = session.newBroker();
+            try {
+               permSet = getPoolDefaultPermission(broker2, rootPool);
+               ret = createPool(name, "", 0d, 0d, rootPool.locator(), permSet);
+            }
+            finally {
+               if (broker2.isOpen()) {
+                  broker2.close();
+               }
+            }
+         }
       }
+
       System.out.println("all pools created");
    }
 
-   
+
    /**
     * creates all users within there corresponding groups.
     * Each user is assigned an empty password.
@@ -612,12 +665,12 @@ public class OpExcelUserGroupImporter {
       while (iter.hasNext()) {
          department = (Map) iter.next();
          String title = getStringValue(department, "KSt");
-         
+
          createGroup(title, "", null);
       }
       System.out.println("all groups created");
    }
-       
+
    /**
     * creates a group.
     * @param groupName the name of the group
@@ -659,10 +712,10 @@ public class OpExcelUserGroupImporter {
          }
       }
       Map groupData = new HashMap();
-      
+
       groupData.put(OpGroup.NAME, groupName);
       groupData.put(OpGroup.DESCRIPTION, description);
-      
+
       groupData.put(OpUserService.ASSIGNED_GROUPS, groups);
 
       XMessage request = new XMessage();
@@ -690,10 +743,10 @@ public class OpExcelUserGroupImporter {
     * @param respondible the locator of the resource responsible user 
     * @param permSet the permission set.
     */
-   private void createResource(String name, String description, 
-                               double available, double inthourlyrate, double exthourlyrate, 
-                               boolean inheritrate, String poolid, ArrayList projects, 
-                               String respondible, XComponent permSet) {
+   private int createResource(String name, String description, 
+         double available, double inthourlyrate, double exthourlyrate, 
+         boolean inheritrate, String poolid, ArrayList projects, 
+         String respondible, XComponent permSet) {
       String msg = name;
       if (description != null && description.length() > 0) {
          msg = description+" ("+name+")";
@@ -709,7 +762,7 @@ public class OpExcelUserGroupImporter {
          if (resourceIt.hasNext()) {
             if (!replace) {
                System.out.println(" Resource: "+msg+" already exists, skipped!");
-               return;
+               return 0;
             }
             resource =  (OpResource) resourceIt.next();
          }
@@ -739,34 +792,50 @@ public class OpExcelUserGroupImporter {
       resourceData.put("PoolID", poolid);
       resourceData.put(OpResourceService.PROJECTS, projects);
       resourceData.put(OpPermissionSetFactory.PERMISSION_SET, permSet);
-      
+
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_DATA, resourceData);
-      
+
       XMessage response = resourceService.insertResource(session, request);
       if (response.getError() != null)
       {
          System.err.println("Error: while creating resource '"+msg+"' - "+response.getError().toString());
-         if (response.getError().getCode() == OpUserError.PERMISSION_LEVEL_ERROR) {
-            // create pool without permissions
-            System.err.println("Note: trying to create resource without permissions");
-            resourceData.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
-            response = resourceService.insertResource(session, request);
-            if (response.getError() != null)
-            {
-               System.err.println("Error: while creating resource '"+msg+"' - "+response.getError().toString());
-            }
-            else {
-               System.out.println(" Resource: "+msg+" created!");
-            }
-         }
-
+         return response.getError().getCode();
       }
       else {
          System.out.println(" Resource: "+msg+" created!");
       }
+      return 0;
    }
-      
+
+   /**
+    * returns the default permissions for a resource.
+    * @param broker the broker
+    * @param pool the pool
+    * @return the default permissions for a resource.
+    */
+   private XComponent getResourceDefaultPermission(OpBroker broker, OpResourcePool pool) {
+      XComponent permissions = new XComponent(XComponent.DATA_SET);
+
+      OpPermissionSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissions,
+            OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
+      return permissions;
+   }
+
+   /**
+    * returns the default permissions for a pool.
+    * @param broker the broker
+    * @param superPool the super pool
+    * @return the default permissions for a pool.
+    */
+   private XComponent getPoolDefaultPermission(OpBroker broker, OpResourcePool superPool) {
+      XComponent permissions = new XComponent(XComponent.DATA_SET);
+
+      OpPermissionSetFactory.retrievePermissionSet(session, broker, superPool.getPermissions(), permissions,
+            OpResourceModule.POOL_ACCESS_LEVELS, session.getLocale());
+      return permissions;
+   }
+
    /**
     * create a pool.
     * @param name the name of the pool.
@@ -776,9 +845,9 @@ public class OpExcelUserGroupImporter {
     * @param superid the locator of the parent pool.
     * @param permSet the permissions set
     */
-   private void createPool(String name, String description, 
-                           double inthourlyrate, double exthourlyrate, 
-                           String superid, XComponent permSet) {
+   private int createPool(String name, String description, 
+         double inthourlyrate, double exthourlyrate, 
+         String superid, XComponent permSet) {
       // first delete any existing users with the given userName
       OpResourcePool pool = null;
       OpBroker broker = session.newBroker();
@@ -794,7 +863,7 @@ public class OpExcelUserGroupImporter {
                }
 
                System.out.println(" Pool: "+msg+" already exists, skipped!");
-               return;
+               return 0;
             }
             pool =  (OpResourcePool) resourceIt.next();
          }
@@ -833,24 +902,12 @@ public class OpExcelUserGroupImporter {
       if (response.getError() != null)
       {
          System.err.println("Error: while creating pool '"+msg+"' - "+response.getError().toString());
-
-         if (response.getError().getCode() == OpUserError.PERMISSION_LEVEL_ERROR) {
-            // create pool without permissions
-            System.err.println("Note: trying to create pool without permissions");
-            poolData.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
-            response = resourceService.insertPool(session, request);
-            if (response.getError() != null)
-            {
-               System.err.println("Error: while creating pool '"+msg+"' - "+response.getError().toString());
-            }
-            else {
-               System.out.println(" Pool: "+msg+" created!");
-            }
-         }
+         return response.getError().getCode();
       }
       else {
          System.out.println(" Pool: "+msg+" created!");
       }
+      return 0;
    }
 
    /**
@@ -869,13 +926,14 @@ public class OpExcelUserGroupImporter {
     * @param groups the groups the user belongs to.
     */
    private void createUser(String userName, String passwordHash, 
-                           Byte userLevel, String description, 
-                           String language, 
-                           String firstName, String lastName,                           
-                           String email, String fax, String mobile, String phone, List groups)
+         Byte userLevel, String description, 
+         String language, 
+         String firstName, String lastName,                           
+         String email, String fax, String mobile, String phone, List groups)
    {
       // first delete any existing users with the given userName
       OpUser user = null;
+      OpGroup everyone = null;
       OpBroker broker = session.newBroker();
       String msg = userName;
       if (lastName != null && lastName.length() > 0) {
@@ -897,6 +955,7 @@ public class OpExcelUserGroupImporter {
             }
             user =  (OpUser) subjectsIt.next();
          }
+         everyone = session.everyone(broker);
       }
       finally {
          broker.close();
@@ -926,7 +985,10 @@ public class OpExcelUserGroupImporter {
       userData.put(OpContact.FAX, fax);
       userData.put(OpContact.MOBILE, mobile);
       userData.put(OpContact.PHONE, phone);
-
+      
+      //set up the everyone group field
+       groups.add(everyone.locator());
+      
       userData.put(OpUserService.ASSIGNED_GROUPS, groups);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
@@ -939,7 +1001,7 @@ public class OpExcelUserGroupImporter {
          System.out.println(" User: "+msg+" created!");
       }
    }
-   
+
    /**
     * Main method
     * @param args the command line args.
@@ -951,7 +1013,7 @@ public class OpExcelUserGroupImporter {
       String adminuser = OpUser.ADMINISTRATOR_NAME;
       String adminpwd = OpUserService.BLANK_PASSWORD;
       String filename = args[0];
-      
+
       boolean replace = false;
       if (args.length > 1) {
          if (args.length > 2) {
@@ -971,13 +1033,13 @@ public class OpExcelUserGroupImporter {
          }
       }
 
-      
+
       OpExcelUserGroupImporter importer = new OpExcelUserGroupImporter();
       int ret = importer.start(filename, adminuser, adminpwd, replace);
       if (ret != 0) {
          System.exit(ret);
       }
-      
+
    }
 
    /**
@@ -988,13 +1050,13 @@ public class OpExcelUserGroupImporter {
          System.out.println(msg);
       }
       System.out.println("Usage: java -jar excelscript.jar"+
-                         "[admin_user admin_pwd] [replace] file_to_import.xls");
+      "[admin_user admin_pwd] [replace] file_to_import.xls");
       System.out.println("       admin_user defaults to administrator");
       System.out.println("       admin_pwd defaults to ''");
-      
+
       System.out.println(" IMPORTANT: make sure that you successfully configured "+
-                         "Onepoint Project (by starting the applet and filling out the "+
-                         "connection settings form) and that tomcat is *NOT* running!");
+            "Onepoint Project (by starting the applet and filling out the "+
+      "connection settings form) and that tomcat is *NOT* running!");
       System.exit(-1);
    }
 }

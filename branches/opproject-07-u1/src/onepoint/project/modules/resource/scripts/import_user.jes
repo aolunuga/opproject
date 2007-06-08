@@ -19,7 +19,7 @@ function ok(event) {
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
-   pool = form.findComponent("PoolList").getStringValue();    
+   pool = form.findComponent("PoolList").getStringValue();
    if (pool == null) {
       resource_data.PoolID = null;
    }

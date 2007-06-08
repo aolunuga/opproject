@@ -9,8 +9,8 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
-import java.util.Iterator;
 import java.util.Set;
+import java.util.Iterator;
 
 public class OpActivityVersion extends OpObject {
 
