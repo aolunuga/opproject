@@ -38,6 +38,7 @@ public class OpStandaloneDbConfigurationWizardFormProvider implements XFormProvi
    private static final String HSQL_DB_PASS_FIELD_ID = "HSQLDbPasswordDataField";
    private static final String HSQL_DB_LOCATION_FIELD_ID = "HSQLDbPathTextField";
    private static final String HSQL_DB_DEFAULT_NAME= "HSQLDbDefaultName";
+   private static final String HSQL_DB_DEFAULT_DIR= "HSQLDbDefaultDir";
    private static final String DEFAULT_LOGIN = "DefaultLogin";
    private static final String DEFAULT_PASSWORD = "DefaultPassword";
 
@@ -50,7 +51,9 @@ public class OpStandaloneDbConfigurationWizardFormProvider implements XFormProvi
       form.findComponent(HSQL_DB_PASS_FIELD_ID).setStringValue(HSQL_DB_PASSWORD);
       form.findComponent(HSQL_DB_DEFAULT_NAME).setStringValue(HSQL_DB_DEFAULT_FILENAME);
       String dbDirPath = OpEnvironmentManager.getOnepointDataFolderPath() + File.separator + OpProjectConstants.DEFAULT_HSQL_DB_DIR;
+      form.findComponent(HSQL_DB_DEFAULT_DIR).setStringValue(dbDirPath);
       form.findComponent(HSQL_DB_LOCATION_FIELD_ID).setStringValue(dbDirPath + File.separator + HSQL_DB_DEFAULT_FILENAME);
+      ((XComponent)form.findComponent(HSQL_DB_LOCATION_FIELD_ID).getChild(0)).setTooltip(dbDirPath + File.separator + HSQL_DB_DEFAULT_FILENAME);
       form.findComponent(DEFAULT_LOGIN).setStringValue(OpUser.ADMINISTRATOR_NAME);
       form.findComponent(DEFAULT_PASSWORD).setStringValue("");
    }
