@@ -47,9 +47,12 @@ function connect(event) {
 function selectFolder(event) {
    form = XDisplay.getActiveForm();
    defaultName = form.findComponent("HSQLDbDefaultName").getStringValue();
-   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultName);
+   defaultDir = form.findComponent("HSQLDbDefaultDir").getStringValue();
+   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultDir, defaultName);
    if (path != null) {
       form.findComponent("HSQLDbPathTextField").setStringValue(path);
+      form.findComponent("HSQLDbPathTextField").getChild(0).setTooltip(path);
+      form.findComponent("HSQLDbDefaultDir").setStringValue(path);
       form.repaint();
    }
 }

@@ -9,6 +9,7 @@
    <data-field id ="HSQLDbLoginDataField"/>
    <data-field id ="HSQLDbPasswordDataField"/>
    <data-field id ="HSQLDbDefaultName"/>
+   <data-field id ="HSQLDbDefaultDir"/>
    <data-field id ="DefaultLogin"/>
    <data-field id ="DefaultPassword"/>
    <data-field id="FolderDialogTitle" text="{$SelectFolder}"/>

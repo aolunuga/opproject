@@ -36,13 +36,14 @@ public interface OpProjectConstants {
     */
    public static final String CODE_VERSION_NUMBER = "07";
    public static final String CALENDAR = "calendar";
+
    /**
     * HSQL default data base folder
     */
-   String DEFAULT_HSQL_DB_DIR = "repository";
+   public static final String DEFAULT_HSQL_DB_DIR = "repository";
 
    /**
     * Backup default folder name
     */
-   String DEFAULT_BACKUP_FOLDER_NAME = "backup";
+   public static final String DEFAULT_BACKUP_FOLDER_NAME = "backup";
 }

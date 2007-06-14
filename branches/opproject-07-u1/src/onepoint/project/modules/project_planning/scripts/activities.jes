@@ -99,7 +99,7 @@ function saveActivities(event) {
 function importActivities(event) {
 
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(importProject, true, null);
+   fileName = XDisplay.showFileDialog(importProject, true, null, null);
    if (fileName == null) {
       return;
    }
@@ -119,7 +119,7 @@ function importActivities(event) {
 function exportActivities(event) {
 
    exportProject = XDisplay.getActiveForm().findComponent("ExportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(exportProject, false, null);
+   fileName = XDisplay.showFileDialog(exportProject, false, null, null);
    if (fileName == null) {
       return;
    }

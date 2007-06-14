@@ -78,7 +78,7 @@ function cancel(event) {
 }
 
 function select(event) {
-   document_path = XDisplay.showFileDialog("Dokument auswaehlen", true, null);
+   document_path = XDisplay.showFileDialog("Dokument auswaehlen", true, null, null);
    if (document_path != null) {
       document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
       document_path_field.setStringValue(document_path);
