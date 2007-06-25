@@ -1,3 +1,8 @@
-#must have a valid jdk
-export JAVA_HOME=/usr/local/bin/jdk1.5.0_07/bin
-$JAVA_HOME/java -jar opproject-06.1-be.jar
+
+JAR=opproject-07u2-be.jar
+
+if [ -e "$JAVA_HOME" ]; then
+    $JAVA_HOME/bin/java -jar $JAR
+else
+    java -jar $JAR
+fi
