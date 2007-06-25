@@ -1,15 +1,15 @@
-Onepoint Project 07 Basic Edition (BETA)
-========================================
+Onepoint Project 07 Basic Edition
+=================================
 
-Welcome to the most current release of the Onepoint Project Basic Edition.
-This package contains the Open Source desktop version of Onepoint Project 07
-("Basic Edition") together with a short user tutorial.
+Welcome to the most current release of Onepoint Project Basic Edition. This
+package contains a single-user desktop version of Onepoint Project together
+with a short user tutorial.
 
 
 System Requirements
 -------------------
 
-* Microsoft Windows 2000/XP, Linux or Mac OS X
+* Microsoft Windows 2000/XP/Vista, Mac OS X or Linux
 
 * Java Runtime Environment (JRE) version 1.4.2 or higher
 
@@ -30,30 +30,25 @@ installed, you can download it for free from the Adobe website:
 Installation
 ------------
 
-Installing Onepoint Project is very easy: Simply extract the ZIP package into a
-file system folder of your choice, e.g., "C:\Program Files\Onepoint Project" on
-Microsoft Windows or the "Application" folder on Mac OS X. Make sure that you have
-downloaded the correct package for your operating system.
+Under Windows extract the ZIP package to a location of your choice, e.g.,
+C:\Program Files.
 
-On first startup you will be asked by the application where you want to store your
-Onepoint Project repository. After you have confirmed the default location or
-entered a different location of your choice, the application will remember it
-for subsequent startups.
+Under Mac OS X double-click the disk image in order to open it and drag the
+"Onepoint Project" application to a location of your choice, e.g., your
+Applications folder.
+
+Under Linux extract the TGZ package to a location of your choice, e.g.,
+/usr/local.
+
+When the "Onepoint Project" application is started the first time it will ask
+you to to choose a location for your data directory. This directory will contain
+the Onepoint project repository and all XML backup files that you will create.
 
 
 Starting the Application
 ------------------------
 
-In order to start the application on Microsoft Windows, double-click on the
-"opproject.exe" application file. The Mac OS X application is called
-"Onepoint Project".
-
-
-Demo Data
----------
-
-On first startup of the application you will be asked whether you want to load
-a demo data set or not. The demo data is stored as an XML backup file located in
-the directory "demodata" inside your Onepoint Project installation -- using the
-repository tool you can also restore it later on if you want to.
+Onepoint Project can be started by simply double-clicking the "Onepoint Project"
+application (Windows/Mac OS X) or shell script (Linux), or by running it from
+the command line.
 
