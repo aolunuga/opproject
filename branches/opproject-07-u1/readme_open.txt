@@ -29,8 +29,6 @@ System Requirements
 
 * Apache Tomcat 5.5
 
-Other application servers can be supported on request.
-
 
 Documentation
 -------------
@@ -76,19 +74,7 @@ inside the webapps folder.
 6. If you upgraded from a previous version of Onepoint Project copy your
 configuration file ("configuration.oxc.xml") to the new installation path
 
-ATTENTION: Do not execute the following step if you are upgrading from an existing
-installation!
-
-7. (OPTIONAL) If you want to start with some demo data load the demo data by
-executing the folling SQL file (see Appendix B):
-   - demodata07.sql
-
-Note: This step is optional. If you do not upload the demo data a new, plaim
-repository will be created at the first startup of the web application.
-
-8. Copy a valid license file ("license.oxl.xml") into the opproject folder
-
-9. Stop Tomcat and restart it in order to make sure that the JDBC driver gets loaded
+7. Stop Tomcat and restart it in order to make sure that the JDBC driver gets loaded
 and your previous configuration file is loaded (in case you provided one).
 
 
@@ -121,6 +107,9 @@ before putting any more data into your project repository.
 
 Using the Demo Data
 -------------------
+
+If you selected to load the demo data in the configuration wizard you can use
+it now as follows.
 
 Log in as test user "cs" for a German user interface, or as "tw" for English.
 Neither one of the test users has a password set. In order to gain
@@ -163,13 +152,13 @@ Appendix B: Executing a SQL file in MySQL
 In order to execute a SQL file in MySQL you have to do the following:
 
    (1) Open a command line window (DOS shell) und type
-       "mysql –u opproject -p opproject" and enter the password you specified
-       when creating the database user
-   (2) mysql> source demodata07.sql;
+       "mysql –u root -p" and enter the root password you specified
+       when configuring the database instance
+   (2) mysql> source createdb.sql;
    (3) mysql> quit
 
 Please note that this example assumes that the user and the database you
-created in MySQL are called "opproject" and the SQL file "demodata07.sql".
+created in MySQL are called "root" and the SQL file "createdb.sql".
 If you used a different user name, then you have to specify this user name in
 (1) after the option "-u" and a different database name after "-p".
 
