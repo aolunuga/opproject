@@ -22,7 +22,7 @@ public class OpConfiguration {
    /**
     * Map of database drivers. Contains [database_type,datatabase driver] entries.
     */
-   public final static Map DATABASE_DRIVERS = new HashMap();
+   public final static Map<String, String> DATABASE_DRIVERS = new HashMap<String, String>();
 
    static {
       initDatabaseDriversMap();
@@ -429,6 +429,6 @@ public class OpConfiguration {
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, "com.ibm.db2.jcc.DB2Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE, "org.postgresql.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, "org.hsqldb.jdbcDriver");
-      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "net.sourceforge.jtds.jdbc.Driver");
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
    }
 }

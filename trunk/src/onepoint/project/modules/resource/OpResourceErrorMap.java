@@ -10,7 +10,7 @@ public class OpResourceErrorMap extends XErrorMap {
 
    public final static String RESOURCE_MAP_ID = "resource.error";
 
-   OpResourceErrorMap() {
+   protected OpResourceErrorMap() {
       super(RESOURCE_MAP_ID);
       registerErrorCode(OpResourceError.RESOURCE_NAME_NOT_SPECIFIED, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED_NAME);
       registerErrorCode(OpResourceError.RESOURCE_NAME_NOT_UNIQUE, OpResourceError.RESOURCE_NAME_NOT_UNIQUE_NAME);
@@ -32,11 +32,10 @@ public class OpResourceErrorMap extends XErrorMap {
       registerErrorCode(OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED,OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED_NAME);
       registerErrorCode(OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED,OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED_NAME);
       registerErrorCode(OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR, OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME);
-      registerErrorCode(OpResourceError.LOOP_ASSIGNMENT_ERROR, OpResourceError.LOOP_ASSIGNMENT_ERROR_NAME);
-      registerErrorCode(OpResourceError.PERIOD_START_DATE_NOT_VALID, OpResourceError.PERIOD_START_DATE_NOT_VALID_NAME);
-      registerErrorCode(OpResourceError.PERIOD_END_DATE_NOT_VALID, OpResourceError.PERIOD_END_DATE_NOT_VALID_NAME);
-      registerErrorCode(OpResourceError.PERIOD_INTERVAL_NOT_VALID, OpResourceError.PERIOD_INTERVAL_NOT_VALID_NAME);
-      registerErrorCode(OpResourceError.DATE_INTERVAL_OVERLAP, OpResourceError.DATE_INTERVAL_OVERLAP_NAME);
+      registerErrorCode(OpResourceError.LOOP_ASSIGNMENT_ERROR, OpResourceError.LOOP_ASSIGNMENT_ERROR_NAME);      
+      registerErrorCode(OpResourceError.ACTIVITY_ASSIGNMENT_VERSIONS_EXIST_ERROR, OpResourceError.ACTIVITY_ASSIGNMENT_VERSIONS_EXIST_ERROR_NAME);
+      registerErrorCode(OpResourceError.RESPONSIBLE_ACTIVITIES_EXIST_ERROR, OpResourceError.RESPONSIBLE_ACTIVITIES_EXIST_ERROR_NAME);
+      registerErrorCode(OpResourceError.RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR, OpResourceError.RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR_NAME);      
    }
 
 }

@@ -19,6 +19,7 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
@@ -269,7 +270,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
       for (String projectChoice : projectsResourcesMap.keySet()) {
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(projectChoice);
-         projectDataSet.addDataRow(row);
+         projectDataSet.addChild(row);
       }
    }
 
@@ -338,7 +339,13 @@ public class OpMyTasksFormProvider implements XFormProvider {
     * @param projectsResourcesMap Map of (project) -> (list of resources)
     */
    private void fillResourceFilter(XComponent form, Map<String, List<String>> projectsResourcesMap) {
-      XComponent resourceDataSet = form.findComponent(RESOURCES_SET);
+      XComponent resourceFilterDataSet = form.findComponent(RESOURCES_SET);
+
+      //if standalone, remove the responsible and managed selection
+      if (!OpEnvironmentManager.isMultiUser()) {
+         prepareFilterForStandalone(resourceFilterDataSet);
+      }
+
       Set<String> allResources = new TreeSet<String>();
       Map<String, String> captionToResourceMap = new HashMap<String, String>();
       for (List<String> resourcesList : projectsResourcesMap.values()) {
@@ -353,8 +360,25 @@ public class OpMyTasksFormProvider implements XFormProvider {
          String choice = captionToResourceMap.get(caption);
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
-         resourceDataSet.addChild(row);
+         resourceFilterDataSet.addChild(row);
       }
+   }
+
+   /**
+    * Prepares the resource filter for the standalone distribution of the application.
+    * @param resourceFilterDataSet a <code>XComponent(DATA_SET)</code> representing
+    * the filter data-set.
+    */
+   private void prepareFilterForStandalone(XComponent resourceFilterDataSet) {
+      List<XComponent> rowsToRemove = new ArrayList<XComponent>();
+      for (int i = 0; i < resourceFilterDataSet.getChildCount(); i++) {
+         XComponent resFilterRow = (XComponent) resourceFilterDataSet.getChild(i);
+         String resFilterChoiceId = XValidator.choiceID(resFilterRow.getStringValue());
+         if (resFilterChoiceId.equalsIgnoreCase(MANAGED) || resFilterChoiceId.equalsIgnoreCase(RESPONSIBLE)) {
+            rowsToRemove.add(resFilterRow);
+         }
+      }
+      resourceFilterDataSet.removeChildren(rowsToRemove);
    }
 
    /**

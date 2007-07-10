@@ -19,6 +19,7 @@
       <resource id="Role">Role</resource>
       <resource id="Project">Project</resource>
       <resource id="Status">Status</resource>
+      <resource id="Priority">Priority</resource>            
       <resource id="Complete">% Complete</resource>
       <resource id="Resources">Resources</resource>
       <resource id="Costs">Costs</resource>

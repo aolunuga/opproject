@@ -7,12 +7,12 @@ package onepoint.project.modules.resource.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -59,7 +59,7 @@ public class OpResourcesFormProvider implements XFormProvider {
       if (rootPoolPermission < OpPermission.MANAGER) {
          form.findComponent(NEW_POOL_BUTTON).setEnabled(false);
          form.findComponent(NEW_RESOURCE_BUTTON).setEnabled(false);
-         if (OpInitializer.isMultiUser()) {
+         if (OpEnvironmentManager.isMultiUser()) {
             form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
          }
       }
@@ -73,7 +73,7 @@ public class OpResourcesFormProvider implements XFormProvider {
       form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
       form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
 
-      if (!OpInitializer.isMultiUser()) {
+      if (!OpEnvironmentManager.isMultiUser()) {
          form.findComponent(IMPORT_USER_BUTTON).setVisible(false);
       }
 

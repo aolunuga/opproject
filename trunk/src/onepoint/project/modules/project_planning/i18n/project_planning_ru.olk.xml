@@ -51,6 +51,7 @@
       <resource id="Material">Material (€)</resource>
       <resource id="External">External (€)</resource>
       <resource id="Misc">Misc. (€)</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
       <resource id="Costs">Costs (€)</resource>
 
       <resource id="EditTooltip">Изменить план проекта</resource>
@@ -158,6 +159,7 @@
       <resource id="Material">Material (€)</resource>
       <resource id="External">External (€)</resource>
       <resource id="Misc">Miscellaneous (€)</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
 
       <resource id="Attachments">Attachments</resource>
       <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
@@ -185,6 +187,7 @@
       <resource id="WorkRecordsExistErrorMessage">По данному ресурсу уже внесен табель</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>
@@ -248,6 +251,7 @@
       <resource id="Costs">Costs (€)</resource>
       <resource id="Resources">Ресурсы</resource>
       <resource id="Category">Category</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
    </resource-map>
 
    <resource-map id="project_planning.Navigator">
@@ -276,6 +280,8 @@
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
+      <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
+      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>      
    </resource-map>
 
 </language-kit>

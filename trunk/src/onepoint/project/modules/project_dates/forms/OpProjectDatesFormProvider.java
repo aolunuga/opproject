@@ -272,7 +272,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
          OpResource resource = assignment.getResource();
          XComponent dataRow = resourceDataSet.newDataRow();
          dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
-         resourceDataSet.addDataRow(dataRow);
+         resourceDataSet.addChild(dataRow);
          resourceDataSet.sort();
       }
    }

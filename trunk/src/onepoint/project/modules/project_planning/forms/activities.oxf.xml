@@ -16,7 +16,7 @@
    <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
    <data-field id="TaskExtraResourceException" text="${TaskExtraResourceErrorMessage}"/>
    <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
-   <data-field id="InvalidBaseEffortException" text="{$InvalidBaseEffortErrorMessage}"/>
+   <data-field id="InvalidBaseEffortException" text="${InvalidBaseEffortErrorMessage}"/>
 
    <data-field id="ImportProjectTitle" text="${ImportProjectTitle}"/>
    <data-field id="ExportProjectTitle" text="${ExportProjectTitle}"/>
@@ -32,6 +32,8 @@
    <data-set id="ActivitySet" validator-class="onepoint.project.modules.project.components.OpIncrementalValidator" on-value-changed="updateSums"/>
    <data-set id="ActivityListFooter"/>
    <data-set id="ActivityCostsFooter"/>
+   <data-set id="ResourcesHourlyRates"/>
+   <data-set id="ProjectType"/>
 
    <data-set id="IndicatorIconSet">
       <data-row/>
@@ -223,6 +225,7 @@
                   <table-column text="${Material}" width="80" sortable="true" data-column-index="13" value-type="Double" decimals="2" on-value-changed="updateMaterialSum"/>
                   <table-column text="${External}" width="80" sortable="true" data-column-index="14" value-type="Double" decimals="2" on-value-changed="updateExternalSum"/>
                   <table-column text="${Misc}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2" on-value-changed="updateMiscSum"/>
+                  <table-column text="${Proceeds}" width="80" sortable="true" data-column-index="30" value-type="Double" decimals="2" on-value-changed="updateProceedsSum"/>
                </table-box>
                <panel id="CostTableToolBar" y="1" layout="flow" direction="east" visible="false">
                   <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addActivityBefore" tooltip="${AddActivityToolTip}"/>

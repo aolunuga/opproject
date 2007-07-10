@@ -1,4 +1,4 @@
-<prototype name="OpHourlyRatesPeriod" instance-class="onepoint.project.modules.resource.OpHourlyRatesPeriod">
+<prototype name="OpHourlyRatesPeriod" instance-class="onepoint.project.modules.resource.OpHourlyRatesPeriod" super-type="OpObject">
    <field name="Start" type="Date" indexed="true"/>
    <field name="Finish" type="Date" indexed="true"/>
    <field name="InternalRate" type="Double"/>

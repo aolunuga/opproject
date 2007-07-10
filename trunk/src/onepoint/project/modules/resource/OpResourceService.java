@@ -8,12 +8,12 @@ import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -24,7 +24,8 @@ import java.util.*;
 
 public class OpResourceService extends onepoint.project.OpProjectService {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpResourceService.class);
+   public static final String SERVICE_NAME = "ResourceService";
+   protected static final XLog logger = XLogFactory.getServerLogger(OpResourceService.class);
 
    public final static String EDIT_MODE = "edit_mode";
 
@@ -42,7 +43,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    public final static OpResourceErrorMap ERROR_MAP = new OpResourceErrorMap();
    public final static String HAS_ASSIGNMENTS = "Assignments";
-   public final static String HAS_ASSIGNMENTS_IN_TIME_PERIOD = "AssignmentsInPeriod";
 
    private final static String OUTLINE_LEVEL = "outlineLevel";
    private final static String POOL_LOCATOR = "source_pool_locator";
@@ -55,20 +55,12 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    private static final String INTERNAL_RATE = "InternalRate";
    private static final String EXTERNAL_RATE = "ExternalRate";
    private static final String RESOURCES_DATA_SET = "ResourcesDataSet";
-   public final static String HOURLY_RATES_SET = "HourlyRatesSet";
    public final static String CHECK_INHERIT = "checkInherit";
 
-   public final static String NEW_HOURLY_RATE = "newHourlyRate";
-   public final static String NEW_EXTERNAL_RATE = "newExternalRate";
-
-   //hourly rates data column indexes
-   private final int START_DATE_COLUMN_INDEX = 0;
-   private final int END_DATE_COLUMN_INDEX = 1;
-   private final int HOURLY_RATE_COLUMN_INDEX = 2;
-   private final int EXTERNAL_RATE_COLUMN_INDEX = 3;
-
-   private static final int START_DATES_LIST_INDEX = 0;
-   private static final int END_DATES_LIST_INDEX = 1;
+   private final static String NEW_HOURLY_RATE = "newHourlyRate";
+   private final static String NEW_EXTERNAL_RATE = "newExternalRate";
+   private final static String ORIGINAL_HOURLY_RATE = "originalHourlyRate";
+   private final static String ORIGINAL_EXTERNAL_RATE = "originalExternalRate";
 
    public XMessage insertResource(OpProjectSession session, XMessage request) {
       logger.debug("OpResourceService.insertResource()");
@@ -163,7 +155,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       // *** TODO: Currently a work-around (should use choice instead of ID)
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          String user_id_string = (String) (resource_data.get("UserID"));
          if ((user_id_string != null) && (user_id_string.length() > 0)) {
             OpUser user = (OpUser) (broker.getObject(user_id_string));
@@ -178,51 +170,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          resource.setUser(user);
       }
 
-      //add the OpHourlyRatesPeriod set to the resource
-      XComponent hourlyRatesSet = (XComponent) (resource_data.get(HOURLY_RATES_SET));
-
-      OpHourlyRatesPeriod period;
-      XComponent dataRow;
-      XComponent dataCell;
-      Set<OpHourlyRatesPeriod> hourlyRatesPeriodsToAdd = new HashSet<OpHourlyRatesPeriod>(hourlyRatesSet.getChildCount());
-      for (int i = 0; i < hourlyRatesSet.getChildCount(); i++) {
-         dataRow = (XComponent) hourlyRatesSet.getChild(i);
-         period = new OpHourlyRatesPeriod();
-
-         // start date
-         dataCell = (XComponent) dataRow.getChild(START_DATE_COLUMN_INDEX);
-         period.setStart(dataCell.getDateValue());
-
-         // end date
-         dataCell = (XComponent) dataRow.getChild(END_DATE_COLUMN_INDEX);
-         period.setFinish(dataCell.getDateValue());
-
-         // hourly rate
-         dataCell = (XComponent) dataRow.getChild(HOURLY_RATE_COLUMN_INDEX);
-         period.setInternalRate(dataCell.getDoubleValue());
-
-         // external rate
-         dataCell = (XComponent) dataRow.getChild(EXTERNAL_RATE_COLUMN_INDEX);
-         period.setExternalRate(dataCell.getDoubleValue());
-
-         int validationResult = period.isValid();
-         if (validationResult != 0) {
-            reply.setError(session.newError(ERROR_MAP, mapHourlyRatesPeriodValidation(validationResult)));
-            broker.close();
-            return (reply);
-         }
-
-         hourlyRatesPeriodsToAdd.add(period);
-      }
-
-      resource.setHourlyRatesPeriods(hourlyRatesPeriodsToAdd);
-
-      //if at least two of the period intervals overlap than return error
-      if (!resource.checkPeriodDoNotOverlap()) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.DATE_INTERVAL_OVERLAP));
-         broker.close();
-         return (reply);
-      }
       OpTransaction t = broker.newTransaction();
 
       broker.makePersistent(resource);
@@ -244,10 +191,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          }
       }
 
-      // Add hourly rates periods
-      for(OpHourlyRatesPeriod hourlyRatesPeriod : hourlyRatesPeriodsToAdd){
-         hourlyRatesPeriod.setResource(resource);
-         broker.makePersistent(hourlyRatesPeriod);
+      reply = insertExtendedHourlyRatesForResource(session, broker, resource_data, resource);
+      if (reply.getError() != null) {
+         broker.close();
+         return reply;
       }
 
       XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
@@ -265,22 +212,25 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
+   //this method is used in order to add hourly rates periods functionality in the closed module
+   protected XMessage insertExtendedHourlyRatesForResource(OpProjectSession session, OpBroker broker,
+        HashMap resource_data, OpResource resource) {
+      return new XMessage();
+   }
+
    public XMessage importUser(OpProjectSession session, XMessage request) {
       logger.debug("OpResourceService.importUser()");
-      HashMap resource_data = (HashMap) (request.getArgument(RESOURCE_DATA));
-      // *** More error handling needed (check mandatory fields)
+      Map<String, Object> resourceData = (Map<String, Object>) request.getArgument(RESOURCE_DATA);
 
       XMessage reply = new XMessage();
-
       OpBroker broker = session.newBroker();
-      OpResource resource = new OpResource();
 
+      OpResource resource = new OpResource();
       // get associated user
-      // *** TODO: Currently a work-around (should use choice instead of ID)
-      String user_id_string = (String) (resource_data.get("UserID"));
-      OpUser user;
-      if ((user_id_string != null) && (user_id_string.length() > 0)) {
-         user = (OpUser) (broker.getObject(user_id_string));
+      OpUser user = null;
+      String userId = (String) resourceData.get("UserID");
+      if ((userId != null) && (userId.length() > 0)) {
+         user = (OpUser) (broker.getObject(userId));
          resource.setUser(user);
       }
       else {
@@ -289,9 +239,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          reply.setError(session.newError(ERROR_MAP, OpResourceError.USER_ID_NOT_SPECIFIED));
          return reply;
       }
-      OpContact contact = user.getContact();
+      //set resource name
       String name = user.getName();
-
       // check if resource name is already used
       OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.Name = :resourceName");
       query.setString("resourceName", name);
@@ -301,8 +250,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          broker.close();
          return reply;
       }
-
       resource.setName(name);
+
+      //set resource description (from user contact)
+      OpContact contact = user.getContact();
       StringBuffer description = new StringBuffer();
       if ((contact.getFirstName() != null) && (contact.getFirstName().length() > 0)) {
          description.append(contact.getFirstName());
@@ -318,7 +269,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       // check valid availability range [0..system.maxAvailable]
-      double availability = (Double) resource_data.get(OpResource.AVAILABLE);
+      double availability = (Double) resourceData.get(OpResource.AVAILABLE);
       double maxAvailable = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       if (availability < 0 || availability > maxAvailable) {
          reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
@@ -330,60 +281,62 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       // check valid hourly rate
-      if ((Double) (resource_data.get(OpResource.HOURLY_RATE)) < 0) {
+      if ((Double) (resourceData.get(OpResource.HOURLY_RATE)) < 0) {
          broker.close();
          reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
          return reply;
       }
-      else {
-         resource.setHourlyRate((Double) (resource_data.get(OpResource.HOURLY_RATE)));
+      // check valid external rate
+      if ((Double) (resourceData.get(OpResource.EXTERNAL_RATE)) < 0) {
+         broker.close();
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
+         return reply;
       }
 
-      resource.setInheritPoolRate((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE)));
+      resource.setHourlyRate((Double) (resourceData.get(OpResource.HOURLY_RATE)));
+      resource.setExternalRate((Double) (resourceData.get(OpResource.EXTERNAL_RATE)));
+      resource.setInheritPoolRate((Boolean) (resourceData.get(OpResource.INHERIT_POOL_RATE)));
 
       // Check if resource is to be created inside a pool
-      String pool_id_string = (String) (resource_data.get("PoolID"));
-      logger.debug("***INTO-POOL: " + pool_id_string);
-      if ((pool_id_string != null) && (pool_id_string.length() > 0)) {
-         OpResourcePool pool;
-         if (!pool_id_string.equals("0")) {
-            pool = (OpResourcePool) (broker.getObject(pool_id_string));
-         }
-         else {
-            pool = OpResourceService.findRootPool(broker);
-         }
-
-         // Check manager access for pool
-         if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
-            logger.warn("ERROR: Import access to pool denied; ID = " + pool.getID());
-            broker.close();
-            reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
-            return reply;
-         }
-         //set up the pool for the resource
-         resource.setPool(pool);
+      OpResourcePool pool = null;
+      String poolId = (String) resourceData.get("PoolID");
+      if (poolId != null) {
+         logger.debug("***INTO-POOL: " + poolId);
+         pool = (OpResourcePool) broker.getObject(poolId);
+      }
+      else {
+         pool = OpResourceService.findRootPool(broker);
       }
 
-      OpTransaction t = broker.newTransaction();
+      // Check manager access for pool
+      if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
+         logger.warn("ERROR: Import access to pool denied; ID = " + pool.getID());
+         broker.close();
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
+         return reply;
+      }
+      //set up the pool for the resource
+      resource.setPool(pool);
 
+      OpTransaction t = broker.newTransaction();
+      //persist entity
       broker.makePersistent(resource);
+      //persist permissions
+      OpPermissionSetFactory.addSystemObjectPermissions(session, broker, resource);
 
       // Add projects assignments
-      ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
-      if ((assigned_projects != null) && (assigned_projects.size() > 0)) {
-         logger.debug("ASSIGNED " + assigned_projects);
-         OpProjectNode projectNode;
-         OpProjectNodeAssignment projectNodeAssignment;
-         for (Object assigned_project : assigned_projects) {
-            projectNode = (OpProjectNode) (broker.getObject((String) assigned_project));
-            projectNodeAssignment = new OpProjectNodeAssignment();
+      List<String> assignedProjects = (List<String>) resourceData.get(PROJECTS);
+      if ((assignedProjects != null) && (assignedProjects.size() > 0)) {
+         logger.debug("ASSIGNED " + assignedProjects);
+         for (String assignedProjectId : assignedProjects) {
+            OpProjectNode projectNode = (OpProjectNode) (broker.getObject(assignedProjectId));
+            OpProjectNodeAssignment projectNodeAssignment = new OpProjectNodeAssignment();
             projectNodeAssignment.setResource(resource);
             projectNodeAssignment.setProjectNode(projectNode);
             broker.makePersistent(projectNodeAssignment);
             OpProjectAdministrationService.insertContributorPermission(broker, projectNode, resource);
          }
       }
-
       t.commit();
       logger.debug("/OpResourceService.importUser()");
       broker.close();
@@ -450,10 +403,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       boolean availibityChanged = (oldAvailableValue != availableValue);
       resource.setAvailable(availableValue);
 
-      double oldHourlyRate = resource.getHourlyRate();
       double hourlyRate = (Double) (resource_data.get(OpResource.HOURLY_RATE));
       resource.setHourlyRate(hourlyRate);
-      double oldExternalRate = resource.getExternalRate();
       double externalRate = (Double) (resource_data.get(OpResource.EXTERNAL_RATE));
       resource.setExternalRate(externalRate);
       resource.setInheritPoolRate((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE)));
@@ -464,9 +415,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          externalRate = resource.getPool().getExternalRate();
          resource.setExternalRate(resource.getPool().getExternalRate());
       }
-
-      boolean hourlyRateChanged = (oldHourlyRate != hourlyRate);
-      boolean externalRateChanged = (oldExternalRate != externalRate);
 
       double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       // check valid availability range [0..maxAvailability]
@@ -560,12 +508,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
 
       //update resource hourlyRatesPeriods
-      XComponent hourlyRatesPeriodSet = (XComponent) (resource_data.get(HOURLY_RATES_SET));
-      List<XComponent> periodRows = new ArrayList<XComponent>();
-      for (int i = 0; i < hourlyRatesPeriodSet.getChildCount(); i++) {
-         periodRows.add((XComponent) hourlyRatesPeriodSet.getChild(i));
-      }
-      reply = updateHourlyRatesPeriods(session, periodRows, broker, resource);
+      reply = updateHourlyRatesPeriods(session, broker, resource_data, resource);
       if (reply.getError() != null) {
          broker.close();
          return reply;
@@ -592,8 +535,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null);
       }
 
+      XCalendar xCalendar = session.getCalendar();
       //update personnel & proceeds costs
-      updatePersonnelCosts(session, broker, resource);
+      updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
       updateActualCosts(broker, resource);
 
       t.commit();
@@ -634,7 +578,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpBroker broker = s.newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
       boolean hasAssignments = false;
-      boolean hasUncoveredAssignments = false;
       if (resource.getAssignmentVersions().size() != 0) {
          hasAssignments = true;
       }
@@ -646,363 +589,14 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       if (request.getArgument(CHECK_INHERIT) != null) {
          Double newHourlyRate = (Double) request.getArgument(NEW_HOURLY_RATE);
          Double newExternalRate = (Double) request.getArgument(NEW_EXTERNAL_RATE);
-         hasAssignments = hasAssignments && (newHourlyRate != resource.getPool().getHourlyRate() ||
-              newExternalRate != resource.getPool().getExternalRate());
+         Double originalHourlyRate = (Double) request.getArgument(ORIGINAL_HOURLY_RATE);
+         Double originalExternalRate = (Double) request.getArgument(ORIGINAL_EXTERNAL_RATE);
+         hasAssignments = hasAssignments && (newHourlyRate.doubleValue() != originalHourlyRate.doubleValue() ||
+              newExternalRate.doubleValue() != originalExternalRate.doubleValue());
       }
 
-      //if the resource has assignments and the rates changed check if this change affected it's activities
-      if(hasAssignments){
-         List<Date> startEndList;
-         XComponent hourlyRatesSet = (XComponent) request.getArgument(HOURLY_RATES_SET);
-         //if the resource has no hourly rates periods then it's activities are uncovered
-         if(hourlyRatesSet == null){
-            hasUncoveredAssignments = true;
-         }
-         else {
-            for (OpAssignmentVersion assignmentVersion : resource.getAssignmentVersions()) {
-               startEndList = assignmentVersion.getActivityVersion().getStartEndDateByType();
-               if (startEndList != null) {
-                  //if the activity's period is not covered by hourly rates
-                  if (!isPeriodCoveredByHourlyRatesPeriod(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
-                       startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX), hourlyRatesSet)) {
-                     hasUncoveredAssignments = true;
-                  }
-               }
-            }
-
-            for (OpAssignment assignment : resource.getActivityAssignments()) {
-               startEndList = assignment.getActivity().getStartEndDateByType();
-               if (startEndList != null) {
-                  //if the activity's period is not covered by hourly rates
-                  if (!isPeriodCoveredByHourlyRatesPeriod(startEndList.get(OpActivity.START_DATE_LIST_INDEX),
-                       startEndList.get(OpActivity.END_DATE_LIST_INDEX), hourlyRatesSet)) {
-                     hasUncoveredAssignments = true;
-                  }
-               }
-            }
-         }
-      }
-
-      xMessage.setArgument(HAS_ASSIGNMENTS, hasUncoveredAssignments);
+      xMessage.setArgument(HAS_ASSIGNMENTS, hasAssignments);
       return xMessage;
-   }
-
-   /**
-    * Return <code>true</code> if the resource has any assignments in a given period of time.
-    *
-    * @param s
-    * @param request
-    * @return <code>false</code> if resource has no assignments and <code>true</code> otherwise
-    */
-   public XMessage hasAssignmentsInTimePeriod(OpProjectSession s, XMessage request) {
-      String id_string = (String) (request.getArgument(RESOURCE_ID));
-      OpBroker broker = s.newBroker();
-      OpResource resource = (OpResource) (broker.getObject(id_string));
-      boolean hasAssignments = false;
-      XMessage xMessage = new XMessage();
-      XComponent hourlyRatesSet = (XComponent) request.getArgument(HOURLY_RATES_SET);
-      Map<Date, OpHourlyRatesPeriod> cutInterval = null;
-      List<Date> activityStartEndList;
-
-      //obtain the map which contains the intervals from the client's data set between the start and end dates
-      cutInterval = getResourceRatesInActivitiesInterval(resource, hourlyRatesSet);
-
-      if (resource.getAssignmentVersions().size() != 0 && cutInterval != null) {
-         OpActivityVersion activityVersion;
-         for(OpAssignmentVersion assignmentVersion : resource.getAssignmentVersions()){
-            activityVersion = assignmentVersion.getActivityVersion();
-            activityStartEndList = activityVersion.getStartEndDateByType();
-            if (activityStartEndList != null) {
-               if (hasDifferentRatesInInterval(activityStartEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
-                    activityStartEndList.get(OpActivityVersion.END_DATE_LIST_INDEX),cutInterval, resource)) {
-                  hasAssignments = true;
-                  xMessage.setArgument(HAS_ASSIGNMENTS_IN_TIME_PERIOD, hasAssignments);
-                  return xMessage;
-               }
-            }
-         }
-      }
-
-      if (resource.getActivityAssignments().size() != 0 && cutInterval != null) {
-         OpActivity activity;
-         for(OpAssignment assignment : resource.getActivityAssignments()){
-            activity = assignment.getActivity();
-            activityStartEndList = activity.getStartEndDateByType();
-            if (activityStartEndList != null) {
-               if (hasDifferentRatesInInterval(activityStartEndList.get(OpActivity.START_DATE_LIST_INDEX),
-                    activityStartEndList.get(OpActivity.END_DATE_LIST_INDEX), cutInterval, resource)) {
-                  hasAssignments = true;
-                  xMessage.setArgument(HAS_ASSIGNMENTS_IN_TIME_PERIOD, hasAssignments);
-                  return xMessage;
-               }
-            }
-         }
-      }
-      xMessage.setArgument(HAS_ASSIGNMENTS_IN_TIME_PERIOD, hasAssignments);
-      return xMessage;
-   }
-
-   /**
-    * Returns an List containing two lists:
-    * 0 - startList: containing the start dates of the resource's activities and activity assignments
-    * 1 - endList: containing the end dates of the resource's activities and activity versions
-    *
-    * @param resource - the resource who's activity/activity versions start and end dates will be returned
-    * @return - an <code>List</code> containing two <cod>List</code> objects
-    *         0 - startList: containing the start dates of the resource's activities and activity assignments
-    *         1 - endList: containing the end dates of the resource's activities and activity versions
-    */
-
-   private List<List> getStartFinishOfAssignments(OpResource resource) {
-      List<List> result = new ArrayList<List>();
-      List<java.sql.Date> startList = new ArrayList<java.sql.Date>();
-      List<java.sql.Date> endList = new ArrayList<java.sql.Date>();
-      List<Date> activityStartEndList;
-
-      //put all the start/end dates of the activity versions and activities belonging to the resource in a start/end TreeMap
-      if (!resource.getAssignmentVersions().isEmpty()) {
-         Iterator<OpAssignmentVersion> iterator = resource.getAssignmentVersions().iterator();
-         OpAssignmentVersion assignmentVersion;
-         OpActivityVersion activityVersion;
-         while (iterator.hasNext()) {
-            assignmentVersion = iterator.next();
-            activityVersion = assignmentVersion.getActivityVersion();
-            activityStartEndList = activityVersion.getStartEndDateByType();
-            if(activityStartEndList != null){
-               startList.add(activityStartEndList.get(OpActivityVersion.START_DATE_LIST_INDEX));
-               endList.add(activityStartEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
-            }
-         }
-      }
-
-      if (!resource.getActivityAssignments().isEmpty()) {
-         Iterator<OpAssignment> iterator = resource.getActivityAssignments().iterator();
-         OpAssignment assignment;
-         OpActivity activity;
-         while (iterator.hasNext()) {
-            assignment = iterator.next();
-            activity = assignment.getActivity();
-            activityStartEndList = activity.getStartEndDateByType();
-            if (activityStartEndList != null) {
-               startList.add(activityStartEndList.get(OpActivity.START_DATE_LIST_INDEX));
-               endList.add(activityStartEndList.get(OpActivity.END_DATE_LIST_INDEX));
-            }
-         }
-      }
-      Collections.sort(startList);
-      Collections.sort(endList);
-      result.add(START_DATES_LIST_INDEX, startList);
-      result.add(END_DATES_LIST_INDEX, endList);
-      return result;
-   }
-
-   /**
-    * Returns a map with all the sorted intervals from the hourlyRatesPeriods data set with the corresponding
-    * internal/external rate values and intervals with default internal/external rate values for the
-    * intervals which were not specified in the set
-    *
-    * @param hourlyRatesPeriodsDataSet - the data set containing the OpHourlyRatesPeriods data from the client
-    * @param resource                  - the resource which has its rates modified
-    * @param startOfTime               - the start date fo the first interval
-    * @param endOfTime                 - the end date of the last interval
-    * @return - a <code>Map<code> with all the sorted intervals from the hourlyRatesPeriods data set
-    */
-   private Map<java.sql.Date, OpHourlyRatesPeriod> getIntervalsFromClientHourlyRatesPeriods(XComponent hourlyRatesPeriodsDataSet,
-        OpResource resource, java.sql.Date startOfTime, java.sql.Date endOfTime) {
-      Map<java.sql.Date, OpHourlyRatesPeriod> intervalMap = new TreeMap<java.sql.Date, OpHourlyRatesPeriod>();
-      OpHourlyRatesPeriod hourlyRatesPeriod;
-
-      if (hourlyRatesPeriodsDataSet != null) {
-         //form an OpHourlyRatesPeriod object for each row in the data set and store it in an interval map under it's start date
-         for (int i = 0; i < hourlyRatesPeriodsDataSet.getChildCount(); i++) {
-            XComponent dataRow = (XComponent) hourlyRatesPeriodsDataSet.getChild(i);
-            hourlyRatesPeriod = new OpHourlyRatesPeriod();
-            hourlyRatesPeriod.setStart(((XComponent) dataRow.getChild(START_DATE_COLUMN_INDEX)).getDateValue());
-            hourlyRatesPeriod.setFinish(((XComponent) dataRow.getChild(END_DATE_COLUMN_INDEX)).getDateValue());
-            hourlyRatesPeriod.setInternalRate(((XComponent) dataRow.getChild(HOURLY_RATE_COLUMN_INDEX)).getDoubleValue());
-            hourlyRatesPeriod.setExternalRate(((XComponent) dataRow.getChild(EXTERNAL_RATE_COLUMN_INDEX)).getDoubleValue());
-            if(hourlyRatesPeriod.isValid() == 0){
-               intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-            }
-         }
-      }
-
-      fillEmptyIntervalsWithDefaultRates(intervalMap, resource, startOfTime, endOfTime);
-      return intervalMap;
-   }
-
-   private Map<Date, OpHourlyRatesPeriod> getIntervalsFromResourceHourlyRatesPeriods(OpResource resource, java.sql.Date startOfTime, java.sql.Date endOfTime) {
-      Map<java.sql.Date, OpHourlyRatesPeriod> intervalMap = new TreeMap<Date, OpHourlyRatesPeriod>();
-
-      if (!resource.getHourlyRatesPeriods().isEmpty()) {
-         //store the resource's OpHourlyRatesPeriod objects in an interval map under their start date
-         for(OpHourlyRatesPeriod hourlyRatesPeriod : resource.getHourlyRatesPeriods()) {
-               intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);        
-         }
-      }
-
-      fillEmptyIntervalsWithDefaultRates(intervalMap, resource, startOfTime, endOfTime);
-      return intervalMap;
-   }
-
-   private void fillEmptyIntervalsWithDefaultRates(Map<java.sql.Date, OpHourlyRatesPeriod> intervalMap, OpResource resource,
-        java.sql.Date startOfTime, java.sql.Date endOfTime){
-      //form a list containing all the start dates
-      Set<java.sql.Date> startDatesSet = intervalMap.keySet();
-      List<java.sql.Date> startDatesList = new ArrayList<java.sql.Date>();
-      for(java.sql.Date startDate : startDatesSet){
-         startDatesList.add(new java.sql.Date(startDate.getTime()));
-      }
-
-      Calendar calendarStart = Calendar.getInstance();
-      Calendar calendarFinish = Calendar.getInstance();
-      Date finishInterval;
-      Date startInterval;
-      OpHourlyRatesPeriod hourlyRatesPeriod;
-
-      if (!startDatesList.isEmpty()) {
-         //add an interval from "begining of time" to first startDate - 1
-         finishInterval = intervalMap.get(startDatesList.get(0)).getStart();
-         calendarFinish.setTimeInMillis(finishInterval.getTime());
-         calendarFinish.add(Calendar.DATE, -1);
-         hourlyRatesPeriod = new OpHourlyRatesPeriod();
-         hourlyRatesPeriod.setStart(startOfTime);
-         hourlyRatesPeriod.setFinish(new java.sql.Date(calendarFinish.getTimeInMillis()));
-         hourlyRatesPeriod.setInternalRate(resource.getHourlyRate());
-         hourlyRatesPeriod.setExternalRate(resource.getExternalRate());
-         if (!hourlyRatesPeriod.getFinish().before(hourlyRatesPeriod.getStart())) {
-            intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-         }
-
-         //add an interval from the last finishDate + 1 to the "end of time"
-         startInterval = intervalMap.get(startDatesList.get(startDatesList.size() - 1)).getFinish();
-         calendarStart.setTimeInMillis(startInterval.getTime());
-         calendarStart.add(Calendar.DATE, 1);
-         hourlyRatesPeriod = new OpHourlyRatesPeriod();
-         hourlyRatesPeriod.setStart(new java.sql.Date(calendarStart.getTimeInMillis()));
-         hourlyRatesPeriod.setFinish(endOfTime);
-         hourlyRatesPeriod.setInternalRate(resource.getHourlyRate());
-         hourlyRatesPeriod.setExternalRate(resource.getExternalRate());
-         if (!hourlyRatesPeriod.getFinish().before(hourlyRatesPeriod.getStart())) {
-            intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-         }
-      }
-      else {
-         hourlyRatesPeriod = new OpHourlyRatesPeriod();
-         hourlyRatesPeriod.setStart(startOfTime);
-         hourlyRatesPeriod.setFinish(endOfTime);
-         hourlyRatesPeriod.setInternalRate(resource.getHourlyRate());
-         hourlyRatesPeriod.setExternalRate(resource.getExternalRate());
-         intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-      }
-
-      //if the intervals have empty periods of time between them form new intervals for those periods with default
-      //interval and external rate values
-      for (int i = 0; i < startDatesList.size() - 1; i++) {
-         finishInterval = intervalMap.get(startDatesList.get(i)).getFinish();
-         startInterval = intervalMap.get(startDatesList.get(i + 1)).getStart();
-         calendarFinish.setTimeInMillis(finishInterval.getTime());
-         calendarStart.setTimeInMillis(startInterval.getTime());
-         calendarFinish.add(Calendar.DATE, 1);
-         if (!calendarFinish.equals(calendarStart)) {
-            calendarStart.add(Calendar.DATE, -1);
-            hourlyRatesPeriod = new OpHourlyRatesPeriod();
-            hourlyRatesPeriod.setStart(new java.sql.Date(calendarFinish.getTimeInMillis()));
-            hourlyRatesPeriod.setFinish(new java.sql.Date(calendarStart.getTimeInMillis()));
-            hourlyRatesPeriod.setInternalRate(resource.getHourlyRate());
-            hourlyRatesPeriod.setExternalRate(resource.getExternalRate());
-            intervalMap.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-         }
-      }
-   }
-
-   /**
-    * Returns a map containing part of the map passed as the parameter and which contains period interval between
-    * (or containing) the start and end date
-    *
-    * @param intervalMap - <code>Map</code> of period intervals which will be filtered
-    * @param start       - the start date from which intervals are returned
-    * @param end         - the end date up until intervals are returned
-    * @return - a <code>Map</code> containing part of the map passed as the parameter and which contains
-    *         period interval between (or containing) the start and end date
-    */
-   private Map<Date, OpHourlyRatesPeriod> cutIntervalMapToStartFinish(Map intervalMap, Date start, Date end) {
-      Map<Date, OpHourlyRatesPeriod> cutInterval = new TreeMap<Date, OpHourlyRatesPeriod>();
-
-      Collection<OpHourlyRatesPeriod> hourlyRatesCollection = intervalMap.values();
-      boolean containsStart = false;
-      boolean containsEnd = false;
-
-      //add an interval from the interval map only if if contains the start date or
-      // if it follows an interval which contains the start date and doesn't follow an interval which contains the end date
-      for(OpHourlyRatesPeriod hourlyRatesPeriod : hourlyRatesCollection){
-         if (!start.before(hourlyRatesPeriod.getStart()) && !start.after(hourlyRatesPeriod.getFinish())) {
-            containsStart = true;
-            cutInterval.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-         }
-         else if (containsStart && !containsEnd) {
-            cutInterval.put(hourlyRatesPeriod.getStart(), hourlyRatesPeriod);
-         }
-         if (!end.before(hourlyRatesPeriod.getStart()) && !end.after(hourlyRatesPeriod.getFinish())) {
-            containsEnd = true;
-         }
-      }
-      return cutInterval;
-   }
-
-   /**
-    * Returns <code>true</code> if the resource has at least one internal/external rate different from the rates
-    * in the time interval between start and end, or <code>false</code> otherwise
-    * @param start - the start date of the interval for which the rates wil be compared
-    * @param end - the end date of the interval for which the rates wil be compared
-    * @param cutInterval - a <code>Map</code> cotaining the intervals with different rates
-    * @param resource - the <code>OpResource</code> object for which the rates will be compared
-    * @return - <code>true</code> if the resource has at least one internal/external rate different from the rates
-    * in the time interval between start and end, or <code>false</code> otherwise
-    */
-   private boolean hasDifferentRatesInInterval(java.sql.Date start, java.sql.Date end,
-        Map<Date, OpHourlyRatesPeriod> cutInterval, OpResource resource) {
-      java.sql.Date startDate;
-      java.sql.Date endDate;
-      List<Double> internalRatesForInterval;
-      List<Double> externalRatesForInterval;
-      Map<Date, OpHourlyRatesPeriod> cutIntervalForActivity;
-
-      //obtain the map of the different rates in the activity's time interval
-      cutIntervalForActivity = cutIntervalMapToStartFinish(cutInterval, start, end);
-      //determine the start/end dated for which the comparison of rates will be made
-      //here we intersect the two time intervals
-      for (OpHourlyRatesPeriod hourlyRatesPeriod : cutIntervalForActivity.values()) {
-         if (!start.before(hourlyRatesPeriod.getStart())) {
-            startDate = start;
-         }
-         else {
-            startDate = hourlyRatesPeriod.getStart();
-         }
-         if (!end.after(hourlyRatesPeriod.getFinish())) {
-            endDate = end;
-         }
-         else {
-            endDate = hourlyRatesPeriod.getFinish();
-         }
-
-         List<List> ratesList = resource.getRatesForInterval(startDate, endDate);
-         internalRatesForInterval = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
-         for (Double anInternalRatesForInterval : internalRatesForInterval) {
-            if (hourlyRatesPeriod.getInternalRate() != anInternalRatesForInterval) {
-               return true;
-            }
-         }
-         //compare only in the smallest interval (activityStart - activityFinish OR hourlyRatePeriodStart - hourlyRatePeriodFinish)
-         externalRatesForInterval = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
-         for (Double anExternalRatesForInterval : externalRatesForInterval) {
-            if (hourlyRatesPeriod.getExternalRate() != anExternalRatesForInterval) {
-               return true;
-            }
-         }
-      }
-
-      return false;
    }
 
    /**
@@ -1059,9 +653,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * resource is updated.
     *
     * @param broker   a <code>OpBroker</code> used for performing business operations.
+    * @param calendar - the <code>XCalendar</code> needed to get the working days out of an interval of time
     * @param resource a <code>OpResource</code> representing the resource that has been updated.
     */
-   private void updatePersonnelCosts(OpProjectSession session, OpBroker broker, OpResource resource) {
+   private void updatePersonnelCostsForWorkingVersion(OpBroker broker, XCalendar calendar, OpResource resource) {
 
       Iterator it = getAssignmentsForWorkingVersions(broker, resource.getID());
 
@@ -1074,25 +669,42 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       List<OpAssignmentVersion> updatedAssignments = new ArrayList<OpAssignmentVersion>();
       OpAssignmentVersion workingAssignmentVersion;
       List<Date> startEndList;
-      XCalendar calendar = session.getCalendar();
-      double workHoursPerDay = calendar.getWorkHoursPerDay();
+      double workHoursPerDay;
       List<Date> workingDays;
 
       while (it.hasNext()) {
          workingAssignmentVersion = (OpAssignmentVersion) it.next();
          activityVersion = workingAssignmentVersion.getActivityVersion();
-         startEndList = activityVersion.getStartEndDateByType();
-         if(startEndList != null){
+         workHoursPerDay = calendar.getWorkHoursPerDay();
+         //for task activities calculation of start end dates is different
+         if (activityVersion.getType() == OpActivityVersion.TASK) {
+            startEndList = activityVersion.getStartEndDateByType();
+         }
+         else {
+            startEndList = activityVersion.getStartEndDateByType();
+         }
+         if (startEndList != null) {
             workingDays = calendar.getWorkingDaysFromInterval(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
                  startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
             ratesList = resource.getRatesForListOfDays(workingDays);
             internalRatesList = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
             externalRatesList = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
+
+            //for task activities workHoursPerDay = activity effort/activity working days
+            if (activityVersion.getType() == OpActivityVersion.TASK) {
+               if (workingDays.size() > 0) {
+                  workHoursPerDay = activityVersion.getBaseEffort() / (double) workingDays.size();
+               }
+               else {
+                  workHoursPerDay = 0d;
+               }
+            }
+
             for (Double internalRate : internalRatesList) {
-               internalSum += internalRate * workHoursPerDay * workingAssignmentVersion.getAssigned()/100;
+               internalSum += internalRate * workHoursPerDay * workingAssignmentVersion.getAssigned() / 100;
             }
             for (Double externalRate : externalRatesList) {
-               externalSum += externalRate * workHoursPerDay * workingAssignmentVersion.getAssigned()/100;
+               externalSum += externalRate * workHoursPerDay * workingAssignmentVersion.getAssigned() / 100;
             }
          }
 
@@ -1106,38 +718,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          externalSum = 0d;
       }
 
-      List<OpActivityVersion> updatedActivities = new ArrayList<OpActivityVersion>();
-      for (OpAssignmentVersion assignmentVersion : updatedAssignments) {
-         double sumBaseCosts = 0;
-         double sumBaseProceeds = 0;
-         activityVersion = assignmentVersion.getActivityVersion();
-         if (!updatedActivities.contains(activityVersion)) {
-            double oldPersonnelCosts = activityVersion.getBasePersonnelCosts();
-            double oldProceedsCosts = activityVersion.getBaseProceeds();
-
-            for (OpAssignmentVersion assignmentVersionOfActivity : activityVersion.getAssignmentVersions()) {
-               sumBaseCosts += assignmentVersionOfActivity.getBaseCosts();
-               sumBaseProceeds += assignmentVersionOfActivity.getBaseProceeds();
-            }
-            activityVersion.setBasePersonnelCosts(sumBaseCosts);
-            activityVersion.setBaseProceeds(sumBaseProceeds);
-            updatedActivities.add(activityVersion);
-
-            //update all super activities
-            while (activityVersion.getSuperActivityVersion() != null) {
-               OpActivityVersion superActivityVersion = activityVersion.getSuperActivityVersion();
-               double personnelCostsDifference = activityVersion.getBasePersonnelCosts() - oldPersonnelCosts;
-               double proceedsCostsDifference = activityVersion.getBaseProceeds() - oldProceedsCosts;
-               oldPersonnelCosts = superActivityVersion.getBasePersonnelCosts();
-               oldProceedsCosts = superActivityVersion.getBaseProceeds();
-               superActivityVersion.setBasePersonnelCosts(superActivityVersion.getBasePersonnelCosts() + personnelCostsDifference);
-               superActivityVersion.setBaseProceeds(superActivityVersion.getBaseProceeds() + proceedsCostsDifference);
-               broker.updateObject(activityVersion);
-               activityVersion = superActivityVersion;
-            }
-            broker.updateObject(activityVersion);
-         }
-      }
+      OpActivityDataSetFactory.updateActivityVersionPersonnelCosts(broker, updatedAssignments);
    }
 
    /**
@@ -1147,24 +728,24 @@ public class OpResourceService extends onepoint.project.OpProjectService {
     * @param broker   a <code>OpBroker</code> used for performing business operations.
     * @param resource a <code>OpResource</code> representing the resource that has been updated.
     */
-   private void updateActualCosts(OpBroker broker, OpResource resource){
+   private void updateActualCosts(OpBroker broker, OpResource resource) {
       List<OpAssignment> updatedAssignments = new ArrayList<OpAssignment>();
       List<Double> ratesList = new ArrayList<Double>();
 
-      for(OpAssignment assignment : resource.getActivityAssignments()){
+      for (OpAssignment assignment : resource.getActivityAssignments()) {
          Double internalSum = 0d;
          Double externalSum = 0d;
          Double newActualCosts = 0d;
          Double newActualProceeds = 0d;
 
-         for(OpWorkRecord workRecord : assignment.getWorkRecords()){
+         for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
             //get the new rate of the resource for the work record's day
             ratesList = resource.getRatesForDay(workRecord.getWorkSlip().getDate());
             newActualCosts = workRecord.getActualEffort() * ratesList.get(OpResource.INTERNAL_RATE_INDEX);
             newActualProceeds = workRecord.getActualEffort() * ratesList.get(OpResource.EXTERNAL_RATE_INDEX);
 
             //if the costs are different - update the workslip
-            if(workRecord.getPersonnelCosts() != newActualCosts || workRecord.getActualProceeds() != newActualProceeds){
+            if (workRecord.getPersonnelCosts() != newActualCosts || workRecord.getActualProceeds() != newActualProceeds) {
                workRecord.setPersonnelCosts(newActualCosts);
                workRecord.setActualProceeds(newActualProceeds);
                broker.updateObject(assignment);
@@ -1172,7 +753,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             internalSum += workRecord.getPersonnelCosts();
             externalSum += workRecord.getActualProceeds();
          }
-         if(assignment.getActualCosts() != internalSum || assignment.getActualProceeds() != externalSum){
+         if (assignment.getActualCosts() != internalSum || assignment.getActualProceeds() != externalSum) {
             assignment.setActualCosts(internalSum);
             assignment.setActualProceeds(externalSum);
             broker.updateObject(assignment);
@@ -1180,39 +761,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          }
       }
 
-      List<OpActivity> updatedActivities = new ArrayList<OpActivity>();
-      OpActivity activity;
-      for (OpAssignment assignment : updatedAssignments) {
-         double sumActualCosts = 0;
-         double sumActualProceeds = 0;
-         activity = assignment.getActivity();
-         if (!updatedActivities.contains(activity)) {
-            double oldActualCosts = activity.getActualPersonnelCosts();
-            double oldActualProceeds = activity.getActualProceeds();
-
-            for (OpAssignment assignmentOfActivity : activity.getAssignments()) {
-               sumActualCosts += assignmentOfActivity.getActualCosts();
-               sumActualProceeds += assignmentOfActivity.getActualProceeds();
-            }
-            activity.setActualPersonnelCosts(sumActualCosts);
-            activity.setActualProceeds(sumActualProceeds);
-            updatedActivities.add(activity);
-
-            //update all super activities
-            while (activity.getSuperActivity() != null) {
-               OpActivity superActivity = activity.getSuperActivity();
-               double actualCostsDifference = activity.getActualPersonnelCosts() - oldActualCosts;
-               double actualProceedsDifference = activity.getActualProceeds() - oldActualProceeds;
-               oldActualCosts = superActivity.getActualPersonnelCosts();
-               oldActualProceeds = superActivity.getActualProceeds();
-               superActivity.setActualPersonnelCosts(superActivity.getActualPersonnelCosts() + actualCostsDifference);
-               superActivity.setActualProceeds(superActivity.getActualProceeds() + actualProceedsDifference);
-               broker.updateObject(activity);
-               activity = superActivity;
-            }
-            broker.updateObject(activity);
-         }
-      }
+      OpActivityDataSetFactory.updateActivityActualCosts(broker, updatedAssignments);
    }
 
    /**
@@ -1269,162 +818,47 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          result = broker.list(query).iterator();
          while (result.hasNext()) {
             OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) result.next();
-            int activityAssignmentsCounter = getResourcePlanningAssignmentsCount(broker, assignment.getResource(), assignment.getProjectNode().getPlan());
-            if (activityAssignmentsCounter > 0) {
-               reply.setError(session.newError(ERROR_MAP, OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR));
+            OpProjectPlan projectPlan = assignment.getProjectNode().getPlan();
+            XMessage checkUsageReply = checkResourceUsageOnProjectPlan(session, broker, resource, projectPlan);
+            if (checkUsageReply.getError() != null) {
+               reply.setError(checkUsageReply.getError());
                return reply;
             }
-            else {
-               broker.deleteObject(assignment);
-            }
+            broker.deleteObject(assignment);
          }
       }
       return reply;
    }
 
-   /**
-    * Updates the already existent OpHourlyRatesPeriods for the modified resource and inserts the newly added ones.
-    *
-    * @param session  a <code>OpProjectSession</code> representing the current session
-    * @param periods  a <code>Set</code > of <code>XComponent DataRows</code> containing the information about the OpHourlyRatesPeriods.
-    * @param broker   a <code>OpBroker</code> used for performing business operations.
-    * @param resource a <code>OpResource</code> representing the resource which was edited.
-    * @return <code>XMessage</code>
-    */
-   private XMessage updateHourlyRatesPeriods(OpProjectSession session, List<XComponent> periods, OpBroker broker, OpResource resource) {
-      OpQuery query = null;
+   //method which allows insertion of advanced hourly rate periods functionality
+   protected XMessage updateHourlyRatesPeriods(OpProjectSession session, OpBroker broker, Map resource_data, OpResource resource) {
       //the reply message
       XMessage reply = new XMessage();
-      logger.debug("HourlyRatesPeriods " + periods);
-      // Query stored hourly rates periods
-      query = broker.newQuery("select hourlyratesperiod.ID from OpHourlyRatesPeriod as hourlyratesperiod where hourlyratesperiod.Resource.ID = ?");
-      query.setLong(0, resource.getID());
-
-      Iterator result = broker.list(query).iterator();
-      HashSet storedHourlyRatesIds = new HashSet();
-      while (result.hasNext()) {
-         storedHourlyRatesIds.add(result.next());
-      }
-
-      // *** Iterate client-side hourlyRatesPeriods-ids and remove ids found in set
-      OpLocator locator = null;
-      OpHourlyRatesPeriod hourlyRatesPeriod = null;
-      ArrayList<OpHourlyRatesPeriod> hourlyRatesPeriodsToAdd = new ArrayList<OpHourlyRatesPeriod>();
-      ArrayList<OpHourlyRatesPeriod> hourlyRatesPeriodsModified = new ArrayList<OpHourlyRatesPeriod>();
-
-      if ((periods != null) && !periods.isEmpty()) {
-         XComponent dataCell = null;
-         for(XComponent dataRow : periods){
-            //if this is a new row it doesn't have a StringValue set on it
-            boolean contained = true;
-            if (dataRow.getStringValue() != null) {
-               locator = OpLocator.parseLocator(dataRow.getStringValue());
-
-               //create the new OpHourlyRatesPeriods and store them in an ArrayList
-               if (storedHourlyRatesIds.remove(new Long(locator.getID()))) {
-                  //store the modified OpHourlyRatesPeriods in an ArrayList
-                  hourlyRatesPeriod = (OpHourlyRatesPeriod) broker.getObject(locator.getPrototype().getInstanceClass(), locator.getID());
-                  contained = true;
-               }
-            }
-            //new row
-            else {
-               hourlyRatesPeriod = new OpHourlyRatesPeriod();
-               contained = false;
-            }
-
-            // start date
-            dataCell = (XComponent) dataRow.getChild(START_DATE_COLUMN_INDEX);
-            hourlyRatesPeriod.setStart(dataCell.getDateValue());
-
-            // end date
-            dataCell = (XComponent) dataRow.getChild(END_DATE_COLUMN_INDEX);
-            hourlyRatesPeriod.setFinish(dataCell.getDateValue());
-
-            // hourly rate
-            dataCell = (XComponent) dataRow.getChild(HOURLY_RATE_COLUMN_INDEX);
-            hourlyRatesPeriod.setInternalRate(dataCell.getDoubleValue());
-
-            // external rate
-            dataCell = (XComponent) dataRow.getChild(EXTERNAL_RATE_COLUMN_INDEX);
-            hourlyRatesPeriod.setExternalRate(dataCell.getDoubleValue());
-
-            int validationResult = hourlyRatesPeriod.isValid();
-            if (validationResult != 0) {
-               reply.setError(session.newError(ERROR_MAP, mapHourlyRatesPeriodValidation(validationResult)));
-               broker.close();
-               return (reply);
-            }
-
-            if (!contained) {
-               hourlyRatesPeriod.setResource(resource);
-               hourlyRatesPeriodsToAdd.add(hourlyRatesPeriod);
-            }
-            else {
-               hourlyRatesPeriodsModified.add(hourlyRatesPeriod);
-            }
-         }
-      }
-
-      //check all added and updated HourlyRatesPeriods for overlaping intervals
-      Set<OpHourlyRatesPeriod> allAddedUpdatedPeriods = new HashSet<OpHourlyRatesPeriod>();
-      allAddedUpdatedPeriods.addAll(hourlyRatesPeriodsToAdd);
-      allAddedUpdatedPeriods.addAll(hourlyRatesPeriodsModified);
-      resource.setHourlyRatesPeriods(allAddedUpdatedPeriods);
-      if (!resource.checkPeriodDoNotOverlap()) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.DATE_INTERVAL_OVERLAP));
-         broker.close();
-         return (reply);
-      }
-
-      // insert the newly added hourly rates periods
-      for(OpHourlyRatesPeriod hourlyRatesPeriodToAdd : hourlyRatesPeriodsToAdd){
-         broker.makePersistent(hourlyRatesPeriodToAdd);
-      }
-
-      // update the modified hourly rates periods
-      for(OpHourlyRatesPeriod hourlyRatesPeriodToModify : hourlyRatesPeriodsModified){
-         broker.updateObject(hourlyRatesPeriodToModify);
-      }
-
-      // Delete the deleted OpHourlyRatesPeriod for the resource
-      if (!storedHourlyRatesIds.isEmpty()) {
-         query = broker.newQuery("select hourlyratesperiod from OpHourlyRatesPeriod as hourlyratesperiod where hourlyratesperiod.Resource.ID = :resourceId and hourlyratesperiod.ID in (:hourlyRatesIds)");
-         query.setLong("resourceId", resource.getID());
-         query.setCollection("hourlyRatesIds", storedHourlyRatesIds);
-         result = broker.list(query).iterator();
-         while (result.hasNext()) {
-            OpHourlyRatesPeriod hourlyRatePeriod = (OpHourlyRatesPeriod) result.next();
-            broker.deleteObject(hourlyRatePeriod);
-         }
-      }
       return reply;
    }
 
    public XMessage deleteResources(OpProjectSession session, XMessage request) {
 
-      // Check manager access to pools of resources; delete all accessible resources; return error if not all deleted
-
-      ArrayList id_strings = (ArrayList) (request.getArgument(RESOURCE_IDS));
-      logger.debug("OpResourceService.deleteResources(): resource_ids = " + id_strings);
-
-      OpBroker broker = session.newBroker();
-
-      List resourceIds = new ArrayList();
       XMessage reply = new XMessage();
 
-      if (id_strings.size() == 0) {
-         return new XMessage();
-         // TODO: Return error (nothing to delete)
+      List<String> ids = (List<String>) request.getArgument(RESOURCE_IDS);
+      if (ids.size() == 0) {
+         logger.debug("No resources to delete");
+         return reply;
       }
-      for (Object id_string : id_strings) {
-         resourceIds.add(OpLocator.parseLocator((String) id_string).getID());
+
+      logger.debug("OpResourceService.deleteResources(): resource_ids = " + ids);
+
+      OpBroker broker = session.newBroker();
+      List<Long> resourceIds = new ArrayList<Long>();
+      for (String resourceId : ids) {
+         resourceIds.add(OpLocator.parseLocator(resourceId).getID());
       }
+
       OpQuery query = broker.newQuery("select resource.Pool.ID from OpResource as resource where resource.ID in (:resourceIds)");
       query.setCollection("resourceIds", resourceIds);
-      List poolIds = broker.list(query);
+      List<Long> poolIds = broker.list(query);
       Set accessiblePoolIds = session.accessibleIds(broker, poolIds, OpPermission.MANAGER);
-
       if (accessiblePoolIds.size() == 0) {
          logger.warn("Manager access to pool " + poolIds + " denied");
          reply.setError(session.newError(ERROR_MAP, OpResourceError.MANAGER_ACCESS_DENIED));
@@ -1432,31 +866,25 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          return reply;
       }
 
-      OpTransaction t = broker.newTransaction();
-      /* --- Not yet support by Hibernate (delete query against joined-subclass)
-      query = broker.newQuery("delete from OpResource where OpResource.ID in (:resourceIds) and OpResource.Pool.ID in :(accessiblePoolIds)");
-      broker.execute(query);
-      */
-      query = broker.newQuery("select resource from OpResource as resource where resource.ID in (:resourceIds) and resource.Pool.ID in (:accessiblePoolIds) " +
-           "and size(resource.ActivityAssignments) = 0 and size(resource.AssignmentVersions) = 0" +
-           "and size(resource.ResponsibleActivities) = 0 and size(resource.ResponsibleActivityVersions) = 0");
-      query.setCollection("resourceIds", resourceIds);
-      query.setCollection("accessiblePoolIds", accessiblePoolIds);
-      List resources = broker.list(query);
-      //size of persistent resources list without activityAssignments and assignmentVersions should be equal with selected resources size
-      if (resources.size() != resourceIds.size()) {
-         logger.warn("Resource from " + resources + " are used in project assignments");
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.DELETE_RESOURCE_ASSIGNMENTS_DENIED));
-         broker.close();
-         return reply;
+      //check if any of the resource are assigned on any activities
+      List<OpResource> resources = new ArrayList<OpResource>();
+      for (long resourceId : resourceIds) {
+         OpResource resource = (OpResource) broker.getObject(OpResource.class, resourceId);
+         XMessage checkUsageReply = OpResourceService.checkResourceUsageOnProjectPlan(session, broker, resource, null);
+         if (checkUsageReply.getError() != null) {
+            broker.close();
+            reply.setError(checkUsageReply.getError());
+            return reply;
+         }
+         resources.add(resource);
       }
-      for (Object resource1 : resources) {
-         OpResource resource = (OpResource) resource1;
+
+      OpTransaction t = broker.newTransaction();
+      for (OpResource resource : resources) {
          // get all project node assignment ids for the resource
          query = broker.newQuery("select assignment.ProjectNode.ID from OpProjectNodeAssignment as assignment where assignment.Resource.ID = ?");
          query.setLong(0, resource.getID());
          Iterator result = broker.list(query).iterator();
-
          Set assignedProjectIds = new HashSet();
          while (result.hasNext()) {
             assignedProjectIds.add(result.next());
@@ -1467,13 +895,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          broker.deleteObject(resource);
       }
       t.commit();
-
-      if (accessiblePoolIds.size() < poolIds.size()) {
-         ; // TODO: Return ("informative") error if notAllAccessible
-      }
-
-      logger.debug("/OpResourceService.deleteResources()");
       broker.close();
+      logger.debug("/OpResourceService.deleteResources()");
       return null;
    }
 
@@ -1656,17 +1079,18 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       if (poolRateChanged || poolExternalRateChanged) {
          Iterator resources = pool.getResources().iterator();
          OpResource resource = null;
+         XCalendar xCalendar = session.getCalendar();
          while (resources.hasNext()) {
             resource = (OpResource) resources.next();
             if (resource.getInheritPoolRate()) {
                resource.setHourlyRate(pool.getHourlyRate());
                resource.setExternalRate(pool.getExternalRate());
-               updatePersonnelCosts(session, broker, resource);
+               updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
                updateActualCosts(broker, resource);
                broker.updateObject(resource);
             }
          }
-      }     
+      }
 
       t.commit();
       logger.debug("/OpResourceService.updateResource()");
@@ -1838,6 +1262,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       //get needed args from request
       List resourceIds = (List) request.getArgument(RESOURCE_IDS);
       String poolId = (String) request.getArgument(POOL_ID);
+      XCalendar xCalendar = session.getCalendar();
 
       XMessage reply = new XMessage();
 
@@ -1873,7 +1298,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
                  (resource.getHourlyRate() != pool.getHourlyRate() || resource.getExternalRate() != pool.getExternalRate())) {
                resource.setHourlyRate(pool.getHourlyRate());
                resource.setExternalRate(pool.getExternalRate());
-               updatePersonnelCosts(session, broker, resource);
+               updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
                updateActualCosts(broker, resource);
             }
             broker.updateObject(resource);
@@ -1926,7 +1351,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-
    /**
     * Checks the group assignments for loops including the newSuperGroups
     *
@@ -1945,7 +1369,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       }
       return false;
    }
-
 
    /**
     * Retrieves the children for the given pool id and returns them as a list argument on the reply.
@@ -2029,40 +1452,116 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    }
 
    /**
-    * Returns the number of activity assignments/responsible activities for the given <code>resource</code> and </code>projectPlan</code>
+    * Checks if given resource has any usages on the given project plan.
+    * Usages mean: activity assignments, activity version assignments, responsible for activity or responsible for activity versions.
+    * If the project plan is <code>null</code>, then all the project plans are searched.
+    *
+    * @param session     a <code>OpProjectSession</code> representing a server session.
+    * @param broker      a <code>OpBroker</code> used for persistence operations.
+    * @param resource    a <code>OpResource</code> representing a project resource.
+    * @param projectPlan a <code>OpProjectPlan</code> representing a project plan. Can be <code>null</code>.
+    * @return a <code>XMessage</code> which contains an error if the resource is used
+    *         in the project plan, or is empty if not.
+    */
+   public static XMessage checkResourceUsageOnProjectPlan(OpProjectSession session, OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+      XMessage reply = new XMessage();
+      if (countResourceActivityAssignments(broker, resource, projectPlan) > 0) {
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR));
+         return reply;
+      }
+      if (countResourceActivityAssignmentVersions(broker, resource, projectPlan) > 0) {
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.ACTIVITY_ASSIGNMENT_VERSIONS_EXIST_ERROR));
+         return reply;
+      }
+      if (countResourceResponsibleActivities(broker, resource, projectPlan) > 0) {
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESPONSIBLE_ACTIVITIES_EXIST_ERROR));
+         return reply;
+      }
+      if (countResourceResponsibleActivityVersions(broker, resource, projectPlan) > 0) {
+         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR));
+         return reply;
+      }
+      return reply;
+   }
+
+   /**
+    * Returns the number of responsible activity versions for the given <code>resource</code> and </code>projectPlan</code>
     *
     * @param broker      <code>OpBroker</code> used for performing business operations.
     * @param resource    <code>OpResource</code> entity
-    * @param projectPlan <code>OpProjectPlan</code> entity
+    * @param projectPlan <code>OpProjectPlan</code> entity. If <code>null</code> all project plans are taken into account.
+    * @return <code>int</code> representing the number of responsible activity versions of the resource into the given project
+    */
+   private static long countResourceResponsibleActivityVersions(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+      StringBuffer countQuery = new StringBuffer("select count(activityVersion) from OpResource resource inner join resource.ResponsibleActivityVersions activityVersion where resource.ID = ? ");
+      if (projectPlan != null) {
+         countQuery.append(" and activityVersion.PlanVersion.ProjectPlan.ID = ");
+         countQuery.append(projectPlan.getID());
+      }
+      OpQuery query = broker.newQuery(countQuery.toString());
+      query.setLong(0, resource.getID());
+      Number counterResponsibleVersions = (Number) broker.iterate(query).next();
+      return counterResponsibleVersions.longValue();
+   }
+
+   /**
+    * Returns the number of responsible activities for the given <code>resource</code> and </code>projectPlan</code>
+    *
+    * @param broker      <code>OpBroker</code> used for performing business operations.
+    * @param resource    <code>OpResource</code> entity
+    * @param projectPlan <code>OpProjectPlan</code> entity. If <code>null</code> all project plans are taken into account.
+    * @return <code>int</code> representing the number of responsible activities of the resource into the given project
+    */
+   private static long countResourceResponsibleActivities(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+      StringBuffer countQuery = new StringBuffer("select count(activity) from OpResource resource inner join resource.ResponsibleActivities activity where resource.ID = ? ");
+      if (projectPlan != null) {
+         countQuery.append(" and activity.ProjectPlan.ID = ");
+         countQuery.append(projectPlan.getID());
+      }
+      OpQuery query = broker.newQuery(countQuery.toString());
+      query.setLong(0, resource.getID());
+      Number counterResponsible = (Number) broker.iterate(query).next();
+      return counterResponsible.longValue();
+   }
+
+   /**
+    * Returns the number of activity assignment versions for the given <code>resource</code> and </code>projectPlan</code>
+    *
+    * @param broker      <code>OpBroker</code> used for performing business operations.
+    * @param resource    <code>OpResource</code> entity
+    * @param projectPlan <code>OpProjectPlan</code> entity. If <code>null</code> all project plans are taken into account.
+    * @return <code>int</code> representing the number of activity assignment versions of the resource into the given project
+    */
+   private static long countResourceActivityAssignmentVersions(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+      StringBuffer countQuery = new StringBuffer("select count(assignmentVersion) from OpResource resource inner join resource.AssignmentVersions assignmentVersion where resource.ID = ? ");
+      if (projectPlan != null) {
+         countQuery.append(" and assignmentVersion.PlanVersion.ProjectPlan.ID =");
+         countQuery.append(projectPlan.getID());
+      }
+      OpQuery query = broker.newQuery(countQuery.toString());
+      query.setLong(0, resource.getID());
+      Number counterAssignmentVersions = (Number) broker.iterate(query).next();
+      return counterAssignmentVersions.longValue();
+   }
+
+   /**
+    * Returns the number of activity assignments for the given <code>resource</code> and </code>projectPlan</code>
+    *
+    * @param broker      <code>OpBroker</code> used for performing business operations.
+    * @param resource    <code>OpResource</code> entity
+    * @param projectPlan <code>OpProjectPlan</code> entity. If <code>null</code> all project plans are taken into account.
     * @return <code>int</code> representing the number of activity assignments of the resource into the given project
     */
-   public static int getResourcePlanningAssignmentsCount(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
-      String countQuery = "select count(assignment) from OpResource resource inner join resource.ActivityAssignments assignment where resource.ID = ? and assignment.ProjectPlan.ID = ?";
-      OpQuery query = broker.newQuery(countQuery);
+   private static long countResourceActivityAssignments(OpBroker broker, OpResource resource, OpProjectPlan projectPlan) {
+      StringBuffer countQuery = new StringBuffer("select count(assignment) from OpResource resource inner join resource.ActivityAssignments assignment where resource.ID = ? ");
+      if (projectPlan != null) {
+         countQuery.append(" and assignment.ProjectPlan.ID = ");
+         countQuery.append(projectPlan.getID());
+      }
+      OpQuery query = broker.newQuery(countQuery.toString());
       query.setLong(0, resource.getID());
-      query.setLong(1, projectPlan.getID());
-      int counterAssignments = ((Number) broker.iterate(query).next()).intValue();
-
-      countQuery = "select count(assignmentVersion) from OpResource resource inner join resource.AssignmentVersions assignmentVersion where resource.ID = ? and assignmentVersion.PlanVersion.ProjectPlan.ID = ?";
-      query = broker.newQuery(countQuery);
-      query.setLong(0, resource.getID());
-      query.setLong(1, projectPlan.getID());
-      int counterAssignmentVersions = ((Number) broker.iterate(query).next()).intValue();
-
-      countQuery = "select count(activity) from OpResource resource inner join resource.ResponsibleActivities activity where resource.ID = ? and activity.ProjectPlan.ID = ?";
-      query = broker.newQuery(countQuery);
-      query.setLong(0, resource.getID());
-      query.setLong(1, projectPlan.getID());
-      int counterResponsible = ((Number) broker.iterate(query).next()).intValue();
-
-      countQuery = "select count(activityVersion) from OpResource resource inner join resource.ResponsibleActivityVersions activityVersion where resource.ID = ? and activityVersion.PlanVersion.ProjectPlan.ID = ?";
-      query = broker.newQuery(countQuery);
-      query.setLong(0, resource.getID());
-      query.setLong(1, projectPlan.getID());
-      int counterResponsibleVersions = ((Number) broker.iterate(query).next()).intValue();
-
-      return counterAssignments + counterAssignmentVersions +
-           counterResponsible + counterResponsibleVersions;
+      Number counterAssignments = (Number) broker.iterate(query).next();
+      return counterAssignments.longValue();
    }
 
    /**
@@ -2105,9 +1604,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    /**
     * Adds new rows to the project resource table. This method add only rows representing resources,
     * NOT hourly rates periods.
-    * @param s -
+    *
+    * @param s       -
     * @param request - contains the data set of actual resources
-    * @return  - the new data set with the added rows
+    * @return - the new data set with the added rows
     */
    public XMessage addDescriptionToResources(OpProjectSession s, XMessage request) {
       XComponent resourcesDataSet = (XComponent) (request.getArgument(RESOURCES_DATA_SET));
@@ -2145,7 +1645,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
             //4 - external rate/project/resource - empty
             dataCell = new XComponent(XComponent.DATA_CELL);
-            dataCell.setEnabled(false);            
+            dataCell.setEnabled(false);
             dataRow.addChild(dataCell);
 
             //5 - start date - empty
@@ -2170,7 +1670,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return xMessage;
    }
 
-   public XMessage getResourceRates(OpProjectSession s, XMessage request){
+   public XMessage getResourceRates(OpProjectSession s, XMessage request) {
       String id_string = (String) (request.getArgument(RESOURCE_ID));
       OpBroker broker = s.newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
@@ -2178,131 +1678,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       List<Double> ratesList = resource.getRatesForDay(new java.sql.Date(System.currentTimeMillis()));
 
-      xMessage.setArgument(INTERNAL_RATE,ratesList.get(OpResource.INTERNAL_RATE_INDEX));
-      xMessage.setArgument(EXTERNAL_RATE,ratesList.get(OpResource.EXTERNAL_RATE_INDEX));
+      xMessage.setArgument(INTERNAL_RATE, ratesList.get(OpResource.INTERNAL_RATE_INDEX));
+      xMessage.setArgument(EXTERNAL_RATE, ratesList.get(OpResource.EXTERNAL_RATE_INDEX));
       return xMessage;
-   }
-
-   /**
-    * Maps the result of the validation on an OpHourlyRatesPeriod object to an error in the resource error map
-    * @param validationResult - the result of the validation (will always represent an error)
-    * @return - the resource map error code corresponding to the error code of the validation
-    */
-   private int mapHourlyRatesPeriodValidation(int validationResult){
-      if(validationResult == OpHourlyRatesPeriod.PERIOD_START_DATE_NOT_VALID){
-         return OpResourceError.PERIOD_START_DATE_NOT_VALID;
-      }
-      else if(validationResult == OpHourlyRatesPeriod.PERIOD_END_DATE_NOT_VALID){
-         return OpResourceError.PERIOD_END_DATE_NOT_VALID;
-      }
-      else if(validationResult == OpHourlyRatesPeriod.INTERNAL_RATE_NOT_VALID){
-         return OpResourceError.HOURLY_RATE_NOT_VALID;
-      }
-      else if(validationResult == OpHourlyRatesPeriod.EXTERNAL_RATE_NOT_VALID){
-         return OpResourceError.EXTERNAL_RATE_NOT_VALID;
-      }
-      else{
-         return OpResourceError.PERIOD_INTERVAL_NOT_VALID;
-      }
-   }
-
-   /**
-    * Returns a <code>Map</code> containing the hourly rates periods (the ones entered by the user and the default ones)
-    * which belong to the time period formed by the earliest start and the latest end of the resource's activities
-    * @param resource - the resource which hourly rates periods will be returned
-    * @param hourlyRatesSet - the data set containing the hourly rates periods the user entered
-    * @return - a <code>Map</code> containing the hourly rates periods (the ones entered by the user and the default ones)
-    * which belong to the time period formed by the earliest start and the latest end of the resource's activities
-    */
-   private Map<Date, OpHourlyRatesPeriod> getResourceRatesInActivitiesInterval(OpResource resource, XComponent hourlyRatesSet) {
-
-      //obtain the list which contains the intervals of the assignments of the resource
-      List<List> startFinishOfAssignments = getStartFinishOfAssignments(resource);
-
-      List<java.sql.Date> startList;
-      List<java.sql.Date> endList;
-      java.sql.Date start = null;
-      java.sql.Date end = null;
-
-      startList = startFinishOfAssignments.get(START_DATES_LIST_INDEX);
-      endList = startFinishOfAssignments.get(END_DATES_LIST_INDEX);
-
-      //obtain the start date and end date in which the resource has activity versions and activities
-      if (!startList.isEmpty() && !endList.isEmpty()) {
-         start = startList.get(0);
-         end = endList.get(endList.size() - 1);
-      }
-
-      Map<Date, OpHourlyRatesPeriod> cutInterval = null;
-
-      if (start != null && end != null) {
-         //obtain the map which contains the intervals from the client's data set
-         Map intervalsFromHourlyRatesPeriods = getIntervalsFromClientHourlyRatesPeriods(hourlyRatesSet, resource, start, end);
-
-         //obtain the map which contains the intervals from the client's data set between the start and end dates
-         cutInterval = cutIntervalMapToStartFinish(intervalsFromHourlyRatesPeriods, start, end);
-      }
-      return cutInterval;
-   }
-
-   /**
-    * Returns <code>true</code> if the period of time between start and end is completely covered by hourly
-    * rates periods from the client's hourly rates periods data set
-    *
-    * @param start                       - the start of the checked interval
-    * @param end                         - the end of the checked interval
-    * @param clientHourlyRatesPeriodsSet - the set of hourly rates periods
-    * @return - <code>true</code> if the period of time between start and end is completely covered by hourly
-    *         rates periods from the client's hourly rates periods data set, and <code>false</code> otherwise
-    */
-   private boolean isPeriodCoveredByHourlyRatesPeriod(Date start, Date end, XComponent clientHourlyRatesPeriodsSet) {
-      boolean covered = false;
-      XComponent dataRow;
-      List<Date> days = new ArrayList<Date>();
-
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.setTime(start);
-      calendarStart.set(Calendar.HOUR, 0);
-      calendarStart.set(Calendar.MINUTE, 0);
-      calendarStart.set(Calendar.SECOND, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.setTime(end);
-      calendarEnd.set(Calendar.HOUR, 0);
-      calendarEnd.set(Calendar.MINUTE, 0);
-      calendarEnd.set(Calendar.SECOND, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-
-      //obtain the list of days contained in the interval
-      while (!calendarEnd.before(calendarStart)) {
-         days.add(new Date(calendarStart.getTimeInMillis()));
-         calendarStart.add(Calendar.DATE, 1);
-      }
-
-      for (int i = 0; i < clientHourlyRatesPeriodsSet.getChildCount(); i++) {
-         dataRow = (XComponent) clientHourlyRatesPeriodsSet.getChild(i);
-         //check to see if the start date and end date are contained in this period's interval
-         calendarStart.setTime(((XComponent) dataRow.getChild(START_DATE_COLUMN_INDEX)).getDateValue());
-         calendarEnd.setTime(((XComponent) dataRow.getChild(END_DATE_COLUMN_INDEX)).getDateValue());
-         calendarStart.set(Calendar.HOUR, 0);
-         calendarStart.set(Calendar.MINUTE, 0);
-         calendarStart.set(Calendar.SECOND, 0);
-         calendarStart.set(Calendar.MILLISECOND, 0);
-         calendarEnd.set(Calendar.HOUR, 0);
-         calendarEnd.set(Calendar.MINUTE, 0);
-         calendarEnd.set(Calendar.SECOND, 0);
-         calendarEnd.set(Calendar.MILLISECOND, 0);
-         while (!calendarEnd.before(calendarStart)) {
-            Date date = new Date(calendarStart.getTimeInMillis());
-            if (days.contains(date)) {
-               days.remove(date);
-            }
-            calendarStart.add(Calendar.DATE, 1);
-         }
-      }
-      if (days.isEmpty()) {
-         covered = true;
-      }
-      return covered;
-   }
+   }  
 }

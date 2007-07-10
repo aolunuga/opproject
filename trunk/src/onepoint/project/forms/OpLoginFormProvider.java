@@ -6,7 +6,6 @@ package onepoint.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -29,39 +28,48 @@ public class OpLoginFormProvider implements XFormProvider {
     */
    private static final String SESSION_EXPIRED = "sessionExpired";
    private static final String ERROR_LABEL_ID = "ErrorLabel";
+   private static final String LOGIN_FIELD = "Login";
+   private static final String PASSWORD_FIELD = "Password";
+   private static final String OK_BUTTON = "okButton";
+   private static final String REMEMBER_CHECK_BOX = "Remember";
+   private static final String ERROR_MAP = "main.error";
+   private static final String SESSION_EXPIRED_ERROR = "${SessionExpired}";
+
 
    /**
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
-      OpProjectSession projectSession = (OpProjectSession) session;
 
+      OpProjectSession projectSession = (OpProjectSession) session;
       String localeId = projectSession.getLocale().getID();
 
       //check the run level
-      String errorText = OpInitializer.checkRunLevel(parameters, localeId, "main.levels");
+      String errorText = OpRunLevelErrorFormProvider.getErrorResourceFromRunLevel(parameters, localeId, "main.levels");
       if (errorText != null) {
-         form.findComponent("Login").setEnabled(false);
-         form.findComponent("Password").setEnabled(false);
-         form.findComponent("okButton").setVisible(false);
+         form.findComponent(LOGIN_FIELD).setEnabled(false);
+         form.findComponent(PASSWORD_FIELD).setEnabled(false);
+         form.findComponent(OK_BUTTON).setVisible(false);
+         form.findComponent(REMEMBER_CHECK_BOX).setVisible(false);
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
          errorLabel.setText(errorText);
          errorLabel.setVisible(true);
       }
+      else {
+         //check whether the session has expired
+         checkSessionExpired(parameters, localeId, form);
 
-      //check whether the session has expired
-      checkSessionExpired(parameters, localeId, form);
+         //check license
+         checkLicense(form, session);
 
-      //check license
-      checkLicense(form, session);
-
-      //mark the session as valid (in case it was invalidated)
-      session.validate();
+         //mark the session as valid (in case it was invalidated)
+         session.validate();
+      }
    }
 
    /**
     * Checks the current status of the license.
-    * 
+    *
     * @param form    a <code>XComponent(FORM)</code> representing the login form.
     * @param session a <code>XSession</code> representing the server session.
     */
@@ -89,9 +97,9 @@ public class OpLoginFormProvider implements XFormProvider {
    private void checkSessionExpired(HashMap parameters, String localeId, XComponent form) {
       String sessionExpiredParameter = (String) parameters.get(SESSION_EXPIRED);
       if (sessionExpiredParameter != null) {
-         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, "main.error");
+         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, ERROR_MAP);
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
-         errorLabel.setText(localizer.localize("${SessionExpired}"));
+         errorLabel.setText(localizer.localize(SESSION_EXPIRED_ERROR));
          errorLabel.setVisible(true);
       }
    }

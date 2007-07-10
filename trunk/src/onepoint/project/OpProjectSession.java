@@ -11,20 +11,33 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.documents.OpContentManager;
+import onepoint.project.modules.documents.OpContent;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
+import onepoint.service.XMessage;
+import onepoint.service.XSizeInputStream;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 public class OpProjectSession extends XExpressSession {
 
    /**
-    * Thread local OpProjectSession. Used by all Xml-Rpc service implementations to get the 
+    * Thread local OpProjectSession. Used by all Xml-Rpc service implementations to get the
     * OpProjectSession.
     */
    static ThreadLocal<OpProjectSession> opProjectSession = new ThreadLocal<OpProjectSession>();
+   /**
+    * This class logger.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpProjectSession.class);
 
    private static final long NO_ID = -1;
 
@@ -37,8 +50,7 @@ public class OpProjectSession extends XExpressSession {
    public OpProjectSession() {
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
-         XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
-         super.setLocale(default_locale);
+         resetLocaleToSystemDefault();
 
          lookUpAdministratorID(broker);
          lookUpEveryoneID(broker);
@@ -49,9 +61,22 @@ public class OpProjectSession extends XExpressSession {
       }
    }
 
+   /**
+    * Resets the session locale to the system default locale.
+    */
+   public void resetLocaleToSystemDefault() {
+      XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+      super.setLocale(default_locale);
+   }
+
    public void authenticateUser(OpBroker broker, OpUser user) {
       // Set user ID and
-      userId = user.getID();
+      if (user == null) {
+         userId = NO_ID;
+      }
+      else {
+         userId = user.getID();
+      }
 
       loadSubjectIds(broker);
       lookUpAdministratorID(broker);
@@ -90,6 +115,9 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public OpUser administrator(OpBroker broker) {
+      if (administratorId == NO_ID) {
+         lookUpAdministratorID(broker);
+      }
       return (OpUser) broker.getObject(OpUser.class, administratorId);
    }
 
@@ -411,6 +439,7 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * Gets the session variable which holds the client-timezone.
+    *
     * @return a <code>TimeZone</code> object, representing the time zone of this client's session.
     */
    public TimeZone getClientTimeZone() {
@@ -419,6 +448,7 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * Gets the OpProjectSession held as thread local.
+    *
     * @return the thread depending OpProjectSession.
     */
    public static OpProjectSession getSession() {
@@ -427,6 +457,7 @@ public class OpProjectSession extends XExpressSession {
 
    /**
     * Sets the given session as thread local.
+    *
     * @param session the session to set
     */
    public static void setSession(OpProjectSession session) {
@@ -437,6 +468,73 @@ public class OpProjectSession extends XExpressSession {
     * Removes the thread local session
     */
    public static void removeSession() {
-      opProjectSession.remove();
+      opProjectSession.set(null);
+      //remove() in >= java 1.5;
+   }
+
+   /**
+    * @see onepoint.service.server.XSession#invalidate()
+    */
+   @Override
+   public void invalidate() {
+      super.invalidate();
+      this.resetLocaleToSystemDefault();
+   }
+
+   /**
+    * Process the client request to persist the uploaded files. The request will be updated with the persisted files id
+    *
+    * @param message a <code>XMessage</code> instance
+    */
+   @Override
+   public void processFiles(XMessage message) {
+      if (message != null) {
+         Map<String, File> files = message.extractObjectsFromArguments(File.class);
+         Map<String, String> contents = new HashMap<String, String>();
+         Map<File, String> processed = new HashMap<File, String>();
+         OpBroker broker = newBroker();
+         for (Map.Entry<String, File> entry : files.entrySet()) {
+            String id = entry.getKey();
+            File file = entry.getValue();
+            if (processed.keySet().contains(file)) {
+               // this file was allready processed, reuse the content
+               contents.put(id, processed.get(file));
+            }
+            else {
+               // process the file for the first time
+               try {
+                  XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
+                  String mimeType = OpContentManager.getFileMimeType(file.getName());
+                  OpContent content = OpContentManager.newContent(stream, mimeType, 0);
+
+                  OpTransaction t = broker.newTransaction();
+                  broker.makePersistent(content);
+                  t.commit();
+
+                  String contentId = content.locator();
+                  contents.put(id, contentId);
+                  processed.put(file, contentId);
+               }
+               catch (FileNotFoundException e) {
+                  logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
+                  contents.put(id, null);
+               }
+            }
+         }
+         broker.close();
+         message.insertObjectsIntoArguments(contents);
+      }
+   }
+
+   /**
+    * Delete the contents from the database which are not refered by a container object.
+    */
+   public void deleteUnreferedContents() {
+      OpBroker broker = newBroker();
+      OpTransaction t = broker.newTransaction();
+      OpQuery query = broker.newQuery("delete OpContent content where content.RefCount = 0");
+      broker.execute(query);
+      t.commit();
+      broker.close();
    }
 }

@@ -6,20 +6,21 @@ package onepoint.project.modules.settings.test;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsError;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.util.HashMap;
 import java.util.Calendar;
+import java.util.HashMap;
 
 /**
  * This class test settings service methods and form providers.
  *
  * @author lucian.furtos
  */
-public class OpSettingsServiceTest extends OpBaseTestCase {
+public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
    /**
     * Tear down
@@ -43,7 +44,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertNoError(response);
 
       super.tearDown();
@@ -63,7 +64,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.LAST_WORK_DAY_INCORRECT);
    }
 
@@ -82,7 +83,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.DAY_WORK_TIME_INCORRECT);
 
       prefs.put(OpSettings.CALENDAR_DAY_WORK_TIME, new Double(25d));
@@ -90,7 +91,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.DAY_WORK_TIME_INCORRECT);
    }
 
@@ -117,7 +118,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertNoError(response);
 
       XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
@@ -142,7 +143,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.EMAIL_INCORRECT);
 
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -152,7 +153,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS, "wrong_pattern");
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.EMAIL_INCORRECT);
 
       prefs.clear();
@@ -164,7 +165,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
 
       prefs.clear();
@@ -176,7 +177,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
 
       prefs.clear();
@@ -188,7 +189,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, new Integer(-1));
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
 
       prefs.clear();
@@ -201,7 +202,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
 
       prefs.clear();
@@ -222,7 +223,7 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       prefs.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, new Double("-1"));
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = getSettingsService().saveSettings(session, request);
+      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertError(response, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
    }
 
@@ -254,10 +255,10 @@ public class OpSettingsServiceTest extends OpBaseTestCase {
 
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      XMessage response = getSettingsService().saveSettings(session, request);
+      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
       assertNoError(response);
 
-      getSettingsService().loadSettings(session, null);
+      OpTestDataFactory.getSettingsService().loadSettings(session, null);
 
       assertEquals("de", OpSettings.get(OpSettings.USER_LOCALE));
       assertEquals(Integer.toString(Calendar.TUESDAY), OpSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY));

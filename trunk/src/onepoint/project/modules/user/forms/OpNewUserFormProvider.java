@@ -53,7 +53,7 @@ public class OpNewUserFormProvider implements XFormProvider {
       XComponent assignmentDataSet = form.findComponent(ASSIGNMENT_GROUP_DATA_SET);
       XComponent dataRow = assignmentDataSet.newDataRow();
       dataRow.setStringValue(everyoneField.getStringValue());
-      assignmentDataSet.addDataRow(dataRow);
+      assignmentDataSet.addChild(dataRow);
 
       //fill the language dataset
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATA_SET);

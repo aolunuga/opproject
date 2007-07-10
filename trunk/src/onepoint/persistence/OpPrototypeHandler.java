@@ -22,10 +22,6 @@ public class OpPrototypeHandler implements XNodeHandler {
       value = attributes.get("instance-class");
       if ((value != null) && (value instanceof String)) {
          prototype.setClassName((String) value);
-         /*
-          * try { prototype.setInstanceClass(Class.forName((String)value)); } catch (Exception e) {
-          * System.err.println(e); }
-          */
       }
       value = attributes.get("super-type");
       if ((value != null) && (value instanceof String)) {

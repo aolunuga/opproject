@@ -7,6 +7,7 @@ package onepoint.project.modules.project;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.*;
@@ -85,12 +86,7 @@ public class OpProjectNodeAssignment extends OpObject {
       List<Double> result = new ArrayList<Double>();
       Double internalRate = null;
       Double externalRate = null;
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTime(aDay);
-      calendar.set(Calendar.HOUR, 0);
-      calendar.set(Calendar.MINUTE, 0);
-      calendar.set(Calendar.SECOND, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
+      Calendar calendar = XCalendar.setCalendarTimeToZero(aDay);
       aDay.setTime(calendar.getTimeInMillis());
 
       //first look in the set of OpHourlyRatesPeriod if the search parameter allows it
@@ -146,27 +142,53 @@ public class OpProjectNodeAssignment extends OpObject {
       List<List> result = new ArrayList<List>();
       List<Double> internalRates = new ArrayList<Double>();
       List<Double> externalRates = new ArrayList<Double>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.setTimeInMillis(start.getTime());
-      calendarStart.set(Calendar.HOUR, 0);
-      calendarStart.set(Calendar.MINUTE, 0);
-      calendarStart.set(Calendar.SECOND, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.setTimeInMillis(end.getTime());
-      calendarEnd.set(Calendar.HOUR, 0);
-      calendarEnd.set(Calendar.MINUTE, 0);
-      calendarEnd.set(Calendar.SECOND, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
+      Calendar calendar = XCalendar.setCalendarTimeToZero(start);
+      Date dateStart = new Date(calendar.getTimeInMillis());
+      calendar = XCalendar.setCalendarTimeToZero(end);
+      Date dateEnd = new Date(calendar.getTimeInMillis());
       Double internalDayRate;
       Double externalDayRate;
 
-      while (!calendarStart.after(calendarEnd)) {
-         internalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis()), searchPeriodsSet).get(INTERNAL_RATE_INDEX);
+      while (!dateStart.after(dateEnd)) {
+         internalDayRate = getRatesForDay(new Date(dateStart.getTime()), searchPeriodsSet).get(INTERNAL_RATE_INDEX);
          internalRates.add(internalDayRate);
-         externalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis()), searchPeriodsSet).get(EXTERNAL_RATE_INDEX);
+         externalDayRate = getRatesForDay(new Date(dateStart.getTime()), searchPeriodsSet).get(EXTERNAL_RATE_INDEX);
          externalRates.add(externalDayRate);
-         calendarStart.add(Calendar.DATE, 1);
+         calendar = XCalendar.setCalendarTimeToZero(dateStart);
+         calendar.add(Calendar.DATE, 1);
+         dateStart = new Date(calendar.getTimeInMillis());
+      }
+
+      result.add(INTERNAL_RATE_LIST_INDEX, internalRates);
+      result.add(EXTERNAL_RATE_LIST_INDEX, externalRates);
+      return result;
+   }
+
+   /**
+    * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
+    * for a resource assigned on a project for a given list of days. When looking for the internal/external
+    * rate the priority is:
+    *    -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
+    *    -  the assignment's hourly/external rate
+    *    - the assignment's resource rates periods set
+    *    - the assignment's resource hourly/external rate
+    *
+    * @param daysList - the list of days for which the rates will be returned
+    * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
+    *         assigned on a project for the given interval
+    */
+   public List<List<Double>> getRatesForListOfDays(List<Date> daysList) {
+      List<List<Double>> result = new ArrayList<List<Double>>();
+      List<Double> internalRates = new ArrayList<Double>();
+      List<Double> externalRates = new ArrayList<Double>();
+      Double internalDayRate;
+      Double externalDayRate;
+
+      for (Date day : daysList) {
+         internalDayRate = getRatesForDay(day, true).get(INTERNAL_RATE_INDEX);
+         internalRates.add(internalDayRate);
+         externalDayRate = getRatesForDay(day, true).get(EXTERNAL_RATE_INDEX);
+         externalRates.add(externalDayRate);
       }
 
       result.add(INTERNAL_RATE_LIST_INDEX, internalRates);
@@ -184,9 +206,8 @@ public class OpProjectNodeAssignment extends OpObject {
    public boolean checkPeriodDoNotOverlap(){
 
       ArrayList<OpHourlyRatesPeriod> periodList = new ArrayList<OpHourlyRatesPeriod>();
-      Iterator<OpHourlyRatesPeriod> iterator = getHourlyRatesPeriods().iterator();
-      while(iterator.hasNext()){
-          periodList.add(iterator.next());
+      for (OpHourlyRatesPeriod opHourlyRatesPeriod : getHourlyRatesPeriods()) {
+         periodList.add(opHourlyRatesPeriod);
       }
 
       for(int i = 0; i < periodList.size(); i++){

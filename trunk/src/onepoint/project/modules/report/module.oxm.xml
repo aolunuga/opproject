@@ -1,6 +1,5 @@
-<module name="report" caption="Berichte" version="0.5" class="onepoint.project.modules.report.OpReportModule">
+<module name="report" caption="Berichte" version="0.5" depends="documents" class="onepoint.project.modules.report.OpReportModule">
    <prototype-files>
-      <prototype-file file-name="/modules/documents/document.opt.xml"/>
       <prototype-file file-name="/modules/report/report.opt.xml"/>
       <prototype-file file-name="/modules/report/report_type.opt.xml"/>
    </prototype-files>

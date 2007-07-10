@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+<<<<<<< .mine
+  <database-type>MSSQL</database-type>
+   <database-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database-driver>
+   <database-url>jdbc:sqlserver://localhost:1433;databaseName=opproject_test</database-url>
+   <database-login>sa</database-login>
+   <database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>
+   <log-file>opproject.log</log-file>
+</configuration>=======
    <database-type>MySQLInnoDB</database-type>
    <database-driver>com.mysql.jdbc.Driver</database-driver>
    <database-url>jdbc:mysql:///opproject_test</database-url>
@@ -9,4 +17,11 @@
    <connection-pool-max-size>20</connection-pool-max-size>
    <cache-size>500</cache-size>
    <log-file>opproject.log</log-file>
+    <!--<database-type>MSSQL</database-type>-->
+    <!--<database-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database-driver>-->
+    <!--<database-url>jdbc:sqlserver://ender:1433;databaseName=onepoint_test_hc</database-url>-->
+    <!--<database-login>sa</database-login>-->
+    <!--<database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>-->
+
 </configuration>
+>>>>>>> .r4103

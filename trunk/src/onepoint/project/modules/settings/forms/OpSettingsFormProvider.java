@@ -12,6 +12,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
@@ -49,6 +50,9 @@ public class OpSettingsFormProvider implements XFormProvider {
    public static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
    public static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
    public static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
+   public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
+   public static final String PULSING = "Pulsing";
+   public static final String ENABLE_PULSING = "EnablePulsing";
    public static final String SAVE_BUTTON = "Save";
    public static final String SELECT_CALENDAR = "${SelectCalendar}";
 
@@ -150,8 +154,25 @@ public class OpSettingsFormProvider implements XFormProvider {
       XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
       logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
 
+      //enable time tracking
+      XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
+      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.ENABLE_TIME_TRACKING)));
+
+      //pulsing
+      XComponent enablePulsingField = form.findComponent(ENABLE_PULSING);
+      XComponent pulsingField = form.findComponent(PULSING);
+      String pulsingValue = OpSettings.get(OpSettings.PULSING);
+      if (pulsingValue == null) {
+         enablePulsingField.setBooleanValue(false);
+         pulsingField.setEnabled(false);
+      }
+      else {
+         enablePulsingField.setBooleanValue(true);
+         pulsingField.setIntValue(Integer.valueOf(pulsingValue));
+      }
+
       // hide multi-user fields
-      if (!OpInitializer.isMultiUser()) {
+      if (!OpEnvironmentManager.isMultiUser()) {
          mailMessageTextField.setVisible(false);
          form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
          emptyPasswordCheckBox.setVisible(false);
@@ -173,6 +194,9 @@ public class OpSettingsFormProvider implements XFormProvider {
          holidays.setEnabled(false);
          saveButton.setEnabled(false);
          milestoneControllingIntervalField.setEnabled(false);
+         enableTimeTrackingField.setEnabled(false);
+         enablePulsingField.setEnabled(false);
+         pulsingField.setEnabled(false);
       }
    }
 

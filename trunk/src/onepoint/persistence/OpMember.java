@@ -31,15 +31,15 @@ public abstract class OpMember {
 		return id;
 	}
 
-	final void setTypeName(String type_name) {
+	public final void setTypeName(String type_name) {
 		this.typeName = type_name;
 	}
 
-	final String getTypeName() {
+	public final String getTypeName() {
 		return typeName;
 	}
 
-	final void setTypeID(int type_id) {
+	public final void setTypeID(int type_id) {
 		// Called by OpPrototype
 		typeId = type_id;
 	}

@@ -1,4 +1,4 @@
-<form layout="border" width="750" height="450" text="${EditProject}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" script="/modules/project/scripts/edit_project.jes">
+<form layout="border" width="750" height="550" text="${EditProject}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project.EditProject" provider-class="onepoint.project.modules.project.forms.OpEditProjectFormProvider" script="/modules/project/scripts/edit_project.jes">
    <data-field id="ProjectID"/>
    <data-field id="EditMode"/>
    <data-field id="OriginalStartDate"/>
@@ -8,7 +8,7 @@
    
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-   <tab-box y="0">
+   <tab-box y="0" id="TabBoxId">
    <tab text="${General}" layout="table" id="GeneralTab">
 
       <data-set id="ProjectStatusDataSet"/>
@@ -21,12 +21,15 @@
       <!-- Probably combine these in 2nd tab 'Vorgaben' -->
       <label x="0" y="4" width="2" text="${End}"/><date-field x="2" y="4" width="3" id="Finish"/>
       <label x="0" y="5" width="2" text="${Budget}"/><double-field x="2" y="5" width="3" id="Budget" decimals="2"/>
-      <check-box x="2" y="6" width="3" id="CalculationMode" text="${CalculationMode}"/>
-      <check-box x="2" y="7" width="3" id="ProgressTracked" text="${ProgressTracked}"/>
-
-      <label x="0" y="8" width="2" text="${Status}" id="StatusLabel"/>
-      <choice-field x="2" y="8" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
-
+      <label x="0" y="6" width="2" text="${Priority}"/>
+      <int-field x="2" y="6" width="3" id="Priority" lower-limit="1" upper-limit="9"/>
+      <label x="0" y="7" width="2" text="${Probability}"/>
+      <int-field x="2" y="7" width="3" id="Probability" lower-limit="0" upper-limit="100"/>
+      <check-box x="2" y="8" width="3" id="Archived" text="${Archived}"/>
+      <check-box x="2" y="9" width="3" id="CalculationMode" text="${CalculationMode}" boolean-value="true"/>
+      <check-box x="2" y="10" width="3" id="ProgressTracked" text="${ProgressTracked}" boolean-value="true"/>
+      <label x="0" y="11" width="2" text="${Status}" id="StatusLabel"/>
+      <choice-field x="2" y="11" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
    </tab>
 
    <tab text="${Goals}" layout="border" id="GoalsTab">
@@ -34,7 +37,7 @@
       <table-box y="0" id="GoalsTableBox" data-set-ref="GoalsSet" flexible="true">
          <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
          <table-column text="${Subject}" width="350" data-column-index="1" value-type="String" sortable="true"/>
-         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
+         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"  upper-limit="9" lower-limit="1"/>
       </table-box>
       <panel id="GoalsToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addGoal"/>
@@ -48,7 +51,7 @@
       <table-box y="0" id="ToDosTableBox" data-set-ref="ToDosSet" flexible="true">
          <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
          <table-column text="${Subject}" width="280" data-column-index="1" value-type="String" sortable="true"/>
-         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"/>
+         <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true"  upper-limit="9" lower-limit="1"/>
          <table-column text="${DueTo}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
       </table-box>
       <panel id="TasksToolPanel" y="1" layout="flow" direction="east">
@@ -66,33 +69,13 @@
                  flexible="true" stateful="true" edit-mode="true">
          <table-column text="${Resource}" width="65" data-column-index="0" value-type="String"/>
          <table-column text="${Description}" width="65" data-column-index="1" value-type="String"/>
-         <table-column text="${AdjustRates}" width="40" on-value-changed="checkAdjust" data-column-index="2" value-type="Boolean"/>
-         <table-column text="${InternalRate}" width="65" data-column-index="3" value-type="Double"/>
-         <table-column text="${ExternalRate}" width="65" data-column-index="4" value-type="Double"/>
+         <table-column text="${AdjustRates}" id="AdjustRatesColumn" width="40" on-value-changed="checkAdjust" data-column-index="2" value-type="Boolean"/>
+         <table-column text="${InternalRate}" id="InternalRatesColumn" width="65" data-column-index="3" value-type="Double"/>
+         <table-column text="${ExternalRate}" id="ExternalRatesColumn" width="65" data-column-index="4" value-type="Double"/>
       </table-box>
       <panel id="ResourcesToolPanel" y="1" layout="flow" direction="east">
          <icon-button icon-type="PlusSign" on-button-pressed="addProjectAssignment"/>
          <icon-button icon-type="MinusSign" on-button-pressed="removeProjectAssignment"/>
-      </panel>
-   </tab>
-
-   <tab text="${HourlyRates}" layout="border" id="HourlyRatesTab"
-        on-tab-activated="activateRates" on-tab-deactivated="deactivateRates">
-      <table-box id="HourlyRatesTable" data-set-ref="AssignedResourceDataSet" sidebar-width="0"
-                 flexible="true" edit-mode="true" stateful="true" tree-column-index="0">
-
-         <table-column text="${Resource}" width="65" sortable="true" data-column-index="0" value-type="String"/>
-         <table-column text="${Description}" width="65" sortable="true" data-column-index="1" value-type="String"/>
-         <table-column text="${Start}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
-         <table-column text="${End}" width="65" sortable="true" data-column-index="6" value-type="Date"/>
-         <table-column text="${InternalRate}" width="65" sortable="true" data-column-index="7"
-                       value-type="Double"/>
-         <table-column text="${ExternalRate}" width="65" sortable="true" data-column-index="8"
-                       value-type="Double"/>
-      </table-box>
-      <panel id="HourlyRatesTableToolBar" y="1" layout="flow" direction="east" visible="true">
-         <icon-button icon-type="PlusSign" on-button-pressed="addRate"/>
-         <icon-button icon-type="MinusSign" on-button-pressed="removeRates"/>
       </panel>
    </tab>
 

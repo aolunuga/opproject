@@ -5,13 +5,13 @@
 package onepoint.project.modules.project_planning;
 
 import onepoint.express.XComponent;
-import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.mail.OpMailMessage;
 import onepoint.project.modules.mail.OpMailer;
@@ -30,8 +30,10 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
 import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 
 import javax.mail.internet.AddressException;
 import java.io.*;
@@ -50,10 +52,10 @@ public class OpProjectPlanningService extends OpProjectService {
    public final static String ACTIVITY_ID = "activity_id";
    public final static String ACTIVITY_SET = "activity_set";
    public final static String WORKING_PLAN_VERSION_ID = "working_plan_version_id";
+   public final static String EDIT_MODE = "edit_mode";
+   public final static String BYTES_ARRAY_FIELD = "bytes_array";
+   public final static String FILE_NAME_FIELD = "file_name";
 
-   private final static String EDIT_MODE = "edit_mode";
-   private final static String BYTES_ARRAY_FIELD = "bytes_array";
-   private final static String FILE_NAME_FIELD = "file_name";
    private static final String TEMPLATE_MAP = "template";
    private final static String ACTIVITY_COMMENTS_PANEL = "ActivityCommentsPanel";
    private final static String ACTIVITY_COMMENT_PANEL = "ActivityCommentPanel";
@@ -80,6 +82,10 @@ public class OpProjectPlanningService extends OpProjectService {
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
+      if (project.getType() != OpProjectNode.PROJECT) {
+         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT));
+         return reply;
+      }
       OpProjectPlan projectPlan = project.getPlan();
 
       if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
@@ -124,10 +130,19 @@ public class OpProjectPlanningService extends OpProjectService {
    }
 
    public XMessage exportActivities(OpProjectSession session, XMessage request) {
-
+      String projectId = (String) request.getArgument(PROJECT_ID);
+      XMessage response = new XMessage();
+      if (projectId != null) {
+         OpBroker broker = session.newBroker();
+         OpProjectNode project = (OpProjectNode) broker.getObject(projectId);
+         if (project.getType() != OpProjectNode.PROJECT) {
+            response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT));
+            return response;
+         }
+         broker.close();
+      }
       XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
       String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
-      XMessage response = new XMessage();
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
@@ -135,7 +150,7 @@ public class OpProjectPlanningService extends OpProjectService {
       }
       catch (IOException e) {
          response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
-         return null;
+         return response;
       }
 
       byte[] outArray = out.toByteArray();
@@ -220,14 +235,16 @@ public class OpProjectPlanningService extends OpProjectService {
       boolean hasAvailabilityChanged = false;
       boolean haveRatesChanged = false;
 
-      Set activities = project.getPlan().getActivities();
+      Set<OpActivity> activities = project.getPlan().getActivities();
+      //form the list of exluded activity types (activities that do not need an udate of costs)
+      List<Byte> excludedTypes = new ArrayList<Byte>();
+      excludedTypes.add(OpActivity.MILESTONE);
+      excludedTypes.add(OpActivity.ADHOC_TASK);
       if (activities != null) {
-         Iterator activitiesIt = activities.iterator();
-         while (activitiesIt.hasNext()) {
-            OpActivity activity = (OpActivity) activitiesIt.next();
-            if (!activity.getDeleted()) {
+         for (OpActivity activity : activities) {
+            if (!activity.getDeleted() && !isActivityExcluded(activity, excludedTypes)) {
                hasAvailabilityChanged |= checkResourceAvailabilityModifications(activity, broker);
-               haveRatesChanged |= checkHourlyRateModifications(activity, broker);
+               haveRatesChanged |= checkHourlyRateModifications(activity, broker, session.getCalendar());
             }
          }
 
@@ -262,11 +279,9 @@ public class OpProjectPlanningService extends OpProjectService {
          return false;
       }
       boolean changed = false;
-      Set assignments = activity.getAssignments();
+      Set<OpAssignment> assignments = activity.getAssignments();
       if (assignments != null) {
-         Iterator it = assignments.iterator();
-         while (it.hasNext()) {
-            OpAssignment assignment = (OpAssignment) it.next();
+         for (OpAssignment assignment : assignments) {
             if (assignment.getAssigned() > assignment.getResource().getAvailable()) {
                changed = true;
                assignment.setAssigned(assignment.getResource().getAvailable());
@@ -281,40 +296,107 @@ public class OpProjectPlanningService extends OpProjectService {
     * Checks whether the hourly rate has changed for the given activity.
     *
     * @param activity a <code>OpActivity</code> representing an activity.
+    * @param broker   Broker used for db access
+    * @param calendar <code>XCalendar</code> used to get the resource rates.
     * @return <code>true</code> if the hourly rate has changed for any of the resources of the activity.
     */
-   private boolean checkHourlyRateModifications(OpActivity activity, OpBroker broker) {
+   private boolean checkHourlyRateModifications(OpActivity activity, OpBroker broker, XCalendar calendar) {
       if (activity.getAssignments().size() == 0) {
          return false;
       }
 
       boolean changed = false;
       double currentPersonnelCosts = activity.getBasePersonnelCosts();
-
-      double recalculatedPersonnelCosts = 0;
-      Iterator it1 = activity.getAssignments().iterator();
-      while (it1.hasNext()) {
-         OpAssignment assignment = ((OpAssignment) it1.next());
-         recalculatedPersonnelCosts += assignment.getBaseEffort() * assignment.getResource().getHourlyRate();
-      }
-
-      if (Math.abs(recalculatedPersonnelCosts - currentPersonnelCosts) >= OpGanttValidator.ERROR_MARGIN) {
-         changed = true;
-         activity.setBasePersonnelCosts(recalculatedPersonnelCosts);
-         broker.updateObject(activity);
-
+      if (updatePersonnelCostsForActivity(broker, activity, calendar)) {
          //update all super activities
+         changed = true;
          while (activity.getSuperActivity() != null) {
             OpActivity superActivity = activity.getSuperActivity();
-            double costsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
+            double personnelCostsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
             currentPersonnelCosts = superActivity.getBasePersonnelCosts();
-            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + costsDifference);
+            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + personnelCostsDifference);
             broker.updateObject(activity);
             activity = superActivity;
          }
          broker.updateObject(activity);
       }
 
+      return changed;
+   }
+
+   /**
+    * Updates the personnel (base and proceeds) costs for a given activity.
+    *
+    * @param broker   Broker used for db access.
+    * @param activity Activity to be updated.
+    * @param calendar The calendar instance to use for calculating rates.
+    * @return true if any update took place, false otherwise.
+    */
+   private boolean updatePersonnelCostsForActivity(OpBroker broker, OpActivity activity, XCalendar calendar) {
+      Set<OpAssignment> assignments = activity.getAssignments();
+      OpProjectNode project = activity.getProjectPlan().getProjectNode();
+      boolean changed = false;
+      List<java.sql.Date> workingDays;
+      OpProjectNodeAssignment projectNodeAssignment = null;
+      List<List<Double>> ratesList;
+      List<Double> internalRatesList;
+      List<Double> externalRatesList;
+      Double internalSum = 0d;
+      Double internalActivitySum = 0d;
+      Double externalSum = 0d;
+      Double externalActivitySum = 0d;
+      double workHoursPerDay = calendar.getWorkHoursPerDay();
+      List<java.sql.Date> startEndList = activity.getStartEndDateByType();
+      workingDays = calendar.getWorkingDaysFromInterval(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
+           startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
+      if (activity.getType() == OpActivity.TASK) {
+         if (workingDays.size() != 0) {
+            workHoursPerDay = activity.getBaseEffort() / (double) workingDays.size();
+         }
+         else {
+            workHoursPerDay = 0;
+         }
+      }
+
+      for (OpAssignment assignment : assignments) {
+         if (startEndList != null) {
+            //get the project node assignment for this assignment's resource
+            for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
+               for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
+                  if (resourceAssignment.getID() == projectAssignment.getID()) {
+                     projectNodeAssignment = projectAssignment;
+                     break;
+                  }
+               }
+            }
+            ratesList = projectNodeAssignment.getRatesForListOfDays(workingDays);
+            internalRatesList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
+            externalRatesList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
+            for (Double internalRate : internalRatesList) {
+               internalSum += internalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            }
+            for (Double externalRate : externalRatesList) {
+               externalSum += externalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            }
+         }
+
+         if (assignment.getBaseCosts() != internalSum || assignment.getBaseProceeds() != externalSum) {
+            assignment.setBaseCosts(internalSum);
+            assignment.setBaseProceeds(externalSum);
+            broker.updateObject(assignment);
+         }
+         internalActivitySum += internalSum;
+         externalActivitySum += externalSum;
+         internalSum = 0d;
+         externalSum = 0d;
+      }
+
+      if (activity.getBasePersonnelCosts() != internalActivitySum || activity.getBaseProceeds() != externalActivitySum) {
+         changed = true;
+         activity.setBasePersonnelCosts(internalActivitySum);
+         activity.setBaseProceeds(externalActivitySum);
+         broker.updateObject(activity);
+      }
       return changed;
    }
 
@@ -347,7 +429,7 @@ public class OpProjectPlanningService extends OpProjectService {
             broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
-         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         OpLock lock = project.getLocks().iterator().next();
          if (lock.getOwner().getID() != session.getUserID()) {
             logger.error("Project is locked by another user");
             broker.close();
@@ -362,8 +444,7 @@ public class OpProjectPlanningService extends OpProjectService {
          if (projectPlan == null) {
             projectPlan = new OpProjectPlan();
             projectPlan.setProjectNode(project);
-            projectPlan.setStart(project.getStart());
-            projectPlan.setFinish(project.getFinish());
+            projectPlan.copyDatesFromProject();
             projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
             broker.makePersistent(projectPlan);
          }
@@ -443,7 +524,7 @@ public class OpProjectPlanningService extends OpProjectService {
             broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
-         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         OpLock lock = project.getLocks().iterator().next();
          if (lock.getOwner().getID() != session.getUserID()) {
             logger.error("Project is locked by another user");
             broker.close();
@@ -465,8 +546,8 @@ public class OpProjectPlanningService extends OpProjectService {
          int versionNumber = 1;
          // a version exists and it's not WORKING VERSION NUMBER
          if (maxVersionNumber != null &&
-              maxVersionNumber.intValue() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            versionNumber = maxVersionNumber.intValue() + 1;
+              maxVersionNumber != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+            versionNumber = maxVersionNumber + 1;
          }
          OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);
 
@@ -557,7 +638,7 @@ public class OpProjectPlanningService extends OpProjectService {
             // TODO: Error handling
             return null;
          }
-         OpLock lock = (OpLock) project.getLocks().iterator().next();
+         OpLock lock = project.getLocks().iterator().next();
          if (lock.getOwner().getID() != session.getUserID()) {
             logger.error("Project is locked by another user");
             broker.close();
@@ -597,8 +678,8 @@ public class OpProjectPlanningService extends OpProjectService {
       OpMailMessage message = new OpMailMessage();
 
       // Add users email as cc to mail message
-      for (Iterator iterator = resourceMap.values().iterator(); iterator.hasNext();) {
-         OpResource resource = (OpResource) iterator.next();
+      for (Object o : resourceMap.values()) {
+         OpResource resource = (OpResource) o;
          OpUser user = resource.getUser();
          if (user != null) {
             String email = user.getContact().getEMail();
@@ -630,7 +711,7 @@ public class OpProjectPlanningService extends OpProjectService {
       String mail_body = "Project plan for project '$ProjectName$' has been changed!";
 
       // load language resources for body and subject of email
-      XLocale locale = ((XExpressSession) session).getLocale();
+      XLocale locale = session.getLocale();
       XLanguageResourceMap resource_map = locale.getResourceMap(TEMPLATE_MAP);
       if (resource_map != null) {
          mail_subject = resource_map.getResource("NotificationMailSubject").getText();
@@ -668,19 +749,19 @@ public class OpProjectPlanningService extends OpProjectService {
 
          // <FIXME author="Horia Chiorean" description="This code is here because we can have either OpAttachment or
          // OpAttachmentVersion">
-         Method getContentMethod = object.getClass().getMethod("getContent", null);
-         OpContent content = (OpContent) getContentMethod.invoke(object, null);
-         Method getLocationMethod = object.getClass().getMethod("getLocation", null);
-         String location = (String) getLocationMethod.invoke(object, null);
+         Method getContentMethod = object.getClass().getMethod("getContent");
+         OpContent content = (OpContent) getContentMethod.invoke(object);
+         Method getLocationMethod = object.getClass().getMethod("getLocation");
+         String location = (String) getLocationMethod.invoke(object);
          // <FIXME>
 
          //multi-user means remote
-         if (OpInitializer.isMultiUser()) {
+         if (OpEnvironmentManager.isMultiUser()) {
             response.setArgument(ATTACHMENT_URL, location);
             response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
          }
          else {
-            String temporaryFileUrl = createTemporaryAttachment(location, content.getBytes());
+            String temporaryFileUrl = createTemporaryAttachment(location, content.getStream());
             response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
          }
 
@@ -709,17 +790,32 @@ public class OpProjectPlanningService extends OpProjectService {
     */
    public XMessage createTemporaryFile(OpProjectSession s, XMessage request) {
       Map parameters = (Map) request.getArgument("parameters");
-      byte[] content = (byte[]) parameters.get(CONTENT);
+      String contentId = (String) parameters.get(CONTENT);
       String fileName = (String) parameters.get(FILE_NAME);
 
-      if (content == null || fileName == null) {
-         logger.error("Cannot create temporary file with name:" + fileName + " and content:" + content);
+      if (!OpLocator.validate(contentId) || fileName == null) {
+         logger.error("Cannot create temporary file with name:" + fileName + " and content:" + contentId);
          return null;
       }
 
-      String temporaryFileUrl = createTemporaryAttachment(fileName, content);
       XMessage response = new XMessage();
-      response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
+      //multi-user means remote
+      if (OpEnvironmentManager.isMultiUser()) {
+         response.setArgument(ATTACHMENT_URL, fileName);
+         response.setArgument(CONTENT_ID, contentId);
+      }
+      else {
+         OpBroker broker = s.newBroker();
+         OpTransaction t = broker.newTransaction();
+
+         OpContent content = (OpContent) broker.getObject(contentId);
+         String temporaryFileUrl = createTemporaryAttachment(fileName, content.getStream());
+         t.commit();
+         broker.close();
+         response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
+         s.deleteUnreferedContents(); // delete temporary contents (generated only for view mode)
+      }
+
       return response;
    }
 
@@ -727,11 +823,11 @@ public class OpProjectPlanningService extends OpProjectService {
     * Creates a temporary file with the content of an attachment.
     *
     * @param location a <code>String</code> representing the location of the real attachment object.
-    * @param content  <code>byte[]</code> representing the content of the attachment.
+    * @param content  <code>InputStream</code> representing the content of the attachment.
     * @return a <code>String</code> representing an URL-like path to a temporary file that has the same content as the
     *         attachment.
     */
-   private String createTemporaryAttachment(String location, byte[] content) {
+   private String createTemporaryAttachment(String location, InputStream content) {
       int extensionIndex = location.lastIndexOf(".");
       String prefix = location;
       String suffix = null;
@@ -746,7 +842,7 @@ public class OpProjectPlanningService extends OpProjectService {
       try {
          File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
          FileOutputStream fos = new FileOutputStream(temporaryFile);
-         fos.write(content);
+         XIOHelper.copy(content, fos);
          fos.flush();
          fos.close();
          return XEncodingHelper.encodeValue(temporaryFile.getName());
@@ -801,7 +897,7 @@ public class OpProjectPlanningService extends OpProjectService {
       if (result.hasNext()) {
          Integer maxSequence = (Integer) result.next();
          if (maxSequence != null) {
-            sequence = maxSequence.intValue() + 1;
+            sequence = maxSequence + 1;
          }
       }
 
@@ -874,9 +970,8 @@ public class OpProjectPlanningService extends OpProjectService {
       //the new comments panel
       XComponent commentsPanel = new XComponent(XComponent.PANEL);
 
-      Iterator it = comments.iterator();
-      while (it.hasNext()) {
-         OpActivityComment activityComment = (OpActivityComment) it.next();
+      for (Object comment1 : comments) {
+         OpActivityComment activityComment = (OpActivityComment) comment1;
          int sequence = activityComment.getSequence();
          if (sequence > comment.getSequence()) {
             activityComment.setSequence(--sequence);
@@ -888,10 +983,9 @@ public class OpProjectPlanningService extends OpProjectService {
       if (comments.isEmpty()) {
 
          //update all the activity versions
-         Set activityVersions = activity.getVersions();
+         Set<OpActivityVersion> activityVersions = activity.getVersions();
          if (activityVersions != null && activityVersions.size() > 0) {
-            for (Iterator versionsIt = activityVersions.iterator(); versionsIt.hasNext();) {
-               OpActivityVersion activityVersion = (OpActivityVersion) versionsIt.next();
+            for (OpActivityVersion activityVersion : activityVersions) {
                activityVersion.setAttributes(activityVersion.getAttributes() ^ OpActivity.HAS_COMMENTS);
                broker.updateObject(activityVersion);
             }
@@ -911,7 +1005,7 @@ public class OpProjectPlanningService extends OpProjectService {
       }
       reply.setArgument(ACTIVITY_COMMENTS_PANEL, commentsPanel);
 
-      /*finnaly delete comment*/
+      //finnaly delete comment
       broker.deleteObject(comment);
 
       t.commit();
@@ -992,9 +1086,9 @@ public class OpProjectPlanningService extends OpProjectService {
       //create the validator
       OpGanttValidator validator = new OpGanttValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
-      validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
-      validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
-      validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
+      validator.setProgressTracked(projectPlan.getProgressTracked());
+      validator.setProjectTemplate(projectPlan.getTemplate());
+      validator.setCalculationMode(projectPlan.getCalculationMode());
 
       XComponent resourceDataSet = new XComponent();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
@@ -1062,6 +1156,23 @@ public class OpProjectPlanningService extends OpProjectService {
       reply.setArgument(ACTIVITY_COMMENT_PANEL, commentPanel);
 
       return reply;
+   }
+
+   /**
+    * Filters an activity based on a list of excluded activity types.
+    *
+    * @param checkedActivity - the <code>OpActivity</code> whose type is checked
+    * @param excludedTypes -  the <code>List</code> of exluded activity types
+    * @return - <code>true</code> if the type of the activity passed as parameter does not belong to the list of excluded
+    *    types and false otherwise.
+    */
+   private boolean isActivityExcluded(OpActivity checkedActivity, List<Byte> excludedTypes){
+      for(Byte type : excludedTypes){
+         if(checkedActivity.getType() == type){
+            return true;
+         }
+      }
+      return false;
    }
 
 }

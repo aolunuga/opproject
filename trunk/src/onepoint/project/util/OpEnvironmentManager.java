@@ -9,6 +9,8 @@ import onepoint.log.XLogFactory;
 import onepoint.util.XEnvironmentManager;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -34,6 +36,11 @@ public final class OpEnvironmentManager {
    private static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
    /**
+    * The path to the application data folder.
+    */
+   private static String DATA_FOLDER_PATH;
+
+   /**
     * A command that will be executed to get the env. variables.
     */
    private static String COMMAND;
@@ -42,6 +49,28 @@ public final class OpEnvironmentManager {
     * The environment properties.
     */
    private static Properties envProps = new Properties();
+
+   /**
+    * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
+    */
+   private static final Map PRODUCT_CODES_MAP = new HashMap();
+
+   /**
+    * Initialize the product codes map
+    */
+   static {
+      PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, Boolean.TRUE);
+   }
+   
+   /**
+    * The product code used in the initialization process
+    */
+   private static String productCode = null;
+   public static final String ONEPOINT_FOLDER = "Onepoint Project";
 
    /**
     * Initializes the command variable of the environment manager according to the type of OS.
@@ -119,13 +148,108 @@ public final class OpEnvironmentManager {
    public static String getOnePointHome() {
       return getEnvironmentVariable(ONEPOINT_HOME);
    }
+
    /**
     * Sets the home directory path of the application.
     *
-    * @param onepointHome a <code>String</code> representing the path of the application home.
+    * @param onepointHome a <code>String</code> representing the path of the application home. Path uses "/" separator.
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
+   }
+
+   /**
+    * Sets the application data folder path of the application.
+    *
+    * @param dataFolder a <code>String</code> representing the path of the application data folder.
+    */
+   private static void setDataFolderPath(String dataFolder) {
+      DATA_FOLDER_PATH = dataFolder;
+      //also create the folder if it doesn't exist
+      File folder = new File(DATA_FOLDER_PATH);
+      if (!folder.exists() || !folder.isDirectory()) {
+         folder.mkdir();
+      }
+   }
+
+   /**
+    * Sets the data folder path using a given db path.
+    *
+    * @param databaseURL data base folders path
+    */
+   public static void setDataFolderPathFromDbPath(String databaseURL) {
+      File url = new File(databaseURL);
+      File parentFile = url.getParentFile();
+
+      File dataFolder = parentFile.getParentFile();
+      if (dataFolder == null) {
+         throw new IllegalArgumentException("Given path is not valid");
+      }
+      setDataFolderPath(dataFolder.getAbsolutePath());
+
+   }
+
+
+   /**
+    * Returns the path to the onepoint data directory. This path is system dependent.
+    *
+    * @return  Path of the onepoint data folder. Path uses "/" separator.
+    */
+   public static String getDataFolderPath() {
+      if (isMultiUser()) {
+         return getOnePointHome();
+      }
+      else {
+         if (DATA_FOLDER_PATH == null) {
+            String userHome = System.getProperty("user.home");
+            String path;
+            if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
+               //$HOME/Library/Application Support/Onepoint Project
+               path = userHome + File.separator + "Library" + File.separator + "Application Support" +
+                    File.separator + ONEPOINT_FOLDER;
+            }
+            else {
+               //$HOME/Onepoint Project
+               path = userHome + File.separator + ONEPOINT_FOLDER;
+            }
+            path = XEnvironmentManager.convertPathToSlash(path);
+            setDataFolderPath(path);
+         }
+      }
+      return DATA_FOLDER_PATH;
+   }
+
+
+   /**
+    * Returns the value of the multi-user flag, using the product code.
+    *
+    * @return true if the application is in multi-user mode
+    */
+   public static boolean isMultiUser() {
+      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
+      if (isMultiUser == null) {
+         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
+      }
+      return isMultiUser.booleanValue();
+   }   
+
+
+   /**
+    * Returns the product code - one of the keys in PRODUCT_CODES_MAP
+    *
+    * @return product code.
+    */
+   public static String getProductCode() {
+      return productCode;
+   }
+
+   /**
+    * sets the product code
+    *
+    * @param productCode new product code
+    */
+   public static void setProductCode(String productCode) {
+      OpEnvironmentManager.productCode = productCode;
    }
 
    /**

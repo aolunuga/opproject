@@ -9,10 +9,10 @@ import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -144,7 +144,7 @@ public class OpWorkReportFormProvider implements XFormProvider {
       }
 
 
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          //enable select user button if session user is admin
          if (!session.userIsAdministrator()){
             form.findComponent(USER_NAME_FIELD).setEnabled(false);

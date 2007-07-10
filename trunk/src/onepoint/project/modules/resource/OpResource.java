@@ -9,6 +9,7 @@ import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentVersion;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.user.OpUser;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.*;
@@ -182,12 +183,7 @@ public class OpResource extends OpObject {
       List<Double> result = new ArrayList<Double>();
       Double internalRate = null;
       Double externalRate = null;
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTime(aDay);
-      calendar.set(Calendar.HOUR,0);
-      calendar.set(Calendar.MINUTE,0);
-      calendar.set(Calendar.SECOND,0);
-      calendar.set(Calendar.MILLISECOND,0);
+      Calendar calendar = XCalendar.setCalendarTimeToZero(aDay);
       aDay.setTime(calendar.getTimeInMillis());
 
       //first look in the set of OpHourlyRatesPeriod
@@ -228,27 +224,21 @@ public class OpResource extends OpObject {
       List<List> result = new ArrayList<List>();
       List<Double> internalRates = new ArrayList<Double>();
       List<Double> externalRates = new ArrayList<Double>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.setTimeInMillis(start.getTime());
-      calendarStart.set(Calendar.HOUR,0);
-      calendarStart.set(Calendar.MINUTE,0);
-      calendarStart.set(Calendar.SECOND,0);
-      calendarStart.set(Calendar.MILLISECOND,0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.setTimeInMillis(end.getTime());
-      calendarEnd.set(Calendar.HOUR,0);
-      calendarEnd.set(Calendar.MINUTE,0);
-      calendarEnd.set(Calendar.SECOND,0);
-      calendarEnd.set(Calendar.MILLISECOND,0);
+      Calendar calendar = XCalendar.setCalendarTimeToZero(start);
+      Date startDate = new Date(calendar.getTimeInMillis());
+      calendar = XCalendar.setCalendarTimeToZero(end);
+      Date endDate = new Date(calendar.getTimeInMillis());
       Double internalDayRate;
       Double externalDayRate;
 
-      while(!calendarStart.after(calendarEnd)){
-         internalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis())).get(INTERNAL_RATE_INDEX);
+      while(!startDate.after(endDate)){
+         internalDayRate = getRatesForDay(new Date(startDate.getTime())).get(INTERNAL_RATE_INDEX);
          internalRates.add(internalDayRate);
-         externalDayRate = getRatesForDay(new Date(calendarStart.getTimeInMillis())).get(EXTERNAL_RATE_INDEX);
+         externalDayRate = getRatesForDay(new Date(startDate.getTime())).get(EXTERNAL_RATE_INDEX);
          externalRates.add(externalDayRate);
-         calendarStart.add(Calendar.DATE,1);
+         calendar = XCalendar.setCalendarTimeToZero(startDate);
+         calendar.add(Calendar.DATE,1);
+         startDate = new Date(calendar.getTimeInMillis());
       }
 
       result.add(INTERNAL_RATE_LIST_INDEX,internalRates);

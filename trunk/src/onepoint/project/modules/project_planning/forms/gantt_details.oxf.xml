@@ -19,6 +19,8 @@
       <double-field x="2" y="5" width="3" id="BaseEffort" enabled="false"/>
       <label x="5" y="5" width="2" text="${Costs}"/>
       <double-field x="7" y="5" width="3" id="BaseCosts" enabled="false"/>
+      <label x="0" y="6" width="2" text="${Proceeds}"/>
+      <double-field x="2" y="6" width="3" id="ProceedsCosts" enabled="false"/>
    </panel>
    </panel>
 </form>

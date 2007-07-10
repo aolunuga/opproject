@@ -11,8 +11,6 @@ import java.sql.Blob;
 import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.Calendar;
 
 public class OpBroker {
    private static final XLog logger = XLogFactory.getServerLogger(OpBroker.class);
@@ -35,17 +33,9 @@ public class OpBroker {
    }
 
    public void makePersistent(OpObject object) {
-      // Persist object into default source and set creation date and time
-      TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
-      object.setCreated(Calendar.getInstance(gmtTimezone).getTime());
-
-      object.setModified(null);
       defaultConnection.persistObject(object);
       logger.debug("OpBroker.makePersistent(): id = " + object.getID());
    }
-
-   // Add mass-calls -- or do we not need these because of "intelligent" caching algorithms?
-   // For persist, update, delete?
 
    public OpObject getObject(String s) {
       OpLocator locator = OpLocator.parseLocator(s);
@@ -60,10 +50,6 @@ public class OpBroker {
 
    public void updateObject(OpObject object) {
       logger.debug("OpBroker.updateObject()");
-      // Set modification date and time (in GMT)
-      TimeZone gmtTimezone = TimeZone.getTimeZone("GMT");
-      object.setModified(Calendar.getInstance(gmtTimezone).getTime());
-
       defaultConnection.updateObject(object);
       logger.debug("/OpBroker.updateObject()");
    }

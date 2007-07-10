@@ -380,6 +380,6 @@ function retrieveChildren(event) {
    request.setAction("ProjectService.expandProjectNode");
    request.setArgument("project_row", dataRow);
 
-   expandNode(dataRow, 9, request);
+   expandNode(dataRow, 11, request);
 }
 

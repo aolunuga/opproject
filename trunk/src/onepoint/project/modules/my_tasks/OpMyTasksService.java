@@ -12,6 +12,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 
@@ -176,7 +177,7 @@ public class OpMyTasksService extends OpProjectService {
          XComponent row = (XComponent) attachmentSet.getChild(i);
          String choice = ((XComponent) row.getChild(1)).getStringValue();
          String locator = XValidator.choiceID(choice);
-         if (locator.equals(OpActivityDataSetFactory.NO_CONTENT_ID)) {
+         if (locator.equals(OpProjectConstants.NO_CONTENT_ID)) {
             attachmentsRowMap.put(locator + i, row);
          }
          else {

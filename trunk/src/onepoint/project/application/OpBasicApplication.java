@@ -10,9 +10,12 @@ import onepoint.express.application.XExpressApplication;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
+import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XResourceCache;
@@ -25,17 +28,22 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OpBasicApplication {
+public class OpBasicApplication extends XExpressApplication {
 
 
    /**
     * This class's logger.
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpBasicApplication.class);
-   private final String title;
    private static final int ERROR_WIDTH = 400;
    private static final int ERROR_HEIGHT = 100;
 
+
+   static {
+      // Register UI-scripting proxies
+      XComponent.registerProxy(new OpProjectComponentProxy());
+      XComponent.registerProxy(new OpWorkProxy());
+   }
 
    /**
     * This is the main application class.
@@ -43,12 +51,32 @@ public class OpBasicApplication {
     * @param title The title of the application
     */
    protected OpBasicApplication(String title) {
-      this.title = title;
+
+      super(title, 1024, 720);
+
       String projectHome = OpEnvironmentManager.getOnePointHome();
       //if not found among OS environment variables, set it to the working dir.
       if (projectHome == null) {
          OpEnvironmentManager.setOnePointHome(new File("").getAbsolutePath());
       }
+
+      // set the application-icon
+      URL imgURL = Thread.currentThread().getContextClassLoader().
+           getResource("onepoint/project/application/opp_icon16.png");
+
+      if (imgURL != null) {
+         Image icon = Toolkit.getDefaultToolkit().createImage(imgURL);
+         MediaTracker tracker = new MediaTracker(this);
+         tracker.addImage(icon, 0);
+         try {
+            tracker.waitForID(0);
+         }
+         catch (InterruptedException e) {
+            logger.error(e);
+         }
+         setIconImage(icon);
+      }
+
    }
 
    public static void main(String[] arguments) {
@@ -58,46 +86,51 @@ public class OpBasicApplication {
 
    protected void start(String[] arguments) {
 
-      // create startup application
-      XExpressApplication application = createStartupApplication(title);
-
-      // Register UI-scripting proxies
-      XComponent.registerProxy(new OpProjectComponentProxy());
-
       //perform initialization
-      Map initParams = OpInitializer.init(this.getProductCode());
-      additionalInitialization();
+      OpInitializer initializer = getInitializer();
+      Map<String, String> initParams = initializer.init(this.getProductCode());
 
-      /*set up the resource cache max size */
-      String cacheSize = OpInitializer.getConfiguration() != null ? OpInitializer.getConfiguration().getCacheConfiguration().getCacheSize()
-           : null;
+      //set up the resource cache max size
+      OpConfiguration config = initializer.getConfiguration();
+      String cacheSize = config != null ? config.getCacheConfiguration().getCacheSize() : null;
       if (cacheSize != null) {
-         int resourceCacheSize = Integer.valueOf(cacheSize).intValue();
-         application.getDisplay().setResourceCacheSize(resourceCacheSize);
+         int resourceCacheSize = Integer.valueOf(cacheSize);
+         this.getDisplay().setResourceCacheSize(resourceCacheSize);
          XResourceCache.setCacheSize(resourceCacheSize);
       }
 
-      application.getServer().setSessionClass(OpProjectSession.class);
+      this.getServer().setSessionClass(OpProjectSession.class);
 
       //Start must be called *after* overriding session class
-      application.start();
+      super.start();
 
+      showStartForm(initParams);
+   }
+
+   protected OpInitializer getInitializer() {
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      factory.setInitializer(OpInitializer.class);
+      return factory.getInitializer();
+   }
+
+   /**
+    * @param parameters
+    */
+   public void showStartForm(Map parameters) {
       // Show GUI
-      application.setVisible(true);
-      if (OpInitializer.getRunLevel() == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
-         application.getDisplay().showForm(OpProjectConstants.STANDALONE_CONFIGURATION_WIZARD_FORM);
+      setVisible(true);
+      byte runLevel = Byte.valueOf((String) parameters.get(OpProjectConstants.RUN_LEVEL));
+      if (runLevel == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
+         getDisplay().showForm(OpProjectConstants.STANDALONE_CONFIGURATION_WIZARD_FORM, new HashMap<String, String>(parameters));
       }
-      else if (OpInitializer.getRunLevel() != OpInitializer.getSuccessRunLevel()) {
-         Frame mainFrame = application.getDisplay().getViewer().getFrame();
+      else if (runLevel != OpProjectConstants.SUCCESS_RUN_LEVEL) {
+         Frame mainFrame = this.getDisplay().getViewer().getFrame();
          mainFrame.setResizable(false);
          int centerX = (mainFrame.getBounds().x + mainFrame.getBounds().width - ERROR_WIDTH) / 2;
          int centerY = (mainFrame.getBounds().y + mainFrame.getBounds().height - ERROR_HEIGHT) / 2;
          mainFrame.setBounds(centerX, centerY, ERROR_WIDTH, ERROR_HEIGHT);
-         String localeId = application.getSession().getLocale().getID();
-         HashMap formParams = new HashMap(initParams);
-         String errorText = OpInitializer.checkRunLevel(formParams, localeId, "main.levels");
-         formParams.put("errorMessage", errorText);
-         application.getDisplay().showForm("/forms/runLevel.oxf.xml", formParams);
+         HashMap<String, String> formParams = new HashMap<String, String>(parameters);
+         getDisplay().showForm(OpProjectConstants.RUN_LEVEL_ERROR_FORM, formParams);
       }
       else {
          XMessage request = new XMessage();
@@ -105,46 +138,16 @@ public class OpBasicApplication {
          request.setArgument("login", OpUser.ADMINISTRATOR_NAME);
          request.setArgument("password", OpUser.BLANK_PASSWORD);
          request.setVariable(OpProjectConstants.CLIENT_TIMEZONE, XCalendar.CLIENT_TIMEZONE);
-         XMessage response = application.getSession().invokeMethod(request);
+         XMessage response = this.getSession().invokeMethod(request);
          XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
          XDisplay.getDefaultDisplay().setCalendar(calendar);
-         application.getDisplay().showForm("/forms/start.oxf.xml", new HashMap(initParams));
+         getDisplay().showForm(OpProjectConstants.START_FORM, new HashMap<String, String>(parameters));
       }
-   }
-
-   protected void additionalInitialization() {
-   }
-
-   /**
-    * Creates the start-up application
-    *
-    * @param title Application title
-    * @return <code>XExpressApplication</code>
-    */
-   protected static XExpressApplication createStartupApplication(String title) {
-      // Startup application
-      XExpressApplication application = new XExpressApplication(title, 1024, 720);
-      // set the application-icon
-      URL imgURL = Thread.currentThread().getContextClassLoader().
-           getResource("onepoint/project/application/opp_icon16.png");
-
-      if (imgURL != null) {
-         Image icon = Toolkit.getDefaultToolkit().createImage(imgURL);
-         MediaTracker tracker = new MediaTracker(application);
-         tracker.addImage(icon, 0);
-         try {
-            tracker.waitForID(0);
-         }
-         catch (InterruptedException e) {
-            logger.error(e);
-         }
-         application.setIconImage(icon);
-      }
-      return application;
    }
 
    /**
     * Gets this application's product code.
+    *
     * @return a <code>String</code> representing a product code constant.
     */
    protected String getProductCode() {

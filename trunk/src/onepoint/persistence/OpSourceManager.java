@@ -1,49 +1,92 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+/**
+ * Copyright(c) Onepoint Software GmbH 2007. All Rights Reserved.
  */
-
 package onepoint.persistence;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * This class allow you to register and retrieve later OpSource instances.
+ */
 public class OpSourceManager {
 
-	private static Hashtable sources; // Mapping of source names to mounted object sources
-	private static OpSource defaultSource; // Default object source
+   /**
+    * Defines the name used to register default source
+    */
+   private static final String DEFAULT_SOURCE_NAME = "default_source";
 
-	// In the future maybe JNDI-lookup instead of static?
+   /**
+    * Mapping of source names to mounted object sources
+    */
+   private static Map<String, OpSource> sources = new HashMap<String, OpSource>();
 
-	static {
-		sources = new Hashtable();
-		defaultSource = null;
-	}
+   /**
+    * Register sources using a given name.
+    *
+    * @param source     source to register
+    * @param sourceName name registration name used for the provided source
+    */
+   private static void registerSource(OpSource source, String sourceName) {
+      // To do: Check for uniqueness of name
+      if (sourceName != null) {
+         sources.put(sourceName, source);
 
-	public static void registerSource(OpSource source) {
-		// To do: Check for uniqueness of name
-		if (source.getName() != null)
-			sources.put(source.getName(), source);
-		// Invoke on-register callback
-		source.onRegister();
-	}
+         // Invoke on-register callback
+         source.onRegister();
+      }
+      else {
+         throw new NullPointerException("Could not register a source with a NULL source name.");
+      }
+   }
 
-	public static void setDefaultSource(OpSource source) {
-		// *** Check if source is registered
-		defaultSource = source;
-	}
+   /**
+    * Register source using name defined into it (retrieved by getName() method).
+    *
+    * @param source source to be registered
+    */
+   public static void registerSource(OpSource source) {
+      if (source != null) {
+         registerSource(source, source.getName());
+      }
+      else {
+         throw new NullPointerException("Could not register a NULL source.");
+      }
+   }
 
-	public static OpSource getDefaultSource() {
-		return defaultSource;
-	}
+   /**
+    * Register a default source.
+    *
+    * @param source default source to be registered.
+    */
+   public static void registerDefaultSource(OpSource source) {
+      registerSource(source, DEFAULT_SOURCE_NAME);
+   }
 
-	public static OpSource getSource(String name) {
-		return (OpSource) (sources.get(name));
-	}
+   /**
+    * Retrieve registered default source
+    *
+    * @return default source
+    */
+   public static OpSource getDefaultSource() {
+      return getSource(DEFAULT_SOURCE_NAME);
+   }
 
-	// Where to mount data sources (in sessions or here, more globally)?
-	// ==> Maybe both: Global for everyone and just have to be opened in a session?!
-	// ==> Master/default-source should be defined here
+   /**
+    * Retrieve and return a source with a given name. If no source can be found with that name, return <code>Null</code>
+    *
+    * @param sourceName name of the source to be retrieved.
+    * @return found source or <code>Null</code> if none was found.
+    */
+   public static OpSource getSource(String sourceName) {
+      return (OpSource) (sources.get(sourceName));
+   }
 
-	// ==> We could mimik Unix here: Only "root/system" is allowed to mount/unmount
-	// (in a session, but it is "remembered" persistently in the broker)
+   // Where to mount data sources (in sessions or here, more globally)?
+   // ==> Maybe both: Global for everyone and just have to be opened in a session?!
+   // ==> Master/default-source should be defined here
+
+   // ==> We could mimik Unix here: Only "root/system" is allowed to mount/unmount
+   // (in a session, but it is "remembered" persistently in the broker)
 
 }

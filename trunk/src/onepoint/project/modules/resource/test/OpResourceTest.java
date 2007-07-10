@@ -3,19 +3,24 @@
  */
 package onepoint.project.modules.resource.test;
 
+import junit.framework.TestCase;
 import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class tests OpResource's getInternalRateForDay()& getExternalRateForDay() methods.
  *
  * @author florin.haizea
  */
-public class OpResourceTest extends OpBaseTestCase {
+public class OpResourceTest extends TestCase {
 
    /**
     * Test extraction of the internal rate for a given day
@@ -27,14 +32,12 @@ public class OpResourceTest extends OpBaseTestCase {
 
       Double result;
       Set<OpHourlyRatesPeriod> periodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       OpResource resource = new OpResource();
       resource.setHourlyRatesPeriods(periodsSet);
       resource.setHourlyRate(0d);
-      List<Double> ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      List<Double> ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_INDEX);
       assertEquals("OpResource.getInternalRateForDay failed", 0d, result.doubleValue(), 0d);
 
@@ -43,35 +46,21 @@ public class OpResourceTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(3d);
       hourlyRatesPeriod.setExternalRate(4d);
 
-      calendar.set(2006, 4, 19, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_INDEX);
       assertEquals("OpResource.getInternalRateForDay failed", 3d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       assertEquals("OpResource.getInternalRateForDay failed", 3d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_INDEX);
       assertEquals("OpResource.getInternalRateForDay failed", 3d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 21).getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_INDEX);
       assertEquals("OpResource.getInternalRateForDay failed", 0d, result.doubleValue(), 0d);
    }
@@ -86,18 +75,13 @@ public class OpResourceTest extends OpBaseTestCase {
 
       List<Double> result;
       Set<OpHourlyRatesPeriod> periodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.set(2006, 4, 20, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.set(2006, 4, 23, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      Calendar calendar = Calendar.getInstance();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       OpResource resource = new OpResource();
       resource.setHourlyRatesPeriods(periodsSet);
       resource.setHourlyRate(0d);
-      List<List> ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      List<List> ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 23).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(0), 0d);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(1), 0d);
@@ -108,51 +92,36 @@ public class OpResourceTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(3d);
       hourlyRatesPeriod.setExternalRate(4d);
 
-      calendar.set(2006, 4, 19, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendarStart.set(2006, 4, 24, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 26, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 26).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 3d, result.get(0), 0d);
       assertEquals("OpResource.getInternalRateForInterval failed", 3d, result.get(1), 0d);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(2), 0d);
 
-      calendar.set(2006, 4, 24, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 26).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 3d, result.get(0), 0d);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(1), 0d);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(2), 0d);
 
-      calendarStart.set(2006, 4, 19, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 19, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 3d, result.get(0), 0d);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 21).getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 0d, result.get(0), 0d);
 
-      calendarStart.set(2006, 4, 19, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 16, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 16).getTimeInMillis()));
       result = ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getInternalRateForInterval failed", 0, result.size());
    }
@@ -167,14 +136,12 @@ public class OpResourceTest extends OpBaseTestCase {
 
       Double result;
       Set<OpHourlyRatesPeriod> periodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       OpResource resource = new OpResource();
       resource.setHourlyRatesPeriods(periodsSet);
       resource.setExternalRate(0d);
-      List<Double> ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      List<Double> ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_INDEX);
       assertEquals("OpResource.getExternalRateForDay failed", 0d, result.doubleValue(), 0d);
 
@@ -183,34 +150,21 @@ public class OpResourceTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(5d);
       hourlyRatesPeriod.setExternalRate(10d);
 
-      calendar.set(2006, 4, 19, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_INDEX);
       assertEquals("OpResource.getExternalRateForDay failed", 10d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       assertEquals("OpResource.getExternalRateForDay failed", 10d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_INDEX);
       assertEquals("OpResource.getExternalRateForDay failed", 10d, result.doubleValue(), 0d);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      ratesList = resource.getRatesForDay(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 21).getTimeInMillis()));
+      ratesList = resource.getRatesForDay(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_INDEX);
       assertEquals("OpResource.getExternalRateForDay failed", 0d, result.doubleValue(), 0d);
    }
@@ -225,18 +179,13 @@ public class OpResourceTest extends OpBaseTestCase {
 
       List<Double> result;
       Set<OpHourlyRatesPeriod> periodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.set(2006, 4, 20, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.set(2006, 4, 23, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      Calendar calendar = Calendar.getInstance();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
       OpResource resource = new OpResource();
       resource.setHourlyRatesPeriods(periodsSet);
       resource.setHourlyRate(0d);
-      List<List> ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      List<List> ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 20).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 23).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(0), 0d);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(1), 0d);
@@ -247,51 +196,37 @@ public class OpResourceTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(3d);
       hourlyRatesPeriod.setExternalRate(4d);
 
-      calendar.set(2006, 4, 19, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendarStart.set(2006, 4, 24, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 26, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 25).getTimeInMillis()));
+
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 26).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 4d, result.get(0), 0d);
       assertEquals("OpResource.getExternalRateForInterval failed", 4d, result.get(1), 0d);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(2), 0d);
 
-      calendar.set(2006, 4, 24, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 24).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 26).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 4d, result.get(0), 0d);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(1), 0d);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(2), 0d);
 
-      calendarStart.set(2006, 4, 19, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 19, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 4d, result.get(0), 0d);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 21).getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 0d, result.get(0), 0d);
 
-      calendarStart.set(2006, 4, 19, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2006, 4, 16, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      ratesList = resource.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()));
+      ratesList = resource.getRatesForInterval(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 19).getTimeInMillis()),
+           new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 4, 16).getTimeInMillis()));
       result = ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpResource.getExternalRateForInterval failed", 0, result.size());
    }
@@ -310,29 +245,15 @@ public class OpResourceTest extends OpBaseTestCase {
       resource.setHourlyRatesPeriods(periodsSet);
 
       List<Date> daysList = new ArrayList<Date>();
-      Calendar calendar = Calendar.getInstance();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
-      calendar.set(2007, 6, 8, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 10, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 17, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 22, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 6, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      daysList.add(new Date(calendar.getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 8).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 13).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 21).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 22).getTimeInMillis()));
+      daysList.add(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 27).getTimeInMillis()));
 
       //no hourly rates periods were added - all the rates should be the default rates
       List<List> ratesList;
@@ -352,29 +273,17 @@ public class OpResourceTest extends OpBaseTestCase {
       assertEquals(2d, (Double)ratesList.get(OpResource.INTERNAL_RATE_LIST_INDEX).get(6), 0d);
       assertEquals(4d, (Double)ratesList.get(OpResource.EXTERNAL_RATE_LIST_INDEX).get(6), 0d);
 
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.set(2007, 6, 10, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.set(2007, 6, 15, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-
       OpHourlyRatesPeriod hourlyRatesPeriod1 = new OpHourlyRatesPeriod();
       periodsSet.add(hourlyRatesPeriod1);
-      hourlyRatesPeriod1.setStart(new Date(calendarStart.getTimeInMillis()));
-      hourlyRatesPeriod1.setFinish(new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod1.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+      hourlyRatesPeriod1.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 15).getTimeInMillis()));
       hourlyRatesPeriod1.setInternalRate(3d);
       hourlyRatesPeriod1.setExternalRate(1d);
 
-      calendarStart.set(2007, 6, 20, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      calendarEnd.set(2007, 6, 22, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-
       OpHourlyRatesPeriod hourlyRatesPeriod2 = new OpHourlyRatesPeriod();
       periodsSet.add(hourlyRatesPeriod2);
-      hourlyRatesPeriod2.setStart(new Date(calendarStart.getTimeInMillis()));
-      hourlyRatesPeriod2.setFinish(new Date(calendarEnd.getTimeInMillis()));
+      hourlyRatesPeriod2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 20).getTimeInMillis()));
+      hourlyRatesPeriod2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 22).getTimeInMillis()));
       hourlyRatesPeriod2.setInternalRate(6d);
       hourlyRatesPeriod2.setExternalRate(8d);
 
@@ -409,21 +318,13 @@ public class OpResourceTest extends OpBaseTestCase {
       OpHourlyRatesPeriod period1 = new OpHourlyRatesPeriod();
       OpHourlyRatesPeriod period2 = new OpHourlyRatesPeriod();
       Set<OpHourlyRatesPeriod> hourlyPeriods = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setFinish(new Date(calendar.getTimeInMillis()));
+      period1.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 20).getTimeInMillis()));
+      period1.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 27).getTimeInMillis()));
 
-      calendar.set(2006, 4, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 16, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 13).getTimeInMillis()));
+      period2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
 
       hourlyPeriods.add(period1);
       hourlyPeriods.add(period2);
@@ -444,21 +345,13 @@ public class OpResourceTest extends OpBaseTestCase {
       OpHourlyRatesPeriod period1 = new OpHourlyRatesPeriod();
       OpHourlyRatesPeriod period2 = new OpHourlyRatesPeriod();
       Set<OpHourlyRatesPeriod> hourlyPeriods = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
+      XCalendar calendar = XCalendar.getDefaultCalendar();
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setFinish(new Date(calendar.getTimeInMillis()));
+      period1.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 20).getTimeInMillis()));
+      period1.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 27).getTimeInMillis()));
 
-      calendar.set(2006, 4, 22, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 22).getTimeInMillis()));
+      period2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis()));
 
       hourlyPeriods.add(period1);
       hourlyPeriods.add(period2);
@@ -467,28 +360,16 @@ public class OpResourceTest extends OpBaseTestCase {
 
       assertFalse(resource.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 20).getTimeInMillis()));
+      period2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 27).getTimeInMillis()));
       assertFalse(resource.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 13).getTimeInMillis()));
+      period2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis()));
       assertFalse(resource.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 16, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+      period2.setFinish(new Date(OpBaseOpenTestCase.getCalendarWithExactDaySet(2007, 6, 27).getTimeInMillis()));
       assertFalse(resource.checkPeriodDoNotOverlap());
    }
 }

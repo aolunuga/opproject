@@ -7,7 +7,7 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require "onepoint/project/modules/project/scripts/helper_project.jes";
+require "onepoint/project/modules/project/scripts/project_helper.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -33,21 +33,27 @@ function ok_edit(event) {
    //check for future start dates
    project_data.Start = form.findComponent("Start").getDateValue();
    originalStartDate = form.findComponent("OriginalStartDate").getDateValue();
-   if (bypassFutureStartDateCheck == null && project_data.Start.after(originalStartDate)) {
-      Console.println("Start date in the future");
-      dialog = XComponent.newDialog();
-      dialog.loadForm("/modules/project/forms/confirm_startdate_future.oxf.xml");
-      dialog.open();
-      return;
-   }
+   if (project_data.Start != null) {
+      if (bypassFutureStartDateCheck == null && project_data.Start.after(originalStartDate)) {
+         Console.println("Start date in the future");
+         dialog = XComponent.newDialog();
+         dialog.loadForm("/modules/project/forms/confirm_startdate_future.oxf.xml");
+         dialog.open();
+         return;
+      }
+    }
 
    project_id = form.findComponent("ProjectID").getStringValue();
+   project_data.Type = 3;
    project_data.Name = form.findComponent("Name").getStringValue();
    project_data.Description = form.findComponent("Description").getStringValue();
    project_data.Finish = form.findComponent("Finish").getDateValue();
    project_data.Budget = form.findComponent("Budget").getDoubleValue();
    project_data.CalculationMode = form.findComponent("CalculationMode").getBooleanValue();
    project_data.ProgressTracked = form.findComponent("ProgressTracked").getBooleanValue();
+   project_data.Priority = form.findComponent("Priority").getIntValue();
+   project_data.Probability = form.findComponent("Probability").getIntValue();
+   project_data.Archived = form.findComponent("Archived").getBooleanValue();   
    choice = form.findComponent("StatusChoice").getStringValue();
    if (choice != null) {
       project_data.Status = XValidator.choiceID(choice);
@@ -61,29 +67,11 @@ function ok_edit(event) {
 
    project_data.PermissionSet = form.findComponent("PermissionSet");
 
-   //if the hourlyRates tab was modified that is the priority
-   modifiedPeriods = isModifiedHourlyTab();
-    if (modifiedPeriods.size() > 0) {
-      request = new XMessage;
-      request.setAction("ProjectService.haveAssignmentsInTimePeriod");
-      request.setArgument("resource_set", assigned_resource_set);
-      request.setArgument("project_id", project_id);
-      response = XDisplay.getClient().invokeMethod(request);
-      hasAssignments = response.getArgument("AssignmentsInPeriod");
-      if (hasAssignments == true) {
-         //display
-         dialog = XComponent.newDialog();
-         parameters.project_id = project_id;
-         parameters.project_data = project_data;
-         parameters.goals_set = goals_set;
-         parameters.to_dos_set = to_dos_set;
-         parameters.resource_set = assigned_resource_set;
-         parameters.versions_set = versions_set;
-         parameters.changed = "hourlyTab";
-         dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
-         return;
-      }
-    }
+   //check extended hourly rates
+   if (checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
+        to_dos_set, versions_set)) {
+      return;
+   }
 
     //check if the rates from the resource tab were modified
    request = new XMessage;
@@ -125,6 +113,11 @@ function ok_edit(event) {
 
 function cancel(event) {
    XDisplay.getActiveWindow().close();
+}
+
+function checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
+                                  to_dos_set, versions_set){
+   return false;
 }
 
 function removeVersions(event) {
@@ -169,66 +162,4 @@ function selectionChanged(event) {
       delete_button.setEnabled(can_delete);
    }
    form.repaint();
-}
-
-//checks if any of the OpHourlyRatesPeriod from the Hourly Rates tab was modified and
-//returns all modified OpHourlyRatesPeriods
-function isModifiedHourlyTab() {
-   newRatesDataSet = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
-   originalRatesDataSet = XDisplay.getActiveForm().findComponent("OriginalResourceDataSet");
-   modifiedRates = new ArrayList;
-
-   //add to modified rows the original rows that have changed
-   i = 0;
-   while (i < originalRatesDataSet.getChildCount()) {
-      modified = true;
-      originalRow = originalRatesDataSet.getChild(i);
-      if (originalRow.getOutlineLevel() == 1) {
-         j = 0;
-         while (j < newRatesDataSet.getChildCount()) {
-            newRow = newRatesDataSet.getChild(j);
-            if (newRow.getOutlineLevel() == 1) {
-               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
-                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
-                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
-                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
-                  modified = false;
-                  break;
-               }
-            }
-            j++;
-         }
-         if (modified) {
-            modifiedRates.add(originalRow);
-         }
-      }
-      i++;
-   }
-   //add to modified rows the newly changed or added rows
-   i = 0;
-   while (i < newRatesDataSet.getChildCount()) {
-      modified = true;
-      newRow = newRatesDataSet.getChild(i);
-      if (newRow.getOutlineLevel() == 1) {
-         j = 0;
-         while (j < originalRatesDataSet.getChildCount()) {
-            originalRow = originalRatesDataSet.getChild(j);
-            if (originalRow.getOutlineLevel() == 1) {
-               if (originalRow.getChild(5).getDateValue() == newRow.getChild(5).getDateValue() &&
-                   originalRow.getChild(6).getDateValue() == newRow.getChild(6).getDateValue() &&
-                   originalRow.getChild(7).getDoubleValue() == newRow.getChild(7).getDoubleValue() &&
-                   originalRow.getChild(8).getDoubleValue() == newRow.getChild(8).getDoubleValue()) {
-                  modified = false;
-                  break;
-               }
-            }
-            j++;
-         }
-         if (modified) {
-            modifiedRates.add(newRow);
-         }
-      }
-      i++;
-   }
-   return modifiedRates;
 }

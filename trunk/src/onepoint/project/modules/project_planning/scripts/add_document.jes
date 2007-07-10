@@ -46,16 +46,10 @@ function ok(event) {
       data_cell.setEnabled(false);
       data_row.addChild(data_cell);
 
-      //3 - content id (0 in new documents)
+      //3 - content id (the File object in new documents)
+      file = File.create(document_path);
       data_cell = XComponent.newDataCell();
-      data_cell.setStringValue("0");
-      data_cell.setEnabled(false);
-      data_row.addChild(data_cell);
-
-      //4 - the bytes of the file content
-      bytes = File.getBytes(document_path);
-      data_cell = XComponent.newDataCell();
-      data_cell.setValue(bytes);
+      data_cell.setValue(file);
       data_cell.setEnabled(false);
       data_row.addChild(data_cell);
 
@@ -80,7 +74,7 @@ function cancel(event) {
 function select(event) {   
    form = XDisplay.getActiveForm();
    title = form.findComponent("DialogTitle").getText();
-   document_path = XDisplay.showFileDialog(title, true, null,"*.*");
+   document_path = XDisplay.showFileDialog(title, true, null,"*.*", true);
    if (document_path != null) {
       document_path_field = XDisplay.getActiveForm().findComponent("DocumentPathField");
       document_path_field.setStringValue(document_path);

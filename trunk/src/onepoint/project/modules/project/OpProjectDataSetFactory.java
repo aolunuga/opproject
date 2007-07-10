@@ -13,22 +13,13 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpLock;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
 import java.util.*;
 
 public final class OpProjectDataSetFactory {
-
-   public final static int DESCRIPTOR_COLUMN_INDEX = 0;
-
-   public final static String PORTFOLIO_DESCRIPTOR = "f";
-   public final static String TEMPLATE_DESCRIPTOR = "t";
-   public final static String PROJECT_DESCRIPTOR = "p";
-
-   public final static int PORTFOLIO_ICON_INDEX = 0;
-   public final static int TEMPLATE_ICON_INDEX = 1;
-   public final static int PROJECT_ICON_INDEX = 2;
 
    // Type filter
    // FIXME(dfreis Mar 22, 2007 3:04:24 PM)
@@ -60,6 +51,17 @@ public final class OpProjectDataSetFactory {
              "and permission.AccessLevel in (:levels) " +
              "group by project.ID";
 
+   private final static String PORTFOLIO_DESCRIPTOR = "f";
+   private final static String TEMPLATE_DESCRIPTOR = "t";
+   private final static String PROJECT_DESCRIPTOR = "p";
+
+   private final static int PORTFOLIO_ICON_INDEX = 0;
+   private final static int TEMPLATE_ICON_INDEX = 1;
+   private final static int PROJECT_ICON_INDEX = 2;
+   private final static int PROJECT_EDITED_ICON_INDEX = 3;
+   private final static int PROJECT_LOCKED_ICON_INDEX = 4;
+   private final static int TEMPLATE_EDITED_ICON_INDEX = 5;
+   private final static int TEMPLATE_LOCKED_ICON_INDEX = 6;
 
    /**
     * Utility class.
@@ -213,6 +215,15 @@ public final class OpProjectDataSetFactory {
       switch (projectNode.getType()) {
          case OpProjectNode.PROJECT: {
             iconIndex = PROJECT_ICON_INDEX;
+            if (projectNode.getLocks().size() > 0) {
+               iconIndex = PROJECT_LOCKED_ICON_INDEX;
+               for (OpLock lock : projectNode.getLocks()) {
+                  if (lock.getOwner().getID() == session.user(broker).getID()) {
+                     iconIndex = PROJECT_EDITED_ICON_INDEX;
+                     break;
+                  }
+               }
+            }
             descriptor = PROJECT_DESCRIPTOR;
             break;
          }
@@ -223,6 +234,15 @@ public final class OpProjectDataSetFactory {
          }
          case OpProjectNode.TEMPLATE: {
             iconIndex = TEMPLATE_ICON_INDEX;
+            if (projectNode.getLocks().size() > 0) {
+               iconIndex = TEMPLATE_LOCKED_ICON_INDEX;
+               for (OpLock lock : projectNode.getLocks()) {
+                  if (lock.getOwner().getID() == session.user(broker).getID()) {
+                     iconIndex = TEMPLATE_EDITED_ICON_INDEX;
+                     break;
+                  }
+               }
+            }
             descriptor = TEMPLATE_DESCRIPTOR;
             break;
          }
@@ -267,6 +287,11 @@ public final class OpProjectDataSetFactory {
       else {
          dataRow.setStringValue(XValidator.choice(projectNode.locator(), localizer.localize(projectNode.getName()),
               iconIndex));
+
+         //0 - descriptor
+         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(descriptor);
+         dataRow.addChild(dataCell);
       }
       return dataRow;
    }
@@ -534,6 +559,22 @@ public final class OpProjectDataSetFactory {
             dataCell.setDoubleValue(value);
          }
          dataRow.addChild(dataCell);
+
+         //9 - Status
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
+            String projectStatus = projectNode.getStatus() != null ? projectNode.getStatus().getName() :
+                 null;
+            dataCell.setStringValue(projectStatus);
+         }
+         dataRow.addChild(dataCell);
+
+         //10 - Priority
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
+            dataCell.setIntValue(projectNode.getPriority());
+         }
+         dataRow.addChild(dataCell);
       }
       return dataRow;
    }
@@ -700,29 +741,18 @@ public final class OpProjectDataSetFactory {
       boolean enableProjects = (Boolean) parameters.get(ENABLE_PROJECTS);
       for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
-         String choice = dataRow.getStringValue();
-         //<FIXME author="Horia Chiorean" description="Using the icon index as a denominator is not the best choice">
-         int iconIndex = XValidator.choiceIconIndex(choice);
-         //<FIXME>
-         switch (iconIndex) {
-            case OpProjectDataSetFactory.PROJECT_ICON_INDEX: {
-               if (!enableProjects) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
-            case OpProjectDataSetFactory.PORTFOLIO_ICON_INDEX: {
-               if (!enablePortfolios) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
-            case OpProjectDataSetFactory.TEMPLATE_ICON_INDEX: {
-               if (!enableTemplates) {
-                  dataRow.setSelectable(false);
-               }
-               break;
-            }
+         if (dataRow.getStringValue().equals(OpProjectConstants.DUMMY_ROW_ID)) {
+            continue;
+         }
+         String descriptor = ((XComponent) dataRow.getChild(0)).getStringValue();
+         if (descriptor.equals(PROJECT_DESCRIPTOR) && !enableProjects) {
+            dataRow.setSelectable(false);
+         }
+         if (descriptor.equals(PORTFOLIO_DESCRIPTOR) && !enablePortfolios) {
+            dataRow.setSelected(false);
+         }
+         if (descriptor.equals(TEMPLATE_DESCRIPTOR) && !enableTemplates) {
+            dataRow.setSelected(false);
          }
       }
    }
@@ -900,10 +930,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Get resources all the project where the user has a given permission level
-    * @param session   the project session
-    * @param broker  the broker used to access data
-    * @param levels  the project permission levels required for the curent user
-    * @param responsible  if the user must be responsible for the curent resource
+    *
+    * @param session     the project session
+    * @param broker      the broker used to access data
+    * @param levels      the project permission levels required for the curent user
+    * @param responsible if the user must be responsible for the curent resource
     * @return a <code>Set&lt;String&gt;</code> of resource choices - e.g. locator['label'].
     */
    public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> levels, boolean responsible) {
@@ -920,9 +951,10 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Get the list of reources linked to a given project
-    * @param project  the project node
+    *
+    * @param project     the project node
     * @param userId      the used id
-    * @param responsible  to enforce that the given user (userId) is responsible for the returned resources
+    * @param responsible to enforce that the given user (userId) is responsible for the returned resources
     * @return a <code>List&lt;String&gt;</code> of resource choices - e.g. locator['label'].
     */
    public static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {

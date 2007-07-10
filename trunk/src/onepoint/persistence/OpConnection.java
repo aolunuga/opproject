@@ -9,27 +9,38 @@ import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteConnection?
+/**
+ * Super class for all connection implementations.
+ */
+public abstract class OpConnection {
 
-   private OpSource source; // The source the connection belongs to
-
-   public static final int FLUSH_MODE_NEVER = 0;
+   public static final int FLUSH_MODE_MANUAL = 0;
    public static final int FLUSH_MODE_COMMIT = 1;
    public static final int FLUSH_MODE_AUTO = 2;
    public static final int FLUSH_MODE_ALWAYS = 3;
-   
-   
+
+   /**
+    * The source the connection belongs to
+    */
+   private OpSource source;
+
+   /**
+    * Creates a new connection that will use provided data source.
+    *
+    * @param source data source.
+    */
    public OpConnection(OpSource source) {
       this.source = source;
    }
 
+   /**
+    * Retrieve data source used by this connection.
+    *
+    * @return data source
+    */
    public final OpSource getSource() {
       return source;
    }
-
-   // public abstract void createPrototype(String name);
-
-   // public abstract void dropPrototype(String name);
 
    public abstract void createSchema();
 
@@ -41,8 +52,6 @@ public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteC
 
    public abstract OpObject getObject(Class c, long id);
 
-//   public abstract boolean contains(Object obj);
-     
    public abstract void updateObject(OpObject object);
 
    public abstract void deleteObject(OpObject object);

@@ -20,7 +20,7 @@
 		  <label x="0" y="0" width="10" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
 			<label id="UserLabel" y="1" width="4" text="${User}"/>
       <action-button id="UserNameField" x="4" y="1" width="6" edit-mode="false" on-button-pressed="chooseSubject"
-         left-icon="/icons/remove.png" right-icon="/icons/user_chooser.png"/>
+         left-icon="/icons/remove.png" right-icon="/icons/choose_user.png"/>
       <label x="0" y="2" width="2" text="${Start}"/>
 			<date-field x="2" y="2" width="3" id="StartField"/>
 			<label x="5" y="2" width="2" text="${Finish}"/>

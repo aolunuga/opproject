@@ -7,8 +7,8 @@
       <resource id="Connect">Connect</resource>
    </resource-map>
    <resource-map id="standalone_configuration_wizard.main">
-      <resource id="DatabaseLocation">Database folder</resource>
-      <resource id="SelectFolder">Select Database Folder</resource>
+      <resource id="DatabaseLocation">Data Folder</resource>
+      <resource id="SelectFolder">Select Database File</resource>
       <resource id="Select">Change</resource>
       <resource id="OK">OK</resource>
    </resource-map>

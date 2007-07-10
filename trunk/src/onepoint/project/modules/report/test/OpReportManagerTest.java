@@ -3,10 +3,13 @@
  */
 package onepoint.project.modules.report.test;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpLocator;
 import onepoint.project.modules.report.OpReportManager;
 import onepoint.project.modules.report.OpReportService;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
 import java.util.Map;
@@ -16,7 +19,16 @@ import java.util.Map;
  *
  * @author calin.pavel
  */
-public class OpReportManagerTest extends OpBaseTestCase {
+public class OpReportManagerTest extends OpBaseOpenTestCase {
+
+   /**
+    * This class' logger.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpReportManagerTest.class);
+
+   /**
+    * The report manager used by the tests.
+    */
    private OpReportManager reportManager;
 
    /**
@@ -27,8 +39,9 @@ public class OpReportManagerTest extends OpBaseTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-
       reportManager = OpReportManager.getReportManager(session);
+      //load the report used for the tests  (this automatically clears the old entry)
+      reportManager.updateReportCacheEntry(OpReportTestDataFactory.REPORT_NAME);
    }
 
    /**
@@ -39,7 +52,7 @@ public class OpReportManagerTest extends OpBaseTestCase {
    public void testResourceRetrieval()
         throws Exception {
       XMessage request = OpReportTestDataFactory.buildDefaultRequest(OpReportService.REPORT_TYPE_PDF, OpLocator.parseLocator(adminId).getID());
-      XMessage response = getReportService().createReport(session, request);
+      XMessage response = OpTestDataFactory.getReportService().createReport(session, request);
       assertNotNull(response);
       assertNoError(response);
 

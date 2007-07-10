@@ -51,6 +51,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
                setStart(data_row, start);
                if (getEnd(data_row) == null) {
                   setEnd(data_row, start);
+                  updateProjectPlanFinish();
                }
                updateDuration(data_row, getDuration(data_row));
                startPoints.add(data_row);
@@ -634,6 +635,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
 
       if (endCollection == null || (maxEnd != null && !endCollection.equals(maxEnd))) {
          setEnd(collection, maxEnd);
+         updateProjectPlanFinish();
          changed = true;
       }
 

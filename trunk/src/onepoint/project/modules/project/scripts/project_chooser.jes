@@ -86,5 +86,5 @@ function retrieveChildren(event) {
    request.setArgument("EnableTemplates", enableTemplates);
    request.setArgument("FilteredOutIds", filteredOutIds);
 
-   expandNode(dataRow, 0, request);   
+   expandNode(dataRow, 1, request);   
 }

@@ -3,18 +3,18 @@
  */
 package onepoint.project.modules.resource.test;
 
+import onepoint.persistence.OpEntityException;
 import onepoint.project.modules.resource.OpHourlyRatesPeriod;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpTestCase;
 
 import java.sql.Date;
-import java.util.Calendar;
 
 /**
- * This class tests OpHourlyRatesPeriod isValid() method.
+ * This class tests OpHourlyRatesPeriod validate() method.
  *
  * @author florin.haizea
  */
-public class OpHourlyRatesPeriodTest extends OpBaseTestCase {
+public class OpHourlyRatesPeriodTest extends OpTestCase {
 
    /**
     * Test happy-flow creation of OpHourlyRatesPeriod
@@ -26,31 +26,31 @@ public class OpHourlyRatesPeriodTest extends OpBaseTestCase {
 
       OpHourlyRatesPeriod period = new OpHourlyRatesPeriod();
 
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setFinish(new Date(calendar.getTimeInMillis()));
+      period.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
 
+      //start - end: 4/20/2006 - 4/27/2006
       period.setInternalRate(4d);
       period.setInternalRate(6d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
+      period.validate();
 
+      //start - end: 4/20/2006 - 4/27/2006
       period.setInternalRate(0d);
       period.setExternalRate(0d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
+      period.validate();
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setStart(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
+      //start - end: 4/20/2006 - 4/20/2006
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period.validate();
 
-      calendar.set(2006, 4, 22, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setFinish(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
+      //start - end: 4/21/2006 - 4/22/2006
+      period.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 21).getTimeInMillis()));
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 22).getTimeInMillis()));
+      period.validate();
+
+      //start - end: 4/21/2006 - 4/25/2006
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 25).getTimeInMillis()));
+      period.validate();
    }
 
    /**
@@ -62,41 +62,68 @@ public class OpHourlyRatesPeriodTest extends OpBaseTestCase {
         throws Exception {
 
       OpHourlyRatesPeriod period = new OpHourlyRatesPeriod();
+      boolean exceptionThrown = false;
 
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setFinish(new Date(calendar.getTimeInMillis()));
+      period.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
 
       period.setInternalRate(-4d);
       period.setExternalRate(6d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.INTERNAL_RATE_NOT_VALID, period.isValid());
+      try {
+         period.validate();
+      }
+      catch (OpEntityException e) {
+         exceptionThrown = true;
+         assertEquals("OpHourlyRatesPeriod.validate() failed", OpHourlyRatesPeriod.INTERNAL_RATE_NOT_VALID, e.getErrorCode());
+      }
+      assertTrue("OpHourlyRatesPeriod.validate() failed, exception should have been thrown", exceptionThrown);
 
+      exceptionThrown = false;
       period.setInternalRate(4d);
       period.setExternalRate(-7d);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.EXTERNAL_RATE_NOT_VALID, period.isValid());
+      try {
+         period.validate();
+      }
+      catch (OpEntityException e) {
+         exceptionThrown = true;
+         assertEquals("OpHourlyRatesPeriod.validate() failed", OpHourlyRatesPeriod.EXTERNAL_RATE_NOT_VALID, e.getErrorCode());
+      }
+      assertTrue("OpHourlyRatesPeriod.validate() failed, exception should have been thrown", exceptionThrown);
 
+      exceptionThrown = false;
       period.setExternalRate(7d);
       period.setStart(null);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_START_DATE_NOT_VALID, period.isValid());
+      try {
+         period.validate();
+      }
+      catch (OpEntityException e) {
+         exceptionThrown = true;
+         assertEquals("OpHourlyRatesPeriod.validate() failed", OpHourlyRatesPeriod.PERIOD_START_DATE_NOT_VALID, e.getErrorCode());
+      }
+      assertTrue("OpHourlyRatesPeriod.validate() failed, exception should have been thrown", exceptionThrown);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setStart(new Date(calendar.getTimeInMillis()));
+      exceptionThrown = false;
+      period.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 21).getTimeInMillis()));
       period.setFinish(null);
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_END_DATE_NOT_VALID, period.isValid());
+      try {
+         period.validate();
+      }
+      catch (OpEntityException e) {
+         exceptionThrown = true;
+         assertEquals("OpHourlyRatesPeriod.validate() failed", OpHourlyRatesPeriod.PERIOD_END_DATE_NOT_VALID, e.getErrorCode());
+      }
+      assertTrue("OpHourlyRatesPeriod.validate() failed, exception should have been thrown", exceptionThrown);
 
-      calendar.set(2006, 4, 21, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setFinish(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", 0, period.isValid());
-
-      calendar.set(2006, 4, 19, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period.setFinish(new Date(calendar.getTimeInMillis()));
-      assertEquals("OpHourlyRatesPeriod.isValid() failed", OpHourlyRatesPeriod.PERIOD_INTERVAL_NOT_VALID, period.isValid());
+      //start - end: 4/21/2006 - 4/19/2006
+      exceptionThrown = false;
+      period.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 19).getTimeInMillis()));
+      try {
+         period.validate();
+      }
+      catch (OpEntityException e) {
+         exceptionThrown = true;
+         assertEquals("OpHourlyRatesPeriod.validate() failed", OpHourlyRatesPeriod.PERIOD_INTERVAL_NOT_VALID, e.getErrorCode());
+      }
+      assertTrue("OpHourlyRatesPeriod.validate() failed, exception should have been thrown", exceptionThrown);
    }
 }

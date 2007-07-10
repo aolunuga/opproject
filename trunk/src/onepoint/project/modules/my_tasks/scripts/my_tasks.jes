@@ -150,9 +150,11 @@ function refreshForm() {
 
 function selectionChanged(event) {
    form = XDisplay.getActiveForm();
-   toolBar = form.findComponent("myTasksToolBar");
-   deleteButton = form.findComponent("DeleteAdhocButton");
 
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(true);
+
+   deleteButton = form.findComponent("DeleteAdhocButton");
    // get delete permission for selected row
    dataSet = form.findComponent("ActivitySet");
    selected_rows = dataSet.selectedRows();
@@ -172,6 +174,43 @@ function selectionChanged(event) {
       deleteButton.setEnabled(false);
    }
 
+   toolBar = form.findComponent("myTasksToolBar");
    toolBar.doLayout();
    toolBar.repaint();
+}
+
+/**
+ * Function which is called when activating the tasklist tab
+ */
+function activateTasklistTab(event) {
+   form = XDisplay.getActiveForm();
+   deleteButton = form.findComponent("DeleteAdhocButton");
+   deleteButton.setEnabled(false);
+   deleteButton.update();
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(false);
+   infoButton.update();
+}
+
+/**
+ * Function which is called when activating the gantt chart tab
+ */
+function activateGanttTab(event) {
+   form = XDisplay.getActiveForm();
+   deleteButton = form.findComponent("DeleteAdhocButton");
+   deleteButton.setEnabled(false);
+   deleteButton.update();
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(false);
+   infoButton.update();
+}
+
+/**
+ * Function called when a gantt activity is selected.
+ */
+function activitySelected(event) {
+   form = XDisplay.getActiveForm();
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(true);
+   infoButton.update();
 }

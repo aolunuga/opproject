@@ -4,6 +4,7 @@
 
 package onepoint.project.modules.resource;
 
+import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
 
@@ -163,29 +164,27 @@ public class OpHourlyRatesPeriod extends OpObject {
 
    /**
     * Checks if the fields of the period are valid
-    *
-    * @return  <code>0</code> id all fields have valid values
-    *          the error code corresponding to the error caused by the inccorect field
+    *    
+    * @throws onepoint.persistence.OpEntityException
+    *          if some validation constraints are broken
     */
-   public int isValid() {
+   public void validate()
+        throws OpEntityException {
 
       if (start == null) {
-         return PERIOD_START_DATE_NOT_VALID;
+         throw new OpEntityException(PERIOD_START_DATE_NOT_VALID);
       }
       else if (finish == null) {
-         return PERIOD_END_DATE_NOT_VALID;
+         throw new OpEntityException(PERIOD_END_DATE_NOT_VALID);
       }
       else if (internalRate < 0) {
-         return INTERNAL_RATE_NOT_VALID;
+         throw new OpEntityException(INTERNAL_RATE_NOT_VALID);
       }
       else if (externalRate < 0) {
-         return EXTERNAL_RATE_NOT_VALID;
+         throw new OpEntityException(EXTERNAL_RATE_NOT_VALID);
       }
-      else if (finish.before(start)){
-         return PERIOD_INTERVAL_NOT_VALID;
+      else if (finish.before(start)) {
+         throw new OpEntityException(PERIOD_INTERVAL_NOT_VALID);
       }
-      else {
-         return 0;
-      }
-   }   
+   }
 }

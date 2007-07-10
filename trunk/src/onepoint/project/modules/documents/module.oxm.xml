@@ -1,7 +1,13 @@
 <module name="documents" caption="Dokumente" version="0.5" class="onepoint.project.modules.documents.OpDocumentsModule">
+   <language-kit-paths>
+      <language-kit-path path="/modules/documents/i18n"/>
+   </language-kit-paths>
+   <service-files>
+      <service-file file-name="/modules/documents/documents_service.osd.xml"/>
+   </service-files>
    <prototype-files>
       <prototype-file file-name="/modules/documents/content.opt.xml"/>
       <prototype-file file-name="/modules/documents/document.opt.xml"/>
-      <prototype-file file-name="/modules/documents/dynamic_resource.opt.xml"/>      
+      <prototype-file file-name="/modules/documents/dynamic_resource.opt.xml"/>
    </prototype-files>
 </module>

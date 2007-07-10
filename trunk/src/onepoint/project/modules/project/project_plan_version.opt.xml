@@ -1,4 +1,4 @@
-<prototype name="OpProjectPlanVersion" instance-class="onepoint.project.modules.project.OpProjectPlanVersion">
+<prototype name="OpProjectPlanVersion" instance-class="onepoint.project.modules.project.OpProjectPlanVersion" super-type="OpObject">
    <field name="VersionNumber" type="Integer"/>
    <field name="Comment" type="String"/>
    <field name="Start" type="Date" mandatory="true" indexed="true"/>
@@ -7,8 +7,8 @@
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Versions"/>
    <relationship name="Creator" type="OpUser"/>
    <relationship name="ActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
-   <relationship name="AttachmentVersions" type="OpAttachmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true"/>
-   <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true"/>
-   <relationship name="WorkPeriodVersions" type="OpWorkPeriodVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true"/>
-   <relationship name="DependencyVersions" type="OpDependencyVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true"/>
+   <relationship name="AttachmentVersions" type="OpAttachmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="WorkPeriodVersions" type="OpWorkPeriodVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
+   <relationship name="DependencyVersions" type="OpDependencyVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
 </prototype>

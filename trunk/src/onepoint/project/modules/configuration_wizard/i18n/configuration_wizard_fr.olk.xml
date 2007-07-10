@@ -7,7 +7,7 @@
       <resource id="Connect">Se connecter</resource>
    </resource-map>
    <resource-map id="standalone_configuration_wizard.main">
-      <resource id="DatabaseLocation">Dossier de base de données</resource>
+      <resource id="DatabaseLocation">Data Folder</resource>
       <resource id="SelectFolder">Sélectionner le dossier de base de données</resource>
       <resource id="Select">Changer</resource>
       <resource id="OK">OK</resource>

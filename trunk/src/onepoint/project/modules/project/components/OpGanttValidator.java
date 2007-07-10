@@ -30,6 +30,7 @@ public class OpGanttValidator extends XValidator {
    private final static String ABSENCES_SET = "AbsencesSet";
    private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String SHOW_RESOURCE_HOURS = "ShowResourceHours";
+   private final static String RESOURCES_HOURLY_RATES_DATA_SET = "ResourcesHourlyRates";
 
    private static final XLog logger = XLogFactory.getClientLogger(OpGanttValidator.class);
 
@@ -63,10 +64,15 @@ public class OpGanttValidator extends XValidator {
    public final static int VISUAL_RESOURCES_COLUMN_INDEX = 26;
    public final static int RESPONSIBLE_RESOURCE_COLUMN_INDEX = 27;
    public final static int PAYMENT_COLUMN_INDEX = 29;
+   public final static int BASE_PROCEEDS_COLUMN_INDEX = 30;
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
    private final static int HOURLY_RATE_COLUMN_INDEX = 1;
+
+   //Hourly rates indexes
+   public final static int INTERNAL_HOURLY_RATE_INDEX = 0;
+   public final static int EXTERNAL_HOURLY_RATE_INDEX = 1;
 
    // Activity types
    public final static byte STANDARD = 0;
@@ -103,10 +109,11 @@ public class OpGanttValidator extends XValidator {
    protected XCalendar calendar;
    // New two fields should never be accessed directly
    private HashMap absencesSet = null;
-   private HashMap hourlyRates = null;
+   private XComponent hourlyRatesDataSet = null;
    private Date projectStart;
    private Date projectWorkingStart;
    private Date projectFinish;
+   private Date projectPlanFinish;
    private Boolean hourBasedResources;
    private Byte calculationMode;
    private Boolean progressTracked;
@@ -114,6 +121,7 @@ public class OpGanttValidator extends XValidator {
    private XComponent assignmentSet;
    private Boolean projectTemplate;
    private Double projectCost;
+   private Double projectProceeds;
    private Double projectEffort;
 
    public final static String LOOP_EXCEPTION = "LoopException";
@@ -227,6 +235,14 @@ public class OpGanttValidator extends XValidator {
 
    public static double getPayment(XComponent data_row) {
       return ((XComponent) (data_row.getChild(PAYMENT_COLUMN_INDEX))).getDoubleValue();
+   }
+
+   public static void setBaseProceeds(XComponent data_row, double proceeds) {
+      ((XComponent) (data_row.getChild(BASE_PROCEEDS_COLUMN_INDEX))).setDoubleValue(proceeds);
+   }
+
+   public static double getBaseProceeds(XComponent data_row) {
+      return ((XComponent) (data_row.getChild(BASE_PROCEEDS_COLUMN_INDEX))).getDoubleValue();
    }
 
    /**
@@ -801,7 +817,7 @@ public class OpGanttValidator extends XValidator {
 
 
    /**
-    * @return Project finish date if it was set on the form, null otherwise
+    * @return Project finish date if it was set on the form (or through the setter), null otherwise
     */
    public Date getProjectFinish() {
       if (projectFinish == null) {
@@ -815,6 +831,79 @@ public class OpGanttValidator extends XValidator {
       }
       return projectFinish;
    }
+
+   /**
+    * Sets the project end date.
+    *
+    * @param finish End Date.
+    */
+   public void setProjectFinish(Date finish) {
+      projectFinish = finish;
+   }
+
+   /**
+    * Sets the project plan end date.
+    *
+    * @param finish End Date.
+    */
+   public void setProjectPlanFinish(Date finish) {
+      projectPlanFinish = finish;
+   }
+
+   public Date getProjectPlanFinish() {
+      if (projectPlanFinish == null) {
+         //project plan finish as max of the activities ends
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent dataRow = (XComponent) data_set.getChild(i);
+            Date end = getEnd(dataRow);
+            if (end != null) {
+               if (projectPlanFinish == null) {
+                  projectPlanFinish = new Date(end.getTime());
+               }
+               else {
+                  if (projectPlanFinish.before(end)) {
+                     projectPlanFinish = new Date(end.getTime());
+                  }
+               }
+            }
+         }
+         if (projectPlanFinish == null) {
+            //if project plan still null, use the project end
+            projectPlanFinish = getProjectFinish();
+         }
+         if (projectPlanFinish == null) {
+            //if project end is null, use project start
+            projectPlanFinish = getProjectStart();
+         }
+      }
+      return projectPlanFinish;
+   }
+
+   /**
+    * Updates the project plan finish date and triggers the rest of the updates
+    * (for the values constrained by the project plan end).
+    */
+   protected void updateProjectPlanFinish() {
+      Date oldProjectPlan = null;
+      if (projectPlanFinish != null) {
+         oldProjectPlan = new Date(projectPlanFinish.getTime());
+      }
+      projectPlanFinish = null;
+
+      //get project plan finish will update the value
+      Date newProjectPlanFinish = getProjectPlanFinish();
+
+      //if the project finish is null or the new date != old date, update the task costs
+      if (getProjectFinish() == null || (oldProjectPlan == null || !newProjectPlanFinish.equals(oldProjectPlan))) {
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent activityRow = (XComponent) data_set.getChild(i);
+            if (!activityRow.isDummyRow() && getType(activityRow) == TASK) {
+               updateTaskCosts(activityRow);
+            }
+         }
+      }
+   }
+
 
    /**
     * @param property
@@ -1100,6 +1189,7 @@ public class OpGanttValidator extends XValidator {
                if (!isCollectionTask(activity)) {
                   setStart(activity, null);
                   setEnd(activity, null);
+                  updateProjectPlanFinish();
                }
             }
          }
@@ -1263,6 +1353,10 @@ public class OpGanttValidator extends XValidator {
             else {
                setComplete(activity, 0);
             }
+            List efforts = getResourceBaseEfforts(activity);
+            for (int i=0; i<efforts.size(); i++) {
+               efforts.set(i, new Double(0));
+            }
             break;
          case STANDARD:
             activity.getChild(START_COLUMN_INDEX).setEnabled(true);
@@ -1322,6 +1416,7 @@ public class OpGanttValidator extends XValidator {
             setDuration(activity, 0.0d);
             setStart(activity, null);
             setEnd(activity, null);
+            updateProjectPlanFinish();
             setResourceBaseEfforts(activity, new ArrayList());
             setWorkPhaseStarts(activity, new ArrayList());
             setWorkPhaseFinishes(activity, new ArrayList());
@@ -1352,6 +1447,7 @@ public class OpGanttValidator extends XValidator {
             setDuration(activity, 0.0d);
             setStart(activity, null);
             setEnd(activity, null);
+            updateProjectPlanFinish();
             setWorkPhaseStarts(activity, new ArrayList());
             setWorkPhaseFinishes(activity, new ArrayList());
             setWorkPhaseBaseEfforts(activity, new ArrayList());
@@ -1425,6 +1521,7 @@ public class OpGanttValidator extends XValidator {
 
       double complete = 0;
       double perCost = 0;
+      double proceeds = 0;
       double matCost = 0;
       double travCost = 0;
       double extCost = 0;
@@ -1457,6 +1554,7 @@ public class OpGanttValidator extends XValidator {
          }
 
          perCost += getBasePersonnelCosts(activity);
+         proceeds += getBaseProceeds(activity);
          matCost += getBaseMaterialCosts(activity);
          travCost += getBaseTravelCosts(activity);
          extCost += getBaseExternalCosts(activity);
@@ -1483,6 +1581,7 @@ public class OpGanttValidator extends XValidator {
 
       // set the costs
       setBasePersonnelCosts(collection, perCost);
+      setBaseProceeds(collection, proceeds);
       setBaseMaterialCosts(collection, matCost);
       setBaseTravelCosts(collection, travCost);
       setBaseExternalCosts(collection, extCost);
@@ -1564,7 +1663,9 @@ public class OpGanttValidator extends XValidator {
          }
       }
       else {
-         updateDuration(activity, getDuration(activity));
+         if (getType(activity) != COLLECTION) {
+            updateDuration(activity, getDuration(activity));
+         }
          end = getEnd(activity);
       }
 
@@ -1632,6 +1733,7 @@ public class OpGanttValidator extends XValidator {
       else {
          setStart(activity, start);
          setEnd(activity, end);
+         updateProjectPlanFinish();
       }
 
       if (start != null && !calendar.isWorkDay(start)) {
@@ -1682,6 +1784,7 @@ public class OpGanttValidator extends XValidator {
       }
       if ((end == null) || (end.getTime() < child_end.getTime())) {
          setEnd(activity, child_end);
+         updateProjectPlanFinish();
          do_validate = true;
       }
       if (do_validate) {
@@ -1738,6 +1841,7 @@ public class OpGanttValidator extends XValidator {
 
       //costs
       double basePersonnelCosts = 0;
+      double baseProceeds = 0;
       double baseMaterialCosts = 0;
       double baseTravelCosts = 0;
       double baseMiscellaneousCosts = 0;
@@ -1751,6 +1855,7 @@ public class OpGanttValidator extends XValidator {
          complete += getComplete(subTask);
          baseEffort += getBaseEffort(subTask);
          basePersonnelCosts += getBasePersonnelCosts(subTask);
+         baseProceeds += getBaseProceeds(subTask);
          baseMaterialCosts += getBaseMaterialCosts(subTask);
          baseTravelCosts += getBaseTravelCosts(subTask);
          baseMiscellaneousCosts += getBaseMiscellaneousCosts(subTask);
@@ -1767,6 +1872,7 @@ public class OpGanttValidator extends XValidator {
       setBaseMaterialCosts(taskParent, baseMaterialCosts);
       setBaseMiscellaneousCosts(taskParent, baseMiscellaneousCosts);
       setBasePersonnelCosts(taskParent, basePersonnelCosts);
+      setBaseProceeds(taskParent, baseProceeds);
       setBaseTravelCosts(taskParent, baseTravelCosts);
    }
 
@@ -1952,7 +2058,13 @@ public class OpGanttValidator extends XValidator {
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setEnabled(false);
       data_cell.setDoubleValue(0);
-      data_row.addChild(data_cell);            
+      data_row.addChild(data_cell);
+
+      // Base Proceeds (30)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(false);
+      data_cell.setDoubleValue(0);
+      data_row.addChild(data_cell);
 
       // Must be done at the end: Might potentially need full data-row
       // TODO: Duration of new activities should be configurable
@@ -2130,7 +2242,10 @@ public class OpGanttValidator extends XValidator {
             break;
          case CATEGORY_COLUMN_INDEX:
             if (isProjectMandatory(data_row)) {
-               if ((getCategory(data_row) == null && value != null) || (!getCategory(data_row).equals(value))) {
+               String newCategoryId = (value != null) ? choiceID((String) value) : NO_CATEGORY_ID;
+               String existentCategory = getCategory(data_row);
+               if ((existentCategory == null && !NO_CATEGORY_ID.equalsIgnoreCase(newCategoryId))
+                   || (existentCategory != null && !existentCategory.equalsIgnoreCase((String) value))) {
                   throw new XValidationException(MANDATORY_EXCEPTION);
                }
             }
@@ -2232,18 +2347,20 @@ public class OpGanttValidator extends XValidator {
             break;
          case COMPLETE_COLUMN_INDEX:
             // Change percentage range (0-100)
-            double complete = ((Double) value).doubleValue();
-            byte type = OpGanttValidator.getType(data_row);
+            if (value != null) {
+               double complete = ((Double) value).doubleValue();
+               byte type = OpGanttValidator.getType(data_row);
 
-            addToUndo();
+               addToUndo();
 
-            if ((type == OpGanttValidator.TASK || type == OpGanttValidator.MILESTONE) && complete < 100) {
-               setComplete(data_row, 0);
+               if ((type == OpGanttValidator.TASK || type == OpGanttValidator.MILESTONE) && complete < 100) {
+                  setComplete(data_row, 0);
+               }
+               else if ((complete >= 0) && (complete <= 100)) {
+                  setComplete(data_row, complete);
+               }
+               updateCollectionTreeValues(data_row);
             }
-            else if ((complete >= 0) && (complete <= 100)) {
-               setComplete(data_row, complete);
-            }
-            updateCollectionTreeValues(data_row);
             break;
 
          case PREDECESSORS_COLUMN_INDEX:
@@ -4696,28 +4813,6 @@ public class OpGanttValidator extends XValidator {
       this.absencesStart = absencesStart;
    }
 
-   protected HashMap hourlyRates() {
-      logger.debug("HOURLY_RATES");
-      // Get and cache hourly rates from assignment set
-      if (hourlyRates == null) {
-         logger.debug("   HOURLY_RATES");
-         hourlyRates = new HashMap();
-         XComponent assignmentSet = getAssignmentSet();
-         logger.debug("   assignmentSet " + assignmentSet);
-         if (assignmentSet != null) {
-            logger.debug("   assignmentSet " + assignmentSet.getID());
-            XComponent assignment = null;
-            String resource_locator = null;
-            for (int i = 0; i < assignmentSet.getChildCount(); i++) {
-               assignment = (XComponent) assignmentSet._getChild(i);
-               resource_locator = XValidator.choiceID(assignment.getStringValue());
-               logger.debug("==> ADD HR: " + resource_locator + " = " + getHourlyRate(assignment));
-               hourlyRates.put(resource_locator, new Double(getHourlyRate(assignment)));
-            }
-         }
-      }
-      return hourlyRates;
-   }
 
    /**
     * Computes the effort and absences values and updates the resource base efforts for an activity.
@@ -4725,7 +4820,6 @@ public class OpGanttValidator extends XValidator {
     * @param activityRow             the activity row that will have its resource base efforts updated.
     * @param calendar                the calendar to be used for computing values
     * @param assignments             assignments for the activity
-    * @param hourlyRates             hourly rates to be used to compute the values
     * @param absences                tha absences array for the resources assigned to the activity
     * @param effort                  total effort for this activity
     * @param individualEfforts       individual efforts array to be filled
@@ -4733,19 +4827,19 @@ public class OpGanttValidator extends XValidator {
     * @param individualAbsences      individual absences for resources array to be filled
     * @return personnel Cost for this activity
     */
-   public double individualValues(XComponent activityRow, XCalendar calendar, ArrayList assignments,
-        HashMap hourlyRates, HashMap absences, double effort, double[] individualEfforts,
+   public List individualValues(XComponent activityRow, XCalendar calendar, ArrayList assignments,
+        HashMap absences, double effort, double[] individualEfforts,
         double[] individualEffortsPerDay, ArrayList[] individualAbsences) {
 
-      // Calculates important individual values per resource and returns peronnel costs in the process
-
-      String assignment = null;
+      // Calculates important individual values per resource and returns personnel costs in the process
+      List costs = new ArrayList();
+      costs.add(INTERNAL_HOURLY_RATE_INDEX, new Double(0));
+      costs.add(EXTERNAL_HOURLY_RATE_INDEX, new Double(0));
+      String assignment;
       double[] assigneds = new double[individualEfforts.length];
       int sumAssigned = 0;
-      int i = 0;
-      String resource_locator = null;
-      double personnel_costs = 0.0;
-      Double hourlyRate = null;
+      int i;
+      String resource_locator;
       for (i = 0; i < individualEfforts.length; i++) {
          assignment = (String) assignments.get(i);
          double assigned = percentageAssigned(assignment);
@@ -4765,14 +4859,54 @@ public class OpGanttValidator extends XValidator {
          // Update personnel costs
          assignment = (String) assignments.get(i);
          resource_locator = XValidator.choiceID(assignment);
-         hourlyRate = (Double) hourlyRates.get(resource_locator);
-         logger.debug("***HR " + hourlyRate);
-         if (hourlyRate != null) {
-            personnel_costs += hourlyRate.doubleValue() * individualEfforts[i];
-         }
+
+         //update base costs (internal and external)
+         List rates = calculateCostsForResourceOnActivity(resource_locator, activityRow, individualEffortsPerDay[i]);
+         double newCosts = ((Double) costs.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue() +
+              ((Double) rates.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue();
+         costs.set(INTERNAL_HOURLY_RATE_INDEX, new Double(newCosts));
+         newCosts = ((Double) costs.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue() +
+              ((Double) rates.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue();
+         costs.set(EXTERNAL_HOURLY_RATE_INDEX, new Double(newCosts));
       }
 
-      return personnel_costs;
+      return costs;
+   }
+
+   /**
+    * Calculates the cost (internal and external) for the given resource and activity.
+    * It uses the provided effort/day in order to calculate them.
+    *
+    * @param resource_locator Locator of the resource on the activity.
+    * @param activityRow      Activity the costs are calculated for.
+    * @param effortPerDay     daily effort for the resource on this activity
+    * @return List of calculated costs. At INTERNAL_HOURLY_RATE_INDEX index is the internal personnel cost and at
+    *         EXTERNAL_HOURLY_RATE_INDEX index there is the external costs (proceeds) value.
+    */
+   private List calculateCostsForResourceOnActivity(String resource_locator, XComponent activityRow, double effortPerDay) {
+      List costs = new ArrayList();
+
+      //get rate for each activity day and multiply it by the effortPerDay
+      Date start = getActivityMaxStart(activityRow);
+      Date end = getActivityMinEnd(activityRow);
+
+      double internalCost = 0;
+      double externalCost = 0;
+      Date date = new Date(start.getTime());
+      if (!getCalendar().isWorkDay(date)) {
+         date = calendar.nextWorkDay(date);
+      }
+
+      while (!date.after(end)) {
+         //get rate and add it
+         internalCost += getRateForResource(resource_locator, INTERNAL_HOURLY_RATE_INDEX, date) * effortPerDay;
+         externalCost += getRateForResource(resource_locator, EXTERNAL_HOURLY_RATE_INDEX, date) * effortPerDay;
+         date = calendar.nextWorkDay(date);
+      }
+
+      costs.add(INTERNAL_HOURLY_RATE_INDEX, new Double(internalCost));
+      costs.add(EXTERNAL_HOURLY_RATE_INDEX, new Double(externalCost));
+      return costs;
    }
 
    /**
@@ -4786,16 +4920,6 @@ public class OpGanttValidator extends XValidator {
     *         updated.
     */
    public boolean updateBaseEffort(XComponent data_row, double effort) {
-
-      // TODO: Return false if effort is not allowed to be updated (e.g., linked activity)
-      // *** TODO: Optimize already now -- holidays and vacations as bit/byte-arrays?
-      // ==> Advantage: Simple isAbsent(int day), isHoliday(int day) possible
-      // *** Middle-way: Sort once on server-side and put into Java array (start[i], end [i+1])
-      // ==> At least for absences; holidays could be implemented using a bit/byte-mask
-      // *** TODO: Absence-array -- calculated on server-side -- byte/boolean-array from project.start
-      // ==> Stored as a single column/cell value (XArray); size varies (until last planned absence
-      // day)
-      // *** Note: Maybe leave holidays as is because of extra name/description (lannguage?)
 
       if (OpGanttValidator.getType(data_row) == COLLECTION || OpGanttValidator.getType(data_row) == OpGanttValidator.SCHEDULED_TASK) {
          //effort can't be changed for collections
@@ -4885,8 +5009,7 @@ public class OpGanttValidator extends XValidator {
       double[] individualEffortsPerDay = new double[individualEfforts.length];
       ArrayList[] individualAbsences = new ArrayList[individualEfforts.length];
 
-      HashMap hourlyRates = hourlyRates();
-      double personnelCosts = individualValues(data_row, calendar, assignments, hourlyRates, absences, effort,
+      List personnelCosts = individualValues(data_row, calendar, assignments, absences, effort,
            individualEfforts, individualEffortsPerDay, individualAbsences);
       int durationDays = 0;
       boolean resourceAbsent = false;
@@ -4965,11 +5088,13 @@ public class OpGanttValidator extends XValidator {
          if (start.getTime() <= time - XCalendar.MILLIS_PER_DAY) {
             Date finish = new Date(time - XCalendar.MILLIS_PER_DAY);
             setEnd(data_row, finish);
+            updateProjectPlanFinish();
             workingDay = false;
             updateWorkPhases(workPhase, workingDay, time, workPhaseStarts, workPhaseFinishes, data_row, workPhaseEffort, workPhaseEfforts);
          }
          else {
             setEnd(data_row, start);
+            updateProjectPlanFinish();
          }
          double duration = durationDays * calendar.getWorkHoursPerDay();
          setDuration(data_row, duration);
@@ -4997,7 +5122,9 @@ public class OpGanttValidator extends XValidator {
 
       //update visual resources
       updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
-      setBasePersonnelCosts(data_row, personnelCosts);
+      setBasePersonnelCosts(data_row, ((Double) personnelCosts.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue());
+      setBaseProceeds(data_row, ((Double) personnelCosts.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue());
+
       return true;
    }
 
@@ -5151,11 +5278,13 @@ public class OpGanttValidator extends XValidator {
          if (start.getTime() <= time - XCalendar.MILLIS_PER_DAY) {
             Date finish = new Date(time - XCalendar.MILLIS_PER_DAY);
             setEnd(data_row, finish);
+            updateProjectPlanFinish();
             workingDay = false;
             updateWorkPhases(workPhase, workingDay, time, workPhaseStarts, workPhaseFinishes, data_row, workPhaseEffort, workPhaseEfforts);
          }
          else {
             setEnd(data_row, start);
+            updateProjectPlanFinish();
          }
 
          if (effortBased) {
@@ -5163,9 +5292,10 @@ public class OpGanttValidator extends XValidator {
          }
 
          //update the costs
-         double personnel_costs = calculateCosts(data_row, individualEffortsPerDay, effort.doubleValue(), assigneds, sumAssigned,
-              assignments, hourlyRates());
-         setBasePersonnelCosts(data_row, personnel_costs);
+         List costs = calculateCosts(data_row, individualEffortsPerDay, effort.doubleValue(), assigneds, sumAssigned,
+              assignments);
+         setBasePersonnelCosts(data_row, ((Double) costs.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue());
+         setBaseProceeds(data_row, ((Double) costs.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue());
 
          //recompute the work phase efforts
          recomputeWorkPhaseEffort(workPhaseEfforts, effort.doubleValue(), previousEffort);
@@ -5195,9 +5325,11 @@ public class OpGanttValidator extends XValidator {
          // *** Go back one day for finish date?
          Date finish = new Date(time - XCalendar.MILLIS_PER_DAY);
          setEnd(data_row, finish);
+         updateProjectPlanFinish();
       }
       else if (activityType == MILESTONE) {
          setEnd(data_row, getStart(data_row));
+         updateProjectPlanFinish();
       }
       //update visual resources
       updateVisualResources(data_row, isHourBasedResourceView(), getAvailabilityMap());
@@ -5264,6 +5396,7 @@ public class OpGanttValidator extends XValidator {
       }
       else {
          setEnd(data_row, finish);
+         updateProjectPlanFinish();
       }
       return true;
    }
@@ -5323,19 +5456,13 @@ public class OpGanttValidator extends XValidator {
    /**
     * Initializes the individual efforts and the assigned sum.
     *
-    * @param assignments             -
-    *                                <code>XArray</code> containing <code>String</code> the assignments (resources).
-    * @param individualEffortsPerDay -
-    *                                <code>double[]</code> for individual efforst per day. Its content will be changed.
-    * @param assigneds               -
-    *                                <code>byte[]</code> for the assigneds. Its content will be changed.
-    * @param absences                -
-    *                                HashMap with the absences for each resource. resource -> XArray of dates. can be otained with
+    * @param assignments             <code>XArray</code> containing <code>String</code> the assignments (resources).
+    * @param individualEffortsPerDay <code>double[]</code> for individual efforst per day. Its content will be changed.
+    * @param assigneds               <code>byte[]</code> for the assigneds. Its content will be changed.
+    * @param absences                HashMap with the absences for each resource. resource -> XArray of dates. can be otained with
     *                                getAbsencesSet().
-    * @param individualAbsences      -
-    *                                <code>XArray[]</code> for individual absences. Its content will be changed.
-    * @param calendar                -
-    *                                the calendar used
+    * @param individualAbsences      <code>XArray[]</code> for individual absences. Its content will be changed.
+    * @param calendar                the calendar used
     * @return sum of assigneds
     */
    private double initAssigned(ArrayList assignments, double[] individualEffortsPerDay, double[] assigneds,
@@ -5360,32 +5487,25 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
-    * Calculates the personal costs.
+    * Calculates the personal costs (internal & external).
     *
-    * @param activityRow             -
-    *                                the activity data row for wich is computed the cost
-    * @param individualEffortsPerDay -
-    *                                <code>double[]</code> for individual efforst per day.
-    * @param effort                  -
-    *                                the total effort for the activity
-    * @param assigneds               -
-    *                                <code>byte[]</code> for the assigneds (can be obtained by using initAssigned method)
-    * @param sumAssigned             -
-    *                                the total sum of assigneds (can be obtained by using initAssigned method)
-    * @param assignments             -
-    *                                <code>XArray</code> containing <code>String</code> the assignments (resources).
-    * @param hourlyRates             -
-    *                                HashMap containing the hourlyRates for each resource (see hourlyRates() )
+    * @param activityRow             the activity data row for wich is computed the cost
+    * @param individualEffortsPerDay <code>double[]</code> for individual efforst per day.
+    * @param effort                  the total effort for the activity
+    * @param assigneds               <code>byte[]</code> for the assigneds (can be obtained by using initAssigned method)
+    * @param sumAssigned             the total sum of assigneds (can be obtained by using initAssigned method)
+    * @param assignments             <code>XArray</code> containing <code>String</code> the assignments (resources).
     * @return personnel cost
     */
-   private static double calculateCosts(XComponent activityRow, double[] individualEffortsPerDay, double effort,
-        double[] assigneds, double sumAssigned, ArrayList assignments, HashMap hourlyRates) {
+   private List calculateCosts(XComponent activityRow, double[] individualEffortsPerDay, double effort,
+        double[] assigneds, double sumAssigned, ArrayList assignments) {
       int i;
-      double individualEffort = 0.0;
-      String resource_locator = null;
-      Double hourlyRate = null;
-      String assignment = null;
-      double personnel_costs = 0.0;
+      double individualEffort;
+      String resource_locator;
+      String assignment;
+      List activityCosts = new ArrayList();
+      activityCosts.add(INTERNAL_HOURLY_RATE_INDEX, new Double(0));
+      activityCosts.add(EXTERNAL_HOURLY_RATE_INDEX, new Double(0));
       setResourceBaseEfforts(activityRow, new ArrayList());
       for (i = 0; i < individualEffortsPerDay.length; i++) {
          individualEffort = effort * assigneds[i] / sumAssigned;
@@ -5396,12 +5516,15 @@ public class OpGanttValidator extends XValidator {
          // Update personnel costs
          assignment = (String) assignments.get(i);
          resource_locator = XValidator.choiceID(assignment);
-         hourlyRate = (Double) hourlyRates.get(resource_locator);
-         if (hourlyRate != null) {
-            personnel_costs += hourlyRate.doubleValue() * individualEffort;
-         }
+         List costs = calculateCostsForResourceOnActivity(resource_locator, activityRow, individualEffortsPerDay[i]);
+         double internalCost = ((Double) costs.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue();
+         double newCosts = ((Double) activityCosts.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue() + internalCost;
+         activityCosts.set(INTERNAL_HOURLY_RATE_INDEX, new Double(newCosts));
+         double externalCost = ((Double) costs.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue();
+         newCosts = ((Double) activityCosts.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue() + externalCost;
+         activityCosts.set(EXTERNAL_HOURLY_RATE_INDEX, new Double(newCosts));
       }
-      return personnel_costs;
+      return activityCosts;
    }
 
    /**
@@ -6136,10 +6259,70 @@ public class OpGanttValidator extends XValidator {
       }
       else {
          String resourceLocator = XValidator.choiceID((String) resources.get(0));
-         HashMap hourlyRates = hourlyRates();
-         double hourlyRate = ((Double) hourlyRates.get(resourceLocator)).doubleValue();
-         setBasePersonnelCosts(task, hourlyRate * getBaseEffort(task));
+         Date start = getActivityMaxStart(task);
+         Date end = getActivityMinEnd(task);
+         List workingDays = getCalendar().getWorkingDaysFromInterval(start, end);
+         int workingDaysNr = workingDays.size();
+         double effortPerDay;
+         if (workingDaysNr == 0) {
+            effortPerDay = 0;
+         }
+         else {
+            effortPerDay = getBaseEffort(task) / workingDaysNr;
+         }
+         List costs = calculateCostsForResourceOnActivity(resourceLocator, task, effortPerDay);
+         setBasePersonnelCosts(task, ((Double) costs.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue());
+         setBaseProceeds(task, ((Double) costs.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue());
       }
+   }
+
+   /**
+    * Gets the "not-null" end date of the activity.
+    *
+    * @param activityRow activity row the end is required for
+    * @return the most constraining end date for the activity
+    *         (e.g activity end for standard activity and scheduled task end for a child task of that scheduled task.
+    *         Project start is the limit.)
+    */
+   private Date getActivityMinEnd(XComponent activityRow) {
+      if (getEnd(activityRow) != null) {
+         return getEnd(activityRow);
+      }
+      List parents = activityRow.getSuperRows();
+      for (int i = 0; i < parents.size(); i++) {
+         XComponent row = (XComponent) parents.get(i);
+         Date end = getEnd(row);
+         if (end != null) {
+            return end;
+         }
+      }
+      if (getProjectFinish() != null) {
+         return getProjectFinish();
+      }
+      return getProjectPlanFinish();
+   }
+
+   /**
+    * Gets the "not-null" start date of the activity.
+    *
+    * @param activityRow activity row the start is required for
+    * @return the most constraining start date for the activity
+    *         (e.g activity start for standard activity and scheduled task start for a child task of that scheduled task.
+    *         Project start is the limit.)
+    */
+   private Date getActivityMaxStart(XComponent activityRow) {
+      if (getStart(activityRow) != null) {
+         return getStart(activityRow);
+      }
+      List parents = activityRow.getSuperRows();
+      for (int i = 0; i < parents.size(); i++) {
+         XComponent row = (XComponent) parents.get(i);
+         Date start = getStart(row);
+         if (start != null) {
+            return start;
+         }
+      }
+      return getProjectStart();
    }
 
    public void setProjectCost(Double cost) {
@@ -6173,6 +6356,33 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
+    * Sets the project proceeds value
+    *
+    * @param proceeds Project proceeds
+    */
+   public void setProceeds(Double proceeds) {
+      projectProceeds = proceeds;
+   }
+
+   /**
+    * @return The base proceeds associated with a project (Sum of all the lvl 0 activity proceeds)
+    */
+   public double getProceeds() {
+      if (projectProceeds == null) {
+         double proceeds = 0;
+         //calculate project proceeds from data set
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent row = (XComponent) data_set.getChild(i);
+            if (row.getOutlineLevel() == 0) {
+               proceeds += getBaseProceeds(row);
+            }
+         }
+         projectProceeds = new Double(proceeds);
+      }
+      return projectProceeds.doubleValue();
+   }
+
+   /**
     * @return The base effort associated with a project (Sum of all the lvl 0 activity efforts)
     */
    public double getProjectEffort() {
@@ -6188,6 +6398,71 @@ public class OpGanttValidator extends XValidator {
          projectEffort = new Double(effort);
       }
       return projectEffort.doubleValue();
+   }
+
+   /**
+    * Gets the rate for a given resource.
+    *
+    * @param resourceLocator Resource locator for the resource is questions
+    * @param rateIndex       type of rate to be retrieved
+    * @param day             date to get the rate for
+    * @return value of the needed rate
+    */
+   public double getRateForResource(String resourceLocator, int rateIndex, Date day) {
+      XComponent hourlyRatesDataSet = getHourlyRatesDataSet();
+      for (int i = 0; i < hourlyRatesDataSet.getChildCount(); i++) {
+         XComponent resourceRow = (XComponent) hourlyRatesDataSet.getChild(i);
+         Date previousDate = null;
+         Date key;
+         if (resourceLocator.equals(resourceRow.getStringValue())) {
+            //map is sorted
+            Map intervals = (Map) ((XComponent) resourceRow.getChild(0)).getValue();
+            Date startDate = null;
+            for (Iterator it = intervals.keySet().iterator(); it.hasNext();) {
+               startDate = (Date) it.next();
+               if (day.before(startDate)) {
+                  break;
+               }
+               previousDate = startDate;
+            }
+            if (previousDate == null) {
+               key = startDate;
+            }
+            else {
+               key = previousDate;
+            }
+            List rateValues = (List) intervals.get(key);
+            return ((Double) rateValues.get(rateIndex)).doubleValue();
+         }
+      }
+      return 0;
+   }
+
+   /**
+    * Gets the hourly rates data set associated with the current project.
+    *
+    * @return hourly rates data set component
+    */
+   public XComponent getHourlyRatesDataSet() {
+      if (hourlyRatesDataSet == null) {
+         XComponent form = data_set.getForm();
+         if (form != null) {
+            hourlyRatesDataSet = form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET);
+         }
+      }
+      return hourlyRatesDataSet;
+   }
+
+   /**
+    * Sets the validator's hourly rate data set. Each row has the resource locator as value and a data cell containing
+    * a Map of sorted dates as keys and hourly rates as values.
+    * (10.01.07 -> [20, 30] ; 20.02.07 -> [25; 60] means that the resource has the internal HR 20/external HR 30 from
+    * 10.01.07 to 19.02.07 and inetrnal rate 25/external rate 60 from 20.02.07 on)
+    *
+    * @param dataSet Data set containing the hourly rates
+    */
+   public void setHourlyRatesDataSet(XComponent dataSet) {
+      hourlyRatesDataSet = dataSet;
    }
 
 }

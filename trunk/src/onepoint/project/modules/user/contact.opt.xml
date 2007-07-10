@@ -1,4 +1,4 @@
-<prototype name="OpContact" instance-class="onepoint.project.modules.user.OpContact">
+<prototype name="OpContact" instance-class="onepoint.project.modules.user.OpContact" super-type="OpObject">
    <field name="FirstName" type="String"/>
    <field name="LastName" type="String"/>
    <field name="EMail" type="String"/>

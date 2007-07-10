@@ -242,7 +242,7 @@ public class OpActivityVersion extends OpObject {
    public boolean getExpanded() {
       return expanded;
    }
-   
+
    public void setTemplate(boolean template) {
       this.template = template;
    }
@@ -250,7 +250,7 @@ public class OpActivityVersion extends OpObject {
    public boolean getTemplate() {
       return template;
    }
-   
+
    public void setCategory(OpActivityCategory category) {
       this.category = category;
    }
@@ -359,34 +359,35 @@ public class OpActivityVersion extends OpObject {
     * Returns a <code>List</code> containing two dates: a start date and an end date.
     * if the activity is a STANDARD one then the list will contain it's start and end dates,
     * if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
-    *    from the activity's end date, the project's end date and the project'a plan end date. The first one
-    *    (in this order) that is found not null will be returned.
+    * from the activity's end date, the project's end date and the project'a plan end date. The first one
+    * (in this order) that is found not null will be returned.
+    *
     * @return - a <code>List</code> containing two dates: a start date and an end date.
-    * if the activity is a STANDARD one then the list will contain it's start and end dates,
-    * if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
-    *    from the activity's end date, the project's end date and the project'a plan end date. The first one
-    *    (in this order) that is found not null will be returned.
+    *         if the activity is a STANDARD one then the list will contain it's start and end dates,
+    *         if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
+    *         from the activity's end date, the project's end date and the project'a plan end date. The first one
+    *         (in this order) that is found not null will be returned.
     */
-   public List<Date> getStartEndDateByType(){
+   public List<Date> getStartEndDateByType() {
       List<Date> dates = null;
 
-      if(type == STANDARD){
+      if (type == STANDARD) {
          dates = new ArrayList<Date>();
          dates.add(START_DATE_LIST_INDEX, start);
          dates.add(END_DATE_LIST_INDEX, finish);
       }
 
-      if(type == TASK){
+      if (type == TASK) {
          dates = new ArrayList<Date>();
          dates.add(START_DATE_LIST_INDEX, start);
-         if(finish != null){
+         if (finish != null) {
             dates.add(END_DATE_LIST_INDEX, finish);
          }
-         else{
-            if(planVersion.getProjectPlan().getProjectNode().getFinish() != null){
+         else {
+            if (planVersion.getProjectPlan().getProjectNode().getFinish() != null) {
                dates.add(END_DATE_LIST_INDEX, planVersion.getProjectPlan().getProjectNode().getFinish());
             }
-            else{
+            else {
                dates.add(END_DATE_LIST_INDEX, planVersion.getProjectPlan().getFinish());
             }
          }

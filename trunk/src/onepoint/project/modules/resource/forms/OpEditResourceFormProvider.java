@@ -10,16 +10,15 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -46,11 +45,8 @@ public class OpEditResourceFormProvider implements XFormProvider {
    private final static String INHERIT_POOL_RATE = "InheritPoolRate";
    private static final String PROJECT_TOOL_PANEL = "ProjectToolPanel";
    private static final String CANCEL = "Cancel";
-   private static final String HOURLY_RATES_SET = "HourlyRatesSet";
-   private static final String ORIGINAL_HOURLY_RATES_SET = "OriginalHourlyRatesSet";
-   private static final String HOURLY_RATES_TABLE = "HourlyRatesTable";
-   private static final String ADD_RATE_BUTTON = "AddRateButton";
-   private static final String REMOVE_RATE_BUTTON = "RemoveRateButton";
+   private final static String POOL_HOURLY_RATE_ID  = "PoolHourlyRate";
+   private final static String POOL_EXTERNAL_RATE_ID  = "PoolExternalRate";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -92,6 +88,10 @@ public class OpEditResourceFormProvider implements XFormProvider {
       externalRate.setDoubleValue(resource.getExternalRate());
 
       //save available and hourly rate for later confirm dialog
+      XComponent poolHourlyRate = form.findComponent(POOL_HOURLY_RATE_ID);
+      XComponent poolExternalRate = form.findComponent(POOL_EXTERNAL_RATE_ID);
+      poolHourlyRate.setDoubleValue(resource.getPool().getHourlyRate());
+      poolExternalRate.setDoubleValue(resource.getPool().getExternalRate());      
       XComponent originalAvailable = form.findComponent(ORIGINAL_AVAILABLE);
       originalAvailable.setDoubleValue(resource.getAvailable());
       XComponent originalHourlyRate = form.findComponent(ORIGINAL_HOURLY_RATE);
@@ -136,7 +136,6 @@ public class OpEditResourceFormProvider implements XFormProvider {
          assigned_project_data_set.addChild(data_row);
       }
 
-      form.findComponent(HOURLY_RATES_TABLE).setEditMode(editMode);
       if (!editMode) {
          name.setEnabled(false);
          desc.setEnabled(false);
@@ -147,14 +146,11 @@ public class OpEditResourceFormProvider implements XFormProvider {
          form.findComponent(USER_NAME).setEnabled(false);
          form.findComponent(PROJECT_TOOL_PANEL).setVisible(false);
          form.findComponent(CANCEL).setVisible(false);
-         form.findComponent(HOURLY_RATES_TABLE).setEnabled(false);
-         form.findComponent(ADD_RATE_BUTTON).setVisible(false);
-         form.findComponent(REMOVE_RATE_BUTTON).setVisible(false);
          String title = session.getLocale().getResourceMap("resource.Info").getResource("InfoResource").getText();
          form.setText(title);
       }
 
-      if (!OpInitializer.isMultiUser()) {
+      if (!OpEnvironmentManager.isMultiUser()) {
          form.findComponent(USER_NAME).setVisible(false);
          form.findComponent(USER_LABEL).setVisible(false);
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
@@ -166,59 +162,18 @@ public class OpEditResourceFormProvider implements XFormProvider {
          OpPermissionSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
 
-      //obtain the OpHourlyRatesPeriod associated with this resource
-      XComponent hourlyRatesSet = form.findComponent(HOURLY_RATES_SET);
-      XComponent originalHourlyRatesSet = form.findComponent(ORIGINAL_HOURLY_RATES_SET);
-      fillHourlyRatesSets(hourlyRatesSet, originalHourlyRatesSet, resource, editMode);
+      prepareHourlyRatePeriodsAdvancedFeature(form, editMode, resource);
 
       broker.close();
    }
 
    /**
-    * Fills the hourlyRatesPeriod data set with the values of the HourlyRatesPeriods associated with the resource
-    * @param hourlyRatesSet - the data set which will contain the resource's HourlyRatesPeriods
-    * @param originalHourlyRatesSet - a copy of the data set for storing original values
-    * @param resource - the resource whose HourlyRatesPeriods will be stored in the data set
-    * @param editMode - a <code>boolean</code> parameter indicating the state of the data set (editable/not editable)
+    * This method allows the closed module to add advanced functionality for resource
+    *
+    * @param form
+    * @param editMode
+    * @param resource
     */
-   private void fillHourlyRatesSets(XComponent hourlyRatesSet, XComponent originalHourlyRatesSet,
-        OpResource resource, boolean editMode) {
-      XComponent dataRow;
-      XComponent dataCell;
-
-      for (OpHourlyRatesPeriod hourlyRatesPeriod : resource.getHourlyRatesPeriods()) {
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         hourlyRatesSet.addChild(dataRow);
-
-         //start date - 0
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(hourlyRatesPeriod.getStart());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //end date - 1
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(hourlyRatesPeriod.getFinish());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //internal hourly rate - 2
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(hourlyRatesPeriod.getInternalRate());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //external hourly rate - 3
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(hourlyRatesPeriod.getExternalRate());
-         dataCell.setEnabled(editMode);
-         dataRow.addChild(dataCell);
-
-         //set the datarow value to OpHourlyRatesPeriod's locator
-         dataRow.setStringValue(hourlyRatesPeriod.locator());
-
-         originalHourlyRatesSet.addChild(dataRow.copyData());
-      }
+   protected void prepareHourlyRatePeriodsAdvancedFeature(XComponent form, Boolean editMode, OpResource resource) {
    }
-
 }

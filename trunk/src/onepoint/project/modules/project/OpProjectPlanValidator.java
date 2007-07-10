@@ -11,6 +11,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.components.OpGanttValidator;
 
+import java.sql.Date;
 import java.util.HashMap;
 
 /**
@@ -55,7 +56,7 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(resources);
+      OpGanttValidator validator = this.createValidator(broker, resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
       this.validatePlan(broker, validator, modifier, resources);
 
@@ -64,9 +65,10 @@ public class OpProjectPlanValidator {
 
    /**
     * Validates the working plan versions for the given project plan.
+    *
     * @param broker   a <code>OpBroker</code> used for persistence operations.
-    * @param modifier  a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    *                  Can be <code>null</code>.
+    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    *                 Can be <code>null</code>.
     */
    public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
 
@@ -74,7 +76,7 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating working version plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(resources);
+      OpGanttValidator validator = this.createValidator(broker, resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
    }
 
@@ -123,12 +125,16 @@ public class OpProjectPlanValidator {
    /**
     * Creates a Gantt validation object that will update a project plan.
     *
-    * @param resources a <code>HashMap</code> of resources.
-    * @return a <code>OpGanttValidator</code> instance.
+    * @param broker
+    * @param resources a <code>HashMap</code> of resources. @return a <code>OpGanttValidator</code> instance.
     */
-   private OpGanttValidator createValidator(HashMap resources) {
+   private OpGanttValidator createValidator(OpBroker broker, HashMap resources) {
       OpGanttValidator validator = new OpGanttValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
+      Date finish = projectPlan.getProjectNode().getFinish();
+      validator.setProjectFinish(finish);
+      validator.setProjectPlanFinish(projectPlan.getProjectNode().getFinish());
+
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
       validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
@@ -136,6 +142,11 @@ public class OpProjectPlanValidator {
       XComponent resourceDataSet = new XComponent();
       OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
       validator.setAssignmentSet(resourceDataSet);
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+           projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      OpActivityDataSetFactory.fillHourlyRatesDataSet(projectPlan.getProjectNode(), workingPlanVersion, hourlyRates);
+      validator.setHourlyRatesDataSet(hourlyRates);
       return validator;
    }
 

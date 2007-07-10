@@ -7,6 +7,7 @@ package onepoint.persistence;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.hibernate.OpHibernateSource;
+import onepoint.persistence.hibernate.OpMappingsGenerator;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -40,14 +41,20 @@ public final class OpConnectionManager {
    private static final String INVALID_CREDENTIALS_SQLSTATE = "28000";
    private static final String INVALID_CONNECTION_STRING_SQLSTATE = "08001";
    private static final String EXEC_PHASE_ERRORS_SQLSTATE_ORCL = "72000";    // SQL execute phase errors
+   private static final String EXEC_PHASE_ERRORS_SQLSTATE_MSSQL = "S0001";    // SQL execute phase errors
 
    private static final Map<Integer, Map<String, Integer>> EXCEPTIONAL_SQLSTATES;
 
    static {
       Map<String, Integer> oracleSqlstates = new HashMap<String, Integer>();
       oracleSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_ORCL, INVALID_CREDENTIALS_EXCEPTION);
+
+      Map<String, Integer> msSqlSqlstates = new HashMap<String, Integer>();
+      msSqlSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_MSSQL, INVALID_CREDENTIALS_EXCEPTION);
+
       EXCEPTIONAL_SQLSTATES = new HashMap<Integer, Map<String, Integer>>();
       EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.ORACLE, oracleSqlstates);
+      EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.MSSQL, msSqlSqlstates);
    }
 
    /**
@@ -149,7 +156,7 @@ public final class OpConnectionManager {
        ResultSet rs = null;
       try {
          st = connection.createStatement();
-         st.execute("SHOW TABLE STATUS LIKE '" + OpHibernateSource.TABLE_NAME_PREFIX + "%' ");
+         st.execute("SHOW TABLE STATUS LIKE '" + OpMappingsGenerator.TABLE_NAME_PREFIX + "%' ");
          rs = st.getResultSet();
          while (rs.next()) {
             String tableName = rs.getString("Name");

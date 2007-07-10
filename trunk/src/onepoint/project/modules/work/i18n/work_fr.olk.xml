@@ -39,6 +39,26 @@
       <resource id="Comment">Commentaire</resource>
       <resource id="Completed">Terminée</resource>
 
+      <resource id="Hours">Hours</resource>
+      <resource id="AddHours">Add Hours Record</resource>
+      <resource id="RemoveHours">Remove Hours Record</resource>
+      
+      <resource id="Time">Time</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Duration">Duration</resource>
+      <resource id="AddTime">Add Time Record</resource>
+      <resource id="RemoveTime">Remove Time Record</resource>
+
+      <resource id="CostType">Cost Type</resource>
+      <resource id="BaseCost">Planned</resource>
+      <resource id="ActualCost">Actual</resource>
+      <resource id="RemainingCost">Remaining</resource>
+      <resource id="AddCost">Add Cost Record</resource>
+      <resource id="RemoveCosts">Remove Cost Record</resource>
+      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+
+
       <resource id="StartBefore">Période De Temps</resource>
       <resource id="All">Tout</resource>
       <resource id="Project">Projet</resource>
@@ -49,6 +69,21 @@
 
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
+
+      <!--Errors-->
+      <resource id="ProjectNameException">Invalid Project Name</resource>
+      <resource id="ActivityNameException">Invalid Activity Name</resource>
+      <resource id="ResourceNameException">Invalid Resource Name</resource>
+      <resource id="StartValueException">Start value is invalid</resource>
+      <resource id="FinishValueException">Finish value is invalid</resource>
+      <resource id="DurationValueException">Duration value incorrect</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
+      <resource id="ActualEffortException">Actual effort is invalid</resource>
+      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
+      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="ActualCostException">Actual cost is invalid</resource>
+      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+
    </resource-map>
    <resource-map id="work.edit_work_slip">
       <resource id="EditWorkSlip">Modifier le CRA</resource>
@@ -70,10 +105,57 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="AddWorkSlipActivity">Choisir des Activités à ajouter</resource>
+
+      <resource id="Hours">Hours</resource>
+      <resource id="AddHours">Add Hours Record</resource>
+      <resource id="RemoveHours">Remove Hours Record</resource>
+
+      <resource id="Time">Time</resource>
+      <resource id="Start">Start</resource>
+      <resource id="Finish">Finish</resource>
+      <resource id="Duration">Duration</resource>
+      <resource id="AddTime">Add Time Record</resource>
+      <resource id="RemoveTime">Remove Time Record</resource>
+
+      <resource id="CostType">Cost Type</resource>
+      <resource id="BaseCost">Planned</resource>
+      <resource id="ActualCost">Actual</resource>
+      <resource id="RemainingCost">Remaining</resource>
+      <resource id="AddCost">Add Cost Record</resource>
+      <resource id="RemoveCosts">Remove Cost Record</resource>
+      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+
+      <!--Errors-->
+      <resource id="ProjectNameException">Invalid Project Name</resource>
+      <resource id="ActivityNameException">Invalid Activity Name</resource>
+      <resource id="ResourceNameException">Invalid Resource Name</resource>
+      <resource id="StartValueException">Start value is invalid</resource>
+      <resource id="FinishValueException">Finish value is invalid</resource>
+      <resource id="DurationValueException">Duration value incorrect</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
+      <resource id="ActualEffortException">Actual effort is invalid</resource>
+      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
+      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="ActualCostException">Actual cost is invalid</resource>
+      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+      
    </resource-map>
    <resource-map id="work.Info">
       <resource id="WorkInfo">Information CRA</resource>
    </resource-map>
+
+   <resource-map id="work.manage_attachments">
+      <resource id="ManageAttachments">Piéce jointe</resource>
+      <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
+      <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="Title">Titre</resource>
+      <resource id="Location">Lieu</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Annuler</resource>
+   </resource-map>
+
    <resource-map id="work.error">
       <resource id="DateMissing">La date du CRA n'a pas été indiquée</resource>
       <resource id="DuplicateDate">Un CRA pour la date indiquée existe déjà</resource>
@@ -85,6 +167,15 @@
       <resource id="IncorrectTravelCosts">Coûts de Voyage Invalide</resource>
       <resource id="IncorrectExternalCosts">Coûts Externe Invalide</resource>
       <resource id="IncorrectMiscellaneousCosts">Coûts Divers Invalide</resource>
+      <resource id="StartTimeIsNegative">Negative Start Time</resource>
+      <resource id="FinishTimeIsNegative">Negative Finish Time</resource>
+      <resource id="StartTimeIsTooLarge">Start Time is too large</resource>
+      <resource id="FinishTimeIsTooLarge">Finish Time is too large</resource>
+      <resource id="StartAfterFinish">Start Time must be before the Finish Time</resource>
+      <resource id="DurationNotValid">Duration is not valid regarding the Start Time and Finish Time</resource>
+      <resource id="ActualCostsNotValid">Incorrect Actual Costs</resource>
+      <resource id="RemainingCostsNotValid">Incorrect Remaining Costs</resource>
+      <resource id="CostTypeNotValid">Incorrect Cost Type</resource>
    </resource-map>
    <resource-map id="work.delete">
       <resource id="ConfirmDelete">Supprimer les CRA</resource>
@@ -93,6 +184,12 @@
       <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les CRA choisis ?</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
+   </resource-map>
+   <resource-map id="work.costTypes">
+      <resource id="TravelCost">Travel Cost</resource>
+      <resource id="MaterialCost">Material Cost</resource>
+      <resource id="ExternalCost">External Cost</resource>
+      <resource id="MiscellaneousCost">Miscellaneous Cost</resource>
    </resource-map>
 
 </language-kit>

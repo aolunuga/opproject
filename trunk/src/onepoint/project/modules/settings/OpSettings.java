@@ -9,7 +9,6 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.schedule.OpScheduler;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
@@ -42,6 +41,8 @@ public class OpSettings {
    public static final String REPORT_REMOVE_TIME_PERIOD = "Report_RemoveTimePeriod";
    public static final String MILESTONE_CONTROLLING_INTERVAL = "Milestone_ControllingInterval";
    public static final String RESOURCE_MAX_AVAILABYLITY = "Resource_MaxAvailability";
+   public static final String PULSING = "Pulsing";
+   public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
    //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
 
@@ -57,6 +58,7 @@ public class OpSettings {
    public static final String CALENDAR_HOLIDAYS_LOCATION_DEFAULT = "SelectCalendar";
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String MILESTONE_CONTROLLING_INTERVAL_DEFALUT = "2";
+   public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
 
    /**
     * A query after which the report scheduler can be retrieved.
@@ -70,8 +72,8 @@ public class OpSettings {
 
    private final static String CALENDAR_RESOURCE_MAP_ID = "settings.calendar";
 
-   private static HashMap defaults = new HashMap();
-   private static HashMap settings = new HashMap();
+   private static Map<String, String> defaults = new HashMap<String, String>();
+   private static Map<String, String> settings = new HashMap<String, String>();
 
    /**
     * The map of holiday calendars.
@@ -86,7 +88,6 @@ public class OpSettings {
    static {
       // Set defaults
       defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE.getLanguage());
-
       defaults.put(CALENDAR_FIRST_WORKDAY, CALENDAR_FIRST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_LAST_WORKDAY, CALENDAR_LAST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_DAY_WORK_TIME, CALENDAR_DAY_WORK_TIME_DEFAULT);
@@ -99,6 +100,7 @@ public class OpSettings {
       defaults.put(CALENDAR_HOLIDAYS_LOCATION, CALENDAR_HOLIDAYS_LOCATION_DEFAULT);
       defaults.put(RESOURCE_MAX_AVAILABYLITY, RESOURCE_MAX_AVAILABYLITY_DEFAULT);
       defaults.put(MILESTONE_CONTROLLING_INTERVAL, MILESTONE_CONTROLLING_INTERVAL_DEFALUT);
+      defaults.put(ENABLE_TIME_TRACKING, ENABLE_TIME_TRACKING_DEFAULT);
    }
 
    public static boolean applySettings(OpProjectSession session) {
@@ -111,7 +113,7 @@ public class OpSettings {
 
       XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
       boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
-      if (!OpInitializer.isMultiUser() && changedLanguage) {
+      if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
          session.setLocale(newLocale);
       }
       return changedLanguage;
@@ -173,7 +175,7 @@ public class OpSettings {
                input = new FileInputStream(new File(file));
             }
             catch (FileNotFoundException e) {
-               System.err.println(file + " not found");
+               logger.error("Could not find file: " + file);
             }
             loader.loadHolidays(input);
          }
@@ -210,54 +212,69 @@ public class OpSettings {
       return filePaths;
    }
 
-   public static void saveSettings(OpProjectSession session) {
+   /**
+    * Saves the given settings in the database.
+    * @param session a <code>OpProjectSession</code> represneting the server session.
+    * @param newSettings a <code>Map(String, String)</code> representing the new settings
+    * as modified from the outside.
+    */
+   public static void saveSettings(OpProjectSession session, Map<String, String> newSettings) {
+      //update the settings map with the new settings
+      updateSettings(newSettings);
+
       // Copy settings and compare with stored settings
-      HashMap newSettings = (HashMap) settings.clone();
+      Map<String, String> settingsClone = (Map<String, String>) ((HashMap) settings).clone();
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
       OpQuery query = broker.newQuery("select setting from OpSetting as setting");
       Iterator result = broker.list(query).iterator();
-      OpSetting setting = null;
-      String newValue = null;
       while (result.hasNext()) {
-         setting = (OpSetting) result.next();
-         newValue = (String) newSettings.remove(setting.getName());
-         if (newValue == null) {
+         OpSetting setting = (OpSetting) result.next();
+         String value = (String) settingsClone.remove(setting.getName());
+         if (value == null) {
             // Value has been removed: Delete setting from database
             broker.deleteObject(setting);
          }
-         else if (!setting.getValue().equals(newValue)) {
+         else if (!setting.getValue().equals(value)) {
             // Value has changed: Update in database
-            setting.setValue(newValue);
+            setting.setValue(value);
             broker.updateObject(setting);
          }
       }
-      // Insert remaining new settings
-      Iterator newNames = newSettings.keySet().iterator();
-      Iterator newValues = newSettings.values().iterator();
-      while (newNames.hasNext()) {
-         setting = new OpSetting();
-         setting.setName((String) newNames.next());
-         setting.setValue((String) newValues.next());
+
+      //persist the new settings
+      for (String newName : settingsClone.keySet()) {
+         String newValue = settingsClone.get(newName);
+         OpSetting setting = new OpSetting();
+         setting.setName(newName);
+         setting.setValue(newValue);
          broker.makePersistent(setting);
       }
       t.commit();
       broker.close();
    }
 
-   public static void set(String name, String value) {
-      logger.info("*** Setting: " + name + " -> " + value);
-      if (value == null) {
-         settings.remove(value);
-      }
-      else {
-         // Only set if value is different from default
-         String defaultValue = (String) defaults.get(name);
-         if ((defaultValue != null) && value.trim().equals(defaultValue)) {
-            settings.remove(name);
+   /**
+    * Updates the application settings from the given map of new settings.
+    * @param newSettings a <code>Map(String, String)</code> of new settings.
+    */
+   private static void updateSettings(Map<String, String> newSettings) {
+      //merge updated/deleted settings
+      for (Iterator<String> it = settings.keySet().iterator(); it.hasNext();) {
+         String oldName = it.next();
+         String newValue = newSettings.get(oldName);
+         if (newValue == null) {
+            it.remove();
          }
          else {
-            settings.put(name, value);
+            settings.put(oldName, newValue);
+         }
+      }
+
+      //add new settings
+      for (String newName : newSettings.keySet()) {
+         if (settings.get(newName) == null) {
+            settings.put(newName, newSettings.get(newName));
          }
       }
    }

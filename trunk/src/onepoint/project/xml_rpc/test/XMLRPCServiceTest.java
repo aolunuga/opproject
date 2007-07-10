@@ -3,22 +3,25 @@
  */
 package onepoint.project.xml_rpc.test;
 
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.project.test.ProjectTestDataFactory;
+import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
-import onepoint.project.modules.project_planning.test.ProjectPlanningTestDataFactory;
+import onepoint.project.modules.project_planning.test.OpProjectPlanningTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
-import onepoint.project.modules.resource.test.ResourceTestDataFactory;
+import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.user.test.UserTestDataFactory;
-import onepoint.project.modules.work.*;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.modules.user.test.OpUserTestDataFactory;
+import onepoint.project.modules.work.OpWorkRecord;
+import onepoint.project.modules.work.OpWorkService;
+import onepoint.project.modules.work.OpWorkSlip;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,13 +31,13 @@ import java.util.List;
  *
  * @author dieter.freismuth
  */
-public class XMLRPCServiceTest extends OpBaseTestCase {
+public class XMLRPCServiceTest extends OpBaseOpenTestCase {
 
    private OpWorkService service;
    private OpProjectPlanningService planningService;
-   private ProjectPlanningTestDataFactory planningDataFactory;
-   private ProjectTestDataFactory projectDataFactory;
-   private ResourceTestDataFactory resourceDataFactory;
+   private OpProjectPlanningTestDataFactory planningDataFactory;
+   private OpProjectTestDataFactory projectDataFactory;
+   private OpResourceTestDataFactory resourceDataFactory;
 
    private String resId;
    private String projId;
@@ -49,11 +52,11 @@ public class XMLRPCServiceTest extends OpBaseTestCase {
         throws Exception {
       super.setUp();
 
-      service = getWorkService();
-      planningService = getProjectPlanningService();
-      planningDataFactory = new ProjectPlanningTestDataFactory(session);
-      projectDataFactory = new ProjectTestDataFactory(session);
-      resourceDataFactory = new ResourceTestDataFactory(session);
+      service = OpTestDataFactory.getWorkService();
+      planningService = OpTestDataFactory.getProjectPlanningService();
+      planningDataFactory = new OpProjectPlanningTestDataFactory(session);
+      projectDataFactory = new OpProjectTestDataFactory(session);
+      resourceDataFactory = new OpResourceTestDataFactory(session);
 
       clean();
 
@@ -63,7 +66,7 @@ public class XMLRPCServiceTest extends OpBaseTestCase {
 //      assertNoError(response);
 //      resId = resourceDataFactory.getResourceByName("resource").locator();
 //
-//      request = ProjectTestDataFactory.createProjectMsg("project", new Date(1), 1d, null, null);
+//      request = OpProjectTestDataFactory.createProjectMsg("project", new Date(1), 1d, null, null);
 //      response = getProjectService().insertProject(session, request);
 //      assertNoError(response);
 //      projId = projectDataFactory.getProjectId("project");
@@ -116,7 +119,7 @@ public class XMLRPCServiceTest extends OpBaseTestCase {
     */
    private void clean()
         throws Exception {
-      UserTestDataFactory usrData = new UserTestDataFactory(session);
+      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
       ArrayList ids = new ArrayList();
       List users = usrData.getAllUsers();
       for (Iterator iterator = users.iterator(); iterator.hasNext();) {
@@ -128,39 +131,38 @@ public class XMLRPCServiceTest extends OpBaseTestCase {
       }
       XMessage request = new XMessage();
       request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      getUserService().deleteSubjects(session, request);
+      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
-      deleteAllObjects(OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(OpWorkSlip.WORK_SLIP);
-      deleteAllObjects(OpAssignment.ASSIGNMENT);
-      deleteAllObjects(OpActivityComment.ACTIVITY_COMMENT);
-      deleteAllObjects(OpActivity.ACTIVITY);
-      deleteAllObjects(OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(OpActivityVersion.ACTIVITY_VERSION);
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+
+      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
+      deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
+      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
+      deleteAllObjects(broker, OpActivityComment.ACTIVITY_COMMENT);
+      deleteAllObjects(broker, OpActivity.ACTIVITY);
+      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
+      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
+      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
+      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
 
  
-      List resoucesList = resourceDataFactory.getAllResources();
+      List resoucesList = resourceDataFactory.getAllResources(broker);
       for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
          OpResource resource = (OpResource) iterator.next();
-         resourceDataFactory.deleteObject(resource);
+         broker.deleteObject(resource);
       }
 
-      List poolList = resourceDataFactory.getAllResourcePools();
+      List poolList = resourceDataFactory.getAllResourcePools(broker);
       for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
          OpResourcePool pool = (OpResourcePool) iterator.next();
          if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
             continue;
          }
-         resourceDataFactory.deleteObject(pool);
+         broker.deleteObject(pool);
       }
-   }
 
-   private void deleteAllObjects(String prototypeName) {
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from " + prototypeName);
-      Iterator it = broker.list(query).iterator();
+      transaction.commit();
       broker.close();
    }
 }

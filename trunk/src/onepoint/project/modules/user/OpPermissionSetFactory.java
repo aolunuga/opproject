@@ -12,6 +12,7 @@ import onepoint.persistence.OpObject;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
@@ -289,7 +290,7 @@ public class OpPermissionSetFactory {
     */
    public static XError storePermissionSet(OpBroker broker, OpProjectSession session, OpObject object, XComponent permissionSet) {
 
-      if (!OpInitializer.isMultiUser() && permissionSet.getChildCount() == 0) {
+      if (!OpEnvironmentManager.isMultiUser() && permissionSet.getChildCount() == 0) {
          //set administrator permission on object (if not set already)
          if (!createAdministratorPermissions(object, broker)) {
             return session.newError(USER_ERROR_MAP, OpUserError.ADMIN_PERMISSION_ERROR);

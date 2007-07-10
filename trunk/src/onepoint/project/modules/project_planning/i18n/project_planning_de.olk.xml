@@ -51,6 +51,7 @@
       <resource id="Travel">Reise (€)</resource>
       <resource id="Material">Material (€)</resource>
       <resource id="External">Externe (€)</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
       <resource id="Misc">Sonstige (€)</resource>
 
       <resource id="EditTooltip">Projektplan bearbeiten</resource>
@@ -158,6 +159,7 @@
       <resource id="Material">Material (€)</resource>
       <resource id="External">Externe (€)</resource>
       <resource id="Misc">Sonstige (€)</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
 
       <resource id="Attachments">Anlagen</resource>
       <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
@@ -184,7 +186,8 @@
       <resource id="InvalidCostErrorMessage">Der eingegebene Kostenwert ist ungültig</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die diese Ressourcenzuweisung referenzieren</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand</resource>
-
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
+      
       <resource id="NoCategory">(Keine)</resource>
       <resource id="NoResource">(Keine)</resource>
 
@@ -243,6 +246,7 @@
       <resource id="Costs">Kosten (€)</resource>
       <resource id="Resources">Ressourcen</resource>
       <resource id="Category">Kategorie</resource>
+      <resource id="Proceeds">Proceeds (€)</resource>
    </resource-map>
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJEKTNAVIGATOR</resource>
@@ -267,5 +271,7 @@
       <resource id="ProjectRevertError">Es ist ein Fehler aufgetreten beim Verwerfen der Arbeitskopie</resource>
       <resource id="ProjectSaveError">Es ist ein Fehler aufgetreten beim Speichern der Arbeitskopie</resource>
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
+      <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
+      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>      
    </resource-map>
 </language-kit>

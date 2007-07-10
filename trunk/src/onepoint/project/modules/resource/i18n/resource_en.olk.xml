@@ -57,19 +57,12 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Descriptions</resource>
       <resource id="Available">Available (%)</resource>
-      <resource id="HourlyRate">Internal hourly rate</resource>
-      <resource id="ExternalRate">External hourly rate</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Responsible user</resource>
       <resource id="SelectUser">Choose</resource>
       <resource id="Pool">Pool</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
-      <resource id="Start">Start</resource>
-      <resource id="End">Finish</resource>
       <resource id="HourlyRate">Hourly Rate</resource>
       <resource id="ExternalRate">External Rate</resource>
-      <resource id="AddRateToolTip">Add Rate</resource>
-      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
@@ -87,13 +80,6 @@
       <resource id="ResponsibleUser">Responsible user</resource>
       <resource id="SelectUser">Choose</resource>
       <resource id="Pool">Pool</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
-      <resource id="Start">Start</resource>
-      <resource id="End">Finish</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="AddRateToolTip">Add Rate</resource>
-      <resource id="RemoveRatesToolTip">Remove Rates</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
@@ -104,7 +90,8 @@
       <resource id="NameFormat">Name format</resource>
       <resource id="Available">Available (%)</resource>
       <resource id="HourlyRate">Hourly rate</resource>
-      <resource id="InheritPoolRate">Inherit pool rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="Pool">Pool</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
@@ -147,10 +134,9 @@
       <resource id="DeletePoolResourceAssignmentsDenied">The pool could not be deleted, since its resources are still used in project plans</resource>
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
-      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
+      <resource id="ActivityAssignmentVersionsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's versions activities</resource>
+      <resource id="ResponsibleActivitiesExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project</resource>
+      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project's versions</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Delete Resources or Pools</resource>
@@ -162,11 +148,10 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Modify Resource</resource>
-      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of this resource will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="ConfirmChangeHR">Changing the hourly rate and/or external rate of this resource will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="ConfirmChangeAvailable">Changing the availability of this resource will result in the revalidation of its associated project plans.</resource>
+      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of this resource might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
+      <resource id="ConfirmChangeAvailable">Editing the availability of this resource might result in the revalidation of its associated project plans.</resource>
       <resource id="ConfirmPoolChange">Modify Pool</resource>
-      <resource id="ConfirmPoolChangeHR">Changing the hourly rate and/or external rate of this resource pool will result in recalculating personnel costs in various project plans.</resource>
+      <resource id="ConfirmPoolChangeHR">Editing the hourly rate and/or external rate of this resource pool might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>

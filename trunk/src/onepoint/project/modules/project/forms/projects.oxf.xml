@@ -5,6 +5,10 @@
       <data-row icon="/modules/project/icons/portfolio.png"/>
       <data-row icon="/modules/project/icons/template.png"/>
       <data-row icon="/modules/project/icons/project.png"/>
+      <data-row icon="/modules/project/icons/project_edit.png"/>
+      <data-row icon="/modules/project/icons/project_locked.png"/>
+      <data-row icon="/modules/project/icons/template_edit.png"/>
+      <data-row icon="/modules/project/icons/template_locked.png"/>            
    </data-set>
    <data-set id="ProjectDataSet" stateful="true" on-expand="retrieveChildren"/>
 
@@ -23,7 +27,9 @@
          <!-- The list of columns to show could be editable and dynamic (form-provider) -->
          <!-- vielleicht auch eine Projekt-Nummer/ID -->
          <table-column width="180" text="${Name}" data-column-index="1" value-type="Choice"/>
-         <table-column width="220" text="${Description}" data-column-index="2"/>
+         <table-column width="200" text="${Description}" data-column-index="2"/>
+         <table-column text="${Status}" width="65"  value-type="String" data-column-index="9"/>
+         <table-column text="${Priority}" width="60"  value-type="Int" data-column-index="10" sortable="true"/>         
          <table-column width="60" text="${Start}" value-type="Date" data-column-index="3" sortable="true"/>
          <table-column width="60" text="${End}" value-type="Date" data-column-index="4" sortable="true"/>
          <table-column width="70" text="${Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>

@@ -8,11 +8,16 @@ import onepoint.persistence.OpFilter;
 import onepoint.project.modules.project.OpActivityComment;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkSlip;
-import onepoint.project.util.OpSHA1;
+import onepoint.project.util.OpHashProvider;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import sun.misc.BASE64Decoder;
 
 public class OpUser extends OpSubject {
 
@@ -29,6 +34,8 @@ public class OpUser extends OpSubject {
    public final static String RESOURCES = "Resources";
    public final static String PREFERENCES = "Preferences";
    public final static String ACTIVITY_COMMENTS = "ActivityComments";
+//   public final static String AUTHENTICATION = "AuthenticationType";
+   
 
    // Administrator user (per site)
    public final static String ADMINISTRATOR_NAME = "Administrator";
@@ -40,14 +47,10 @@ public class OpUser extends OpSubject {
 
    // *** Maybe extra property DISPLAY_NAME (configurable)?
 
-   // Authentication types
-   public final static byte INTERNAL = 0; // Default authentication type
-   public final static byte LDAP = 1;
 
-   public final static String BLANK_PASSWORD = new OpSHA1().calculateHash("");
+   public final static String BLANK_PASSWORD = new OpHashProvider().calculateHash("");
 
    private String password = BLANK_PASSWORD;
-   private byte authenticationType = INTERNAL;
    private Byte level = MANAGER_USER_LEVEL;
    private OpContact contact;
    private Set<OpUserAssignment> assignments;
@@ -68,14 +71,6 @@ public class OpUser extends OpSubject {
 
    public String getPassword() {
       return password;
-   }
-
-   public void setAuthenticationType(byte authenticationType) {
-      this.authenticationType = authenticationType;
-   }
-
-   public byte getAuthenticationType() {
-      return authenticationType;
    }
 
    public OpContact createContact() {
@@ -246,8 +241,47 @@ public class OpUser extends OpSubject {
     *
     * @return boolean flag indicating passwords equality
     */
-   public boolean validatePassword(String password) {
-      return (this.password.equalsIgnoreCase(password == null ? BLANK_PASSWORD : password));
+   public boolean validatePassword(String toCheck) {
+      if (toCheck == null) {
+         return(password.equalsIgnoreCase(BLANK_PASSWORD));
+      }
+//      String pwd = new String(getByteArrayValue(sr.getAttributes(), configUserMapping, OPUSER_PASSWORD));
+      String[] split = splitAlgorithmAndPassword(password);
+      String algorithm = split[0];
+      String pwd = split[1];
+      if (algorithm != null) { // pwd is base 64 encoded
+         try {
+            pwd = new String(new BASE64Decoder().decodeBuffer(pwd));
+            return pwd.equals(OpHashProvider.fromHashString(toCheck));
+         } catch (IOException exc) {
+         }
+         return false;
+      }
+      return password.equalsIgnoreCase(toCheck); 
+   }
+
+   /**
+    * splits the given password into an {@link String} array of length 2.
+    * the second value will always contain the password (without the algorithm) 
+    * wheras the firts value will contain the algorithm used to encode this password. 
+    * If the pwd does not have an algorithm associated with it, the first value will be <code>null</code>. 
+    * @param pwd the password like {SHA}pwd or pwd_in_hex.
+    * @return an array of size two, containing the algorithm and the password.
+    */
+   public static String[] splitAlgorithmAndPassword(String pwd) {
+      Pattern p = Pattern.compile("^\\{([^\\}]*)\\}(.*)$");
+      Matcher m = p.matcher(pwd);
+      String[] ret = new String[2];
+      
+      if (m.matches()) {
+         ret[0] = m.group(1);
+         ret[1] = m.group(2);
+      }
+      else {
+         ret[0] = null;
+         ret[1]= pwd;
+      }
+      return ret;
    }
 
    /**
@@ -258,4 +292,32 @@ public class OpUser extends OpSubject {
    public boolean passwordIsEmpty() {
       return (validatePassword(null));
    }
+
+   /* (non-Javadoc)
+    * @see java.lang.Object#toString()
+    */
+   @Override
+   public String toString() {
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("<OpUser>");
+//      buffer.append('\n');
+      buffer.append("<id>"+getID()+"</id>");
+//      buffer.append('\n');
+      buffer.append("<name>"+super.getName()+"</name>");
+//      buffer.append('\n');
+      buffer.append("<displayname>"+super.getDisplayName()+"</displayname>");
+//      buffer.append('\n');
+      buffer.append("<password>HIDDEN</password>");
+//      buffer.append('\n');
+      buffer.append("<source>"+ getSource()+"</source>");
+//      buffer.append('\n');
+      buffer.append("<level>"+level+"</level>");
+//      buffer.append('\n');
+      buffer.append(contact);
+//      buffer.append('\n');
+      buffer.append("</OpUser>");
+      
+      return buffer.toString();
+   }
+
 }

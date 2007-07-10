@@ -15,25 +15,7 @@ import java.util.Iterator;
 
 public class OpUserModule extends OpModule {
 
-   public void install(OpProjectSession session) {
-      // *** Create prototypes (check for upgrade later on)
-      // *** Add tools
-
-      // *** Although advantages if specified in module.oxr
-      // ==> Dependencies could be checked, pre-configured delivery of application is easier
-
-      // *** Best: We leave the choice to the programmer
-      // ==> Prototype and tool handling can be configured in module.oxm; implemented by base class OpModule
-
-      // *** The only issue: We have to provide an intelligent "upgrade"-check (existing data)
-      // ==> OpModule should provide a call-back upgrade()
-   }
-
-   public void remove(OpProjectSession session) {
-      // *** Drop prototypes (what about potential data-loss)?
-      // *** remove tools
-   }
-
+   @Override
    public void start(OpProjectSession session) {
       // Check if hard-wired group object "Everyone" exists (if not create it)
       OpBroker broker = session.newBroker();
@@ -52,38 +34,63 @@ public class OpUserModule extends OpModule {
    }
 
    /**
-    * Upgrades a module from a previous version to a new version.
-    *
-    * @param session   a <code>OpProjectSession</code> representing a server session.
-    * @param dbVersion The current version of the DB.
+    * Upgrades this module to version #5 (via reflection - must be public).
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void upgrade(OpProjectSession session, int dbVersion) {
+   public void upgradeToVersion12(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      if (dbVersion < 3) {
-         OpQuery query = broker.newQuery("select user from OpUser as user");
-         Iterator result = broker.iterate(query);
-         OpTransaction transaction  = broker.newTransaction();
-         while (result.hasNext()) {
-            OpUser user = (OpUser) result.next();
-            user.setLevel(OpUser.MANAGER_USER_LEVEL);
-            broker.updateObject(user);
-         }
-         transaction.commit();
-      }
-      // update i18n names to the new format
-      if (dbVersion < 5) {
-         OpUser admin = session.administrator(broker);
-         admin.setDisplayName(OpUser.ADMINISTRATOR_DISPLAY_NAME);
-         admin.setDescription(OpUser.ADMINISTRATOR_DESCRIPTION);
-         OpGroup every = session.everyone(broker);
-         every.setDisplayName(OpGroup.EVERYONE_DISPLAY_NAME);
-         every.setDescription(OpGroup.EVERYONE_DESCRIPTION);
-         OpTransaction t  = broker.newTransaction();
-         broker.updateObject(admin);
-         broker.updateObject(every);
-         t.commit();
-      }
+      OpTransaction t =  broker.newTransaction();
+      updateSystemObjectsName(session, broker);
+      updateSubjectsSourceFlag(broker);
+      t.commit();
       broker.close();
    }
 
+   /**
+    * Updates the display name and description of the administrator and everyone group.
+    * @param session a <code>OpProjectSession</code> the server session.
+    * @param broker a <code>OpBroker</code> used for persistence operations.
+    */
+   private void updateSystemObjectsName(OpProjectSession session, OpBroker broker) {
+      OpUser admin = session.administrator(broker);
+      admin.setDisplayName(OpUser.ADMINISTRATOR_DISPLAY_NAME);
+      admin.setDescription(OpUser.ADMINISTRATOR_DESCRIPTION);
+      OpGroup every = session.everyone(broker);
+      every.setDisplayName(OpGroup.EVERYONE_DISPLAY_NAME);
+      every.setDescription(OpGroup.EVERYONE_DESCRIPTION);
+      broker.updateObject(admin);
+      broker.updateObject(every);
+   }
+
+   /**
+    * Updates the creator flag for all the subjects in the system.
+    * @param broker a <code>OpBroker</code> used for persistence operations.
+    */
+   private void updateSubjectsSourceFlag(OpBroker broker) {
+      OpQuery allSubjectsQuery = broker.newQuery("from OpSubject");
+      Iterator<OpSubject> subjectsIterator = broker.list(allSubjectsQuery).iterator();
+      while (subjectsIterator.hasNext()) {
+         OpSubject subject = subjectsIterator.next();
+         subject.setSource(OpSubject.INTERNAL);
+         broker.updateObject(subject);
+      }
+   }
+
+   /**
+    * Upgrades this module to version #3 (via reflection - must be public).
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion3(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("select user from OpUser as user");
+      Iterator result = broker.iterate(query);
+      OpTransaction transaction  = broker.newTransaction();
+      while (result.hasNext()) {
+         OpUser user = (OpUser) result.next();
+         user.setLevel(OpUser.MANAGER_USER_LEVEL);
+         broker.updateObject(user);
+      }
+      transaction.commit();
+      broker.close();
+   }
 }

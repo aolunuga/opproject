@@ -1,4 +1,4 @@
-<prototype name="OpResourcePool" instance-class="onepoint.project.modules.resource.OpResourcePool">
+<prototype name="OpResourcePool" instance-class="onepoint.project.modules.resource.OpResourcePool" super-type="OpObject">
    <field name="Name" type="String" mandatory="true" unique="true"/>
    <field name="Description" type="Text"/>
    <field name="HourlyRate" type="Double"/>

@@ -11,7 +11,8 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.report.OpReportError;
 import onepoint.project.modules.report.OpReportService;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 import onepoint.util.XEncodingHelper;
 
@@ -24,7 +25,7 @@ import java.util.List;
  *
  * @author calin.pavel
  */
-public class OpReportServiceTest extends OpBaseTestCase {
+public class OpReportServiceTest extends OpBaseOpenTestCase {
    // class logger.
    private static final XLog logger = XLogFactory.getServerLogger(OpReportServiceTest.class);
 
@@ -43,7 +44,7 @@ public class OpReportServiceTest extends OpBaseTestCase {
         throws Exception {
       super.setUp();
 
-      reportService = getReportService();
+      reportService = OpTestDataFactory.getReportService();
       dataFactory = new OpReportTestDataFactory(session);
 
       cleanUp();

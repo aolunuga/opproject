@@ -1,10 +1,13 @@
-<prototype name="OpProjectNode" instance-class="onepoint.project.modules.project.OpProjectNode">
+<prototype name="OpProjectNode" instance-class="onepoint.project.modules.project.OpProjectNode" super-type="OpObject">
    <field name="Name" type="String" mandatory="true" unique="true"/>
    <field name="Type" type="Byte" mandatory="true"/>
    <field name="Description" type="Text"/>
    <field name="Start" type="Date"/>
    <field name="Finish" type="Date"/>
    <field name="Budget" type="Double"/>
+   <field name="Priority" type="Integer"/>
+   <field name="Probability" type="Integer"/>
+   <field name="Archived" type="Boolean"/>
    <relationship name="SuperNode" type="OpProjectNode" back-relationship="SubNodes" recursive="true"/>
    <relationship name="SubNodes" type="OpProjectNode" collection-type="Set" back-relationship="SuperNode" inverse="true"/>
    <relationship name="TemplateNode" type="OpProjectNode" back-relationship="InstanceNodes" recursive="true"/>

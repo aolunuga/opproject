@@ -489,7 +489,7 @@ $V{amber}.booleanValue()))]]></variableExpression>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$V{activity_name}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="#,##0.0t" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="#,##0.0 d" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="358"

@@ -5,13 +5,16 @@
 package onepoint.project.servlet;
 
 import onepoint.express.servlet.XExpressServlet;
+import onepoint.express.util.XConstants;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
+import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.user.OpPermission;
@@ -20,11 +23,9 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
+import onepoint.service.XSizeInputStream;
 import onepoint.service.server.XSession;
-import onepoint.util.XBase64;
-import onepoint.util.XCookieManager;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
+import onepoint.util.*;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -35,8 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLDecoder;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class OpOpenServlet extends XExpressServlet {
 
@@ -45,6 +45,17 @@ public class OpOpenServlet extends XExpressServlet {
     */
    private final static String WEBPAGEICON = "opp_windows.ico";
    private final static String DEFAULT_CONTEXT_PATH = "opproject";
+
+   /**
+    * Applet parameters map keys
+    */
+   private final static Integer ID_INDEX = 0;
+   private final static Integer NAME_INDEX = 1;
+   private final static Integer CODEBASE_INDEX = 2;
+   private final static Integer CODE_INDEX = 3;
+   private final static Integer ARCHIVE_INDEX = 4;
+   private final static Integer OTHER_PARAMETERS_INDEX = 5;
+
 
    /**
     * This class logger.
@@ -112,12 +123,24 @@ public class OpOpenServlet extends XExpressServlet {
       htmlTitle = getServletConfig().getInitParameter("html_title");
 
       //perform the initialization
-      OpInitializer.init(this.getProductCode());
+      OpInitializer initializer = getProductIntializer();
+      initializer.init(this.getProductCode());
 
       //initialize the security feature
-      String secure = OpInitializer.getConfiguration() != null ? OpInitializer.getConfiguration().getSecureService()
-           : null;
+      OpConfiguration config = initializer.getConfiguration();
+      String secure = config != null ? config.getSecureService() : null;
       secureService = (secure != null) ? secure : Boolean.FALSE.toString();
+   }
+
+   /**
+    * Returns an instance of <code>OpInitializer</code> that will be responsible for product initialization.
+    *
+    * @return initializer instance.
+    */
+   protected OpInitializer getProductIntializer() {
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      factory.setInitializer(OpInitializer.class);
+      return factory.getInitializer();
    }
 
    /**
@@ -163,7 +186,7 @@ public class OpOpenServlet extends XExpressServlet {
 
       //search for content ids
       String contentId = http_request.getParameter(CONTENT_ID_PARAM);
-      if (contentId != null && !contentId.trim().equals("")) {
+      if (contentId != null && contentId.trim().length() > 0) {
          String contentUrl = readParameter(http_request, FILENAME_PARAM);
          if (contentUrl != null) {
             if (XEncodingHelper.isValueEncoded(contentUrl)) {
@@ -177,7 +200,7 @@ public class OpOpenServlet extends XExpressServlet {
 
       //search for any files which need to be uploaded (e.g reports)
       String encFile = readParameter(http_request, FILE_PARAM);
-      if (encFile != null && !encFile.trim().equals("")) {
+      if (encFile != null && encFile.trim().length() > 0) {
          if (XEncodingHelper.isValueEncoded(encFile)) {
             String fileName = XEncodingHelper.decodeValue(encFile);
             String filePath = new File(XEnvironmentManager.TMP_DIR, fileName).getAbsolutePath();
@@ -234,19 +257,6 @@ public class OpOpenServlet extends XExpressServlet {
     */
    private void generateAppletPage(ServletOutputStream sout, HttpServletRequest request) {
       PrintStream out = new PrintStream(sout);
-      // parse query string
-      String start_form = request.getParameter("start_form");
-      if (start_form == null || start_form.equals("")) {
-         start_form = OpProjectConstants.DEFAULT_START_FORM;
-      }
-      else {
-         try {
-            start_form = URLDecoder.decode(start_form, "UTF-8");
-         }
-         catch (UnsupportedEncodingException e) {
-            logger.warn("Could not decode start_form for applet: " + e);
-         }
-      }
       out.println("<html>");
       out.println("<head>");
       out.println("<title>" + htmlTitle + "</title>");
@@ -254,34 +264,56 @@ public class OpOpenServlet extends XExpressServlet {
       out.println(getIconString(request));
       out.println("</head>");
       out.println("<body bgcolor=\"#ffffff\" onResize=\"resize()\"onLoad=\"resize()\" topmargin=\"0\" leftmargin=\"0\" marginwidth=\"0\" marginheight=\"0\">");
-      generateAppletResizeFunction(out);
+
+      Map<Integer, Object> appletParameters = this.createAppletParameters(request);
+      this.generateAppletJS(out, appletParameters);
+      out.println("</applet>");
+      out.println("</body>");
+      out.println("</html>");
+
+      out.flush();
+      out.close();
+   }
+
+   /**
+    * Creates a map of applet parameters.
+    *
+    * @param request a <code>HttpRequest</code> representing the client request.
+    * @return a <code>Map</code> of applet parameters.
+    */
+   private Map<Integer, Object> createAppletParameters(HttpServletRequest request) {
       String contextName = getServletConfig().getServletContext().getServletContextName();
       String codebase = urlBase(request).concat(appletCodebase);
-      out.println("<applet id=\"onepoint\" name=\"" + contextName +
-           "\" width=\"100%\" height=\"100%\" code=\"" +
-           getAppletClassName() + "\" codebase=\""
-           + codebase + "\" archive=\"" + appletArchive + "\">");
-      out.println("<param name=\"host\" value=\"" + request.getServerName() + "\">");
-      out.println("<param name=\"port\" value=\"" + request.getServerPort() + "\">");
-      out.println("<param name=\"path\" value=\"/" + servletContextPath + "/service\">");
-      out.println("<param name=\"start-form\" value=\"" + start_form + "\">");
-      out.println("<param name=\"" + OpProjectConstants.RUN_LEVEL + "\" value=\"" + OpInitializer.getRunLevel() + "\">");
-      out.println("<param name=\"secure-service\" value=\"" + secureService + "\">");
       String sessionTimeoutSecs = String.valueOf(request.getSession().getMaxInactiveInterval());
-      out.println("<param name=\"session-timeout\" value=\"" + sessionTimeoutSecs + "\">");
 
-      String parameter_names = request.getParameter(PARAMETERS_ARGUMENT);
-      if (parameter_names != null) {
-         out.println("<param name=\"parameters\" value=\"" + parameter_names + "\">");
+      Map<Integer, Object> appletParams = new HashMap<Integer, Object>();
+      appletParams.put(NAME_INDEX, contextName);
+      appletParams.put(ID_INDEX, "onepoint");
+      appletParams.put(CODE_INDEX, getAppletClassName());
+      appletParams.put(CODEBASE_INDEX, codebase);
+      appletParams.put(ARCHIVE_INDEX, appletArchive);
 
+      Map<String, String> otherAppletParams = new HashMap<String, String>();
+      otherAppletParams.put("host", request.getServerName());
+      otherAppletParams.put("port", String.valueOf(request.getServerPort()));
+      otherAppletParams.put("path", "/" + servletContextPath + "/service");
+      otherAppletParams.put("secure-service", secureService);
+      otherAppletParams.put("session-timeout", sessionTimeoutSecs);
+
+      OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+      otherAppletParams.put(OpProjectConstants.RUN_LEVEL, String.valueOf(initializer.getRunLevel()));
+
+      String parameterNames = request.getParameter(PARAMETERS_ARGUMENT);
+      if (parameterNames != null) {
+         otherAppletParams.put("parameters", parameterNames);
          try {
-            parameter_names = URLDecoder.decode(parameter_names, "UTF-8");
+            parameterNames = URLDecoder.decode(parameterNames, "UTF-8");
          }
          catch (UnsupportedEncodingException e) {
             logger.warn("Could not decode start_form for applet: " + e);
          }
 
-         StringTokenizer st = new StringTokenizer(parameter_names, ";");
+         StringTokenizer st = new StringTokenizer(parameterNames, ";");
          while (st.hasMoreTokens()) {
             String parameter = st.nextToken();
             String val = parameter;
@@ -289,17 +321,11 @@ public class OpOpenServlet extends XExpressServlet {
             if (idx != -1) {
                val = parameter.substring(0, idx);
             }
-            String parameter_value = request.getParameter(val);
-            out.println("<param name=\"" + val + "\" value=\"" + parameter_value + "\">");
+            otherAppletParams.put(val, request.getParameter(val));
          }
       }
-
-      out.println("</applet>");
-      out.println("</body>");
-      out.println("</html>");
-
-      out.flush();
-      out.close();
+      appletParams.put(OTHER_PARAMETERS_INDEX, otherAppletParams);
+      return appletParams;
    }
 
    protected String getAppletClassName() {
@@ -356,7 +382,7 @@ public class OpOpenServlet extends XExpressServlet {
                return;
             }
 
-            byte[] content = cnt.getBytes();
+            InputStream content = cnt.getStream();
             String mimeType = cnt.getMediaType();
             http_response.setContentType(mimeType);
             if (contentUrl != null) {
@@ -364,7 +390,7 @@ public class OpOpenServlet extends XExpressServlet {
             }
             try {
                OutputStream stream = http_response.getOutputStream();
-               stream.write(content);
+               XIOHelper.copy(content, stream);
             }
             catch (IOException e) {
                logger.error("Cannot send contentId", e);
@@ -384,6 +410,7 @@ public class OpOpenServlet extends XExpressServlet {
          }
       }
       finally {
+         session.deleteUnreferedContents();
          t.commit();
          broker.close();
       }
@@ -443,12 +470,12 @@ public class OpOpenServlet extends XExpressServlet {
     * @param out a <code>PrintStream</code>
     */
    private void generateAppletResizeFunction(PrintStream out) {
-      out.println("<script language=\"JavaScript\">\n" +
-           "            function resize() {\n" +
+      out.println("function resize() {\n" +
            "                if (navigator.appName.indexOf(\"Microsoft\") != -1) {\n" +
            "                    width = document.body.clientWidth; \n" +
            "                    height = document.body.clientHeight - 4;\n" +
-           "                } else {\n" +
+           "                } " +
+           "               else {\n" +
            "                    width = window.innerWidth; \n" +
            "                    height = window.innerHeight; \n" +
            "                }\n" +
@@ -457,16 +484,92 @@ public class OpOpenServlet extends XExpressServlet {
            "                window.scroll(0,0);\n" +
            "            }\n" +
            "            window.onResize = resize;\n" +
-           "            window.onLoad = resize;\n" +
-           "        </script>");
-
+           "            window.onLoad = resize;\n");
    }
 
+   /**
+    * Generates a JS function that will be used to render the applet.
+    *
+    * @param out    a <code>PrintStream</code> were the result will be outputed to.
+    * @param params a <codde>Map</code> representing the applet parameters.
+    */
+   private void generateAppletMainFunction(PrintStream out, Map<Integer, Object> params) {
+      String name = (String) params.get(NAME_INDEX);
+      String id = (String) params.get(ID_INDEX);
+      String codebase = (String) params.get(CODEBASE_INDEX);
+      String code = (String) params.get(CODE_INDEX);
+      String archive = (String) params.get(ARCHIVE_INDEX);
+      Map<String, String> otherParams = (Map<String, String>) params.get(OTHER_PARAMETERS_INDEX);
 
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("function getAppletHTML() {\n");
+      buffer.append(" var nsplugin = \"http://java.sun.com/j2se/1.4.2/\";\n");
+      buffer.append("	var strArr = [];\n");
+      buffer.append("	var info = navigator.userAgent;\n");
+      buffer.append("	var ns = (info.indexOf(\"Mozilla\") >= 0) && (info.indexOf(\"Netscape\") >= 0) && (info.indexOf(\"Gecko\") >= 0);\n");
+      buffer.append("	var moz = (info.indexOf(\"Mozilla\") >= 0) && (info.indexOf(\"Gecko\") >= 0);\n");
+      buffer.append("  var ie = (info.indexOf(\"MSIE\") > 0);\n");
+      buffer.append("	if (ie) {\n");
+      buffer.append(" strArr.push(\"<object name=\\\"").append(name).append("\\\" classid=\\\"clsid:8AD9C840-044E-11D1-B3E9-00805F499D93\\\" width=\\\"100%\\\" height=\\\"100%\\\"\");\n");
+      buffer.append(" strArr.push(\" id=\\\"").append(id).append("\\\"\");\n");
+      buffer.append("	strArr.push(\" codebase=\\\"http://java.sun.com/products/plugin/autodl/jinstall-1_4_2-windows-i586.cab#Version=1,4,2,0\\\">\");\n");
+      buffer.append(" 	strArr.push(\"<param name=\\\"codebase\\\" value=\\\"").append(codebase).append("\\\">\");\n");
+      buffer.append(" strArr.push(\"<param name=\\\"code\\\" value=\\\"").append(code).append("\\\">\");\n");
+      buffer.append(" strArr.push(\"<param name=\\\"archive\\\" value=\\\"").append(archive).append("\\\">\");\n");
+      buffer.append(" strArr.push(\"<param name=\\\"type\\\" value=\\\"application/x-java-applet;version=1.4.2\\\">\");\n");
+      buffer.append("	strArr.push(\"<param name=\\\"mayscript\\\" value=\\\"true\\\">\");\n");
+      buffer.append(" 	strArr.push(\"<param name=\\\"scriptable\\\" value=\\\"true\\\">\");\n");
+      for (String paramName : otherParams.keySet()) {
+         String paramValue = otherParams.get(paramName);
+         buffer.append(" strArr.push(\"<param name=\\\"").append(paramName).append("\\\" value=\\\"").append(paramValue).append("\\\">\");\n");
+      }
+      buffer.append("strArr.push(\"</object>\");\n");
+      buffer.append(" }\n");
+      buffer.append("	else {\n");
+      buffer.append("	if (moz || ns) {\n");
+      buffer.append("  strArr.push(\"<embed type=\\\"application/x-java-applet;version=1.4.2\\\" pluginspage=\\\"http://java.sun.com/j2se/1.4.2\\\" codebase=\\\"");
+      buffer.append(codebase).append("\\\" code=\\\"").append(code).append("\\\" archive=\\\"").append(archive);
+      buffer.append("\\\" width=\\\"100%\\\" height=\\\"100%\\\" mayscript=\\\"true\\\" name=\\\"").append(name).append("\\\" \");\n");
+      buffer.append(" strArr.push(\" id=\\\"").append(id).append("\\\"\");\n");
+      for (String paramName : otherParams.keySet()) {
+         String paramValue = otherParams.get(paramName);
+         buffer.append(" strArr.push(\"").append(paramName).append("=\\\"").append(paramValue).append("\\\"\");\n");
+      }
+      buffer.append(" strArr.push(\"<noembed><span>Java is not installed on your machine. Please install it.</span></noembed></embed>\");\n");
+      buffer.append(" } \n");
+      buffer.append(" 	else {\n");
+      buffer.append("	strArr.push(\"You have the wrong browser.\");\n");
+      buffer.append(" } \n");
+      buffer.append(" } \n");
+      buffer.append("	return strArr.join(\" \");");
+      buffer.append("}\n");
+
+      out.println(buffer.toString());
+   }
+
+   /**
+    * Writes a response representing the JavaScript code that will generate the applet.
+    *
+    * @param out    a <code>PrintStream</code> where the response will be written to.
+    * @param params a <code>Map</code> representing applet specific parameters.
+    */
+   private void generateAppletJS(PrintStream out, Map<Integer, Object> params) {
+      out.println("<script language=\"JavaScript\">\n");
+      out.println(" \n");
+      this.generateAppletMainFunction(out, params);
+      out.println(" \n");
+      this.generateAppletResizeFunction(out);
+      out.println(" \n");
+      out.println("document.write(getAppletHTML())\n");
+      out.println("</script>");
+   }
+
+   @Override
    protected XMessage processRequest(XMessage request, boolean sessionExpired, HttpServletRequest http_request, HttpServletResponse http_response, XSession session) {
       if (request.getAction().equalsIgnoreCase(OpProjectConstants.GET_RUN_LEVEL_ACTION)) {
          XMessage response = new XMessage();
-         response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(OpInitializer.getRunLevel()));
+         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+         response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(initializer.getRunLevel()));
          return response;
       }
       XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
@@ -548,6 +651,10 @@ public class OpOpenServlet extends XExpressServlet {
     *         <FIXME author="Horia Chiorean" description="Is is safe to assume that it's enough to have permissions on at least 1 of the entities referencing the content ?">
     */
    private boolean hasContentPermissions(OpProjectSession session, OpBroker broker, OpContent content) {
+      if (content.getRefCount() == 0) {
+         return true; // just a temporary content
+      }
+
       Set attachments = content.getAttachments();
       for (Object attachmentObj : attachments) {
          OpObject attachment = (OpObject) attachmentObj;
@@ -583,5 +690,70 @@ public class OpOpenServlet extends XExpressServlet {
     */
    protected String getProductCode() {
       return OpProjectConstants.OPEN_EDITION_CODE;
+   }
+
+   /**
+    * Handle a file upload request
+    *
+    * @param request a file upload <code>HttpServletRequest</code>
+    * @param stream  the <code>InputStream</code> to read the files from
+    * @param message the <code>XMessage</code> received from the client
+    * @throws java.io.IOException if the file upload handling failed
+    */
+   @Override
+   protected void handleFileUpload(HttpServletRequest request, InputStream stream, XMessage message)
+        throws IOException {
+      LinkedHashMap<String, Long> sizes = (LinkedHashMap<String, Long>) message.getArgument(XConstants.FILE_SIZE_ARGUMENT);
+      Map<String, String> names = (Map<String, String>) message.getArgument(XConstants.FILE_NAME_ARGUMENT);
+      Map<String, String> references = (Map<String, String>) message.getArgument(XConstants.FILE_REF_ARGUMENT);
+
+      if (sizes != null && !sizes.isEmpty()) {
+         Map<String, String> contents = new HashMap<String, String>();
+
+         // Get the session context ('true': create new session if necessary)
+         HttpSession http_session = request.getSession(true);
+         OpProjectSession session = (OpProjectSession) getSession(http_session);
+         OpBroker broker = session.newBroker();
+
+         for (Map.Entry<String, Long> entry : sizes.entrySet()) {
+            String id = entry.getKey();
+            long size = entry.getValue();
+            String name = names != null ? names.get(id) : null;
+            String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
+
+            OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
+
+            OpTransaction t = broker.newTransaction();
+            broker.makePersistent(content);
+            t.commit();
+
+            // adds the same OpContent locator for each content that refer teh same file.
+            Set<String> refs = getRefIds(id, references);
+            for (String refId : refs) {
+               contents.put(refId, content.locator());
+            }
+         }
+         broker.close();
+
+         message.insertObjectsIntoArguments(contents);
+      }
+   }
+
+   /**
+    * Retrieves all the generated id of the contents that refer the same file.
+    *
+    * @param id         the id of the refered file
+    * @param references a <code>Map</code> of key = generated id of a content, value = generated id of the refered content
+    * @return a <code>Set</code> of generated ids which refere to the same file. (Includes the refered id)
+    */
+   private Set<String> getRefIds(String id, Map<String, String> references) {
+      Set<String> refs = new HashSet<String>();
+      refs.add(id);
+      for (Map.Entry<String, String> entry : references.entrySet()) {
+         if (entry.getValue().equals(id)) {
+            refs.add(entry.getKey());
+         }
+      }
+      return refs;
    }
 }

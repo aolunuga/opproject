@@ -13,6 +13,13 @@ public class OpRelationshipHandler implements XNodeHandler {
 
    public final static String RELATIONSHIP = "relationship".intern();
 
+   /**
+    * Cascade mode possible values
+    */
+   private final static String CASCADE_DELETE = "delete";
+   private final static String CASCADE_SAVEUPDATE = "save-update";
+   private final static String CASCADE_ALL = "all";
+
    public Object newNode(XContext context, String name, HashMap attributes) {
       OpRelationship relationship = new OpRelationship();
       Object value = attributes.get("name");
@@ -67,7 +74,7 @@ public class OpRelationshipHandler implements XNodeHandler {
      value = attributes.get("cascade");
       if ((value != null) && (value instanceof String)) {
          String s = (String) value;
-         if (s.equals(OpRelationship.CASCADE_DELETE) || s.equals(OpRelationship.CASCADE_SAVEUPDATE)) {
+         if (s.equals(CASCADE_DELETE) || s.equals(CASCADE_SAVEUPDATE) || s.equals(CASCADE_ALL)) {
             relationship.setCascadeMode(s);
          }
       }

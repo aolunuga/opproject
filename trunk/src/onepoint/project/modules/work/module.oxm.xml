@@ -2,6 +2,8 @@
    <prototype-files>
       <prototype-file file-name="/modules/work/work_record.opt.xml"/>
       <prototype-file file-name="/modules/work/work_slip.opt.xml"/>
+      <prototype-file file-name="/modules/work/cost_record.opt.xml"/>
+      <prototype-file file-name="/modules/work/time_record.opt.xml"/>
    </prototype-files>
    <service-files>
       <service-file file-name="/modules/work/work_service.osd.xml"/>

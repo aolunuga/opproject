@@ -18,7 +18,7 @@
       <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
       <data-field id="NotEqualEffortsException" text="${NotEqualEffortsErrorMessage}"/>
       <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
-      <data-field id="InvalidBaseEffortException" text="{$InvalidBaseEffortErrorMessage}"/>
+      <data-field id="InvalidBaseEffortException" text="${InvalidBaseEffortErrorMessage}"/>
       <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
       
       <label id ="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>
@@ -110,6 +110,8 @@
             <double-field x="2" y="3" width="3" id="ExternalCosts" decimals="2"/>
             <label x="0" y="4" width="2" text="${Misc}"/>
             <double-field x="2" y="4" width="3" id="MiscellaneousCosts" decimals="2"/>
+            <label x="0" y="5" width="2" text="${Proceeds}"/>
+            <double-field x="2" y="5" width="3" id="ProceedsCosts" decimals="2"/>
          </tab>
 
          <tab text="${Attachments}" layout="border" id="AttachmentsTab">

@@ -24,6 +24,7 @@ import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.XSizeInputStream;
 import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
 
@@ -468,12 +469,10 @@ public class OpReportService extends OpProjectService {
     * @return a <code>OpContent</code> object representing the newly created content.
     */
    private OpContent createReportContent(OpBroker broker, byte[] content, String contentType) {
-      OpContent reportContent = new OpContent();
-      reportContent.setBytes(content);
-      reportContent.setSize(content.length);
+      String mimeType = OpContentManager.getFileMimeType('.' + contentType);
 
-      String mimeType = OpContentManager.getFileMimeType("." + contentType);
-      reportContent.setMediaType(mimeType);
+      XSizeInputStream stream = new XSizeInputStream(new ByteArrayInputStream(content), content.length);
+      OpContent reportContent = OpContentManager.newContent(stream, mimeType);
 
       broker.makePersistent(reportContent);
       return reportContent;
