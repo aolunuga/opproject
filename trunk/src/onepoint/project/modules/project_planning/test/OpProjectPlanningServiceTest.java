@@ -726,19 +726,8 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Object user1 : users) {
-         OpUser user = (OpUser) user1;
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
@@ -754,25 +743,26 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
       deleteAllObjects(broker, OpActivity.ACTIVITY);
 
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
-         OpProjectNode project = (OpProjectNode) iterator.next();
+      for (OpProjectNode project : projectDataFactory.getAllProjects(broker)) {
          broker.deleteObject(project);
       }
 
-      List resoucesList = resourceDataFactory.getAllResources(broker);
-      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
-         OpResource resource = (OpResource) iterator.next();
+      for (OpResource resource : resourceDataFactory.getAllResources(broker)) {
          broker.deleteObject(resource);
       }
 
-      List poolList = resourceDataFactory.getAllResourcePools(broker);
-      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
-         OpResourcePool pool = (OpResourcePool) iterator.next();
+      for (OpResourcePool pool : resourceDataFactory.getAllResourcePools(broker)) {
          if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
             continue;
          }
          broker.deleteObject(pool);
+      }
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
       }
 
       transaction.commit();

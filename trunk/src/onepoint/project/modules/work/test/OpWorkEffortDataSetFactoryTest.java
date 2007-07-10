@@ -14,20 +14,14 @@ import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpWorkEffortDataSetFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
 import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
-import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Test class for testing the methods in OpWorkEffortDataSetFactory
@@ -157,22 +151,17 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Object user1 : users) {
-         OpUser user = (OpUser) user1;
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
          if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
             continue;
          }
-         ids.add(user.locator());
+         broker.deleteObject(user);
       }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
 
       deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
       deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
@@ -181,9 +170,7 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
       deleteAllObjects(broker, OpResource.RESOURCE);
       deleteAllObjects(broker, OpCostRecord.COST_RECORD);
 
-      List projectList = projectFactory.getAllProjects(broker);
-      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
-         OpProjectNode project = (OpProjectNode) iterator.next();
+      for (OpProjectNode project : projectFactory.getAllProjects(broker)) {
          broker.deleteObject(project);
       }
 

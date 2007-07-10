@@ -13,16 +13,13 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkService;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
-import onepoint.service.XMessage;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -120,18 +117,6 @@ public class XMLRPCServiceTest extends OpBaseOpenTestCase {
    private void clean()
         throws Exception {
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
-         OpUser user = (OpUser) iterator.next();
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
@@ -162,6 +147,14 @@ public class XMLRPCServiceTest extends OpBaseOpenTestCase {
          broker.deleteObject(pool);
       }
 
+      for (Object user1 : usrData.getAllUsers(broker)) {
+         OpUser user = (OpUser) user1;
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
+      }
+      
       transaction.commit();
       broker.close();
    }

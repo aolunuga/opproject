@@ -17,7 +17,6 @@ import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpTimeRecord;
@@ -27,12 +26,9 @@ import onepoint.project.modules.work.validators.OpWorkCostValidator;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
 import onepoint.project.modules.work.validators.OpWorkTimeValidator;
 import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
-import onepoint.service.XMessage;
 
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -823,19 +819,8 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
-         OpUser user = (OpUser) iterator.next();
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
@@ -847,10 +832,15 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       deleteAllObjects(broker, OpResource.RESOURCE);
       deleteAllObjects(broker, OpCostRecord.COST_RECORD);
 
-      List projectList = projectFactory.getAllProjects(broker);
-      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
-         OpProjectNode project = (OpProjectNode) iterator.next();
+      for (OpProjectNode project : projectFactory.getAllProjects(broker)) {
          broker.deleteObject(project);
+      }
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
       }
 
       transaction.commit();

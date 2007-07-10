@@ -16,7 +16,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
@@ -25,7 +24,8 @@ import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class test project cost methods.
@@ -246,22 +246,18 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
-         OpUser user = (OpUser) iterator.next();
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
+      }
 
       deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
       deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
@@ -273,26 +269,23 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
       deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
       deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
 
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
-         OpProjectNode project = (OpProjectNode) iterator.next();
+      for (OpProjectNode project : projectDataFactory.getAllProjects(broker)) {
          broker.deleteObject(project);
       }
 
-      List resoucesList = resourceDataFactory.getAllResources(broker);
-      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
-         OpResource resource = (OpResource) iterator.next();
+      for (OpResource resource : resourceDataFactory.getAllResources(broker)) {
          broker.deleteObject(resource);
       }
 
-      List poolList = resourceDataFactory.getAllResourcePools(broker);
-      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
-         OpResourcePool pool = (OpResourcePool) iterator.next();
+      for (OpResourcePool pool : resourceDataFactory.getAllResourcePools(broker)) {
          if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
             continue;
          }
          broker.deleteObject(pool);
       }
+
+      transaction.commit();
+      broker.close();
    }
 
 }
