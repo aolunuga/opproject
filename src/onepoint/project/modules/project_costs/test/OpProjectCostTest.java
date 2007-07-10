@@ -16,7 +16,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
@@ -25,7 +24,10 @@ import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class test project cost methods.
@@ -214,22 +216,18 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      List<String> ids = new ArrayList<String>();
-      List users = usrData.getAllUsers();
-      for (Object user1 : users) {
-         OpUser user = (OpUser) user1;
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
+      }
 
       deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
       deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);

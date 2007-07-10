@@ -5,7 +5,9 @@ package onepoint.project.modules.user.test;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.project.test.OpBaseOpenTestCase;
@@ -16,7 +18,10 @@ import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class test user service methods and form providers.
@@ -76,47 +81,28 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     * Delete users/groups that are used into out tests.
     */
    private void cleanUp() {
-      // create a list of Subjects that have to be deleted.
-      ArrayList idsToDelete = new ArrayList();
+
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
 
       // delete all users except Administrator
-      List users = dataFactory.getAllUsers();
-      if (users != null) {
-         Iterator it = users.iterator();
-         while (it.hasNext()) {
-            OpUser opUser = (OpUser) it.next();
-
-            if (!OpUser.ADMINISTRATOR_NAME.equals(opUser.getName())) {
-               idsToDelete.add(opUser.locator());
-            }
+      for (OpUser user : dataFactory.getAllUsers(broker)) {
+         if (OpUser.ADMINISTRATOR_NAME.equals(user.getName())) {
+            continue;
          }
+         broker.deleteObject(user);
       }
 
-      // delete all groups except Administrator
-      List groups = dataFactory.getAllGroups();
-      if (groups != null) {
-         Iterator it = groups.iterator();
-         while (it.hasNext()) {
-            OpGroup opGroup = (OpGroup) it.next();
-
-            if (!OpGroup.EVERYONE_NAME.equals(opGroup.getName())) {
-               idsToDelete.add(opGroup.locator());
-            }
+      // delete all groups except Everyone
+      for (OpGroup group : dataFactory.getAllGroups(broker)) {
+         if (OpGroup.EVERYONE_NAME.equals(group.getName())) {
+            continue;
          }
+         broker.deleteObject(group);
       }
 
-      // delete if exists user "tester".
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
-      if (group != null) {
-         idsToDelete.add(group.locator());
-      }
-
-      XMessage req = new XMessage();
-      req.setArgument(OpUserService.SUBJECT_IDS, idsToDelete);
-      XMessage res = userService.deleteSubjects(session, req);
-      if (res != null && res.getError() != null) {
-         logger.error("Could not cleanUp subjects because: " + res.getError().getMessage());
-      }
+      transaction.commit();
+      broker.close();
    }
 
    /**
@@ -1116,10 +1102,13 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteUser()
         throws Exception {
+
       // count existing users.
-      List allUsers = dataFactory.getAllUsers();
+      OpBroker broker = session.newBroker();
+      List allUsers = dataFactory.getAllUsers(broker);
       assertNotNull(allUsers);
       int usersListSize = allUsers.size();
+      broker.close();
 
       createDefaultUser();
       OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
@@ -1131,9 +1120,12 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       XMessage res = userService.deleteSubjects(session, req);
       assertNoError(res);
 
-      allUsers = dataFactory.getAllUsers();
+      broker = session.newBroker();
+      allUsers = dataFactory.getAllUsers(broker);
       assertNotNull(allUsers);
       assertEquals(usersListSize, allUsers.size());
+      broker.close();
+      
    }
 
    /**
@@ -1143,10 +1135,13 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteGroup()
         throws Exception {
+
       // count existing groups.
-      List allGroups = dataFactory.getAllGroups();
+      OpBroker broker = session.newBroker();
+      List allGroups = dataFactory.getAllGroups(broker);
       assertNotNull(allGroups);
       int groupsListSize = allGroups.size();
+      broker.close();
 
       createDefaultGroup();
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
@@ -1154,13 +1149,15 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // Now delete group.
       XMessage req = new XMessage();
-      req.setArgument(OpUserService.SUBJECT_IDS, Arrays.asList(new String[]{group.locator()}));
+      req.setArgument(OpUserService.SUBJECT_IDS, Arrays.asList(group.locator()));
       XMessage res = userService.deleteSubjects(session, req);
       assertNoError(res);
 
-      allGroups = dataFactory.getAllGroups();
+      broker = session.newBroker();
+      allGroups = dataFactory.getAllGroups(broker);
       assertNotNull(allGroups);
       assertEquals(groupsListSize, allGroups.size());
+      broker.close();
    }
 
    /**
@@ -1383,6 +1380,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    /**
     * Tests that after a user with a default language preference logs in and out, after logout,
     * the session's language is the same as the system language.
+    *
     * @throws Exception if anything fails.
     */
    public void testSystemDefaultLanguage()

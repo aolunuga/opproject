@@ -869,18 +869,6 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
         throws Exception {
 
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      List<String> ids = new ArrayList<String>();
-      List users = usrData.getAllUsers();
-      for (Object user1 : users) {
-         OpUser user = (OpUser) user1;
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
@@ -914,6 +902,13 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
             continue;
          }
          broker.deleteObject(pool);
+      }
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
       }
 
       transaction.commit();

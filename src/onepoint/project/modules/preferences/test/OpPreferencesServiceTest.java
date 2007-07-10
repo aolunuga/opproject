@@ -4,6 +4,7 @@
 package onepoint.project.modules.preferences.test;
 
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.preferences.OpPreferencesError;
 import onepoint.project.modules.preferences.forms.OpPreferencesFormProvider;
 import onepoint.project.modules.user.OpPreference;
@@ -16,7 +17,8 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class test preferences service methods and form providers.
@@ -229,18 +231,21 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
    }
 
    private void clean() {
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      ArrayList ids = new ArrayList();
-      List users = usrData.getAllUsers();
-      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
-         OpUser user = (OpUser) iterator.next();
+
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
          if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
             continue;
          }
-         ids.add(user.locator());
+         broker.deleteObject(user);
       }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
-   }   
+
+      transaction.commit();
+      broker.close();
+      
+   }
 }

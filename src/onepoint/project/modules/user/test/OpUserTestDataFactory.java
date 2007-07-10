@@ -43,15 +43,11 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * Retrieve all users from database.
     *
     * @return a list of <code>OpUser</code> instances.
+    * @param broker
     */
-   public List<OpUser> getAllUsers() {
-      OpBroker broker = session.newBroker();
-
+   public List<OpUser> getAllUsers(OpBroker broker) {
       OpQuery query = broker.newQuery(SELECT_USERS_QUERY);
-      List<OpUser> users = broker.list(query);
-      broker.close();
-
-      return users;
+      return (List<OpUser>) broker.list(query);
    }
 
    /**
@@ -75,15 +71,11 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * Retrieve all groups from database.
     *
     * @return a list of <code>OpGroup</code> instances.
+    * @param broker
     */
-   public List getAllGroups() {
-      OpBroker broker = session.newBroker();
-
+   public List<OpGroup> getAllGroups(OpBroker broker) {
       OpQuery query = broker.newQuery(SELECT_GROUPS_QUERY);
-      List groups = broker.list(query);
-      broker.close();
-
-      return groups;
+      return (List<OpGroup>)broker.list(query);
    }
 
 

@@ -16,7 +16,6 @@ import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
@@ -698,20 +697,16 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
    private void clean()
         throws Exception {
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      List<String> ids = new ArrayList<String>();
-      List<OpUser> users = usrData.getAllUsers();
-      for (OpUser user : users) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         ids.add(user.locator());
-      }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
 
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
+
+      for (OpUser user : usrData.getAllUsers(broker)) {
+         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
+            continue;
+         }
+         broker.deleteObject(user);
+      }
 
       deleteAllObjects(broker, OpWorkPeriod.WORK_PERIOD);
       deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);

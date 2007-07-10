@@ -13,7 +13,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
@@ -230,21 +229,18 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      List<String> ids = new ArrayList<String>();
-      List<OpUser> users = usrData.getAllUsers();
+      List<OpUser> users = usrData.getAllUsers(broker);
       for (OpUser user : users) {
          if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
             continue;
          }
-         ids.add(user.locator());
+         broker.deleteObject(user);
       }
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      OpTestDataFactory.getUserService().deleteSubjects(session, request);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
 
       deleteAllObjects(broker, OpAttachment.ATTACHMENT);
       deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
