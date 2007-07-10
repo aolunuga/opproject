@@ -5,11 +5,14 @@
 package onepoint.project.modules.resource;
 
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.user.OpPermission;
+
+import java.util.Iterator;
 
 public class OpResourceModule extends OpModule {
 
@@ -22,6 +25,7 @@ public class OpResourceModule extends OpModule {
    /**
     * @see onepoint.project.module.OpModule#start(onepoint.project.OpProjectSession)
     */
+   @Override
    public void start(OpProjectSession session) {
       //register system objects with backup manager  (for backup backward compatibility, add the old names as well)
       OpBackupManager.addSystemObjectIDQuery(OLD_ROOT_RESOURCE_POOL_NAME, OpResourcePool.ROOT_RESOURCE_POOL_ID_QUERY);
@@ -36,11 +40,48 @@ public class OpResourceModule extends OpModule {
    }
 
    /**
-    * @see onepoint.project.module.OpModule#upgrade(onepoint.project.OpProjectSession,int)
+    * Updates the external hourly rates of resources (by setting the exact same value as the internal rates).
+    * @param broker a <code>OpBroker</code> instance used for business operations.
     */
-   public void upgrade(OpProjectSession session, int dbVersion) {
+   private void updateResourceHourlyRates(OpBroker broker) {
+      OpTransaction tx = broker.newTransaction();
+      String queryString = "select resource from OpResource resource";
+      OpQuery query = broker.newQuery(queryString);
+      Iterator it = broker.list(query).iterator();
+      while (it.hasNext()) {
+         OpResource resource = (OpResource) it.next();
+         resource.setExternalRate(resource.getHourlyRate());
+         broker.updateObject(resource);
+      }
+      tx.commit();
+   }
+
+   /**
+    * Updates the external hourly rates of pools (by setting the exact same value as the internal rates).
+    * @param broker a <code>OpBroker</code> instance used for business operations.
+    */
+   private void updatePoolHourlyRates(OpBroker broker) {
+      OpTransaction tx = broker.newTransaction();
+      String queryString = "select pool from OpResourcePool pool";
+      OpQuery query = broker.newQuery(queryString);
+      Iterator it = broker.list(query).iterator();
+      while (it.hasNext()) {
+         OpResourcePool pool = (OpResourcePool) it.next();
+         pool.setExternalRate(pool.getHourlyRate());
+         broker.updateObject(pool);
+      }
+      tx.commit();
+   }
+
+   /**
+    * Upgrades this module to version #5 (via reflection - must be public).
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       updateRootPoolName(broker);
+      updateResourceHourlyRates(broker);
+      updatePoolHourlyRates(broker);
       broker.close();
    }
 

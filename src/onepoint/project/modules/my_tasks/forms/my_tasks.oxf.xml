@@ -65,7 +65,8 @@
             <tool-button id="InfoButton" text="${Info}" icon="/icons/info.png"
                          disabled-icon="/icons/info_disabled.png"
                          on-button-pressed="editActivity"
-                         tooltip="${InfoTooltip}"/>
+                         tooltip="${InfoTooltip}"
+                         enabled="false"/>
             <tool-button id="DeleteAdhocButton" text="${DeleteAdhoc}" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png"
                          on-button-pressed="deleteAdhoc" enabled="false"
@@ -90,7 +91,7 @@
 
       <panel layout="border">
          <tab-box id="MyTabBox" stateful="true" flexible="true">
-            <tab layout="border" text="${Tasklist}" id="TasklistTab">
+            <tab layout="border" text="${Tasklist}" id="TasklistTab" on-tab-activated="activateTasklistTab" >
                <table-box id="ActivityTable" data-set-ref="ActivitySet" tree-column-index="1"
                           on-double-click="editActivity"
                           flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
@@ -116,7 +117,7 @@
                <!-- Tool-bar should have attribute decorated="true" for borders -->
                <!-- OR, maybe nicer: Have a button-group in addition to tool-bar -->
             </tab>
-            <tab layout="border" text="${GanttDiagram}" id="$GanttDiagramTab">
+            <tab layout="border" text="${GanttDiagram}" id="$GanttDiagramTab"  on-tab-activated="activateGanttTab">
                <panel y="-1" layout="border" style-ref="compact-panel-default">
                   <panel x="1" layout="table" flexible="false">
                      <label x="0" width="2" text="${ChangeTimeUnit}"/>
@@ -129,7 +130,8 @@
                           stateful="true"
                           category-color-set-ref="CategoryColorDataSet"
                           details-form-ref="/modules/project_planning/forms/gantt_details.oxf.xml"
-                          pop-up-menu-ref="ActivityChartPopupMenu"/>
+                          pop-up-menu-ref="ActivityChartPopupMenu"
+                          on-activity-select="activitySelected"/>
             </tab>
          </tab-box>
       </panel>

@@ -4,15 +4,14 @@
 
 package onepoint.project.modules.project;
 
-import java.util.Iterator;
-import java.util.Set;
-
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpFilter;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
-import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Service Implementation for Project Administration.
@@ -23,11 +22,6 @@ import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
  */
 
 public class OpProjectAdministrationServiceImpl implements OpService {
-
-   /**
-    * The name of this service.
-    */
-   public static final String SERVICE_NAME = "ProjectService";
 
    /**
     * the portfolio type.
@@ -134,7 +128,7 @@ public class OpProjectAdministrationServiceImpl implements OpService {
     * @see onepoint.project.OpService#getName()
     */
    public String getName() {
-      return SERVICE_NAME;
+      return OpProjectAdministrationService.SERVICE_NAME;
    }
    
 }

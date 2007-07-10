@@ -35,7 +35,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    protected final static String EDIT_MODE_FIELD = "EditModeField";
    protected final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
    protected final static String TOTAL_STRING = "Total";
-       
+
    private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
 
    private final static String ASSIGNMENT_SET = OpGanttValidator.ASSIGNMENT_SET;
@@ -53,6 +53,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String PROJECT_START = "ProjectStartField";
    private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String PROJECT_SETTINGS_DATA_SET = "ProjectSettingsDataSet";
+   private final static String PROJECT_TYPE_FIELD= "ProjectType";
 
    private final static String PROJECT_ID_FIELD = "ProjectIDField";
    private final static String WORKING_PLAN_VERSION_ID_FIELD = "WorkingPlanVersionIDField";
@@ -80,6 +81,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String GANTT_TOOL_BAR = "GanttToolBar";
    private final static String ACTIVITY_TABLE_TOOL_BAR = "ActivityTableToolBar";
    private final static String TIME_CHOOSER = "TimeUnitChooser";
+   private final static String RESOURCES_HOURLY_RATES_DATA_SET = "ResourcesHourlyRates";
 
    private final static String ACTIVITY_LIST_FOOTER_DATA_SET = "ActivityListFooter";
    private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
@@ -89,8 +91,9 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static int FOOTER_MATERIAL_INDEX = 4;
    private final static int FOOTER_EXTERNAL_INDEX = 5;
    private final static int FOOTER_MISC_INDEX = 6;
+   private final static int FOOTER_PROCEEDS_INDEX = 7;
    private final static int ACTIVITY_TABLE_COLUMNS = 11;
-   private final static int COST_TABLE_COLUMNS = 7;
+   private final static int COST_TABLE_COLUMNS = 8;
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -124,6 +127,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
       if (project_id_string != null) {
 
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
+         form.findComponent(PROJECT_TYPE_FIELD).setByteValue(project.getType());
          logger.debug("after get-project: " + project.getID());
 
          //print title
@@ -225,11 +229,12 @@ public class OpActivitiesFormProvider implements XFormProvider {
          OpProjectPlan projectPlan = project.getPlan();
          if (projectPlan != null) {
 
+            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+                 project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, workingPlanVersion, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET));
+
             if (edit_mode) {
                // Show working plan version (if one exists already)
-               OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                    project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-
                if (workingPlanVersion != null) {
                   // Set working plan version ID
                   form.findComponent(WORKING_PLAN_VERSION_ID_FIELD).setStringValue(workingPlanVersion.locator());
@@ -337,6 +342,11 @@ public class OpActivitiesFormProvider implements XFormProvider {
       footerCell = (XComponent) row.getChild(FOOTER_MISC_INDEX);
       footerCell.setValue(sum);
 
+      //proceeds costs
+      sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_PROCEEDS_COLUMN_INDEX, 0);
+      row = (XComponent) costsFooterDataSet.getChild(0);
+      footerCell = (XComponent) row.getChild(FOOTER_PROCEEDS_INDEX);
+      footerCell.setValue(sum);
    }
 
    protected void addCategories(XComponent form, OpBroker broker) {
@@ -434,5 +444,4 @@ public class OpActivitiesFormProvider implements XFormProvider {
       button = form.findComponent(COST_REDO_BUTTON);
       activityDataSet.registerEventHandler(button, XComponent.COMPONENT_EVENT);
    }
-
 }

@@ -37,6 +37,8 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
 
    private final static String ALTERNATE_DETAILS_FORM_REF = "alternate-details-form-ref";
 
+   private final static String ON_ACTIVITY_SELECT = "on-activity-select";
+
    protected byte _parseTimeUnitValue(String value) {
       if ((value != null)) {
          if (value.equals("days")) {
@@ -89,6 +91,10 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
          value = attributes.get(CATEGORY_COLOR_SET_REF);
          if ((value != null) && (value instanceof String)) {
             component.setCategoryColorSetRef((String) value);
+         }
+         value = attributes.get(ON_ACTIVITY_SELECT);
+         if ((value != null) && (value instanceof String)) {
+            component.setOnActivitySelect((String) value);
          }
       }
       else if (name == GANTT_MAP) {

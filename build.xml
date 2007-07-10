@@ -1,5 +1,5 @@
 <project name="opproject - Open" basedir="." default="dist.war">
-   
+
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
 
@@ -18,7 +18,6 @@
    <path id="op.tests.classpath">
       <path refid="op.classpath"/>
       <pathelement location="${classes.dir}"/>
-      <pathelement location="${tests.dir}"/>
    </path>
 
    <!-- Pattern sets used for the different tasks -->
@@ -32,11 +31,8 @@
       <patternset refid="compile.pathid"/>
       <include name="**/applet/*.java"/>
       <include name="**/components/**/*.java"/>
+      <include name="**/validators/**/*.java"/>
       <include name="onepoint/project/util/*.java"/>
-   </patternset>
-
-   <patternset id="compile.tests.pathid">
-      <include name="**/*Test.java"/>
    </patternset>
 
    <!-- Pattern set for opproject.jar (depends on opexpress.jar) -->
@@ -52,6 +48,7 @@
       <include name="${rootpackage.dir}/project/**/*.ico"/>
       <include name="${rootpackage.dir}/project/**/*.jasper"/>
       <include name="${rootpackage.dir}/project/**/*.jes"/>
+      <include name="${rootpackage.dir}/project/configuration/generated/**/*.ser" />
       <exclude name="${rootpackage.dir}/**/test/**"/>
       <exclude name="${rootpackage.dir}/project/reports/**/*.*"/>
    </patternset>
@@ -80,8 +77,8 @@
 
    <!-- Pattern set for opproject-client.jar (depends on opexpress-client.jar) -->
    <patternset id="project.client.pathid">
-      <include name="${rootpackage.dir}/*/modules/project/components/*.class"/>
-      <include name="${rootpackage.dir}/*/modules/project_planning/components/*.class"/>
+      <include name="${rootpackage.dir}/**/components/*.class"/>
+      <include name="${rootpackage.dir}/**/validators/*.class"/>
       <include name="${rootpackage.dir}/project/util/*.class"/>
       <include name="${rootpackage.dir}/**/*Applet*.class"/>
       <exclude name="${rootpackage.dir}/**/test/*.class"/>
@@ -101,6 +98,7 @@
       <include name="**/*.jasper"/>
       <include name="**/*.gif"/>
       <include name="**/*.properties"/>
+      <include name="**/*.ser"/>
       <exclude name="**/test/**/*.*"/>
    </patternset>
 
@@ -112,27 +110,38 @@
       <include name="**/test/*.jes"/>
    </patternset>
 
-   <patternset id="standalone.lib.pathid">
-      <include name="*.jar"/>
-      <include name="*.txt"/>
+   <patternset id="standalone.lib.excluded.pathid">
       <exclude name="*servlet*.*"/>
       <exclude name="*mysql*.*"/>
       <exclude name="*postgresql*.*"/>
       <exclude name="*jtds*.*"/>
+      <exclude name="*sqljdbc*.*"/>     
+      <exclude name="*svn*.*"/>
       <exclude name="*junit*.*"/>
       <exclude name="*jarbundler*.*"/>
       <exclude name="*jcookie*.*"/>
       <exclude name="*clover*.*"/>
       <exclude name="*cenquatasks*.*"/>
       <exclude name="*opproject*.*"/>
+      <exclude name="svn*.*"/>
       <exclude name="*express4j*.*"/>
       <exclude name="*-client*.*"/>
    </patternset>
 
+   <patternset id="standalone.lib.pathid">
+      <patternset refid="standalone.lib.excluded.pathid"/>
+      <include name="*.jar"/>
+   </patternset>
+
+   <patternset id="standalone.lib.licenses.pathid">
+      <patternset refid="standalone.lib.excluded.pathid"/>
+      <include name="*.txt"/>
+   </patternset>
+
+
    <!-- Pattern set for the lib files of the web application -->
    <patternset id="webapp.lib.pathid">
       <include name="*.jar"/>
-      <include name="*.txt"/>
       <exclude name="*servlet*.*"/>
       <exclude name="*mysql*.*"/>
       <exclude name="*hsql*.*"/>
@@ -140,6 +149,8 @@
       <exclude name="*jarbundler*.*"/>
       <exclude name="*jcookie*.*"/>
       <exclude name="*retroweaver-all*.*"/>
+      <exclude name="svn*.*"/>
+      <exclude name="*sqljdbc*.*"/>
    </patternset>
 
    <!-- Pattern set for the lib files of the applet -->
@@ -148,7 +159,7 @@
    </patternset>
 
    <patternset id="tests.compile.pathid">
-      <include name="**/*Test.java"/>
+      <include name="**/*Test*.java"/>
    </patternset>
 
    <!-- check if the express4j module is present -->
@@ -159,11 +170,16 @@
       <delete dir="${build.dir}" failonerror="false"/>
       <delete dir="${dist.dir}" failonerror="false"/>
       <delete dir="${release.dir}" failonerror="false"/>
+      <delete dir="${tests.dir}" failonerror="false"/>
       <delete failonerror="false">
          <fileset dir="${lib.dir}">
             <include name="express4j*.jar"/>
          </fileset>
       </delete>
+   </target>
+
+   <target name="clean.tests" description="Cleans the test results">
+      <delete dir="${tests.dir}" failonerror="false"/>
    </target>
 
    <!-- Creates directories where compiled files will be placed -->
@@ -358,14 +374,16 @@
    <target name="dist.standalone" depends="clean, build.basic.jar,jar.reports">
       <!--remove old dist files-->
       <delete dir="${dist.basic.dir}" failonerror="false"/>
-      <mkdir dir="${dist.basic.dir}"/>
+      <mkdir dir="${dist.basic.dir}/${dist.main.folder}"/>
+
       <!--copy to dist dir registry.xml-->
-      <copy todir="${dist.basic.dir}">
+      <copy todir="${dist.basic.dir}/${dist.main.folder}">
          <fileset dir="${jars.dir}" includes="${project.basic.jarname}"/>
          <fileset dir="${src.dir}/onepoint/project" includes="registry.oxr.xml"/>
       </copy>
+
       <!--copy the resources for the distribution-->
-      <copy todir="${dist.basic.dir}/lib">
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/lib">
          <fileset dir="${lib.dir}">
             <patternset refid="standalone.lib.pathid"/>
          </fileset>
@@ -373,16 +391,31 @@
             <include name="${express.jarname}"/>
          </fileset>
       </copy>
-      <copy todir="${dist.basic.dir}/${calendars}">
+
+      <!--licenses txt files-->
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/licenses">
+         <fileset dir="${lib.dir}">
+            <patternset refid="standalone.lib.licenses.pathid"/>
+         </fileset>
+      </copy>
+
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/${calendars}">
          <fileset dir="${calendars.dir}"/>
       </copy>
-      <copy todir="${dist.basic.dir}/${reportsjar}">
+
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/${reportsjar}">
          <fileset dir="${reportjars.dir}" includes="**/*.jar"/>
       </copy>
+
+      <copy file="${tutorial.basic.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+      <copy file="${readme.basic.file}" tofile="${dist.basic.dir}/${dist.main.folder}/readme.txt"/>
+      <copy file="${license.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+
    </target>
 
+
    <!-- Performs all the tasks necessary to create the web application -->
-   <target name="dist.war" depends="clean, build.open.jar, build.client.jars,jar.reports" description="Performs the initialization, build and war tasks">
+   <target name="dist.war" depends="clean, build.open.jar, build.client.jars, jar.reports" description="Performs the initialization, build and war tasks">
       <copy todir="${jars.dir}">
          <fileset dir="${lib.dir}">
             <include name="${express.jarname}"/>
@@ -431,9 +464,27 @@
       <mkdir dir="${dist.open.dir}"/>
       <!--Copy the generated war file to the dist dir-->
       <copy file="${build.dir}/${warname}" tofile="${dist.open.dir}/${warname.open}"/>
+
+      <mkdir dir="${dist.open.dir}/licenses"/>
+      <copy todir="${dist.open.dir}/licenses">
+         <fileset dir="${lib.dir}">
+            <include name="*.txt"/>
+            <exclude name="mysql*.txt"/>
+         </fileset>
+      </copy>
+      <copy file="${readme.open.file}" tofile="${dist.open.dir}/readme.txt"/>
+      <copy file="license.txt" todir="${dist.open.dir}"/>
+      <copy file="${tutorial.open.file}" todir="${dist.open.dir}"/>
+      <copydir src="${demodata.dir}" dest="${dist.open.dir}/${demodata.dir}"/>
+      <zip zipfile="${dist.dir}/${open.name}.zip">
+         <zipfileset dir="${dist.open.dir}"/>
+      </zip>
+
    </target>
 
-   <target name="release" depends="dist.war, dist.standalone" description="Packages the project sources into a release archive.">
+   <target name="release" depends="generate.Linux.distribution.basic, generate.Windows.distribution.basic"
+           description="Packages the project sources into a release archive.">
+      
       <!--src release-->
       <zip zipfile="${release.dir}/${release.root.filename}-src.zip">
          <zipfileset dir="${src.dir}" prefix="${zip.root.dir}/${src.dir}"/>
@@ -447,6 +498,7 @@
          <zipfileset file="${readme.basic.file}" prefix="${zip.root.dir}"/>
          <zipfileset file="${readme.open.file}" prefix="${zip.root.dir}"/>
       </zip>
+
       <!--war release [for applet version] -->
       <copy file="${readme.open.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
       <zip zipfile="${release.dir}/${release.root.filename}-open.zip">
@@ -455,16 +507,7 @@
          <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}"/>
          <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
       </zip>
-      <!--standalone release -->
-      <copy file="${readme.basic.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
-      <zip zipfile="${release.dir}/${release.root.filename}-basic.zip">
-         <zipfileset dir="${dist.basic.dir}" prefix="${zip.root.dir}"/>
-         <zipfileset dir="${lib.dir}"
-                     excludes="*mysql*, *postgresql*, *-client-*, *jcookie*, *junit*, *servlet*"
-                     prefix="${zip.root.dir}/${lib.dir}"/>
-         <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
-         <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
-      </zip>
+
    </target>
 
 
@@ -473,8 +516,15 @@
            depends="dist.standalone"
            description="Generates basic linux distribution">
       <copy file="${src.dir}/onepoint/project/onepoint.sh"
-            tofile="${dist.basic.dir}/onepoint.sh"/>
-      <zip basedir="${dist.basic.dir}" zipfile="${dist.dir}/${basic.name}-linux.zip"/>
+            tofile="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}"/>
+      <tar destfile="${dist.dir}/${basic.name}-linux.tgz">
+         <tarfileset dir="${dist.basic.dir}">
+            <exclude name="**/${opproject.linux.launcher}"/>
+         </tarfileset>
+         <tarfileset dir="${dist.basic.dir}" mode="755">
+            <include name="**/${opproject.linux.launcher}"/>
+         </tarfileset>
+      </tar>
    </target>
 
    <!--Generates Windows executable file using Java Application Wrapper- Launch4j-->
@@ -486,16 +536,18 @@
       <!--Launch4j task definition-->
       <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.path}"/>
       <launch4j>
-         <config headerType="0" jar="${project.basic.jarname}"
+         <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
                  outfile="${dist.basic.dir}/${executable.file}" customProcName="false"
-                 dontWrapJar="true" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
+                 dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
             <jre minVersion="1.4.0"/>
-            <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0" fileDescription="OnePoint Software"
-                         copyright="OnePoint Software GmbH" productVersion="1.0.0.0" txtProductVersion="1.0"
-                         productName="OnePoint Projects" companyName="OnePoint Software GmbH"
+            <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
+                         copyright="Onepoint Software GmbH" productVersion="${version}.0.0" txtProductVersion="${version}"
+                         productName="Onepoint Projects" companyName="Onepoint Software GmbH"
                          internalName="onepoint" originalFilename="${executable.file}"/>
          </config>
       </launch4j>
+      <move file="${dist.basic.dir}/${executable.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+      <zip basedir="${dist.basic.dir}" zipfile="${dist.dir}/${basic.name}-win.zip"/>
    </target>
 
    <!--Mac OS-->
@@ -504,10 +556,10 @@
            description="Generates Mac Os executable file">
       <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
                classpath="${op.jarbundler.classpath}"/>
-      <jarbundler dir="${dist.basic.dir}" verbose="true" infostring="Onepoint Project, copyright OnePoint Software GmbH 2007"
+      <jarbundler dir="${dist.basic.dir}/${dist.main.folder}" verbose="true" infostring="Onepoint Project, copyright Onepoint Software GmbH 2007"
                   name="${opproject.launchername.mac}"
                   icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
-      	          shortname="${opproject.launchername.mac}"
+                  shortname="${opproject.launchername.mac}"
                   version="${version}"
                   jvmversion="1.4+"
                   mainclass="onepoint.project.application.OpBasicSplasher">
@@ -516,12 +568,19 @@
             <include name="${express.jarname}"/>
          </jarfileset>
          <!--jars from lib will be included in the application bundle-->
-         <jarfileset dir="${lib.dir}">
-            <patternset refid="standalone.lib.pathid"/>
-         </jarfileset>
+         <jarfileset dir="${dist.basic.dir}/${dist.main.folder}/lib">
+            <patternset includes="*.*"/>
+         </jarfileset>         
       </jarbundler>
    </target>
 
+   <!-- build the xml-rpc examples zip file -->
+   <target name="build.xml-rpc.examples.zip" depends="init" description="Builds the xml-rpc examples zip file">
+      <mkdir dir="${dist.dir}/${examples}"/>
+      <zip destfile="${dist.dir}/${examples}/xml-rpc-examples.zip">
+         <fileset dir="${src.dir}/onepoint/project/xml_rpc" includes="example/js/**/*"/>
+      </zip>
+   </target>
 
    <!--Copies all needed resources for executing tests-->
    <target name="copy.test.resources" description="Copies all needed resources for executing tests">
@@ -545,11 +604,16 @@
             <include name="*.jar"/>
          </fileset>
       </copy>
+      <copy todir="${tests.onepoint.home}">
+         <fileset dir="${src.dir}/onepoint/project/test">
+            <include name="**/*.xml"/>
+         </fileset>
+      </copy>
    </target>
 
    <!-- Compiles the tests source code of the application -->
    <target name="build.tests" depends="build,copy.resources,copy.test.resources" description="Compiles the test source code">
-      <javac srcdir="${src.dir}" destdir="${tests.dir}"
+      <javac srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.tests.classpath" debug="${debug}"
              target="${jdk.target}" deprecation="${deprecation}">
          <patternset refid="tests.compile.pathid"/>
@@ -557,17 +621,15 @@
    </target>
 
    <!--Executes OnePoint unit tests and generates html report files-->
-   <target name="run.tests" depends="clean,build.tests" description="Executes the Onepoint unit tests and generates report">
-      <echo message="Halt On Failuare: ${haltonfailuare}"/>
-      <junit printsummary="on" reloading="false" haltonfailure="${haltonfailuare}" fork="on" forkmode="once">
+   <target name="run.tests" depends="clean.tests, clean, build.tests" description="Executes the Onepoint unit tests and generates report">
+      <junit printsummary="on" reloading="false" fork="on" forkmode="once" failureproperty="junit_test_failed">
          <formatter type="xml"/>
          <classpath>
             <path refid="op.tests.classpath"/>
          </classpath>
          <batchtest fork="false" todir="${tests.dir}">
-            <fileset dir="${tests.dir}">
+            <fileset dir="${classes.dir}">
                <include name="**/*Test.class"/>
-               <exclude name="**/hibernate/test/**"/>
             </fileset>
          </batchtest>
       </junit>
@@ -578,6 +640,12 @@
          </fileset>
          <report format="frames" todir="${tests.dir}/html-report"/>
       </junitreport>
+      <antcall target="create.fail.dir"/>
    </target>
+
+   <target name="create.fail.dir" if="junit_test_failed">
+      <mkdir dir="testFailed"/>
+   </target>
+   
 
 </project>

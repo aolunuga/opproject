@@ -78,7 +78,8 @@ public class OpProgressCalculator {
       //update assignment
       if (insert_mode) {
          assignment.setActualEffort(assignment.getActualEffort() + work_record.getActualEffort());
-         assignment.setActualCosts(assignment.getActualCosts() + assignment.getResource().getHourlyRate() * work_record.getActualEffort());
+         assignment.setActualCosts(assignment.getActualCosts() + work_record.getPersonnelCosts());
+         assignment.setActualProceeds(assignment.getActualProceeds() + work_record.getActualProceeds());
          if (progressTracked) {
             assignment.setRemainingEffort(assignment.getRemainingEffort() + work_record.getRemainingEffortChange());
          }
@@ -86,6 +87,7 @@ public class OpProgressCalculator {
       else {
          assignment.setActualEffort(assignment.getActualEffort() - work_record.getActualEffort());
          assignment.setActualCosts(assignment.getActualCosts() - work_record.getPersonnelCosts());
+         assignment.setActualProceeds(assignment.getActualProceeds() - work_record.getActualProceeds());
          if (progressTracked) {
             assignment.setRemainingEffort(assignment.getRemainingEffort() - work_record.getRemainingEffortChange());
          }
@@ -105,12 +107,17 @@ public class OpProgressCalculator {
             if (progressTracked) {
                activity.setRemainingEffort(activity.getRemainingEffort() + work_record.getRemainingEffortChange());
             }
-            activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() + assignment.getResource().getHourlyRate() * work_record.getActualEffort());
+            activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() + work_record.getPersonnelCosts());
+            activity.setActualProceeds(activity.getActualProceeds() + work_record.getActualProceeds());
             // Add to manually managed costs
             activity.setActualMaterialCosts(activity.getActualMaterialCosts() + work_record.getMaterialCosts());
             activity.setActualTravelCosts(activity.getActualTravelCosts() + work_record.getTravelCosts());
             activity.setActualExternalCosts(activity.getActualExternalCosts() + work_record.getExternalCosts());
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() + work_record.getMiscellaneousCosts());
+            activity.setRemainingMaterialCosts(activity.getRemainingMaterialCosts() + work_record.getRemMaterialCostsChange());
+            activity.setRemainingTravelCosts(activity.getRemainingTravelCosts() + work_record.getRemTravelCostsChange());
+            activity.setRemainingExternalCosts(activity.getRemainingExternalCosts() + work_record.getRemExternalCostsChange());
+            activity.setRemainingMiscellaneousCosts(activity.getRemainingMiscellaneousCosts() + work_record.getRemMiscCostsChange());
          }
          else {
             activity.setActualEffort(activity.getActualEffort() - work_record.getActualEffort());
@@ -118,11 +125,16 @@ public class OpProgressCalculator {
                activity.setRemainingEffort(activity.getRemainingEffort() - work_record.getRemainingEffortChange());
             }
             activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() - work_record.getPersonnelCosts());
+            activity.setActualProceeds(activity.getActualProceeds() - work_record.getActualProceeds());
             // Subtract from manually managed costs
             activity.setActualMaterialCosts(activity.getActualMaterialCosts() - work_record.getMaterialCosts());
             activity.setActualTravelCosts(activity.getActualTravelCosts() - work_record.getTravelCosts());
             activity.setActualExternalCosts(activity.getActualExternalCosts() - work_record.getExternalCosts());
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() - work_record.getMiscellaneousCosts());
+            activity.setRemainingMaterialCosts(activity.getRemainingMaterialCosts() - work_record.getRemMaterialCostsChange());
+            activity.setRemainingTravelCosts(activity.getRemainingTravelCosts() - work_record.getRemTravelCostsChange());
+            activity.setRemainingExternalCosts(activity.getRemainingExternalCosts() - work_record.getRemExternalCostsChange());
+            activity.setRemainingMiscellaneousCosts(activity.getRemainingMiscellaneousCosts() - work_record.getRemMiscCostsChange());
          }
 
          if (activity.getType() != OpActivity.ADHOC_TASK) {

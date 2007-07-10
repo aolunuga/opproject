@@ -33,8 +33,10 @@ public class OpAssignment extends OpObject {
    private double baseEffort; // Person-hours
    private double actualEffort; // Person-hours
    private double remainingEffort; // Person-hours
+
    private double baseCosts; // Personnel costs
    private double actualCosts; // Personnel costs
+
    private double baseProceeds; // Base External costs
    private double actualProceeds; // Base Actual costs
    private OpProjectPlan projectPlan;
@@ -145,5 +147,4 @@ public class OpAssignment extends OpObject {
    public Set<OpWorkRecord> getWorkRecords() {
       return workRecords;
    }
-
 }

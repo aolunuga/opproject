@@ -9,11 +9,13 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
@@ -105,8 +107,17 @@ public class OpConfigurationWizardService extends OpProjectService {
          return response;
       }
       else if (isStandalone) {
+         String dataFolder = XEnvironmentManager.convertPathToSlash(databaseURL);
+         StringBuffer dbPath = new StringBuffer(dataFolder);
+         dbPath.append(File.separator);
+         dbPath.append(OpProjectConstants.HSQL_DB_DIR_NAME);
+         dbPath.append(File.separator);
+         dbPath.append(OpProjectConstants.HSQL_DB_FILE_NAME);
+
+         OpEnvironmentManager.setDataFolderPathFromDbPath(dbPath.toString());
+
          StringBuffer dbUrl = new StringBuffer(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX);
-         dbUrl.append(XEnvironmentManager.convertPathToSlash(databaseURL));
+         dbUrl.append(dbPath);
          databaseURL = dbUrl.toString();
       }
 
@@ -131,8 +142,13 @@ public class OpConfigurationWizardService extends OpProjectService {
       String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
-      Map initParams = OpInitializer.init(OpInitializer.getProductCode());
-      response.setArgument("initParams", initParams);
+      OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+      Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
+
+      response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
+
+      //restore the locale to the system locale (issue OPP-19)
+      session.resetLocaleToSystemDefault();
 
       return response;
    }

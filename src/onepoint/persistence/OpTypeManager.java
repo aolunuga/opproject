@@ -7,28 +7,26 @@ package onepoint.persistence;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.*;
 
 public class OpTypeManager {
-
+   // Class logger.
    private static final XLog logger = XLogFactory.getServerLogger(OpTypeManager.class);
 
-   private static Hashtable types;
-   private static Hashtable prototypes;
-   private static Hashtable prototypeIds;
-   private static Hashtable classNames;
+   private static Map<String, OpType> types;
+   private static Map<String, OpPrototype> prototypes;
+   private static Map<Integer, OpPrototype> prototypeIds;
+   private static Map<String, OpType> classNames;
    private static int minTypeId; // Used to register basic types
    private static int maxTypeId; // Used to register prototypes
    private static boolean locked; // If locked new types cannot be added
 
    static {
       // Initialize hashtable and type-ID counters
-      types = new Hashtable();
-      prototypes = new Hashtable();
-      prototypeIds = new Hashtable();
-      classNames = new Hashtable();
+      types = new HashMap<String, OpType>();
+      prototypes = new HashMap<String, OpPrototype>();
+      prototypeIds = new HashMap<Integer, OpPrototype>();
+      classNames = new HashMap<String, OpType>();
       minTypeId = 0;
       maxTypeId = 0;
       locked = false;
@@ -45,11 +43,9 @@ public class OpTypeManager {
       registerType(new OpType("Double", "java.lang.Double"));
       registerType(new OpType("Timestamp", "java.util.Date"));
       registerType(new OpType("Text", "java.lang.String"));
-      // Load and register built-in protoypes "OpObject" and "OpSite"
+      // Load and register built-in protoypes "OpObject"
       OpPrototype object_prototype = new OpPrototypeLoader().loadPrototype("onepoint/persistence/object.opt.xml");
       registerPrototype(object_prototype);
-      OpPrototype site_prototype = new OpPrototypeLoader().loadPrototype("onepoint/persistence/site.opt.xml");
-      registerPrototype(site_prototype);
    }
 
    public static void registerType(OpType type) { // synchronized
@@ -92,8 +88,7 @@ public class OpTypeManager {
       // Assign unique IDs to members (inside inheritance-chain)
       // *** We must assume here that all super-types are already registered (check it)!
       int max_member_id = -1;
-      OpPrototype p = prototype;
-      if (p.getSuperType() != null) {
+      if (prototype.getSuperType() != null) {
          max_member_id = prototype.getSuperType().getSize();
       }
       // Resolve type-IDs and set member-ID
@@ -135,9 +130,8 @@ public class OpTypeManager {
    public static void lock() {
       // *** Check if it is already locked?
       // Resolve relationships between all registered prototypes
-      Enumeration prototypes = OpTypeManager.prototypes.elements();
-      while (prototypes.hasMoreElements()) {
-         OpPrototype prototype = (OpPrototype) (prototypes.nextElement());
+      Collection<OpPrototype> prototypes = OpTypeManager.prototypes.values();
+      for (OpPrototype prototype : prototypes) {
          Iterator members = prototype.getDeclaredMembers();
          while (members.hasNext()) {
             OpMember member = (OpMember) (members.next());

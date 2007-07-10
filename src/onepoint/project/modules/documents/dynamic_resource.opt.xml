@@ -1,4 +1,4 @@
-<prototype name="OpDynamicResource" instance-class="onepoint.project.modules.documents.OpDynamicResource">
+<prototype name="OpDynamicResource" instance-class="onepoint.project.modules.documents.OpDynamicResource" super-type="OpObject">
    <field name="Locale" type="String"/>
    <field name="Name" type="String" indexed="true"/>
    <field name="Value" type="String"/>

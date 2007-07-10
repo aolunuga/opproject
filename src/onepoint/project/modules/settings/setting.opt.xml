@@ -1,4 +1,4 @@
-<prototype name="OpSetting" instance-class="onepoint.project.modules.settings.OpSetting">
+<prototype name="OpSetting" instance-class="onepoint.project.modules.settings.OpSetting" super-type="OpObject">
    <field name="Name" type="String" mandatory="true" unique="true"/>
    <field name="Value" type="String"/>
 </prototype>

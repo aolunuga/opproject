@@ -6,10 +6,13 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.user.OpPermission;
+
+import java.util.Iterator;
 
 public class OpProjectModule extends OpModule {
 
@@ -36,6 +39,7 @@ public class OpProjectModule extends OpModule {
    /**
     * @see onepoint.project.module.OpModule#start(onepoint.project.OpProjectSession)
     */
+   @Override
    public void start(OpProjectSession session) {
 
       //Register system objects with backup manager (for backup backward compatibility, add the old names as well)
@@ -51,11 +55,35 @@ public class OpProjectModule extends OpModule {
    }
 
    /**
-    * @see onepoint.project.module.OpModule#upgrade(onepoint.project.OpProjectSession, int)  
+    * Upgrades this module to version #5 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void upgrade(OpProjectSession session, int dbVersion) {
+   public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       updateRootPortfolioName(broker);
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #11 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion11(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
+      allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpProjectNode> projectsIt = broker.list(allProjectsQuery).iterator();
+      while (projectsIt.hasNext()) {
+         OpProjectNode project = projectsIt.next();
+         project.setArchived(OpProjectNode.DEFAULT_ARCHIVED);
+         project.setPriority(OpProjectNode.DEFAULT_PRIORITY);
+         project.setProbability(OpProjectNode.DEFAULT_PROBABILITY);
+         broker.updateObject(project);
+      }
+      tx.commit();
       broker.close();
    }
 

@@ -4,33 +4,34 @@
 
 package onepoint.project.modules.settings.holiday_calendar;
 
+import onepoint.util.XCalendar;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author ovidiu.lupas
  */
 public class OpHolidayCalendarMember {
 
-   /*date format for the holiday dates*/
+   static {
+      TimeZone.setDefault(XCalendar.GMT_TIMEZONE);
+   }   
+   //date format for the holiday dates
    private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd");
 
-   /*year for bank holidays */
+   //year for bank holidays
    public int year;
 
-   /*list bank holidays dates in this year */
+   //list bank holidays dates in this year
    private List holidayDates = new ArrayList();
 
 
    public void addHoliday(String holiday) {
       try {
          Date date = DATE_FORMAT.parse(holiday);
-         Calendar calendar = Calendar.getInstance();
-         calendar.setTime(date);
+         Calendar calendar = XCalendar.setCalendarTimeToZero(date);
          calendar.set(Calendar.YEAR, year);
          holidayDates.add(new java.sql.Date(calendar.getTimeInMillis()));
       }

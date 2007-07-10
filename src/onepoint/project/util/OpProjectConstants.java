@@ -13,7 +13,7 @@ public interface OpProjectConstants {
 
    public static final String RUN_LEVEL = "runLevel";
    public static final String GET_RUN_LEVEL_ACTION = "GetRunLevel";
-   public static final Byte CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL = new Byte((byte) 0);
+   public static final byte CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL = 0;
    public static final String CONFIGURATION_WIZARD_FORM = "/modules/configuration_wizard/forms/configuration_wizard.oxf.xml";
    public static final String STANDALONE_CONFIGURATION_WIZARD_FORM = "/modules/configuration_wizard/forms/standalone_configuration_wizard.oxf.xml";
    public static final String DEFAULT_START_FORM = "/forms/login.oxf.xml";
@@ -35,10 +35,42 @@ public interface OpProjectConstants {
    public static final String PROFESSIONAL_EDITION_CODE = "OPPPE";
    public static final String OPEN_EDITION_CODE = "OPPOE";
    public static final String TEAM_EDITION_CODE = "OPPTE";
+   public static final String ON_DEMAND_EDITION_CODE = "OPPOD";
 
    /**
     * The code version number.
     */
    public static final String CODE_VERSION_NUMBER = "07";
    public static final String CALENDAR = "calendar";
+
+   /**
+    * HSQL BD folder name.
+    */
+   public static final String HSQL_DB_DIR_NAME = "repository";
+
+   /**
+    * HSQL BD file name.
+    */
+   public static final String HSQL_DB_FILE_NAME = "onepoint";
+
+   /**
+    * Backup/restore folder name.
+    */
+   public static final String BACKUP_DIR_NAME = "backup";
+
+   /**
+    * Constants needed for attachment management
+    */
+   public final static String LINKED_ATTACHMENT_DESCRIPTOR = "u";
+   public final static String DOCUMENT_ATTACHMENT_DESCRIPTOR = "d";
+   public final static String NO_CONTENT_ID = "0";
+
+   /**
+    * Success Run Level.
+    */
+   public static final byte SUCCESS_RUN_LEVEL = 6;
+
+   public static final String RUN_LEVEL_ERROR_FORM = "/forms/runLevel.oxf.xml";
+
+   public static final String INIT_PARAMS = "initParams";
 }

@@ -4,6 +4,8 @@
 
 package onepoint.project.modules.preferences;
 
+import java.util.HashMap;
+
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
@@ -13,14 +15,11 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
+import onepoint.project.util.OpHashProvider;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.project.util.OpSHA1;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
-import onepoint.util.XCalendar;
-
-import java.util.HashMap;
 
 /**
  * Service class that handles all the business operations
@@ -76,7 +75,7 @@ public class OpPreferencesService extends OpProjectService {
 
       if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
          //update the password
-         String hashedPasswrd = (password == null ) ? null : new OpSHA1().calculateHash(password);
+         String hashedPasswrd = (password == null ) ? null : new OpHashProvider().calculateHash(password);
          currentUser.setPassword(hashedPasswrd);
          broker.updateObject(currentUser);
       }

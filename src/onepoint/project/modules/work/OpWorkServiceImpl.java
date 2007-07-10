@@ -7,6 +7,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpConnection;
+import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
@@ -49,9 +50,11 @@ public class OpWorkServiceImpl implements OpService {
       }
 
       //validate work record set
-      int error = work_slip.isValid();
-      if (error != 0) {
-         throw new XServiceException(session.newError(ERROR_MAP, error));
+      try {
+         work_slip.validate();
+      }
+      catch (OpEntityException e) {
+         throw new XServiceException(session.newError(ERROR_MAP, e.getErrorCode()));
       }
 
       OpUser user = session.user(broker);
@@ -68,8 +71,6 @@ public class OpWorkServiceImpl implements OpService {
       if (it.hasNext()) {
          throw new XServiceException(session.newError(ERROR_MAP, OpWorkError.DUPLICATE_DATE));
       }
-      // set flush mode back again
-      broker.getConnection().setFlushMode(mode);
 
       Integer max;
       query = broker.newQuery("select max(work_slip.Number) from OpWorkSlip as work_slip where work_slip.Creator.ID = ?");
@@ -78,6 +79,9 @@ public class OpWorkServiceImpl implements OpService {
       if (max == null) {
          max = 0;
       }
+
+      // set flush mode back again
+      broker.getConnection().setFlushMode(mode);
 
       // check assignment
       Set records = work_slip.getRecords();
@@ -96,7 +100,7 @@ public class OpWorkServiceImpl implements OpService {
       work_slip.setNumber(max + 1);
       work_slip.setCreator(user);
 
-      // make work slip persistent
+       // make work slip persistent
       broker.makePersistent(work_slip);
 
       // Inserts work-records into database and add to progress calculator
@@ -254,10 +258,12 @@ public class OpWorkServiceImpl implements OpService {
    }
 
    public void deleteWorkRecords(OpBroker broker, OpWorkSlip workSlip) {
-      for (OpWorkRecord workRecord : workSlip.getRecords()) {
-         deleteMyWorkRecord(broker, workRecord);
+
+      for (Iterator<OpWorkRecord> iterator = workSlip.getRecords().iterator(); iterator.hasNext();) {
+         OpWorkRecord opWorkRecord = iterator.next();
+         iterator.remove();
+         deleteMyWorkRecord(broker, opWorkRecord);
       }
-      workSlip.getRecords().clear();
       broker.updateObject(workSlip);
    }
 

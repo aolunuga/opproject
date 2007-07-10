@@ -6,10 +6,9 @@ package onepoint.project.modules.project.test;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.resource.OpHourlyRatesPeriod;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpTestCase;
 
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,7 +19,7 @@ import java.util.Set;
  *
  * @author florin.haizea
  */
-public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
+public class OpProjectNodeAssignmentTest extends OpTestCase {
 
    /**
     * Test extraction of the internal/external rate for a given day
@@ -37,9 +36,6 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       resource.setHourlyRate(3d);
       resource.setExternalRate(2d);
       Set<OpHourlyRatesPeriod> resourcePeriodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2007, 10, 12, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
 
       OpProjectNodeAssignment assignment = new OpProjectNodeAssignment();
       assignment.setHourlyRate(7d);
@@ -48,13 +44,13 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       assignment.setResource(resource);
       resource.setHourlyRatesPeriods(resourcePeriodsSet);
 
-      List<Double> ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), false);
+      List<Double> ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis()), false);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 7d, internalRate.doubleValue(), 0d);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 10d, externalRate.doubleValue(), 0d);
 
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 7d, internalRate.doubleValue(), 0d);
@@ -62,7 +58,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
 
       assignment.setHourlyRate(null);
       assignment.setExternalRate(null);
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 3d, internalRate.doubleValue(), 0d);
@@ -73,15 +69,9 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(9d);
       hourlyRatesPeriod.setExternalRate(9d);
 
-      calendar.set(2007, 11, 11, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 15, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 14, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      hourlyRatesPeriod.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 11).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 15).getTimeInMillis()));
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 14).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 9d, internalRate.doubleValue(), 0d);
@@ -89,7 +79,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
 
       assignment.setHourlyRate(7d);
       assignment.setExternalRate(10d);
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 14).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 7d, internalRate.doubleValue(), 0d);
@@ -100,31 +90,22 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(5d);
       hourlyRatesPeriod.setExternalRate(6d);
 
-      calendar.set(2007, 10, 12, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 12, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
+      hourlyRatesPeriod.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 13).getTimeInMillis()));
 
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 12).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 5d, internalRate.doubleValue(), 0d);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 6d, externalRate.doubleValue(), 0d);
 
-      calendar.set(2007, 11, 14, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 14).getTimeInMillis()), true);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 7d, internalRate.doubleValue(), 0d);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 10d, externalRate.doubleValue(), 0d);
 
-      ratesList = assignment.getRatesForDay(new Date(calendar.getTimeInMillis()), false);
+      ratesList = assignment.getRatesForDay(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 14).getTimeInMillis()), false);
       internalRate = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
       externalRate = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForDay failed", 7d, internalRate.doubleValue(), 0d);
@@ -146,13 +127,8 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       resource.setHourlyRate(3d);
       resource.setExternalRate(2d);
       Set<OpHourlyRatesPeriod> resourcePeriodsSet = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendarStart = Calendar.getInstance();
-      calendarStart.set(2007, 11, 12, 0, 0, 0);
-      calendarStart.set(Calendar.MILLISECOND, 0);
-      Calendar calendarEnd = Calendar.getInstance();
-      calendarEnd.set(2007, 11, 14, 0, 0, 0);
-      calendarEnd.set(Calendar.MILLISECOND, 0);
-      Calendar calendar = Calendar.getInstance();
+      Date dateStart = new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 12).getTimeInMillis());
+      Date dateEnd = new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 14).getTimeInMillis());
 
       OpProjectNodeAssignment assignment = new OpProjectNodeAssignment();
       assignment.setHourlyRate(7d);
@@ -161,7 +137,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       assignment.setResource(resource);
       resource.setHourlyRatesPeriods(resourcePeriodsSet);
 
-      List<List> ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), false);
+      List<List> ratesList = assignment.getRatesForInterval(dateStart, dateEnd, false);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 7d, internalRateList.get(0), 0d);
@@ -171,7 +147,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 10d, externalRateList.get(1), 0d);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 10d, externalRateList.get(2), 0d);
 
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, true);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 7d, internalRateList.get(0), 0d);
@@ -183,7 +159,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
 
       assignment.setHourlyRate(null);
       assignment.setExternalRate(null);
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, true);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 3d, internalRateList.get(0), 0d);
@@ -198,14 +174,10 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(9d);
       hourlyRatesPeriod.setExternalRate(9d);
 
-      calendar.set(2007, 11, 11, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 11).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 13).getTimeInMillis()));
 
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, true);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 9d, internalRateList.get(0), 0d);
@@ -217,7 +189,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
 
       assignment.setHourlyRate(7d);
       assignment.setExternalRate(10d);
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, true);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 7d, internalRateList.get(0), 0d);
@@ -232,14 +204,10 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       hourlyRatesPeriod.setInternalRate(5d);
       hourlyRatesPeriod.setExternalRate(6d);
 
-      calendar.set(2007, 10, 12, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2007, 11, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      hourlyRatesPeriod.setFinish(new Date(calendar.getTimeInMillis()));
+      hourlyRatesPeriod.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis()));
+      hourlyRatesPeriod.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 11, 13).getTimeInMillis()));
 
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), true);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, true);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 5d, internalRateList.get(0), 0d);
@@ -249,7 +217,7 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 6d, externalRateList.get(1), 0d);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 10d, externalRateList.get(2), 0d);
 
-      ratesList = assignment.getRatesForInterval(new Date(calendarStart.getTimeInMillis()), new Date(calendarEnd.getTimeInMillis()), false);
+      ratesList = assignment.getRatesForInterval(dateStart, dateEnd, false);
       internalRateList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
       externalRateList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
       assertEquals("OpProjectNodeAssignment.getRatesForInterval failed", 7d, internalRateList.get(0), 0d);
@@ -271,21 +239,12 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       OpHourlyRatesPeriod period1 = new OpHourlyRatesPeriod();
       OpHourlyRatesPeriod period2 = new OpHourlyRatesPeriod();
       Set<OpHourlyRatesPeriod> hourlyPeriods = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setFinish(new Date(calendar.getTimeInMillis()));
+      period1.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period1.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
 
-      calendar.set(2006, 4, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 16, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 13).getTimeInMillis()));
+      period2.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 16).getTimeInMillis()));
 
       hourlyPeriods.add(period1);
       hourlyPeriods.add(period2);
@@ -306,21 +265,12 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
       OpHourlyRatesPeriod period1 = new OpHourlyRatesPeriod();
       OpHourlyRatesPeriod period2 = new OpHourlyRatesPeriod();
       Set<OpHourlyRatesPeriod> hourlyPeriods = new HashSet<OpHourlyRatesPeriod>();
-      Calendar calendar = Calendar.getInstance();
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period1.setFinish(new Date(calendar.getTimeInMillis()));
+      period1.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period1.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
 
-      calendar.set(2006, 4, 22, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 22).getTimeInMillis()));
+      period2.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 25).getTimeInMillis()));
 
       hourlyPeriods.add(period1);
       hourlyPeriods.add(period2);
@@ -329,28 +279,16 @@ public class OpProjectNodeAssignmentTest extends OpBaseTestCase {
 
       assertFalse(assignment.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 20, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 20).getTimeInMillis()));
+      period2.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
       assertFalse(assignment.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 13, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 25, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 13).getTimeInMillis()));
+      period2.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 25).getTimeInMillis()));
       assertFalse(assignment.checkPeriodDoNotOverlap());
 
-      calendar.set(2006, 4, 16, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setStart(new Date(calendar.getTimeInMillis()));
-      calendar.set(2006, 4, 27, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      period2.setFinish(new Date(calendar.getTimeInMillis()));
+      period2.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 16).getTimeInMillis()));
+      period2.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2006, 4, 27).getTimeInMillis()));
       assertFalse(assignment.checkPeriodDoNotOverlap());
    }
 }

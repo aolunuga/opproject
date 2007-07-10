@@ -8,12 +8,12 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
 import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
 import java.util.ArrayList;
@@ -32,6 +32,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
    private final static String ROLE_PANEL = "RolePanel";
+   private final static String PRINT_BUTTON = "PrintButton";
    private final static int DEFAULT_PROJECT_CHOICE_FIELD_INDEX = 0;
 
    //project choice values
@@ -57,7 +58,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
 
       // hide multi-user components
-      if (!OpInitializer.isMultiUser()) {
+      if (!OpEnvironmentManager.isMultiUser()) {
          form.findComponent(ROLE_PANEL).setVisible(false);
       }
 
@@ -75,6 +76,11 @@ public class OpMyProjectsFormProvider implements XFormProvider {
 
       //sort by name
       projectsDataSet.sort(PROJECT_NAME_INDEX);
+
+      //enable the print button if there are any projects
+      if (projectsDataSet.getChildCount() > 0) {
+         form.findComponent(PRINT_BUTTON).setEnabled(true);
+      }
 
       broker.close();
    }
@@ -287,6 +293,11 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       double remainingCost = baseCost - actualCost;
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(remainingCost);
+      dataRow.addChild(dataCell);
+
+      //priority 20
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setIntValue(projectNode.getPriority());
       dataRow.addChild(dataCell);
 
       return dataRow;

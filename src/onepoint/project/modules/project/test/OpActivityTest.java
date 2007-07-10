@@ -6,10 +6,9 @@ package onepoint.project.modules.project.test;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpTestCase;
 
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -17,85 +16,48 @@ import java.util.List;
  *
  * @author florin.haizea
  */
-public class OpActivityTest extends OpBaseTestCase {
+public class OpActivityTest extends OpTestCase {
 
    public void testGetStartEndDates()
         throws Exception {
 
-      Calendar calendar = Calendar.getInstance();
-      calendar.set(2007,5,1,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-
       //create the project plan with start - end dates : 5/1/2007 - 5/30/2007
       OpProjectPlan projectPlan = new OpProjectPlan();
-      projectPlan.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007, 5, 30, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      projectPlan.setFinish(new Date(calendar.getTimeInMillis()));
+      projectPlan.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 1).getTimeInMillis()));
+      projectPlan.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 30).getTimeInMillis()));
 
        //create the project node with start - end dates : 5/3/2007 - 5/28/2007
       OpProjectNode projectNode = new OpProjectNode();
-      calendar.set(2007,5,3,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-
-      projectNode.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007, 28, 30, 0, 0, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      projectNode.setFinish(new Date(calendar.getTimeInMillis()));
+      projectNode.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 3).getTimeInMillis()));
+      projectNode.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 30).getTimeInMillis()));
       projectPlan.setProjectNode(projectNode);
-
-      calendar.set(2007,5,10,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
 
       //a standard activity with start - end dates : 5/10/2007 - 5/15/2007
       OpActivity standardActivity = new OpActivity();
       standardActivity.setType(OpActivity.STANDARD);
-      standardActivity.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007,5,15,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-      standardActivity.setFinish(new Date(calendar.getTimeInMillis()));
+      standardActivity.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 10).getTimeInMillis()));
+      standardActivity.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 15).getTimeInMillis()));
       standardActivity.setProjectPlan(projectPlan);
-
-      calendar.set(2007,5,15,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
 
       //a task activity with start - end dates : 5/15/2007 - 5/20/2007
       OpActivity taskActivity = new OpActivity();
       taskActivity.setType(OpActivity.TASK);
-      taskActivity.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007,5,20,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-      taskActivity.setFinish(new Date(calendar.getTimeInMillis()));
+      taskActivity.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 15).getTimeInMillis()));
+      taskActivity.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 20).getTimeInMillis()));
       taskActivity.setProjectPlan(projectPlan);
 
-      calendar.set(2007,5,13,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-
-      //an ad hoc task activity with start - end dates : 5/13/2007 - 5/15/2007
+       //an ad hoc task activity with start - end dates : 5/13/2007 - 5/15/2007
       OpActivity adHocActivity = new OpActivity();
       adHocActivity.setType(OpActivity.ADHOC_TASK);
-      adHocActivity.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007,5,15,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-      adHocActivity.setFinish(new Date(calendar.getTimeInMillis()));
+      adHocActivity.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 13).getTimeInMillis()));
+      adHocActivity.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 15).getTimeInMillis()));
       adHocActivity.setProjectPlan(projectPlan);
-
-      calendar.set(2007,5,17,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
 
       //a milestone activity with start - end dates : 5/17/2007 - 5/18/2007
       OpActivity milestoneActivity = new OpActivity();
       milestoneActivity.setType(OpActivity.MILESTONE);
-      milestoneActivity.setStart(new Date(calendar.getTimeInMillis()));
-
-      calendar.set(2007,5,18,0,0,0);
-      calendar.set(Calendar.MILLISECOND,0);
-      milestoneActivity.setFinish(new Date(calendar.getTimeInMillis()));
+      milestoneActivity.setStart(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 17).getTimeInMillis()));
+      milestoneActivity.setFinish(new Date(OpTestCase.getCalendarWithExactDaySet(2007, 5, 18).getTimeInMillis()));
       milestoneActivity.setProjectPlan(projectPlan);
 
       List<Date> startEndList = standardActivity.getStartEndDateByType();

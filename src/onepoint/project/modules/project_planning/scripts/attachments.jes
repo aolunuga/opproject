@@ -69,7 +69,7 @@ function view(event) {
             }
          }
          else {
-            content = row.getChild(4).getValue();
+            content = row.getChild(3).getValue();
             parameters.content = content;
             parameters.fileName = location;
 
@@ -79,6 +79,7 @@ function view(event) {
             response = XDisplay.getClient().invokeMethod(request);
 
             attachmentUrl = response.getArgument("attachmentUrl");
+            contentId = response.getArgument("contentId");
             XDisplay.showDocument(attachmentUrl, contentId);
          }
       }
@@ -117,18 +118,7 @@ function getAttachments() {
       //for documents only
       if (type.equals("d")) {
          //4 - contentId
-         arr.add(data_row.getChild(3).getStringValue());
-         //new document
-         id = XValidator.choiceID(choice);
-         if (id.equals("0")) {
-            //5 - file bytes
-            bytes = data_row.getChild(4).getValue();
-            arr.add(bytes);
-
-            //6 - document full path (for viewing)
-            documentPath = data_row.getStringValue();
-            arr.add(documentPath);
-         }
+         arr.add(data_row.getChild(3).getValue());
       }
 
       att_array.add(arr);

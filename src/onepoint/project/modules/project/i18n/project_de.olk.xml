@@ -30,6 +30,8 @@
       <resource id="Activities">Vorgänge</resource>
       <resource id="Resources">Ressourcen</resource>
       <resource id="Costs">Kosten</resource>
+      <resource id="Status">Status</resource>
+      <resource id="Priority">Priorität</resource>            
 
       <resource id="NewPortfolioTooltip">Neues Projektportfolio erstellen</resource>
       <resource id="NewProjectTooltip">Neues Projekt erstellen</resource>
@@ -64,6 +66,9 @@
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
       <resource id="Budget">Budget (€)</resource>
+      <resource id="Priority">Priorität</resource>
+      <resource id="Probability">Wahrscheinlichkeit (%)</resource>
+      <resource id="Archived">Archived</resource>      
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -75,17 +80,16 @@
       <resource id="DueTo">Fällig am</resource>
 
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="AdjustRates">Stundensätze anpassen</resource>
+      <resource id="InternalRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
 
       <resource id="Permissions">Berechtigungen</resource>
 
       <resource id="CalculationMode">Aufwandsbasierte Planung</resource>
       <resource id="ProgressTracked">Fortschrittserfassung aktivieren</resource>
-      <resource id="Status">Project Status</resource>
+      <resource id="Status">Projektstatus</resource>
       <resource id="NoStatus">(Keiner)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
@@ -101,6 +105,9 @@
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
       <resource id="Budget">Budget (€)</resource>
+      <resource id="Priority">Priorität</resource>
+      <resource id="Probability">Wahrscheinlichkeit (%)</resource>
+      <resource id="Archived">Archived</resource>            
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -125,13 +132,12 @@
       <resource id="WorkingVersion">Freigegebener Projektplan</resource>
 
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
-      <resource id="Status">Project Status</resource>
+      <resource id="Resource">Ressource</resource>
+      <resource id="AdjustRates">Stundensätze anpassen</resource>
+      <resource id="InternalRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
+      <resource id="Status">Projektstatus</resource>
       <resource id="NoStatus">(No Status)</resource>
-      <resource id="HourlyRates">Hourly Rates</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
@@ -189,12 +195,10 @@
       <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
       <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
-      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
-      <resource id="PeriodStartDateNotValid">At least one of the start dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodEndDateNotValid">At least one of the finish dates specified in Hourly Rates tab is incorrect</resource>
-      <resource id="PeriodIntervalNotValid">At least one of the period intervals specified in Hourly Rates tab is incorrect</resource>
-      <resource id="DateIntervalOverlap">One or more period intervals specified in Hourly Rates tab overlap</resource>
+      <resource id="InternalRateNotValid">Der angegebene interne Stundensatz ist ungültig</resource>
+      <resource id="ExternalRateNotValid">Der angegebene externe Stundensatz ist ungültig</resource>      
+      <resource id="ProbabilityNotValid">Der angegebene Wahrscheinlichkeit ist ungültig (0-100)</resource>      
+      <resource id="PriorityNotValid">Der angegebene Priorität ist ungültig (1-9)</resource>      
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>
@@ -213,10 +217,9 @@
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
 
-    <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>
-      <resource id="ConfirmChangeHourlyTab">Changing one or more hourly rate periods and/or external rate periods of the assignments will result in recalculating personnel costs in various project plans.</resource>
-      <resource id="ConfirmChangeHR">Changing the hourly rate and/or external rate of the assignments will result in recalculating personnel costs in various project plans.</resource>
+   <resource-map id="project.change">
+      <resource id="ConfirmChange">Modify Project</resource>      
+      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>

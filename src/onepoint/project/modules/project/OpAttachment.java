@@ -6,6 +6,7 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.work.OpCostRecord;
 
 public class OpAttachment extends OpObject {
    
@@ -24,6 +25,7 @@ public class OpAttachment extends OpObject {
    private OpContent content;
    private OpProjectPlan projectPlan;
    private OpActivity activity;
+   private OpCostRecord costRecord;
 
    public void setName(String name) {
       this.name = name;
@@ -73,4 +75,11 @@ public class OpAttachment extends OpObject {
       return activity;
    }
 
+   public OpCostRecord getCostRecord() {
+      return costRecord;
+   }
+
+   public void setCostRecord(OpCostRecord costRecord) {
+      this.costRecord = costRecord;
+   }
 }

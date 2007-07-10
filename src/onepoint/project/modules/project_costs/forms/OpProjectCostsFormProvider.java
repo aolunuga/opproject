@@ -30,6 +30,7 @@ public class OpProjectCostsFormProvider implements XFormProvider {
 
    // Cost types
    protected final static String PERSONNEL = "${Personnel}";
+   protected final static String PROCEEDS = "${Proceeds}";
    protected final static String TRAVEL = "${Travel}";
    protected final static String MATERIAL = "${Material}";
    protected final static String EXTERNAL = "${External}";
@@ -130,6 +131,7 @@ public class OpProjectCostsFormProvider implements XFormProvider {
       XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(),
            PROJECT_COSTS_PROJECT_COSTS);
       String personnel = PERSONNEL;
+      String proceeds = PROCEEDS;
       String travel = TRAVEL;
       String material = MATERIAL;
       String external = EXTERNAL;
@@ -142,6 +144,7 @@ public class OpProjectCostsFormProvider implements XFormProvider {
          costNames.put(new Integer(OpProjectCostsDataSetFactory.MATERIAL_COST_INDEX), localizer.localize(material));
          costNames.put(new Integer(OpProjectCostsDataSetFactory.EXTERNAL_COST_INDEX), localizer.localize(external));
          costNames.put(new Integer(OpProjectCostsDataSetFactory.MISC_COST_INDEX), localizer.localize(miscellaneous));
+         costNames.put(new Integer(OpProjectCostsDataSetFactory.PROCEEDS_COST_INDEX), localizer.localize(proceeds));
       }
 
       OpProjectCostsDataSetFactory.fillCostsDataSet(broker, project, max_outline_level, data_set, costNames);

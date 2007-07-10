@@ -37,12 +37,12 @@ public class OpProjectPlan extends OpObject {
    private boolean progressTracked = true;
    private boolean template;
    private OpProjectNode projectNode;
-   private Set activities;
-   private Set activityAttachments;
-   private Set activityAssignments;
-   private Set workPeriods;
-   private Set dependencies;
-   private Set versions;
+   private Set<OpActivity> activities;
+   private Set<OpAttachment> activityAttachments;
+   private Set<OpAssignment> activityAssignments;
+   private Set<OpWorkPeriod> workPeriods;
+   private Set<OpDependency> dependencies;
+   private Set<OpActivityVersion> versions;
 
    public void setStart(Date start) {
       this.start = start;
@@ -67,7 +67,7 @@ public class OpProjectPlan extends OpObject {
    public byte getCalculationMode() {
       return calculationMode;
    }
-   
+
    public void setProgressTracked(boolean progressTracked) {
       this.progressTracked = progressTracked;
    }
@@ -75,11 +75,11 @@ public class OpProjectPlan extends OpObject {
    public boolean getProgressTracked() {
       return progressTracked;
    }
-   
+
    public void setTemplate(boolean template) {
       this.template = template;
    }
-   
+
    public boolean getTemplate() {
       return template;
    }
@@ -92,52 +92,64 @@ public class OpProjectPlan extends OpObject {
       return projectNode;
    }
 
-   public void setActivities(Set activities) {
+   public void setActivities(Set<OpActivity> activities) {
       this.activities = activities;
    }
 
-   public Set getActivities() {
+   public Set<OpActivity> getActivities() {
       return activities;
    }
 
-   public void setActivityAttachments(Set activityAttachments) {
+   public void setActivityAttachments(Set<OpAttachment> activityAttachments) {
       this.activityAttachments = activityAttachments;
    }
 
-   public Set getActivityAttachments() {
+   public Set<OpAttachment> getActivityAttachments() {
       return activityAttachments;
    }
 
-   public void setActivityAssignments(Set activityAssignments) {
+   public void setActivityAssignments(Set<OpAssignment> activityAssignments) {
       this.activityAssignments = activityAssignments;
    }
 
-   public Set getActivityAssignments() {
+   public Set<OpAssignment> getActivityAssignments() {
       return activityAssignments;
    }
 
-   public void setWorkPeriods(Set workPeriods) {
+   public void setWorkPeriods(Set<OpWorkPeriod> workPeriods) {
       this.workPeriods = workPeriods;
    }
 
-   public Set getWorkPeriods() {
+   public Set<OpWorkPeriod> getWorkPeriods() {
       return workPeriods;
    }
 
-   public void setDependencies(Set dependencies) {
+   public void setDependencies(Set<OpDependency> dependencies) {
       this.dependencies = dependencies;
    }
 
-   public Set getDependencies() {
+   public Set<OpDependency> getDependencies() {
       return dependencies;
    }
 
-   public void setVersions(Set versions) {
+   public void setVersions(Set<OpActivityVersion> versions) {
       this.versions = versions;
    }
 
-   public Set getVersions() {
+   public Set<OpActivityVersion> getVersions() {
       return versions;
    }
 
+   /**
+    * Copies the start date and end date from the project plan.
+    */
+   public void copyDatesFromProject() {
+      this.setStart(projectNode.getStart());
+      if (projectNode.getFinish() != null) {
+         this.setFinish(projectNode.getFinish());
+      }
+      else {
+         this.setFinish(projectNode.getStart());
+      }
+   }
 }

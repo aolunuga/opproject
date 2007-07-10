@@ -6,6 +6,7 @@ package onepoint.project.modules.user;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.express.XView;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -15,8 +16,8 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.util.OpHashProvider;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.project.util.OpSHA1;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
@@ -68,6 +69,18 @@ public class OpUserService extends OpProjectService {
    // should be set within constructor!
    private OpUserServiceImpl serviceIfcImpl_ = new OpUserServiceImpl();
 
+   public XMessage getHashAlgorithm(OpProjectSession session, XMessage request) {
+      logger.debug("OpUserService.getHashAlgorithm()");
+
+      String login = (String) (request.getArgument(LOGIN));
+      XMessage reply = new XMessage();
+      OpBroker broker = session.newBroker();
+      String algo = serviceIfcImpl_.getHashAlgorithm(session, broker, login);
+      reply.setVariable("algorithm", algo);
+      broker.close();
+      return reply;
+   }
+      
    public XMessage signOn(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.signOn()");
 
@@ -77,6 +90,9 @@ public class OpUserService extends OpProjectService {
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
       try {
+         // note: transaction is required here for ldap identification, 
+         //       because ldap identification may create new user and/or group objects
+         OpTransaction t = broker.newTransaction();
          serviceIfcImpl_.signOn(session, broker, login, password);
 
          //initialize the calendar settings
@@ -84,10 +100,12 @@ public class OpUserService extends OpProjectService {
 
          //send the calendar to the client
          reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
+         t.commit();
       }
       catch (XServiceException exc) {
          exc.append(reply);
       }
+      
       broker.close();
       return reply;
    }
@@ -139,7 +157,6 @@ public class OpUserService extends OpProjectService {
          reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.INVALID_USER_LEVEL));
          return reply;
       }
-//     System.err.println("SETTING USER LEVEL TO: "+userLevelId);
       user.setLevel(userLevelId);
 
       // NOTE: do not remove local broker reference!! (ThreadLocal)
@@ -158,7 +175,6 @@ public class OpUserService extends OpProjectService {
          if ((assigned_groups != null) && (assigned_groups.size() > 0)) {
             String choice = null;
             OpGroup group = null;
-            OpUserAssignment assignment = null;
             for (int i = 0; i < assigned_groups.size(); i++) {
                choice = (String) (assigned_groups.get(i));
                group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
@@ -343,7 +359,7 @@ public class OpUserService extends OpProjectService {
          String retypedPassword = (String) user_data.get(PASSWORD_RETYPED);
 
 
-         String token = new OpSHA1().calculateHash(PASSWORD_TOKEN);
+         String token = new OpHashProvider().calculateHash(PASSWORD_TOKEN);
 
          // note PASSWORD_TOKEN is the default value of the password field, all other fields will display the real values of the user!
          if (token.equals(password == null ? OpUser.BLANK_PASSWORD : password)) {
@@ -384,11 +400,8 @@ public class OpUserService extends OpProjectService {
 
          // Compare and update assignments
          List updatedGroupIds = (List) (user_data.get(ASSIGNED_GROUPS));
-         Iterator storedAssignments = user.getAssignments().iterator();
-         OpUserAssignment assignment = null;
-         HashSet storedGroupIds = new HashSet();
-         while (storedAssignments.hasNext()) {
-            assignment = (OpUserAssignment) storedAssignments.next();
+         Set<Long> storedGroupIds = new HashSet<Long>();
+         for (OpUserAssignment assignment : user.getAssignments()) {
             storedGroupIds.add(new Long(assignment.getGroup().getID()));
          }
 
@@ -431,7 +444,7 @@ public class OpUserService extends OpProjectService {
             query.setCollection("groupIds", storedGroupIds);
             Iterator result = broker.iterate(query);
             while (result.hasNext()) {
-               assignment = (OpUserAssignment) result.next();
+               OpUserAssignment assignment = (OpUserAssignment) result.next();
                serviceIfcImpl_.deleteUserAssignment(session, broker, assignment);
             }
          }
@@ -539,7 +552,7 @@ public class OpUserService extends OpProjectService {
          // Compare and update assignments
          Iterator storedSuperGroupAssignments = group.getSuperGroupAssignments().iterator();
          OpGroupAssignment assignment = null;
-         HashSet storedSuperGroupIds = new HashSet();
+         Set<Long> storedSuperGroupIds = new HashSet<Long>();
          while (storedSuperGroupAssignments.hasNext()) {
             assignment = (OpGroupAssignment) storedSuperGroupAssignments.next();
             storedSuperGroupIds.add(new Long(assignment.getSuperGroup().getID()));
@@ -555,7 +568,6 @@ public class OpUserService extends OpProjectService {
                   // Assignment not yet persistent: Create new user assignment
                   if (superGroup == null) {
                      reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
-//                reply.setArgument(WARNING, Boolean.TRUE);
                   }
                   else {
                      try {
@@ -564,7 +576,6 @@ public class OpUserService extends OpProjectService {
                      catch (XServiceException exc) {
                         // only warning!
                         reply.setError(exc.getError());
-                        //                 reply.setArgument(WARNING, Boolean.TRUE);
                      }
                   }
                }
@@ -682,7 +693,7 @@ public class OpUserService extends OpProjectService {
 
       OpBroker broker = session.newBroker();
 
-      List subjectIds = new ArrayList();
+      List<Long> subjectIds = new ArrayList<Long>();
       for (int i = 0; i < subjectLocators.size(); i++) {
 
          Long uId = new Long(OpLocator.parseLocator((String) (subjectLocators.get(i))).getID());
@@ -749,13 +760,13 @@ public class OpUserService extends OpProjectService {
          // FIXME(dfreis Apr 5, 2007 3:13:03 PM)
          // should return exception here!
          reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
-         return(reply);
+         return (reply);
       }
 
       String targetGroupLocator = (String) (request.getArgument(TARGET_GROUP_ID));
       if (targetGroupLocator == null) {
          reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
-         return(reply);
+         return (reply);
       }
 
       OpBroker broker = session.newBroker();
@@ -779,9 +790,7 @@ public class OpUserService extends OpProjectService {
 
          OpLocator subjectLocator = null;
          Iterator result = null;
-         OpUserAssignment userAssignment = null;
          OpUser user = null;
-         OpGroupAssignment groupAssignment = null;
          OpGroup group = null;
          for (int i = 0; i < subjectLocators.size(); i++) {
             subjectLocator = OpLocator.parseLocator((String) (subjectLocators.get(i)));
@@ -871,7 +880,7 @@ public class OpUserService extends OpProjectService {
          boolean enableGroups = ((Boolean) request.getArgument(ENABLE_GROUPS)).booleanValue();
          OpSubjectDataSetFactory.enableSubjectHierarchy(resultSet, enableUsers, enableGroups);
 
-         List resultList = new ArrayList();
+         List<XView> resultList = new ArrayList<XView>();
          for (int i = 0; i < resultSet.getChildCount(); i++) {
             resultList.add(resultSet.getChild(i));
          }
@@ -894,7 +903,7 @@ public class OpUserService extends OpProjectService {
       // replace with api call
       XComponent resultSet = expandGroupStructure(session, request, false, null);
       if (resultSet != null) {
-         List resultList = new ArrayList();
+         List<XView> resultList = new ArrayList<XView>();
          for (int i = 0; i < resultSet.getChildCount(); i++) {
             resultList.add(resultSet.getChild(i));
          }

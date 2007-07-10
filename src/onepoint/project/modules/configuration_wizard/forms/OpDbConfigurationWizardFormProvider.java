@@ -9,6 +9,7 @@ import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
@@ -46,10 +47,11 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       defaultSelectedRow.setSelected(true);
       form.findComponent(DB_URL_FIELD).setStringValue(XValidator.choiceID(defaultSelectedRow.getStringValue()));
       XComponent choiceField = form.findComponent(DB_TYPE_CHOICE_FIELD);
-      choiceField.setSelectedIndex(new Integer(selectedIndex));
+      choiceField.setSelectedIndex(selectedIndex);
 
       //check whether an error code should already be displayed
-      int connectionTestCode = OpInitializer.getConnectionTestCode();
+       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+      int connectionTestCode = initializer.getConnectionTestCode();
       if (connectionTestCode != OpConnectionManager.SUCCESS) {
          XLocalizer localizer = new XLocalizer();
          XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(((OpProjectSession) session).getLocale().getID(), "configuration_wizard.error");
@@ -96,22 +98,22 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MYSQL_INNO_DB_DISPLAY));
-      dataSet.addDataRow(dataRow);
+      dataSet.addChild(dataRow);
       //Oracle
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationWizardService.ORACLE_DISPLAY));
-      dataSet.addDataRow(dataRow);
+      dataSet.addChild(dataRow);
       //IBM DB/2
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationWizardService.IBM_DB_DISPLAY));
-      dataSet.addDataRow(dataRow);
+      dataSet.addChild(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationWizardService.POSTGRE_DISPLAY));
-      dataSet.addDataRow(dataRow);
+      dataSet.addChild(dataRow);
       //MSSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
-      dataSet.addDataRow(dataRow);
+      dataRow.setStringValue(XValidator.choice("jdbc:sqlserver://localhost:1433;databaseName=opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
+      dataSet.addChild(dataRow);
    }
 }

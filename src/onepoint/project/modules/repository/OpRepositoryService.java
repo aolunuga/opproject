@@ -8,8 +8,10 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -175,7 +177,8 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
-         OpInitializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
+         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+         initializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
          //invalidate all server sessions except the current one
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
          //clear everything from the current session
@@ -207,7 +210,8 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
-         OpInitializer.resetDbSchema();
+         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+         initializer.resetDbSchema();
          //invalidate all server sessions
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
          //clear this session
@@ -231,7 +235,7 @@ public class OpRepositoryService extends OpProjectService {
       //check whether the user entered a valid admin password
       XMessage reply = null;
       OpBroker broker = projectSession.newBroker();
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          String adminPassword = projectSession.user(broker).getPassword();
          String enteredAdminPassword = (String) request.getArgument(ADMIN_PASSWORD_PARAMETER);
          if (!adminPassword.equals(enteredAdminPassword)) {

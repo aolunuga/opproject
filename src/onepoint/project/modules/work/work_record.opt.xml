@@ -1,18 +1,33 @@
-<prototype name="OpWorkRecord" instance-class="onepoint.project.modules.work.OpWorkRecord">
+<prototype name="OpWorkRecord" instance-class="onepoint.project.modules.work.OpWorkRecord" super-type="OpObject">
    <!-- note that all fields represent differences, i.e., changes to the assignment values -->
    <field name="ActualEffort" type="Double"/>
    <field name="RemainingEffort" type="Double"/>
    <field name="RemainingEffortChange" type="Double"/>
-   <!-- field name="TravelTime" type="Double"/ -->
-   <!-- field name="PrivateCar" type="Double"/ -->
+
    <field name="PersonnelCosts" type="Double"/>
-   <field name="ActualProceeds" type="Double"/>
+
    <field name="TravelCosts" type="Double"/>
+   <field name="RemTravelCosts" type="Double"/>
+   <field name="RemTravelCostsChange" type="Double"/>
+
    <field name="MaterialCosts" type="Double"/>
+   <field name="RemMaterialCosts" type="Double"/>
+   <field name="RemMaterialCostsChange" type="Double"/>
+
    <field name="ExternalCosts" type="Double"/>
+   <field name="RemExternalCosts" type="Double"/>
+   <field name="RemExternalCostsChange" type="Double"/>
+
    <field name="MiscellaneousCosts" type="Double"/>
+   <field name="RemMiscCosts" type="Double"/>
+   <field name="RemMiscCostsChange" type="Double"/>
+
+   <field name="ActualProceeds" type="Double"/>
    <field name="Comment" type="String"/>
    <field name="Completed" type="Boolean"/>
+
    <relationship name="Assignment" type="OpAssignment" back-relationship="WorkRecords"/>
    <relationship name="WorkSlip" type="OpWorkSlip" back-relationship="Records"/>
+   <relationship name="CostRecords" type="OpCostRecord"  collection-type="Set"  back-relationship="WorkRecord" inverse="true" cascade="all"/>
+   <relationship name="TimeRecords" type="OpTimeRecord"  collection-type="Set"  back-relationship="WorkRecord" inverse="true" cascade="all"/>
 </prototype>

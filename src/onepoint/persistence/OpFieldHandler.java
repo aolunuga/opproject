@@ -29,51 +29,58 @@ public class OpFieldHandler implements XNodeHandler {
       }
       value = attributes.get("auto-increment");
       if ((value != null) && (value instanceof String)) {
-         String s = (String) value;
-         if (s.equals("true"))
-            field.setAutoIncrement(true);
-         else if (s.equals("false"))
-            field.setAutoIncrement(false);
+         field.setAutoIncrement(Boolean.parseBoolean((String) value));
       }
       value = attributes.get("unique");
       if ((value != null) && (value instanceof String)) {
+         field.setUnique(Boolean.parseBoolean((String) value));
+      }
+      value = attributes.get("unique-key");
+      if ((value != null) && (value instanceof String)) {
          String s = (String) value;
-         if (s.equals("true"))
-            field.setUnique(true);
-         else if (s.equals("false"))
-            field.setUnique(false);
+         field.setUniqueKey(s);
       }
       value = attributes.get("mandatory");
       if ((value != null) && (value instanceof String)) {
-         String s = (String) value;
-         if (s.equals("true"))
-            field.setMandatory(true);
-         else if (s.equals("false"))
-            field.setMandatory(false);
+         field.setMandatory(Boolean.parseBoolean((String) value));
       }
       value = attributes.get("ordered");
       if ((value != null) && (value instanceof String)) {
-         String s = (String) value;
-         if (s.equals("true"))
-            field.setOrdered(true);
-         else if (s.equals("false"))
-            field.setOrdered(false);
+         field.setOrdered(Boolean.parseBoolean((String) value));
       }
       value = attributes.get("indexed");
       if ((value != null) && (value instanceof String)) {
-         String s = (String) value;
-         if (s.equals("true"))
-            field.setIndexed(true);
-         else if (s.equals("false"))
-            field.setIndexed(false);
+         field.setIndexed(Boolean.parseBoolean((String) value));
       }
+      value = attributes.get("column");
+      if ((value != null) && (value instanceof String)) {
+         String s = (String) value;
+         field.setColumn(s);
+      }
+      value = attributes.get("default");
+      if ((value != null) && (value instanceof String)) {
+         String s = (String) value;
+         field.setDefaultValue(s);
+      }
+      value = attributes.get("update");
+      if ((value != null) && (value instanceof String)) {
+         field.setUpdate(Boolean.valueOf((String) value));
+      }
+      value = attributes.get("insert");
+      if ((value != null) && (value instanceof String)) {
+         field.setInsert(Boolean.valueOf((String) value));
+      }
+
       return field;
    }
 
-   public void addNodeContent(XContext context, Object node, String content) {}
+   public void addNodeContent(XContext context, Object node, String content) {
+   }
 
-   public void addChildNode(XContext context, Object node, String child_name, Object child) {}
+   public void addChildNode(XContext context, Object node, String child_name, Object child) {
+   }
 
-   public void nodeFinished(XContext context, String name, Object node, Object parent) {}
+   public void nodeFinished(XContext context, String name, Object node, Object parent) {
+   }
 
 }

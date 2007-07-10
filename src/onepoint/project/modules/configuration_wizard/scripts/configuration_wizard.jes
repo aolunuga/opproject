@@ -35,7 +35,7 @@ function connect(event) {
    if (handleError(form, response, "ErrorLabel") == true) {
       params = response.getArgument("initParams");
       //show login form
-      XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml", params);
+      XDisplay.showStartForm(params);
    }
 
 }

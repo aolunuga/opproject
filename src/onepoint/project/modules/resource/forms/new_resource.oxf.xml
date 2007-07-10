@@ -2,11 +2,13 @@
    <data-field id="PoolID"/>
    <data-field id="PoolIndexField" int-value="-1"/>
    <data-set id="HourlyRatesSet"/>
+   <data-field id="PoolHourlyRate"/>
+   <data-field id="PoolExternalRate"/>
 	
    <panel id="tp" y="0" layout="border">
 	   
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-   <tab-box>
+   <tab-box id="TabBoxId">
 
       <tab text="${General}" layout="table" id="GeneralTab">
          <label x="0" y="0" width="2" text="${Name}"  style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
@@ -17,25 +19,7 @@
          <label x="0" y="5" width="2" text="${ExternalRate}"/><double-field x="2" y="5" width="3" id="ExternalRate"/>
          <label id="ResponsibleUserLabel" x="0" y="6" width="2" text="${ResponsibleUser}"/>
          <action-button x="2" y="6" width="3" id="UserName" edit-mode="false" left-icon="/icons/remove.png"
-                        right-icon="/icons/user_chooser.png" on-button-pressed="selectUser"/>
-      </tab>
-      
-      <tab layout="border" text="${HourlyRates}" id="HourlyRatesTab">
-         <table-box id="HourlyRatesTable" data-set-ref="HourlyRatesSet" sidebar-width="0"
-                    flexible="true" stateful="true" edit-mode="true">
-
-            <table-column text="${Start}" width="65" sortable="true" data-column-index="0" value-type="Date"/>
-            <table-column text="${End}" width="65" sortable="true" data-column-index="1" value-type="Date"/>
-            <table-column text="${HourlyRate}" width="65" sortable="true" data-column-index="2"
-                          value-type="Double"/>
-            <table-column text="${ExternalRate}" width="65" sortable="true" data-column-index="3"
-                          value-type="Double"/>
-         </table-box>
-         <panel id="HourlyRatesTableToolBar" y="1" layout="flow" direction="east" visible="true">
-            <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addRateBefore" tooltip="${AddRateToolTip}"/>
-            <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeRates"
-                    tooltip="${RemoveRatesToolTip}"/>
-         </panel>
+                        right-icon="/icons/choose_user.png" on-button-pressed="selectUser"/>
       </tab>
 
       <tab text="${Projects}" layout="border" id="ProjectsTab">

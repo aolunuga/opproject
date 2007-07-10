@@ -12,7 +12,7 @@ import onepoint.service.server.XSession;
 import java.util.HashMap;
 
 /**
- * TODO: Document HERE!!!
+ * Form provider for possible change of project assignment rates confirm dialog.
  *
  * @author florin.haizea
  */
@@ -24,12 +24,9 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
    private final static String TO_DOS_SET = "to_dos_set";
    private final static String RESOURCE_SET = "resource_set";
    private final static String VERSIONS_SET = "versions_set";
-   private final static String CHANGE_LABEL = "ConfirmChangeLabel";
-   private final static String CHANGED = "changed";
-   private final static String CONFIRM_HOURLY_TAB = "ConfirmChangeHourlyTab";
-   private final static String CONFIRM_HR = "ConfirmChangeHR";
-   private final static String RESOURCE_MAP = "project.change";
-   private final static String CHANGED_HOURLY_TAB = "hourlyTab";
+   protected final static String CHANGE_LABEL = "ConfirmChangeLabel";
+   protected final static String CONFIRM_HR = "ConfirmChangeHR";
+   protected final static String RESOURCE_MAP = "project.change";   
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -44,7 +41,7 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
       XComponent goalsSet = (XComponent) (parameters.get(GOALS_SET));
       XComponent formGoalsSet = form.findComponent(GOALS_SET);
       XComponent dataRow;
-      for(int i = 0; i <  goalsSet.getChildCount(); i++){
+      for(int i = 0; i < goalsSet.getChildCount(); i++){
          dataRow = (XComponent)goalsSet.getChild(i);
          formGoalsSet.addChild(dataRow.copyData());
       }
@@ -73,16 +70,10 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
 
       //set confirm message (available/hr)
       XComponent label = form.findComponent(CHANGE_LABEL);
-      String changed = (String) parameters.get(CHANGED);
       XLanguageResourceMap map = session.getLocale().getResourceMap(RESOURCE_MAP);
 
       String labelText;
-      if (changed.equals(CHANGED_HOURLY_TAB)) {
-         labelText = map.getResource(CONFIRM_HOURLY_TAB).getText();
-      }
-      else{
-         labelText = map.getResource(CONFIRM_HR).getText();
-      }
+      labelText = map.getResource(CONFIRM_HR).getText();
       label.setText(labelText);
    }
 }

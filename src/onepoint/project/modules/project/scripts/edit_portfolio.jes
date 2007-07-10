@@ -26,6 +26,7 @@ function ok_edit(event) {
    // Gather project-data
    form = XDisplay.getActiveForm();
    portfolio_id = form.findComponent("PortfolioID").getStringValue();
+   portfolio_data.Type = 1;
    portfolio_data.Name = form.findComponent("Name").getStringValue();
    portfolio_data.Description = form.findComponent("Description").getStringValue();
 

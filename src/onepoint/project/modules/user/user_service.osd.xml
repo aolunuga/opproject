@@ -1,4 +1,7 @@
 <service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.OpServiceInterceptor">
+   <method name="getHashAlgorithm">
+      <parameter name="login" instance-class="java.lang.String" mode="input"/>
+   </method>
    <method name="signOn">
       <parameter name="login" instance-class="java.lang.String" mode="input"/>
       <parameter name="password" instance-class="java.lang.String" mode="input"/>

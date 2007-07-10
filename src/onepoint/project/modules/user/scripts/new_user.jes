@@ -12,7 +12,7 @@ import onepoint.express.XComponent;
 import onepoint.service.XMessage;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.XValidator;
-import onepoint.project.util.OpSHA1;
+import onepoint.project.util.OpHashProvider;
 
 function ok(event) {
    // Gather user-data
@@ -25,10 +25,10 @@ function ok(event) {
    user_data.LastName = form.findComponent("LastName").getStringValue();
    user_data.Name = form.findComponent("Name").getStringValue();
    if (password != null) {
-      user_data.Password = OpSHA1.calculateHash(password);
+      user_data.Password = OpHashProvider.calculateHash(password, "SHA-1");
    }
    if (password_retyped != null) {
-      user_data.PasswordRetyped = OpSHA1.calculateHash(password_retyped);
+      user_data.PasswordRetyped = OpHashProvider.calculateHash(password_retyped, "SHA-1");
    }
 
    userLevel = form.findComponent("UserLevel").getStringValue();

@@ -7,12 +7,12 @@ package onepoint.project.modules.resource.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -28,6 +28,8 @@ public class OpNewResourceFormProvider implements XFormProvider {
    private final static String USER_NAME = "UserName";
    private final static String USER_LABEL = "ResponsibleUserLabel";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
+   private final static String POOL_HOURLY_RATE_ID  = "PoolHourlyRate";
+   private final static String POOL_EXTERNAL_RATE_ID  = "PoolExternalRate";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -57,6 +59,10 @@ public class OpNewResourceFormProvider implements XFormProvider {
       }
 
       // Initialize hourly rate to pool rate and set override to false per default
+      XComponent poolHourlyRate = form.findComponent(POOL_HOURLY_RATE_ID);
+      XComponent poolExternalRate = form.findComponent(POOL_EXTERNAL_RATE_ID);
+      poolHourlyRate.setDoubleValue(pool.getHourlyRate());
+      poolExternalRate.setDoubleValue(pool.getExternalRate());
       XComponent hourlyRateField = form.findComponent(HOURLY_RATE);
       hourlyRateField.setDoubleValue(pool.getHourlyRate());
       XComponent externalRateField = form.findComponent(EXTERNAL_RATE);
@@ -66,7 +72,7 @@ public class OpNewResourceFormProvider implements XFormProvider {
 
       byte poolAccesssLevel = session.effectiveAccessLevel(broker, pool.getID());
 
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          // Retrieve permission set of pool -- inheritance of permissions

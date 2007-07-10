@@ -29,16 +29,13 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.MANAGER_ACCESS_DENIED,OpProjectError.MANAGER_ACCESS_DENIED_NAME);
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_ERROR,OpProjectError.WORKRECORDS_STILL_EXIST_ERR0R_NAME);
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_WARNING,OpProjectError.WORKRECORDS_STILL_EXIST_WARNING_NAME);
-      registerErrorCode(OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR, OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME);
       registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
       registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.LOOP_ASSIGNMENT_ERROR, OpProjectError.LOOP_ASSIGNMENT_ERROR_NAME);
       registerErrorCode(OpProjectError.INTERNAL_RATE_NOT_VALID, OpProjectError.INTERNAL_RATE_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.EXTERNAL_RATE_NOT_VALID, OpProjectError.EXTERNAL_RATE_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.PERIOD_START_DATE_NOT_VALID, OpProjectError.PERIOD_START_DATE_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.PERIOD_END_DATE_NOT_VALID, OpProjectError.PERIOD_END_DATE_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.PERIOD_INTERVAL_NOT_VALID, OpProjectError.PERIOD_INTERVAL_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.DATE_INTERVAL_OVERLAP, OpProjectError.DATE_INTERVAL_OVERLAP_NAME);
+      registerErrorCode(OpProjectError.EXTERNAL_RATE_NOT_VALID, OpProjectError.EXTERNAL_RATE_NOT_VALID_NAME);     
+      registerErrorCode(OpProjectError.PRIORITY_NOT_VALID, OpProjectError.PRIORITY_NOT_VALID_NAME);
+      registerErrorCode(OpProjectError.PROBABILITY_NOT_VALID, OpProjectError.PROBABILITY_NOT_VALID_NAME);     
    }
 }

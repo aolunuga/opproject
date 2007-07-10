@@ -7,54 +7,21 @@
  */
 package onepoint.project.xml_rpc.onepoint.project.modules.my_tasks;
 
-import java.sql.Date;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.sf.mpxj.mspdi.schema.Project;
-import net.sf.mpxj.mspdi.schema.impl.ProjectImpl;
-
-import org.apache.xmlrpc.XmlRpcException;
-import org.omg.PortableInterceptor.ACTIVE;
-
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpObject;
 import onepoint.project.OpProjectSession;
-import onepoint.project.forms.OpAboutFormProvider;
 import onepoint.project.modules.documents.OpContent;
-import onepoint.project.modules.documents.OpDocument;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityCategory;
-import onepoint.project.modules.project.OpActivityComment;
-import onepoint.project.modules.project.OpActivityVersion;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpAttachment;
-import onepoint.project.modules.project.OpDependency;
-import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project.OpProjectAdministrationServiceImpl;
-import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.project.OpWorkPeriod;
-import onepoint.project.modules.project_planning.OpProjectPlanningService;
-import onepoint.project.modules.project_planning.test.ProjectPlanningTestDataFactory;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.user.OpContact;
-import onepoint.project.modules.user.OpSubject;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
-import onepoint.project.xml_rpc.onepoint.project.modules.user.OpUserServiceXMLRPC;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
-import sun.reflect.ReflectionFactory.GetReflectionFactoryAction;
+import org.apache.xmlrpc.XmlRpcException;
+
+import java.sql.Date;
+import java.util.*;
 
 /**
  * Xml-Rpc service implementation corresponding to the OpMyTasksServiceSMLRPC
@@ -84,14 +51,14 @@ public class OpMyTasksServiceXMLRPC {
       if (impl == null) {
          throw new IllegalStateException("required service impl for 'UserService' not found");
       }
-      xservice = XServiceManager.getService(OpProjectAdministrationServiceImpl.SERVICE_NAME);
+      xservice = XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
       if (xservice == null) {
-         throw new IllegalStateException("required service '"+OpProjectAdministrationServiceImpl.SERVICE_NAME+"' not found");
+         throw new IllegalStateException("required service '"+ OpProjectAdministrationService.SERVICE_NAME+"' not found");
       }
       projectAdminImpl = (OpProjectAdministrationServiceImpl) xservice.getServiceImpl();
       if (projectAdminImpl == null) {
          throw new IllegalStateException("required service impl for '"+
-               OpProjectAdministrationServiceImpl.SERVICE_NAME+"' not found");
+               OpProjectAdministrationService.SERVICE_NAME+"' not found");
       }
    }
 
@@ -273,10 +240,6 @@ public class OpMyTasksServiceXMLRPC {
       }
      
    }
-
-   //   impl.insertAdhocTask(session, broker, activity);
-//   impl.deleteAdhocTask(session, broker, activity);
-//   impl.updateAdhocTask(session, broker, activity);
 
    /**
     * Returns all information associated to the currently signed on user.
@@ -749,9 +712,11 @@ public class OpMyTasksServiceXMLRPC {
 //         documents.add(getDocumentData(document));
 //      }      
 //      ret.put(OpContent.DOCUMENTS, documents);
-      if (content.getBytes() != null) {
-         ret.put(OpContent.BYTES, content.getBytes());
+      //TODO: <FIXME author="Lucian Furtos" description="Fix the streaming over XML-RPC, make sure the connection to DB is NOT closed (broker.close())">
+      if (content.getStream() != null) {
+         ret.put(OpContent.STREAM, content.getStream());
       }
+      //</FIXME>
       return ret;
    }
 

@@ -9,8 +9,9 @@ import onepoint.project.modules.preferences.forms.OpPreferencesFormProvider;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.user.test.UserTestDataFactory;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.modules.user.test.OpUserTestDataFactory;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
@@ -22,7 +23,7 @@ import java.util.*;
  *
  * @author lucian.furtos
  */
-public class OpPreferencesServiceTest extends OpBaseTestCase {
+public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
 
    private static final String DEFAULT_USER = "tester";
    private static final String DEFAULT_PASSWORD = "pass";
@@ -46,11 +47,11 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       clean();
 
-      Map userData = UserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
       userData.put(OpUserService.LANGUAGE, ENGLISH_LANGUAGE);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = getUserService().insertUser(session, request);
+      XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
       assertNoError(response);
 
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
@@ -87,7 +88,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
 
-      XMessage response = getPreferencesService().savePreferences(session, request);
+      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
       Boolean refresh = (Boolean) response.getArgument(OpProjectConstants.REFRESH_PARAM);
 
       assertNoError(response);
@@ -108,7 +109,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      XMessage response = getPreferencesService().savePreferences(session, request);
+      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
 
       assertError(response, OpPreferencesError.PASSWORD_MISSMATCH);
 
@@ -120,7 +121,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      response = getPreferencesService().savePreferences(session, request);
+      response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
 
       assertError(response, OpPreferencesError.EMPTY_PASSWORD);
 
@@ -132,7 +133,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      response = getPreferencesService().savePreferences(session, request);
+      response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
 
       assertError(response, OpPreferencesError.PASSWORD_MISSMATCH);
    }
@@ -152,7 +153,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      XMessage response = getPreferencesService().savePreferences(session, request);
+      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
       XCalendar calendar = (XCalendar) response.getArgument(OpProjectConstants.CALENDAR);
 
       assertNoError(response);
@@ -182,7 +183,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      XMessage response = getPreferencesService().savePreferences(session, request);
+      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
 
       assertNoError(response);
       broker = session.newBroker();
@@ -216,7 +217,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
 
       XMessage request = new XMessage();
       request.setArgument(PREFERENCES, prefs);
-      XMessage response = getPreferencesService().savePreferences(session, request);
+      XMessage response = OpTestDataFactory.getPreferencesService().savePreferences(session, request);
 
       assertNoError(response);
       broker = session.newBroker();
@@ -228,7 +229,7 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
    }
 
    private void clean() {
-      UserTestDataFactory usrData = new UserTestDataFactory(session);
+      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
       ArrayList ids = new ArrayList();
       List users = usrData.getAllUsers();
       for (Iterator iterator = users.iterator(); iterator.hasNext();) {
@@ -240,6 +241,6 @@ public class OpPreferencesServiceTest extends OpBaseTestCase {
       }
       XMessage request = new XMessage();
       request.setArgument(OpUserService.SUBJECT_IDS, ids);
-      getUserService().deleteSubjects(session, request);
+      OpTestDataFactory.getUserService().deleteSubjects(session, request);
    }   
 }

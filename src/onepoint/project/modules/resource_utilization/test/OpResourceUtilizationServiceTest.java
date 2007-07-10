@@ -3,18 +3,20 @@
  */
 package onepoint.project.modules.resource_utilization.test;
 
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.test.ProjectTestDataFactory;
+import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.resource.test.ResourceTestDataFactory;
+import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.resource_utilization.OpResourceUtilizationService;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -22,7 +24,7 @@ import java.util.List;
  *
  * @author lucian.furtos
  */
-public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
+public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
 
    private static final String NAME = "resource";
    private static final String DESCRIPTION = "The Resource Description";
@@ -31,7 +33,7 @@ public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
 
    private OpResourceUtilizationService service;
    private OpResourceService resourceService;
-   private ResourceTestDataFactory dataFactory;
+   private OpResourceTestDataFactory dataFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -42,9 +44,9 @@ public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
         throws Exception {
       super.setUp();
 
-      service = getResourceUtilizationService();
-      resourceService = getResourceService();
-      dataFactory = new ResourceTestDataFactory(session);
+      service = OpTestDataFactory.getResourceUtilizationService();
+      resourceService = OpTestDataFactory.getResourceService();
+      dataFactory = new OpResourceTestDataFactory(session);
 
       clean();
    }
@@ -124,26 +126,34 @@ public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
     */
    private void clean()
         throws Exception {
-      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
-      List projectList = projectDataFactory.getAllProjects();
-      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
-         OpProjectNode project = (OpProjectNode) iterator.next();
-         projectDataFactory.deleteObject(project);
+
+      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
+
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+
+      List projectList = projectDataFactory.getAllProjects(broker);
+      for (Object aProjectList : projectList) {
+         OpProjectNode project = (OpProjectNode) aProjectList;
+         broker.deleteObject(project);
       }
 
-      List resoucesList = dataFactory.getAllResources();
-      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
-         OpResource resource = (OpResource) iterator.next();
-         dataFactory.deleteObject(resource);
+      List resoucesList = dataFactory.getAllResources(broker);
+      for (Object aResoucesList : resoucesList) {
+         OpResource resource = (OpResource) aResoucesList;
+         broker.deleteObject(resource);
       }
 
-      List poolList = dataFactory.getAllResourcePools();
-      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
-         OpResourcePool pool = (OpResourcePool) iterator.next();
+      List poolList = dataFactory.getAllResourcePools(broker);
+      for (Object aPoolList : poolList) {
+         OpResourcePool pool = (OpResourcePool) aPoolList;
          if (pool.locator().equals(rootId)) {
             continue;
          }
-         dataFactory.deleteObject(pool);
+         broker.deleteObject(pool);
       }
+
+      transaction.commit();
+      broker.close();
    }
 }

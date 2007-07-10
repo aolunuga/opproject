@@ -18,14 +18,11 @@ function ok(event) {
 
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
-   resource_data.InheritPoolRate = form.findComponent("InheritPoolRate").getBooleanValue();
-   pool = form.findComponent("PoolList").getStringValue();    
-   if (pool == null) {
-      resource_data.PoolID = null;
-   }
-   else {
-      resource_data.PoolID = XValidator.choiceID(pool);
-   }
+   resource_data.ExternalRate = form.findComponent("ExternalRate").getDoubleValue();
+   resource_data.InheritPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
+   
+   pool = form.findComponent("PoolList").getStringValue();
+   resource_data.PoolID = XValidator.choiceID(pool);
 
    assigned_project_data_set = form.findComponent("AssignedProjectDataSet");
    i = 0;
@@ -82,4 +79,26 @@ function removeProject(event) {
    // Update assigned project list
    assigned_project_list_box = form.findComponent("AssignedProjectListBox");
    assigned_project_list_box.update();
+}
+
+function inheritPoolRate(event) {
+   form = XDisplay.getActiveForm();
+   selectedPool = form.findComponent("PoolList").getValue();
+   poolsRates = form.findComponent("PoolsRates").getValue();
+   source = event.event_source;
+   shouldOverride = source.getValue();
+   hourlyRateField = form.findComponent("HourlyRate");
+   externalRateField = form.findComponent("ExternalRate");
+   if (shouldOverride == true) {
+      hourlyRateField.setEnabled(true);
+      externalRateField.setEnabled(true);
+   }
+   else {
+      ratesList = poolsRates.get(selectedPool);
+      hourlyRateField.setEnabled(false);
+      hourlyRateField.setDoubleValue(ratesList[0]);
+      externalRateField.setEnabled(false);
+      externalRateField.setDoubleValue(ratesList[1]);
+   }
+   form.update();
 }

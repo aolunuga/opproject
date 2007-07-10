@@ -96,10 +96,14 @@ public class OpActivity extends OpObject {
    private double baseMiscellaneousCosts;
    private double actualEffort; // Person hours
    private double actualTravelCosts;
+   private double remainingTravelCosts;
    private double actualPersonnelCosts;
    private double actualMaterialCosts;
+   private double remainingMaterialCosts;
    private double actualExternalCosts;
+   private double remainingExternalCosts;
    private double actualMiscellaneousCosts;
+   private double remainingMiscellaneousCosts;
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
@@ -447,7 +451,7 @@ public class OpActivity extends OpObject {
    }
 
    public void setBaseProceeds(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0 ;
+      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 
    public double getActualProceeds() {
@@ -466,6 +470,38 @@ public class OpActivity extends OpObject {
       this.payment = (payment != null) ? payment : 0;
    }
 
+   public double getRemainingTravelCosts() {
+      return remainingTravelCosts;
+   }
+
+   public void setRemainingTravelCosts(Double remainingTravelCosts) {
+      this.remainingTravelCosts = remainingTravelCosts != null ? remainingTravelCosts : 0;
+   }
+
+   public double getRemainingMaterialCosts() {
+      return remainingMaterialCosts;
+   }
+
+   public void setRemainingMaterialCosts(Double remainingMaterialCosts) {
+      this.remainingMaterialCosts = remainingMaterialCosts != null ? remainingMaterialCosts : 0;
+   }
+
+   public double getRemainingExternalCosts() {
+      return remainingExternalCosts;
+   }
+
+   public void setRemainingExternalCosts(Double remainingExternalCosts) {
+      this.remainingExternalCosts = remainingExternalCosts != null ? remainingExternalCosts : 0;
+   }
+
+   public double getRemainingMiscellaneousCosts() {
+      return remainingMiscellaneousCosts;
+   }
+
+   public void setRemainingMiscellaneousCosts(Double remainingMiscellaneousCosts) {
+      this.remainingMiscellaneousCosts = remainingMiscellaneousCosts != null ? remainingMiscellaneousCosts : 0;
+   }
+   
    /**
     * Calculates the actual total costs of this activity.
     *

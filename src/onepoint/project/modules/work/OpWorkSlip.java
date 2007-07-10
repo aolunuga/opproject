@@ -4,10 +4,12 @@
 
 package onepoint.project.modules.work;
 
+import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 public class OpWorkSlip extends OpObject {
@@ -23,7 +25,7 @@ public class OpWorkSlip extends OpObject {
    private int number = -1;
    private Date date;
    private OpUser creator;
-   private Set<OpWorkRecord> records;
+   private Set<OpWorkRecord> records = new HashSet<OpWorkRecord>();
 
    public void setNumber(int number) {
       this.number = number;
@@ -51,6 +53,9 @@ public class OpWorkSlip extends OpObject {
 
    public void setRecords(Set<OpWorkRecord> records) {
       this.records = records;
+      for (OpWorkRecord record : records) {
+         record.setWorkSlip(this);
+      }
    }
 
    public Set<OpWorkRecord> getRecords() {
@@ -77,30 +82,34 @@ public class OpWorkSlip extends OpObject {
    /**
     * Test if this <code>OpWorkSlip</code> is valid.
     *
-    * @return the error code if work-slip invalid or 0 if the workslip is valid
+    * @throws onepoint.persistence.OpEntityException
+    *          if some validation constraints are broken
     */
-   public int isValid() {
+   public void validate()
+        throws OpEntityException {
       // check if creator is set
       if (creator == null) {
-         return OpWorkError.CREATOR_MISSING;
+         throw new OpEntityException(OpWorkError.CREATOR_MISSING);
       }
       // check if date is set
       if (date == null) {
-         return OpWorkError.DATE_MISSING;
+         throw new OpEntityException(OpWorkError.DATE_MISSING);
       }
 
       Set<OpWorkRecord> records = getRecords();
       // a valid workslip should have >0 records
       if (records == null || records.isEmpty()) {
-         return OpWorkError.WORK_RECORDS_MISSING;
+         throw new OpEntityException(OpWorkError.WORK_RECORDS_MISSING);
       }
 
       // test all the work records from this work-slip
       for (OpWorkRecord record : records) {
-         int errCode = record.isValid();
-         if (errCode != 0) return errCode;
+         try{
+            record.validate();
+         }
+         catch (OpEntityException e){
+            throw e;
+         }
       }
-
-      return 0;
    }
 }

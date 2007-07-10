@@ -117,6 +117,11 @@ public class OpProjectComponent extends XComponent {
    public final static Integer RESOURCE_TABLE = new Integer(307);
    public static final Integer ALTERNATE_DETAILS_FORM_REF = new Integer(308);
 
+   /**
+    * Event handler for the activitty selection event
+    */
+   public static final Integer ON_ACTIVITY_SELECT = new Integer(309);
+
    /*start and finish index in the details time interval list */
    private final static int INTERVAL_START_INDEX = 0;
    private final static int INTERVAL_FINISH_INDEX = 1;
@@ -162,7 +167,7 @@ public class OpProjectComponent extends XComponent {
    public final static String TASK_DRAW_ITEM = "TaskDrawItem";
    public final static String DEPENDENCY_DRAW_ITEM = "DependencyDrawItem";
    public final static String DEFAULT_CURSOR = "NormalCursor";
-
+   private final static String SELECTED_ACTIVITY_ARGUMENT = "Activity";
 
    // Default styles
    public final static String DEFAULT_GANTT_CHART_STYLE = "gantt-chart-default";
@@ -199,6 +204,7 @@ public class OpProjectComponent extends XComponent {
    public static final String DETAILS_COST = "BaseCosts";
    public static final String DETAILS_RESOURCE_NAMES = "ResourceNames";
    public static final String DETAILS_CATEGORY = "Category";
+   public static final String DETAILS_PROCEEDS = "ProceedsCosts";
 
    static {
       // Default Gantt chart style
@@ -644,6 +650,14 @@ public class OpProjectComponent extends XComponent {
 
    public final String getGanttBoxRef() {
       return (String) getProperty(GANTT_BOX_REF);
+   }
+
+   public final String getOnActivitySelect() {
+      return (String) getProperty(ON_ACTIVITY_SELECT);
+   }
+
+   public final void setOnActivitySelect(String onActivitySelectHandler) {
+      this.setProperty(ON_ACTIVITY_SELECT,  onActivitySelectHandler);
    }
 
    public final OpProjectComponent getGanttBoxComponent() {
@@ -1269,8 +1283,7 @@ public class OpProjectComponent extends XComponent {
     * Will return the timeUnits ration for a type of timeUnits (like XCalendar.WEEKS) in order to be able to transform
     * from a timeUnit in day units.
     *
-    * @param timeUnits -
-    *                  type of timeUnits
+    * @param timeUnits type of timeUnits
     * @return untiRatio for a type of timeUnits.
     */
    public static double getUnitRatio(int timeUnits) {
@@ -1681,12 +1694,12 @@ public class OpProjectComponent extends XComponent {
 
       XComponent data_row;
       OpProjectComponent component;
-      int x = 0;
+      int x;
       int y = 0;
-      int width = 0;
-      int height = 0;
-      String category = null;
-      /*for non expanded collection activities hide all data rows*/
+      int width;
+      int height;
+      String category;
+      //for non expanded collection activities hide all data rows
       for (int index = 0; index < data_set.getChildCount(); index++) {
          data_row = (XComponent) (data_set._getChild(index));
          if (data_row.expandable() && !data_row.getExpanded()) {
@@ -1699,16 +1712,10 @@ public class OpProjectComponent extends XComponent {
       }
       ganttIndexes = new HashMap();
       int ganttPositionIndex = 0;
-      // Vector sub_activity_components = null;
       for (int index = 0; index < data_set.getChildCount(); index++) {
-         // TODO: Check if it is necessary to have visuals for non-visible rows?
          if (getChildCount() > index) {
             component = (OpProjectComponent) _getChild(index);
-            component.pc_type = GANTT_ACTIVITY;
-            component.setVisible(true);
-            component.setShape(false);
-            component.setStyle(DEFAULT_GANTT_ACTIVITY_STYLE);
-            component.setPath(null);
+            component.initializeGanttComponent(GANTT_ACTIVITY);
          }
          else {
             // Extend proxy children as needed
@@ -1810,12 +1817,7 @@ public class OpProjectComponent extends XComponent {
                if (data_set._getChild(successor_index).getVisible()) {
                   if (component_count < getChildCount()) {
                      connector_component = (OpProjectComponent) _getChild(component_count);
-                     connector_component.pc_type = GANTT_DEPENDENCY;
-                     connector_component.setVisible(true);
-                     connector_component.setShape(true);
-                     // *** TODO: Add real init-method for reuse
-                     // ==> Because style is not set
-                     connector_component.setStyle(DEFAULT_GANTT_DEPENDENCY_STYLE);
+                     connector_component.initializeGanttComponent(GANTT_DEPENDENCY);
                   }
                   else {
                      connector_component = new OpProjectComponent(GANTT_DEPENDENCY);
@@ -1838,10 +1840,7 @@ public class OpProjectComponent extends XComponent {
          open_dependency = (OpProjectComponent) (open_dependencies.get(i));
          if (component_count < getChildCount()) {
             open_dependency_copy = (OpProjectComponent) _getChild(component_count);
-            open_dependency_copy.pc_type = GANTT_DEPENDENCY;
-            open_dependency_copy.setVisible(true);
-            open_dependency_copy.setShape(true);
-            open_dependency_copy.setStyle(DEFAULT_GANTT_DEPENDENCY_STYLE);
+            open_dependency_copy.initializeGanttComponent(GANTT_DEPENDENCY);
          }
          else {
             open_dependency_copy = new OpProjectComponent(GANTT_DEPENDENCY);
@@ -1854,6 +1853,29 @@ public class OpProjectComponent extends XComponent {
       // Check whether some child components can be removed
       for (i = getChildCount() - 1; i >= component_count; i--) {
          removeChild(i);
+      }
+   }
+
+   /**
+    * Initializes a gantt UI component to a specified type.
+    *
+    * @param type new type of this component
+    */
+   private void initializeGanttComponent(byte type) {
+      this.pc_type = type;
+      switch (type) {
+         case GANTT_ACTIVITY:
+            this.setVisible(true);
+            this.setShape(false);
+            this.setStyle(DEFAULT_GANTT_ACTIVITY_STYLE);
+            this.setPath(null);
+            break;
+         case GANTT_DEPENDENCY:
+            this.setVisible(true);
+            this.setShape(true);
+            this.setStyle(DEFAULT_GANTT_DEPENDENCY_STYLE);
+            this.setDataRow(null);
+            break;
       }
    }
 
@@ -2152,6 +2174,9 @@ public class OpProjectComponent extends XComponent {
             }
          }
          return names;
+      }
+      else if (id.equals(DETAILS_PROCEEDS)) {
+         return new Double(OpGanttValidator.getBaseProceeds(dataRow));
       }
       return "";
    }
@@ -3393,7 +3418,6 @@ public class OpProjectComponent extends XComponent {
       new_data_row.setOutlineLevel(outline);
       data_set.addDataRow(index, new_data_row);
 
-      validator.validateDataSet();
       chart.resetCached();
       box.doLayout();
       box.repaint();
@@ -3559,15 +3583,7 @@ public class OpProjectComponent extends XComponent {
    protected void _setExpandedActivity(boolean expanded) {
       // Make this activity visible or hidden including its dependencies
       if (pc_type == GANTT_ACTIVITY) {
-         // *** Note that it should be sufficient to do this with data-set
-         // ==> Subsequent call to doLayout() will have to do the "rest"
          getDataRow().expanded(expanded, false);
-         /*
-          * setVisible(expanded); OpProjectComponent dependency = null; Vector successor_dependencies =
-          * getSuccessorDependencies(); if (successor_dependencies != null) { for (int index = 0; index <
-          * successor_dependencies.size(); index++) { dependency = (OpProjectComponent)
-          * (successor_dependencies.elementAt(index)); dependency.setVisible(expanded); } }
-          */
       }
    }
 
@@ -3741,7 +3757,8 @@ public class OpProjectComponent extends XComponent {
          if (!((action == POINTER_DOWN) ||
               (action == POINTER_DOUBLE_TAP) ||
               (action == POINTER_ENTER) ||
-              (action == POINTER_LEAVE))) {
+              (action == POINTER_LEAVE) ||
+              (action == POINTER_TAP))) {
             return;
          }
       }
@@ -3774,7 +3791,8 @@ public class OpProjectComponent extends XComponent {
                if (component instanceof OpProjectComponent) {
                   OpProjectComponent activity = ((OpProjectComponent) component);
                   if (activity.pc_type == GANTT_ACTIVITY
-                       && ((action == POINTER_DOWN) || (action == POINTER_DOUBLE_TAP))) {
+                       && ((action == POINTER_DOWN) || (action == POINTER_DOUBLE_TAP))
+                       || action == POINTER_TAP) {
                      passEvent = true;
                   }
                }
@@ -3907,6 +3925,12 @@ public class OpProjectComponent extends XComponent {
                            logger.debug(" Drop on Collection ");
                            dropOnActivity((OpProjectComponent) getDisplay().getDragSource());
                            break;
+                        case POINTER_TAP: {
+                           logger.debug("Selected activity");
+                           box = (OpProjectComponent) getContext();
+                           box.sendActivitySelectEvent(this.getDataRow());
+                           break;
+                        }
                      }
                   }
                   break;
@@ -3992,6 +4016,12 @@ public class OpProjectComponent extends XComponent {
                         case POINTER_DROP:
                            dropOnActivity((OpProjectComponent) getDisplay().getDragSource());
                            break;
+                        case POINTER_TAP: {
+                           logger.debug("Selected activity");
+                           OpProjectComponent box = (OpProjectComponent) getContext();
+                           box.sendActivitySelectEvent(this.getDataRow());
+                           break;
+                        }
                      }
                   }
                   break;
@@ -4111,6 +4141,12 @@ public class OpProjectComponent extends XComponent {
                            logger.debug("DROP on standard activity");
                            dropOnActivity((OpProjectComponent) getDisplay().getDragSource());
                            break;
+                        case POINTER_TAP: {
+                           logger.debug("Selected activity");
+                           OpProjectComponent box = (OpProjectComponent) getContext();
+                           box.sendActivitySelectEvent(this.getDataRow());
+                           break;
+                        }
                      }
                      break;
                   }
@@ -4133,6 +4169,7 @@ public class OpProjectComponent extends XComponent {
                      logger.debug("POINTER-DOWN-DEPENDENCY");
                      getDisplay().setDragSource(this, true);
                      setDragMode(DRAG_RESIZE);
+                     this.getContext().getDataSetComponent().clearDataSelection();
                      requestFocus();
                      repaint();
                      break;
@@ -4354,30 +4391,25 @@ public class OpProjectComponent extends XComponent {
 
                   case CURSOR_LEFT_KEY:
                      // Move activity one day backward in time
-                     // <FIXME author="Ovidiu Lupas" description="Activity that has not a predecessor has the start date
-                     // null">
-                     activityStartDate = getStart();
-                     if (activityStartDate != null) {
-
-                        Date start = new Date(activityStartDate.getTime() - XCalendar.MILLIS_PER_DAY);
-                        box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
-                             OpGanttValidator.START_COLUMN_INDEX, start);
-                     }
-                     // </FIXME>
+                     box = (OpProjectComponent) getContext();
+                     activityStartDate = OpGanttValidator.getStart(this.getDataRow());
+                     XCalendar calendar = this.getDisplay().getCalendar();
+                     Date newStart = calendar.previousWorkDay(activityStartDate);
+                     box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
+                          OpGanttValidator.START_COLUMN_INDEX, newStart);
+                     box.doLayout();
+                     box.repaint();
                      break;
                   case CURSOR_RIGHT_KEY:
                      // Move activity one day forward in time
                      box = (OpProjectComponent) getContext();
-
-                     // <FIXME author="Ovidiu Lupas" description="Activity that has not a predecessor has the start date
-                     // null">
-                     activityStartDate = getStart();
-                     if (activityStartDate != null) {
-                        Date start = new Date(activityStartDate.getTime() + XCalendar.MILLIS_PER_DAY);
-                        box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
-                             OpGanttValidator.START_COLUMN_INDEX, start);
-                     }
-                     // </FIXME>
+                     activityStartDate = OpGanttValidator.getStart(this.getDataRow());
+                     calendar = this.getDisplay().getCalendar();
+                     newStart = calendar.nextWorkDay(activityStartDate);
+                     box.getDataSetComponent().validator().setDataCellValue(getDataRow(),
+                          OpGanttValidator.START_COLUMN_INDEX, newStart);
+                     box.doLayout();
+                     box.repaint();
                      break;
                      // *** CURSOR_UP/DOWN: Move activity up/down?
                   case BACK_SPACE_KEY:
@@ -4387,6 +4419,7 @@ public class OpProjectComponent extends XComponent {
                         box = (OpProjectComponent) getContext();
                         OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
                         chart.removeActivity(this);
+                        box.getDataSetComponent().clearDataSelection();
                         box.doLayout();
                         box.repaint();
                      }
@@ -4541,15 +4574,12 @@ public class OpProjectComponent extends XComponent {
       if (this.pc_type == GANTT_DEPENDENCY) {
          // Remove activity from chart
          OpProjectComponent box = (OpProjectComponent) getContext();
-         OpProjectComponent chart = (OpProjectComponent) getBoxContent();
+         OpProjectComponent chart = (OpProjectComponent) box.getBoxContent();
          chart.removeDependency(this);
          box.doLayout();
          box.repaint();
       }
    }
-
-   // *** Keyboard: CTRL+Numbers 0-9 set value (10 percent complete steps);
-   // cursor moves shapes
 
    public void processFocusEvent(HashMap event, int action) {
       logger.debug("OpProjectComponent.processFocusEvent");
@@ -4982,6 +5012,10 @@ public class OpProjectComponent extends XComponent {
          }
       }
 
+      field = form.findComponent(DETAILS_PROCEEDS);
+      if (field != null) {
+         field.setDoubleValue(((Double) getActivityProperty(dataRow, DETAILS_PROCEEDS)).doubleValue());
+      }
    }
 
 
@@ -5382,4 +5416,15 @@ public class OpProjectComponent extends XComponent {
    public Map getCategoryColorMap() {
       return (Map) getProperty(CATEGORY_COLOR_MAP);
    }
+
+   /**
+    *  Sends an activity selected event, with the given activity.
+    * @param activity a <code>XComponent(DATA_ROW)</code> representing an activity.
+    */
+   private void sendActivitySelectEvent(XComponent activity) {
+      HashMap event = new HashMap();
+      event.put(SELECTED_ACTIVITY_ARGUMENT, activity);
+      invokeActionHandler(getOnActivitySelect(), event);
+   }
+
 }

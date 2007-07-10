@@ -9,7 +9,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.schedule.OpSchedule;
 import onepoint.project.modules.schedule.OpScheduler;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.test.OpBaseTestCase;
+import onepoint.project.test.OpBaseOpenTestCase;
 
 import java.sql.Date;
 import java.util.Iterator;
@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @author lucian.furtos
  */
-public class OpSchedulerTest extends OpBaseTestCase {
+public class OpSchedulerTest extends OpBaseOpenTestCase {
    private static final String SCHEDULE_NAME = "S1";
 
    /**

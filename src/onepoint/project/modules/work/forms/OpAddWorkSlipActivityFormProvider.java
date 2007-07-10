@@ -111,7 +111,7 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
          }
 
          //activity name to be displayed
-         activityDataRow = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
+         activityDataRow = OpWorkSlipDataSetFactory.addWorkEffortRowToDataSet(activity, assignment, progressTracked, dataSet);
          String caption = activity.getName();
          //if an activity has more than one resource show the name of the resource and the name of the activity
          if(activity.getAssignments().size() > 1){
@@ -136,8 +136,6 @@ public class OpAddWorkSlipActivityFormProvider implements XFormProvider {
                }
             }
          }
-
-         dataSet.addChild(activityDataRow);
       }
    }
 

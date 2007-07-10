@@ -9,6 +9,7 @@ import com.opensymphony.oscache.general.GeneralCacheAdministrator;
 import org.hibernate.cache.Cache;
 import org.hibernate.cache.CacheException;
 import org.hibernate.cache.Timestamper;
+import org.hibernate.cache.ReadWriteCache;
 import org.hibernate.util.PropertiesHelper;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ public class OpOSCache implements Cache {
    /**
     * The OSCache 2.0 cacheAdministrator administrator.
     */
-   private static GeneralCacheAdministrator cacheAdministrator = new GeneralCacheAdministrator(OpOSCacheProvider.cacheProperties);
+   private static final GeneralCacheAdministrator cacheAdministrator = new GeneralCacheAdministrator(OpOSCacheProvider.cacheProperties);
 
    /**
     * The <tt>OSCache</tt> cacheAdministrator capacity property suffix.
@@ -82,7 +83,20 @@ public class OpOSCache implements Cache {
 
    public void put(Object key, Object value)
         throws CacheException {
-      cacheAdministrator.putInCache(toString(key), value, regionGroups);
+      //<FIXME author="Lucian Furtos" description="Find a different way to filter-out the OpContent from caching.">
+      boolean isCachable = true;
+      if (value instanceof ReadWriteCache.Item) {
+         ReadWriteCache.Item item = (ReadWriteCache.Item) value;
+         if (item.getValue() instanceof Map) {
+            Map map = (Map) item.getValue();
+            String classname = (String) map.get("_subclass");
+            isCachable = !"onepoint.project.modules.documents.OpContent".equals(classname);
+         }
+      }
+      //<FIXME>
+      if (isCachable) {
+         cacheAdministrator.putInCache(toString(key), value, regionGroups);
+      }
    }
 
    public void remove(Object key)

@@ -12,6 +12,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpClientLauncherConfiguration;
 import onepoint.project.configuration.OpClientLauncherLoader;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
+import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
@@ -59,6 +60,7 @@ public class OpClientLauncherStartup {
       XClientLauncherApplication application = createStartupApplication();
       // Register UI-scripting proxies
       XComponent.registerProxy(new OpProjectComponentProxy());
+      XComponent.registerProxy(new OpWorkProxy());
 
       application.getServer().setSessionClass(OpProjectSession.class);
 
@@ -75,7 +77,7 @@ public class OpClientLauncherStartup {
       logger.info("Run level is:" + runLevel);
       // Show GUI
       application.setVisible(true);
-      if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
+      if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
          application.getDisplay().showForm(OpProjectConstants.CONFIGURATION_WIZARD_FORM);
       }
       else {

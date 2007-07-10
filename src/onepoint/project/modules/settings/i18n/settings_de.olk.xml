@@ -19,7 +19,10 @@
       <resource id="Save">Einstellungen speichern</resource>
       <resource id="SaveTooltip">Systemeinstellungen speichern</resource>
       <resource id="SelectCalendar">(Kalender auswählen)</resource>      
-      <resource id="MilestoneControllingInterval">Meilenstein-Controlling-Intervall (in Wochen)</resource>      
+      <resource id="MilestoneControllingInterval">Meilenstein-Controlling-Intervall (in Wochen)</resource>
+      <resource id="EnableTimeTracking">Enable time tracking</resource>
+      <resource id="EnablePulsing">Enable pulsing</resource>
+      <resource id="Pulsing">Pulsing (minutes)</resource>      
    </resource-map>
 
    <resource-map id="settings.weekdays">
@@ -41,6 +44,7 @@
       <resource id="ResourceMaxAvailabilityIncorrect">Die angegebene maximale Ressourcen-Verfügbarkeit ist nicht korrekt</resource>
       <resource id="MilestoneControlingIncorrect">Das angegebene Meilenstein-Controllingintervall ist nicht korrekt</resource>
       <resource id="FirstWorkDayIncorrect">Der angegebene erste Arbeitswochentag ist nicht korrekt</resource>
+      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
    </resource-map>
 
    <resource-map id="settings.calendar">

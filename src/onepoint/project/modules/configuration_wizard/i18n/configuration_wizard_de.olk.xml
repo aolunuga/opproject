@@ -7,8 +7,8 @@
        <resource id="Connect">Verbinden</resource>
    </resource-map>
    <resource-map id="standalone_configuration_wizard.main">
-      <resource id="DatabaseLocation">Datenbankordner</resource>
-      <resource id="SelectFolder">Datenbankordner auswählen</resource>
+      <resource id="DatabaseLocation">Data Folder</resource>
+      <resource id="SelectFolder">Datenbankdatei auswählen</resource>
       <resource id="Select">Ändern</resource>
       <resource id="OK">OK</resource>
    </resource-map>

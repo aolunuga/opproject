@@ -1,4 +1,4 @@
-<prototype name="OpAssignment" instance-class="onepoint.project.modules.project.OpAssignment">
+<prototype name="OpAssignment" instance-class="onepoint.project.modules.project.OpAssignment" super-type="OpObject">
    <field name="Assigned" type="Double"/>
    <field name="Complete" type="Double"/>
    <field name="BaseEffort" type="Double"/>

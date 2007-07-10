@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.applet.XExpressApplet;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
+import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XBinaryClient;
 import onepoint.service.XMessage;
@@ -17,6 +18,7 @@ import onepoint.util.XCookieManager;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Applet used for the expander application.
@@ -38,6 +40,7 @@ public class OpOpenApplet extends XExpressApplet {
     */
    static {
       XComponent.registerProxy(new OpProjectComponentProxy());
+      XComponent.registerProxy(new OpWorkProxy());
    }
 
    /**
@@ -64,16 +67,21 @@ public class OpOpenApplet extends XExpressApplet {
    }
 
    /**
-    * @see XExpressApplet#showStartForm(String,java.util.HashMap)
+    * @see onepoint.express.XViewer#showStartForm(java.util.Map)
     */
-   protected void showStartForm(String start_form, HashMap parameters) {
+   public void showStartForm(Map parameters) {
       String runLevel = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
-      String formLocation = start_form;
-      if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
+      String formLocation = OpProjectConstants.DEFAULT_START_FORM;
+      if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
          formLocation = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
       }
       else {
-         formLocation = autoLogin(formLocation);
+         if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.SUCCESS_RUN_LEVEL) {
+            boolean success = autoLogin();
+            if (success) {
+               formLocation = OpProjectConstants.START_FORM;
+            }
+         }
       }
       getDisplay().showForm(formLocation, parameters);
    }
@@ -81,10 +89,9 @@ public class OpOpenApplet extends XExpressApplet {
    /**
     * Automatically log-in the user if the auto-login cookie is set.
     *
-    * @param formLocation default form to load.
     * @return the form to redirect to.
     */
-   private String autoLogin(String formLocation) {
+   private boolean autoLogin() {
       XBinaryClient client = (XBinaryClient) getClient();
       String value = client.getCookieValue(XCookieManager.AUTO_LOGIN);
       if (value != null) {
@@ -105,10 +112,10 @@ public class OpOpenApplet extends XExpressApplet {
          if (response.getError() == null) {
             XCalendar calendar = (XCalendar) client.getVariable(OpProjectConstants.CALENDAR);
             XDisplay.getDefaultDisplay().setCalendar(calendar);
-            formLocation = OpProjectConstants.START_FORM;
+            return true;
          }
       }
-      return formLocation;
+      return false;
    }
 
    /**

@@ -24,7 +24,7 @@
 	<panel layout="border" style-ref="tool-panel-default" y="-1">
          <tool-bar x="-1">
             <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png"
-                         on-button-pressed="print" tooltip="${PrintTooltip}"/>
+                         disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
          </tool-bar>
 
      <panel x="1" layout="border" style-ref="compact-panel-default">

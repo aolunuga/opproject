@@ -7,13 +7,13 @@ package onepoint.project.modules.resource.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -84,7 +84,7 @@ public class OpEditPoolFormProvider implements XFormProvider {
          desc.setEnabled(false);
       }
 
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissionSet,

@@ -7,7 +7,7 @@ package onepoint.project.modules.project_planning.components;
 
 import onepoint.express.XExpressProxy;
 import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.util.OpSHA1;
+import onepoint.project.util.OpHashProvider;
 import onepoint.script.interpreter.XInterpreterException;
 
 /**
@@ -18,11 +18,11 @@ public class OpProjectComponentProxy extends XExpressProxy {
    // Class names
    private final static String PROJECT_COMPONENT = OpProjectComponent.class.getName().intern();
    private final static String GANTT_VALIDATOR = OpGanttValidator.class.getName().intern();
-   private final static String SHA1 = OpSHA1.class.getName().intern();
+   private final static String HASH_PROVIDER = OpHashProvider.class.getName().intern();
 
    private final static Class GANTT_VALIDATOR_CLASS = OpGanttValidator.class;
    private final static Class PROJECT_COMPONENT_CLASS = OpProjectComponent.class;
-   private final static Class SHA1_CLASS = OpSHA1.class;
+   private final static Class HASH_PROVIDER_CLASS = OpHashProvider.class;
 
 
    // Method names
@@ -36,9 +36,9 @@ public class OpProjectComponentProxy extends XExpressProxy {
    private final static String CALCULATE_HASH = "calculateHash";
 
    // Class name array
-   private final static String[] _class_names = {PROJECT_COMPONENT, GANTT_VALIDATOR, SHA1};
+   private final static String[] _class_names = {PROJECT_COMPONENT, GANTT_VALIDATOR, HASH_PROVIDER};
 
-   private final static Class[] _classes = {PROJECT_COMPONENT_CLASS, GANTT_VALIDATOR_CLASS, SHA1_CLASS};
+   private final static Class[] _classes = {PROJECT_COMPONENT_CLASS, GANTT_VALIDATOR_CLASS, HASH_PROVIDER_CLASS};
 
    public Class[] getClasses() {
       return _classes;
@@ -79,11 +79,11 @@ public class OpProjectComponentProxy extends XExpressProxy {
             throw new XInterpreterException("Class OpGanttValidator does not define a method named " + method_name);
          }
       }
-      else if (class_name == SHA1) {
+      else if (class_name == HASH_PROVIDER) {
          // Methods of class File
          if (method_name.equals(CALCULATE_HASH)) {
-            if (arguments.length == 1) {
-               return new OpSHA1().calculateHash((String) arguments[0]);
+            if (arguments.length == 2) {
+               return new OpHashProvider().calculateHash((String) arguments[0], (String) arguments[1]);
             }
             else {
                throw new XInterpreterException("Wrong number of arguments for method " + class_name + "." + method_name);

@@ -11,7 +11,6 @@ import onepoint.project.util.OpProjectConstants;
 public class OpPrototypeFile {
 
    private String fileName;
-   private OpPrototype prototype;
 
    public final void setFileName(String file_name) {
       fileName = file_name;

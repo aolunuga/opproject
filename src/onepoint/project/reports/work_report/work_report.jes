@@ -140,7 +140,13 @@ function getResourceMapId() {
 
 function prepareForm(event){
    button = XDisplay.findFrame("QueryFrame").getForm().findComponent("PrintButton");
-   button.setEnabled(true);
+   dataSet = XDisplay.findFrame("QueryFrame").currentForm().findComponent("ResultSet");
+   if (dataSet.getChildCount() > 0) {
+      button.setEnabled(true);
+   }
+   else {
+      button.setEnabled(false);
+   }
    button.update();
    button = XDisplay.findFrame("QueryFrame").getForm().findComponent("RunQueryButton");
    button.setEnabled(true);

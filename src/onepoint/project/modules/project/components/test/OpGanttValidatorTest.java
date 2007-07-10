@@ -3,7 +3,6 @@
  */
 package onepoint.project.modules.project.components.test;
 
-import junit.framework.TestCase;
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.XValidationException;
@@ -11,6 +10,7 @@ import onepoint.express.XView;
 import onepoint.express.server.XFormSchema;
 import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.test.OpTestCase;
 import onepoint.resource.XLocale;
 import onepoint.util.XCalendar;
 import onepoint.xml.XDocumentHandler;
@@ -25,7 +25,7 @@ import java.util.*;
  *
  * @author horia.chiorean
  */
-public class OpGanttValidatorTest extends TestCase {
+public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * The name of the xml file that contains the test data.
@@ -67,29 +67,89 @@ public class OpGanttValidatorTest extends TestCase {
         throws Exception {
       super.setUp();
 
+      //init the default calendar
       XDisplay display = new XDisplay(null);
       display.getCalendar().configure(null, new XLocale("de", ""), null, null);
 
-      XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
-      InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
-      XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);
-      XComponent testDataSet = (XComponent) testForm.getChild(0);
-      XComponent dataRow;
-      XComponent dataCell;
+      XComponent testDataSet = getTestDataSet(TEST_DATA_FILENAME);
 
-      //PROJECT_START
+      validator = getValidator();
+
+      validator.setDataSet(testDataSet);
+      XComponent assignmentSet = this.createAssignmentSet();
+      validator.setAssignmentSet(assignmentSet);
+      XComponent hourlyRates = this.createHourlyRates();
+      validator.setHourlyRatesDataSet(hourlyRates);
+   }
+
+   /**
+    * Loads a test data set from the given file.
+    * @param testDataFile a <code>xml</code> file containing a data set that will be used
+    * for testing.
+    * @return a <code>XComponent(DATA_SET)</code> containing test data for the validator.
+    */
+   private XComponent getTestDataSet(String testDataFile) {
+      XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
+      InputStream testDataInputStream = this.getClass().getResourceAsStream(testDataFile);
+      XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);
+
+      //project start
       XComponent startField = new XComponent(XComponent.DATA_FIELD);
       startField.setID(OpGanttValidator.PROJECT_START);
-      Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
+      Calendar calendar = Calendar.getInstance(XCalendar.GMT_TIMEZONE);
       calendar.set(2000, 1, 1);
       startField.setDateValue(calendar.getTime());
       testForm.addChild(startField);
+      XComponent projectSettings = this.createProjectSettings();
+      testForm.addChild(projectSettings);
 
-      //ASSIGNMENT_SET
-      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
+      //activity data set.
+      XComponent testDataSet = (XComponent) testForm.getChild(0);
+      //set Work records map
+      for (int i = 0; i < testDataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) testDataSet.getChild(i);
+         OpGanttValidator.setWorkRecords(row, new HashMap());
+      }
+      return testDataSet;
+   }
+
+   /**
+    * Creates a data-set containing hourly rates values.
+    * @return a <code>XComponent(DATA_SET)</code>.
+    */
+   private XComponent createHourlyRates() {
+      //hourly rates for WORKER1_ID and WORKER2_ID
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER1_ID);
+      Map rates = new TreeMap();
+      List<Double> ratesList = new ArrayList<Double>();
+      ratesList.add(10.0);
+      ratesList.add(20.0);
+      rates.put(XCalendar.today(), ratesList);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(WORKER1);
+      dataRow.setStringValue(WORKER2_ID);
       dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+      return hourlyRates;
+   }
+
+   /**
+    * Creates a data-set simulating user assignements, to be used by the validator.
+    * @return a <code>XComponent(DATA_SET)</code> representing an assignment set.
+    */
+   private XComponent createAssignmentSet() {
+      //assignment set
+      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER1);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(100);
       dataRow.addChild(dataCell);
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -105,15 +165,23 @@ public class OpGanttValidatorTest extends TestCase {
       dataCell.setDoubleValue(250);
       dataRow.addChild(dataCell);
       assignmentSet.addChild(dataRow);
+      return assignmentSet;
+   }
 
-
+   /**
+    * Creates a client structure resembling project settings, that is to be used by the
+    * validator.
+    * @return  a <code>XComponent(DATA_SET)</code> containing the same data
+    * as the project settings.
+    */
+   private XComponent createProjectSettings() {
+      //project settings
       XComponent projectSettings = new XComponent(XComponent.DATA_SET);
       projectSettings.setID(OpGanttValidator.PROJECT_SETTINGS_DATA_SET);
-      testForm.addChild(projectSettings);
 
       //calculation mode
-      dataRow = new XComponent(XComponent.DATA_ROW);
-      dataCell = new XComponent(XComponent.DATA_CELL);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setStringValue(OpGanttValidator.CALCULATION_MODE);
       dataRow.addChild(dataCell);
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -129,6 +197,7 @@ public class OpGanttValidatorTest extends TestCase {
       dataCell.setBooleanValue(true);
       dataRow.addChild(dataCell);
       projectSettings.addChild(dataRow);
+
       //project template
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -139,16 +208,7 @@ public class OpGanttValidatorTest extends TestCase {
       dataRow.addChild(dataCell);
       projectSettings.addChild(dataRow);
 
-      validator = getValidator();
-
-      //set Work records map
-      for (int i = 0; i < testDataSet.getChildCount(); i++) {
-         XComponent row = (XComponent) testDataSet.getChild(i);
-         OpGanttValidator.setWorkRecords(row, new HashMap());
-      }
-      validator.setDataSet(testDataSet);
-
-      validator.setAssignmentSet(assignmentSet);
+      return projectSettings;
    }
 
    protected OpGanttValidator getValidator() {
@@ -811,7 +871,6 @@ public class OpGanttValidatorTest extends TestCase {
       XComponent secondActivity = (XComponent) validator.getDataSet().getChild(1);
       Date start = OpGanttValidator.getStart(secondActivity);
       double effort = OpGanttValidator.getBaseEffort(secondActivity);
-      double newEffort;
       double newDuration;
       Date newEnd;
 
@@ -839,9 +898,465 @@ public class OpGanttValidatorTest extends TestCase {
       assertEquals("The new duration was not set correctly ", expectedDuration, newDuration, 0);
 
       assertEquals("The effort was changed ", effort, 80, 0);
-
    }
 
+   /**
+    * Tests the updating of personnel cost when adding a resource to an activity
+    * 
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostAddResource()
+      throws Exception {
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+      double effort = OpGanttValidator.getBaseEffort(firstActivity);
+
+      //do not modify anything
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, new Double(effort));
+      assertEquals("The base personnel cost was not set correctly ", 0, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //add the first resource one to the first activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+      validator.setDataCellValue(firstActivity, 26, resources);
+      assertEquals("The base personnel cost was not set correctly ", 1600, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 3200, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //get the second activity and transform it into a task
+      XComponent secondActivity = (XComponent) validator.getDataSet().getChild(1);
+
+      validator.setDataCellValue(secondActivity, OpGanttValidator.START_COLUMN_INDEX, null);
+      validator.setDataCellValue(secondActivity, OpGanttValidator.END_COLUMN_INDEX, null);
+      assertEquals("The base personnel cost was not set correctly ", 0, OpGanttValidator.getBasePersonnelCosts(secondActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0, OpGanttValidator.getBaseProceeds(secondActivity), DOUBLE_ERROR_MARGIN);
+
+      //set the project's start to 6/10/2007, project's end to null, and the project plan's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+
+      validator.setProjectStart(start);
+      validator.validateDataSet();
+      validator.setProjectFinish(null);
+      validator.setProjectPlanFinish(finish);      
+
+      //set the resource of the second activity to WORKER1
+      validator.setDataCellValue(secondActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", 800d, OpGanttValidator.getBasePersonnelCosts(secondActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 1600d, OpGanttValidator.getBaseProceeds(secondActivity), DOUBLE_ERROR_MARGIN);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      int workDaysWithDefaultRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           validator.getProjectPlanFinish()).size();
+      int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+      double hoursPerDay = 80d/ (double) (workDaysWithDefaultRate + workDaysWithOtherRate);
+      
+     //reassign the first resource to the task activity
+     validator.setDataCellValue(secondActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", hoursPerDay * (workDaysWithDefaultRate * 10d + workDaysWithOtherRate * 3d),
+           OpGanttValidator.getBasePersonnelCosts(secondActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", hoursPerDay * (workDaysWithDefaultRate * 20d + workDaysWithOtherRate * 4d),
+           OpGanttValidator.getBaseProceeds(secondActivity), DOUBLE_ERROR_MARGIN);
+   }
+
+   /**
+    * Tests the updating of personnel cost when adding two resources to an activity, both 100% and x% assigned
+    *
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostAddTwoResources()
+      throws Exception {
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+
+       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+      validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
+      validator.setDataCellValue(firstActivity, OpGanttValidator.END_COLUMN_INDEX, finish);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      //add both resources to the first activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+      resources.add(WORKER2);
+
+      int workDaysWithDefaultRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           validator.getProjectPlanFinish()).size();
+      int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+
+      //set the effort of the activity to double the normal effort between 6/10/2007 and 6/20/2007 because we have two resources assigned 100% for this activity
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, (workDaysWithDefaultRate + workDaysWithOtherRate) * 2 * calendar.getWorkHoursPerDay());
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", calendar.getWorkHoursPerDay() * (2 * workDaysWithDefaultRate + workDaysWithOtherRate) * 10d
+           + calendar.getWorkHoursPerDay() * workDaysWithOtherRate * 3d, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", calendar.getWorkHoursPerDay() * (2 * workDaysWithDefaultRate + workDaysWithOtherRate) * 20d
+           + calendar.getWorkHoursPerDay() * workDaysWithOtherRate * 4d, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resources are not 100% assigned
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, (workDaysWithDefaultRate + workDaysWithOtherRate) * calendar.getWorkHoursPerDay());
+      //change the availability of the first resource to 40% and the availability of the second resource to 60%
+      changeAvailabilityForResources(40d, 60d);
+
+      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
+      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
+      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1 + baseCostForWorker2, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1 + proceedCostForWorker2, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+   }
+
+   /**
+    * Tests the updating of personnel cost when deleting one or more resources from an activity
+    *
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostRemoveResource()
+        throws Exception {
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+      
+      //add the first resource one to the first activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+      validator.setDataCellValue(firstActivity, 26, resources);
+      assertEquals("The base personnel cost was not set correctly ", 1600, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 3200, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //remove the resource from the activity
+      resources.remove(WORKER1);
+      validator.setDataCellValue(firstActivity, 26, resources);
+      assertEquals("The base personnel cost was not set correctly ", 0, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+      validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
+      validator.setDataCellValue(firstActivity, OpGanttValidator.END_COLUMN_INDEX, finish);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      //add both resources to the first activity
+      resources = new ArrayList();
+      resources.add(WORKER1);
+      resources.add(WORKER2);
+
+      int workDaysWithDefaultRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           validator.getProjectPlanFinish()).size();
+      int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+
+      //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resources are not 100% assigned
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, (workDaysWithDefaultRate + workDaysWithOtherRate) * calendar.getWorkHoursPerDay());
+      //change the availability of the first resource to 40% and the availability of the second resource to 60%
+      changeAvailabilityForResources(40d, 60d);
+
+      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
+      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
+      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1 + baseCostForWorker2, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1 + proceedCostForWorker2, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //remove the second resource from the activity
+      resources = new ArrayList();
+      resources.add(WORKER1);
+
+      double hoursPerDay = calendar.getWorkHoursPerDay() * 40 / 100;
+      double newNumberOfDays = Math.ceil(OpGanttValidator.getBaseEffort(firstActivity) / hoursPerDay);
+
+      baseCostForWorker1 = hoursPerDay * ((newNumberOfDays - workDaysWithOtherRate) * 10 + workDaysWithOtherRate * 3);
+      proceedCostForWorker1 = hoursPerDay * ((newNumberOfDays - workDaysWithOtherRate) * 20 + workDaysWithOtherRate * 4);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //remove the first resource from the activity
+      resources.remove(WORKER1);
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", 0d, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0d, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+   }
+
+   /**
+    * Tests the updating of personnel cost when modifying one or more resources belonging to an activity
+    *
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostModifyResource()
+        throws Exception {
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+
+       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+      validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
+      validator.setDataCellValue(firstActivity, OpGanttValidator.END_COLUMN_INDEX, finish);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      //change the availability of the first resource to 40% and the availability of the second resource to 60%
+      changeAvailabilityForResources(40d, 60d);
+
+      //add the first resource to the first activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+
+      int workDaysWithDefaultRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           validator.getProjectPlanFinish()).size();
+      int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+
+       //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resources are not 100% assigned
+      double standardEffort = (workDaysWithDefaultRate + workDaysWithOtherRate) * calendar.getWorkHoursPerDay();
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, standardEffort);
+      
+      double hoursPerDay = calendar.getWorkHoursPerDay() * 40 / 100;
+      double newNumberOfDays = Math.ceil(OpGanttValidator.getBaseEffort(firstActivity) / hoursPerDay);
+
+      double baseCostForWorker1 = hoursPerDay * ((newNumberOfDays - workDaysWithOtherRate) * 10 + workDaysWithOtherRate * 3);
+      double proceedCostForWorker1 = hoursPerDay * ((newNumberOfDays - workDaysWithOtherRate) * 20 + workDaysWithOtherRate * 4);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+
+      //reassign the first resource to 100%
+      //change the availability of the first resource to 100% and the availability of the second resource to 100%
+      changeAvailabilityForResources(100d, 100d);
+       //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resource is 100% assigned
+      validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, standardEffort);
+
+      baseCostForWorker1 = calendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
+      proceedCostForWorker1 = calendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+   }
+
+   /**
+    * Tests the update of base costs for a collection
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostModifyCollection ()
+        throws Exception {
+
+      XCalendar xCalendar = XCalendar.getDefaultCalendar();
+      //the second activity is the collection
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(1);
+      XComponent secondActivity = (XComponent) validator.getDataSet().getChild(2);
+      XComponent thirdActivity = (XComponent) validator.getDataSet().getChild(3);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
+      validator.setDataCellValue(secondActivity, OpGanttValidator.PREDECESSORS_COLUMN_INDEX, new ArrayList());
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
+
+      validator.setProjectStart(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      validator.setProjectFinish(null);
+      validator.setProjectPlanFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+
+      //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.START_COLUMN_INDEX, start);
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.END_COLUMN_INDEX, finish);
+
+      //add two hourly rate periods for resource 1 from 6/12/2007 - 6/16/2007 and from 6/18/2007 - 6/22/2007
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER1_ID);
+      Map rates = new TreeMap();
+      List ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()), ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(3));
+      ratesList.add(new Double(4));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()), ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(5));
+      ratesList.add(new Double(2));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 18).getTimeInMillis()), ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 23).getTimeInMillis()), ratesList);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER2_ID);
+      rates = new TreeMap();
+      ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()), ratesList);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+      validator.setHourlyRatesDataSet(hourlyRates);
+
+      //change the effort of activity 3 to 88h
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, 88d);
+      Date minDate = validator.getProjectPlanFinish();
+      if(OpGanttValidator.getEnd(thirdActivity).before(minDate)){
+         minDate = OpGanttValidator.getEnd(thirdActivity);
+      }
+
+      int workDaysWithDefaultRate = xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis())).size();
+      workDaysWithDefaultRate += xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 23).getTimeInMillis()),
+           minDate).size();
+      int workDaysWithFirstRate = xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+      int workDaysWithSecondRate = xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 18).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 22).getTimeInMillis())).size();
+
+      double baseCostForWorker1 = xCalendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 10 + workDaysWithFirstRate * 3 + workDaysWithSecondRate * 5);
+      double proceedCostForWorker1 = xCalendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 20 + workDaysWithFirstRate * 4 + workDaysWithSecondRate * 2);
+
+      //add the first resource to the third activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(thirdActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(thirdActivity), DOUBLE_ERROR_MARGIN);
+
+      //the base costs were modified for the collection also
+      validator.setDataCellValue(thirdActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(secondActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(secondActivity), DOUBLE_ERROR_MARGIN);
+   }
+
+   /**
+    * Tests the update of base costs when modifying different fields of a milestone activity.
+    * Normally this shouldn't modify the costs of the milestone.
+    *
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostModifyMilestone()
+        throws Exception {
+
+      XComponent milestone = (XComponent) validator.getDataSet().getChild(4);
+
+      validator.setProjectStart(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      validator.validateDataSet();
+      validator.setProjectFinish(null);
+      validator.setProjectPlanFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+
+      //set the milestone's date to 6/10/2007
+      Date date = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      validator.setDataCellValue(milestone, OpGanttValidator.START_COLUMN_INDEX, date);
+      validator.setDataCellValue(milestone, OpGanttValidator.END_COLUMN_INDEX, date);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      //add the first resource to the milestone
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+
+      validator.setDataCellValue(milestone, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", 0d, OpGanttValidator.getBasePersonnelCosts(milestone), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0d, OpGanttValidator.getBaseProceeds(milestone), DOUBLE_ERROR_MARGIN);
+
+      //change the date of the milestone to 6/12/2007
+      date = new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis());
+      validator.setDataCellValue(milestone, OpGanttValidator.START_COLUMN_INDEX, date);
+      validator.setDataCellValue(milestone, OpGanttValidator.END_COLUMN_INDEX, date);
+
+      validator.setDataCellValue(milestone, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", 0d, OpGanttValidator.getBasePersonnelCosts(milestone), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", 0d, OpGanttValidator.getBaseProceeds(milestone), DOUBLE_ERROR_MARGIN);
+    }
+
+   /**
+    * Tests the update of base costs when modifying the duration of the activity
+    *
+    * @throws Exception
+    */
+   public void testUpdatePersonnelCostModifyDuration()
+        throws Exception {
+
+      XCalendar xCalendar = XCalendar.getDefaultCalendar();
+      XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
+
+      validator.setProjectStart(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      validator.setProjectFinish(null);
+      validator.setProjectPlanFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+
+      //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
+      Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
+      validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
+      validator.setDataCellValue(firstActivity, OpGanttValidator.END_COLUMN_INDEX, finish);
+
+      //add an hourly rate period for resource 1 from 6/12/2007 - 6/16/2007
+      addRatesToWorker1(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()), new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis()));
+
+      //change the duration of the activity by adding one day
+      validator.setDataCellValue(firstActivity, OpGanttValidator.DURATION_COLUMN_INDEX, OpGanttValidator.getDuration(firstActivity) + 1);
+      Date minDate = validator.getProjectPlanFinish();
+      if (OpGanttValidator.getEnd(firstActivity).before(minDate)) {
+         minDate = OpGanttValidator.getEnd(firstActivity);
+      }
+
+      int workDaysWithDefaultRate = xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 11).getTimeInMillis())).size();
+      workDaysWithDefaultRate += xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 17).getTimeInMillis()),
+           minDate).size();
+      int workDaysWithFirstRate = xCalendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
+           new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
+
+      double baseCostForWorker1 = xCalendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 10 + workDaysWithFirstRate * 3);
+      double proceedCostForWorker1 = xCalendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 20 + workDaysWithFirstRate * 4);
+
+      //add the first resource to the third activity
+      ArrayList resources = new ArrayList();
+      resources.add(WORKER1);
+
+      validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
+      assertEquals("The base proceed cost was not set correctly ", proceedCostForWorker1, OpGanttValidator.getBaseProceeds(firstActivity), DOUBLE_ERROR_MARGIN);
+   }
 
    /**
     * Computes the expected end date for a given start date and a duration taking into account
@@ -918,10 +1433,12 @@ public class OpGanttValidatorTest extends TestCase {
       long endTime = XCalendar.today().getTime();
       Date expectedEndDate = new Date(endTime);
       int index = 0;
-      while (index < WORKING_DAYS_IN_A_WEEK - 1) {
-         expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
+      while (index < WORKING_DAYS_IN_A_WEEK) {
          if (validator.getCalendar().isWorkDay(expectedEndDate)) {
-            index++; // increment days just for working days
+            index++;
+         }
+         if(index < WORKING_DAYS_IN_A_WEEK){
+            expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
          }
       }
       assertEquals("The end date is not correct ", expectedEndDate, OpGanttValidator.getEnd(dataRow));
@@ -1952,7 +2469,6 @@ public class OpGanttValidatorTest extends TestCase {
       assertEquals("The 2 activites don't have the same nr of children", originalActivity.getChildCount(),
            modifiedActivity.getChildCount());
       for (int i = 0; i < originalActivity.getChildCount(); i++) {
-         System.out.println(i);
          XComponent originalDataCell = (XComponent) originalActivity.getChild(i);
          XComponent modifiedDataCell = (XComponent) modifiedActivity.getChild(i);
          assertEquals("The value type of the data cells doesn't match", originalDataCell.getValueType(), modifiedDataCell.getValueType());
@@ -2287,12 +2803,192 @@ public class OpGanttValidatorTest extends TestCase {
    }
 
    /**
+    * Add an hourly rate period for resource 1 from start to end
+    * @param start - the start of the hourly rates period
+    * @param finish - the end of hourly rates period
+    */
+   private void addRatesToWorker1(Date start, Date finish){
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER1_ID);
+      Map rates = new TreeMap();
+      List ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()), ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(3));
+      ratesList.add(new Double(4));
+      rates.put(start, ratesList);
+      ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      Calendar calendar = XCalendar.setCalendarTimeToZero(finish);
+      calendar.add(Calendar.DATE, 1);
+      rates.put(new Date(calendar.getTimeInMillis()), ratesList);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER2_ID);
+      rates = new TreeMap();
+      ratesList = new ArrayList();
+      ratesList.add(new Double(10));
+      ratesList.add(new Double(20));
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()), ratesList);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+      validator.setHourlyRatesDataSet(hourlyRates);
+   }
+
+   /**
+    * Change the availability of the two resources to the values specified by the parameters
+    * @param availabilityWorker1 - the new availability for WORKER1 (in %)
+    * @param availabilityWorker2 - the new availability for WORKER2 (in %)
+    */
+   private void changeAvailabilityForResources(Double availabilityWorker1, Double availabilityWorker2) {
+      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER1);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(availabilityWorker1);
+      dataRow.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(250);
+      dataRow.addChild(dataCell);
+      assignmentSet.addChild(dataRow);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(WORKER2);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(availabilityWorker2);
+      dataRow.addChild(dataCell);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(250);
+      dataRow.addChild(dataCell);
+      assignmentSet.addChild(dataRow);
+      validator.setAssignmentSet(assignmentSet);
+   }
+
+   /**
     * Creates a new empty <code>XComponent.DATA_ROW</code> component
     *
     * @return the created data row
     */
    private XComponent createNewDataRow() {
       return validator.newDataRow();
+   }
+
+   /**
+    * Validation test created from issue OPP-18 (http://issues.onepoint.at/jira/browse/OPP-18).
+    * @throws Exception if anything unexpected fails.
+    */
+   public void testValidation1()
+         throws Exception {
+      XComponent validationDataSet = getTestDataSet("validation1TestData.xml");
+      validator.setDataSet(validationDataSet);
+      XComponent newActivity = this.createNewDataRow();
+      //add a new data row (performs validation)
+      validator.addDataRow(newActivity);
+      assertEquals("Invalid number of activities:", 5, validationDataSet.getChildCount());
+
+      XComponent activity = (XComponent) validationDataSet.getChild(0);
+      String name = OpGanttValidator.getName(activity);
+      assertEquals("The activity " + name + " has the wrong type:", OpGanttValidator.COLLECTION,
+           OpGanttValidator.getType(activity));
+      assertEquals("The activity " + name + " has the wrong number of children:",
+           2, activity.getSubRows().size());
+      assertEquals("The activity " + name + " has the wrong start date:",
+           this.getGMTDate(11, 6, 2007), OpGanttValidator.getStart(activity));
+      assertEquals("The activity " + name + " has the wrong end date:",
+           this.getGMTDate(22, 6, 2007), OpGanttValidator.getEnd(activity));
+      assertEquals("The activity " + name + " has the wrong duration:",
+           80.0, OpGanttValidator.getDuration(activity));
+      assertEquals("The activity " + name + " has the wrong effort:",
+           80.0, OpGanttValidator.getBaseEffort(activity));
+      assertEquals("The activity " + name + " has the wrong successors list:",  1,
+           OpGanttValidator.getSuccessors(activity).size());
+      assertEquals("The activity " + name + " has the wrong successor:",
+           3, ((Integer) OpGanttValidator.getSuccessors(activity).get(0)).intValue());
+
+      activity = (XComponent) validationDataSet.getChild(1);
+      name = OpGanttValidator.getName(activity);
+      assertEquals("The activity " + name + " has the wrong type:", OpGanttValidator.STANDARD,
+           OpGanttValidator.getType(activity));
+      assertEquals("The activity " + name + " has the wrong number of children:",
+           0, activity.getSubRows().size());
+      assertEquals("The activity " + name + " has the wrong start date:",
+           this.getGMTDate(11, 6, 2007), OpGanttValidator.getStart(activity));
+      assertEquals("The activity " + name + " has the wrong end date:",
+           this.getGMTDate(15, 6, 2007), OpGanttValidator.getEnd(activity));
+      assertEquals("The activity " + name + " has the wrong duration:",
+           40.0, OpGanttValidator.getDuration(activity));
+      assertEquals("The activity " + name + " has the wrong effort:",
+           40.0, OpGanttValidator.getBaseEffort(activity));
+      assertEquals("The activity " + name + " has the wrong successors list:",  1, OpGanttValidator.getSuccessors(activity).size());
+      assertEquals("The activity " + name + " has the wrong successor:",
+           2, ((Integer) OpGanttValidator.getSuccessors(activity).get(0)).intValue());
+
+      activity = (XComponent) validationDataSet.getChild(2);
+      name = OpGanttValidator.getName(activity);
+      assertEquals("The activity " + name + " has the wrong type:", OpGanttValidator.STANDARD,
+           OpGanttValidator.getType(activity));
+      assertEquals("The activity " + name + " has the wrong number of children:",
+           0, activity.getSubRows().size());
+      assertEquals("The activity " + name + " has the wrong start date:",
+           this.getGMTDate(18, 6, 2007), OpGanttValidator.getStart(activity));
+      assertEquals("The activity " + name + " has the wrong end date:",
+           this.getGMTDate(22, 6, 2007), OpGanttValidator.getEnd(activity));
+      assertEquals("The activity " + name + " has the wrong duration:",
+           40.0, OpGanttValidator.getDuration(activity));
+      assertEquals("The activity " + name + " has the wrong effort:",
+           40.0, OpGanttValidator.getBaseEffort(activity));
+      assertEquals("The activity " + name + " has the wrong predecessor list:",  1,
+           OpGanttValidator.getPredecessors(activity).size());
+      assertEquals("The activity " + name + " has the wrong predecessor:",
+           1, ((Integer) OpGanttValidator.getPredecessors(activity).get(0)).intValue());
+
+      activity = (XComponent) validationDataSet.getChild(3);
+      name = OpGanttValidator.getName(activity);
+      assertEquals("The activity " + name + " has the wrong type:", OpGanttValidator.MILESTONE,
+           OpGanttValidator.getType(activity));
+      assertEquals("The activity " + name + " has the wrong number of children:",
+           0, activity.getSubRows().size());
+      assertEquals("The activity " + name + " has the wrong start date:",
+           this.getGMTDate(22, 6, 2007), OpGanttValidator.getStart(activity));
+      assertEquals("The activity " + name + " has the wrong end date:",
+           this.getGMTDate(22, 6, 2007), OpGanttValidator.getEnd(activity));
+      assertEquals("The activity " + name + " has the wrong duration:",
+           0.0, OpGanttValidator.getDuration(activity));
+      assertEquals("The activity " + name + " has the wrong effort:",
+           0.0, OpGanttValidator.getBaseEffort(activity));
+      assertEquals("The activity " + name + " has the wrong predecessor list:",  1,
+           OpGanttValidator.getPredecessors(activity).size());
+      assertEquals("The activity " + name + " has the wrong predecessor:",
+           0, ((Integer) OpGanttValidator.getPredecessors(activity).get(0)).intValue());
+
+   }
+
+   /**
+    * Returns a GMT date from the given values for day, month and year.
+    * @param day a <code>byte</code> representing the day of a month.
+    * @param month a <code>byte</code> representing the month of a year.
+    * @param year a <code>byte</code> representing the year.
+    * @return  a <code>Date</code> value.
+    */
+   private Date getGMTDate(int day, int month, int year) {
+      Calendar gmtCalendar = Calendar.getInstance(XCalendar.GMT_TIMEZONE);
+      gmtCalendar.set(Calendar.MILLISECOND, 0);
+      gmtCalendar.set(Calendar.SECOND, 0);
+      gmtCalendar.set(Calendar.MINUTE, 0);
+      gmtCalendar.set(Calendar.HOUR_OF_DAY, 0);
+      gmtCalendar.set(Calendar.DAY_OF_MONTH, day);
+      gmtCalendar.set(Calendar.MONTH, month - 1);
+      gmtCalendar.set(Calendar.YEAR, year);
+      return new Date(gmtCalendar.getTime().getTime());
    }
 
    /**

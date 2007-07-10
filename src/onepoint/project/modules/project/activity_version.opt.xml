@@ -1,4 +1,4 @@
-<prototype name="OpActivityVersion" instance-class="onepoint.project.modules.project.OpActivityVersion">
+<prototype name="OpActivityVersion" instance-class="onepoint.project.modules.project.OpActivityVersion" super-type="OpObject">
    <field name="Name" type="String"/>
    <field name="Description" type="Text"/>
    <field name="Type" type="Byte"/>

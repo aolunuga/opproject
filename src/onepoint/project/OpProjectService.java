@@ -30,7 +30,7 @@ public class OpProjectService extends XService {
    protected void finalizeSession(OpTransaction transaction, OpBroker broker) {
       logger.info("Finalizing session...");
       if (transaction != null) {
-         transaction.rollback();
+         transaction.rollbackIfNecessary();
       }
       if (broker != null && broker.isOpen()) {
          broker.close();

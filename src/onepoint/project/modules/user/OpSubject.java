@@ -14,11 +14,17 @@ public class OpSubject extends OpObject {
    public final static String DISPLAY_NAME = "DisplayName";
    public final static String DESCRIPTION = "Description";
    public final static String OWNED_PERMISSIONS = "OwnedPermissions";
+   public final static String SOURCE = "Source";
+
+   // Creator types
+   public final static byte INTERNAL = 0; // Default authentication type
+   public final static byte LDAP = 1;
 
    private String name;
    private String displayName;
    private String description;
    private Set ownedPermissions;
+   private Byte source = INTERNAL;
 
    public void setName(String name) {
       this.name = name;
@@ -52,4 +58,11 @@ public class OpSubject extends OpObject {
       return ownedPermissions;
    }
 
+   public void setSource(Byte source) {
+      this.source = source;
+   }
+
+   public Byte getSource() {
+      return this.source;
+   }
 }

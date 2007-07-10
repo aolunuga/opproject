@@ -19,7 +19,10 @@
       <resource id="Save">Сохранить настройки</resource>
       <resource id="SaveTooltip">Сохранить системные настройки</resource>
       <resource id="SelectCalendar">(Выбор календаря)</resource>
-      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>      
+      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>
+      <resource id="EnableTimeTracking">Enable time tracking</resource>
+      <resource id="EnablePulsing">Enable pulsing</resource>
+      <resource id="Pulsing">Pulsing (minutes)</resource>      
    </resource-map>
 
    <resource-map id="settings.weekdays">
@@ -41,6 +44,7 @@
       <resource id="ResourceMaxAvailabilityIncorrect">The specified resource maximum availability value is not valid</resource>
       <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
       <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
+      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
    </resource-map>
 
    <resource-map id="settings.calendar">

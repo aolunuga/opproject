@@ -50,6 +50,10 @@ function newResource(event) {
 
    dialog = XComponent.newDialog();
    dialog.setText("Neue Ressource");
+   openNewDialog(dialog, parameters);
+}
+
+function openNewDialog(dialog, parameters) {
    dialog.open("/modules/resource/forms/new_resource.oxf.xml", parameters);
 }
 
@@ -227,10 +231,14 @@ function edit(event) {
          else {
             parameters.resource_id = selected_rows[0].getStringValue();
             dialog = XComponent.newDialog();
-            dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
+            openEditDialog(dialog, parameters);
          }
       }
    }
+}
+
+function openEditDialog(dialog, parameters) {
+   dialog.open("/modules/resource/forms/edit_resource.oxf.xml", parameters);
 }
 
 function delete(event) {

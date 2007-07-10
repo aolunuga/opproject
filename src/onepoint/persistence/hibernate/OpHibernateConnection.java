@@ -7,7 +7,6 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -25,27 +24,49 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * This class represents an implementation of a <code>OpConnection</code> for Hibernate persistance.
+ */
 public class OpHibernateConnection extends OpConnection {
 
+   /**
+    * Class logger.
+    */
    private static final XLog logger = XLogFactory.getServerLogger(OpHibernateConnection.class);
 
+   /**
+    * Hibernate session used for data persistance.
+    */
    private Session session;
 
+   /**
+    * Creates a new instance.
+    *
+    * @param source  data source to use
+    * @param session hibernate session to use
+    */
    public OpHibernateConnection(OpSource source, Session session) {
       super(source);
       this.session = session;
    }
 
+   /**
+    * Specify if the connection is still valid.
+    *
+    * @return <code>true</code> is still valid, and <code>false</code> otherwise.
+    */
    public boolean isValid() {
       if (session == null) {
          return false;
       }
+
       try {
          session.connection().getMetaData();
       }
       catch (Exception e) {
          return false;
       }
+
       return true;
    }
 
@@ -166,6 +187,7 @@ public class OpHibernateConnection extends OpConnection {
 
    /**
     * Performs HSQLDB custom initialization.
+    *
     * @param source a <code>OpHibernateSource</code> object containing db parameters.
     */
    private void initHsqlDB(OpHibernateSource source) {
@@ -177,18 +199,19 @@ public class OpHibernateConnection extends OpConnection {
 
          Class hsqldbDBManagerClass = Class.forName("org.hsqldb.DatabaseManager");
          Class hsqlPropertiesClass = Class.forName("org.hsqldb.persist.HsqlProperties");
-         Method newSessionMethod = hsqldbDBManagerClass.getMethod("newSession", new Class[] {String.class, String.class,
-            String.class, String.class, hsqlPropertiesClass});
+         Method newSessionMethod = hsqldbDBManagerClass.getMethod("newSession", String.class, String.class,
+              String.class, String.class, hsqlPropertiesClass);
 
          Class hsqlSessionClass = Class.forName("org.hsqldb.Session");
-         Method hsqlExecuteMethod = hsqlSessionClass.getMethod("sqlExecuteDirectNoPreChecks", new Class[] {String.class});
-         Method commitMethod = hsqlSessionClass.getMethod("commit", null);
-         Method closeMethod = hsqlSessionClass.getMethod("close", null);
+         Method hsqlExecuteMethod = hsqlSessionClass.getMethod("sqlExecuteDirectNoPreChecks", String.class);
+         Method commitMethod = hsqlSessionClass.getMethod("commit");
+         Method closeMethod = hsqlSessionClass.getMethod("close");
 
-         Object hsqlDbSession = newSessionMethod.invoke(null, new Object[] {OpHibernateSource.HSQLDB_TYPE, dbPath, source.getLogin(), source.getPassword(), null});
-         hsqlExecuteMethod.invoke(hsqlDbSession, new Object[]{"SET WRITE_DELAY FALSE"});
-         commitMethod.invoke(hsqlDbSession, null);
-         closeMethod.invoke(hsqlDbSession, null);
+         Object hsqlDbSession = newSessionMethod.invoke(null, OpHibernateSource.HSQLDB_TYPE, dbPath, source.getLogin(),
+              source.getPassword(), null);
+         hsqlExecuteMethod.invoke(hsqlDbSession, "SET WRITE_DELAY FALSE");
+         commitMethod.invoke(hsqlDbSession);
+         closeMethod.invoke(hsqlDbSession);
 
          logger.info("HSQLDB initialization finished");
       }
@@ -197,10 +220,13 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
+   /**
+    * Update database schema.
+    */
    public void updateSchema() {
       String[] hibernateUpdateScripts = null;
       List customUpdateScripts = new ArrayList();
-      List customDropScripts = new ArrayList();
+      List customDropScripts = new ArrayList<String>();
 
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
@@ -229,6 +255,9 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
+   /**
+    * Drop database schema.
+    */
    public void dropSchema() {
       // Create drop schema script
       OpHibernateSource source = ((OpHibernateSource) getSource());
@@ -246,8 +275,12 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
-   // *** alterSchema could use generateUpdateSchemaScript()
 
+   /**
+    * Persist provided object.
+    *
+    * @param object object to be stored
+    */
    public void persistObject(OpObject object) {
       try {
          logger.debug("before session.save()");
@@ -260,10 +293,13 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
-//   public boolean contains(Object obj) {
-//     return(_session.contains(obj));
-//   }
-
+   /**
+    * Retrieve an object by its identifier.
+    *
+    * @param c  object class.
+    * @param id object identifier
+    * @return object with the provided identifier
+    */
    public OpObject getObject(Class c, long id) {
       OpObject object = null;
       try {
@@ -276,6 +312,11 @@ public class OpHibernateConnection extends OpConnection {
       return object;
    }
 
+   /**
+    * Store/update object information into database.
+    *
+    * @param object object to be stored.
+    */
    public void updateObject(OpObject object) {
       try {
          session.update(object);
@@ -286,6 +327,11 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
+   /**
+    * Delete provided object.
+    *
+    * @param object object to be deleted.
+    */
    public void deleteObject(OpObject object) {
       try {
          session.delete(object);
@@ -303,7 +349,6 @@ public class OpHibernateConnection extends OpConnection {
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
-         e.printStackTrace(System.err);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -316,7 +361,6 @@ public class OpHibernateConnection extends OpConnection {
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
-         e.printStackTrace(System.err);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -329,7 +373,6 @@ public class OpHibernateConnection extends OpConnection {
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
-         e.printStackTrace(System.err);
          // *** TODO: Throw OpPersistenceException
       }
       return 0;
@@ -369,60 +412,60 @@ public class OpHibernateConnection extends OpConnection {
       return session.connection();
    }
 
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#flush()
-   */
-  @Override
-  public void flush() {
-    session.flush();
-  }
+   /**
+    * @see onepoint.persistence.OpConnection#flush()
+    */
+   @Override
+   public void flush() {
+      session.flush();
+   }
 
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#setFlushOnCommitMode()
-   */
-  @Override
-  public void setFlushMode(int flushMode) {
-     switch (flushMode) {
-     case FLUSH_MODE_NEVER:
-     {
-        session.setFlushMode(FlushMode.NEVER);
-        break;
-     }
-     case FLUSH_MODE_COMMIT:
-     {
-        session.setFlushMode(FlushMode.COMMIT);
-        break;
-     }
-     case FLUSH_MODE_AUTO:
-     {
-        session.setFlushMode(FlushMode.AUTO);
-        break;
-     }
-     case FLUSH_MODE_ALWAYS:
-     {
-        session.setFlushMode(FlushMode.ALWAYS);
-        break;
-     }
-     default:
-     {
-        throw new IllegalArgumentException("unsupported flush mode: "+flushMode);
-     }
-     }
-  }
-  /* (non-Javadoc)
-   * @see onepoint.persistence.OpConnection#getFlushMode()
-   */
-  @Override
-  public int getFlushMode() {
-     FlushMode mode = session.getFlushMode();
-     if (mode.equals(FlushMode.NEVER))
-        return FLUSH_MODE_NEVER;
-     if (mode.equals(FlushMode.COMMIT))
-        return FLUSH_MODE_COMMIT;
-     if (mode.equals(FlushMode.AUTO))
-        return FLUSH_MODE_AUTO;
-     if (mode.equals(FlushMode.ALWAYS))
-        return FLUSH_MODE_ALWAYS;
-     return(-1);
-  }
+   /**
+    * @see onepoint.persistence.OpConnection#setFlushMode(int) ()
+    */
+   @Override
+   public void setFlushMode(int flushMode) {
+      switch (flushMode) {
+         case FLUSH_MODE_MANUAL: {
+            session.setFlushMode(FlushMode.MANUAL);
+            break;
+         }
+         case FLUSH_MODE_COMMIT: {
+            session.setFlushMode(FlushMode.COMMIT);
+            break;
+         }
+         case FLUSH_MODE_AUTO: {
+            session.setFlushMode(FlushMode.AUTO);
+            break;
+         }
+         case FLUSH_MODE_ALWAYS: {
+            session.setFlushMode(FlushMode.ALWAYS);
+            break;
+         }
+         default: {
+            throw new IllegalArgumentException("unsupported flush mode: " + flushMode);
+         }
+      }
+   }
+
+   /**
+    * @see onepoint.persistence.OpConnection#getFlushMode()
+    */
+   @Override
+   public int getFlushMode() {
+      FlushMode mode = session.getFlushMode();
+      if (mode.equals(FlushMode.MANUAL)) {
+         return FLUSH_MODE_MANUAL;
+      }
+      if (mode.equals(FlushMode.COMMIT)) {
+         return FLUSH_MODE_COMMIT;
+      }
+      if (mode.equals(FlushMode.AUTO)) {
+         return FLUSH_MODE_AUTO;
+      }
+      if (mode.equals(FlushMode.ALWAYS)) {
+         return FLUSH_MODE_ALWAYS;
+      }
+      return (-1);
+   }
 }

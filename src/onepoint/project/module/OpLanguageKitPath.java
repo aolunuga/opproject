@@ -4,6 +4,7 @@
 package onepoint.project.module;
 
 import onepoint.resource.XLanguageKitLoader;
+import onepoint.resource.XLanguageKit;
 
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class OpLanguageKitPath {
     *
     * @return a <code>List</code> of <code>XLanguageKit</code>
     */
-   public final List loadLanguageKits() {
+   public final List<XLanguageKit> loadLanguageKits() {
       return new XLanguageKitLoader().loadLanguageKits(path);
    }
 

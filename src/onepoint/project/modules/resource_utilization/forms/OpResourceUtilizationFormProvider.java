@@ -22,21 +22,10 @@ import java.util.Map;
 
 public class OpResourceUtilizationFormProvider implements XFormProvider {
 
-   // TODO: Check if it can be 100% correct w/start and end-based data, or if time-phased approach is necessary
-   // TODO: Try to optimize via database queries and joins (assignments and activities)
+   private final static String UTILIZATION_DATA_SET = "UtilizationDataSet";
+   private final static String UTILIZATION_LEGEND_DATA_SET = "UtilizationResourceColorSet";
+   private final static String PRINT_BUTTON = "PrintButton";
 
-   public final static String UTILIZATION_DATA_SET = "UtilizationDataSet";
-   public final static String UTILIZATION_LEGEND_DATA_SET = "UtilizationResourceColorSet";
-
-   public final static String ALL_POOLS = "from " + OpResourcePool.RESOURCE_POOL;
-   public final static String RESOURCES_OUTSIDE_POOL = "select resource from OpResource as resource where resource.Pool.ID = null";
-   public final static String ALL_ASSIGNMENTS = "from " + OpAssignment.ASSIGNMENT;
-
-   public final static int POOL_ICON_INDEX = 0;
-   public final static int RESOURCE_ICON_INDEX = 1;
-
-   public final static String POOL_DESCRIPTOR = OpProjectComponent.UTILIZATION_POOL_DESCRIPTOR;
-   public final static String RESOURCE_DESCRIPTOR = OpProjectComponent.UTILIZATION_RESOURCE_DESCRIPTOR;
    private final static String RESOURCE_MAP = "resource_utilization.overview";
    private final static String HIGHLY_UNDERUSED = "HighlyUnderused";
    private final static String UNDERUSED = "Underused";
@@ -136,6 +125,10 @@ public class OpResourceUtilizationFormProvider implements XFormProvider {
 
       OpResourceUtilizationDataSetFactory.fillUtilizationValues(session, dataSet, null);
 
+      //if we have at least 1 resource/pool, enable print button
+      if (OpResourceUtilizationDataSetFactory.getUtilizationMap(session, dataSet).size() > 0) {
+         form.findComponent(PRINT_BUTTON).setEnabled(true);
+      }
    }
 
 

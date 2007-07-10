@@ -7,7 +7,6 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require "onepoint/project/modules/resource/scripts/hourly_rates.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -15,7 +14,6 @@ import onepoint.service.XMessage;
 import onepoint.express.XValidator;
 
 function ok(event) {
-
    // Gather resource-data
    form = XDisplay.getActiveForm();
    resource_data.PoolID = form.findComponent("PoolID").getStringValue();
@@ -24,9 +22,9 @@ function ok(event) {
    resource_data.Available = form.findComponent("Available").getDoubleValue();
    resource_data.HourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    resource_data.ExternalRate = form.findComponent("ExternalRate").getDoubleValue();
-   resource_data.InheritPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();   
-   resource_data.HourlyRatesSet = form.findComponent("HourlyRatesSet");
+   resource_data.InheritPoolRate = !form.findComponent("InheritPoolRate").getBooleanValue();
    userChoice = form.findComponent("UserName").getStringValue();
+
    if (userChoice != null) {
       resource_data.UserID = XValidator.choiceID(userChoice);
    }
@@ -41,8 +39,8 @@ function ok(event) {
       i++;
    }
    resource_data.Projects = assigned_projects;
-
    resource_data.PermissionSet = form.findComponent("PermissionSet");
+   resource_data = prepareParameters(resource_data);
 
    request = new XMessage;
    request.setAction("ResourceService.insertResource");
@@ -105,13 +103,24 @@ function inheritPoolRate(event) {
    form = XDisplay.getActiveForm();
    source = event.event_source;
    shouldOverride = source.getValue();
+   poolHourlyRate = form.findComponent("PoolHourlyRate").getDoubleValue();
+   poolExternalRate = form.findComponent("PoolExternalRate").getDoubleValue();
+   hourlyRateField = form.findComponent("HourlyRate");
+   externalRateField = form.findComponent("ExternalRate");
    if (shouldOverride == true) {
-      form.findComponent("HourlyRate").setEnabled(true);
-      form.findComponent("ExternalRate").setEnabled(true);
+      hourlyRateField.setEnabled(true);
+      externalRateField.setEnabled(true);
    }
    else {
-      form.findComponent("HourlyRate").setEnabled(false);
-      form.findComponent("ExternalRate").setEnabled(false);
+      hourlyRateField.setEnabled(false);
+      hourlyRateField.setDoubleValue(poolHourlyRate);
+      externalRateField.setEnabled(false);
+      externalRateField.setDoubleValue(poolExternalRate);
    }
    form.update();
+}
+
+//do nothing ... use for advanced functionality
+function prepareParameters(resource_data) {
+   return resource_data;
 }

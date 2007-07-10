@@ -1,31 +1,22 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */ 
+ */
 
 /**
- * 
+ *
  */
 package onepoint.project.xml_rpc;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Iterator;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
-
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -33,11 +24,19 @@ import org.apache.xmlrpc.server.RequestProcessorFactoryFactory;
 import org.apache.xmlrpc.server.XmlRpcHandlerMapping;
 import org.apache.xmlrpc.webserver.XmlRpcServlet;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Iterator;
+
 /**
  * Servlet used for Xml-Rpc Funcionality.
- * 
+ *
  * @author dfreis
- * 
+ *
  */
 public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 
@@ -58,7 +57,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 
 
    /**
-    * the suffix appended to all handlers. 
+    * the suffix appended to all handlers.
     */
    private static final String XMLRPC_SUFFIX = "XMLRPC";
 
@@ -66,7 +65,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
     * Mapping holding all Xml-Rpc service implementations together with an unique key.
     */
    private static PropertyHandlerMapping handler_mapping = null;
-   
+
    /**
     * Default constructor.
     */
@@ -111,16 +110,23 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
                logger.error("Could not add XML-RPC handler for service: "+service.getName());
                logger.debug(exc);
             }
+            catch (NoClassDefFoundError exc) {
+               System.err.println("EXC: "+exc);   
+               exc.printStackTrace();
+            }
+         }
+         else {
+            logger.error("No XML-RPC handler for service '"+(service == null ? "<null>" : service.getName())+"' found!");            
          }
       }
    }
-   
+
    /* Initializes this servlet by setting up the any OpProject required dettings.
     * @see javax.servlet.GenericServlet#init()
     */
    @Override
    public void init() throws ServletException {
-      System.err.println("in INIT()");
+      logger.debug("Call init() method");
 
       super.init();
 
@@ -129,8 +135,12 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 
       //perform the initialization
       // FIXME how to init right edition? - should't that be read from license      
-      OpInitializer.init(getProductCode());
-            
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      factory.setInitializer(OpInitializer.class);
+
+      OpInitializer initializer = factory.getInitializer();
+      initializer.init(this.getProductCode());
+
       // initialize the handlers
       initHandlers();
    }
@@ -165,7 +175,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
       }
    }
 
-   
+
 //   /* (non-Javadoc)
 //    * @see org.apache.xmlrpc.webserver.XmlRpcServlet#getXmlRpcServletServer()
 //    */
@@ -181,7 +191,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
       RequestProcessorFactoryFactory factory = new RequestProcessorFactoryFactory.RequestSpecificProcessorFactoryFactory() {
          protected Object getRequestProcessor(Class pClass, XmlRpcRequest pRequest) throws XmlRpcException {
             Object proc = super.getRequestProcessor(pClass, pRequest);
-            System.err.println("PROC: "+proc.getClass().getName());
+            logger.debug("PROC: "+proc.getClass().getName());
             return proc;
          }
       };
@@ -189,7 +199,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
       mapping.load(Thread.currentThread().getContextClassLoader(), url);
       return mapping;
    }
-   
+
    /**
     * Returns a XMLRPCService that uses the given service to perform its work.
     * An XMLRPCService can therefor be seen as an XML-RPC adapter for the given service.
@@ -210,7 +220,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
          // }
          className += XMLRPC_SUFFIX;
          return Class.forName(className);
-      } 
+      }
       catch (Exception exc)
       {
          logger.debug("No XMLRPC class found for Service '"+service.getClass().getName()+"'");

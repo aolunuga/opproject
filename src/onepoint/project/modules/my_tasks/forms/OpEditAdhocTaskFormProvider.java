@@ -10,10 +10,14 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAttachment;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
@@ -172,11 +176,11 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          String type;
          int idx;
          if (attachment.getLinked()) {
-            type = OpActivityDataSetFactory.LINKED_ATTACHMENT_DESCRIPTOR;
+            type = OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR;
             idx = 0;
          }
          else {
-            type = OpActivityDataSetFactory.DOCUMENT_ATTACHMENT_DESCRIPTOR;
+            type = OpProjectConstants.DOCUMENT_ATTACHMENT_DESCRIPTOR;
             idx = 1;
          }
          cell.setStringValue(type);
@@ -201,7 +205,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
             attachmentRow.addChild(cell);
          }
 
-         attachmentSet.addDataRow(attachmentRow);
+         attachmentSet.addChild(attachmentRow);
       }
    }
 

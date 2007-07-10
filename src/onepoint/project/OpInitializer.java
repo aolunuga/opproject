@@ -7,10 +7,7 @@ package onepoint.project;
 import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpConnectionManager;
-import onepoint.persistence.OpPersistenceManager;
-import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
@@ -35,23 +32,13 @@ import java.util.Map;
  * Service class responsible for performing application initialization steps
  *
  * @author ovidiu.lupas
- *         <FIXME author="Horia Chiorean" description="Not very OO-oriented that this class is static...(same as the 'factories')/>
  */
-public final class OpInitializer {
-   /**
-    * Success Run Level.
-    */
-   public static final byte SUCCESS_RUN_LEVEL = 6;
+public class OpInitializer {
 
    /**
     * This class's logger
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpInitializer.class);
-
-   /**
-    * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
-    */
-   private static final Map<String, Boolean> PRODUCT_CODES_MAP = new HashMap<String, Boolean>();
 
    /**
     * needed for initialization of multipled servlets
@@ -61,7 +48,7 @@ public final class OpInitializer {
    /**
     * Run level of the application.
     */
-   private static byte runLevel = 0;
+   protected byte runLevel = 0;
 
    /**
     * The code of the db connection test
@@ -71,42 +58,27 @@ public final class OpInitializer {
    /**
     * Map containg information about the initialization steps taken by the initializer
     */
-   private static Map<String, String> initParams = new HashMap<String, String>();
+   protected Map<String, String> initParams = new HashMap<String, String>();
 
    /**
     * The configuration object initialized by this class
     */
-   private static OpConfiguration configuration = null;
-
-   /**
-    * The product code used in the initialization process
-    */
-   private static String productCode = null;
+   private OpConfiguration configuration = null;
 
    /**
     * Flag indicatig whether the language settings have been initialized or not.
     */
-   private static boolean languageInitialized = false;
+   private boolean languageInitialized = false;
 
    /**
     * state of initialization
     */
-   private static boolean initialized = false;
+   private boolean initialized = false;
 
    /**
-    * Initialize the product codes map
+    * This class should not be instantiated randomly. You must get a valid instance from <code>OpInitializerFactory</code>
     */
-   static {
-      PRODUCT_CODES_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, Boolean.FALSE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
-   }
-
-   /**
-    * This class should not be instantiated
-    */
-   private OpInitializer() {
+   public OpInitializer() {
    }
 
    /**
@@ -114,17 +86,8 @@ public final class OpInitializer {
     *
     * @return <code>byte</code> run level
     */
-   public static byte getRunLevel() {
+   public byte getRunLevel() {
       return runLevel;
-   }
-
-   /**
-    * Returns the run level of the application
-    *
-    * @return <code>byte</code> run level
-    */
-   public static byte getSuccessRunLevel() {
-      return SUCCESS_RUN_LEVEL;
    }
 
    /**
@@ -133,15 +96,16 @@ public final class OpInitializer {
     * @param productCode a <code>String</code> representing the program code (the flavour of the application).
     * @return <code>Map</code> of init parameters.
     */
-   public static Map init(String productCode) {
+   public Map<String, String> init(String productCode) {
       synchronized (MUTEX) {
          if (initialized) {
             return initParams;
          }
          //set the product code
-         OpInitializer.productCode = productCode;
+         OpEnvironmentManager.setProductCode(productCode);
 
          logger.info("Application initialization started");
+         runLevel = 0;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          try {
@@ -150,7 +114,9 @@ public final class OpInitializer {
             // Read configuration file
             OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
             String projectPath = OpEnvironmentManager.getOnePointHome();
-            onepoint.project.configuration.OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+            OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+
+            preInit();
 
             if (configuration == null) {
                logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
@@ -160,11 +126,10 @@ public final class OpInitializer {
                return initParams; //show db configuration wizard frame
             }
             else {
-               OpInitializer.configuration = configuration;
+               this.configuration = configuration;
             }
 
             // initialize logging facility
-
             String logFile = configuration.getLogFile();
             if (logFile != null && !new File(logFile).isAbsolute()) {
                logFile = projectPath + "/" + logFile;
@@ -172,21 +137,22 @@ public final class OpInitializer {
             XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
 
             //get the db connection parameters
-            String databaseUrl = configuration.getDatabaseConfiguration().getDatabaseUrl();
-            String databaseDriver = configuration.getDatabaseConfiguration().getDatabaseDriver();
-            String databasePassword = configuration.getDatabaseConfiguration().getDatabasePassword();
-            String databaseLogin = configuration.getDatabaseConfiguration().getDatabaseLogin();
-            int databaseType = configuration.getDatabaseConfiguration().getDatabaseType();
+            OpConfiguration.DatabaseConfiguration dbConfig = configuration.getDatabaseConfiguration();
+            String databaseUrl = dbConfig.getDatabaseUrl();
+            String databaseDriver = dbConfig.getDatabaseDriver();
+            String databasePassword = dbConfig.getDatabasePassword();
+            String databaseLogin = dbConfig.getDatabaseLogin();
+            int databaseType = dbConfig.getDatabaseType();
 
-	          //test the db connection
-  	        int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
+            //test the db connection
+            int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
             connectionTestCode = testResult;
             if (testResult != OpConnectionManager.SUCCESS) {
-     	 	       logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
-        	     OpConfigurationWizardManager.loadConfigurationWizardModule();
-            	 return initParams;
-	         	}
-	         	
+               logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+               OpConfigurationWizardManager.loadConfigurationWizardModule();
+               return initParams;
+            }
+
             // set smtp host for OpMailer
             OpMailer.setSMTPHostName(configuration.getSMTPServer());
 
@@ -206,13 +172,12 @@ public final class OpInitializer {
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
             // Load and register default source
-            OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+            OpSource defaultSource = OpSourceManager.getDefaultSource();
             if (defaultSource != null) {
                defaultSource.close();
             }
-            defaultSource = new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
-            OpSourceManager.registerSource(defaultSource);
-            OpSourceManager.setDefaultSource(defaultSource);
+            defaultSource = createSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+            OpSourceManager.registerDefaultSource(defaultSource);
             defaultSource.open();
 
             logger.info("Access to database is OK");
@@ -237,22 +202,45 @@ public final class OpInitializer {
             OpModuleManager.start();
 
             logger.info("Registered modules started; Application started");
-            runLevel = 6;
+            runLevel = OpProjectConstants.SUCCESS_RUN_LEVEL;
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
          }
          catch (Exception e) {
             logger.fatal("Cannot start the application", e);
+            initialized = false;
+            return initParams;
          }
-         initialized = true;
 
+         initialized = true;
          return initParams;
       }
-    }
+   }
+
+   /**
+    * Pre-initialization steps.
+    */
+   protected void preInit() {
+   }
+
+   /**
+    * Creates a new instance of <code>OpHibernateSource</code> with the given parameters.
+    *
+    * @param databaseUrl      connection databse URL
+    * @param databaseDriver   database JDBC driver class
+    * @param databasePassword connection user password
+    * @param databaseLogin    connection user
+    * @param databaseType     database type.
+    * @return
+    */
+   protected OpSource createSource(String databaseUrl, String databaseDriver, String databasePassword,
+        String databaseLogin, int databaseType) {
+      return new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+   }
 
    /**
     * Initializes the default language settings.
     */
-   private static void initLanguageResources() {
+   private void initLanguageResources() {
       if (languageInitialized) {
          return;
       }
@@ -278,25 +266,30 @@ public final class OpInitializer {
    /**
     * Updates the db schema if necessary.
     */
-   private static void updateDBSchema() {
+   private void updateDBSchema() {
       OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
       int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
       if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
          logger.info("Updating DB schema from version " + existingVersionNr + "...");
          OpPersistenceManager.updateSchema();
          defaultSource.updateSchemaVersionNumber();
-         OpModuleManager.upgrade(existingVersionNr);
+         OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
       }
    }
 
-   public static int getConnectionTestCode() {
+   /**
+    * Returns connection test code.
+    *
+    * @return connection test code
+    */
+   public int getConnectionTestCode() {
       return connectionTestCode;
    }
 
    /**
     * Creates an empty db schema, if necessary.
     */
-   private static void createEmptySchema() {
+   private void createEmptySchema() {
       OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
       if (!hibernateSource.existsTable("op_object")) {
          OpPersistenceManager.createSchema();
@@ -309,57 +302,11 @@ public final class OpInitializer {
    }
 
    /**
-    * Indicates whether the running mode is multi-user or not.
-    *
-    * @return a <code>boolean</code> indicating whether the running mode is multi-user or not.
-    */
-   public static boolean isMultiUser() {
-      Boolean isMultiUser = PRODUCT_CODES_MAP.get(productCode);
-      if (isMultiUser == null) {
-         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
-      }
-      return isMultiUser;
-   }
-
-
-   /**
-    * Gets the product code registered with the initializer class.
-    *
-    * @return a <code>String</code> representing the product code, which indicates the flavour of the application.
-    */
-   public static String getProductCode() {
-      return productCode;
-   }
-
-   /**
-    * Checks the run level found in the parameters, and if necessary displays a message to the user.
-    *
-    * @param parameters a <code>HashMap</code> of <code>String,Object</code> pairs, representing form parameters.
-    * @param localeId   a <code>String</code> representing the id of the current locale.
-    * @param mapId      The error resource map ID.
-    * @return A string representing an error message, if any. Null otherwise.
-    */
-   public static String checkRunLevel(HashMap parameters, String localeId, String mapId) {
-      String runLevelParameter = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
-      if (runLevelParameter != null) {
-         XLocalizer localizer = XLocaleManager.createLocalizer(localeId, mapId);
-
-         int runLevel = Integer.valueOf(runLevelParameter);
-         int successRunLevel = getSuccessRunLevel();
-         if (runLevel < successRunLevel) {
-            String resourceId = "${" + OpProjectConstants.RUN_LEVEL + runLevelParameter + "}";
-            return localizer.localize(resourceId);
-         }
-      }
-      return null;
-   }
-
-   /**
     * Gets the application configuration.
     *
     * @return an <code>OpConfiguration</code> object representing the application configuration object.
     */
-   public static OpConfiguration getConfiguration() {
+   public OpConfiguration getConfiguration() {
       return configuration;
    }
 
@@ -368,17 +315,21 @@ public final class OpInitializer {
     *
     * @throws SQLException if the db schema cannot be droped or created.
     */
-   public static void resetDbSchema()
+   public void resetDbSchema()
         throws SQLException {
       logger.info("Stopping modules");
       OpModuleManager.stop();
+
       logger.info("Dropping schema...");
       OpPersistenceManager.dropSchema();
+
       logger.info("Creating schema...");
       createEmptySchema();
+
       logger.info("Starting modules");
       OpSourceManager.getDefaultSource().clear();
       OpModuleManager.start();
+
       logger.info("Updating schema...");
       updateDBSchema();
    }
@@ -392,10 +343,11 @@ public final class OpInitializer {
     * @throws SQLException if the db schema cannot be droped or created.
     * @throws IOException  if the repository cannot be restored from the given file.
     */
-   public static void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
+   public void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {
       logger.info("Dropping schema...");
       OpPersistenceManager.dropSchema();
+
       logger.info("Creating schema...");
       OpPersistenceManager.createSchema();
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);

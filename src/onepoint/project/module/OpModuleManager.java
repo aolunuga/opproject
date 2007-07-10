@@ -4,18 +4,16 @@
 
 package onepoint.project.module;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpPrototype;
 import onepoint.persistence.OpTypeManager;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
-import onepoint.resource.XLanguageKit;
-import onepoint.resource.XLocaleManager;
-import onepoint.service.server.XService;
-import onepoint.service.server.XServiceManager;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +21,11 @@ import java.util.List;
 public final class OpModuleManager {
 
    public final static String MODULE_REGISTRY_FILE_NAME = "registry.oxr.xml";
+
+   /**
+    * This class' logger.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpModule.class);
 
    private static OpModuleRegistry moduleRegistry;
    private static OpModuleRegistryLoader opModuleRegistryLoader;
@@ -49,82 +52,22 @@ public final class OpModuleManager {
     * @param registryFileName name of the module registry file.
     */
    public static void load(String registryFileName) {
-      // *** Exception/error if module-registry has already been read?
       String path = OpEnvironmentManager.getOnePointHome() + "/" + registryFileName;
       if (opModuleRegistryLoader == null) {
          opModuleRegistryLoader = new OpModuleRegistryLoader();
       }
       moduleRegistry = opModuleRegistryLoader.loadModuleRegistry(path);
       if (moduleRegistry == null) {
-         // We assume that this is a newly installed system
-         moduleRegistry = new OpModuleRegistry();
-         // *** Add built-in modules here or hard-code completely?
+         logger.error("The module registry wasn't initialized. No modules will be loaded.");
+         return;
       }
-      // Register prototypes and tools for all modules
-      Iterator modules = moduleRegistry.iterator();
-      OpModule module;
-      Iterator prototypes;
-      OpPrototype prototype;
-      Iterator services;
-      XService service;
-      Iterator language_kits;
-      XLanguageKit language_kit;
-      Iterator tools;
-      OpTool tool;
-      Iterator groups;
-      OpToolGroup group;
-      while (modules.hasNext()) {
-         module = (OpModule) (modules.next());
-         // Register prototypes
-         prototypes = module.getPrototypes();
-         while (prototypes.hasNext()) {
-            prototype = (OpPrototype) (prototypes.next());
-            OpTypeManager.registerPrototype(prototype);
-         }
-         // Register services
-         services = module.getServices();
-         while (services.hasNext()) {
-            service = (XService) (services.next());
-            XServiceManager.registerService(service);
-         }
-         // Register language kits
-         language_kits = module.getLanguageKits();
-         while (language_kits.hasNext()) {
-            language_kit = (XLanguageKit) (language_kits.next());
-            if (module.getExtendedModule() != null) {
-               XLocaleManager.registerOverriddingLanguageKit(language_kit, false);
-            }
-            else {
-               XLocaleManager.registerLanguageKit(language_kit);
-            }
-         }
-         // Add tool-groups
-         groups = module.getGroups();
-         while (groups.hasNext()) {
-            group = (OpToolGroup) (groups.next());
-            OpToolManager.registerGroup(group);
-         }
-         // Add tools
-         tools = module.getTools();
-         while (tools.hasNext()) {
-            tool = (OpTool) (tools.next());
-            // Resolve group-ref
-            if (tool.getGroupRef() != null) {
-               tool.setGroup(OpToolManager.getGroup(tool.getGroupRef()));
-            }
-            if (tool.isMultiUserOnly() == null || (tool.isMultiUserOnly().booleanValue() && OpInitializer.isMultiUser())) {
-               OpToolManager.registerTool(tool);
-            }
-         }
-      }
+      moduleRegistry.registerModules();
       initializeBackupManager();
+      //<FIXME author="Horia Chiorean" description="Is this needed ?">
       OpTypeManager.lock();
-      // Standard installation: Create prototypes
-      // *** Dependencies should be handled by programmer (installation-order in
-      // module.oxm)
-      // ==> Do we need an extra removal-order as well (or reverse installation
-      // order)?
+      //<FIXME>
    }
+
 
    /**
     * Initializes the backup manager by registering all the prototypes in correct order.
@@ -206,15 +149,28 @@ public final class OpModuleManager {
    /**
     * Calls the upgrade method for all the registered modules. This usually occurs when a db schema update takes place.
     *
-    * @param dbVersion database version.
-    * @see OpModule#upgrade(onepoint.project.OpProjectSession,int)
+    * @param dbVersion     database version (old one).
+    * @param latestVersion an <code>int</code> representing the latest version.
     */
-   public static void upgrade(int dbVersion) {
+   public static void upgrade(int dbVersion, int latestVersion) {
       OpProjectSession session = new OpProjectSession();
       Iterator modules = moduleRegistry.iterator();
       while (modules.hasNext()) {
          OpModule module = (OpModule) (modules.next());
-         module.upgrade(session, dbVersion);
+         for (int i = dbVersion + 1; i <= latestVersion; i++) {
+            String methodName = "upgradeToVersion" + i;
+            try {
+               Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
+               logger.info("Invoking " + methodName + " for module " + module.getName());
+               m.invoke(module, session);
+            }
+            catch (NoSuchMethodException e) {
+               logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
+            }
+            catch (Exception e) {
+               logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+            }
+         }
       }
       session.close();
    }

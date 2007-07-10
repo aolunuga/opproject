@@ -19,7 +19,10 @@
       <resource id="Save">Enregistrer les parametres</resource>
       <resource id="SaveTooltip">Enregistrer les parametre Systéme</resource>
       <resource id="SelectCalendar">(Choisir le calendrier)</resource>
-      <resource id="MilestoneControllingInterval">Intervalle de contrôle de Jalon (semaines)</resource>      
+      <resource id="MilestoneControllingInterval">Intervalle de contrôle de Jalon (semaines)</resource>
+      <resource id="EnableTimeTracking">Enable time tracking</resource>
+      <resource id="EnablePulsing">Enable pulsing</resource>
+      <resource id="Pulsing">Pulsing (minutes)</resource>      
    </resource-map>
 
    <resource-map id="settings.weekdays">
@@ -41,6 +44,7 @@
       <resource id="ResourceMaxAvailabilityIncorrect">La valeur maximum de disponibilité d'une ressource est invalide</resource>
       <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
       <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
+      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
    </resource-map>
 
    <resource-map id="settings.calendar">

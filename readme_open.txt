@@ -1,4 +1,4 @@
-Onepoint Project 07 Open Edition (Update 1)
+Onepoint Project 07 Open Edition (Update 2)
 ===========================================
 
 Welcome to the most current release of Onepoint Project Open Edition. This
@@ -10,6 +10,11 @@ using Tomcat and MySQL under Windows 2000/XP/Vista/2003 Server. If you are using
 Linux or Mac OS X, or a different application server or database you will have to
 adjust the installation steps according to your environment.
 
+IMPORTANT: If you encounter a warning message on the login screen stating that your
+Onepoint Project installation is running against a non-transactional database
+please be sure to read Appendix E and follow the database upgrading steps there
+before putting any more data into your project repository.
+
 
 System Requirements
 -------------------
@@ -18,13 +23,13 @@ System Requirements
 
 * Java Runtime Environment (JRE) version 1.4.2 or higher
 
-* MySQL 5.0.27 or PostgreSQL 8.1
+* MySQL 5.0.27, PostgreSQL 8.1
 
-* MySQL or PostgreSQL JDBC driver
+* Suitable JDBC driver for your chosen database
 
 * Apache Tomcat 5.5
 
-Other application servers and databases are supported by the Team Edition.
+Other application servers can be supported on request.
 
 
 Documentation
@@ -43,9 +48,9 @@ installed, you can download it for free from the Adobe website:
 Installation
 ------------
 
-If you are upgrading from Onepoint Project 06.1 Open Edition, please move your
-existing "opproject" web application from the "webapps" folder to a different
-location in the folder hierarchy.
+If you are upgrading from an earlier version of Onepoint Project 07 or 06.1 Open
+Edition please move your existing "opproject" web application from the "webapps"
+folder to a different location in the folder hierarchy.
 
 These short instructions assume that Onepoint Project is installed as a Tomcat Web
 application:
@@ -77,11 +82,13 @@ installation!
 7. (OPTIONAL) If you want to start with some demo data load the demo data by
 executing the folling SQL file (see Appendix B):
    - demodata07.sql
-   
+
 Note: This step is optional. If you do not upload the demo data a new, plaim
 repository will be created at the first startup of the web application.
 
-8. Stop Tomcat and restart it in order to make sure that the JDBC driver gets loaded
+8. Copy a valid license file ("license.oxl.xml") into the opproject folder
+
+9. Stop Tomcat and restart it in order to make sure that the JDBC driver gets loaded
 and your previous configuration file is loaded (in case you provided one).
 
 
@@ -94,7 +101,7 @@ be accessible by using the following URL:
    http://localhost:8080/opproject/service
 
 If you did not upgrade from a previous installation you will now be presented with
-the configuration wizard where you have to choose your database type (e.g., MySQL InnoDB),
+the configuration wizard where you have to choose your database type (e.g., MySQL),
 provide a JDBC connect string for your database instance, a database user and a
 password. If you are not familiar with JDBC connect strings please take a look at
 Appendix C.
@@ -105,6 +112,11 @@ until the repository structure is set up completely.
 You can now log in as "administrator", there is no password set as default.
 Please note that the first thing you should do now is to specify a password
 for the administrator user: You can do this under "My" -> "Preferences".
+
+IMPORTANT: If you encounter a warning message on the login screen stating that your
+Onepoint Project installation is running against a non-transactional database
+please be sure to read Appendix E and follow the database upgrading steps there
+before putting any more data into your project repository.
 
 
 Using the Demo Data
@@ -129,7 +141,7 @@ execute the following steps after installing MySQL:
 
    (1) Open a command line window (DOS shell) und change into the "demodata"
        directory
-   (2) Type "mysql -u root -p" and enter the root password which you specified
+   (2) Type "mysql –u root -p" and enter the root password which you specified
        when installing MySQL
    (3) mysql> source createdb.sql;
    (4) mysql> quit
@@ -137,7 +149,7 @@ execute the following steps after installing MySQL:
 Alternatively, you can create a new database and a new user in MySQL also
 manually:
 
-   (1) Open a command line window (DOS shell) und type "mysql -u root -p" and
+   (1) Open a command line window (DOS shell) und type "mysql –u root -p" and
        enter the root password which you specified when installing MySQL
    (2) mysql> create database opproject;
    (3) mysql> grant all privileges on opproject.* to 'opproject'@'localhost'
@@ -151,7 +163,7 @@ Appendix B: Executing a SQL file in MySQL
 In order to execute a SQL file in MySQL you have to do the following:
 
    (1) Open a command line window (DOS shell) und type
-       "mysql -u opproject -p opproject" and enter the password you specified
+       "mysql –u opproject -p opproject" and enter the password you specified
        when creating the database user
    (2) mysql> source demodata07.sql;
    (3) mysql> quit
@@ -196,3 +208,51 @@ not found then you probably forgot to copy the JDBC driver JAR file into
 the WEB-INF/lib directory of the web application; please do it and restart
 Tomcat afterwards in order to be sure that the JDBC driver JAR file gets
 loaded correctly
+
+
+Appendix E: Upgrading to a Transactional MySQL Instance
+-------------------------------------------------------
+
+We discovered that it is possible to connect Onepoint Project also to a
+non-transactional MySQL instance (MyISAM), but this was never intended to
+be supported or even working. Onepoint Project makes heavy use of
+transactions and running it against a non-transactional database
+can cause severe data inconsistencies.
+
+Therefore, if you are running Onepoint Project against a non-transactional
+database instance we strongly recommend to upgrade to a transaction database
+instance via executing the following steps:
+
+(1) Use the "Repository" tool to create an XML backup of your current project
+repository. In addition, create a dump of your MySQL database instance
+using the mysqldump command line utility (just in case something goes wrong).
+We propose also to copy the "backup" directory from the opproject web app
+directory (it contains the XML backup you just created)
+
+(2) Stop the opproject web app or Tomcat as a whole
+
+(3) Drop your current MySQL Onepoint Project user and database instance
+
+(4) Reconfigure your MySQL installation "transactional only" or at least
+make sure that you create the new Onepoint Project database instance for
+use with transactions (use the InnoDB engine) and grant the new Onepoint
+Project database user access to the new database
+
+(5) Delete the "configuration.oxc.xml" file in order that the database
+configuration wizard will show up once you start the web app
+
+(6) Start the opproject web app or Tomcat as a whole
+
+(7) Configure database access to the new Onepoint Project database instance
+by selecting "MySQL (InnoDB)". The system will now create a clean project
+repository (this might take some time)
+
+(8) Use the "Repositoy" tool to restore the XML backup you created in (1).
+If everything went well you should now have an exact copy of your project
+repository, but residing in a transactional database instance
+
+Please note also that with the next feature release (Onepoint Project 07.1)
+we will completely drop support for non-transactional MySQL databases (MyISAM).
+Therfore, we strongly recommend that you upgrade your database instance
+right after installing this update.
+

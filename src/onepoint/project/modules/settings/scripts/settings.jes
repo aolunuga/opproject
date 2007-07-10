@@ -26,6 +26,12 @@ function save(event) {
    settings.Milestone_ControllingInterval = form.findComponent("MilestoneControllingInterval").getIntValue();
    settings.Show_ResourceHours = form.findComponent("ShowResourceHours").getBooleanValue();
 
+   enablePulsing = form.findComponent("EnablePulsing").getBooleanValue();
+   if (enablePulsing) {
+       settings.Pulsing = form.findComponent("Pulsing").getIntValue();
+   }
+   settings.EnableTimeTracking = form.findComponent("EnableTimeTracking").getBooleanValue();
+
    request = new XMessage;
    request.setAction("SettingsService.saveSettings");
    request.setArgument("new_settings", settings);
@@ -130,4 +136,17 @@ function updateDayWorkTime(event) {
    dayWorkTime = weekWorkTime / workingDays;
    dayWorkComponent.setDoubleValue(dayWorkTime);
    dayWorkComponent.update();
+}
+
+function pulsingChanged(event) {
+   form = XDisplay.getActiveForm();
+   enablePulsing = form.findComponent("EnablePulsing").getBooleanValue();
+   pulsingField = form.findComponent("Pulsing");
+   if (enablePulsing) {
+      pulsingField.setEnabled(true);
+   }
+   else {
+      pulsingField.setEnabled(false);
+   }
+   form.repaint();
 }

@@ -8,11 +8,11 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
@@ -39,8 +39,22 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String TODAY_DATE_FIELD = "Today";
    private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
 
+   private final static String ADJUST_RATES_COLUMN = "AdjustRatesColumn";
+   private final static String INTERNAL_RATES_COLUMN = "InternalRatesColumn";
+   private final static String EXTENAL_RATES_COLUMN = "ExternalRatesColumn";
+
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
+
+      //disable resource rates / project
+      form.findComponent(ADJUST_RATES_COLUMN).setHidden(true);
+      form.findComponent(INTERNAL_RATES_COLUMN).setHidden(true);
+      form.findComponent(EXTENAL_RATES_COLUMN).setHidden(true);
+
+      //set default values
+      form.findComponent(OpProjectNode.PRIORITY).setIntValue(OpProjectNode.DEFAULT_PRIORITY);
+      form.findComponent(OpProjectNode.PROBABILITY).setIntValue(OpProjectNode.DEFAULT_PROBABILITY);
+      form.findComponent(OpProjectNode.ARCHIVED).setBooleanValue(OpProjectNode.DEFAULT_ARCHIVED);
 
       String portfolioLocator = (String) (parameters.get(OpProjectAdministrationService.PORTFOLIO_ID));
 
@@ -82,7 +96,7 @@ public class OpNewProjectFormProvider implements XFormProvider {
       //disable templates related stuff
       form.findComponent(TEMPLATE_FIELD).setEnabled(false);
 
-      if (OpInitializer.isMultiUser()) {
+      if (OpEnvironmentManager.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          // Retrieve permission set of portfolio -- inheritance of permissions

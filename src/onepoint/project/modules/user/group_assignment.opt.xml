@@ -1,4 +1,4 @@
-<prototype name="OpGroupAssignment" instance-class="onepoint.project.modules.user.OpGroupAssignment">
+<prototype name="OpGroupAssignment" instance-class="onepoint.project.modules.user.OpGroupAssignment" super-type="OpObject">
    <relationship name="SuperGroup" type="OpGroup" back-relationship="SubGroupAssignments"/>
    <relationship name="SubGroup" type="OpGroup" back-relationship="SuperGroupAssignments"/>
 </prototype>

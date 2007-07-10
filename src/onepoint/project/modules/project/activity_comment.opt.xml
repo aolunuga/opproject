@@ -1,4 +1,4 @@
-<prototype name="OpActivityComment" instance-class="onepoint.project.modules.project.OpActivityComment">
+<prototype name="OpActivityComment" instance-class="onepoint.project.modules.project.OpActivityComment" super-type="OpObject">
    <field name="Name" type="String"/>
    <field name="Text" type="Text"/>
    <field name="Sequence" type="Integer"/>

@@ -11,12 +11,6 @@ public class OpRelationship extends OpMember {
    public final static int AGGREGATION = 1;
    public final static int COMPOSITION = 2;
 
-   /**
-    * Cascade mode possible values
-    */
-   public final static String CASCADE_DELETE = "delete";
-   public final static String CASCADE_SAVEUPDATE = "save-update";
-
    private int relationshipType;
    private String backRelationshipName;
    private OpRelationship backRelationship; // Resolved on registration

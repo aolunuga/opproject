@@ -19,7 +19,7 @@
 
 	<panel layout="border" style-ref="tool-panel-default" y="-1">
       <tool-bar x="-1">
-         <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="${PrintTooltip}"/>
+         <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
       </tool-bar>
 
      <panel x="1" layout="border" style-ref="compact-panel-default">
@@ -36,8 +36,9 @@
 
         <tab layout="border" text="${ProjectList}" id="ProjectListTab">
            <table-box id="ProjectsTable" data-set-ref="ProjectsSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu">
-              <table-column text="${Project}" width="250" sortable="true"  data-column-index="0"/>
-              <table-column text="${Status}" width="65" data-column-index="1"/>
+              <table-column text="${Project}" width="200"  value-type="String" sortable="true"  data-column-index="0"/>
+              <table-column text="${Status}" width="65"  value-type="String" data-column-index="1"/>
+              <table-column text="${Priority}" width="60"  value-type="Int" data-column-index="20" sortable="true"/>
               <table-column text="${Start}" width="60" value-type="Date" data-column-index="14" sortable="true"/>
               <table-column text="${End}" width="60" value-type="Date" data-column-index="15" sortable="true"/>
               <table-column text="${Complete}" width="80" sortable="true" data-column-index="2"  value-type="PercentageBar"/>

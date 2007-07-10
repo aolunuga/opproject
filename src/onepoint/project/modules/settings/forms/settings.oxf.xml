@@ -39,7 +39,11 @@
             <label x="0" y="10" width="2" text="${MilestoneControllingInterval}"/>
             <int-field x="2" y="10" width="3" id="MilestoneControllingInterval" />
             <check-box x="2" y="11" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
-		</panel>
+            <check-box x="2" y="12" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
+            <check-box x="2" y="13" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
+            <label x="0" y="14" width="2" text="${Pulsing}"/>
+            <int-field x="2" y="14" width="3" id="Pulsing"/>
+    </panel>
    </panel>
 		
 	<status-bar y="1"/>
