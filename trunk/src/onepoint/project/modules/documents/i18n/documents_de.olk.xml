@@ -1,0 +1,6 @@
+<language-kit locale="de">
+   <resource-map id="documents.error">
+      <resource id="OutOfMemory">The HTTP client doesn't support streaming. You cannot upload files larger than the HEAP size.</resource>
+      <resource id="FileNotFound">One or more of the files selected for upload could not be found or opened.</resource>
+   </resource-map>
+</language-kit>

@@ -1,0 +1,45 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+//Controler script for common methods in new/edit work slip
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+
+function addCostRow(event) {
+   form = XDisplay.getActiveForm();
+   workCostRecordSet = form.findComponent("WorkCostRecordSet");
+   dataRow = workCostRecordSet.newDataRow();
+
+   workCostRecordSet.addDataRow(dataRow);
+   form.findComponent("CostTable").update();
+}
+
+function removeCostRows(event) {
+   form = XDisplay.getActiveForm();
+   workCostRecordSet = form.findComponent("WorkCostRecordSet");
+   selectedRows = workCostRecordSet.selectedRows();
+   if (selectedRows.size() > 0) {
+      workCostRecordSet.removeDataRows(selectedRows);
+      form.findComponent("CostTable").update();
+   }
+}
+
+function filterActivitiesCost(event) {
+   table_cell = event.event_source;
+   form = XDisplay.getActiveForm();
+   workTimeRecordSet = form.findComponent("WorkCostRecordSet");
+   table_row = table_cell.getParent();
+   workTimeRecordSet.filterActivities(table_row.getDataComponent());
+}
+
+function filterResourcesCost(event) {
+   table_cell = event.event_source;
+   form = XDisplay.getActiveForm();
+   workTimeRecordSet = form.findComponent("WorkCostRecordSet");
+   table_row = table_cell.getParent();
+   workTimeRecordSet.filterResources(table_row.getDataComponent());
+}
