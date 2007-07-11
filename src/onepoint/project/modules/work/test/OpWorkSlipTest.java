@@ -105,4 +105,40 @@ public class OpWorkSlipTest extends OpTestCase {
       assertTrue("OpWorkSlip.validate() failed, exception should have been thrown", exceptionThrown);
    }
 
+   /**
+    * Test method for the calculation of the total effort / work slip.
+    *
+    * @throws Exception if the test fails.
+    */
+   public void testCalculateTotalActualEffort()
+        throws Exception {
+
+      //test the total effort when there are no work records in the records set (this shoudn't be the case)
+      OpWorkSlip workSlip = new OpWorkSlip();
+      workSlip.updateTotalActualEffort();
+      assertEquals(0d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
+
+      //add a work record to the records set
+      OpWorkRecord workRecord1 = new OpWorkRecord();
+      workRecord1.setActualEffort(13d);
+      Set<OpWorkRecord> workRecords = new HashSet<OpWorkRecord>();
+      workRecords.add(workRecord1);
+      workSlip.setRecords(workRecords);
+      workSlip.updateTotalActualEffort();
+      assertEquals(13d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
+
+      //add another work record to the records set
+      OpWorkRecord workRecord2 = new OpWorkRecord();
+      workRecord2.setActualEffort(5d);
+      workRecords.add(workRecord2);
+      workSlip.updateTotalActualEffort();
+      assertEquals(18d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
+
+      //remove the first work record from the records set
+      workRecords = new HashSet<OpWorkRecord>();
+      workRecords.add(workRecord2);
+      workSlip.setRecords(workRecords);
+      workSlip.updateTotalActualEffort();
+      assertEquals(5d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
+   }
 }

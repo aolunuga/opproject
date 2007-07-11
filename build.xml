@@ -562,6 +562,7 @@
                   shortname="${opproject.launchername.mac}"
                   version="${version}"
                   jvmversion="1.4+"
+   	              stubfile="${opproject.launchername}"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">
             <include name="${project.basic.jarname}"/>

@@ -106,6 +106,9 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setValue(work_slip.getDate());
          data_row.addChild(data_cell);
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(work_slip.getTotalActualEffort());
+         data_row.addChild(data_cell);
       }
 
       //new work slip button enabled by default

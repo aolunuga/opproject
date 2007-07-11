@@ -8,8 +8,8 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivity;
 import onepoint.project.module.OpModule;
+import onepoint.project.modules.project.OpActivity;
 
 import java.util.Iterator;
 
@@ -28,6 +28,19 @@ public class OpWorkModule extends OpModule {
       OpTransaction tx = broker.newTransaction();
       this.upgradeWorkRecordsCosts(broker);
       this.upgradeActivityRemainingCosts(broker);
+      tx.commit();
+      broker.close();
+   }
+
+    /**
+    * Upgrades the module to version 13 (internal schema version) via reflection.
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion13(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+      this.upgradeWorkSlipTotalActualEffort(broker);
       tx.commit();
       broker.close();
    }
@@ -168,6 +181,22 @@ public class OpWorkModule extends OpModule {
          costRecord.setRemainingCosts(remainingMiscCosts);
          costRecord.setWorkRecord(workRecord);
          broker.makePersistent(costRecord);
+      }
+   }
+
+    /**
+    * Updates the sum of actual efforts for workslips.
+    *
+    * @param broker a <code>OpBroker</code> used for persistence operations.
+    */
+   private void upgradeWorkSlipTotalActualEffort(OpBroker broker) {
+      String queryString = "select workSlip from OpWorkSlip workSlip";
+      OpQuery query = broker.newQuery(queryString);
+      Iterator workSlipIt = broker.list(query).iterator();
+      while (workSlipIt.hasNext()) {
+         OpWorkSlip workSlip = (OpWorkSlip) workSlipIt.next();
+         workSlip.updateTotalActualEffort();
+         broker.updateObject(workSlip);
       }
    }
 }

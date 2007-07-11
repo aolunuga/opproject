@@ -693,7 +693,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
          XComponent choiceActivityRow = (XComponent) activityChoiceDataSet.getChild(i);
          String activityName = ((XComponent)cell.getParent().getChild(ACTIVITY_NAME_INDEX)).getStringValue();
          if (choiceActivityRow.getStringValue().equals(activityName)) {
-            //set the activity type
+            //get the activity type
             return ((XComponent) choiceActivityRow.getChild(ACTIVITY_CHOICE_SET_ACTIVITY_TYPE_INDEX)).getByteValue();
          }
       }

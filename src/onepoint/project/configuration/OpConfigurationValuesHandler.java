@@ -111,6 +111,15 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
             databaseUrl = setJDBCBoolParam(databaseUrl, "useServerPrepStmts", true);
             databaseUrl = setJDBCBoolParam(databaseUrl, "emulateLocators", true);
          }
+         else if (configuration.getDatabaseType() == OpHibernateSource.MSSQL) {
+            // set the connection params to support large blobs
+            StringBuffer sb = new StringBuffer(databaseUrl);
+            if (!databaseUrl.endsWith(";")) {
+               sb.append(';');
+            }
+            sb.append("selectMethod=cursor");
+            databaseUrl = sb.toString();
+         }
          configuration.setDatabaseUrl(databaseUrl);
       }
       else if (DATABASE_LOGIN.equals(name)) {

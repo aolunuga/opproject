@@ -20,11 +20,13 @@ public class OpWorkSlip extends OpObject {
    public final static String DATE = "Date";
    public final static String RESOURCE = "Resource";
    public final static String RECORDS = "Records";
+   public final static String TOTAL_ACTUAL_EFFORT = "TotalActualEffort";
    public final static String CREATOR = "Creator";
 
    private int number = -1;
    private Date date;
    private OpUser creator;
+   private Double totalActualEffort;
    private Set<OpWorkRecord> records = new HashSet<OpWorkRecord>();
 
    public void setNumber(int number) {
@@ -49,6 +51,14 @@ public class OpWorkSlip extends OpObject {
 
    public OpUser getCreator() {
       return creator;
+   }
+
+   public void setTotalActualEffort(Double totalActualEffort) {
+      this.totalActualEffort = totalActualEffort;
+   }
+
+   public Double getTotalActualEffort() {
+      return totalActualEffort;
    }
 
    public void setRecords(Set<OpWorkRecord> records) {
@@ -111,5 +121,27 @@ public class OpWorkSlip extends OpObject {
             throw e;
          }
       }
+   }
+
+   /**
+    * Calculates the sum of the actual efforts for the work records that belong to this work slip and sets it on the
+    *    work slip.
+    */
+   public void updateTotalActualEffort() {
+      setTotalActualEffort(calculateTotalActualEffort());
+   }
+
+   /**
+    * Calculates the sum of the actual efforts for the work records that belong to this work slip.
+    * @return the sum of the actual efforts for the work records that belong to this work slip.
+    */
+   private double calculateTotalActualEffort() {
+      double totalEffort = 0d;
+
+      for(OpWorkRecord workRecord : records){
+         totalEffort += workRecord.getActualEffort();
+      }
+
+      return totalEffort;
    }
 }

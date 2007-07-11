@@ -37,7 +37,8 @@
       <table-box id="WorkSlipTable" y="0" data-set-ref="WorkSlipSet" flexible="true" on-double-click="edit"
                  on-row-select="selectionChanged">
          <table-column width="180" text="${Number}" data-column-index="0" value-type="Int"/>
-         <table-column width="270" text="${Date}" data-column-index="1" value-type="Date"/>
+         <table-column width="120" text="${Date}" data-column-index="1" value-type="Date"/>
+         <table-column width="150" text="${TotalEffort}" data-column-index="2" value-type="Double" sortable="true"/>
       </table-box>
 
       <status-bar y="1"/>
