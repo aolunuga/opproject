@@ -10,9 +10,9 @@ import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XSizeInputStream;
 import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 
 import java.io.*;
 import java.util.List;
@@ -93,7 +93,8 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       assertNotNull(actualStream.getInputStream());
 
       FileOutputStream out = new FileOutputStream(actualFile);
-      OpTestDataFactory.copy(actualStream, out);
+      XIOHelper.copy(actualStream, out);
+      out.flush();
       out.close();
       assertTrue(actualFile.exists());
       assertEquals(FILE_SIZE, actualFile.length());
@@ -136,7 +137,8 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       assertNotNull(actualStream.getInputStream());
 
       FileOutputStream out = new FileOutputStream(actualFile);
-      OpTestDataFactory.copy(actualStream, out);
+      XIOHelper.copy(actualStream, out);
+      out.flush();
       out.close();
       assertTrue(actualFile.exists());
       assertEquals(FILE_SIZE, actualFile.length());

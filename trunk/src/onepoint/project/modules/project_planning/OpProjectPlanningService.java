@@ -8,10 +8,8 @@ import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.mail.OpMailMessage;
 import onepoint.project.modules.mail.OpMailer;
@@ -25,6 +23,7 @@ import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
@@ -334,61 +333,16 @@ public class OpProjectPlanningService extends OpProjectService {
     */
    private boolean updatePersonnelCostsForActivity(OpBroker broker, OpActivity activity, XCalendar calendar) {
       Set<OpAssignment> assignments = activity.getAssignments();
-      OpProjectNode project = activity.getProjectPlan().getProjectNode();
       boolean changed = false;
-      List<java.sql.Date> workingDays;
-      OpProjectNodeAssignment projectNodeAssignment = null;
-      List<List<Double>> ratesList;
-      List<Double> internalRatesList;
-      List<Double> externalRatesList;
-      Double internalSum = 0d;
       Double internalActivitySum = 0d;
-      Double externalSum = 0d;
       Double externalActivitySum = 0d;
-      double workHoursPerDay = calendar.getWorkHoursPerDay();
-      List<java.sql.Date> startEndList = activity.getStartEndDateByType();
-      workingDays = calendar.getWorkingDaysFromInterval(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
-           startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
-      if (activity.getType() == OpActivity.TASK) {
-         if (workingDays.size() != 0) {
-            workHoursPerDay = activity.getBaseEffort() / (double) workingDays.size();
-         }
-         else {
-            workHoursPerDay = 0;
-         }
-      }
 
       for (OpAssignment assignment : assignments) {
-         if (startEndList != null) {
-            //get the project node assignment for this assignment's resource
-            for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
-               for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
-                  if (resourceAssignment.getID() == projectAssignment.getID()) {
-                     projectNodeAssignment = projectAssignment;
-                     break;
-                  }
-               }
-            }
-            ratesList = projectNodeAssignment.getRatesForListOfDays(workingDays);
-            internalRatesList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
-            externalRatesList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
-            for (Double internalRate : internalRatesList) {
-               internalSum += internalRate * workHoursPerDay * assignment.getAssigned() / 100;
-            }
-            for (Double externalRate : externalRatesList) {
-               externalSum += externalRate * workHoursPerDay * assignment.getAssigned() / 100;
-            }
-         }
-
-         if (assignment.getBaseCosts() != internalSum || assignment.getBaseProceeds() != externalSum) {
-            assignment.setBaseCosts(internalSum);
-            assignment.setBaseProceeds(externalSum);
+         if (OpActivityDataSetFactory.updateAssignmentCosts(assignment, calendar)) {
             broker.updateObject(assignment);
          }
-         internalActivitySum += internalSum;
-         externalActivitySum += externalSum;
-         internalSum = 0d;
-         externalSum = 0d;
+         internalActivitySum += assignment.getBaseCosts();
+         externalActivitySum += assignment.getBaseProceeds();
       }
 
       if (activity.getBasePersonnelCosts() != internalActivitySum || activity.getBaseProceeds() != externalActivitySum) {
@@ -399,7 +353,7 @@ public class OpProjectPlanningService extends OpProjectService {
       }
       return changed;
    }
-
+   
    /**
     * Saves the given activity set. Will serialize the activity set and set it as the plan for the working version.
     *

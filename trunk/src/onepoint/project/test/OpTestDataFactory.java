@@ -21,6 +21,7 @@ import onepoint.project.modules.resource_utilization.OpResourceUtilizationServic
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.work.OpWorkService;
+import onepoint.project.modules.documents.OpDocumentsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XServiceManager;
 
@@ -82,6 +83,9 @@ public abstract class OpTestDataFactory {
 
    // Name of the resource utilization service.
    public static final String RESOURCE_UTILIZATION_SERVICE_NAME = "ResourceUtilizationService";
+
+   // Name of the documents service.
+   public static final String DOCUMENTS_SERVICE_NAME = "DocumentsService";
 
 
    /**
@@ -255,24 +259,11 @@ public abstract class OpTestDataFactory {
    }
 
    /**
-    * Copy data from an ImputStream to an OutputStream. The outputstream is not flushed or closed.
+    * Return the Documents Service instance
     *
-    * @param src the source <code>InputStream</code>
-    * @param dst the destination <code>OutputStream</code>
-    * @return the number of copied bytes
-    * @throws IOException If the copy operation fails due to I/O problems
+    * @return an instance of <code>OpDocumentsService</code>
     */
-   public static int copy(InputStream src, OutputStream dst)
-        throws IOException {
-      byte[] buff = new byte[1024];
-      int read;
-      int count = 0;
-      BufferedOutputStream buffdst = new BufferedOutputStream(dst);
-      while ((read = src.read(buff)) > -1) {
-         buffdst.write(buff, 0, read);
-         count += read;
-      }
-      buffdst.flush();
-      return count;
+   public static OpDocumentsService getDocumentsService() {
+      return (OpDocumentsService) XServiceManager.getService(DOCUMENTS_SERVICE_NAME);
    }
 }

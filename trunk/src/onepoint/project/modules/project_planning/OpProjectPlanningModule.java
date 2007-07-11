@@ -79,7 +79,7 @@ public class OpProjectPlanningModule extends OpModule {
       Date projectPlanFinish = projectPlan.getFinish();
       //there can't be activities before the project start, so we only need to update the end date
       for (OpActivity activity : projectPlan.getActivities()) {
-         if (activity.getFinish().after(projectPlanFinish)) {
+         if (activity.getFinish() != null && activity.getFinish().after(projectPlanFinish)) {
             projectPlanFinish = activity.getFinish();
          }
       }

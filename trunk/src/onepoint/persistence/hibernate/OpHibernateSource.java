@@ -15,10 +15,10 @@ import org.hibernate.dialect.SQLServerDialect;
 
 import java.io.*;
 import java.sql.*;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * This is an implementation of a data source  based on Hibernate.
@@ -50,7 +50,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 12;
+   public static final int SCHEMA_VERSION = 13;
 
    /**
     * Db schema related constants

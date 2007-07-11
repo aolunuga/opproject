@@ -9,6 +9,7 @@
       <resource id="Number">Number</resource>
       <resource id="Resource">Resource</resource>
       <resource id="Date">Date</resource>
+      <resource id="TotalEffort">Total Effort</resource>
 
       <resource id="NewWorkSlipTooltip">Create new work slip</resource>
       <resource id="InfoTooltip">View meta information for the selected work slip</resource>

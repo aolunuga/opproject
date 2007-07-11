@@ -9,6 +9,7 @@
       <resource id="Number">Nummer</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Date">Datum</resource>
+      <resource id="TotalEffort">Total Effort</resource>
 
       <resource id="NewWorkSlipTooltip">Neuen Arbeitszettel erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählten Arbeitszettel anzeigen</resource>

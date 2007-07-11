@@ -1412,7 +1412,6 @@ public abstract class OpActivityDataSetFactory {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
                   baseEffort = ((Double) resourceBaseEffortList.remove(i)).doubleValue();
-                  baseCosts = baseEffort * assignment.getResource().getHourlyRate();
                   assigned = OpGanttValidator.percentageAssigned(resourceChoice);
                   if (assigned == OpGanttValidator.INVALID_ASSIGNMENT) {
                      assigned = assignment.getResource().getAvailable();
@@ -1451,12 +1450,8 @@ public abstract class OpActivityDataSetFactory {
                      update = true;
                   }
 
-                  //<FIXME author="Mihai Costin" description="The base costs should be calculated using the new hourly rates feature">
-                  if (assignment.getBaseCosts() != baseCosts) {
-                     assignment.setBaseCosts(baseCosts);
-                     update = true;
-                  }
-                  //</FIXME>
+                  XCalendar calendar = XCalendar.getDefaultCalendar();
+                  update = updateAssignmentCosts(assignment, calendar);
                   
                   if (update) {
                      broker.updateObject(assignment);
@@ -1530,9 +1525,8 @@ public abstract class OpActivityDataSetFactory {
          assignment.setAssigned(assigned);
          assignment.setBaseEffort(baseEffort);
 
-         //<FIXME author="Mihai Costin" description="The base costs should be calculated using the new hourly rates feature">
-         assignment.setBaseCosts(baseEffort * resource.getHourlyRate());
-         //</FIXME>
+         XCalendar calendar = XCalendar.getDefaultCalendar();
+         updateAssignmentCosts(assignment, calendar);
 
          assignment.setActualEffort(0);
          assignment.setRemainingEffort(baseEffort);
@@ -2108,5 +2102,68 @@ public abstract class OpActivityDataSetFactory {
             broker.updateObject(activity);
          }
       }
+   }
+
+   /**
+    * Checks if the base costs and the base proceeds have changed for the assignment passed as parameter and
+    * returns a <code>boolean</code> value indicating whether the costs have changed or not. If the costs have
+    * changed then the noew costs are set on the assignment.
+    *
+    * @param assignment - the <code>OpAssignment</code> entity on which the new costs are set
+    * @param calendar   - the <code>XCalendar</code> needed to handle dates
+    * @return - <code>true</code> if the base costs or the base proceeds or both have changed and <code>false</code>
+    *         otherwise.
+    */
+   public static boolean updateAssignmentCosts(OpAssignment assignment, XCalendar calendar) {
+      boolean modified = false;
+      OpActivity activity = assignment.getActivity();
+      OpProjectNode project = activity.getProjectPlan().getProjectNode();
+      OpProjectNodeAssignment projectNodeAssignment = null;
+      Double internalSum = 0d;
+      Double externalSum = 0d;
+
+      if (activity.getType() != OpActivity.MILESTONE) {
+         List<java.sql.Date> startEndList = activity.getStartEndDateByType();
+         List<java.sql.Date> workingDays = calendar.getWorkingDaysFromInterval(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
+              startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
+         double workHoursPerDay = calendar.getWorkHoursPerDay();
+         if (activity.getType() == OpActivity.TASK) {
+            if (workingDays.size() != 0) {
+               workHoursPerDay = activity.getBaseEffort() / (double) workingDays.size();
+            }
+            else {
+               workHoursPerDay = 0;
+            }
+         }
+
+         if (startEndList != null) {
+            //get the project node assignment for this assignment's resource
+            for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
+               for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
+                  if (resourceAssignment.getID() == projectAssignment.getID()) {
+                     projectNodeAssignment = projectAssignment;
+                     break;
+                  }
+               }
+            }
+            List<List<Double>> ratesList = projectNodeAssignment.getRatesForListOfDays(workingDays);
+            List<Double> internalRatesList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
+            List<Double> externalRatesList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
+            for (Double internalRate : internalRatesList) {
+               internalSum += internalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            }
+            for (Double externalRate : externalRatesList) {
+               externalSum += externalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            }
+         }
+
+         if (assignment.getBaseCosts() != internalSum || assignment.getBaseProceeds() != externalSum) {
+            assignment.setBaseCosts(internalSum);
+            assignment.setBaseProceeds(externalSum);
+            modified = true;
+         }
+      }
+
+      return modified;
    }
 }

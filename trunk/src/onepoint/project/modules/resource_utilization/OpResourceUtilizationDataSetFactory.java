@@ -11,6 +11,7 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpWorkPeriod;
+import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
@@ -253,7 +254,7 @@ public final class OpResourceUtilizationDataSetFactory {
       Date maxFinish;
       Object[] record;
       int valueCount;
-      ArrayList values;
+      List<Double> values;
       Double zero = new Double(0);
       Date start;
       Date finish;
@@ -261,8 +262,8 @@ public final class OpResourceUtilizationDataSetFactory {
       int finishIndex;
 
       OpBroker broker = session.newBroker();
-      HashMap min = new HashMap();
-      HashMap max = new HashMap();
+      Map<Long, Date> minStartDates = new HashMap<Long, Date>();
+      Map<Long, Date> maxFinishDates = new HashMap<Long, Date>();
       StringBuffer queryBuffer = new StringBuffer("select assignment.Resource.ID, min(activity.Start), max(activity.Finish) ");
       queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity ");
       queryBuffer.append("where activity.Deleted = false ");
@@ -281,8 +282,8 @@ public final class OpResourceUtilizationDataSetFactory {
          resourceId = (Long) record[0];
          minStart = (Date) record[1];
          maxFinish = (Date) record[2];
-         min.put(resourceId, minStart);
-         max.put(resourceId, maxFinish);
+         minStartDates.put(resourceId, minStart);
+         maxFinishDates.put(resourceId, maxFinish);
       }
 
       queryBuffer = new StringBuffer("select assignment.Resource.ID, assignment.Assigned, activity, workPeriod ");
@@ -307,11 +308,11 @@ public final class OpResourceUtilizationDataSetFactory {
          // Work phases are grouped by resource: Check for next resource ID
          if ((resourceId == null) || !resourceId.equals(record[0])) {
             resourceId = (Long) record[0];
-            minStart = (Date) min.get(resourceId);
-            maxFinish = (Date) max.get(resourceId);
+            minStart = (Date) minStartDates.get(resourceId);
+            maxFinish = (Date) maxFinishDates.get(resourceId);
             // Initialize utilization values
             valueCount = (int) ((maxFinish.getTime() + XCalendar.MILLIS_PER_DAY - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
-            values = new ArrayList(valueCount);
+            values = new ArrayList<Double>(valueCount);
             for (i = 0; i < valueCount; i++) {
                values.add(zero);
             }
@@ -330,22 +331,44 @@ public final class OpResourceUtilizationDataSetFactory {
          Date workPeriodStart = workPeriod.getStart();
          Date workPeriodFinish = new Date(workPeriodStart.getTime() + (OpWorkPeriod.PERIOD_LENGTH - 1) * XCalendar.MILLIS_PER_DAY);
 
-         //start = max (activityStart, workPeriodStart)
+         //start = maxFinishDates (activityStart, workPeriodStart)
          start = activityStart.before(workPeriodStart) ? workPeriodStart : activityStart;
          startIndex = (int) ((start.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
 
-         //finish = min (activityFinish, workPeriodFinish)
+         //finish = minStartDates (activityFinish, workPeriodFinish)
          finish = activityFinish.before(workPeriodFinish) ? activityFinish : workPeriodFinish;
          finishIndex = (int) ((finish.getTime() - minStart.getTime()) / XCalendar.MILLIS_PER_DAY);
 
+         double assignmentValue = ((Double) record[1]);
+         double utilizationValue = getUtilizationValueAccordingToProject(assignmentValue, activity.getProjectPlan().getProjectNode());
+
          for (i = startIndex; i <= finishIndex; i++) {
             if (isWorkDay(workPeriod, minStart, i)) {
-               utilization.addUtilization(i, ((Double) record[1]).doubleValue());
+               utilization.addUtilization(i,  utilizationValue);
             }
          }
       }
 
       broker.close();
+   }
+
+   /**
+    * Returns the utilization value for a resource assignment, taking into account some business
+    * rules from the project on which the assignment exists.
+    * Rule1: Archived projects are not taken into account
+    * Rule2: The value of the assignment is multiplied (%-wise) with the probability of the project.
+    * @param assignmentValue a <code>double</code> the value of an <code>OpAssignment</code>.
+    * @param projectNode a <code>OpProjectNode</code> the project on which the assignment it
+    * @return a <code>double</code> the value for the assignment from the point-of-view of
+    * the resource utilization chart.
+    */
+   private static double getUtilizationValueAccordingToProject(double assignmentValue, OpProjectNode projectNode) {
+      if (projectNode.getArchived()) {
+         return 0.0;
+      }
+      int projectProbability = projectNode.getProbability();
+      double utilizationValue = (projectProbability * assignmentValue) / 100;
+      return utilizationValue;
    }
 
    /**

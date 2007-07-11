@@ -9,6 +9,7 @@
       <resource id="Number">Numéro</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Date">Date</resource>
+      <resource id="TotalEffort">Total Effort</resource>
 
       <resource id="NewWorkSlipTooltip">Créer un nouveau CRA</resource>
       <resource id="InfoTooltip">Voir les meta information des CRA choisis</resource>

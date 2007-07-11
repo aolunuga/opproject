@@ -15,6 +15,8 @@ import java.util.Calendar;
  */
 public class OpTestCase extends TestCase {
 
+   public final double DOUBLE_ERROR_MARGIN = Math.pow(10, -4);
+
    /**
     * Creates a new instance of test case.
     */

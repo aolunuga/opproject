@@ -56,7 +56,7 @@
       <panel layout="table" y="-1">
          <label x="0" y="0" width="10" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
          <label x="0" y="1" width="2" text="${Date}"/>
-         <date-field x="2" y="1" width="3" id="DateField" enabled="false"/>
+         <date-field x="2" y="1" width="3" id="DateField" enabled="false"/>         
       </panel>
 
       <panel layout="border">

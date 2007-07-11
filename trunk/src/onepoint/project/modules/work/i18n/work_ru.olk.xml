@@ -9,6 +9,7 @@
       <resource id="Number">Номер табеля</resource>
       <resource id="Resource">Ресурс</resource>
       <resource id="Date">Дата</resource>
+      <resource id="TotalEffort">Total Effort</resource>
 		
       <resource id="NewWorkSlipTooltip">Внести новый табель фактических трудозатрат</resource>
       <resource id="InfoTooltip">Показать мета-данные для указанного табеля</resource>      
