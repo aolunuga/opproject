@@ -14,6 +14,7 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityComment;
 import onepoint.project.modules.project.OpActivityVersion;
@@ -89,7 +90,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       }
 
       //enable the %complete field if tracking is off
-      String currentProjectId = (String) session.getVariable(OpActivitiesFormProvider.PROJECT_ID);
+      String currentProjectId = (String) session.getVariable(OpProjectConstants.PROJECT_ID);
       if (currentProjectId != null) {
          OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
          if (!project.getPlan().getProgressTracked()) {

@@ -73,4 +73,5 @@ public interface OpProjectConstants {
    public static final String RUN_LEVEL_ERROR_FORM = "/forms/runLevel.oxf.xml";
 
    public static final String INIT_PARAMS = "initParams";
+   String PROJECT_ID = "project_id";
 }

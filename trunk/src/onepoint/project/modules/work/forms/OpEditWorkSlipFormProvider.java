@@ -101,7 +101,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(OpActivity.TASK);
       activityTypes.add(OpActivity.ADHOC_TASK);
 
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, -1);
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, true);
       List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
       Object[] record;
       while (result.hasNext()) {

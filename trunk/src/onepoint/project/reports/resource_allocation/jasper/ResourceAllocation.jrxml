@@ -42,7 +42,7 @@ inner join op_subject s on rs.op_user = s.op_id
 inner join op_projectplan pp on ac.op_projectplan = pp.op_id
 inner join op_projectnode pn on pp.op_projectnode = pn.op_id
 where pn.op_id = $P{ProjectId}
-and a.op_remainingeffort > 0
+and pn.op_archived=false and a.op_remainingeffort > 0
 order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 
 	<field name="op_remainingeffort" class="java.lang.Double"/>

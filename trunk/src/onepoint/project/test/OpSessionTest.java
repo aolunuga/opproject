@@ -86,7 +86,6 @@ public class OpSessionTest extends OpBaseOpenTestCase {
       assertEquals(0, content.getRefCount());
       assertEquals(FILE_SIZE, content.getSize());
       assertEquals(OpContentManager.getFileMimeType(imgFile.getName()), content.getMediaType());
-      assertEquals(FILE_SIZE, content.getStream().available());
       String contentId = content.locator();
       Map newFileMap = (Map) message.getArgument("args");
       assertEquals(contentId, newFileMap.get("file"));

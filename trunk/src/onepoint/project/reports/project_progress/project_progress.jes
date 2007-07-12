@@ -101,7 +101,7 @@ function getReportQuery() {
 
       selectClause = "select a.Name, a.OutlineLevel, a.Start, a.Finish, a.Duration, a.Complete, a.BaseEffort, a.BasePersonnelCosts, a.ActualEffort, a.ActualPersonnelCosts, a.Type, current_timestamp()";
       fromClause = " from OpActivity a inner join a.ProjectPlan p inner join p.ProjectNode node";
-      whereClause = " where node.ID = ? and a.Deleted = false and a.Type != 3 and a.Type != 4 and a.Type != 6 order by a.Sequence";
+      whereClause = " where node.Archived=false and node.ID = ? and a.Deleted = false and a.Type != 3 and a.Type != 4 and a.Type != 6 order by a.Sequence";
 
       queryString = selectClause + fromClause + whereClause;
       Console.println("Project progress query:" + queryString);

@@ -88,7 +88,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
       long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId);
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId, false);
 
       List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
       Object[] record;

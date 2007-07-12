@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-   	<database-type>Oracle</database-type>
-   	<database-driver>oracle.jdbc.driver.OracleDriver</database-driver>
-	<database-url>jdbc:oracle:thin:@localhost:1521:ORADEV</database-url>
-   	<database-login>opp_test</database-login>
-   	<database-password>opp_test</database-password>
-   	<connection-pool-min-size>5</connection-pool-min-size>
-   	<connection-pool-max-size>20</connection-pool-max-size>
-   	<cache-size>500</cache-size>
-   	<log-file>opproject.log</log-file>
+  <database-type>MSSQL</database-type>
+   <database-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database-driver>
+   <database-url>jdbc:sqlserver://localhost:1433;databaseName=opproject_test</database-url>
+   <database-login>sa</database-login>
+   <database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>
+   <log-file>opproject.log</log-file>
 </configuration>
