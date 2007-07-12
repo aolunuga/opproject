@@ -51,7 +51,7 @@ inner join op_projectnode pn on pp.op_projectnode = pn.op_id
 inner join op_subject s on ws.op_creator = s.op_id
 inner join op_resource rs on s.op_id = rs.op_user
 
-where a.op_resource = rs.op_id and ws.op_date >= $P{fromDate} and ws.op_date <= $P{toDate}
+where a.op_resource = rs.op_id and pn.op_archived=false and ws.op_date >= $P{fromDate} and ws.op_date <= $P{toDate}
 and s.op_id = $P{UserId}
 order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 

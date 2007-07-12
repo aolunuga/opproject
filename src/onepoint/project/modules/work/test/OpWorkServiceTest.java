@@ -373,7 +373,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       types.add(new Byte(OpActivity.COLLECTION_TASK));
       Date date = new Date(time);
       long id = projectDataFactory.getProjectById(projId).getID();
-      Iterator it = OpWorkSlipDataSetFactory.getAssignments(broker, resources, types, date, id);
+      Iterator it = OpWorkSlipDataSetFactory.getAssignments(broker, resources, types, date, id, true);
       assertTrue(it.hasNext());
       broker.close();
    }

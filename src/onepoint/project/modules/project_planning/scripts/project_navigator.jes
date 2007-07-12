@@ -56,10 +56,11 @@ function resizeDivision(event){
 
 function retrieveChildren(event) {
    dataRow = event.expand_source;
-
+   archivedProjectsIds = dataRow.getForm().findComponent("ArchivedProjects").getListValue();
    request = new XMessage;
    request.setAction("ProjectService.expandProjectNode");
    request.setArgument("project_row", dataRow);
+   request.setArgument("FilteredOutIds", archivedProjectsIds);
    //not tabular
    request.setArgument("tabular", false);      
    expandNode(dataRow, 1, request);

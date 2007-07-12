@@ -98,7 +98,7 @@ function getReportQuery() {
       selectClause2 = " , workRecord.ActualEffort, workRecord.TravelCosts, workRecord.MaterialCosts, workRecord.ExternalCosts, workRecord.MiscellaneousCosts";
       fromClause1 = " from OpWorkSlip workslip inner join workslip.Records workRecord inner join workRecord.Assignment asgn inner join asgn.Activity activity inner join activity.ProjectPlan plan";
       fromClause2 = " inner join plan.ProjectNode projectNode inner join asgn.Resource resource inner join resource.User user";
-      whereClause = " where workslip.Date >= ? and workslip.Date <= ? and user.ID = ? order by resource.Name, projectNode.Name, workslip.Date";
+      whereClause = " where projectNode.Archived=false and workslip.Date >= ? and workslip.Date <= ? and user.ID = ? order by resource.Name, projectNode.Name, workslip.Date";
 
       queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
       query.queryString = queryString;

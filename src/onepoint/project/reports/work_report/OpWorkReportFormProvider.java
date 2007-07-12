@@ -83,8 +83,8 @@ public class OpWorkReportFormProvider implements XFormProvider {
             StringBuffer queryBuffer = new StringBuffer("select resource.Name, sum(workRecord.ActualEffort), sum(workRecord.ActualEffort) * max(resource.HourlyRate)");
             queryBuffer.append(", sum(workRecord.TravelCosts), sum(workRecord.MaterialCosts), sum(workRecord.ExternalCosts), sum(workRecord.MiscellaneousCosts)");
             queryBuffer.append(" from OpWorkSlip workSlip inner join workSlip.Creator creator inner join creator.Resources res");
-            queryBuffer.append(" inner join workSlip.Records workRecord inner join workRecord.Assignment assignment inner join assignment.Resource resource");
-            queryBuffer.append(" where res.ID = resource.ID and creator.ID = ? and workSlip.Date >= ? and workSlip.Date <= ? group by resource.ID, resource.Name order by resource.Name");
+            queryBuffer.append(" inner join workSlip.Records workRecord inner join workRecord.Assignment assignment inner join assignment.Resource resource inner join assignment.Activity activity inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
+            queryBuffer.append(" where projectNode.Archived=false and res.ID = resource.ID and creator.ID = ? and workSlip.Date >= ? and workSlip.Date <= ? group by resource.ID, resource.Name order by resource.Name");
 
             OpQuery query = broker.newQuery(queryBuffer.toString());
             query.setLong(0, user.getID());

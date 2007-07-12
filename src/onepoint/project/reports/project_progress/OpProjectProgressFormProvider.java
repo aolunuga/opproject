@@ -65,7 +65,7 @@ public class OpProjectProgressFormProvider implements XFormProvider {
             queryBuffer.append(", activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts");
             queryBuffer.append(", activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts");
             queryBuffer.append(" from OpProjectNode as project inner join project.Plan as projectPlan inner join projectPlan.Activities as activity");
-            queryBuffer.append(" where project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false");
+            queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false");
 
             OpQuery query = broker.newQuery(queryBuffer.toString());
             query.setLong(0, project.getID());

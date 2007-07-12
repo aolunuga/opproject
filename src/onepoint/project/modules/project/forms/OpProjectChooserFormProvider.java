@@ -67,6 +67,13 @@ public class OpProjectChooserFormProvider implements XFormProvider {
 
       //filter out any nodes if necessary
       ArrayList filteredIds = (ArrayList) parameters.get(OpProjectDataSetFactory.FILTERED_OUT_IDS);
+      ArrayList<String> archivedProjectLocators = OpProjectDataSetFactory.retrieveArchivedProjects(session, true);
+      if (filteredIds != null) {
+         filteredIds.addAll(archivedProjectLocators);
+      }
+      else {
+         filteredIds = archivedProjectLocators;
+      }
       form.findComponent(OpProjectDataSetFactory.FILTERED_OUT_IDS).setListValue(filteredIds);
 
       // *** Put all project names into project data-set (values are IDs)

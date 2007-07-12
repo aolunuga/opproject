@@ -11,6 +11,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
@@ -28,7 +29,6 @@ import java.util.Set;
 
 public class OpActivitiesFormProvider implements XFormProvider {
 
-   public final static String PROJECT_ID = "project_id";
    public final static String VALIDATE_PLAN = "validatePlan";
 
    protected final static String ACTIVITY_SET = "ActivitySet";
@@ -101,17 +101,17 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       OpProjectSession session = (OpProjectSession) s;
 
-      String project_id_string = (String) (parameters.get(PROJECT_ID));
+      String project_id_string = (String) (parameters.get(OpProjectConstants.PROJECT_ID));
       Boolean validateProjectPlan = (Boolean) (parameters.get(VALIDATE_PLAN));
       if (validateProjectPlan == null) {
          validateProjectPlan = Boolean.FALSE;
       }
       if (project_id_string != null) {
          // Get open project-ID from parameters and se project-ID session variable
-         session.setVariable(PROJECT_ID, project_id_string);
+         session.setVariable(OpProjectConstants.PROJECT_ID, project_id_string);
       }
       else {
-         project_id_string = (String) (session.getVariable(PROJECT_ID));
+         project_id_string = (String) (session.getVariable(OpProjectConstants.PROJECT_ID));
       }
       // *** TODO: Store open project-ID in database (user preferences?)
 

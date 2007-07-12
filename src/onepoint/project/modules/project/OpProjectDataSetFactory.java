@@ -49,6 +49,7 @@ public final class OpProjectDataSetFactory {
              "and permission.Subject.ID in (:subjectIds) " +
              "and project.Type in (:projectTypes)" +
              "and permission.AccessLevel in (:levels) " +
+             "and project.Archived=false " +
              "group by project.ID";
 
    private final static String PORTFOLIO_DESCRIPTOR = "f";
@@ -303,7 +304,7 @@ public final class OpProjectDataSetFactory {
     * @param dataSet     a <code>XComponent(DATA_SET)</code> representing the data-set which will be populated.
     * @param types       a <code>int</code> representing a filter of project types.
     * @param tabular     a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
-    * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should be retrieved).
+    * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should not be retrieved).
     */
    public static void retrieveProjectDataSetRootHierarchy(OpProjectSession session, XComponent dataSet, int types,
         boolean tabular, List idsToFilter) {
@@ -345,6 +346,26 @@ public final class OpProjectDataSetFactory {
          }
       }
       broker.close();
+   }
+
+   /**
+    * Returns a list with the locators of all the project which are or aren't archived.
+    * @param session a <code>OpProjectSession</code> a server session.
+    * @param archived a <code>boolean</code> indicating whether to search for archived or non-archived projects.
+    * @return a <code>List(String)</code> a list of project locators.
+    */
+   public static ArrayList<String> retrieveArchivedProjects(OpProjectSession session, boolean archived) {
+      ArrayList<String> result = new ArrayList<String>();
+      OpBroker broker = session.newBroker();
+      OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
+      projectsQuery.setParameter("type", OpProjectNode.PROJECT);
+      projectsQuery.setParameter("archived", archived);
+      for (Iterator it = broker.list(projectsQuery).iterator(); it.hasNext(); ) {
+         String locator = ((OpProjectNode) it.next()).locator();
+         result.add(locator);
+      }
+      broker.close();
+      return result;
    }
 
    /**
@@ -749,10 +770,10 @@ public final class OpProjectDataSetFactory {
             dataRow.setSelectable(false);
          }
          if (descriptor.equals(PORTFOLIO_DESCRIPTOR) && !enablePortfolios) {
-            dataRow.setSelected(false);
+            dataRow.setSelectable(false);
          }
          if (descriptor.equals(TEMPLATE_DESCRIPTOR) && !enableTemplates) {
-            dataRow.setSelected(false);
+            dataRow.setSelectable(false);
          }
       }
    }
@@ -926,27 +947,6 @@ public final class OpProjectDataSetFactory {
 
       broker.close();
       return projectsMap;
-   }
-
-   /**
-    * Get resources all the project where the user has a given permission level
-    *
-    * @param session     the project session
-    * @param broker      the broker used to access data
-    * @param levels      the project permission levels required for the curent user
-    * @param responsible if the user must be responsible for the curent resource
-    * @return a <code>Set&lt;String&gt;</code> of resource choices - e.g. locator['label'].
-    */
-   public static Set<String> getProjectResources(OpProjectSession session, OpBroker broker, List<Byte> levels, boolean responsible) {
-      long userId = session.getUserID();
-      Set<String> resIds = new HashSet<String>();
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, responsible);
-         resIds.addAll(resources);
-      }
-      return resIds;
    }
 
    /**

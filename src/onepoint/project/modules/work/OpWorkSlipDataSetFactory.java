@@ -57,14 +57,18 @@ public class OpWorkSlipDataSetFactory {
     * @param projectNodeId Project Id filter. Will return only those assignments that have activities belonging
     *                      to the given project. If all projects are to be taken into account, ALL_PROJECTS_ID
     *                      should be used.
+    * @param allowArchivedProjects a <code>boolean</code> whether to filter out or not archived projects.
     * @return Iterator over the found assignments.
     */
-   public static Iterator getAssignments(OpBroker broker, List resourceIds, List activityTypes, Date start, long projectNodeId) {
+   public static Iterator getAssignments(OpBroker broker, List resourceIds, List activityTypes, Date start, long projectNodeId, boolean allowArchivedProjects) {
       StringBuffer buffer = new StringBuffer();
       buffer.append("select assignment, activity from OpAssignment as assignment inner join assignment.Activity as activity ");
       buffer.append("where assignment.Resource.ID in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type) and activity.Deleted = false");
       if (start != null) {
          buffer.append(" and activity.Start < :startBefore");
+      }
+      if (!allowArchivedProjects) {
+         buffer.append(" and activity.ProjectPlan.ProjectNode.Archived=false ");
       }
       if (projectNodeId != ALL_PROJECTS_ID) {
          buffer.append(" and assignment.ProjectPlan.ProjectNode.ID = :projectNodeId");

@@ -13,6 +13,7 @@
    </data-set>
 
    <data-set id="ProjectNavigatorDataSet" stateful="true" on-expand="retrieveChildren"/>
+   <data-field id="ArchivedProjects"/>
 
    <collapsible-box stateful="true" id="NavigationBox" text="${ProjectNavigator}" orientation="vertical"
                     on-expand="resizeDivision" on-collapse="resizeDivision" width="165">

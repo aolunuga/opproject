@@ -537,6 +537,14 @@ public class OpProjectAdministrationService extends OpProjectService {
       updateActualCosts(broker, project);
 
       t.commit();
+
+      //if project was archived and is currently saved in the session clear it
+      if (session.getVariable(OpProjectConstants.PROJECT_ID) != null) {
+         String storedProjectLocator = OpLocator.parseLocator((String) session.getVariable(OpProjectConstants.PROJECT_ID)).toString();
+         if (project.getArchived() && storedProjectLocator.equalsIgnoreCase(project.locator())) {
+            session.setVariable(OpProjectConstants.PROJECT_ID, null);
+         }
+      }
       logger.debug("/OpProjectAdministrationService.updateProject()");
       broker.close();
       return null;
@@ -1480,13 +1488,15 @@ public class OpProjectAdministrationService extends OpProjectService {
    public XMessage expandProjectNode(OpProjectSession projectSession, XMessage request) {
       XComponent dataRow = (XComponent) request.getArgument(PROJECT_ROW_PARAMETER);
 
+      List filteredOutIds = (List) request.getArgument(OpProjectDataSetFactory.FILTERED_OUT_IDS);
+
       Integer requestedTypes = (Integer) request.getArgument(TYPES_PARAMETER);
       int types = (requestedTypes != null) ? requestedTypes.intValue() : OpProjectDataSetFactory.ALL_TYPES;
 
       Boolean requestedTabular = (Boolean) request.getArgument(TABULAR_PARAMETER);
       boolean tabular = (requestedTabular == null) || requestedTabular.booleanValue();
 
-      List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, types, tabular, null);
+      List children = OpProjectDataSetFactory.retrieveProjectNodeChildren(projectSession, dataRow, types, tabular, filteredOutIds);
 
       XMessage reply = new XMessage();
       reply.setArgument(OpProjectConstants.CHILDREN, children);
