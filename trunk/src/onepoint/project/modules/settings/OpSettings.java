@@ -45,6 +45,8 @@ public class OpSettings {
    public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
    //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
+   public static final String CURRENCY_SYMBOL = "Currency_Symbol";
+   public static final String CURRENCY_SHORT_NAME = "Currency_ShortName";
 
    public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.MONDAY).toString();
    public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.FRIDAY).toString();
@@ -59,6 +61,8 @@ public class OpSettings {
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String MILESTONE_CONTROLLING_INTERVAL_DEFALUT = "2";
    public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
+   public static final String CURRENCY_SYMBOL_DEFAULT = "€";
+   public static final String CURRENCY_SHORT_NAME_DEFAULT = "EUR";
 
    /**
     * A query after which the report scheduler can be retrieved.
@@ -71,6 +75,11 @@ public class OpSettings {
    private final static String CALENDARS_DIR = "calendars";
 
    private final static String CALENDAR_RESOURCE_MAP_ID = "settings.calendar";
+
+   /**
+    * Name of placeholders in i18n files which are taken from the settings
+    */
+   private final static String CURRENCY_SYMBOL_I18N_PARAMETER = "CurrencySymbol";
 
    private static Map<String, String> defaults = new HashMap<String, String>();
    private static Map<String, String> settings = new HashMap<String, String>();
@@ -101,22 +110,36 @@ public class OpSettings {
       defaults.put(RESOURCE_MAX_AVAILABYLITY, RESOURCE_MAX_AVAILABYLITY_DEFAULT);
       defaults.put(MILESTONE_CONTROLLING_INTERVAL, MILESTONE_CONTROLLING_INTERVAL_DEFALUT);
       defaults.put(ENABLE_TIME_TRACKING, ENABLE_TIME_TRACKING_DEFAULT);
+      defaults.put(CURRENCY_SYMBOL, CURRENCY_SYMBOL_DEFAULT);
+      defaults.put(CURRENCY_SHORT_NAME, CURRENCY_SHORT_NAME_DEFAULT);
    }
 
    public static boolean applySettings(OpProjectSession session) {
+      boolean refresh = false;
+
       // Apply settings to current environment
       fillPlanningSettings();
 
+      //update the report schedule name
       String reportScheduleName = get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
       OpScheduler.updateScheduleInterval(session, reportScheduleName, reportRemoveInterval);
+
+      //update the i18n placeholders
+      Map<String, String> oldLocalizerParameters = session.getLocalizerParameters();
+      Map<String, String> newLocalizerParameters = getI18NParameters();
+      if (!oldLocalizerParameters.equals(newLocalizerParameters)) {
+         session.setLocalizerParameters(getI18NParameters());
+         refresh = true;
+      }
 
       XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
       boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
       if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
          session.setLocale(newLocale);
+         refresh = true;
       }
-      return changedLanguage;
+      return refresh;
    }
 
    /**
@@ -301,5 +324,19 @@ public class OpSettings {
       XLocalizer localizer = XLocalizer.getLocalizer(calendarI18nMap);
       calendar.configure(planningSettings, locale, localizer, clientTimezone);
       session.setCalendar(calendar);
+   }
+
+   /**
+    * Returns a map with the placeholders and actual values of settings used during the
+    * i18n process. This map will be passed to the localizer when parsing i18n resources.
+    * @return a <code>Map(String, String)</code> representing placeholder name, placeholder
+    * value pairs.
+    *
+    * @see onepoint.resource.XLocalizer#localize(String, java.util.Map)
+    */
+   public static Map<String, String> getI18NParameters() {
+      Map<String, String> result = new HashMap<String, String>();
+      result.put(CURRENCY_SYMBOL_I18N_PARAMETER, get(CURRENCY_SYMBOL));
+      return result;
    }
 }

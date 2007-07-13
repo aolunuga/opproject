@@ -7,8 +7,8 @@
       <resource id="PercentComplete">% Com.</resource>
       <resource id="BaseEffort">Effort (B/h)</resource>
       <resource id="ActualEffort">Effort (A/h)</resource>
-      <resource id="BaseCosts">Costs (B/€)</resource>
-      <resource id="ActualCosts">Costs (A/€)</resource>
+      <resource id="BaseCosts">Costs (B/{CurrencySymbol})</resource>
+      <resource id="ActualCosts">Costs (A/{CurrencySymbol})</resource>
       <resource id="InvalidProject">Please select a project</resource>
       <resource id="SaveCSV">Save as Table...</resource>
       <resource id="SaveImage">Save as Image...</resource>

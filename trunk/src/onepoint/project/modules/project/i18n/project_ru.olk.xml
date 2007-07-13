@@ -32,7 +32,25 @@
       <resource id="Resources">Ресурсы</resource>
       <resource id="Costs">Затраты</resource>
       <resource id="Status">Status</resource>
-      <resource id="Priority">Priority</resource>      
+      <resource id="Priority">Priority</resource>
+
+      <resource id="ProjectList">Projects</resource>
+      <resource id="ProjectResources">Resources</resource>
+      <resource id="ProjectCosts">Costs</resource>
+
+      <resource id="Project">Project</resource>
+      <resource id="BaseEffort">Base (h)</resource>
+      <resource id="ActualEffort">Actual (h)</resource>
+      <resource id="RemainingEffort">Rem. (h)</resource>
+      <resource id="ProjectedEffort">Expected (h)</resource>
+      <resource id="DeviationEffort">Deviation (h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
+      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
+      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Создать новый портфель проектов</resource>
       <resource id="NewProjectTooltip">Создать новый проект</resource>

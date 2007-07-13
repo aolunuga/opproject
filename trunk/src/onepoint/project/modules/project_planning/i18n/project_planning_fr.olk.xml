@@ -46,13 +46,13 @@
 
       <resource id="CostsProjection">Projection des Coûts</resource>
       <resource id="Activity">Activité</resource>
-      <resource id="Personnel">Pers. (€)</resource>
-      <resource id="Travel">Voyage (€)</resource>
-      <resource id="Material">Materiel (€)</resource>
-      <resource id="External">Externe (€)</resource>
-      <resource id="Misc">Div. (€)</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
-      <resource id="Costs">Coûts (€)</resource>
+      <resource id="Personnel">Pers. ({CurrencySymbol})</resource>
+      <resource id="Travel">Voyage ({CurrencySymbol})</resource>
+      <resource id="Material">Materiel ({CurrencySymbol})</resource>
+      <resource id="External">Externe ({CurrencySymbol})</resource>
+      <resource id="Misc">Div. ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
+      <resource id="Costs">Coûts ({CurrencySymbol})</resource>
 
       <resource id="EditTooltip">Modifier le planning projet</resource>
       <resource id="SaveTooltip">Enregistrer le planning projet</resource>
@@ -154,12 +154,12 @@
       <resource id="Predecessor">Prédécesseurs</resource>
 
       <resource id="Costs">Coûts</resource>
-      <resource id="Personnel">Personnel (€)</resource>
-      <resource id="Travel">Voyage (€)</resource>
-      <resource id="Material">Materiel (€)</resource>
-      <resource id="External">Externe (€)</resource>
-      <resource id="Misc">Divers (€)</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
+      <resource id="Personnel">Personnel ({CurrencySymbol})</resource>
+      <resource id="Travel">Voyage ({CurrencySymbol})</resource>
+      <resource id="Material">Materiel ({CurrencySymbol})</resource>
+      <resource id="External">Externe ({CurrencySymbol})</resource>
+      <resource id="Misc">Divers ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
 
       <resource id="Attachments">piéce jointe</resource>
       <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
@@ -248,10 +248,10 @@
       <resource id="Duration">Durée (d)</resource>
       <resource id="PercentComplete">% Terminée</resource>
       <resource id="Effort">Effort (h)</resource>
-      <resource id="Costs">Coûts (€)</resource>
+      <resource id="Costs">Coûts ({CurrencySymbol})</resource>
       <resource id="Resources">Ressources</resource>
       <resource id="Category">Catégorie</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
    </resource-map>
 
    <resource-map id="project_planning.Navigator">

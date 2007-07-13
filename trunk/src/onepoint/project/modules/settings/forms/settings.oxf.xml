@@ -1,22 +1,48 @@
 <form layout="border" text="${Settings}" resource-map-ref="settings.settings" start-focus-ref="UserLocale"
       provider-class="onepoint.project.modules.settings.forms.OpSettingsFormProvider"
       script="/modules/settings/scripts/settings.jes">
+   <!--- Currency data-set -->
+   <data-set id="CurrencyDataSet">
+      <data-row string-value="AUD;AUD['${AUD}']"/>
+      <data-row string-value="CAD;CAD['${CAD}']"/>
+      <data-row string-value="CHF;CHF['${CHF}']"/>
+      <data-row string-value="CNY;CNY['${CNY}']"/>
+      <data-row string-value="DKK;DKK['${DKK}']"/>
+      <data-row string-value="EUR;€['${EUR}']"/>
+      <data-row string-value="GBP;₤['${GBP}']"/>
+      <data-row string-value="HKD;HKD['${HKD}']"/>
+      <data-row string-value="HUF;HUF['${HUF}']"/>
+      <data-row string-value="INR;INR['${INR}']"/>
+      <data-row string-value="JPY;JPY['${JPY}']"/>
+      <data-row string-value="MXN;MXN['${MXN}']"/>
+      <data-row string-value="MYR;MYR['${MYR}']"/>
+      <data-row string-value="NOK;NOK['${NOK}']"/>
+      <data-row string-value="NZD;NZD['${NZD}']"/>
+      <data-row string-value="RUB;RUB['${RUB}']"/>
+      <data-row string-value="SEK;SEK['${SEK}']"/>
+      <data-row string-value="SGD;SGD['${SGD}']"/>
+      <data-row string-value="THB;THB['${THB}']"/>
+      <data-row string-value="USD;$['${USD}']"/>
+      <data-row string-value="ZAR;ZAR['${ZAR}']"/>
+   </data-set>
+   <data-field id="CurrencyNameSymbolSeparator" string-value=";"/>
+
    <data-set id="UserLocaleDataSet"/>
    <data-set id="FirstWorkdayDataSet"/>
    <data-set id="LastWorkdayDataSet"/>
    <data-set id="HolidaysDataSet"/>
-	
-    <panel layout="border" style-ref="compact-panel-default">
-		
-	<panel layout="border" style-ref="tool-panel-default" y="-1">
-   <tool-bar>
-      <tool-button id="Save" text="${Save}" icon="/icons/save.png" disabled-icon="/icons/save_disabled.png"
-                   on-button-pressed="save" tooltip="${SaveTooltip}"/>
-   </tool-bar>
-		</panel>
-   <panel layout="border" style-ref="layout-panel-default">
-      <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-	  <panel layout="table" style-ref="table-panel-default">
+
+   <panel layout="border" style-ref="compact-panel-default">
+
+      <panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar>
+            <tool-button id="Save" text="${Save}" icon="/icons/save.png" disabled-icon="/icons/save_disabled.png"
+                         on-button-pressed="save" tooltip="${SaveTooltip}"/>
+         </tool-bar>
+      </panel>
+      <panel layout="border" style-ref="layout-panel-default">
+         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <panel layout="table" style-ref="table-panel-default">
             <label x="0" y="0" width="2" text="${UserLocale}"/>
             <choice-field x="2" y="0" width="3" id="UserLocale" data-set-ref="UserLocaleDataSet"/>
             <label x="0" y="1" width="2" text="${FirstWorkday}"/>
@@ -37,17 +63,19 @@
             <label x="0" y="9" width="2" text="${ResourceMaxAvailability}"/>
             <double-field x="2" y="9" width="3" id="ResourceMaxAvailability"/>
             <label x="0" y="10" width="2" text="${MilestoneControllingInterval}"/>
-            <int-field x="2" y="10" width="3" id="MilestoneControllingInterval" />
+            <int-field x="2" y="10" width="3" id="MilestoneControllingInterval"/>
             <check-box x="2" y="11" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
             <check-box x="2" y="12" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
             <check-box x="2" y="13" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
             <label x="0" y="14" width="2" text="${Pulsing}"/>
             <int-field x="2" y="14" width="3" id="Pulsing"/>
-    </panel>
+            <label x="0" y="15" width="2" text="${Currency}"/>
+            <choice-field x="2" y="15" width="3" id="CurrencyChoice" data-set-ref="CurrencyDataSet"/>
+         </panel>
+      </panel>
+
+      <status-bar y="1"/>
+
    </panel>
-		
-	<status-bar y="1"/>
-		
-	</panel>
-	
+
 </form>

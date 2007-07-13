@@ -186,10 +186,10 @@
       <resource id="Cancel">Cancel</resource>
    </resource-map>
    <resource-map id="work.costTypes">
-      <resource id="TravelCost">Travel Cost</resource>
-      <resource id="MaterialCost">Material Cost</resource>
-      <resource id="ExternalCost">External Cost</resource>
-      <resource id="MiscellaneousCost">Miscellaneous Cost</resource>
+      <resource id="TravelCost">Travel Cost({CurrencySymbol})</resource>
+      <resource id="MaterialCost">Material Cost({CurrencySymbol})</resource>
+      <resource id="ExternalCost">External Cost({CurrencySymbol})</resource>
+      <resource id="MiscellaneousCost">Miscellaneous Cost({CurrencySymbol})</resource>
    </resource-map>
 
 </language-kit>

@@ -11,9 +11,11 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
+import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpLock;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
@@ -596,6 +598,21 @@ public final class OpProjectDataSetFactory {
             dataCell.setIntValue(projectNode.getPriority());
          }
          dataRow.addChild(dataCell);
+
+         //for portofolios add empty cells for effors and costs and cells with values set to 0 for deviations
+         if(projectNode.getType() != OpProjectNode.PROJECT){
+            addPortofolioCostAndEffortCells(dataRow);
+         }
+         //for regular projects calculate the values of the cells
+         else {
+            XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
+            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
+
+            XComponent costDataSet = new XComponent(XComponent.DATA_SET);
+            OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);
+
+            addProjectCostAndEffortCells(dataRow, effortDataSet, costDataSet);
+         }
       }
       return dataRow;
    }
@@ -968,5 +985,105 @@ public final class OpProjectDataSetFactory {
          resources.add(XValidator.choice(resource.locator(), resource.getName()));
       }
       return resources;
+   }
+
+   /**
+    * Adds 8 cells with value set to null and 4 cells woth values set to 0 to a <code>XComponent</code> data row.
+    *
+    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
+    */
+   private static void addPortofolioCostAndEffortCells(XComponent dataRow) {
+      //for portofolios do not show any efforts or costs
+      for (int i = 0; i < 8; i++) {
+         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRow.addChild(dataCell);
+      }
+
+      //the deviation cells values are set to 0 so that they show a disabled line
+      for (int i = 0; i < 4; i++) {
+         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setDoubleValue(0d);
+         dataRow.addChild(dataCell);
+      }
+   }
+
+   /**
+    * Adds 12 cells to the dataRow parameter. These cells will contain information about the efforts and costs regarding
+    *    the project that is being represented by the dataRow parameter.
+    *
+    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
+    * @param effortDataSet - the <code>XComponent</code> data set from which the information about the efforts is taken
+    * @param costDataSet - the <code>XComponent</code> data set from which the information about the costs is taken.
+    */
+   private static void addProjectCostAndEffortCells(XComponent dataRow, XComponent effortDataSet, XComponent costDataSet) {
+      //11 - base effort
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(baseEffort);
+      dataRow.addChild(dataCell);
+
+      //12 - actual effort
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(actualEffort);
+      dataRow.addChild(dataCell);
+
+      //13 - predicted effort
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double predictedEffort = predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(predictedEffort);
+      dataRow.addChild(dataCell);
+
+      //14 - remaining effort (base - actual)
+      double remainingEffort = baseEffort - actualEffort;
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(remainingEffort);
+      dataRow.addChild(dataCell);
+
+      //15 - base costs
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(baseCost);
+      dataRow.addChild(dataCell);
+
+      //16 - actual costs
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(actualCost);
+      dataRow.addChild(dataCell);
+
+      //17 - predicted costs
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(predictedCost);
+      dataRow.addChild(dataCell);
+
+      //18 - remaining cost (base - actual)
+      double remainingCost = baseCost - actualCost;
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(remainingCost);
+      dataRow.addChild(dataCell);
+
+      //19 - effort deviation
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(deviationEffort);
+      dataRow.addChild(dataCell);
+
+      //20 - effort %deviation
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
+      dataRow.addChild(dataCell);
+
+      //21 - costs deviation
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      dataCell.setDoubleValue(deviationCost);
+      dataRow.addChild(dataCell);
+
+      //22 - costs %deviation
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
+      dataRow.addChild(dataCell);
    }
 }

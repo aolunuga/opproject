@@ -35,11 +35,11 @@
       <resource id="PercentageDeviationEffort">Deviation (%)</resource>
 
       <resource id="ProjectCosts">Project Costs</resource>
-      <resource id="BaseCosts">Base (€)</resource>
-      <resource id="ActualCosts">Actual (€)</resource>
-      <resource id="RemainingCosts">Rem. (€)</resource>
-      <resource id="ProjectedCosts">Expected (€)</resource>
-      <resource id="DeviationCosts">Deviation (€)</resource>
+      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
       <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="SaveCSV">Save as Table...</resource>

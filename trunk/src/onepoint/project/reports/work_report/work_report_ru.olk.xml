@@ -8,11 +8,11 @@
       <resource id="Date">Date</resource>
       <resource id="Resource">Resource</resource>
       <resource id="Hours">Effort (h)</resource>
-      <resource id="Costs">Pers. (€)</resource>
-      <resource id="Travel">Travel (€)</resource>
-      <resource id="Material">Material (€)</resource>
-      <resource id="External">External (€)</resource>
-      <resource id="Miscellaneous">Misc. (€)</resource>
+      <resource id="Costs">Pers. ({CurrencySymbol})</resource>
+      <resource id="Travel">Travel ({CurrencySymbol})</resource>
+      <resource id="Material">Material ({CurrencySymbol})</resource>
+      <resource id="External">External ({CurrencySymbol})</resource>
+      <resource id="Miscellaneous">Misc. ({CurrencySymbol})</resource>
       <resource id="TotalHours">Total Effort (h)</resource>
       <resource id="InvalidUser">Please select a user</resource>
 

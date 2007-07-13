@@ -21,7 +21,7 @@ public class OpProjectsFormProvider implements XFormProvider {
    /**
     * Form component ids.
     */
-   private final static String PROJECT_DATA_SET = "ProjectDataSet";
+   protected final static String PROJECT_DATA_SET = "ProjectDataSet";
 
    private static final String NEW_PROJECT_BUTTON = "NewProjectButton";
    private static final String NEW_PORTFOLIO_BUTTON = "NewPortfolioButton";

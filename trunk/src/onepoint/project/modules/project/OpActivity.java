@@ -505,7 +505,7 @@ public class OpActivity extends OpObject {
    /**
     * Calculates the actual total costs of this activity.
     *
-    * @return Total actual cost (Personnel + Travel + Material + External + Misc)
+    * @return Total actual cost (Personnel + Travel + Material + External + Misc + Proceeds)
     */
    public double calculateActualCost() {
       double actual = this.getActualPersonnelCosts();
@@ -513,13 +513,14 @@ public class OpActivity extends OpObject {
       actual += this.getActualMaterialCosts();
       actual += this.getActualExternalCosts();
       actual += this.getActualMiscellaneousCosts();
+      actual += this.getActualProceeds();
       return actual;
    }
 
    /**
     * Calculates the base total costs of this activity.
     *
-    * @return Total base cost (Personnel + Travel + Material + External + Misc)
+    * @return Total base cost (Personnel + Travel + Material + External + Misc + Proceeds)
     */
    public double calculateBaseCost() {
       double base = this.getBasePersonnelCosts();
@@ -527,6 +528,7 @@ public class OpActivity extends OpObject {
       base += this.getBaseMaterialCosts();
       base += this.getBaseExternalCosts();
       base += this.getBaseMiscellaneousCosts();
+      base += this.getBaseProceeds();
       return base;
    }
 

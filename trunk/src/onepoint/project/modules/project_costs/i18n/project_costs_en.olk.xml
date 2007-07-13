@@ -7,11 +7,11 @@
       <resource id="Print">Print</resource>
       <resource id="PrintTooltip">Print this view</resource>
       <resource id="ActivityOrCostType">Activity/Cost Type</resource>
-      <resource id="Base">Base (€)</resource>
-      <resource id="Actual">Actual (€)</resource>
-      <resource id="Remaining">Rem. (€)</resource>
-      <resource id="Projected">Expected (€)</resource>
-      <resource id="Deviation">Deviation (€)</resource>
+      <resource id="Base">Base ({CurrencySymbol})</resource>
+      <resource id="Actual">Actual ({CurrencySymbol})</resource>
+      <resource id="Remaining">Rem. ({CurrencySymbol})</resource>
+      <resource id="Projected">Expected ({CurrencySymbol})</resource>
+      <resource id="Deviation">Deviation ({CurrencySymbol})</resource>
       <resource id="PercentageDeviation">Deviation (%)</resource>
       <resource id="Personnel">Personnel</resource>
       <resource id="Travel">Travel</resource>
