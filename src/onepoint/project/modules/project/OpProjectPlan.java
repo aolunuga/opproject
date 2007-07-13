@@ -42,7 +42,7 @@ public class OpProjectPlan extends OpObject {
    private Set<OpAssignment> activityAssignments;
    private Set<OpWorkPeriod> workPeriods;
    private Set<OpDependency> dependencies;
-   private Set<OpActivityVersion> versions;
+   private Set<OpProjectPlanVersion> versions;
 
    public void setStart(Date start) {
       this.start = start;
@@ -132,11 +132,11 @@ public class OpProjectPlan extends OpObject {
       return dependencies;
    }
 
-   public void setVersions(Set<OpActivityVersion> versions) {
+   public void setVersions(Set<OpProjectPlanVersion> versions) {
       this.versions = versions;
    }
 
-   public Set<OpActivityVersion> getVersions() {
+   public Set<OpProjectPlanVersion> getVersions() {
       return versions;
    }
 

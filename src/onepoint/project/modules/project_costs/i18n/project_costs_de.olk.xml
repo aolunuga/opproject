@@ -7,11 +7,11 @@
       <resource id="Print">Drucken</resource>
       <resource id="PrintTooltip">Diese Ansicht drucken</resource>
       <resource id="ActivityOrCostType">Vorgang/Kostenart</resource>
-      <resource id="Base">Plan (€)</resource>
-      <resource id="Actual">Ist (€)</resource>
-      <resource id="Remaining">Rest (€)</resource>
-      <resource id="Projected">Erwartet (€)</resource>
-      <resource id="Deviation">Abw. (€)</resource>
+      <resource id="Base">Plan ({CurrencySymbol})</resource>
+      <resource id="Actual">Ist ({CurrencySymbol})</resource>
+      <resource id="Remaining">Rest ({CurrencySymbol})</resource>
+      <resource id="Projected">Erwartet ({CurrencySymbol})</resource>
+      <resource id="Deviation">Abw. ({CurrencySymbol})</resource>
       <resource id="PercentageDeviation">Abw. (%)</resource>
       <resource id="Personnel">Personal</resource>
       <resource id="Travel">Reise</resource>

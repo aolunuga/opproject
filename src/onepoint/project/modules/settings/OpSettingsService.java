@@ -186,15 +186,27 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.ENABLE_TIME_TRACKING, enableTimeTracking.toString());
       }
 
+      //currency symbol
+      String currencySymbol = (String) settings.get(OpSettings.CURRENCY_SYMBOL);
+      if (currencySymbol != null) {
+         newSettings.put(OpSettings.CURRENCY_SYMBOL, currencySymbol);
+      }
+
+      //currency shorname
+      String currencyShortName = (String) settings.get(OpSettings.CURRENCY_SHORT_NAME);
+      if (currencyShortName != null) {
+         newSettings.put(OpSettings.CURRENCY_SHORT_NAME, currencyShortName);
+      }
+
       //save the settings in the db
       OpSettings.saveSettings(session, newSettings);
 
       // Apply new settings
-      boolean changedLanguage = OpSettings.applySettings(session);
+      boolean refresh = OpSettings.applySettings(session);
 
       OpSettings.configureServerCalendar(session);
       reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
-      if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
+      if (refresh) {
          reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
       }
       return reply;

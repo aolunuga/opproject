@@ -32,7 +32,25 @@
       <resource id="Resources">Resources</resource>
       <resource id="Costs">Costs</resource>
       <resource id="Status">Status</resource>
-      <resource id="Priority">Priority</resource>            
+      <resource id="Priority">Priority</resource>
+
+      <resource id="ProjectList">Projects</resource>
+      <resource id="ProjectResources">Resources</resource>
+      <resource id="ProjectCosts">Costs</resource>
+
+      <resource id="Project">Project</resource>
+      <resource id="BaseEffort">Base (h)</resource>
+      <resource id="ActualEffort">Actual (h)</resource>
+      <resource id="RemainingEffort">Rem. (h)</resource>
+      <resource id="ProjectedEffort">Expected (h)</resource>
+      <resource id="DeviationEffort">Deviation (h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
+      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
+      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Create new project porfolio</resource>
       <resource id="NewProjectTooltip">Create new project</resource>
@@ -65,11 +83,10 @@
       <resource id="Description">Description</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="Budget">Budget (€)</resource>
       <resource id="Priority">Priority</resource>
       <resource id="Probability">Probability (%)</resource>
       <resource id="Archived">Archived</resource>
-      <resource id="Budget">Budget (€)</resource>
+      <resource id="Budget">Budget ({CurrencySymbol})</resource>
       <resource id="Template">Template</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -105,7 +122,7 @@
       <resource id="Description">Description</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="Budget">Budget (€)</resource>
+      <resource id="Budget">Budget ({CurrencySymbol})</resource>
       <resource id="Priority">Priority</resource>
       <resource id="Probability">Probability (%)</resource>
       <resource id="Archived">Archived</resource>      

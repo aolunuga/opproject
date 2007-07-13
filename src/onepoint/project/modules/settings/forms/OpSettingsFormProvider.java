@@ -10,14 +10,13 @@ import onepoint.express.server.XFormProvider;
 import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -28,33 +27,39 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * <FIXME author="Horia Chiorean" description="Refactor the form provider into smaller methods for each setting !">
+ */
 public class OpSettingsFormProvider implements XFormProvider {
 
    private static XLog logger = XLogFactory.getServerLogger(OpSettingsFormProvider.class);
 
-   public static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
-   public static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";
-   public static final String LAST_WORKDAY_DATA_SET = "LastWorkdayDataSet";
-   public static final String HOLIDAYS_DATA_SET = "HolidaysDataSet";
+   private static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
+   private static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";
+   private static final String LAST_WORKDAY_DATA_SET = "LastWorkdayDataSet";
+   private static final String HOLIDAYS_DATA_SET = "HolidaysDataSet";
 
-   public static final String USER_LOCALE = "UserLocale";
-   public static final String FIRST_WORK_DAY = "FirstWorkday";
-   public static final String LAST_WORK_DAY = "LastWorkday";
-   public static final String HOLYDAYS = "HolidaysChoice";
-   public static final String DAY_WORK_TIME = "DayWorkTime";
-   public static final String WEEK_WORK_TIME = "WeekWorkTime";
-   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
-   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
-   public static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
-   public static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
-   public static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
-   public static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
-   public static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
-   public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
-   public static final String PULSING = "Pulsing";
-   public static final String ENABLE_PULSING = "EnablePulsing";
-   public static final String SAVE_BUTTON = "Save";
-   public static final String SELECT_CALENDAR = "${SelectCalendar}";
+   private static final String USER_LOCALE = "UserLocale";
+   private static final String FIRST_WORK_DAY = "FirstWorkday";
+   private static final String LAST_WORK_DAY = "LastWorkday";
+   private static final String HOLYDAYS = "HolidaysChoice";
+   private static final String DAY_WORK_TIME = "DayWorkTime";
+   private static final String WEEK_WORK_TIME = "WeekWorkTime";
+   private static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
+   private static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
+   private static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
+   private static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
+   private static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
+   private static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
+   private static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
+   private static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
+   private static final String PULSING = "Pulsing";
+   private static final String ENABLE_PULSING = "EnablePulsing";
+   private static final String SAVE_BUTTON = "Save";
+   private static final String SELECT_CALENDAR = "${SelectCalendar}";
+   private static final String CURRENCY_CHOICE_ID = "CurrencyChoice";
+   private static final String CURRENCY_DATASET_ID = "CurrencyDataSet";
+   private static final String CURRENCY_NAME_SYMBOL_SEPARATOR_ID = "CurrencyNameSymbolSeparator";
 
    // Resource map names
    public static final String SETTINGS_SETTINGS = "settings.settings";
@@ -171,6 +176,23 @@ public class OpSettingsFormProvider implements XFormProvider {
          pulsingField.setIntValue(Integer.valueOf(pulsingValue));
       }
 
+      //currency
+      String currencyShortName = OpSettings.get(OpSettings.CURRENCY_SHORT_NAME);
+      XComponent currencyChoice = form.findComponent(CURRENCY_CHOICE_ID);
+      String currencySeparator = form.findComponent(CURRENCY_NAME_SYMBOL_SEPARATOR_ID).getStringValue();
+      XComponent currencyDataSet = form.findComponent(CURRENCY_DATASET_ID);
+      for (int i = 0; i < currencyDataSet.getChildCount(); i++) {
+         XComponent currencyRow = (XComponent) currencyDataSet.getChild(i);
+         String currencyChoiceId = XValidator.choiceID(currencyRow.getStringValue());
+         int symbolShortNameIndex = currencyChoiceId.indexOf(currencySeparator);
+         String rowCurrencyShortName = currencyChoiceId.substring(0, symbolShortNameIndex);
+         if (currencyShortName.equalsIgnoreCase(rowCurrencyShortName)) {
+            currencyRow.setSelected(true);
+            currencyChoice.setSelectedIndex(i);
+            break;
+         }
+      }
+
       // hide multi-user fields
       if (!OpEnvironmentManager.isMultiUser()) {
          mailMessageTextField.setVisible(false);
@@ -197,6 +219,7 @@ public class OpSettingsFormProvider implements XFormProvider {
          enableTimeTrackingField.setEnabled(false);
          enablePulsingField.setEnabled(false);
          pulsingField.setEnabled(false);
+         currencyChoice.setEnabled(false);
       }
    }
 

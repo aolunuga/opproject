@@ -31,7 +31,25 @@
       <resource id="Resources">Ressourcen</resource>
       <resource id="Costs">Kosten</resource>
       <resource id="Status">Status</resource>
-      <resource id="Priority">Priorität</resource>            
+      <resource id="Priority">Priorität</resource>
+
+      <resource id="ProjectList">Projects</resource>
+      <resource id="ProjectResources">Resources</resource>
+      <resource id="ProjectCosts">Costs</resource>
+
+      <resource id="Project">Project</resource>
+      <resource id="BaseEffort">Base (h)</resource>
+      <resource id="ActualEffort">Actual (h)</resource>
+      <resource id="RemainingEffort">Rem. (h)</resource>
+      <resource id="ProjectedEffort">Expected (h)</resource>
+      <resource id="DeviationEffort">Deviation (h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
+      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
+      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Neues Projektportfolio erstellen</resource>
       <resource id="NewProjectTooltip">Neues Projekt erstellen</resource>
@@ -65,7 +83,7 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
-      <resource id="Budget">Budget (€)</resource>
+      <resource id="Budget">Budget ({CurrencySymbol})</resource>
       <resource id="Priority">Priorität</resource>
       <resource id="Probability">Wahrscheinlichkeit (%)</resource>
       <resource id="Archived">Archived</resource>      
@@ -104,7 +122,7 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
-      <resource id="Budget">Budget (€)</resource>
+      <resource id="Budget">Budget ({CurrencySymbol})</resource>
       <resource id="Priority">Priorität</resource>
       <resource id="Probability">Wahrscheinlichkeit (%)</resource>
       <resource id="Archived">Archived</resource>            

@@ -59,6 +59,7 @@ public class OpProjectSession extends XExpressSession {
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
       }
+      super.setLocalizerParameters(OpSettings.getI18NParameters());
    }
 
    /**

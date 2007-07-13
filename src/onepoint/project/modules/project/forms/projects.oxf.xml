@@ -23,20 +23,49 @@
             <tool-button id="DeleteButton" text="${Delete}" disabled-icon="/icons/delete_disabled.png" icon="/icons/delete.png" on-button-pressed="delete" tooltip="${DeleteTooltip}"/>
          </tool-bar>
       </panel>
-      <table-box id="ProjectTreeTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" y="0" on-double-click="edit" on-row-select="selectionChanged">
-         <!-- The list of columns to show could be editable and dynamic (form-provider) -->
-         <!-- vielleicht auch eine Projekt-Nummer/ID -->
-         <table-column width="180" text="${Name}" data-column-index="1" value-type="Choice"/>
-         <table-column width="200" text="${Description}" data-column-index="2"/>
-         <table-column text="${Status}" width="65"  value-type="String" data-column-index="9"/>
-         <table-column text="${Priority}" width="60"  value-type="Int" data-column-index="10" sortable="true"/>         
-         <table-column width="60" text="${Start}" value-type="Date" data-column-index="3" sortable="true"/>
-         <table-column width="60" text="${End}" value-type="Date" data-column-index="4" sortable="true"/>
-         <table-column width="70" text="${Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>
-         <table-column width="70" text="${Resources}" value-type="PercentageBar" data-column-index="7" sortable="false"/>
-         <table-column width="70" text="${Costs}" value-type="PercentageBar" data-column-index="8" sortable="false"/>
-      </table-box>
 
+      <tab-box id="MyTabBox" stateful="true" flexible="true">
+         <tab layout="border" text="${ProjectList}" id="ProjectListTab">
+            <table-box id="ProjectTreeTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" y="0" on-double-click="edit" on-row-select="selectionChanged">
+               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+               <!-- vielleicht auch eine Projekt-Nummer/ID -->
+               <table-column width="180" text="${Name}" data-column-index="1" value-type="Choice"/>
+               <table-column width="200" text="${Description}" data-column-index="2"/>
+               <table-column text="${Status}" width="65" value-type="String" data-column-index="9"/>
+               <table-column text="${Priority}" width="60" value-type="Int" data-column-index="10" sortable="true"/>
+               <table-column width="60" text="${Start}" value-type="Date" data-column-index="3" sortable="true"/>
+               <table-column width="60" text="${End}" value-type="Date" data-column-index="4" sortable="true"/>
+               <table-column width="70" text="${Activities}" value-type="PercentageBar" data-column-index="6" sortable="false"/>
+               <table-column width="70" text="${Resources}" value-type="PercentageBar" data-column-index="7" sortable="false"/>
+               <table-column width="70" text="${Costs}" value-type="PercentageBar" data-column-index="8" sortable="false"/>
+            </table-box>
+         </tab>
+
+         <tab layout="border" text="${ProjectResources}" id="ProjectResourcesTab">
+            <table-box if="ProjectResourcesTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu">
+            <table-column text="${Project}" width="120" sortable="true" data-column-index="1"  value-type="Choice"/>
+            <table-column text="${BaseEffort}" width="80" sortable="true" data-column-index="11" value-type="Duration" display-unit="Hours"/>
+            <table-column text="${ActualEffort}" width="80" sortable="true" data-column-index="12" value-type="Duration" display-unit="Hours"/>
+            <table-column text="${RemainingEffort}" width="70" data-column-index="14" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${ProjectedEffort}" width="70" data-column-index="13" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${DeviationEffort}" width="70" data-column-index="19" value-type="Deviation" sortable="true" decimals="2"/>
+            <table-column text="${PercentageDeviationEffort}" width="70" data-column-index="20" value-type="Deviation" decimals="2" sortable="true"/>
+            </table-box>
+         </tab>
+
+         <tab layout="border" text="${ProjectCosts}" id="ProjectCostsTab">
+            <table-box if="ProjectResourcesTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu">
+            <table-column text="${Project}" width="120" sortable="true" data-column-index="1" value-type="Choice"/>
+            <table-column text="${BaseCosts}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2"/>
+            <table-column text="${ActualCosts}" width="80" sortable="true" data-column-index="16" value-type="Double" decimals="2"/>
+            <table-column text="${RemainingCosts}" width="70" data-column-index="18" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${ProjectedCosts}" width="70" data-column-index="17" value-type="Double" sortable="true" decimals="2"/>
+            <table-column text="${DeviationCosts}" width="70" data-column-index="21" value-type="Deviation" sortable="true" decimals="2"/>
+            <table-column text="${PercentageDeviationCosts}" width="70" data-column-index="22" value-type="Deviation" decimals="2" sortable="true"/>
+            </table-box>
+         </tab>
+
+      </tab-box>
       <status-bar y="1"/>
 
    </panel>

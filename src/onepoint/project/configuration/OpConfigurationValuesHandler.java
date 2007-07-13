@@ -112,12 +112,12 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
             databaseUrl = setJDBCBoolParam(databaseUrl, "emulateLocators", true);
          }
          else if (configuration.getDatabaseType() == OpHibernateSource.MSSQL) {
-            // set the connection params to support large blobs
+            // set the timezone
             StringBuffer sb = new StringBuffer(databaseUrl);
             if (!databaseUrl.endsWith(";")) {
                sb.append(';');
             }
-            sb.append("selectMethod=cursor");
+            sb.append("useTimeZone=GMT");
             databaseUrl = sb.toString();
          }
          configuration.setDatabaseUrl(databaseUrl);

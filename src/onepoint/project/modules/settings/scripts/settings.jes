@@ -32,6 +32,12 @@ function save(event) {
    }
    settings.EnableTimeTracking = form.findComponent("EnableTimeTracking").getBooleanValue();
 
+   selectedCurrencyId =  XValidator.choiceID(form.findComponent("CurrencyChoice").getStringValue());
+   currencyNameSymbolSeparator = form.findComponent("CurrencyNameSymbolSeparator").getStringValue();
+   separatorIndex = selectedCurrencyId.indexOf(currencyNameSymbolSeparator);
+   settings.Currency_ShortName = selectedCurrencyId.substring(0, separatorIndex);
+   settings.Currency_Symbol = selectedCurrencyId.substring(separatorIndex + 1);
+
    request = new XMessage;
    request.setAction("SettingsService.saveSettings");
    request.setArgument("new_settings", settings);

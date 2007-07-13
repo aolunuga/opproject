@@ -46,13 +46,13 @@
 
       <resource id="CostsProjection">Базовые затраты</resource>
       <resource id="Activity">Activity</resource>
-      <resource id="Personnel">Pers. (€)</resource>
-      <resource id="Travel">Travel (€)</resource>
-      <resource id="Material">Material (€)</resource>
-      <resource id="External">External (€)</resource>
-      <resource id="Misc">Misc. (€)</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
-      <resource id="Costs">Costs (€)</resource>
+      <resource id="Personnel">Pers. ({CurrencySymbol})</resource>
+      <resource id="Travel">Travel ({CurrencySymbol})</resource>
+      <resource id="Material">Material ({CurrencySymbol})</resource>
+      <resource id="External">External ({CurrencySymbol})</resource>
+      <resource id="Misc">Misc. ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
+      <resource id="Costs">Costs ({CurrencySymbol})</resource>
 
       <resource id="EditTooltip">Изменить план проекта</resource>
       <resource id="SaveTooltip">Сохранить изменения в рабочей версии</resource>
@@ -154,12 +154,12 @@
       <resource id="Predecessor">Предки</resource>
 
       <resource id="Costs">Costs</resource>
-      <resource id="Personnel">Personnel (€)</resource>
-      <resource id="Travel">Travel (€)</resource>
-      <resource id="Material">Material (€)</resource>
-      <resource id="External">External (€)</resource>
-      <resource id="Misc">Miscellaneous (€)</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
+      <resource id="Personnel">Personnel ({CurrencySymbol})</resource>
+      <resource id="Travel">Travel ({CurrencySymbol})</resource>
+      <resource id="Material">Material ({CurrencySymbol})</resource>
+      <resource id="External">External ({CurrencySymbol})</resource>
+      <resource id="Misc">Miscellaneous ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
 
       <resource id="Attachments">Attachments</resource>
       <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
@@ -248,10 +248,10 @@
       <resource id="Duration">Длительность (д)</resource>
       <resource id="PercentComplete">% выполнения</resource>
       <resource id="Effort">Объем работ (ч)</resource>
-      <resource id="Costs">Costs (€)</resource>
+      <resource id="Costs">Costs ({CurrencySymbol})</resource>
       <resource id="Resources">Ресурсы</resource>
       <resource id="Category">Category</resource>
-      <resource id="Proceeds">Proceeds (€)</resource>
+      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
    </resource-map>
 
    <resource-map id="project_planning.Navigator">

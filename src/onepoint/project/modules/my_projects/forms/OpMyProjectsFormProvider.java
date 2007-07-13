@@ -142,26 +142,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          chooser.setSelectedIndex(selectedIndex);
       }
       return projectChoice;
-   }
-
-   /**
-    * Sums up the values from the datacell at the given index, data cel taken from the rows in the given dataSet.
-    *
-    * @param dataSet DataSet containing the rows with datacell to be summed up
-    * @param index   index of the data cell to use in the sum
-    * @return the resulting sum -> sum(dataRow.getChild(index).value)
-    */
-   private double sumDataSetValues(XComponent dataSet, int index) {
-      double sum = 0;
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         XComponent row = (XComponent) dataSet.getChild(i);
-         if (row.getOutlineLevel() == 0 && index < row.getChildCount()) {
-            XComponent dataCell = (XComponent) row.getChild(index);
-            sum += dataCell.getDoubleValue();
-         }
-      }
-      return sum;
-   }
+   }  
 
    /**
     * Creates a my-project dataRow for a given project node.
@@ -210,33 +191,33 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
       //base effort  3
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX);
+      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(baseEffort);
       dataRow.addChild(dataCell);
-      //acctual effort 4
+      //actual effort 4
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX);
+      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(actualEffort);
       dataRow.addChild(dataCell);
       //base costs  5
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX);
+      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(baseCost);
       dataRow.addChild(dataCell);
-      //acctual costs  6
+      //actual costs  6
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX);
+      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(actualCost);
       dataRow.addChild(dataCell);
 
       //predicted costs 7
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX);
+      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(predictedCost);
       dataRow.addChild(dataCell);
       //costs deviation 8
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX);
+      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(deviationCost);
       dataRow.addChild(dataCell);
       //costs %deviation 9
@@ -246,15 +227,15 @@ public class OpMyProjectsFormProvider implements XFormProvider {
 
       //predicted effort 10
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX);
+      double predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(predictedEffort);
       dataRow.addChild(dataCell);
-      //costs deviation 11
+      //effort deviation 11
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX);
+      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(deviationEffort);
       dataRow.addChild(dataCell);
-      //costs %deviation 12
+      //effort %deviation 12
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
       dataRow.addChild(dataCell);
