@@ -113,7 +113,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       dataSet.addChild(dataRow);
       //MSSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:sqlserver://localhost:1433;databaseName=opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
+      dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
       dataSet.addChild(dataRow);
    }
 }

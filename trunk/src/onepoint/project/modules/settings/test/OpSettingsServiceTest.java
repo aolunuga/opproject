@@ -5,6 +5,7 @@ package onepoint.project.modules.settings.test;
 
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsError;
+import onepoint.project.modules.settings.OpSettingsException;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
@@ -64,8 +65,16 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.LAST_WORK_DAY_INCORRECT);
+      boolean exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.LAST_WORK_DAY_INCORRECT);
+         exception = true;
+      }
+
+      assertTrue("No exception was thrown ", exception);
    }
 
    /**
@@ -83,16 +92,31 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.DAY_WORK_TIME_INCORRECT);
+      boolean exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.DAY_WORK_TIME_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.put(OpSettings.CALENDAR_DAY_WORK_TIME, new Double(25d));
 
       request = new XMessage();
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
 
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.DAY_WORK_TIME_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.DAY_WORK_TIME_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
+
    }
 
    /**
@@ -143,8 +167,16 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      XMessage response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.EMAIL_INCORRECT);
+      boolean exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.EMAIL_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
+
 
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
       prefs.put(OpSettings.CALENDAR_LAST_WORKDAY, OpSettings.CALENDAR_LAST_WORKDAY_DEFAULT);
@@ -153,8 +185,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS, "wrong_pattern");
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.EMAIL_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.EMAIL_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.clear();
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -165,8 +204,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.clear();
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -177,8 +223,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch (OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.clear();
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -189,8 +242,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, new Integer(-1));
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch(OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.clear();
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -202,8 +262,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, null);
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch(OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
 
       prefs.clear();
       prefs.put(OpSettings.CALENDAR_FIRST_WORKDAY, OpSettings.CALENDAR_FIRST_WORKDAY_DEFAULT);
@@ -223,8 +290,15 @@ public class OpSettingsServiceTest extends OpBaseOpenTestCase {
 
       prefs.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, new Double("-1"));
       request.setArgument(OpSettingsService.NEW_SETTINGS, prefs);
-      response = OpTestDataFactory.getSettingsService().saveSettings(session, request);
-      assertError(response, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
+      exception = false;
+      try {
+         OpTestDataFactory.getSettingsService().saveSettings(session, request);
+      }
+      catch(OpSettingsException e) {
+         assertEquals(e.getError().getCode(), OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT);
+         exception = true;
+      }
+      assertTrue("No exception was thrown ", exception);
    }
 
    /**
