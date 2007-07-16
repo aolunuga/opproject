@@ -9,7 +9,9 @@ import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 
-function save(event) {
+
+function gatherData(){
+
    // Gather resource-data
    form = XDisplay.getActiveForm();
 
@@ -37,6 +39,18 @@ function save(event) {
    separatorIndex = selectedCurrencyId.indexOf(currencyNameSymbolSeparator);
    settings.Currency_ShortName = selectedCurrencyId.substring(0, separatorIndex);
    settings.Currency_Symbol = selectedCurrencyId.substring(separatorIndex + 1);
+
+   return settings;
+}
+
+
+function save(event) {
+
+
+   settings = gatherData();
+
+   // Gather resource-data
+   form = XDisplay.getActiveForm();
 
    request = new XMessage;
    request.setAction("SettingsService.saveSettings");

@@ -61,7 +61,7 @@ public class OpSettings {
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String MILESTONE_CONTROLLING_INTERVAL_DEFALUT = "2";
    public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
-   public static final String CURRENCY_SYMBOL_DEFAULT = "€";
+   public static final String CURRENCY_SYMBOL_DEFAULT = "â‚¬";
    public static final String CURRENCY_SHORT_NAME_DEFAULT = "EUR";
 
    /**
@@ -81,7 +81,7 @@ public class OpSettings {
     */
    private final static String CURRENCY_SYMBOL_I18N_PARAMETER = "CurrencySymbol";
 
-   private static Map<String, String> defaults = new HashMap<String, String>();
+   protected static Map<String, String> defaults = new HashMap<String, String>();
    private static Map<String, String> settings = new HashMap<String, String>();
 
    /**
@@ -129,7 +129,7 @@ public class OpSettings {
       Map<String, String> oldLocalizerParameters = session.getLocalizerParameters();
       Map<String, String> newLocalizerParameters = getI18NParameters();
       if (!oldLocalizerParameters.equals(newLocalizerParameters)) {
-         session.setLocalizerParameters(getI18NParameters());
+         session.setLocalizerParameters(newLocalizerParameters);
          refresh = true;
       }
 

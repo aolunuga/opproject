@@ -429,6 +429,6 @@ public class OpConfiguration {
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, "com.ibm.db2.jcc.DB2Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE, "org.postgresql.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, "org.hsqldb.jdbcDriver");
-      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "net.sourceforge.jtds.jdbc.Driver");
    }
 }

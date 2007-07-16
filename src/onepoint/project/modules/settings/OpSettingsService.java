@@ -10,7 +10,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
@@ -37,6 +36,24 @@ public class OpSettingsService extends OpProjectService {
       XMessage reply = new XMessage();
 
       Map<String, Object> settings = (Map) request.getArgument(NEW_SETTINGS);
+
+      Map<String, String> newSettings = validateSettings(settings, session);
+
+      //save the settings in the db
+      OpSettings.saveSettings(session, newSettings);
+
+      // Apply new settings
+      boolean refresh = OpSettings.applySettings(session);
+
+      OpSettings.configureServerCalendar(session);
+      reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
+      if (refresh) {
+         reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
+      }
+      return reply;
+   }
+
+   protected Map<String, String> validateSettings(Map<String, Object> settings, OpProjectSession session) {
       Map<String, String> newSettings = new HashMap<String, String>();
 
       //user locale
@@ -50,8 +67,7 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.CALENDAR_FIRST_WORKDAY, String.valueOf(firstWorkDay));
       }
       catch (NumberFormatException e) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.FIRST_WORK_DAY_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.FIRST_WORK_DAY_INCORRECT));
       }
 
       int lastWorkDay;
@@ -60,24 +76,20 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.CALENDAR_LAST_WORKDAY, String.valueOf(lastWorkDay));
       }
       catch (NumberFormatException e) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
       }
 
       if (firstWorkDay > lastWorkDay) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.LAST_WORK_DAY_INCORRECT));
       }
 
       //working hours per day validation
       Double dayWorkTime = (Double) settings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
       if (dayWorkTime == null) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
       }
       if (dayWorkTime <= 0 || dayWorkTime > 24) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.DAY_WORK_TIME_INCORRECT));
       }
       newSettings.put(OpSettings.CALENDAR_DAY_WORK_TIME, dayWorkTime.toString());
 
@@ -86,9 +98,9 @@ public class OpSettingsService extends OpProjectService {
       int workingDaysPerWeek = session.getCalendar().countWeekdays(firstWorkDay, lastWorkDay);
       Double weekWorkTime = (Double) settings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (weekWorkTime == null) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
       }
+
       String oldWeekWorkTime = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (oldWeekWorkTime != null) {
          double oldDWeekWorkTime = Double.valueOf(oldWeekWorkTime).doubleValue();
@@ -105,8 +117,7 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.CALENDAR_DAY_WORK_TIME, Double.toString(newDayWorkTime));
          dayWorkTime = newDayWorkTime;
          if (dayWorkTime > 24 || dayWorkTime <= 0) {
-            reply.setError(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
-            return reply;
+            throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
          }
       }
       else {
@@ -119,24 +130,21 @@ public class OpSettingsService extends OpProjectService {
       //email from address validation
       String email = (String) settings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       if (email == null || !Pattern.matches(EMAIL_REGEX, email)) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.EMAIL_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.EMAIL_INCORRECT));
       }
       newSettings.put(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS, email);
 
       //reports remove time period validation
       Integer removePeriodValue = (Integer) settings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
       if (removePeriodValue == null || removePeriodValue.intValue() <= 0) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.REPORT_REMOVE_TIME_PERIOD_INCORRECT));
       }
       newSettings.put(OpSettings.REPORT_REMOVE_TIME_PERIOD, removePeriodValue.toString());
 
       //resource max availability validation [0...Byte.MAX_VALUE]
       Double resourceMaxAvailabilityValue = ((Double) settings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       if (resourceMaxAvailabilityValue == null || resourceMaxAvailabilityValue.doubleValue() <= 0) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT));
       }
       newSettings.put(OpSettings.RESOURCE_MAX_AVAILABYLITY, resourceMaxAvailabilityValue.toString());
 
@@ -151,8 +159,7 @@ public class OpSettingsService extends OpProjectService {
       //milestone controlling interval
       Integer milestoneControllingValue = (Integer) settings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
       if (milestoneControllingValue == null || milestoneControllingValue.intValue() <= 0) {
-         reply.setError(session.newError(ERROR_MAP, OpSettingsError.MILESTONE_CONTROLING_INCORRECT));
-         return reply;
+         throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.MILESTONE_CONTROLING_INCORRECT));
       }
       else {
          newSettings.put(OpSettings.MILESTONE_CONTROLLING_INTERVAL, milestoneControllingValue.toString());
@@ -174,8 +181,7 @@ public class OpSettingsService extends OpProjectService {
       Integer pulsing = (Integer) settings.get(OpSettings.PULSING);
       if (pulsing != null) {
          if (pulsing < 0) {
-            reply.setError(session.newError(ERROR_MAP, OpSettingsError.INVALID_PULSE_VALUE));
-            return reply;
+            throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.INVALID_PULSE_VALUE));
          }
          newSettings.put(OpSettings.PULSING, pulsing.toString());
       }
@@ -197,19 +203,7 @@ public class OpSettingsService extends OpProjectService {
       if (currencyShortName != null) {
          newSettings.put(OpSettings.CURRENCY_SHORT_NAME, currencyShortName);
       }
-
-      //save the settings in the db
-      OpSettings.saveSettings(session, newSettings);
-
-      // Apply new settings
-      boolean refresh = OpSettings.applySettings(session);
-
-      OpSettings.configureServerCalendar(session);
-      reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
-      if (refresh) {
-         reply.setArgument(OpProjectConstants.REFRESH_PARAM, Boolean.TRUE);
-      }
-      return reply;
+      return newSettings;
    }
 
    public XMessage loadSettings(OpProjectSession session, XMessage request) {
