@@ -81,7 +81,7 @@ public class OpContent extends OpObject {
     *
     * @param size the size of the Content data in bytes
     */
-   private void setSize(long size) {
+   public void setSize(long size) {
       this.size = size;
    }
 
@@ -95,11 +95,11 @@ public class OpContent extends OpObject {
    }
 
    /**
-    * Sets the input stream to pe writen into the database. This method will overwrite the value of the <code>size</code> code.
+    * Sets the input stream to be written into the database. This method will overwrite the value of the <code>size</code> code.
     *
     * @param stream an <code>XSizeInputStream</code> instance. Ignored if null.
     */
-   private void setStream(XSizeInputStream stream) {
+   public void setStream(XSizeInputStream stream) {
       if (stream != null) {
          if (stream.getSize() == XSizeInputStream.UNKNOW_STREAM_SIZE) {
             stream.setSize(this.size);  // if the stream doesn't have the sized set, use the persisted value
