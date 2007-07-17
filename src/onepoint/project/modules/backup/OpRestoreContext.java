@@ -201,7 +201,9 @@ public class OpRestoreContext extends XContext {
          activePrototype = OpTypeManager.getPrototype(prototypeName);
          activeBackupMembers = (List) backupMembersMap.get(prototypeName);
          if (activePrototype == null || activeBackupMembers == null) {
-            throw new OpBackupException("Cannot activate prototype with name:" + prototypeName);
+        	//we should be somewhat graceful. It may happen, that entities vanish...
+            logger.error("Cannot activate prototype with name:" + prototypeName);
+            //throw new OpBackupException("Cannot activate prototype with name:" + prototypeName);
          }
       }
    }

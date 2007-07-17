@@ -46,6 +46,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    protected final int BASE_COST_INDEX = 5;
    protected final int PREDICTED_COSTS_INDEX = 7;
    protected final int PREDICTED_EFFORT_INDEX = 10;
+   protected final int COMPLETED_INDEX = 2;
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)

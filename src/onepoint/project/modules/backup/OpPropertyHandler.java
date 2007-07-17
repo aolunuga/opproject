@@ -109,7 +109,11 @@ public class OpPropertyHandler implements XNodeHandler {
       // Call accessor method in order to set value
       Object[] arguments = new Object[] {value};
       try {
-         backupMember.accessor.invoke(object, arguments);
+      	//we should be somewhat graceful. It may happen, that members vanish...
+    	 if(backupMember.accessor != null)
+            backupMember.accessor.invoke(object, arguments);
+    	 else
+    		logger.error("skipped execution of accessor for " + backupMember.name + " as it was null.");
       }
       catch (InvocationTargetException e) {
          logger.error("Could not restore property value" , e);
