@@ -9,6 +9,7 @@ import onepoint.project.modules.project.OpActivityComment;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.util.OpHashProvider;
+import sun.misc.BASE64Decoder;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -16,8 +17,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import sun.misc.BASE64Decoder;
 
 public class OpUser extends OpSubject {
 
@@ -192,11 +191,9 @@ public class OpUser extends OpSubject {
       if (this.getPreferences() == null) {
          return null;
       }
-      Iterator it = this.getPreferences().iterator();
-      while (it.hasNext()) {
-         OpPreference preference = (OpPreference) it.next();
-         if (preference.getName().equals(preferenceName)) {
-            return preference;
+      for (OpPreference opPreference : this.getPreferences()) {
+         if (opPreference.getName().equals(preferenceName)) {
+            return opPreference;
          }
       }
       return null;
@@ -208,11 +205,9 @@ public class OpUser extends OpSubject {
 
    public void setLevel(Byte level) {
       if (this.level.byteValue() > level.byteValue()) {
-         Set permissions = getOwnedPermissions();
+         Set<OpPermission> permissions = getOwnedPermissions();
          if (permissions != null) {
-            Iterator ownedPermissions = permissions.iterator();
-            while (ownedPermissions.hasNext()) {
-               OpPermission permission = (OpPermission) ownedPermissions.next();
+            for (OpPermission permission : permissions) {
                if (permission.getAccessLevel() >= OpPermission.MANAGER) {
                   throw new IllegalArgumentException("demote of user level not allowed");
                   //XException(session.newError(UserServiceIfc.ERROR_MAP, OpUserError.DEMOTE_USER_ERROR));
