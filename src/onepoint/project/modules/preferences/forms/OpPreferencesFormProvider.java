@@ -37,17 +37,29 @@ public class OpPreferencesFormProvider implements XFormProvider {
    private static final String SHOW_HOURS_ID = "ShowResourceHours";
 
    /**
-    * @see XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
+    * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
+      OpBroker broker = session.newBroker();
+      OpUser currentUser = session.user(broker);
+
+      fillPreferences(form, currentUser);
+
+      broker.close();
+   }
+
+   /**
+    * Fills the preferences form with the current user's information.
+    *
+    * @param form        Preferences form
+    * @param currentUser Current user
+    */
+   protected void fillPreferences(XComponent form, OpUser currentUser) {
       //get the avaiable languages
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATASET_ID);
       XComponent languageChoiceField = form.findComponent(LANGUAGE_CHOICE_ID);
-
-      OpBroker broker = session.newBroker();
-      OpUser currentUser = session.user(broker);
 
       OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageChoiceField, currentUser);
 
@@ -62,6 +74,5 @@ public class OpPreferencesFormProvider implements XFormProvider {
          showHours = Boolean.valueOf(showAssignInHoursPref);
       }
       form.findComponent(SHOW_HOURS_ID).setBooleanValue(showHours.booleanValue());
-      broker.close();
    }
 }

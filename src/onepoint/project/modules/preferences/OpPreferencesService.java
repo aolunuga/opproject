@@ -4,8 +4,6 @@
 
 package onepoint.project.modules.preferences;
 
-import java.util.HashMap;
-
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
@@ -21,6 +19,8 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
 
+import java.util.HashMap;
+
 /**
  * Service class that handles all the business operations
  *
@@ -32,6 +32,12 @@ public class OpPreferencesService extends OpProjectService {
     * This service's error map
     */
    private static final OpPreferencesErrorMap ERROR_MAP = new OpPreferencesErrorMap();
+   private final String PREFERENCES_ARGUMENT = "preferences";
+
+   private final String LANGUAGE_KEY = "language";
+   private final String PASSWORD_KEY = "password";
+   private final String PASSWORD_RETYPED_KEY = "passwordRetyped";
+   private final String SHOW_HOURS_KEY = "showHours";
 
    /**
     * Saves the user preferences.
@@ -42,14 +48,11 @@ public class OpPreferencesService extends OpProjectService {
     */
    public XMessage savePreferences(OpProjectSession session, XMessage request) {
 
-      XMessage reply = new XMessage();
 
-      HashMap arguments = (HashMap) request.getArgument("preferences");
+      HashMap arguments = (HashMap) request.getArgument(PREFERENCES_ARGUMENT);
 
-      String language = (String) arguments.get("language");
-      String password = (String) arguments.get("password");
-      String passwordRetyped = (String) arguments.get("passwordRetyped");
-      Boolean showHours = (Boolean) arguments.get("showHours");
+      String password = (String) arguments.get(PASSWORD_KEY);
+      String passwordRetyped = (String) arguments.get(PASSWORD_RETYPED_KEY);
 
       //start password validation
       XMessage validationResult = validatePasswords(password, passwordRetyped, session);
@@ -61,8 +64,36 @@ public class OpPreferencesService extends OpProjectService {
       OpUser currentUser = session.user(broker);
 
       OpTransaction tx = broker.newTransaction();
-      
-      //update the language
+
+      if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
+         //update the password
+         String hashedPasswrd = (password == null) ? null : new OpHashProvider().calculateHash(password);
+         currentUser.setPassword(hashedPasswrd);
+         broker.updateObject(currentUser);
+      }
+
+      XMessage reply = updateUserPreferences(session, broker, currentUser, arguments);
+
+      tx.commit();
+      broker.close();
+
+      return reply;
+   }
+
+   /**
+    * Updates the user preferences from the given arguments.
+    *
+    * @param session     Current session
+    * @param broker      Current broker instance
+    * @param currentUser Session user
+    * @param arguments   Request arguments.
+    * @return reply message
+    */
+   protected XMessage updateUserPreferences(OpProjectSession session, OpBroker broker, OpUser currentUser, HashMap arguments) {
+
+      XMessage reply = new XMessage();
+      //update the language preference
+      String language = (String) arguments.get(LANGUAGE_KEY);
       boolean languageChanged = OpUserLanguageManager.updateUserLanguagePreference(broker, currentUser, language);
       if (languageChanged) {
          if (!session.getLocale().getID().equals(language)) {
@@ -73,14 +104,8 @@ public class OpPreferencesService extends OpProjectService {
          }
       }
 
-      if (!checkPasswords(password, OpPreferencesFormProvider.PASSWORD_TOKEN)) {
-         //update the password
-         String hashedPasswrd = (password == null ) ? null : new OpHashProvider().calculateHash(password);
-         currentUser.setPassword(hashedPasswrd);
-         broker.updateObject(currentUser);
-      }
-
       //update the "show assignment in hours" preference
+      Boolean showHours = (Boolean) arguments.get(SHOW_HOURS_KEY);
       OpPreference showHoursPref = currentUser.getPreference(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showHoursPref != null) {
          showHoursPref.setValue(showHours.toString());
@@ -94,17 +119,15 @@ public class OpPreferencesService extends OpProjectService {
          broker.makePersistent(showHoursPreference);
       }
 
-      tx.commit();
-      broker.close();
-
       return reply;
    }
 
    /**
     * Validates the password that came from the client side.
-    * @param password a <code>String</code> representing the user password.
+    *
+    * @param password        a <code>String</code> representing the user password.
     * @param passwordRetyped a <code>String</code> representing the confirmal of the user password.
-    * @param session a <code>OpProjectSession</code> representing the current user session.
+    * @param session         a <code>OpProjectSession</code> representing the current user session.
     * @return a <code>XMessage</code> representing a possible error message or <code>null</code> if the passwords are valid.
     */
    private XMessage validatePasswords(String password, String passwordRetyped, OpProjectSession session) {
