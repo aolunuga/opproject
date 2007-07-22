@@ -795,6 +795,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       try {
          File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
+         temporaryFile.deleteOnExit();
          FileOutputStream fos = new FileOutputStream(temporaryFile);
          XIOHelper.copy(content, fos);
          fos.flush();

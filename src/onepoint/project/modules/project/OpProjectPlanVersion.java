@@ -33,7 +33,7 @@ public class OpProjectPlanVersion extends OpObject {
    private boolean template;
    private OpProjectPlan projectPlan;
    private OpUser creator;
-   private Set activityVersions;
+   private Set<OpActivityVersion> activityVersions;
    private Set attachmentVersions;
    private Set assignmentVersions;
    private Set workPeriodVersions;
@@ -95,11 +95,11 @@ public class OpProjectPlanVersion extends OpObject {
       this.creator = creator;
    }
 
-   public void setActivityVersions(Set activityVersions) {
+   public void setActivityVersions(Set<OpActivityVersion> activityVersions) {
       this.activityVersions = activityVersions;
    }
 
-   public Set getActivityVersions() {
+   public Set<OpActivityVersion> getActivityVersions() {
       return activityVersions;
    }
 

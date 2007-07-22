@@ -37,5 +37,6 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.EXTERNAL_RATE_NOT_VALID, OpProjectError.EXTERNAL_RATE_NOT_VALID_NAME);     
       registerErrorCode(OpProjectError.PRIORITY_NOT_VALID, OpProjectError.PRIORITY_NOT_VALID_NAME);
       registerErrorCode(OpProjectError.PROBABILITY_NOT_VALID, OpProjectError.PROBABILITY_NOT_VALID_NAME);     
+      registerErrorCode(OpProjectError.DUPLICATE_BASELINE_ERROR, OpProjectError.DUPLICATE_BASELINE_ERROR_NAME);     
    }
 }

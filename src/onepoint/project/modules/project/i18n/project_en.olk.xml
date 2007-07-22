@@ -140,6 +140,7 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Created By</resource>
       <resource id="CreatedOn">Created On</resource>
+      <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Delete versions</resource>
 
       <resource id="WorkingVersion">Checked out Project Plan</resource>
@@ -213,6 +214,7 @@
       <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
       <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
       <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
+      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
    </resource-map>
 
    <resource-map id="project.delete">

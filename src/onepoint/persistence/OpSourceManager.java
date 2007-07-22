@@ -82,6 +82,30 @@ public class OpSourceManager {
       return (OpSource) (sources.get(sourceName));
    }
 
+   /**
+    * Closes the given Source and unregisters it.
+    *
+    * @param sourceName name of the source to be retrieved.
+    */
+   public static void closeSource(String sourceName) {
+       OpSource currSource = (OpSource)sources.get(sourceName);
+       if(currSource != null){
+    	   currSource.close();
+    	   sources.remove(sourceName);
+       }
+      
+   }
+
+   /**
+    * Closes all registered Sources. Should be called before shutdown.
+    *
+    */
+   public static void closeAllSources() {
+	   for (String currKey : sources.keySet()) {
+    	   closeSource(currKey);
+       }
+   }
+
    // Where to mount data sources (in sessions or here, more globally)?
    // ==> Maybe both: Global for everyone and just have to be opened in a session?!
    // ==> Master/default-source should be defined here

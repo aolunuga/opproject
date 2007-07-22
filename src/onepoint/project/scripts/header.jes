@@ -20,7 +20,7 @@ function signOff(event) {
 }
 
 function quit(event) {
-   System.exitApplication(0);
+   XDisplay.getClient().quit();
 }
 
 function clearResourceCache(event) {

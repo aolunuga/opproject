@@ -71,12 +71,17 @@ public class OpProjectAdministrationService extends OpProjectService {
    public final static int INTERNAL_PERIOD_RATE_COLUMN_INDEX = 7;
    public final static int EXTERNAL_PERIOD_RATE_COLUMN_INDEX = 8;
 
+   //indexes from versions data set
+   private final int IS_BASELINE_VERSION_INDEX = 4;
+
+
    public final static String HAS_ASSIGNMENTS = "Assignments";
    public final static String HAS_ASSIGNMENTS_IN_TIME_PERIOD = "AssignmentsInPeriod";
    /**
     * The name of this service.
     */
    public static final String SERVICE_NAME = "ProjectService";
+
 
    public XMessage insertProject(OpProjectSession session, XMessage request) {
 
@@ -334,7 +339,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     */
    protected XMessage insertProjectAssignment(OpProjectSession session, OpBroker broker,
         OpProjectNode project, XComponent dataRow) {
-       XMessage reply = new XMessage();
+      XMessage reply = new XMessage();
 
       OpResource resource = (OpResource) (broker.getObject(dataRow.getStringValue()));
 
@@ -395,158 +400,159 @@ public class OpProjectAdministrationService extends OpProjectService {
       HashMap project_data = (HashMap) (request.getArgument(PROJECT_DATA));
 
       XMessage reply = new XMessage();
-      XError error = null;
-
+      XError error;
       OpBroker broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
-
-      if (project == null) {
-         logger.warn("ERROR: Could not find object with ID " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
-         return reply;
-      }
-
-      // Check manager access
-      if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
-
-      Date originalStartDate = project.getStart();
+      OpTransaction transaction = null;
 
       try {
-         project.fillProjectNode(project_data);
-      }
-      catch (OpEntityException e) {
-         reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
-         broker.close();
-         return reply;
-      }
+         OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
 
-      // check if project name is already used
-      String projectName = (String) (project_data.get(OpProjectNode.NAME));
-      OpQuery projectNameQuery = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
-      projectNameQuery.setString(0, projectName);
-      Iterator projects = broker.iterate(projectNameQuery);
-      while (projects.hasNext()) {
-         OpProjectNode other = (OpProjectNode) projects.next();
-         if (other.getID() != project.getID()) {
-            error = session.newError(ERROR_MAP, OpProjectError.PROJECT_NAME_ALREADY_USED);
-            reply.setError(error);
+         if (project == null) {
+            logger.warn("ERROR: Could not find object with ID " + id_string);
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
+            return reply;
+         }
+
+         // Check manager access
+         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
+
+         Date originalStartDate = project.getStart();
+
+         try {
+            project.fillProjectNode(project_data);
+         }
+         catch (OpEntityException e) {
+            reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
             broker.close();
             return reply;
          }
-      }
 
-      //check if the start date is in the future
-      if (project.getStart().after(originalStartDate)) {
-         //if its checked out, throw error
-         if (project.getLocks().size() > 0) {
-            error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
-            reply.setError(error);
-            broker.close();
-            return reply;
+         // check if project name is already used
+         String projectName = (String) (project_data.get(OpProjectNode.NAME));
+         OpQuery projectNameQuery = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
+         projectNameQuery.setString(0, projectName);
+         Iterator projects = broker.iterate(projectNameQuery);
+         while (projects.hasNext()) {
+            OpProjectNode other = (OpProjectNode) projects.next();
+            if (other.getID() != project.getID()) {
+               error = session.newError(ERROR_MAP, OpProjectError.PROJECT_NAME_ALREADY_USED);
+               reply.setError(error);
+               broker.close();
+               return reply;
+            }
          }
-         reply = this.shiftPlanDates(session, project, project.getStart());
-         if (reply.getError() != null) {
-            broker.close();
-            return reply;
+
+         //check if the start date is in the future
+         if (project.getStart().after(originalStartDate)) {
+            //if its checked out, throw error
+            if (project.getLocks().size() > 0) {
+               error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
+               reply.setError(error);
+               broker.close();
+               return reply;
+            }
+            reply = this.shiftPlanDates(session, project, project.getStart());
+            if (reply.getError() != null) {
+               broker.close();
+               return reply;
+            }
+         }
+
+         //project status
+         String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+         OpProjectStatus status = null;
+         if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
+            status = (OpProjectStatus) (broker.getObject(statusLocator));
+            project.setStatus(status);
          }
          else {
-            reply = new XMessage();
+            project.setStatus(null);
          }
-      }
 
-      //project status
-      String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
-      OpProjectStatus status = null;
-      if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
-         status = (OpProjectStatus) (broker.getObject(statusLocator));
-         project.setStatus(status);
-      }
-      else {
-         project.setStatus(null);
-      }
+         OpProjectPlan projectPlan = project.getPlan();
+         //check if the project plan has any activities and if not, update the start and end
+         if (projectPlan.getActivities().size() == 0) {
+            projectPlan.copyDatesFromProject();
+         }
 
-      OpProjectPlan projectPlan = project.getPlan();
-      //check if the project plan has any activities and if not, update the start and end
-      if (projectPlan.getActivities().size() == 0) {
-         projectPlan.copyDatesFromProject();
-      }
+         //set the calculation mode
+         Boolean calculationMode = (Boolean) project_data.get(OpProjectPlan.CALCULATION_MODE);
+         if (calculationMode != null && !calculationMode) {
+            projectPlan.setCalculationMode(OpProjectPlan.INDEPENDENT);
+         }
+         else {
+            projectPlan.setCalculationMode(OpProjectPlan.EFFORT_BASED);
+         }
 
-      //set the calculation mode
-      Boolean calculationMode = (Boolean) project_data.get(OpProjectPlan.CALCULATION_MODE);
-      if (calculationMode != null && !calculationMode.booleanValue()) {
-         projectPlan.setCalculationMode(OpProjectPlan.INDEPENDENT);
-      }
-      else {
-         projectPlan.setCalculationMode(OpProjectPlan.EFFORT_BASED);
-      }
 
-      OpTransaction t = broker.newTransaction();
+         transaction = broker.newTransaction();
 
-      broker.updateObject(projectPlan);
-      broker.updateObject(project);
+         broker.updateObject(projectPlan);
+         broker.updateObject(project);
 
-      // Update current goals
-      XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
-      reply = updateGoals(session, broker, project, goalsDataSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
+         // Update current goals
+         XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
+         reply = updateGoals(session, broker, project, goalsDataSet);
+         if (reply.getError() != null) {
+            finalizeSession(transaction, broker);
+            return reply;
+         }
 
-      // Update current to dos
-      XComponent toDosDataSet = (XComponent) (request.getArgument(TO_DOS_SET));
-      reply = updateToDos(session, broker, project, toDosDataSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
+         // Update current to dos
+         XComponent toDosDataSet = (XComponent) (request.getArgument(TO_DOS_SET));
+         reply = updateToDos(session, broker, project, toDosDataSet);
+         if (reply.getError() != null) {
+            finalizeSession(transaction, broker);
+            return reply;
+         }
 
-      // update project plan versions (must be done before deleting the versions)
-      Set projectPlanVersions = projectPlan.getVersions();
-      if (projectPlanVersions != null && projectPlanVersions.size() > 0) {
+         // update project plan versions (must be done before deleting the versions)
          XComponent versionDataSet = (XComponent) request.getArgument(VERSIONS_SET);
-         updateProjectPlanVersions(broker, projectPlanVersions, versionDataSet);
-      }
+         updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
 
-      //update project assignments
-      XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
-      reply = updateProjectAssignments(session, broker, project, assignedResourcesSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
-
-      // update permissions
-      XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
-         return reply;
-      }
-
-      XCalendar xCalendar = session.getCalendar();
-      //update personnel & actual costs
-      updatePersonnelCostsForWorkingVersion(broker, xCalendar, project);
-      updateActualCosts(broker, project);
-
-      t.commit();
-
-      //if project was archived and is currently saved in the session clear it
-      if (session.getVariable(OpProjectConstants.PROJECT_ID) != null) {
-         String storedProjectLocator = OpLocator.parseLocator((String) session.getVariable(OpProjectConstants.PROJECT_ID)).toString();
-         if (project.getArchived() && storedProjectLocator.equalsIgnoreCase(project.locator())) {
-            session.setVariable(OpProjectConstants.PROJECT_ID, null);
+         //update project assignments
+         XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
+         reply = updateProjectAssignments(session, broker, project, assignedResourcesSet);
+         if (reply.getError() != null) {
+            finalizeSession(transaction, broker);
+            return reply;
          }
+
+         // update permissions
+         XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
+         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            broker.close();
+            return reply;
+         }
+
+         XCalendar xCalendar = session.getCalendar();
+         //update personnel & actual costs
+         updatePersonnelCostsForWorkingVersion(broker, xCalendar, project);
+         updateActualCosts(broker, project);
+
+         transaction.commit();
+
+         //if project was archived and is currently saved in the session clear it
+         if (session.getVariable(OpProjectConstants.PROJECT_ID) != null) {
+            String storedProjectLocator = OpLocator.parseLocator((String) session.getVariable(OpProjectConstants.PROJECT_ID)).toString();
+            if (project.getArchived() && storedProjectLocator.equalsIgnoreCase(project.locator())) {
+               session.setVariable(OpProjectConstants.PROJECT_ID, null);
+            }
+         }
+         logger.debug("/OpProjectAdministrationService.updateProject()");
       }
-      logger.debug("/OpProjectAdministrationService.updateProject()");
-      broker.close();
+      finally {
+         finalizeSession(transaction, broker);
+      }
+
       return null;
    }
 
@@ -846,8 +852,9 @@ public class OpProjectAdministrationService extends OpProjectService {
       return reply;
    }
 
-    /**
+   /**
     * Deletes the project node assignments if no activity assignments exist for the resource
+    *
     * @param session
     * @param broker
     * @param assignmentNodeMap - map of project assignments <resource Locator , projectNodeAssignment entity>
@@ -914,49 +921,63 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Updates the versions of a project plan, by deleting the ones that were deleted by the client.
     *
-    * @param broker           a <code>OpBroker</code> used for performing business operations.
-    * @param existingVersions a <code>Set</code> of <code>OpProjectPlanVersion</code> representing the existent project plan
-    *                         versions.
-    * @param versionsDataSet  a <code>XComponent</code> representing the client side project plan versions.
+    * @param session
+    * @param broker          a <code>OpBroker</code> used for performing business operations.
+    * @param projectPlan     the project plan
+    * @param versionsDataSet a <code>XComponent</code> representing the client side project plan versions.
     */
-   private void updateProjectPlanVersions(OpBroker broker, Set existingVersions, XComponent versionsDataSet) {
-      // create a map of the existing versions
-      Map<String, OpProjectPlanVersion> existingVersionMap = new HashMap<String, OpProjectPlanVersion>(existingVersions.size());
-      for (Iterator it = existingVersions.iterator(); it.hasNext();) {
-         OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
-         if (version.getVersionNumber() != WORKING_VERSION_NUMBER) {
-            String versionId = OpLocator.locatorString(version);
-            existingVersionMap.put(versionId, version);
+   private void updateProjectPlanVersions(OpProjectSession session, OpBroker broker, OpProjectPlan projectPlan, XComponent versionsDataSet) {
+
+      Set<OpProjectPlanVersion> existingVersions = projectPlan.getVersions();
+      if (existingVersions != null && existingVersions.size() > 0) {
+
+         // create a map of the existing versions
+         Map<String, OpProjectPlanVersion> existingVersionMap = new HashMap<String, OpProjectPlanVersion>(existingVersions.size());
+         for (OpProjectPlanVersion existingVersion : existingVersions) {
+            if (existingVersion.getVersionNumber() != WORKING_VERSION_NUMBER) {
+               String versionId = OpLocator.locatorString(existingVersion);
+               existingVersionMap.put(versionId, existingVersion);
+            }
          }
-      }
 
-      // remove the existent ones from the map
-      for (int i = 0; i < versionsDataSet.getChildCount(); i++) {
-         XComponent row = (XComponent) versionsDataSet.getChild(i);
-         String versionId = ((XComponent) row.getChild(0)).getStringValue();
-         existingVersionMap.remove(versionId);
-      }
+         boolean baselineWasSet = false;
+         // remove the existent ones from the map & update baseline
+         projectPlan.setBaselineVersion(null);
+         for (int i = 0; i < versionsDataSet.getChildCount(); i++) {
+            XComponent row = (XComponent) versionsDataSet.getChild(i);
+            String versionId = ((XComponent) row.getChild(0)).getStringValue();
+            boolean isBaseline = ((XComponent) row.getChild(IS_BASELINE_VERSION_INDEX)).getBooleanValue();
+            OpProjectPlanVersion version = existingVersionMap.remove(versionId);
+            if (isBaseline) {
+               if (baselineWasSet) {
+                  throw new OpProjectAdministrationException(session.newError(ERROR_MAP, OpProjectError.DUPLICATE_BASELINE_ERROR));
+               }
+               projectPlan.setBaselineVersion(version);
+               baselineWasSet = true;
+            }
+         }
+         broker.updateObject(projectPlan);
 
-      // remove all the other versions in the map
-      Collection values = existingVersionMap.values();
-      if (values.size() > 0) {
-         for (Iterator it = values.iterator(); it.hasNext();) {
-            OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
-            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+         // remove all the other versions in the map
+         Collection<OpProjectPlanVersion> values = existingVersionMap.values();
+         if (values.size() > 0) {
+            for (OpProjectPlanVersion version : values) {
+               OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            }
          }
       }
    }
 
    public XMessage deleteProjects(OpProjectSession session, XMessage request) {
-      ArrayList id_strings = (ArrayList) (request.getArgument(PROJECT_IDS));
+      List<String> id_strings = (ArrayList) (request.getArgument(PROJECT_IDS));
       logger.debug("OpProjectAdministrationService.deleteProjects(): project_ids = " + id_strings);
 
       OpBroker broker = session.newBroker();
       XMessage reply = new XMessage();
 
       List<Long> projectIds = new ArrayList<Long>();
-      for (int i = 0; i < id_strings.size(); i++) {
-         projectIds.add(new Long(OpLocator.parseLocator((String) id_strings.get(i)).getID()));
+      for (String id_string : id_strings) {
+         projectIds.add(OpLocator.parseLocator(id_string).getID());
       }
       OpQuery query = broker.newQuery("select project.SuperNode.ID from OpProjectNode as project where project.ID in (:projectIds) and project.Type = (:projectType)");
       query.setCollection("projectIds", projectIds);
@@ -1923,11 +1944,11 @@ public class OpProjectAdministrationService extends OpProjectService {
          Map<Date, List> sortedIntervals = new TreeMap<Date, List>();
 
          List<Double> rates = new ArrayList<Double>();
-         if(assignment.getHourlyRate() != null){
+         if (assignment.getHourlyRate() != null) {
             rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getHourlyRate());
             rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getExternalRate());
          }
-         else{
+         else {
             rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getHourlyRate());
             rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getExternalRate());
          }

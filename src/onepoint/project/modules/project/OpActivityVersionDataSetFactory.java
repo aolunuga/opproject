@@ -1291,7 +1291,7 @@ public abstract class OpActivityVersionDataSetFactory {
          OpActivityVersion activityVersion = null;
          while (activities.hasNext()) {
             activity = (OpActivity) activities.next();
-            if (activity.getType() == OpActivity.ADHOC_TASK) {
+            if (activity.getDeleted() || activity.getType() == OpActivity.ADHOC_TASK) {
                continue;
             }
             activityVersion = new OpActivityVersion();
