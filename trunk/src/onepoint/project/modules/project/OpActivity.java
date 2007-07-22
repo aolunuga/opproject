@@ -123,6 +123,9 @@ public class OpActivity extends OpObject {
    private Set<OpActivityVersion> versions;
    private Set<OpActivityComment> comments;
 
+
+   private boolean usesBaseline;
+
    public OpActivity() {
    }
 
@@ -235,7 +238,41 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseEffort() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseEffort();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseEffort;
+   }
+
+   public OpActivityVersion getBaselineVersion() {
+      OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
+      if (baselinePlanVersion != null) {
+         for (OpActivityVersion version : getVersions()) {
+            if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
+               return version;
+            }
+         }
+      }
+      return null;
+   }
+
+   public boolean isInBaselineVersion() {
+      OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
+      if (baselinePlanVersion == null) {
+         return true;
+      }
+      for (OpActivityVersion version : baselinePlanVersion.getActivityVersions()) {
+         if (version.getActivity().getID() == this.getID()) {
+            return true;
+         }
+      }
+      return false;
    }
 
    public void setBaseTravelCosts(double baseTravelCosts) {
@@ -243,6 +280,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseTravelCosts() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseTravelCosts();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseTravelCosts;
    }
 
@@ -251,6 +297,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBasePersonnelCosts() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBasePersonnelCosts();
+         }
+         else {
+            return 0;
+         }
+      }
       return basePersonnelCosts;
    }
 
@@ -259,6 +314,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseMaterialCosts() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseMaterialCosts();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseMaterialCosts;
    }
 
@@ -267,6 +331,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseExternalCosts() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseExternalCosts();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseExternalCosts;
    }
 
@@ -275,6 +348,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseMiscellaneousCosts() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseMiscellaneousCosts();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseMiscellaneousCosts;
    }
 
@@ -447,6 +529,15 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseProceeds() {
+      if (usesBaseline) {
+         OpActivityVersion baselineVersion = getBaselineVersion();
+         if (baselineVersion != null) {
+            return baselineVersion.getBaseProceeds();
+         }
+         else {
+            return 0;
+         }
+      }
       return baseProceeds;
    }
 
@@ -501,7 +592,7 @@ public class OpActivity extends OpObject {
    public void setRemainingMiscellaneousCosts(Double remainingMiscellaneousCosts) {
       this.remainingMiscellaneousCosts = remainingMiscellaneousCosts != null ? remainingMiscellaneousCosts : 0;
    }
-   
+
    /**
     * Calculates the actual total costs of this activity.
     *
@@ -520,7 +611,7 @@ public class OpActivity extends OpObject {
    /**
     * Calculates the base total costs of this activity.
     *
-    * @return Total base cost (Personnel + Travel + Material + External + Misc + Proceeds)
+    * @return Total base cost (Personnel + Travel + Material + External + Misc)
     */
    public double calculateBaseCost() {
       double base = this.getBasePersonnelCosts();
@@ -528,7 +619,6 @@ public class OpActivity extends OpObject {
       base += this.getBaseMaterialCosts();
       base += this.getBaseExternalCosts();
       base += this.getBaseMiscellaneousCosts();
-      base += this.getBaseProceeds();
       return base;
    }
 
@@ -591,5 +681,13 @@ public class OpActivity extends OpObject {
       }
 
       return dates;
+   }
+
+   public void setIsUsingBaselineValues(boolean useBaseline) {
+      this.usesBaseline = useBaseline;
+   }
+
+   public boolean isUsingBaselineValues() {
+      return usesBaseline;
    }
 }

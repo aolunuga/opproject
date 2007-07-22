@@ -6,7 +6,6 @@ package onepoint.project.modules.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.express.XView;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
@@ -30,17 +29,16 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * Form field ids and parameter ids.
     */
    protected final static String TEMPLATE_FIELD = "TemplateField";
+   protected final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
+   protected final static String ORIGINAL_RESOURCE_DATA_SET = "OriginalResourceDataSet";
 
    private final static String PROJECT_EDIT_PROJECT = "project.EditProject";
-
    private final static String PROJECT_ID = "ProjectID";
    private final static String EDIT_MODE = "EditMode";
    private final static String ORIGINAL_START_DATE = "OriginalStartDate";
    private final static String GOALS_SET = "GoalsSet";
    private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
-   protected final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
-   protected final static String ORIGINAL_RESOURCE_DATA_SET = "OriginalResourceDataSet";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
    private final static String PROJECT_INFO = "project.Info";
@@ -54,17 +52,25 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
    private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
-
    private final static String ADJUST_RATES_COLUMN = "AdjustRatesColumn";
    private final static String INTERNAL_RATES_COLUMN = "InternalRatesColumn";
    private final static String EXTENAL_RATES_COLUMN = "ExternalRatesColumn";
+   private final static String GOALS_TOOLS_PANEL = "GoalsToolPanel";
+   private final static String CANCEL = "Cancel";
+   private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
+   private final static String RESOURCES_TABLE = "ResourcesTable";
+   private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
+   private final static String PERMISSION_TOOL_PANEL = "PermissionToolPanel";
+   private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
+   private final static String VERSION_DATA_SET = "VersionsSet";
+   private final static String PROJECT_INFO_RESOURCE = "InfoProject";
 
    /**
-    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)  
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
 
       // Find project in database
       String id_string = (String) (parameters.get(OpProjectAdministrationService.PROJECT_ID));
@@ -74,16 +80,16 @@ public class OpEditProjectFormProvider implements XFormProvider {
       // Downgrade edit mode to view mode if no manager access
       Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
       byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-      if (editMode.booleanValue() && (accessLevel < OpPermission.MANAGER)) {
+      if (editMode && (accessLevel < OpPermission.MANAGER)) {
          editMode = Boolean.FALSE;
       }
-      form.findComponent(EDIT_MODE).setBooleanValue(editMode.booleanValue());
+      form.findComponent(EDIT_MODE).setBooleanValue(editMode);
 
       //update components which are not project-related
       this.updateComponentsProjectUnrelated(session, broker, form, editMode);
 
       //update components which are project related
-      this.setFormDataFromProject(form, project, broker, session, editMode);
+      this.fillDataFromProject(form, project, broker, session, editMode);
 
       broker.close();
    }
@@ -97,7 +103,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param session  a <code>OpProjectSession</code> representing the current server session.
     * @param editMode a <code>boolean</code> indicating whether we are editing or view-ing a project.
     */
-   private void setFormDataFromProject(XComponent form, OpProjectNode project, OpBroker broker, OpProjectSession session, Boolean editMode) {
+   private void fillDataFromProject(XComponent form, OpProjectNode project, OpBroker broker, OpProjectSession session, Boolean editMode) {
+
       boolean isAdministrator = (session.getAdministratorID() == session.getUserID()) ||
            session.checkAccessLevel(broker, project.getID(), OpPermission.ADMINISTRATOR);
 
@@ -195,7 +202,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
-      form.findComponent("PermissionToolPanel").setVisible(editMode);
+      form.findComponent(PERMISSION_TOOL_PANEL).setVisible(editMode);
    }
 
    /**
@@ -213,7 +220,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
          this.fillVersionsDataSet(form, project.getPlan(), userObjectsLocalizer, session);
       }
-      form.findComponent("RemoveVersionButton").setVisible(isButtonVisible);
+      form.findComponent(REMOVE_VERSION_BUTTON).setVisible(isButtonVisible);
    }
 
    /**
@@ -227,6 +234,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
     *                      be editable or not.
     */
    private void fillStatuses(OpBroker broker, XComponent form, String noStatusText, OpProjectStatus projectStatus, boolean editable) {
+
       XComponent statusDataSet = form.findComponent(PROJECT_STATUS_DATA_SET);
       //add the no status row
       XComponent row = new XComponent(XComponent.DATA_ROW);
@@ -247,14 +255,14 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       XComponent statusChoice = form.findComponent(PROJECT_STATUS_CHOICE);
       if (selectedIndex != -1) {
-         statusChoice.setSelectedIndex(new Integer(selectedIndex));
+         statusChoice.setSelectedIndex(selectedIndex);
       }
       else {
          if (projectStatus != null) {
             row = new XComponent(XComponent.DATA_ROW);
             row.setStringValue(XValidator.choice(String.valueOf(projectStatus.locator()), projectStatus.getName()));
             statusDataSet.addChild(row);
-            statusChoice.setSelectedIndex(new Integer(row.getIndex()));
+            statusChoice.setSelectedIndex(row.getIndex());
          }
       }
       statusChoice.setEnabled(editable);
@@ -269,19 +277,19 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
     * @param editMode a <code>boolean</code> indicating whether we are in edit or info mode.
     */
-   private void updateComponentsProjectUnrelated(OpProjectSession session, OpBroker broker,
-        XComponent form, boolean editMode) {
+   private void updateComponentsProjectUnrelated(OpProjectSession session, OpBroker broker, XComponent form, boolean editMode) {
+
       if (editMode) {
          XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
          OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);
       }
       else {
-         String title = session.getLocale().getResourceMap(PROJECT_INFO).getResource("InfoProject").getText();
+         String title = session.getLocale().getResourceMap(PROJECT_INFO).getResource(PROJECT_INFO_RESOURCE).getText();
          form.setText(title);
       }
 
       //set the cancel button
-      form.findComponent("Cancel").setVisible(editMode);
+      form.findComponent(CANCEL).setVisible(editMode);
 
       //disable resource rates / project
       form.findComponent(ADJUST_RATES_COLUMN).setHidden(true);
@@ -305,15 +313,18 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param session              a <code>OpProjectSession</code> the project session
     */
    private void fillVersionsDataSet(XComponent form, OpProjectPlan projectPlan, XLocalizer userObjectsLocalizer, OpProjectSession session) {
+
       form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectAdministrationService.WORKING_VERSION_NUMBER));
 
-      XComponent versionsDataSet = form.findComponent("VersionsSet");
+      XComponent versionsDataSet = form.findComponent(VERSION_DATA_SET);
       Map<Integer, XComponent> rowsMap = new TreeMap<Integer, XComponent>();
 
       //add the version nrs in ascending order
       Set planVersions = projectPlan.getVersions();
       Iterator it = planVersions.iterator();
       XComponent workingDataRow = new XComponent(XComponent.DATA_ROW);
+
+      OpProjectPlanVersion baselineVersion = projectPlan.getBaselineVersion();
 
       while (it.hasNext()) {
          OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
@@ -353,22 +364,35 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataCell.setDateValue(version.getCreated());
          dataRow.addChild(dataCell);
 
+         //is base line version - 4
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         if (version.getVersionNumber() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+            dataCell.setEnabled(true);
+         }
+         if (baselineVersion != null && baselineVersion.getID() == version.getID()) {
+            dataCell.setBooleanValue(true);
+         }
+         else {
+            dataCell.setBooleanValue(false);
+         }
+         dataRow.addChild(dataCell);
+
          if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
             workingDataRow = dataRow;
          }
          else {
-            rowsMap.put(new Integer(versionNr), dataRow);
+            rowsMap.put(versionNr, dataRow);
          }
       }
 
-      Integer[] versionNumbers = (Integer[]) rowsMap.keySet().toArray(new Integer[0]);
+      Integer[] versionNumbers = rowsMap.keySet().toArray(new Integer[0]);
       //add the working data row first if exists such a row
       if (workingDataRow.getChildCount() > 0) {
-         versionsDataSet.addChild((XView) workingDataRow);
+         versionsDataSet.addChild(workingDataRow);
       }
       for (int i = versionNumbers.length - 1; i >= 0; i--) {
          Integer versionNumber = versionNumbers[i];
-         versionsDataSet.addChild((XView) rowsMap.get(versionNumber));
+         versionsDataSet.addChild(rowsMap.get(versionNumber));
       }
    }
 
@@ -380,9 +404,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
     */
    private void fillGoals(XComponent form, OpProjectNode project, boolean editMode) {
+
       XComponent dataSet = form.findComponent(GOALS_SET);
-      XComponent dataRow = null;
-      XComponent dataCell = null;
+      XComponent dataRow;
+      XComponent dataCell;
       for (OpGoal goal : project.getGoals()) {
          dataRow = new XComponent(XComponent.DATA_ROW);
          dataRow.setStringValue(goal.locator());
@@ -405,7 +430,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
       form.findComponent(GOALS_TABLE_BOX).setEnabled(editMode);
-      form.findComponent("GoalsToolPanel").setVisible(editMode);
+      form.findComponent(GOALS_TOOLS_PANEL).setVisible(editMode);
    }
 
    /**
@@ -444,16 +469,16 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //sort to dos data set based on to do's name (data cell with index 1)
       dataSet.sort(1);
 
-      form.findComponent("TasksToolPanel").setVisible(editMode);
+      form.findComponent(TAKS_TOOL_PANEL).setVisible(editMode);
       form.findComponent(TODOS_TABLE_BOX).setEnabled(editMode);
       form.findComponent(TODOS_TABLE_BOX).setEditMode(editMode);
    }
 
    /**
-    *  Fills the resources for the edited project.
+    * Fills the resources for the edited project.
     *
-    * @param form a <code>XComponent(FORM)</code> representing the edit project form.
-    * @param project a <code>OpProjectNode</code> representing the project being edited.
+    * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
+    * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
     */
    private void fillResources(XComponent form, OpProjectNode project, boolean editMode) {
@@ -541,7 +566,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
             originalDataSet.addChild(dataRow.copyData());
          }
       }
-      form.findComponent("ResourcesTable").setEditMode(editMode);
-      form.findComponent("ResourcesToolPanel").setVisible(editMode);
+      form.findComponent(RESOURCES_TABLE).setEditMode(editMode);
+      form.findComponent(RESOURCE_TOOL_PANEL).setVisible(editMode);
    }
 }

@@ -4,13 +4,20 @@
 
 package onepoint.persistence.hibernate;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.service.XSizeInputStream;
+import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 import org.hibernate.HibernateException;
 import org.hibernate.usertype.UserType;
 
 import java.io.*;
-import java.sql.*;
-
-import onepoint.service.XSizeInputStream;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 
 /**
  * Hibernate custom type for mapping a blob to an <code>InputStream</code>. This type is needed because hibernate does not support
@@ -19,6 +26,10 @@ import onepoint.service.XSizeInputStream;
  * @author horia.chiorean
  */
 public class OpBlobUserType implements UserType {
+   /**
+    * The logger used in this class.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpBlobUserType.class);
 
    /**
     * The sql type(s) this type maps to.
@@ -85,9 +96,32 @@ public class OpBlobUserType implements UserType {
    public Object nullSafeGet(ResultSet resultSet, String[] strings, Object object)
         throws HibernateException, SQLException {
       InputStream is = resultSet.getBinaryStream(strings[0]);
+
       if (is == null) {
          is = new ByteArrayInputStream(new byte[0]); // return an empty but not null stream
       }
+      else if (OpHibernateSource.DERBY == getDatabaseType() && !OpEnvironmentManager.isMultiUser()) {
+         /**
+          * At this point if used database is DERBY we have to store somewhere data from stream, otherwise soon stream will
+          * be closed (Hibernate ResultSet is closed) and we'll be able to read only partial data.
+          */
+         try {
+            File temporaryFile = File.createTempFile("content", ".blob", new File(XEnvironmentManager.TMP_DIR));
+            temporaryFile.deleteOnExit();
+            FileOutputStream fos = new FileOutputStream(temporaryFile);
+            XIOHelper.copy(is, fos);
+            fos.flush();
+            fos.close();
+
+            is = new FileInputStream(temporaryFile);
+         }
+         catch (IOException e) {
+            logger.warn("Could not write blob content into temporary file", e);
+            throw new SQLException("Could not write blob content into temporary file");
+         }
+
+      }
+
       return new XSizeInputStream(is, XSizeInputStream.UNKNOW_STREAM_SIZE); // set size as unknown. Should be set to real value ASAP.
    }
 

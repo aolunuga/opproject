@@ -4,11 +4,22 @@
 
 package onepoint.project.application;
 
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
+import java.io.File;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
+import onepoint.express.XExitHandler;
 import onepoint.express.application.XExpressApplication;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpSourceManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
@@ -22,13 +33,7 @@ import onepoint.resource.XResourceCache;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.awt.*;
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
-public class OpBasicApplication extends XExpressApplication {
+public class OpBasicApplication extends XExpressApplication implements XExitHandler{
 
 
    /**
@@ -103,6 +108,9 @@ public class OpBasicApplication extends XExpressApplication {
 
       //Start must be called *after* overriding session class
       super.start();
+      
+      //we want do do some cleanup...
+      this.registerExitHandler(this);
 
       showStartForm(initParams);
    }
@@ -152,5 +160,10 @@ public class OpBasicApplication extends XExpressApplication {
     */
    protected String getProductCode() {
       return OpProjectConstants.BASIC_EDITION_CODE;
+   }
+   
+   public void processExitEvent(){
+	   this.getServer().stop();
+	   OpSourceManager.closeAllSources();
    }
 }

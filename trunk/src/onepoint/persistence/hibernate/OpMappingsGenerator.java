@@ -258,6 +258,9 @@ public class OpMappingsGenerator {
          if ((databaseType == OpHibernateSource.IBM_DB2)) {
             buffer.append(" sql-type=\"blob(100M)\"");
          }
+         if (databaseType == OpHibernateSource.DERBY) {
+            buffer.append(" sql-type=\"blob\"");
+         }
       }
 
       if (field.getMandatory()) {

@@ -145,6 +145,7 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Erstellt von</resource>
       <resource id="CreatedOn">Erstellt am</resource>
+      <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Versionen löschen</resource>
 
       <resource id="WorkingVersion">Freigegebener Projektplan</resource>
@@ -216,7 +217,8 @@
       <resource id="InternalRateNotValid">Der angegebene interne Stundensatz ist ungültig</resource>
       <resource id="ExternalRateNotValid">Der angegebene externe Stundensatz ist ungültig</resource>      
       <resource id="ProbabilityNotValid">Der angegebene Wahrscheinlichkeit ist ungültig (0-100)</resource>      
-      <resource id="PriorityNotValid">Der angegebene Priorität ist ungültig (1-9)</resource>      
+      <resource id="PriorityNotValid">Der angegebene Priorität ist ungültig (1-9)</resource>
+      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>

@@ -114,7 +114,9 @@ public class OpPrototype extends OpType {
                OpRelationship relationship = (OpRelationship) member;
                if (!relationship.getInverse() && !relationship.getRecursive()) {
                   OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
-                  backupDependencies.add(dependentType);
+                  if (!dependentType.getBackupDependencies().contains(this)) {
+                     backupDependencies.add(dependentType);
+                  }
                }
             }
          }

@@ -38,6 +38,8 @@ public interface OpProjectError {
    public final static int PROBABILITY_NOT_VALID = 24;
    public final static int PRIORITY_NOT_VALID = 25;
 
+   public final static int DUPLICATE_BASELINE_ERROR = 26;
+
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -63,4 +65,6 @@ public interface OpProjectError {
    public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";
    public final static String PROBABILITY_NOT_VALID_NAME = "ProbabilityNotValid";
    public final static String PRIORITY_NOT_VALID_NAME = "PriorityNotValid";
+   public final static String DUPLICATE_BASELINE_ERROR_NAME = "DuplicateBaselineError";
+
 }

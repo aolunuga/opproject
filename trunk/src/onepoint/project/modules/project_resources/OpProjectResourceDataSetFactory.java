@@ -76,7 +76,7 @@ public final class OpProjectResourceDataSetFactory {
             resource_summary = (OpProjectResourceSummary) (resource_summaries.get(new Long(resource_id)));
             if (resource_summary == null) {
                resource_summary = new OpProjectResourceSummary(resource_id, assignment.getResource().getName());
-               resource_summaries.put(new Long(resource_id), resource_summary);
+               resource_summaries.put(resource_id, resource_summary);
             }
             // TODO: Update algorithm to work w/OpAssignment.EFFORT_TO_COMPLETE (via tracking tool)
             predicted = assignment.getActualEffort() + assignment.getRemainingEffort();

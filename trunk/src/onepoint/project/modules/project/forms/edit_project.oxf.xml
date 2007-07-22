@@ -86,6 +86,7 @@
          <table-column text="${Version}" width="45" data-column-index="1" value-type="String"/>
          <table-column text="${CreatedBy}" width="140" data-column-index="2" value-type="String" sortable="true"/>
          <table-column text="${CreatedOn}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
+         <table-column text="${Baseline}" width="70" data-column-index="4" value-type="Boolean"/>
       </table-box>
       <panel id="VersionsToolPanel" y="1" layout="flow" direction="east">
          <icon-button id="RemoveVersionButton" icon-type="MinusSign" on-button-pressed="removeVersions"/>
