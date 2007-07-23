@@ -20,10 +20,10 @@ function connect(event) {
    // Gather -data
    form = XDisplay.getActiveForm();
    config.is_standalone = true;
-   config.database_type = form.findComponent("HSQLDbTypeDataField").getStringValue();
-   config.database_url = form.findComponent("HSQLDbPathTextField").getStringValue();
-   config.database_login = form.findComponent("HSQLDbLoginDataField").getStringValue();
-   config.database_password = form.findComponent("HSQLDbPasswordDataField").getStringValue();
+   config.database_type = form.findComponent("DbTypeDataField").getStringValue();
+   config.database_url = form.findComponent("DbPathTextField").getStringValue();
+   config.database_login = form.findComponent("DbLoginDataField").getStringValue();
+   config.database_password = form.findComponent("DbPasswordDataField").getStringValue();
    config.is_multi_user = false;
 
    //save configuration file
@@ -41,10 +41,10 @@ function connect(event) {
 
 function selectFolder(event) {
    form = XDisplay.getActiveForm();
-   defaultPath = form.findComponent("HSQLDbPathTextField").getStringValue();
+   defaultPath = form.findComponent("DbPathTextField").getStringValue();
    path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultPath, null, false);
    if (path != null) {
-      form.findComponent("HSQLDbPathTextField").setStringValue(path);
+      form.findComponent("DbPathTextField").setStringValue(path);
       form.repaint();
    }
 }

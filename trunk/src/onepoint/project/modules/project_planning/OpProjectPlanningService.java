@@ -363,6 +363,8 @@ public class OpProjectPlanningService extends OpProjectService {
     */
    public XMessage saveActivities(OpProjectSession session, XMessage request) {
       OpBroker broker = null;
+      OpTransaction t = null;
+
       try {
          logger.debug("OpProjectAdministrationService.saveActivities");
          String project_id_string = (String) (request.getArgument(PROJECT_ID));
@@ -390,8 +392,7 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
          }
 
-
-         OpTransaction t = broker.newTransaction();
+         t = broker.newTransaction();
 
          // Check if project plan already exists (create if not)
          OpProjectPlan projectPlan = project.getPlan();
@@ -415,7 +416,6 @@ public class OpProjectPlanningService extends OpProjectService {
             if ((workingPlanVersion != null)
                  && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
                // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-               finalizeSession(t, broker);
                return null;
             }
          }
@@ -437,7 +437,7 @@ public class OpProjectPlanningService extends OpProjectService {
          return null;
       }
       finally {
-         finalizeSession(null, broker);
+         finalizeSession(t, broker);
       }
    }
 
@@ -460,6 +460,8 @@ public class OpProjectPlanningService extends OpProjectService {
     */
    private XMessage internalCheckInActivities(OpProjectSession session, XMessage request) {
       OpBroker broker = null;
+      OpTransaction t = null;
+
       try {
          String project_id_string = (String) (request.getArgument(PROJECT_ID));
          String workingPlanVersionLocator = (String) request.getArgument(WORKING_PLAN_VERSION_ID);
@@ -487,7 +489,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
          checkActivitiesBaseEffort(dataSet, broker, session);
 
-         OpTransaction t = broker.newTransaction();
+         t = broker.newTransaction();
 
          // Check if project plan already exists (create if not)
          OpProjectPlan projectPlan = project.getPlan();
@@ -511,7 +513,6 @@ public class OpProjectPlanningService extends OpProjectService {
             if ((workingPlanVersion != null)
                  && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
                // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-               finalizeSession(t, broker);
                return null;
             }
          }
@@ -542,7 +543,7 @@ public class OpProjectPlanningService extends OpProjectService {
          return null;
       }
       finally {
-         finalizeSession(null, broker);
+         finalizeSession(t, broker);
       }
    }
 

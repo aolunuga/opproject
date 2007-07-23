@@ -409,7 +409,6 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          if (project == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
             return reply;
          }
@@ -417,7 +416,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          // Check manager access
          if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
             logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
             return reply;
          }
@@ -429,7 +427,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
          catch (OpEntityException e) {
             reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
-            broker.close();
             return reply;
          }
 
@@ -443,7 +440,6 @@ public class OpProjectAdministrationService extends OpProjectService {
             if (other.getID() != project.getID()) {
                error = session.newError(ERROR_MAP, OpProjectError.PROJECT_NAME_ALREADY_USED);
                reply.setError(error);
-               broker.close();
                return reply;
             }
          }
@@ -454,12 +450,10 @@ public class OpProjectAdministrationService extends OpProjectService {
             if (project.getLocks().size() > 0) {
                error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
                reply.setError(error);
-               broker.close();
                return reply;
             }
             reply = this.shiftPlanDates(session, project, project.getStart());
             if (reply.getError() != null) {
-               broker.close();
                return reply;
             }
          }
@@ -490,7 +484,6 @@ public class OpProjectAdministrationService extends OpProjectService {
             projectPlan.setCalculationMode(OpProjectPlan.EFFORT_BASED);
          }
 
-
          transaction = broker.newTransaction();
 
          broker.updateObject(projectPlan);
@@ -500,7 +493,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
          reply = updateGoals(session, broker, project, goalsDataSet);
          if (reply.getError() != null) {
-            finalizeSession(transaction, broker);
             return reply;
          }
 
@@ -508,7 +500,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          XComponent toDosDataSet = (XComponent) (request.getArgument(TO_DOS_SET));
          reply = updateToDos(session, broker, project, toDosDataSet);
          if (reply.getError() != null) {
-            finalizeSession(transaction, broker);
             return reply;
          }
 
@@ -520,7 +511,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
          reply = updateProjectAssignments(session, broker, project, assignedResourcesSet);
          if (reply.getError() != null) {
-            finalizeSession(transaction, broker);
             return reply;
          }
 
@@ -529,7 +519,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
          if (result != null) {
             reply.setError(result);
-            broker.close();
             return reply;
          }
 

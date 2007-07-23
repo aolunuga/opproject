@@ -45,6 +45,8 @@ public class OpHibernateSource extends OpSource {
 
    public final static String HSQLDB_TYPE = "file:";
    public final static String HSQLDB_JDBC_CONNECTION_PREFIX = "jdbc:hsqldb:" + HSQLDB_TYPE;
+   public final static String DERBY_JDBC_CONNECTION_PREFIX = "jdbc:derby:";
+   public final static String DERBY_JDBC_CONNECTION_SUFIX = ";create=true";
    public final static String SCHEMA_TABLE = "op_schema";
 
    /**

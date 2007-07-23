@@ -186,7 +186,6 @@ public class OpWorkService extends OpProjectService {
          if (workSlip == null) {
             XMessage reply = new XMessage();
             reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_FOUND));
-            broker.close();
             return reply;
          }
 
@@ -216,7 +215,6 @@ public class OpWorkService extends OpProjectService {
          if (workRecordsToAdd.isEmpty() && errorCode != 0) {
             XMessage reply = new XMessage();
             reply.setError(session.newError(ERROR_MAP, errorCode));
-            finalizeSession(t, broker);
             return reply;
          }
 
@@ -231,7 +229,6 @@ public class OpWorkService extends OpProjectService {
          catch (OpEntityException e) {
             XMessage reply = new XMessage();
             reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
-            finalizeSession(t, broker);
             return reply;
          }
 

@@ -6,7 +6,7 @@ Class-Path: lib/express4j-07.1.jar
    lib/activation.jar lib/antlr-2.7.6rc1.jar
    lib/asm.jar lib/c3p0-0.9.0.jar lib/cglib-nodep-2.1_3.jar
    lib/commons-collections-2.1.1.jar lib/commons-logging-1.0.4.jar
-   lib/dom4j-1.6.jar lib/hibernate3.jar
+   lib/derby.jar lib/dom4j-1.6.jar lib/hibernate3.jar
    lib/itext-1.3.1.jar lib/jasperreports-1.2.5.jar lib/jaxen-1.1-beta-7.jar
    lib/jdbc2_0-stdext.jar lib/jdt-compiler.jar
    lib/jfreechart-1.0.0-rc1.jar lib/jta.jar

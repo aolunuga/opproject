@@ -46,12 +46,12 @@ public interface OpProjectConstants {
    /**
     * HSQL BD folder name.
     */
-   public static final String HSQL_DB_DIR_NAME = "repository";
+   public static final String DB_DIR_NAME = "repository";
 
    /**
     * HSQL BD file name.
     */
-   public static final String HSQL_DB_FILE_NAME = "onepoint";
+   public static final String DB_FILE_NAME = "onepoint";
 
    /**
     * Backup/restore folder name.
