@@ -142,7 +142,6 @@ public class OpTimeRecordDataSetFactory {
       for(OpAssignment assignment : assignmentList) {
          activity = assignment.getActivity();
 
-         boolean progressTracked = activity.getProjectPlan().getProgressTracked();
          //filter out milestones
          if (activity.getType() == OpActivity.MILESTONE) {
             continue;

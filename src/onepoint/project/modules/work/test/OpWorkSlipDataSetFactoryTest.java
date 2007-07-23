@@ -30,6 +30,7 @@ import onepoint.project.test.OpBaseOpenTestCase;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Test class for testing the methods in OpWorkSlipDataSetFactory
@@ -207,7 +208,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      ///create another assignment - resource
+      //create another assignment - resource
       OpResource resource = new OpResource();
       resource.setName(RESOURCE_NAME + 1);
       OpAssignment assignment = new OpAssignment();
@@ -272,7 +273,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
-      ///create another assignment - resource
+      //create another assignment - resource
       OpResource resource = new OpResource();
       resource.setName(RESOURCE_NAME + 1);
       OpAssignment assignment = new OpAssignment();
@@ -750,6 +751,8 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
 
    /**
     * Test for getListOfSubordinateResourceIds() in OpWorkSlipDataSetFactory.
+    *
+    * @throws Exception if the test fails
     */
    public void testGetListOfSubordinateResourceIds()
         throws Exception {
@@ -812,7 +815,115 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       assertFalse(resourceIds.contains(resource2Id));
    }
 
-   /**
+    /**
+     * Test for fillProjectSet() in OpWorkSlipDataSetFactory.
+     *
+     * @throws Exception
+     */
+    public void testFillProjectSet()
+            throws Exception {
+
+        createAssignments();
+        XComponent projectsSet = new XComponent(XComponent.DATA_SET);
+
+        String projectId = projectFactory.getProjectId(PROJECT_NAME);
+        OpProjectNode project = projectFactory.getProjectById(projectId);
+        String project1Id = projectFactory.getProjectId(PROJECT_NAME + 1);
+        OpProjectNode project1 = projectFactory.getProjectById(project1Id);
+
+        List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
+        assertEquals(0, projectsSet.getChildCount());
+
+        for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
+            assignmentList.add(assignment);
+        }
+        for (OpAssignment assignment : project1.getPlan().getActivityAssignments()) {
+            assignmentList.add(assignment);
+        }
+
+        OpWorkSlipDataSetFactory.fillProjectSet(projectsSet, assignmentList);
+        assertEquals(2, projectsSet.getChildCount());
+
+        String choice = XValidator.choice(project.locator(), project.getName());
+        String choice1 = XValidator.choice(project1.locator(), project1.getName());
+        for (int i = 0; i < projectsSet.getChildCount(); i++) {
+            XComponent dataRow = (XComponent) projectsSet.getChild(i);
+            assertTrue(dataRow.getValue().equals(choice) || dataRow.getValue().equals(choice1));
+        }
+    }
+
+    /**
+     * Test for fillChoiceDataSetsFromSingleAssignment() in OpWorkSlipDataSetFactory.
+     *
+     * @throws Exception
+     */
+    public void testFillChoiceDataSetsFromSingleAssignment()
+            throws Exception {
+
+        createAssignments();
+        XComponent choiceProjectSet = new XComponent(XComponent.DATA_SET);
+        XComponent choiceActivitySet = new XComponent(XComponent.DATA_SET);
+        XComponent choiceResourceSet = new XComponent(XComponent.DATA_SET);
+
+        String project1Id = projectFactory.getProjectId(PROJECT_NAME + 1);
+        OpProjectNode project1 = projectFactory.getProjectById(project1Id);
+
+        OpAssignment assignment = new OpAssignment();
+        for (OpAssignment activityAssignment : project1.getPlan().getActivityAssignments()) {
+            activityAssignment = projectFactory.getAssignmentById(activityAssignment.locator());
+            if(activityAssignment.getActivity().getName().equals(ACTIVITY_NAME + 1)){
+                assignment = activityAssignment;
+                break;
+            }
+        }
+
+        OpWorkSlipDataSetFactory.fillChoiceDataSetsFromSingleAssignment(assignment, choiceProjectSet,
+                choiceActivitySet, choiceResourceSet);
+
+        //check if the project choice data set was filled correctly
+        assertEquals(1, choiceProjectSet.getChildCount());
+        String projectChoice = XValidator.choice(project1.locator(), project1.getName());
+        assertEquals(projectChoice, ((XComponent)choiceProjectSet.getChild(0)).getValue());
+
+        //check if the activity choice data set was filled correctly
+        assertEquals(1, choiceActivitySet.getChildCount());
+        assertEquals(2, choiceActivitySet.getChild(0).getChildCount());
+        OpActivity activity = assignment.getActivity();
+        String activityChoice = XValidator.choice(activity.locator(), activity.getName());
+        assertEquals(activityChoice, ((XComponent)choiceActivitySet.getChild(0)).getValue());
+        assertEquals(activity.getType(), ((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(0)).getValue());
+
+        //check the activity costs map
+        Map<Byte, List> costsMap = (Map)((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(1)).getValue();
+        assertEquals(4, costsMap.keySet().size());
+
+        List travelCosts = costsMap.get(OpCostRecord.TRAVEL_COST);
+        assertEquals(activity.getBaseTravelCosts(), (Double) travelCosts.get(0), DOUBLE_ERROR_MARGIN);
+        assertEquals(activity.getRemainingTravelCosts(), (Double) travelCosts.get(1), DOUBLE_ERROR_MARGIN);
+        assertFalse((Boolean)travelCosts.get(2));
+
+        List materialCosts = costsMap.get(OpCostRecord.MATERIAL_COST);
+        assertEquals(activity.getBaseMaterialCosts(), (Double) materialCosts.get(0), DOUBLE_ERROR_MARGIN);
+        assertEquals(activity.getRemainingMaterialCosts(), (Double) materialCosts.get(1), DOUBLE_ERROR_MARGIN);
+        assertFalse((Boolean)materialCosts.get(2));
+
+        List externalCosts = costsMap.get(OpCostRecord.EXTERNAL_COST);
+        assertEquals(activity.getBaseExternalCosts(), (Double) externalCosts.get(0), DOUBLE_ERROR_MARGIN);
+        assertEquals(activity.getRemainingExternalCosts(), (Double) externalCosts.get(1), DOUBLE_ERROR_MARGIN);
+        assertFalse((Boolean)externalCosts.get(2));
+        
+        List miscCosts = costsMap.get(OpCostRecord.MISCELLANEOUS_COST);
+        assertEquals(activity.getBaseMiscellaneousCosts(), (Double) miscCosts.get(0), DOUBLE_ERROR_MARGIN);
+        assertEquals(activity.getRemainingMiscellaneousCosts(), (Double) miscCosts.get(1), DOUBLE_ERROR_MARGIN);
+        assertFalse((Boolean)miscCosts.get(2));
+
+        //check if the resource choice data set was filled correctly
+        assertEquals(1, choiceResourceSet.getChildCount());
+        String resourceChoice = XValidator.choice(assignment.getResource().locator(), assignment.getResource().getName());
+        assertEquals(resourceChoice, ((XComponent)choiceResourceSet.getChild(0)).getValue());
+    }
+
+    /**
     * Cleans the database
     *
     * @throws Exception if deleting test artifacts fails
@@ -898,4 +1009,112 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       t.commit();
       broker.close();
    }
+
+    /**
+     * Inserts in the database 2 projects, 3 activities, 2 resources and 3 assignments.
+     * The first project one activity and the second one has two activities.
+     * Each activity has one associated resource and the first resource is assigned to the activity from the first project
+     *      and to the second activity from the second project.
+     */
+    private void createAssignments() {
+        OpBroker broker = session.newBroker();
+        OpTransaction t = broker.newTransaction();
+
+        //create 2 project nodes and the project plans
+        OpProjectNode project = new OpProjectNode();
+        project.setName(PROJECT_NAME);
+        project.setType(OpProjectNode.PROJECT);
+        project.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+        OpProjectPlan projectPlan = new OpProjectPlan();
+        projectPlan.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+        projectPlan.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+        projectPlan.setProgressTracked(true);
+        projectPlan.setProjectNode(project);
+
+        OpProjectNode project1 = new OpProjectNode();
+        project1.setName(PROJECT_NAME + 1);
+        project1.setType(OpProjectNode.PROJECT);
+        project1.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()));
+        OpProjectPlan projectPlan1 = new OpProjectPlan();
+        projectPlan1.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()));
+        projectPlan1.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis()));
+        projectPlan1.setProgressTracked(true);
+        projectPlan1.setProjectNode(project1);
+
+        //create the 3 activities, 2 resources and the assignments that correspond to them
+        OpActivity activity = new OpActivity();
+        activity.setName(ACTIVITY_NAME);
+        activity.setType(OpActivity.STANDARD);
+        activity.setBaseTravelCosts(10d);
+        activity.setBaseMaterialCosts(20d);
+        activity.setBaseExternalCosts(30d);
+        activity.setBaseMiscellaneousCosts(40d);
+        activity.setRemainingTravelCosts(50d);
+        activity.setRemainingMaterialCosts(60d);
+        activity.setRemainingExternalCosts(70d);
+        activity.setRemainingMiscellaneousCosts(80d);
+        activity.setProjectPlan(projectPlan);
+
+        OpActivity activity1 = new OpActivity();
+        activity1.setName(ACTIVITY_NAME + 1);
+        activity1.setType(OpActivity.MILESTONE);
+        activity1.setBaseTravelCosts(1d);
+        activity1.setBaseMaterialCosts(2d);
+        activity1.setBaseExternalCosts(3d);
+        activity1.setBaseMiscellaneousCosts(4d);
+        activity1.setRemainingTravelCosts(5d);
+        activity1.setRemainingMaterialCosts(6d);
+        activity1.setRemainingExternalCosts(7d);
+        activity1.setRemainingMiscellaneousCosts(8d);
+        activity1.setProjectPlan(projectPlan1);
+
+        OpActivity activity2 = new OpActivity();
+        activity2.setName(ACTIVITY_NAME + 2);
+        activity2.setType(OpActivity.STANDARD);
+        activity2.setBaseTravelCosts(21d);
+        activity2.setBaseMaterialCosts(22d);
+        activity2.setBaseExternalCosts(23d);
+        activity2.setBaseMiscellaneousCosts(24d);
+        activity2.setRemainingTravelCosts(25d);
+        activity2.setRemainingMaterialCosts(26d);
+        activity2.setRemainingExternalCosts(27d);
+        activity2.setRemainingMiscellaneousCosts(28d);
+        activity2.setProjectPlan(projectPlan1);
+
+        OpResource resource = new OpResource();
+        resource.setName(RESOURCE_NAME);
+        OpResource resource1 = new OpResource();
+        resource1.setName(RESOURCE_NAME + 1);
+
+        OpAssignment assignment = new OpAssignment();
+        assignment.setActivity(activity);
+        assignment.setResource(resource);
+        assignment.setProjectPlan(projectPlan);
+
+        OpAssignment assignment1 = new OpAssignment();
+        assignment1.setActivity(activity1);
+        assignment1.setResource(resource1);
+        assignment1.setProjectPlan(projectPlan1);
+
+        OpAssignment assignment2 = new OpAssignment();
+        assignment2.setActivity(activity2);
+        assignment2.setResource(resource);
+        assignment2.setProjectPlan(projectPlan1);
+
+        broker.makePersistent(project);
+        broker.makePersistent(project1);
+        broker.makePersistent(projectPlan);
+        broker.makePersistent(projectPlan1);
+        broker.makePersistent(activity);
+        broker.makePersistent(activity1);
+        broker.makePersistent(activity2);
+        broker.makePersistent(resource);
+        broker.makePersistent(resource1);
+        broker.makePersistent(assignment);
+        broker.makePersistent(assignment1);
+        broker.makePersistent(assignment2);
+
+        t.commit();
+        broker.close();
+    }
 }

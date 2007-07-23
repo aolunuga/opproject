@@ -430,5 +430,6 @@ public class OpConfiguration {
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE, "org.postgresql.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, "org.hsqldb.jdbcDriver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "net.sourceforge.jtds.jdbc.Driver");
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.DERBY_DB_TYPE, "org.apache.derby.jdbc.EmbeddedDriver");
    }
 }

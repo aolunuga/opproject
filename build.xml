@@ -561,7 +561,8 @@
                   icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
                   shortname="${opproject.launchername.mac}"
                   version="${version}"
-                  jvmversion="1.4+"
+                  jvmversion="1.5+"
+                  vmoptions="-Xmx192m"
    	              stubfile="${opproject.launchername}"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">
