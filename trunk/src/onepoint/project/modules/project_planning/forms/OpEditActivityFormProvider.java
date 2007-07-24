@@ -181,7 +181,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery("select comment, creator.DisplayName from OpActivityComment as comment inner join comment.Creator as creator where comment.Activity.ID = ? order by comment.Sequence");
 
       query.setLong(0, activity.getID());
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       Object[] record;
       int count = 0;
       OpActivityComment comment;

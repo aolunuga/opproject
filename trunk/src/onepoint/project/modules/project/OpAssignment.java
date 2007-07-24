@@ -65,7 +65,34 @@ public class OpAssignment extends OpObject {
    }
 
    public double getBaseEffort() {
+      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+         OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
+         if (assignmentVersion == null) {
+            return 0;
+         }
+         else {
+            return assignmentVersion.getBaseEffort();
+         }
+      }
       return baseEffort;
+   }
+
+   /**
+    * Gets the coresponding assignment version from the baseline version plan, if such an assignment exists.
+    *
+    * @return baseline assignment version.
+    */
+   private OpAssignmentVersion getBaselineVersion() {
+      OpAssignmentVersion assignmentVersion = null;
+      OpActivityVersion baselineVersion = getActivity().getBaselineVersion();
+      for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
+         if (version.getResource().getID() == this.getResource().getID()) {
+            //assignment version found
+            assignmentVersion = version;
+            break;
+         }
+      }
+      return assignmentVersion;
    }
 
    public void setActualEffort(double actualEffort) {
@@ -88,7 +115,21 @@ public class OpAssignment extends OpObject {
       this.baseCosts = baseCosts;
    }
 
+   /**
+    * Gets the base personnel costs for this assignment.
+    *
+    * @return base personnel costs
+    */
    public double getBaseCosts() {
+      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+         OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
+         if (assignmentVersion == null) {
+            return 0;
+         }
+         else {
+            return assignmentVersion.getBaseCosts();
+         }
+      }
       return baseCosts;
    }
 
@@ -100,12 +141,24 @@ public class OpAssignment extends OpObject {
       return actualCosts;
    }
 
+   /**
+    * @return base proceeds for this assignment.
+    */
    public double getBaseProceeds() {
+      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+         OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
+         if (assignmentVersion == null) {
+            return 0;
+         }
+         else {
+            return assignmentVersion.getBaseProceeds();
+         }
+      }
       return baseProceeds;
    }
 
    public void setBaseProceeds(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0 ;
+      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 
    public double getActualProceeds() {

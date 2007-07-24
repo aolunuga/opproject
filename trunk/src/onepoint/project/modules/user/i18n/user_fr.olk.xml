@@ -38,8 +38,10 @@
       <resource id="Cancel">Annuler</resource>
 
       <resource id="UserLevel">Niveau Utilisateur</resource>
+      <resource id="ContributorLevel">Contributor</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>      
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Supprimer les Utilisateurs ou Groupes</resource>
@@ -83,8 +85,10 @@
       <resource id="Cancel">Annuler</resource>
 
       <resource id="UserLevel">Niveau Utilisateur</resource>
+      <resource id="ContributorLevel">Contributor</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
    </resource-map>
    <resource-map id="user.users">
       <resource id="NewGroup">Nouveau Groupe</resource>

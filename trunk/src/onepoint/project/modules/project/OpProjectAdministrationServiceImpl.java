@@ -67,7 +67,7 @@ public class OpProjectAdministrationServiceImpl implements OpService {
       "select portfolio from OpProjectNode as portfolio where portfolio.Name = ? and portfolio.Type = ?");
       query.setString(0, OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME);
       query.setByte(1, OpProjectNode.PORTFOLIO);
-      final Iterator result = broker.list(query).iterator();
+      final Iterator result = broker.iterate(query);
       if (result.hasNext()) {
          return (OpProjectNode) result.next();
       }

@@ -401,7 +401,7 @@ public class OpProjectSession extends XExpressSession {
       queryStringBuffer.append(name);
       queryStringBuffer.append(" as entity");
       OpQuery query = broker.newQuery(queryStringBuffer.toString());
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       Number result = 0;
       while (it.hasNext()) {
          result = (Number) it.next();

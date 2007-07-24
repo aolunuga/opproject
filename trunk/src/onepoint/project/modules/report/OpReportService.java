@@ -311,7 +311,7 @@ public class OpReportService extends OpProjectService {
       }
 
       //create the report data-source
-      OpReportDataSource ds = new OpReportDataSource(reportFields, broker.list(reportQuery).iterator(), localizer);
+      OpReportDataSource ds = new OpReportDataSource(reportFields, broker.iterate(reportQuery), localizer);
 
       JasperReport jasperReport = null;
       OpReportManager xrm = OpReportManager.getReportManager(session);
@@ -454,7 +454,7 @@ public class OpReportService extends OpProjectService {
             localizer.setResourceMap(session.getLocale().getResourceMap(resourceMapId));
          }
 
-         OpReportDataSource subReportDs = new OpReportDataSource(subReportFields, broker.list(subReportQuery).iterator(),
+         OpReportDataSource subReportDs = new OpReportDataSource(subReportFields, broker.iterate(subReportQuery),
               localizer);
          parametersMap.put(subReportDatasourceName, subReportDs);
       }

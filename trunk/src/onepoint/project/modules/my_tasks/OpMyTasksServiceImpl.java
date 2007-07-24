@@ -403,7 +403,7 @@ public class OpMyTasksServiceImpl implements OpService {
       broker.getConnection().setFlushMode(OpConnection.FLUSH_MODE_COMMIT);
 
       OpQuery query = broker.newQuery(MAX_ACTIVITY_SEQUENCE);
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       if (it.hasNext()) {
          Integer maxSeq = (Integer) it.next();
          if (maxSeq != null) {

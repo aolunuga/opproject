@@ -6,7 +6,6 @@ package onepoint.project.modules.backup;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -41,6 +40,7 @@ import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.service.XSizeInputStream;
 import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 import onepoint.xml.XDocumentWriter;
 
 /**
@@ -580,7 +580,8 @@ public class OpBackupManager {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setFirstResult(startIndex);
       query.setMaxResults(count);
-      return broker.list(query).iterator();
+
+      return broker.iterate(query);
    }
 
    /**
@@ -844,11 +845,7 @@ public class OpBackupManager {
       String fileName = binaryFilePath(id, backupMemberName);
       try {
          FileOutputStream fileOutput = new FileOutputStream(binaryDirPath + fileName);
-		 byte[] buff = new byte[1000];
-		 int buffLength = -1;
-		 while((buffLength = content.read(buff)) != -1) {
-			fileOutput.write(buff, 0, buffLength);
-		 }
+         XIOHelper.copy(content, fileOutput);
          fileOutput.flush();
          fileOutput.close();
       }
@@ -863,22 +860,12 @@ public class OpBackupManager {
     * Reads the contents of a binary file from the given path.
     *
     * @param path a <code>String</code> representing the path to a binary file.
-    * @return a <code>byte[]</code> with the file's content.
+    * @return a <code>XSizeInputStream</code> with the file's content.
     */
-   static byte[] readBinaryFile(String path) {
+   static XSizeInputStream readBinaryFile(String path) {
       try {
-         FileInputStream fileInput = new FileInputStream(path);
-         ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-         byte[] buffer = new byte[2048];
-         int count = 0;
-         while (count != -1) {
-            count = fileInput.read(buffer);
-            if (count > 0) {
-               byteOutput.write(buffer, 0, count);
-            }
-         }
-         fileInput.close();
-         return byteOutput.toByteArray();
+         File file = new File(path);
+         return new XSizeInputStream(new FileInputStream(file), file.length());
       }
       catch (IOException e) {
          logger.error("An I/O exception occured when trying to read binary file" + path, e);

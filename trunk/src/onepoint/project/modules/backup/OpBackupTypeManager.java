@@ -5,6 +5,7 @@
 package onepoint.project.modules.backup;
 
 import onepoint.persistence.OpType;
+import onepoint.service.XSizeInputStream;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -87,7 +88,7 @@ public final class OpBackupTypeManager {
       type = new Integer(OpType.CONTENT);
       typeStringMap.put(type, typeName);
       stringTypeMap.put(typeName, type);
-      typeJavaTypeMap.put(type, byte[].class);
+      typeJavaTypeMap.put(type, XSizeInputStream.class);
 
       typeName = "Byte";
       type = new Integer(OpType.BYTE);

@@ -55,7 +55,7 @@ public class OpProjectPlanningModule extends OpModule {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
       query.setByte(0, OpProjectNode.PROJECT);
-      Iterator iterator = broker.list(query).iterator();
+      Iterator iterator = broker.iterate(query);
       while (iterator.hasNext()) {
          OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
          //due to a previous bug, we must make sure the start/end of the project plans are ok
@@ -182,7 +182,7 @@ public class OpProjectPlanningModule extends OpModule {
       OpQuery query = broker.newQuery(queryString);
       query.setLong(0, projectPlanId);
       query.setByte(1, OpActivity.TASK);
-      Iterator tasks = broker.list(query).iterator();
+      Iterator tasks = broker.iterate(query);
       OpTransaction t = broker.newTransaction();
       while (tasks.hasNext()) {
          OpActivity task = (OpActivity) tasks.next();
@@ -214,7 +214,7 @@ public class OpProjectPlanningModule extends OpModule {
       OpQuery query = broker.newQuery(queryString);
       query.setLong(0, projectPlanVersionId);
       query.setByte(1, OpActivity.TASK);
-      Iterator tasksVersions = broker.list(query).iterator();
+      Iterator tasksVersions = broker.iterate(query);
       OpTransaction t = broker.newTransaction();
       while (tasksVersions.hasNext()) {
          OpActivityVersion taskVersion = (OpActivityVersion) tasksVersions.next();
@@ -250,7 +250,7 @@ public class OpProjectPlanningModule extends OpModule {
       query.setLong(0, projectPlanId);
       query.setByte(1, OpActivity.TASK);
       query.setByte(2, OpActivity.COLLECTION_TASK);
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       OpTransaction t = broker.newTransaction();
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();
@@ -311,7 +311,7 @@ public class OpProjectPlanningModule extends OpModule {
       query.setLong(0, projectPlanVersionId);
       query.setByte(1, OpActivity.TASK);
       query.setByte(2, OpActivity.COLLECTION_TASK);
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       OpTransaction t = broker.newTransaction();
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();

@@ -362,7 +362,7 @@ public final class OpProjectDataSetFactory {
       OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
       projectsQuery.setParameter("type", OpProjectNode.PROJECT);
       projectsQuery.setParameter("archived", archived);
-      for (Iterator it = broker.list(projectsQuery).iterator(); it.hasNext(); ) {
+      for (Iterator it = broker.iterate(projectsQuery); it.hasNext(); ) {
          String locator = ((OpProjectNode) it.next()).locator();
          result.add(locator);
       }
@@ -530,7 +530,7 @@ public final class OpProjectDataSetFactory {
             childQuery.setByte(i + 1, (Byte) typeParams.get(i));
          }
          Number count = 0;
-         Iterator childCountIterator = broker.list(childQuery).iterator();
+         Iterator childCountIterator = broker.iterate(childQuery);
          if (childCountIterator.hasNext()) {
             count = (Number) childCountIterator.next();
          }
@@ -632,10 +632,9 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      List completes = broker.list(query);
       Object[] record;
-      for (int i = 0; i < completes.size(); i++) {
-         record = (Object[]) completes.get(i);
+      for (Iterator completes = broker.iterate(query); completes.hasNext(); ) {
+         record = (Object[]) completes.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
          if (sum1 != null && sum2 != null) {
@@ -667,9 +666,8 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      List resources = broker.list(query);
-      for (int i = 0; i < resources.size(); i++) {
-         Object[] record = (Object[]) resources.get(i);
+      for (Iterator resources = broker.iterate(query); resources.hasNext(); ) {
+         Object[] record = (Object[]) resources.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
          if (sum1 != null && sum2 != null) {
@@ -703,9 +701,8 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      List costs = broker.list(query);
-      for (int i = 0; i < costs.size(); i++) {
-         Object[] record = (Object[]) costs.get(i);
+      for (Iterator costs = broker.iterate(query); costs.hasNext(); ) {
+         Object[] record = (Object[]) costs.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
          if (sum1 != null && sum2 != null) {
@@ -912,10 +909,9 @@ public final class OpProjectDataSetFactory {
          query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
       }
 
-      List children = broker.list(query);
-      Iterator childrenIterator = children.iterator();
+      Iterator childrenIterator = broker.iterate(query);
       OpProjectNode node;
-      HashSet<OpProjectNode> result = new HashSet<OpProjectNode>(children.size());
+      HashSet<OpProjectNode> result = new HashSet<OpProjectNode>();
       while (childrenIterator.hasNext()) {
          node = (OpProjectNode) childrenIterator.next();
          result.add(node);

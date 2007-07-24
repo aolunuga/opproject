@@ -105,7 +105,7 @@ public final class OpSubjectDataSetFactory {
          query.setLong(0, groupId);
       }
 
-      Iterator results = broker.list(query).iterator();
+      Iterator results = broker.iterate(query);
       OpGroup subGroup;
       while (results.hasNext()) {
          Object[] record = (Object[]) results.next();

@@ -1381,7 +1381,7 @@ public class OpProjectAdministrationService extends OpProjectService {
            .newQuery("select node from OpProjectNode as node where node.Name = ? and node.Type = ?");
       query.setString(0, name);
       query.setByte(1, type);
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       if (result.hasNext()) {
          return (OpProjectNode) result.next();
       }
@@ -1771,7 +1771,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       query.setInteger(0, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       query.setLong(1, projectPlanId);
 
-      return broker.list(query).iterator();
+      return broker.iterate(query);
    }
 
    /**

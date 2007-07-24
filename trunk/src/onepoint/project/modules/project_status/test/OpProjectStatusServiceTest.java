@@ -479,7 +479,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testRights()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);

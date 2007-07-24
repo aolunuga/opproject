@@ -419,7 +419,7 @@ public abstract class OpActivityVersionDataSetFactory {
       HashMap activityIdMap = new HashMap();
       OpQuery query = broker.newQuery("select activityVersion.Activity.ID, activityVersion.ID from OpActivityVersion as activityVersion where activityVersion.PlanVersion.ID = ?");
       query.setLong(0, workingPlanVersion.getID());
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
@@ -1316,7 +1316,7 @@ public abstract class OpActivityVersionDataSetFactory {
             activityVersion.setBaseMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
             broker.makePersistent(activityVersion);
             // Add new activity version to activity version map
-            activityVersionMap.put(new Long(activity.getID()), activityVersion);
+            activityVersionMap.put(activity.getID(), activityVersion);
          }
 
          // Copy attachments and increment ref-count of reused content objects
@@ -1331,7 +1331,7 @@ public abstract class OpActivityVersionDataSetFactory {
             }
             attachmentVersion = new OpAttachmentVersion();
             attachmentVersion.setPlanVersion(planVersion);
-            Long activityId = new Long(attachment.getActivity().getID());
+            Long activityId = attachment.getActivity().getID();
             attachmentVersion.setActivityVersion((OpActivityVersion) activityVersionMap.get(activityId));
             attachmentVersion.setName(attachment.getName());
             attachmentVersion.setLinked(attachment.getLinked());

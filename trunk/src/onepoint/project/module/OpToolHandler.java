@@ -6,8 +6,10 @@ package onepoint.project.module;
 
 import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
+import onepoint.project.util.OpProjectConstants;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class OpToolHandler implements XNodeHandler {
 
@@ -21,6 +23,22 @@ public class OpToolHandler implements XNodeHandler {
    private final static String SEQUENCE = "sequence";
    private final static String MULTI_USER = "multi-user-only";
    private final static String SELECTED = "selected";
+   private final static String LEVEL = "level";
+
+   /**
+    * The mapping between the user level names and the byte code of each level.
+    * The structure of the map is: Key - user level name
+    * Value - the level's byte code.
+    */
+   private static Map<String, Byte> LEVEL_NAME_TYPE_MAP;
+
+   static {
+      LEVEL_NAME_TYPE_MAP = new HashMap<String, Byte>();
+      LEVEL_NAME_TYPE_MAP.put("Customer", OpProjectConstants.OBSERVER_CUSTOMER_USER_LEVEL);
+      LEVEL_NAME_TYPE_MAP.put("Observer", OpProjectConstants.OBSERVER_USER_LEVEL);
+      LEVEL_NAME_TYPE_MAP.put("Contributor", OpProjectConstants.CONTRIBUTOR_USER_LEVEL);
+      LEVEL_NAME_TYPE_MAP.put("Manager", OpProjectConstants.MANAGER_USER_LEVEL);
+   }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       OpTool tool = new OpTool();
@@ -55,6 +73,12 @@ public class OpToolHandler implements XNodeHandler {
       value = attributes.get(SELECTED);
       if ((value != null) && (value instanceof String)) {
          tool.setSelected(Boolean.valueOf((String) value).booleanValue());
+      }
+      value = attributes.get(LEVEL);
+      if((value != null) && (value instanceof String)) {
+         if(LEVEL_NAME_TYPE_MAP.containsKey((String) value)){
+            tool.setLevel(LEVEL_NAME_TYPE_MAP.get((String) value));
+         }
       }
       return tool;
    }

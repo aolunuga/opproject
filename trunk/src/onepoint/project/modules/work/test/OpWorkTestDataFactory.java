@@ -180,10 +180,12 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery(SELECT_ALL_WORK_SLIPS);
 
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       while (it.hasNext()) {
          workSlips.add((OpWorkSlip) it.next());
       }
+      broker.close();
+      
       return workSlips;
    }
 

@@ -9,22 +9,39 @@ import onepoint.project.modules.project.OpActivityComment;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.util.OpHashProvider;
+import onepoint.project.util.OpProjectConstants;
 import sun.misc.BASE64Decoder;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpUser extends OpSubject {
 
    //user level types
-   public static final byte STANDARD_USER_LEVEL = 1;
-   public static final byte MANAGER_USER_LEVEL = 2;
+   public static final byte OBSERVER_CUSTOMER_USER_LEVEL = OpProjectConstants.OBSERVER_CUSTOMER_USER_LEVEL;
+   public static final byte OBSERVER_USER_LEVEL = OpProjectConstants.OBSERVER_USER_LEVEL;
+   public static final byte CONTRIBUTOR_USER_LEVEL = OpProjectConstants.CONTRIBUTOR_USER_LEVEL;
+   public static final byte MANAGER_USER_LEVEL = OpProjectConstants.MANAGER_USER_LEVEL;
+   public static final byte DEFAULT_USER_LEVEL = CONTRIBUTOR_USER_LEVEL;
 
-   public final static String USER = "OpUser";
+    /**
+     * The mapping between the user levels and the highest permission possible for each level.
+     * The structure of the map is: Key - user level
+     *                              Value - the highest permission for the level.
+     */
+    public static Map<Byte, Byte> LEVEL_PERMISSION_MAP;
+
+    static {
+        LEVEL_PERMISSION_MAP = new HashMap<Byte, Byte>();
+        LEVEL_PERMISSION_MAP.put(OBSERVER_USER_LEVEL, OpPermission.OBSERVER);
+        LEVEL_PERMISSION_MAP.put(OBSERVER_CUSTOMER_USER_LEVEL, OpPermission.OBSERVER);
+        LEVEL_PERMISSION_MAP.put(CONTRIBUTOR_USER_LEVEL, OpPermission.CONTRIBUTOR);
+        LEVEL_PERMISSION_MAP.put(MANAGER_USER_LEVEL, OpPermission.ADMINISTRATOR);
+    }
+
+    public final static String USER = "OpUser";
 
    public final static String PASSWORD = "Password";
    public final static String CONTACT = "Contact";
@@ -204,18 +221,22 @@ public class OpUser extends OpSubject {
    }
 
    public void setLevel(Byte level) {
-      if (this.level.byteValue() > level.byteValue()) {
+      if (LEVEL_PERMISSION_MAP.containsKey(level)) {
+         byte highestPermission = LEVEL_PERMISSION_MAP.get(level);
          Set<OpPermission> permissions = getOwnedPermissions();
          if (permissions != null) {
             for (OpPermission permission : permissions) {
-               if (permission.getAccessLevel() >= OpPermission.MANAGER) {
+               if (permission.getAccessLevel() > highestPermission) {
                   throw new IllegalArgumentException("demote of user level not allowed");
                   //XException(session.newError(UserServiceIfc.ERROR_MAP, OpUserError.DEMOTE_USER_ERROR));
                }
             }
          }
+         this.level = level;
       }
-      this.level = level;
+      else{
+         throw new IllegalArgumentException("the user level is invalid");   
+      }
    }
 
    /**
@@ -227,7 +248,7 @@ public class OpUser extends OpSubject {
       if (level == null) {
          return (false);
       }
-      return (level >= OpUser.STANDARD_USER_LEVEL &&
+      return (level >= OpUser.OBSERVER_CUSTOMER_USER_LEVEL &&
            level <= OpUser.MANAGER_USER_LEVEL);
    }
 

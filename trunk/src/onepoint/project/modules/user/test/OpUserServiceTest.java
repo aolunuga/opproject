@@ -306,8 +306,15 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now try to create user
       request.setArgument(OpUserService.USER_DATA, userData);
-      response = userService.insertUser(session, request);
-      assertError(response, OpUserError.INVALID_USER_LEVEL);
+      boolean exceptionThrown = false;     
+      try {
+         response = userService.insertUser(session, request);
+      }
+      catch (IllegalArgumentException e) {
+         exceptionThrown = true;
+         assertEquals("UserService.insertUser() failed", "the user level is invalid", e.getMessage());
+      }
+      assertTrue("UserService.insertUser() failed, exception should have been thrown", exceptionThrown);
    }
 
    /**
@@ -402,7 +409,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       String newValue = "newVaue";
       String newLanguage = "de";
       String newEmail = "aaa@bbb.de";
-      Map userData = OpUserTestDataFactory.createUserData(newValue, newValue, newValue, OpUser.STANDARD_USER_LEVEL,
+      Map userData = OpUserTestDataFactory.createUserData(newValue, newValue, newValue, OpUser.CONTRIBUTOR_USER_LEVEL,
            newValue, newValue, newLanguage, newEmail, newValue, newValue, newValue, null);
 
       XMessage request = new XMessage();
@@ -417,7 +424,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       assertEquals(newValue, user.getName());
       assertEquals(newValue, user.getPassword());
-      assertEquals(new Byte(OpUser.STANDARD_USER_LEVEL), user.getLevel());
+      assertEquals(new Byte(OpUser.CONTRIBUTOR_USER_LEVEL), user.getLevel());
       assertEquals(newValue, user.getDescription());
       assertEquals(newLanguage, user.getPreferenceValue(OpPreference.LOCALE));
 

@@ -35,7 +35,9 @@ public class OpNewUserFormProvider implements XFormProvider {
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
    public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
+   public final static String CONTRIBUTOR_LEVEL_CAPTION = "${ContributorLevel}";
+   public final static String OBSERVER_CUSTOMER_LEVEL_CAPTION = "${ObserverCustomerLevel}";
+   public final static String OBSERVER_LEVEL_CAPTION = "${ObserverLevel}";
    public final static String RESOURCE_MAP = "user.new_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -72,8 +74,16 @@ public class OpNewUserFormProvider implements XFormProvider {
       dataRow.setValue(XValidator.choice(String.valueOf(OpUser.MANAGER_USER_LEVEL), caption));
       levelDataSet.addChild(dataRow);
       dataRow = new XComponent(XComponent.DATA_ROW);
-      caption = localizer.localize(STANDARD_LEVEL_CAPTION);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.STANDARD_USER_LEVEL), caption));
+      caption = localizer.localize(CONTRIBUTOR_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.CONTRIBUTOR_USER_LEVEL), caption));
+      levelDataSet.addChild(dataRow);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      caption = localizer.localize(OBSERVER_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.OBSERVER_USER_LEVEL), caption));
+      levelDataSet.addChild(dataRow);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      caption = localizer.localize(OBSERVER_CUSTOMER_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.OBSERVER_CUSTOMER_USER_LEVEL), caption));
       levelDataSet.addChild(dataRow);
       levelField.setSelectedIndex(new Integer(0));
 

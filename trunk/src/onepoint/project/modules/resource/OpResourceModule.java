@@ -47,7 +47,7 @@ public class OpResourceModule extends OpModule {
       OpTransaction tx = broker.newTransaction();
       String queryString = "select resource from OpResource resource";
       OpQuery query = broker.newQuery(queryString);
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       while (it.hasNext()) {
          OpResource resource = (OpResource) it.next();
          resource.setExternalRate(resource.getHourlyRate());
@@ -64,7 +64,7 @@ public class OpResourceModule extends OpModule {
       OpTransaction tx = broker.newTransaction();
       String queryString = "select pool from OpResourcePool pool";
       OpQuery query = broker.newQuery(queryString);
-      Iterator it = broker.list(query).iterator();
+      Iterator it = broker.iterate(query);
       while (it.hasNext()) {
          OpResourcePool pool = (OpResourcePool) it.next();
          pool.setExternalRate(pool.getHourlyRate());

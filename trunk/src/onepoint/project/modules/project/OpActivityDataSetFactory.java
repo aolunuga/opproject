@@ -35,7 +35,7 @@ public abstract class OpActivityDataSetFactory {
       OpQuery query = broker
            .newQuery("select assignment.Resource from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ? order by assignment.Resource.Name asc");
       query.setLong(0, projectNode.getID());
-      Iterator resources = broker.list(query).iterator();
+      Iterator resources = broker.iterate(query);
       //LinkedHashMap to maintain the order in which entries are added
       HashMap resourceMap = new LinkedHashMap();
       OpResource resource = null;
@@ -266,7 +266,7 @@ public abstract class OpActivityDataSetFactory {
          // Pre-fetch project plans and project names (performance: Adding project column)
          OpQuery query = broker.newQuery("select projectPlan, projectNode from OpProjectPlan as projectPlan inner join projectPlan.ProjectNode as projectNode where projectNode.ID in (:projectNodeIds)");
          query.setCollection("projectNodeIds", filter.getProjectNodeIds());
-         Iterator result = broker.list(query).iterator();
+         Iterator result = broker.iterate(query);
          Object[] record = null;
          while (result.hasNext()) {
             record = (Object[]) result.next();
@@ -797,7 +797,7 @@ public abstract class OpActivityDataSetFactory {
       OpQuery query = broker
            .newQuery("select activityVersion.ID, activityVersion.Activity.ID from OpActivityVersion as activityVersion where activityVersion.PlanVersion.ID = ?");
       query.setLong(0, workingPlanVersion.getID());
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
@@ -1954,12 +1954,12 @@ public abstract class OpActivityDataSetFactory {
     */
    public static void fillCategoryColorDataSet(OpBroker broker, XComponent dataSet) {
       OpQuery query = broker.newQuery("select category from OpActivityCategory as category");
-      List categories = broker.list(query);
+      Iterator categories = broker.iterate(query);
       OpActivityCategory category = null;
       XComponent dataRow = null;
       XComponent dataCell = null;
-      for (int i = 0; i < categories.size(); i++) {
-         category = (OpActivityCategory) categories.get(i);
+      while (categories.hasNext()) {
+         category = (OpActivityCategory) categories.next();
          dataRow = new XComponent(XComponent.DATA_ROW);
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(category.locator());

@@ -172,7 +172,7 @@ public class OpSettings {
       settings.clear();
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery("select setting from OpSetting as setting");
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       OpSetting setting = null;
       while (result.hasNext()) {
          setting = (OpSetting) result.next();
@@ -250,7 +250,7 @@ public class OpSettings {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
       OpQuery query = broker.newQuery("select setting from OpSetting as setting");
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       while (result.hasNext()) {
          OpSetting setting = (OpSetting) result.next();
          String value = (String) settingsClone.remove(setting.getName());

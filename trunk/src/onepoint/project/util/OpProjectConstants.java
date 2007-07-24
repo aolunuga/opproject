@@ -74,4 +74,12 @@ public interface OpProjectConstants {
 
    public static final String INIT_PARAMS = "initParams";
    String PROJECT_ID = "project_id";
+
+   /**
+    * User level types
+    */
+   public static final byte OBSERVER_CUSTOMER_USER_LEVEL = -1;
+   public static final byte OBSERVER_USER_LEVEL = 0;
+   public static final byte CONTRIBUTOR_USER_LEVEL = 1;
+   public static final byte MANAGER_USER_LEVEL = 2;
 }

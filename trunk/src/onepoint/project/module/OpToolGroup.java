@@ -6,42 +6,43 @@ package onepoint.project.module;
 
 public class OpToolGroup {
 
-   private String _name;
-   private int _sequence;
-   private String _caption;
-   private OpModule _module;
+   private String name;
+   private int sequence;
+   private String caption;
+   private OpModule module;
    private boolean administratorOnly = false;
+   private String level;
 
    final public void setName(String name) {
-      _name = name;
+      this.name = name;
    }
 
    public final String getName() {
-      return _name;
+      return name;
    }
 
    public final void setSequence(int sequence) {
-      _sequence = sequence;
+      this.sequence = sequence;
    }
 
    public final int getSequence() {
-      return _sequence;
+      return sequence;
    }
 
    final public void setCaption(String caption) {
-      _caption = caption;
+      this.caption = caption;
    }
 
    public final String getCaption() {
-      return _caption;
+      return caption;
    }
 
    final void setModule(OpModule module) {
-      _module = module;
+      this.module = module;
    }
 
    public final OpModule getModule() {
-      return _module;
+      return module;
    }
 
    public boolean isAdministratorOnly() {
@@ -50,5 +51,13 @@ public class OpToolGroup {
 
    public void setAdministratorOnly(boolean administratorOnly) {
       this.administratorOnly = administratorOnly;
+   }
+
+   final public void setLevel(String level) {
+      this.level = level;
+   }
+
+   public final String getLevel() {
+      return level;
    }
 }
