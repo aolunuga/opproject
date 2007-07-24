@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -13,11 +13,12 @@ import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.util.XCalendar;
 import onepoint.xml.XContext;
 
+import java.sql.Date;
 import java.util.HashMap;
 
 public class OpProjectComponentHandler extends XDefaultComponentHandler {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectComponentHandler.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectComponentHandler.class, true);
 
    // Element names *** work with namespace onepoint.at/xml/namespaces/project-component?
    public final static String GANTT_BOX = "gantt-box";
@@ -37,7 +38,19 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
 
    private final static String ALTERNATE_DETAILS_FORM_REF = "alternate-details-form-ref";
 
-   private final static String ON_ACTIVITY_SELECT = "on-activity-select";
+   protected Date _parseDateAttribute(String value) {
+      // IETF standard date syntax: "Sat, 12 Aug 1995 13:30:00 GMT"
+      /* --- To do: Use DateFormat.getDateTimeInstance()
+       SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+       try {
+         return format.parse(value);
+       }
+       catch (ParseException e) {
+         return null;
+       }
+       */
+      return XCalendar.getDefaultCalendar().parseDate(value);
+   }
 
    protected byte _parseTimeUnitValue(String value) {
       if ((value != null)) {
@@ -91,10 +104,6 @@ public class OpProjectComponentHandler extends XDefaultComponentHandler {
          value = attributes.get(CATEGORY_COLOR_SET_REF);
          if ((value != null) && (value instanceof String)) {
             component.setCategoryColorSetRef((String) value);
-         }
-         value = attributes.get(ON_ACTIVITY_SELECT);
-         if ((value != null) && (value instanceof String)) {
-            component.setOnActivitySelect((String) value);
          }
       }
       else if (name == GANTT_MAP) {

@@ -1,22 +1,20 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.resource_utilization.test;
 
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
+import onepoint.project.modules.project.test.ProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
+import onepoint.project.modules.resource.test.ResourceTestDataFactory;
 import onepoint.project.modules.resource_utilization.OpResourceUtilizationService;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -24,7 +22,7 @@ import java.util.List;
  *
  * @author lucian.furtos
  */
-public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
+public class OpResourceUtilizationServiceTest extends OpBaseTestCase {
 
    private static final String NAME = "resource";
    private static final String DESCRIPTION = "The Resource Description";
@@ -33,7 +31,7 @@ public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
 
    private OpResourceUtilizationService service;
    private OpResourceService resourceService;
-   private OpResourceTestDataFactory dataFactory;
+   private ResourceTestDataFactory dataFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -44,9 +42,9 @@ public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      service = OpTestDataFactory.getResourceUtilizationService();
-      resourceService = OpTestDataFactory.getResourceService();
-      dataFactory = new OpResourceTestDataFactory(session);
+      service = getResourceUtilizationService();
+      resourceService = getResourceService();
+      dataFactory = new ResourceTestDataFactory(session);
 
       clean();
    }
@@ -74,23 +72,23 @@ public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
    public void testExpandResourcePool()
         throws Exception {
       // pool son of root
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 72d, 36d, rootId);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 72d, rootId);
       XMessage response = resourceService.insertPool(session, request);
       assertNoError(response);
       String son1Id = dataFactory.getResourcePoolId(POOL_NAME + 1);
       // pool son of 1
-      request = dataFactory.createPoolMsg(POOL_NAME + 11, POOL_DESCRIPTION, 33d, 50d, son1Id);
+      request = dataFactory.createPoolMsg(POOL_NAME + 11, POOL_DESCRIPTION, 33d, son1Id);
       response = resourceService.insertPool(session, request);
       assertNoError(response);
       dataFactory.getResourcePoolId(POOL_NAME + 11);
 
       // pool son of root
-      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 23d, 25d, rootId);
+      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 23d, rootId);
       response = resourceService.insertPool(session, request);
       assertNoError(response);
       String son2Id = dataFactory.getResourcePoolId(POOL_NAME + 2);
       // resource son of 2
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 535d, 31d, false, son2Id);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 535d, false, son2Id);
       response = resourceService.insertResource(session, request);
       assertNoError(response);
 
@@ -126,34 +124,26 @@ public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
-
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Object aProjectList : projectList) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
+      List projectList = projectDataFactory.getAllProjects();
+      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
+         OpProjectNode project = (OpProjectNode) iterator.next();
+         projectDataFactory.deleteObject(project);
       }
 
-      List resoucesList = dataFactory.getAllResources(broker);
-      for (Object aResoucesList : resoucesList) {
-         OpResource resource = (OpResource) aResoucesList;
-         broker.deleteObject(resource);
+      List resoucesList = dataFactory.getAllResources();
+      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
+         OpResource resource = (OpResource) iterator.next();
+         dataFactory.deleteObject(resource);
       }
 
-      List poolList = dataFactory.getAllResourcePools(broker);
-      for (Object aPoolList : poolList) {
-         OpResourcePool pool = (OpResourcePool) aPoolList;
+      List poolList = dataFactory.getAllResourcePools();
+      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
+         OpResourcePool pool = (OpResourcePool) iterator.next();
          if (pool.locator().equals(rootId)) {
             continue;
          }
-         broker.deleteObject(pool);
+         dataFactory.deleteObject(pool);
       }
-
-      transaction.commit();
-      broker.close();
    }
 }

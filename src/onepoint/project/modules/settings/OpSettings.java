@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -9,6 +9,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.schedule.OpScheduler;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
@@ -26,7 +27,7 @@ import java.util.*;
 
 public class OpSettings {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpSettings.class);
+   private static final XLog logger = XLogFactory.getLogger(OpSettings.class, true);
    // Available settings
    public static final String USER_LOCALE = "User_Locale";
 
@@ -41,15 +42,11 @@ public class OpSettings {
    public static final String REPORT_REMOVE_TIME_PERIOD = "Report_RemoveTimePeriod";
    public static final String MILESTONE_CONTROLLING_INTERVAL = "Milestone_ControllingInterval";
    public static final String RESOURCE_MAX_AVAILABYLITY = "Resource_MaxAvailability";
-   public static final String PULSING = "Pulsing";
-   public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
    //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
-   public static final String CURRENCY_SYMBOL = "Currency_Symbol";
-   public static final String CURRENCY_SHORT_NAME = "Currency_ShortName";
 
-   public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.MONDAY).toString();
-   public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(Calendar.FRIDAY).toString();
+   public static final String CALENDAR_FIRST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.MONDAY).toString();
+   public static final String CALENDAR_LAST_WORKDAY_DEFAULT = new StringBuffer().append(XCalendar.FRIDAY).toString();
    public static final String CALENDAR_DAY_WORK_TIME_DEFAULT = "8";
    public static final String CALENDAR_WEEK_WORK_TIME_DEFAULT = "40";
    public static final String ALLOW_EMPTY_PASSWORD_DEFAULT = Boolean.toString(false);
@@ -60,9 +57,6 @@ public class OpSettings {
    public static final String CALENDAR_HOLIDAYS_LOCATION_DEFAULT = "SelectCalendar";
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String MILESTONE_CONTROLLING_INTERVAL_DEFALUT = "2";
-   public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
-   public static final String CURRENCY_SYMBOL_DEFAULT = "€";
-   public static final String CURRENCY_SHORT_NAME_DEFAULT = "EUR";
 
    /**
     * A query after which the report scheduler can be retrieved.
@@ -76,13 +70,8 @@ public class OpSettings {
 
    private final static String CALENDAR_RESOURCE_MAP_ID = "settings.calendar";
 
-   /**
-    * Name of placeholders in i18n files which are taken from the settings
-    */
-   private final static String CURRENCY_SYMBOL_I18N_PARAMETER = "CurrencySymbol";
-
-   protected static Map<String, String> defaults = new HashMap<String, String>();
-   private static Map<String, String> settings = new HashMap<String, String>();
+   private static HashMap defaults = new HashMap();
+   private static HashMap settings = new HashMap();
 
    /**
     * The map of holiday calendars.
@@ -90,13 +79,14 @@ public class OpSettings {
    private static Map holidayCalendars = null;
 
    /**
-    * Plannig settings which are specific to the calendar.
+    * Settings which are specific to the calendar.
     */
-   private static XCalendar.PlanningSettings planningSettings = null;
+   private static HashMap planningSettings = new HashMap();
 
    static {
       // Set defaults
-      defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE.getLanguage());
+      defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE_LANGUAGE);
+
       defaults.put(CALENDAR_FIRST_WORKDAY, CALENDAR_FIRST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_LAST_WORKDAY, CALENDAR_LAST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_DAY_WORK_TIME, CALENDAR_DAY_WORK_TIME_DEFAULT);
@@ -109,48 +99,43 @@ public class OpSettings {
       defaults.put(CALENDAR_HOLIDAYS_LOCATION, CALENDAR_HOLIDAYS_LOCATION_DEFAULT);
       defaults.put(RESOURCE_MAX_AVAILABYLITY, RESOURCE_MAX_AVAILABYLITY_DEFAULT);
       defaults.put(MILESTONE_CONTROLLING_INTERVAL, MILESTONE_CONTROLLING_INTERVAL_DEFALUT);
-      defaults.put(ENABLE_TIME_TRACKING, ENABLE_TIME_TRACKING_DEFAULT);
-      defaults.put(CURRENCY_SYMBOL, CURRENCY_SYMBOL_DEFAULT);
-      defaults.put(CURRENCY_SHORT_NAME, CURRENCY_SHORT_NAME_DEFAULT);
    }
 
    public static boolean applySettings(OpProjectSession session) {
-      boolean refresh = false;
-
       // Apply settings to current environment
-      fillPlanningSettings();
+      fillWithPlanningSettings(planningSettings);
 
-      //update the report schedule name
       String reportScheduleName = get(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME);
       int reportRemoveInterval = Integer.parseInt(OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD));
       OpScheduler.updateScheduleInterval(session, reportScheduleName, reportRemoveInterval);
 
-      //update the i18n placeholders
-      Map<String, String> oldLocalizerParameters = session.getLocalizerParameters();
-      Map<String, String> newLocalizerParameters = getI18NParameters();
-      if (!oldLocalizerParameters.equals(newLocalizerParameters)) {
-         session.setLocalizerParameters(newLocalizerParameters);
-         refresh = true;
-      }
-
       XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
       boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
-      if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
+      if (!OpInitializer.isMultiUser() && changedLanguage) {
          session.setLocale(newLocale);
-         refresh = true;
       }
-      return refresh;
+      return changedLanguage;
    }
 
    /**
-    * Initializes the planning settings which are to be used by the calendar.
+    * Apply all the global settings which are related to the application calendar.
+    * The locale specific calendar settings are added when the user signs in.
     *
+    * @param calendarSettings
+    * @return
     */
-   private static void fillPlanningSettings() {
+   public static Map fillWithPlanningSettings(Map calendarSettings) {
       Integer firstWorkday = Integer.valueOf(get(CALENDAR_FIRST_WORKDAY));
+      calendarSettings.put(XCalendar.FIRST_WORKDAY_KEY, firstWorkday);
+
       Integer lastWorkday = Integer.valueOf(get(CALENDAR_LAST_WORKDAY));
+      calendarSettings.put(XCalendar.LAST_WORKDAY_KEY, lastWorkday);
+
       Double dayWorkTime = new Double(get(CALENDAR_DAY_WORK_TIME));
+      calendarSettings.put(XCalendar.WORKHOURS_PERDAY_KEY, dayWorkTime);
+
       Double weekWorkTime = new Double(get(CALENDAR_WEEK_WORK_TIME));
+      calendarSettings.put(XCalendar.WORKHOURS_PERWEEK_KEY, weekWorkTime);
 
       String id = get(CALENDAR_HOLIDAYS_LOCATION);
       TreeSet holidaysDates = new TreeSet();
@@ -160,8 +145,8 @@ public class OpSettings {
             holidaysDates = new TreeSet(holidayManager.getHolidayDates());
          }
       }
-      planningSettings = new XCalendar.PlanningSettings(firstWorkday.intValue(), lastWorkday.intValue(), dayWorkTime.doubleValue(),
-           weekWorkTime.doubleValue(), holidaysDates);
+      calendarSettings.put(XCalendar.HOLIDAYS_KEY, holidaysDates);
+      return calendarSettings;
    }
 
    public static void loadSettings(OpProjectSession session) {
@@ -198,7 +183,7 @@ public class OpSettings {
                input = new FileInputStream(new File(file));
             }
             catch (FileNotFoundException e) {
-               logger.error("Could not find file: " + file);
+               System.err.println(file + " not found");
             }
             loader.loadHolidays(input);
          }
@@ -235,69 +220,54 @@ public class OpSettings {
       return filePaths;
    }
 
-   /**
-    * Saves the given settings in the database.
-    * @param session a <code>OpProjectSession</code> represneting the server session.
-    * @param newSettings a <code>Map(String, String)</code> representing the new settings
-    * as modified from the outside.
-    */
-   public static void saveSettings(OpProjectSession session, Map<String, String> newSettings) {
-      //update the settings map with the new settings
-      updateSettings(newSettings);
-
+   public static void saveSettings(OpProjectSession session) {
       // Copy settings and compare with stored settings
-      Map<String, String> settingsClone = (Map<String, String>) ((HashMap) settings).clone();
+      HashMap newSettings = (HashMap) settings.clone();
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
       OpQuery query = broker.newQuery("select setting from OpSetting as setting");
       Iterator result = broker.list(query).iterator();
+      OpSetting setting = null;
+      String newValue = null;
       while (result.hasNext()) {
-         OpSetting setting = (OpSetting) result.next();
-         String value = (String) settingsClone.remove(setting.getName());
-         if (value == null) {
+         setting = (OpSetting) result.next();
+         newValue = (String) newSettings.remove(setting.getName());
+         if (newValue == null) {
             // Value has been removed: Delete setting from database
             broker.deleteObject(setting);
          }
-         else if (!setting.getValue().equals(value)) {
+         else if (!setting.getValue().equals(newValue)) {
             // Value has changed: Update in database
-            setting.setValue(value);
+            setting.setValue(newValue);
             broker.updateObject(setting);
          }
       }
-
-      //persist the new settings
-      for (String newName : settingsClone.keySet()) {
-         String newValue = settingsClone.get(newName);
-         OpSetting setting = new OpSetting();
-         setting.setName(newName);
-         setting.setValue(newValue);
+      // Insert remaining new settings
+      Iterator newNames = newSettings.keySet().iterator();
+      Iterator newValues = newSettings.values().iterator();
+      while (newNames.hasNext()) {
+         setting = new OpSetting();
+         setting.setName((String) newNames.next());
+         setting.setValue((String) newValues.next());
          broker.makePersistent(setting);
       }
       t.commit();
       broker.close();
    }
 
-   /**
-    * Updates the application settings from the given map of new settings.
-    * @param newSettings a <code>Map(String, String)</code> of new settings.
-    */
-   private static void updateSettings(Map<String, String> newSettings) {
-      //merge updated/deleted settings
-      for (Iterator<String> it = settings.keySet().iterator(); it.hasNext();) {
-         String oldName = it.next();
-         String newValue = newSettings.get(oldName);
-         if (newValue == null) {
-            it.remove();
+   public static void set(String name, String value) {
+      logger.info("*** Setting: " + name + " -> " + value);
+      if (value == null) {
+         settings.remove(value);
+      }
+      else {
+         // Only set if value is different from default
+         String defaultValue = (String) defaults.get(name);
+         if ((defaultValue != null) && value.trim().equals(defaultValue)) {
+            settings.remove(name);
          }
          else {
-            settings.put(oldName, newValue);
-         }
-      }
-
-      //add new settings
-      for (String newName : newSettings.keySet()) {
-         if (settings.get(newName) == null) {
-            settings.put(newName, newSettings.get(newName));
+            settings.put(name, value);
          }
       }
    }
@@ -313,30 +283,25 @@ public class OpSettings {
       return value;
    }
 
-   public static void configureServerCalendar(OpProjectSession session) {
-      logger.info("Calendar is configured using locale : " + session.getID());
-      XLocale locale = session.getLocale();
-      TimeZone clientTimezone = session.getClientTimeZone();
-
-      //initialize the calendar instance which will be on the server and also sent to client
-      XCalendar calendar = new XCalendar();
-      XLanguageResourceMap calendarI18nMap = XLocaleManager.findResourceMap(locale.getID(), CALENDAR_RESOURCE_MAP_ID);
-      XLocalizer localizer = XLocalizer.getLocalizer(calendarI18nMap);
-      calendar.configure(planningSettings, locale, localizer, clientTimezone);
-      session.setCalendar(calendar);
+   /**
+    * Returns a clone of the calendar settings map.
+    *
+    * @return a <code>Map</code> of settings related to the calendar.
+    */
+   public static Map getPlanningSettings() {
+      return (Map) planningSettings.clone();
    }
 
-   /**
-    * Returns a map with the placeholders and actual values of settings used during the
-    * i18n process. This map will be passed to the localizer when parsing i18n resources.
-    * @return a <code>Map(String, String)</code> representing placeholder name, placeholder
-    * value pairs.
-    *
-    * @see onepoint.resource.XLocalizer#localize(String, java.util.Map)
-    */
-   public static Map<String, String> getI18NParameters() {
-      Map<String, String> result = new HashMap<String, String>();
-      result.put(CURRENCY_SYMBOL_I18N_PARAMETER, get(CURRENCY_SYMBOL));
-      return result;
+   public static XCalendar configureDefaultCalendar(XLocale userLocale) {
+      logger.info("Calendar is configured using locale : " + userLocale.getID());
+      //initialize the calendar instance which will be on the server and also sent to client
+      //<FIXME author="Horia Chiorean" description="In the remote case, this means that always the last signed in user will have his settings...">
+      XCalendar calendar = XCalendar.getDefaultCalendar();
+      //<FIXME>
+      Map calendarSettings = getPlanningSettings();
+      XLanguageResourceMap userCalendarI18nMap = XLocaleManager.findResourceMap(userLocale.getID(), CALENDAR_RESOURCE_MAP_ID);
+      XLocalizer userLocalizer = XLocalizer.getLocalizer(userCalendarI18nMap);
+      calendar.configure(calendarSettings, userLocale, userLocalizer);
+      return calendar;
    }
 }

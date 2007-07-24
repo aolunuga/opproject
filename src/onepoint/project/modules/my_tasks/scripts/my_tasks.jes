@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for my_tasks.oxf
@@ -21,21 +21,18 @@ function timeUnitChanged(event) {
    gantt_box = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
    // *** Invoke setTimeUnit(time_unit) on gantt-box
    if (choice_id.equals("d")) {
-      gantt_box.setTimeUnit(2);
-      // XCalendar.DAYS;
+      gantt_box.setTimeUnit(2); // XCalendar.DAYS;
    }
    if (choice_id.equals("w")) {
-      gantt_box.setTimeUnit(3);
-      // XCalendar.WEEKS;
+      gantt_box.setTimeUnit(3); // XCalendar.WEEKS;
    }
    if (choice_id.equals("m")) {
-      gantt_box.setTimeUnit(4);
-      // XCalendar.MONTHS;
+      gantt_box.setTimeUnit(4); // XCalendar.MONTHS;
    }
 
-   gantt_box.resetCalendar();
-   gantt_box.doLayout();
-   gantt_box.repaint();
+  gantt_box.resetCalendar();
+  gantt_box.doLayout();
+  gantt_box.repaint();  
 }
 
 function addComment(event) {
@@ -69,7 +66,7 @@ function print(event) {
 }
 
 
-function saveActivityTableCSV(event) {
+function saveActivityTableCSV(event){
    XDisplay.getActiveForm().findComponent("ActivityTable").saveAsCSV("Save My Tasks");
 }
 
@@ -81,7 +78,7 @@ function saveActivityChartImage(event) {
    XDisplay.getActiveForm().findComponent("ActivityGanttChart").saveAsImage("Save My Tasks");
 }
 
-function filterChanged(event) {
+function filterChanged(event){
    form = XDisplay.getActiveForm();
 
    start_choice_field = form.findComponent("StartTimeChooser");
@@ -99,12 +96,12 @@ function filterChanged(event) {
    XDisplay.findFrame("MainFrame").refreshForm(parameters);
 }
 
-function addAdhoc(event) {
+function addAdhoc(event){
    dialog = XComponent.newDialog();
    dialog.open("/modules/my_tasks/forms/add_adhoc_task.oxf.xml", parameters);
 }
 
-function editAdhoc(event) {
+function editAdhoc(event){
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");
    selected_rows = dataSet.selectedRows();
@@ -116,7 +113,7 @@ function editAdhoc(event) {
    }
 }
 
-function editActivity(event) {
+function onDoubleClickActivity(event){
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");
    selected_rows = dataSet.selectedRows();
@@ -124,16 +121,48 @@ function editActivity(event) {
       row = selected_rows[0];
       type = row.getChild(1).getValue();
       if (type == 6) {
-         event.editMode = true;
-         editAdhoc(event);
+         infoActivity(event);
       }
       else {
-         openDetails.editActivity(event);
+        openDetails.editActivity(event);
       }
    }
 }
 
-function deleteAdhoc(event) {
+function editActivity(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      type = row.getChild(1).getValue();
+      if (type == 6) {
+         editAdhoc(event);
+      }
+      else {
+        openDetails.editActivity(event);
+      }
+   }
+}
+
+function infoActivity(event){
+   form = XDisplay.getActiveForm();
+   dataSet = form.findComponent("ActivitySet");
+   selected_rows = dataSet.selectedRows();
+   if (selected_rows.size() > 0) {
+      row = selected_rows[0];
+      type = row.getChild(1).getValue();
+      if (type == 6) {
+         event.editMode = false;
+         editAdhoc(event);
+      }
+      else {
+        openDetails.editActivity(event);
+      }
+   }
+}
+
+function deleteAdhoc(event){
    form = XDisplay.getActiveForm();
    dataSet = form.findComponent("ActivitySet");
    selected_rows = dataSet.selectedRows();
@@ -148,69 +177,25 @@ function refreshForm() {
    XDisplay.findFrame("MainFrame").refreshForm();
 }
 
-function selectionChanged(event) {
+function selectionChanged(event){
    form = XDisplay.getActiveForm();
+   toolBar = form.findComponent("myTasksToolBar");
 
-   infoButton = form.findComponent("InfoButton");
-   infoButton.setEnabled(true);
-
+   editButton = form.findComponent("EditAdhocButton");
    deleteButton = form.findComponent("DeleteAdhocButton");
-   // get delete permission for selected row
-   dataSet = form.findComponent("ActivitySet");
-   selected_rows = dataSet.selectedRows();
-   if (selected_rows.size() > 0) {
-      row = selected_rows[0];
-      deletePermissionSet = form.findComponent("DeletePermissionSet");
-      permRow = deletePermissionSet.getChild(row.getIndex());
-   }
 
    tableRow = event.event_source;
    dataRow = tableRow.getDataComponent();
    typeCell = dataRow.getChild(1);
-   if (typeCell.getValue() == 6 && (permRow.getBooleanValue() == true)) {
+   if (typeCell.getValue() == 6) {
+      editButton.setEnabled(true);
       deleteButton.setEnabled(true);
    }
    else {
-      deleteButton.setEnabled(false);
+      editButton.setEnabled(false);
+      deleteButton.setEnabled(false);      
    }
 
-   toolBar = form.findComponent("myTasksToolBar");
    toolBar.doLayout();
    toolBar.repaint();
-}
-
-/**
- * Function which is called when activating the tasklist tab
- */
-function activateTasklistTab(event) {
-   form = XDisplay.getActiveForm();
-   deleteButton = form.findComponent("DeleteAdhocButton");
-   deleteButton.setEnabled(false);
-   deleteButton.update();
-   infoButton = form.findComponent("InfoButton");
-   infoButton.setEnabled(false);
-   infoButton.update();
-}
-
-/**
- * Function which is called when activating the gantt chart tab
- */
-function activateGanttTab(event) {
-   form = XDisplay.getActiveForm();
-   deleteButton = form.findComponent("DeleteAdhocButton");
-   deleteButton.setEnabled(false);
-   deleteButton.update();
-   infoButton = form.findComponent("InfoButton");
-   infoButton.setEnabled(false);
-   infoButton.update();
-}
-
-/**
- * Function called when a gantt activity is selected.
- */
-function activitySelected(event) {
-   form = XDisplay.getActiveForm();
-   infoButton = form.findComponent("InfoButton");
-   infoButton.setEnabled(true);
-   infoButton.update();
 }

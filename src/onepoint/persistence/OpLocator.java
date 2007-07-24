@@ -1,44 +1,44 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
 
 public final class OpLocator {
 
-   public final static String LOCATOR_POSTFIX = "xid";
-   public final static char LOCATOR_SEPARATOR = '.';
+	public final static String LOCATOR_POSTFIX = "xid";
+	public final static char LOCATOR_SEPARATOR = '.';
 
-   private OpPrototype prototype;
-   private long id;
+	private OpPrototype _prototype;
+	private long _id;
 
-   public OpLocator(OpObject object) {
-      prototype = object.getPrototype();
-      id = object.getID();
-   }
+	public OpLocator(OpObject object) {
+		_prototype = object.getPrototype();
+		_id = object.getID();
+	}
 
-   public OpLocator(OpPrototype prototype, long id) {
-      this.prototype = prototype;
-      this.id = id;
-   }
+	public OpLocator(OpPrototype prototype, long id) {
+		_prototype = prototype;
+		_id = id;
+	}
 
-   public final OpPrototype getPrototype() {
-      return prototype;
-   }
+	public final OpPrototype getPrototype() {
+		return _prototype;
+	}
 
-   public final long getID() {
-      return id;
-   }
+	public final long getID() {
+		return _id;
+	}
 
-   public final String toString() {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append(prototype.getName());
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(id);
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(LOCATOR_POSTFIX);
-      return buffer.toString();
-   }
+	public final String toString() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(_prototype.getName());
+		buffer.append(LOCATOR_SEPARATOR);
+		buffer.append(_id);
+		buffer.append(LOCATOR_SEPARATOR);
+		buffer.append(LOCATOR_POSTFIX);
+		return buffer.toString();
+	}
 
    public static String locatorString(OpObject object) {
       StringBuffer buffer = new StringBuffer();
@@ -60,35 +60,22 @@ public final class OpLocator {
       return buffer.toString();
    }
 
-   public static OpLocator parseLocator(String s) {
-      // Locator format: "<prototype-name>.<id>.xid"
-      int separator_index1 = s.indexOf(LOCATOR_SEPARATOR);
-      if (separator_index1 == -1) {
-         return null;
-      }
-      String prototype_name = s.substring(0, separator_index1);
-      OpPrototype prototype = OpTypeManager.getPrototype(prototype_name);
-      if (prototype == null) {
-         return null;
-      }
-      int separator_index2 = s.indexOf(LOCATOR_SEPARATOR, separator_index1 + 1);
-      if (separator_index2 == -1) {
-         return null;
-      }
-      long id = Long.parseLong(s.substring(separator_index1 + 1, separator_index2));
-      if (!s.substring(separator_index2 + 1, separator_index2 + 4).equals(LOCATOR_POSTFIX)) {
-         return null;
-      }
-      return new OpLocator(prototype, id);
-   }
+	public static OpLocator parseLocator(String s) {
+		// Locator format: "<prototype-name>.<id>.xid"
+		int separator_index1 = s.indexOf(LOCATOR_SEPARATOR);
+		if (separator_index1 == -1)
+			return null;
+		String prototype_name = s.substring(0, separator_index1);
+		OpPrototype prototype = OpTypeManager.getPrototype(prototype_name);
+		if (prototype == null)
+			return null;
+		int separator_index2 = s.indexOf(LOCATOR_SEPARATOR, separator_index1 + 1);
+		if (separator_index2 == -1)
+			return null;
+		long id = Long.parseLong(s.substring(separator_index1 + 1, separator_index2));
+		if (!s.substring(separator_index2 + 1, separator_index2 + 4).equals(LOCATOR_POSTFIX))
+			return null;
+		return new OpLocator(prototype, id);
+	}
 
-   /**
-    * Checks if the specified string is a valid locator
-    *
-    * @param locator the string to verify, can be null
-    * @return true if the string respect the locator format.
-    */
-   public static boolean validate(String locator) {
-      return !(locator == null || locator.length() == 0) && parseLocator(locator) != null;
-   }
 }

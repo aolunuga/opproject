@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.work.forms;
@@ -32,11 +32,15 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
    public final static int RESOURCE_COLUMN_INDEX = 1;
    public final static int DATE_COLUMN_INDEX = 2;
 
-   public final static String WORK_SLIPS_QUERY = "select workSlip from OpWorkSlip as workSlip where " +
-             "workSlip.Creator.ID = ? and workSlip.Date >= ? order by workSlip.Date desc";
+   public final static String WORK_SLIPS_QUERY =
+        "select workSlip from OpWorkSlip as workSlip where " +
+             "workSlip.Creator.ID = ? " +
+             "and workSlip.Date >= ? " +
+             "order by workSlip.Date desc";
 
    /* form button ids */
    private final static String NEW_WORK_SLIP_BUTTON = "NewWorkSlip";
+   private final static String EDIT_WORK_SLIP_BUTTON = "EditWorkSlip";
    private final static String INFO_WORK_SLIP_BUTTON = "InfoWorkSlip";
    private final static String DELETE_WORK_SLIP_BUTTON = "DeleteWorkSlip";
 
@@ -49,6 +53,8 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
       //disable buttons that require selection
+      XComponent editButton = form.findComponent(EDIT_WORK_SLIP_BUTTON);
+      editButton.setEnabled(false);
       XComponent infoButton = form.findComponent(INFO_WORK_SLIP_BUTTON);
       infoButton.setEnabled(false);
       XComponent deleteButton = form.findComponent(DELETE_WORK_SLIP_BUTTON);
@@ -71,7 +77,7 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
       OpQuery query = broker.newQuery(WORK_SLIPS_QUERY);
       query.setLong(0, session.getUserID());
 
-      Calendar calendar = session.getCalendar().getCalendar();
+      Calendar calendar = XCalendar.getDefaultCalendar().getCalendar();
       calendar.setTime(XCalendar.today());
       if (period.equals(PERIOD_STARTING_WITH_CURRENT_MONTH)) {
          calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -106,9 +112,6 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setValue(work_slip.getDate());
          data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setValue(work_slip.getTotalActualEffort());
-         data_row.addChild(data_cell);
       }
 
       //new work slip button enabled by default
@@ -138,7 +141,7 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
       types.add(new Byte(OpActivity.MILESTONE));
       types.add(new Byte(OpActivity.ADHOC_TASK));
 
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, types, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, false);
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, types, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
       if (!result.hasNext()) {
          broker.close();
          newWorkSlipButton.setEnabled(false);

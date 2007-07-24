@@ -78,7 +78,7 @@ function getReportQuery() {
       selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, asgn.RemainingEffort";
       fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
       fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
-      whereClause = " where projectNode.ID = ? and projectNode.Archived=false and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";
+      whereClause = " where projectNode.ID = ? and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";
 
       queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
       Console.println("Resource allocation query:" + queryString);

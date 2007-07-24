@@ -1,5 +1,6 @@
 <prototype name="OpUser" instance-class="onepoint.project.modules.user.OpUser" super-type="OpSubject">
    <field name="Password" type="String"/>
+   <field name="AuthenticationType" type="Byte"/>
    <field name="Level" type="Byte"/>
    <relationship name="Contact" type="OpContact" back-relationship="User" inverse="true" cascade="delete"/>
    <relationship name="Assignments" type="OpUserAssignment" collection-type="Set" back-relationship="User" inverse="true"  cascade="delete"/>

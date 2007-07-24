@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.backup;
@@ -21,7 +21,7 @@ public class OpReferenceHandler implements XNodeHandler {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpReferenceHandler.class);
+   private static final XLog logger = XLogFactory.getLogger(OpReferenceHandler.class, true);
 
    /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)

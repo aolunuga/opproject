@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
@@ -9,6 +9,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
@@ -16,7 +17,6 @@ import onepoint.project.modules.project.OpProjectModule;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class OpEditPortfolioFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpEditPortfolioFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEditPortfolioFormProvider.class, true);
 
    private final static String PORTFOLIO_ID = "PortfolioID";
    private final static String EDIT_MODE = "EditMode";
@@ -72,7 +72,7 @@ public class OpEditPortfolioFormProvider implements XFormProvider {
          desc.setEnabled(false);
       }
 
-      if (OpEnvironmentManager.isMultiUser()) {
+      if (OpInitializer.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionSetFactory.retrievePermissionSet(session, broker, portfolio.getPermissions(), permissionSet,

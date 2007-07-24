@@ -1,8 +1,8 @@
 <language-kit locale="en">
 
    <resource-map id="project_planning.module">
-      <resource id="PlanningTool">Planning</resource>
-   </resource-map>
+        <resource id="PlanningTool">Planning</resource>
+    </resource-map>
 
    <resource-map id="project_planning.activities">
       <resource id="EditPlan">Edit</resource>
@@ -12,7 +12,7 @@
       <resource id="ExportProject">Export</resource>
       <resource id="Revert">Revert</resource>
       <resource id="Print">Print</resource>
-
+	   
       <resource id="Cut">Cut</resource>
       <resource id="Copy">Copy</resource>
       <resource id="Paste">Paste</resource>
@@ -46,13 +46,12 @@
 
       <resource id="CostsProjection">Cost Baseline</resource>
       <resource id="Activity">Activity</resource>
-      <resource id="Personnel">Pers. ({CurrencySymbol})</resource>
-      <resource id="Travel">Travel ({CurrencySymbol})</resource>
-      <resource id="Material">Material ({CurrencySymbol})</resource>
-      <resource id="External">External ({CurrencySymbol})</resource>
-      <resource id="Misc">Misc. ({CurrencySymbol})</resource>
-      <resource id="Costs">Costs ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
+      <resource id="Personnel">Pers. (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Misc. (€)</resource>
+      <resource id="Costs">Costs (€)</resource>
 
       <resource id="EditTooltip">Edit project plan</resource>
       <resource id="SaveTooltip">Save project plan</resource>
@@ -78,9 +77,7 @@
       <resource id="CopyActivities">Copy activities</resource>
       <resource id="PasteActivities">Paste activities</resource>
       <resource id="Undo">Undo</resource>
-      <resource id="Redo">Redo</resource>
-
-      <resource id="Total">Total</resource>
+      <resource id="Redo">Redo</resource>      
 
       <resource id="LoopErrorMessage">This action would cause a loop in the project plan</resource>
       <resource id="ResourcesErrorMessage">The resource name could not be found in the project's resource pool</resource>
@@ -93,7 +90,7 @@
       <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
       <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
@@ -144,7 +141,6 @@
       <resource id="Priority">Priority</resource>
       <resource id="Mandatory">Mandatory</resource>
       <resource id="ResponsibleResource">Responsible Resource</resource>
-      <resource id="Payment">Payment</resource>
 
       <resource id="Resources">Resources</resource>
       <resource id="Resource">Resource</resource>
@@ -154,18 +150,17 @@
       <resource id="Predecessor">Predecessors</resource>
 
       <resource id="Costs">Costs</resource>
-      <resource id="Personnel">Personnel ({CurrencySymbol})</resource>
-      <resource id="Travel">Travel ({CurrencySymbol})</resource>
-      <resource id="Material">Material ({CurrencySymbol})</resource>
-      <resource id="External">External ({CurrencySymbol})</resource>
-      <resource id="Misc">Miscellaneous ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
+      <resource id="Personnel">Personnel (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Miscellaneous (€)</resource>
 
       <resource id="Attachments">Attachments</resource>
-      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
-      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
-      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
-      <resource id="ViewAttachmentTooltip">View attachment</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+	  <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+	  <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+	  <resource id="ViewAttachmentTooltip">View attachment</resource>
 
       <resource id="Title">Title</resource>
       <resource id="Location">Location</resource>
@@ -188,7 +183,7 @@
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
-      
+
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>
 
@@ -201,7 +196,7 @@
 
       <resource id="Subject">Subject</resource>
       <resource id="Text">Text</resource>
-
+	   
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -238,7 +233,6 @@
       <resource id="Select">Select</resource>
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
-      <resource id="ChooseDocument">Select a document</resource>
    </resource-map>
 
    <resource-map id="project_planning.activity_details">
@@ -248,18 +242,13 @@
       <resource id="Duration">Duration (d)</resource>
       <resource id="PercentComplete">% Complete</resource>
       <resource id="Effort">Effort (h)</resource>
-      <resource id="Costs">Costs ({CurrencySymbol})</resource>
+      <resource id="Costs">Costs (€)</resource>
       <resource id="Resources">Resources</resource>
       <resource id="Category">Category</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
    </resource-map>
 
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
-   </resource-map>
-
-   <resource-map id="resource.incorrectFile">
-      <resource id="IncorrectFileName">Incorrect File Name</resource>
    </resource-map>
 
    <resource-map id="project_planning.error">
@@ -272,16 +261,15 @@
       <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
       <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
       <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
-      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contain work slips</resource>
 
       <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
       <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>
       <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
-      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
-      <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
-      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>
+
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
    </resource-map>
 
 </language-kit>

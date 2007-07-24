@@ -1,43 +1,40 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.project_resources.test;
 
 import onepoint.express.XComponent;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
+import onepoint.persistence.*;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
+import onepoint.project.modules.project.test.ProjectTestDataFactory;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
-import onepoint.project.modules.project_planning.test.OpProjectPlanningTestDataFactory;
+import onepoint.project.modules.project_planning.test.ProjectPlanningTestDataFactory;
 import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
-import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
+import onepoint.project.modules.resource.test.ResourceTestDataFactory;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
+import onepoint.project.modules.user.OpUserService;
+import onepoint.project.modules.user.test.UserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class test project cost methods.
  *
  * @author lucian.furtos
  */
-public class OpProjectResourceTest extends OpBaseOpenTestCase {
+public class OpProjectResourceTest extends OpBaseTestCase {
 
    private OpProjectPlanningService planningService;
-   private OpProjectPlanningTestDataFactory planningDataFactory;
-   private OpProjectTestDataFactory projectDataFactory;
-   private OpResourceTestDataFactory resourceDataFactory;
+   private ProjectPlanningTestDataFactory planningDataFactory;
+   private ProjectTestDataFactory projectDataFactory;
+   private ResourceTestDataFactory resourceDataFactory;
 
    private String res1Id;
    private String res2Id;
@@ -54,29 +51,29 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      planningService = OpTestDataFactory.getProjectPlanningService();
-      planningDataFactory = new OpProjectPlanningTestDataFactory(session);
-      projectDataFactory = new OpProjectTestDataFactory(session);
-      resourceDataFactory = new OpResourceTestDataFactory(session);
+      planningService = getProjectPlanningService();
+      planningDataFactory = new ProjectPlanningTestDataFactory(session);
+      projectDataFactory = new ProjectTestDataFactory(session);
+      resourceDataFactory = new ResourceTestDataFactory(session);
 
       clean();
 
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = resourceDataFactory.createResourceMsg("resource1", "description", 50d, 1d, 1d, false, poolid);
-      XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);
+      XMessage request = resourceDataFactory.createResourceMsg("resource1", "description", 50d, 1d, false, poolid);
+      XMessage response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res1Id = resourceDataFactory.getResourceByName("resource1").locator();
-      request = resourceDataFactory.createResourceMsg("resource2", "description", 70d, 7d, 7d, false, poolid);
-      response = OpTestDataFactory.getResourceService().insertResource(session, request);
+      request = resourceDataFactory.createResourceMsg("resource2", "description", 70d, 7d, false, poolid);
+      response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res2Id = resourceDataFactory.getResourceByName("resource2").locator();
-      request = resourceDataFactory.createResourceMsg("resource3", "description", 20d, 24d, 13d, false, poolid);
-      response = OpTestDataFactory.getResourceService().insertResource(session, request);
+      request = resourceDataFactory.createResourceMsg("resource3", "description", 20d, 24d, false, poolid);
+      response = getResourceService().insertResource(session, request);
       assertNoError(response);
       res3Id = resourceDataFactory.getResourceByName("resource3").locator();
 
-      request = OpProjectTestDataFactory.createProjectMsg("project", new Date(1), 1d, null, null);
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      request = ProjectTestDataFactory.createProjectMsg("project", new Date(1), 1d, null, null);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
       projId = projectDataFactory.getProjectId("project");
 
@@ -246,46 +243,60 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
+      UserTestDataFactory usrData = new UserTestDataFactory(session);
+      ArrayList ids = new ArrayList();
+      List users = usrData.getAllUsers();
+      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
+         OpUser user = (OpUser) iterator.next();
          if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
             continue;
          }
-         broker.deleteObject(user);
+         ids.add(user.locator());
+      }
+      XMessage request = new XMessage();
+      request.setArgument(OpUserService.SUBJECT_IDS, ids);
+      getUserService().deleteSubjects(session, request);
+
+      deleteAllObjects(OpWorkRecord.WORK_RECORD);
+      deleteAllObjects(OpWorkSlip.WORK_SLIP);
+      deleteAllObjects(OpAssignment.ASSIGNMENT);
+      deleteAllObjects(OpActivityComment.ACTIVITY_COMMENT);
+      deleteAllObjects(OpActivity.ACTIVITY);
+      deleteAllObjects(OpProjectPlan.PROJECT_PLAN);
+      deleteAllObjects(OpAssignmentVersion.ASSIGNMENT_VERSION);
+      deleteAllObjects(OpProjectPlanVersion.PROJECT_PLAN_VERSION);
+      deleteAllObjects(OpActivityVersion.ACTIVITY_VERSION);
+
+      List projectList = projectDataFactory.getAllProjects();
+      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
+         OpProjectNode project = (OpProjectNode) iterator.next();
+         projectDataFactory.deleteObject(project);
       }
 
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivityComment.ACTIVITY_COMMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-
-      for (OpProjectNode project : projectDataFactory.getAllProjects(broker)) {
-         broker.deleteObject(project);
+      List resoucesList = resourceDataFactory.getAllResources();
+      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
+         OpResource resource = (OpResource) iterator.next();
+         resourceDataFactory.deleteObject(resource);
       }
 
-      for (OpResource resource : resourceDataFactory.getAllResources(broker)) {
-         broker.deleteObject(resource);
-      }
-
-      for (OpResourcePool pool : resourceDataFactory.getAllResourcePools(broker)) {
+      List poolList = resourceDataFactory.getAllResourcePools();
+      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
+         OpResourcePool pool = (OpResourcePool) iterator.next();
          if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
             continue;
          }
-         broker.deleteObject(pool);
+         resourceDataFactory.deleteObject(pool);
       }
-
-      transaction.commit();
-      broker.close();
    }
 
+   private void deleteAllObjects(String prototypeName) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from " + prototypeName);
+      Iterator it = broker.list(query).iterator();
+      broker.close();
+      while (it.hasNext()) {
+         OpObject object = (OpObject) it.next();
+         projectDataFactory.deleteObject(object);
+      }
+   }
 }

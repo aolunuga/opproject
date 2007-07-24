@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.configuration;
@@ -36,7 +36,7 @@ public class OpConfigurationLoader extends XLoader {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpConfigurationLoader.class);
+   private static final XLog logger = XLogFactory.getLogger(OpConfigurationLoader.class);
 
    public OpConfigurationLoader() {
       super(new XDocumentHandler(CONFIGURATION_SCHEMA));

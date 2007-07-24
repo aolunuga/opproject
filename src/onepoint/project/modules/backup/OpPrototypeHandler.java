@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.backup;
@@ -22,7 +22,7 @@ public class OpPrototypeHandler implements XNodeHandler {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpPrototypeHandler.class);
+   private static final XLog logger = XLogFactory.getLogger(OpPropertyHandler.class);
 
    /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)
@@ -58,7 +58,7 @@ public class OpPrototypeHandler implements XNodeHandler {
       List backupMembers = ((OpRestoreContext) context).getBackupMembers(prototypeName);
       OpPrototype prototype = OpTypeManager.getPrototype(prototypeName);
       if (prototype == null) {
-    	  logger.error("No prototype named " + prototypeName + ". Will skip this prototype.");
+         throw new OpBackupException("No prototype named " + prototypeName);
       }
       Class accesorArgument = null;
       for (int i = 0; i < backupMembers.size(); i++) {
@@ -83,11 +83,7 @@ public class OpPrototypeHandler implements XNodeHandler {
          // Cache accessor method
          // (Note that we assume that persistent member names start with an upper-case letter)
          try {
-        	//we should be somewhat graceful. It may happen, that entities vanish...
-        	if(prototype != null)
-        	   backupMember.accessor = prototype.getInstanceClass().getMethod("set" + backupMember.name, new Class[]{accesorArgument});
-        	else
-        	   logger.error("cannot handle '" + prototypeName +"' as the corresponding prototype is missing in this version");
+            backupMember.accessor = prototype.getInstanceClass().getMethod("set" + backupMember.name, new Class[]{accesorArgument});
          }
          catch (NoSuchMethodException e) {
             //if the accesorArgument is a primitive...
@@ -104,11 +100,6 @@ public class OpPrototypeHandler implements XNodeHandler {
                logger.error("No accessor method for " + prototype.getName() + "." + backupMember.name);
             }
             // Note: Fields which do not have an accessors are not written
-         }
-         //TODO: that is very rude. But at least it keeps us trying. After we changed the backup-logic to be more clever,
-         //we should get rid of this "catch everything"...
-         catch (Exception e) {
-        	 logger.error("unexpected Exception occured:" + e.getMessage());
          }
       }
    }

@@ -7,9 +7,8 @@ import onepoint.project.modules.repository.OpRepositoryError;
 import onepoint.project.modules.repository.OpRepositoryService;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
+import onepoint.project.modules.user.test.UserTestDataFactory;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 import onepoint.service.server.XSession;
 
@@ -24,7 +23,7 @@ import java.util.Map;
  *
  * @author lucian.furtos
  */
-public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
+public class OpRepositoryServiceTest extends OpBaseTestCase {
 
    private static final String DEFAULT_USER = "tester";
    private static final String DEFAULT_PASSWORD = "pass";
@@ -53,14 +52,14 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       logIn();
       cleanUp();
 
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
+      UserTestDataFactory usrData = new UserTestDataFactory(session);
       OpUser user = usrData.getUserByName(DEFAULT_USER);
       if (user != null) {
          List ids = new ArrayList();
          ids.add(user.locator());
          XMessage request = new XMessage();
          request.setArgument(OpUserService.SUBJECT_IDS, ids);
-         OpTestDataFactory.getUserService().deleteSubjects(session, request);
+         getUserService().deleteSubjects(session, request);
       }
 
       super.tearDown();
@@ -123,7 +122,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       XMessage request = new XMessage();
       request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, BACKUP_ROOT_DIR);
 
-      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
+      XMessage response = getRepositoryService().backup(session, request);
       assertNoError(response);
 
       String fileName = (String) response.getArgument(OpRepositoryService.BACKUP_FILENAME_PARAMETER);
@@ -134,9 +133,9 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    public void testBackUpErrors()
         throws Exception {
       XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, "/");
+      request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, "?");
 
-      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
+      XMessage response = getRepositoryService().backup(session, request);
       assertError(response, OpRepositoryError.BACKUP_ERROR_CODE);
    }
 
@@ -144,7 +143,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       XMessage request = new XMessage();
       request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, BACKUP_ROOT_DIR);
-      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
+      XMessage response = getRepositoryService().backup(session, request);
       assertNoError(response);
       String fileName = (String) response.getArgument(OpRepositoryService.BACKUP_FILENAME_PARAMETER);
       File file = new File(BACKUP_ROOT_DIR, fileName);
@@ -155,7 +154,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
 
       request = new XMessage();
       request.setArgument("restoreFile", file.getCanonicalPath());
-      response = OpTestDataFactory.getRepositoryService().restore(session, request);
+      response = getRepositoryService().restore(session, request);
       assertNoError(response);
       assertFalse(newSession.isValid());
    }
@@ -164,40 +163,40 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       XMessage request = new XMessage();
       request.setArgument("restoreFile", BACKUP_ROOT_DIR);
-      XMessage response = OpTestDataFactory.getRepositoryService().restore(session, request);
+      XMessage response = getRepositoryService().restore(session, request);
       assertError(response, OpRepositoryError.RESTORE_ERROR_CODE);
 
       request = new XMessage();
       request.setArgument("restoreFile", "nosuchfile");
-      response = OpTestDataFactory.getRepositoryService().restore(session, request);
+      response = getRepositoryService().restore(session, request);
       assertError(response, OpRepositoryError.RESTORE_ERROR_CODE);
    }
 
    public void testReset()
         throws Exception {
       XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.ADMIN_PASSWORD_PARAMETER, OpUser.BLANK_PASSWORD);
-      XMessage response = OpTestDataFactory.getRepositoryService().reset(session, request);
+      request.setArgument(OpRepositoryService.ADMIN_PASSWORD_PARAMETER, OpUserService.BLANK_PASSWORD);
+      XMessage response = getRepositoryService().reset(session, request);
       assertNoError(response);
    }
 
    public void testPermission()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
       userData.put(OpUserService.LANGUAGE, "en");
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
+      XMessage response = getUserService().insertUser(session, request);
       assertNoError(response);
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
 
-      response = OpTestDataFactory.getRepositoryService().backup(session, new XMessage());
+      response = getRepositoryService().backup(session, new XMessage());
       assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
 
-      response = OpTestDataFactory.getRepositoryService().restore(session, new XMessage());
+      response = getRepositoryService().restore(session, new XMessage());
       assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
 
-      response = OpTestDataFactory.getRepositoryService().reset(session, new XMessage());
+      response = getRepositoryService().reset(session, new XMessage());
       assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
    }
 }

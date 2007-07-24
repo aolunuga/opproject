@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_costs;
@@ -9,10 +9,9 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityDataSetFactory;
-import onepoint.project.modules.project.OpActivityVersion;
 import onepoint.project.modules.project.OpProjectNode;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +36,6 @@ public final class OpProjectCostsDataSetFactory {
    public static final int TRAVEL_COST_INDEX = 2;
    public static final int EXTERNAL_COST_INDEX = 3;
    public static final int MISC_COST_INDEX = 4;
-   public static final int PROCEEDS_COST_INDEX = 5;
 
    /**
     * Fills the given dataSet with cost related information for
@@ -49,56 +47,19 @@ public final class OpProjectCostsDataSetFactory {
     * @param costNames         Map with the costs display titles.
     */
    public static void fillCostsDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set, Map costNames) {
-      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
+      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? and activity.Deleted = false order by activity.Sequence");
       query.setID(0, project.getID());
-      List<OpActivity> activities = broker.list(query);
-
-      boolean useBaseline = false;
-      if (project.getPlan().getBaselineVersion() != null) {
-         useBaseline = true;
-         for (OpActivity activity : activities) {
-            activity.setIsUsingBaselineValues(true);
+      Iterator activities = broker.iterate(query);
+      OpActivity activity;
+      while (activities.hasNext()) {
+         activity = (OpActivity) (activities.next());
+         if (activity.getType() == OpActivity.MILESTONE) {
+            continue;
+         }
+         if (activity.getOutlineLevel() <= max_outline_level) {
+            addActivityToCostDataSet(data_set, activity, costNames);
          }
       }
-
-      for (OpActivity activity : activities) {
-         if (useBaseline) {
-            if (!activity.isInBaselineVersion()) {
-               continue;
-            }
-            OpActivityVersion baselineVersion = activity.getBaselineVersion();
-            if (baselineVersion.getType() == OpActivity.MILESTONE && activity.getType() == OpActivity.MILESTONE) {
-               continue;
-            }
-            if (activity.getType() == OpActivity.MILESTONE || activity.getDeleted()) {
-               double baseValuesSum = baselineVersion.getBaseExternalCosts() + baselineVersion.getBaseMaterialCosts() +
-                    baselineVersion.getBaseMiscellaneousCosts() + baselineVersion.getBasePersonnelCosts() +
-                    baselineVersion.getBaseProceeds() + baselineVersion.getBaseTravelCosts();
-               if (baseValuesSum == 0) {
-                  continue;
-               }
-            }
-         }
-         else {
-            if (activity.getDeleted()) {
-               continue;
-            }
-            if (activity.getType() == OpActivity.MILESTONE) {
-               continue;
-            }
-            if (activity.getOutlineLevel() > max_outline_level) {
-               continue;
-            }
-         }
-
-         addActivityToCostDataSet(data_set, activity, costNames);
-      }
-
-      //reset the use of baseline values
-      for (OpActivity activity : activities) {
-         activity.setIsUsingBaselineValues(false);
-      }
-
    }
 
    /**
@@ -110,21 +71,21 @@ public final class OpProjectCostsDataSetFactory {
     */
    private static void addActivityToCostDataSet(XComponent data_set, OpActivity activity, Map costNames) {
       // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining (Therefore, deviation = predicted - base)
+      // TODO: NL actually means effort-to-complete w/remaining (Add as separate, additional column?)
 
       XComponent baseActivityRow = createActivityRow(activity);
       data_set.addChild(baseActivityRow);
 
-      //predicted
       double activityPredicted = addActivityCostDetails(costNames, activity, data_set);
+
+      //predicted
       XComponent data_cell = (XComponent) baseActivityRow.getChild(PREDICTED_COLUMN_INDEX);
       data_cell.setDoubleValue(activityPredicted);
-
       //deviation
       double activityBase = activity.calculateBaseCost();
       data_cell = (XComponent) baseActivityRow.getChild(DEVIATION_COLUMN_INDEX);
       double activityDeviation = activityPredicted - activityBase;
       data_cell.setDoubleValue(activityDeviation);
-
       //% deviation
       data_cell = (XComponent) baseActivityRow.getChild(DEVIATION100_COLUMN_INDEX);
       data_cell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(activityBase, activityDeviation));
@@ -139,95 +100,85 @@ public final class OpProjectCostsDataSetFactory {
     * @return Predicted cost for given activity.
     */
    private static double addActivityCostDetails(Map costNames, OpActivity activity, XComponent data_set) {
+
       double remaining;
       double predicted;
       double deviation;
       double activityPredicted = 0;
       String text = null;
-      for (int type = 0; type <= 5; type++) {
+      for (int i = 0; i <= 4; i++) {
          double base = 0;
          double actual = 0;
-         switch (type) {
+         switch (i) {
             case PERSONNEL_COST_INDEX:
                if (costNames != null) {
-                  text = (String) costNames.get(PERSONNEL_COST_INDEX);
+                  text = (String) costNames.get(new Integer(PERSONNEL_COST_INDEX));
                }
                base = activity.getBasePersonnelCosts();
                actual = activity.getActualPersonnelCosts();
                break;
             case MATERIAL_COST_INDEX:
                if (costNames != null) {
-                  text = (String) costNames.get(MATERIAL_COST_INDEX);
+                  text = (String) costNames.get(new Integer(MATERIAL_COST_INDEX));
                }
                base = activity.getBaseMaterialCosts();
                actual = activity.getActualMaterialCosts();
                break;
             case TRAVEL_COST_INDEX:
                if (costNames != null) {
-                  text = (String) costNames.get(TRAVEL_COST_INDEX);
+                  text = (String) costNames.get(new Integer(TRAVEL_COST_INDEX));
                }
                base = activity.getBaseTravelCosts();
                actual = activity.getActualTravelCosts();
                break;
             case EXTERNAL_COST_INDEX:
                if (costNames != null) {
-                  text = (String) costNames.get(EXTERNAL_COST_INDEX);
+                  text = (String) costNames.get(new Integer(EXTERNAL_COST_INDEX));
                }
                base = activity.getBaseExternalCosts();
                actual = activity.getActualExternalCosts();
                break;
             case MISC_COST_INDEX:
                if (costNames != null) {
-                  text = (String) costNames.get(MISC_COST_INDEX);
+                  text = (String) costNames.get(new Integer(MISC_COST_INDEX));
                }
                base = activity.getBaseMiscellaneousCosts();
                actual = activity.getActualMiscellaneousCosts();
                break;
-            case PROCEEDS_COST_INDEX:
-               if (costNames != null) {
-                  text = (String) costNames.get(PROCEEDS_COST_INDEX);
-               }
-               base = activity.getBaseProceeds();
-               actual = activity.getActualProceeds();
-               break;
          }
+         // TODO: NL actually means cost-to-complete w/remaining(Add as separate, additional column?)
+         // TODO: Actually we probably need a form of cost-to-complete
          remaining = base - actual;
 
          //calculate predicted based on the children activities
-         predicted = childrenSumPredictedCosts(activity, type);
+         predicted = childrenSumPredictedCosts(activity, i);
          activityPredicted += predicted;
 
          deviation = predicted - base;
-
          XComponent data_row = new XComponent(XComponent.DATA_ROW);
          data_row.setOutlineLevel(activity.getOutlineLevel() + 1);
          data_row.setExpanded(true);
          XComponent data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setStringValue(text); //0 - name
+         data_cell.setStringValue(text);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(base);  //1 - base value
+         data_cell.setDoubleValue(base);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(actual); //2 - actual value
+         data_cell.setDoubleValue(actual);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(remaining); //3 - remaining value
+         data_cell.setDoubleValue(remaining);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(predicted); //4- predicted value
+         data_cell.setDoubleValue(predicted);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(deviation); //5 - deviation value
+         data_cell.setDoubleValue(deviation);
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         double percentDeviation = OpActivityDataSetFactory.calculatePercentDeviation(base, deviation);
-         data_cell.setDoubleValue(percentDeviation); //6 - percent deviation
+         data_cell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(base, deviation));
          data_row.addChild(data_cell);
-         data_cell = new XComponent(XComponent.DATA_CELL); //7 - type
-         data_cell.setByteValue((byte) 0);
-         data_row.addChild(data_cell);
-
          data_set.addChild(data_row);
       }
       return activityPredicted;
@@ -241,43 +192,37 @@ public final class OpProjectCostsDataSetFactory {
     * @return data row containing cost realtef information for the given activity.
     */
    private static XComponent createActivityRow(OpActivity activity) {
+      XComponent data_row;
+
       double base = activity.calculateBaseCost();
       double actual = activity.calculateActualCost();
       double remaining = base - actual;
+      double predicted = calculatePredicted(activity.getComplete(), actual, base);
+      double deviation = predicted - base;
 
-      XComponent data_row = new XComponent(XComponent.DATA_ROW);
+      data_row = new XComponent(XComponent.DATA_ROW);
       data_row.setOutlineLevel(activity.getOutlineLevel());
       data_row.setExpanded(true);
-
       XComponent data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setStringValue(activity.getName());
       data_row.addChild(data_cell); //0 - name
-
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setDoubleValue(base);
       data_row.addChild(data_cell); //1 - base
-
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setDoubleValue(actual);
       data_row.addChild(data_cell); //2 - actual
-
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_cell.setDoubleValue(remaining);
       data_row.addChild(data_cell); //3 - remaining
-
-      //predicted, deviation and %deviation are only added without value (values are set after calculating the children)
       data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setDoubleValue(predicted);
       data_row.addChild(data_cell); //4 - predicted
-
       data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setDoubleValue(deviation);
       data_row.addChild(data_cell); //5 deviation
-
       data_cell = new XComponent(XComponent.DATA_CELL);
       data_row.addChild(data_cell);  //6 %deviation
-
-      data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setByteValue(activity.getType());
-      data_row.addChild(data_cell); //7 - type
 
       return data_row;
    }
@@ -315,43 +260,40 @@ public final class OpProjectCostsDataSetFactory {
     * @return value of the predicted
     */
    private static double childrenSumPredictedCosts(OpActivity activity, int type) {
-      Set<OpActivity> activities = activity.getSubActivities();
+      Set activities = activity.getSubActivities();
       double predicted = 0;
-
-      boolean isUsingBaselineValues = activity.isUsingBaselineValues();
-      activity.setIsUsingBaselineValues(false);
-
       if (activities.isEmpty()) {
+         double base = 0, actual = 0;
          switch (type) {
             case PERSONNEL_COST_INDEX:
-               predicted = calculatePredicted(activity.getComplete(), activity.getActualPersonnelCosts(), activity.getBasePersonnelCosts());
+               base = activity.getBasePersonnelCosts();
+               actual = activity.getActualPersonnelCosts();
                break;
             case MATERIAL_COST_INDEX:
-               predicted = activity.getActualMaterialCosts() + activity.getRemainingMaterialCosts();
+               base = activity.getBaseMaterialCosts();
+               actual = activity.getActualMaterialCosts();
                break;
             case TRAVEL_COST_INDEX:
-               predicted = activity.getActualTravelCosts() + activity.getRemainingTravelCosts();
+               base = activity.getBaseTravelCosts();
+               actual = activity.getActualTravelCosts();
                break;
             case EXTERNAL_COST_INDEX:
-               predicted = activity.getActualExternalCosts() + activity.getRemainingExternalCosts();
+               base = activity.getBaseExternalCosts();
+               actual = activity.getActualExternalCosts();
                break;
             case MISC_COST_INDEX:
-               predicted = activity.getActualMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts();
+               base = activity.getBaseMiscellaneousCosts();
+               actual = activity.getActualMiscellaneousCosts();
                break;
-            case PROCEEDS_COST_INDEX:
-               predicted = calculatePredicted(activity.getComplete(), activity.getActualProceeds(), activity.getBaseProceeds());
-               break;
-            default: {
-               throw new IllegalArgumentException("Invalid cost type parameter");
-            }
          }
+         predicted = calculatePredicted(activity.getComplete(), actual, base);
       }
       else {
-         for (OpActivity child : activities) {
+         for (Iterator iterator = activities.iterator(); iterator.hasNext();) {
+            OpActivity child = (OpActivity) iterator.next();
             predicted += childrenSumPredictedCosts(child, type);
          }
       }
-      activity.setIsUsingBaselineValues(isUsingBaselineValues);
       return predicted;
    }
 }

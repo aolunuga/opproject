@@ -1,4 +1,4 @@
-<holiday-calendars location="${ro}">
+<holiday-calendars location="{$ro}">
    <holiday-calendar year="2006">
       <holiday date="01-01" name="Anul Nou"/>
       <holiday date="01-02" name="Anul Nou"/>

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.schedule.test;
@@ -9,7 +9,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.schedule.OpSchedule;
 import onepoint.project.modules.schedule.OpScheduler;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.test.OpBaseOpenTestCase;
+import onepoint.project.test.OpBaseTestCase;
 
 import java.sql.Date;
 import java.util.Iterator;
@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @author lucian.furtos
  */
-public class OpSchedulerTest extends OpBaseOpenTestCase {
+public class OpSchedulerTest extends OpBaseTestCase {
    private static final String SCHEDULE_NAME = "S1";
 
    /**

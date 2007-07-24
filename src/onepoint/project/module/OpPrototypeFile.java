@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.module;
@@ -11,6 +11,7 @@ import onepoint.project.util.OpProjectConstants;
 public class OpPrototypeFile {
 
    private String fileName;
+   private OpPrototype prototype;
 
    public final void setFileName(String file_name) {
       fileName = file_name;

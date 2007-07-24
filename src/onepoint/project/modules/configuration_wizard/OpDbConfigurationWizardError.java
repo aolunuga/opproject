@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard;
@@ -28,5 +28,6 @@ public class OpDbConfigurationWizardError {
    public final static String GENERAL_CONNECTION_ERROR_NAME = "GeneralConnectionError";
    public final static String JDBC_DRIVER_ERROR_NAME = "JDBCDriverError";
    public final static String DATABASE_PATH_MISSING_NAME = "DatabasePathMissing";
-   public final static String INVALID_MYSQL_ENGINE_NAME = "InvalidMySqlEngine";   
+   public final static String INVALID_MYSQL_ENGINE_NAME =  "InvalidMySQLEngine";
+
 }

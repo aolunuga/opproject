@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_activity.oxf.xml
@@ -373,13 +373,6 @@ function ok(event) {
       }
       misc = form.findComponent("MiscellaneousCosts").getDoubleValue();
       if (!activity_set.setDataCellValue(activity_row, 15, misc, form)){
-         validator.setContinuousAction(false);
-         return;
-      }
-
-      //payment
-      payment = form.findComponent("Payment").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 29, payment, form)){
          validator.setContinuousAction(false);
          return;
       }

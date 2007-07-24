@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -32,7 +32,6 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.PROJECT_SAVE_ERROR, OpProjectPlanningError.PROJECT_SAVE_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST, OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST_NAME);
       registerErrorCode(OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR_NAME);
-      registerErrorCode(OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT_NAME);
-      registerErrorCode(OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT_NAME);
+
    }
 }

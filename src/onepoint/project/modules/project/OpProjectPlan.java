@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -26,7 +26,6 @@ public class OpProjectPlan extends OpObject {
    public final static String WORK_PERIODS = "WorkPeriods";
    public final static String DEPENDENCIES = "Dependencies";
    public final static String VERSIONS = "Versions";
-   public final static String BASELINE_VERSION = "BaselineVersion";
 
    // Calculation modes
    public static final byte EFFORT_BASED = OpGanttValidator.EFFORT_BASED;
@@ -38,13 +37,12 @@ public class OpProjectPlan extends OpObject {
    private boolean progressTracked = true;
    private boolean template;
    private OpProjectNode projectNode;
-   private Set<OpActivity> activities;
-   private Set<OpAttachment> activityAttachments;
-   private Set<OpAssignment> activityAssignments;
-   private Set<OpWorkPeriod> workPeriods;
-   private Set<OpDependency> dependencies;
-   private Set<OpProjectPlanVersion> versions;
-   private OpProjectPlanVersion baselineVersion;
+   private Set activities;
+   private Set activityAttachments;
+   private Set activityAssignments;
+   private Set workPeriods;
+   private Set dependencies;
+   private Set versions;
 
    public void setStart(Date start) {
       this.start = start;
@@ -69,7 +67,7 @@ public class OpProjectPlan extends OpObject {
    public byte getCalculationMode() {
       return calculationMode;
    }
-
+   
    public void setProgressTracked(boolean progressTracked) {
       this.progressTracked = progressTracked;
    }
@@ -77,11 +75,11 @@ public class OpProjectPlan extends OpObject {
    public boolean getProgressTracked() {
       return progressTracked;
    }
-
+   
    public void setTemplate(boolean template) {
       this.template = template;
    }
-
+   
    public boolean getTemplate() {
       return template;
    }
@@ -94,72 +92,52 @@ public class OpProjectPlan extends OpObject {
       return projectNode;
    }
 
-   public void setActivities(Set<OpActivity> activities) {
+   public void setActivities(Set activities) {
       this.activities = activities;
    }
 
-   public Set<OpActivity> getActivities() {
+   public Set getActivities() {
       return activities;
    }
 
-   public void setActivityAttachments(Set<OpAttachment> activityAttachments) {
+   public void setActivityAttachments(Set activityAttachments) {
       this.activityAttachments = activityAttachments;
    }
 
-   public Set<OpAttachment> getActivityAttachments() {
+   public Set getActivityAttachments() {
       return activityAttachments;
    }
 
-   public void setActivityAssignments(Set<OpAssignment> activityAssignments) {
+   public void setActivityAssignments(Set activityAssignments) {
       this.activityAssignments = activityAssignments;
    }
 
-   public Set<OpAssignment> getActivityAssignments() {
+   public Set getActivityAssignments() {
       return activityAssignments;
    }
 
-   public void setWorkPeriods(Set<OpWorkPeriod> workPeriods) {
+   public void setWorkPeriods(Set workPeriods) {
       this.workPeriods = workPeriods;
    }
 
-   public Set<OpWorkPeriod> getWorkPeriods() {
+   public Set getWorkPeriods() {
       return workPeriods;
    }
 
-   public void setDependencies(Set<OpDependency> dependencies) {
+   public void setDependencies(Set dependencies) {
       this.dependencies = dependencies;
    }
 
-   public Set<OpDependency> getDependencies() {
+   public Set getDependencies() {
       return dependencies;
    }
 
-   public void setVersions(Set<OpProjectPlanVersion> versions) {
+   public void setVersions(Set versions) {
       this.versions = versions;
    }
 
-   public Set<OpProjectPlanVersion> getVersions() {
+   public Set getVersions() {
       return versions;
    }
 
-   /**
-    * Copies the start date and end date from the project plan.
-    */
-   public void copyDatesFromProject() {
-      this.setStart(projectNode.getStart());
-      if (projectNode.getFinish() != null) {
-         this.setFinish(projectNode.getFinish());
-      }
-      else {
-         this.setFinish(projectNode.getStart());
-      }
-   }
-
-   public OpProjectPlanVersion getBaselineVersion() {
-      return baselineVersion;
-   }
-
-   public void setBaselineVersion(OpProjectPlanVersion baselineVersion) {
-      this.baselineVersion = baselineVersion;
-   }
 }

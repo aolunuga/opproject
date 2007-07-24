@@ -1,4 +1,4 @@
-<prototype name="OpAttachmentVersion" instance-class="onepoint.project.modules.project.OpAttachmentVersion" super-type="OpObject">
+<prototype name="OpAttachmentVersion" instance-class="onepoint.project.modules.project.OpAttachmentVersion">
    <field name="Name" type="String"/>
    <field name="Linked" type="Boolean"/>
    <field name="Location" type="String"/>

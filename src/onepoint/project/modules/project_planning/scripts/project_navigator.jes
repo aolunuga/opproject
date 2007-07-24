@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Event-script for projects.oxf.xml
@@ -17,11 +17,11 @@ function changeProject(event) {
       return;
    }
    selected_rows = project_data_set.selectedRows();
-   if (selected_rows.size() == 1) {
+   if (selected_rows.size() > 0) {
       parameters.project_id = selected_rows[0].getStringValue();
-      descriptor = selected_rows[0].getChild(0).getStringValue();
+      icon_index = XValidator.choiceIconIndex(parameters.project_id);
       // only update project status if user selected a project or template (not a portfolio)
-      if (descriptor.equals("p") || descriptor.equals("t")) {
+      if ((icon_index == 2) || (icon_index == 1)) {
 
          contentFrame = XDisplay.findFrame("ProjectContentFrame");
          
@@ -56,13 +56,12 @@ function resizeDivision(event){
 
 function retrieveChildren(event) {
    dataRow = event.expand_source;
-   archivedProjectsIds = dataRow.getForm().findComponent("ArchivedProjects").getListValue();
+
    request = new XMessage;
    request.setAction("ProjectService.expandProjectNode");
    request.setArgument("project_row", dataRow);
-   request.setArgument("FilteredOutIds", archivedProjectsIds);
    //not tabular
    request.setArgument("tabular", false);      
-   expandNode(dataRow, 1, request);
+   expandNode(dataRow, 0, request);
 }
 

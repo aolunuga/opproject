@@ -1,8 +1,8 @@
 
-JAR=opproject-07.1-be.jar
+JAR=opproject-07u2-be.jar
 
 if [ -e "$JAVA_HOME" ]; then
     $JAVA_HOME/bin/java -jar $JAR
-else 
+else
     java -jar $JAR
 fi

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for new_portfolio.oxf.xml
@@ -14,9 +14,9 @@ import onepoint.service.XMessage;
 
 function ok(event) {
    form = XDisplay.getActiveForm();
-
-   portfolio_data.Type = 1;
+   
    portfolio_data.SuperPortfolioID = form.findComponent("SuperPortfolioID").getStringValue();
+   
    portfolio_data.Name = form.findComponent("Name").getStringValue();
    portfolio_data.Description = form.findComponent("Description").getStringValue();
 

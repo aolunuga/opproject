@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for new_user.oxf.xml
@@ -12,7 +12,7 @@ import onepoint.express.XComponent;
 import onepoint.service.XMessage;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.XValidator;
-import onepoint.project.util.OpHashProvider;
+import onepoint.project.util.OpSHA1;
 
 function ok(event) {
    // Gather user-data
@@ -25,10 +25,10 @@ function ok(event) {
    user_data.LastName = form.findComponent("LastName").getStringValue();
    user_data.Name = form.findComponent("Name").getStringValue();
    if (password != null) {
-      user_data.Password = OpHashProvider.calculateHash(password, "SHA-1");
+      user_data.Password = OpSHA1.calculateHash(password);
    }
    if (password_retyped != null) {
-      user_data.PasswordRetyped = OpHashProvider.calculateHash(password_retyped, "SHA-1");
+      user_data.PasswordRetyped = OpSHA1.calculateHash(password_retyped);
    }
 
    userLevel = form.findComponent("UserLevel").getStringValue();

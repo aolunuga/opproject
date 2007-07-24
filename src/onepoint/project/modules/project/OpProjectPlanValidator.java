@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -11,7 +11,6 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.components.OpGanttValidator;
 
-import java.sql.Date;
 import java.util.HashMap;
 
 /**
@@ -24,7 +23,7 @@ public class OpProjectPlanValidator {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanValidator.class);
+   private static final XLog logger = XLogFactory.getLogger(OpProjectPlanValidator.class, true);
 
    /**
     * The project plan that will be validated.
@@ -56,7 +55,7 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(broker, resources);
+      OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
       this.validatePlan(broker, validator, modifier, resources);
 
@@ -65,19 +64,21 @@ public class OpProjectPlanValidator {
 
    /**
     * Validates the working plan versions for the given project plan.
-    *
     * @param broker   a <code>OpBroker</code> used for persistence operations.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    *                 Can be <code>null</code>.
+    * @param modifier  a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    *                  Can be <code>null</code>.
     */
    public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
+      OpTransaction tx = broker.newTransaction();
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating working version plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(broker, resources);
+      OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+
+      tx.commit();
    }
 
    /**
@@ -125,16 +126,12 @@ public class OpProjectPlanValidator {
    /**
     * Creates a Gantt validation object that will update a project plan.
     *
-    * @param broker
-    * @param resources a <code>HashMap</code> of resources. @return a <code>OpGanttValidator</code> instance.
+    * @param resources a <code>HashMap</code> of resources.
+    * @return a <code>OpGanttValidator</code> instance.
     */
-   private OpGanttValidator createValidator(OpBroker broker, HashMap resources) {
+   private OpGanttValidator createValidator(HashMap resources) {
       OpGanttValidator validator = new OpGanttValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
-      Date finish = projectPlan.getProjectNode().getFinish();
-      validator.setProjectFinish(finish);
-      validator.setProjectPlanFinish(projectPlan.getProjectNode().getFinish());
-
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
       validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
@@ -142,11 +139,6 @@ public class OpProjectPlanValidator {
       XComponent resourceDataSet = new XComponent();
       OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
       validator.setAssignmentSet(resourceDataSet);
-      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
-      OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-           projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-      OpActivityDataSetFactory.fillHourlyRatesDataSet(projectPlan.getProjectNode(), workingPlanVersion, hourlyRates);
-      validator.setHourlyRatesDataSet(hourlyRates);
       return validator;
    }
 

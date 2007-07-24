@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for edit_pool.oxf.xml
@@ -29,12 +29,9 @@ function ok_edit(event) {
    hourlyRate = form.findComponent("HourlyRate").getDoubleValue();
    pool_data.HourlyRate = hourlyRate;
    originalHourlyRate = form.findComponent("OriginalHourlyRate").getDoubleValue();
-   externalRate = form.findComponent("ExternalRate").getDoubleValue();
-   pool_data.ExternalRate = externalRate;
-   originalExternalRate = form.findComponent("OriginalExternalRate").getDoubleValue();
    pool_data.PermissionSet = form.findComponent("PermissionSet");
 
-   if (hourlyRate != originalHourlyRate || externalRate != originalExternalRate){
+   if (hourlyRate != originalHourlyRate){
       //if any of the resources in the pool have assignments
       pool_id = form.findComponent("PoolID").getStringValue();
       request = new XMessage;

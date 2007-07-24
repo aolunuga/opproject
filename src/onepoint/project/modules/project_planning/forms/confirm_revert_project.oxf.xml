@@ -1,4 +1,4 @@
-<form width="400" height="80" layout="border" resource-map-ref="project_planning.RevertProjectPlan" text="${ConfirmRevert}"
+<form width="400" height="80" layout="border" resource-map-ref="project_planning.RevertProjectPlan" text="{$ConfirmRevert}"
       provider-class="onepoint.project.modules.project_planning.forms.OpConfirmRevertProjectFormProvider"
       script="/modules/project_planning/scripts/confirm_revert_project.jes">
    <panel y="0" layout="border">
@@ -7,8 +7,8 @@
 	   
    <panel y="1" layout="flow" direction="west">
 	  <panel layout="border">
-      <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok"/>
-      <button x="1" id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+      <button x="0" id="OkButton" text="{$OK}" on-button-pressed="ok"/>
+      <button x="1" id="CancelButton" text="{$Cancel}" on-button-pressed="cancel"/>
 	  </panel>
    </panel>
 	   

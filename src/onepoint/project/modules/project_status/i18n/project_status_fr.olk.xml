@@ -8,6 +8,7 @@
 
       <resource id="NewProjectStatus">Nouveau Statut de Projet</resource>
       <resource id="Properties">Propriétés</resource>
+      <resource id="Edit">Modifier</resource>
       <resource id="Delete">Supprimer</resource>
       <resource id="Up">Monter</resource>
       <resource id="Down">Descendre</resource>
@@ -18,6 +19,7 @@
 
       <resource id="NewProjectStatusTooltip">Créer un nouveau statut de projet</resource>
       <resource id="InfoTooltip">Voir les informations pour le statut de projet choisi</resource>
+      <resource id="EditTooltip">Modifier les informations pour le statut de projet choisi</resource>
       <resource id="DeleteTooltip">Supprimer les statuts de projet choisis</resource>
       <resource id="UpTooltip">Monter le status de projet choisi</resource>
       <resource id="DownTooltip">Descendre le status de projet choisi</resource>
@@ -56,10 +58,10 @@
    </resource-map>
 
    <resource-map id="project_status.error">
-      <resource id="StatusNameNotSpecified">Le nom de statut du projet n'a pas été entré</resource>
-      <resource id="StatusNameNotUnique">Le nom de statut du projet est déjà utilisé</resource>
-      <resource id="StatusNotFound">Le statut de projet n'a pas été trouvé</resource>
-      <resource id="InsufficientPrivileges">Seul l'administrateur est autorisé à modifier les objets de projet</resource>
+      <resource id="ProjectStatusNameNotSpecified">Le nom de statut du projet n'a pas été entré</resource>
+      <resource id="ProjectStatusNameNotUnique">Le nom de statut du projet est déjà utilisé</resource>
+      <resource id="ProjectStatusNotFound">Le statut de projet n'a pas été trouvé</resource>
+      <resource id="InsuffcientPrivileges">Seul l'administrateur est autorisé à modifier les objets de projet</resource>
    </resource-map>
 
 </language-kit>

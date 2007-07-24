@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings.forms;
@@ -11,55 +11,47 @@ import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
+import onepoint.project.OpInitializer;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.util.XCalendar;
 
-import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * <FIXME author="Horia Chiorean" description="Refactor the form provider into smaller methods for each setting !">
- */
 public class OpSettingsFormProvider implements XFormProvider {
 
-   private static XLog logger = XLogFactory.getServerLogger(OpSettingsFormProvider.class);
+   private static XLog logger = XLogFactory.getLogger(OpSettingsFormProvider.class, true);
 
-   private static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
-   private static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";
-   private static final String LAST_WORKDAY_DATA_SET = "LastWorkdayDataSet";
-   private static final String HOLIDAYS_DATA_SET = "HolidaysDataSet";
+   public static final String USER_LOCALE_DATA_SET = "UserLocaleDataSet";
+   public static final String FIRST_WORKDAY_DATA_SET = "FirstWorkdayDataSet";
+   public static final String LAST_WORKDAY_DATA_SET = "LastWorkdayDataSet";
+   public static final String HOLIDAYS_DATA_SET = "HolidaysDataSet";
 
-   private static final String USER_LOCALE = "UserLocale";
-   private static final String FIRST_WORK_DAY = "FirstWorkday";
-   private static final String LAST_WORK_DAY = "LastWorkday";
-   private static final String HOLYDAYS = "HolidaysChoice";
-   private static final String DAY_WORK_TIME = "DayWorkTime";
-   private static final String WEEK_WORK_TIME = "WeekWorkTime";
-   private static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
-   private static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
-   private static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
-   private static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
-   private static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
-   private static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
-   private static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
-   private static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
-   private static final String PULSING = "Pulsing";
-   private static final String ENABLE_PULSING = "EnablePulsing";
-   private static final String SAVE_BUTTON = "Save";
-   private static final String SELECT_CALENDAR = "${SelectCalendar}";
-   private static final String CURRENCY_CHOICE_ID = "CurrencyChoice";
-   private static final String CURRENCY_DATASET_ID = "CurrencyDataSet";
-   private static final String CURRENCY_NAME_SYMBOL_SEPARATOR_ID = "CurrencyNameSymbolSeparator";
+   public static final String USER_LOCALE = "UserLocale";
+   public static final String FIRST_WORK_DAY = "FirstWorkday";
+   public static final String LAST_WORK_DAY = "LastWorkday";
+   public static final String HOLYDAYS = "HolidaysChoice";
+   public static final String DAY_WORK_TIME = "DayWorkTime";
+   public static final String WEEK_WORK_TIME = "WeekWorkTime";
+   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
+   public static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
+   public static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
+   public static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
+   public static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
+   public static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
+   public static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
+   public static final String SAVE_BUTTON = "Save";
+   public static final String SELECT_CALENDAR = "{$SelectCalendar}";
 
    // Resource map names
    public static final String SETTINGS_SETTINGS = "settings.settings";
@@ -94,32 +86,59 @@ public class OpSettingsFormProvider implements XFormProvider {
       localizer.setResourceMap(resourceMap);
       fillHolidaysDataSet(holidaysDataSet, holidays, lastLocation, localizer);
 
-      fillWorkTime(form);
+      XComponent dayWorkTimeField = form.findComponent(DAY_WORK_TIME);
+      String dayWorkTimeString = OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
+      double dayWorkTime;
+      try {
+         dayWorkTime = Double.valueOf(dayWorkTimeString).doubleValue();
+      }
+      catch (NumberFormatException e) {
+         dayWorkTime = 0;
+      }
+      dayWorkTimeField.setDoubleValue(dayWorkTime);
+      logger.debug("   dwt " + dayWorkTimeString);
+
+      XComponent weekWorkTimeField = form.findComponent(WEEK_WORK_TIME);
+      String weekWorkTimeString = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      double weekWorkTime;
+      try {
+         weekWorkTime = Double.valueOf(weekWorkTimeString).doubleValue();
+      }
+      catch (NumberFormatException e) {
+         weekWorkTime = 0;
+      }
+      weekWorkTimeField.setDoubleValue(weekWorkTime);
 
       String resourceMaxAvailability = OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY);
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
       double available = 0;
       try {
-         available = Double.valueOf(resourceMaxAvailability);
+         available = Double.valueOf(resourceMaxAvailability).doubleValue();
       }
       catch (NumberFormatException e) {
          logger.warn("Error in parsing double number " + resourceMaxAvailability);
       }
       resourceMaxAvailabilityTextField.setDoubleValue(available);
 
-      fillMilestoneTrendSettings(form);
+      String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
+      XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
+      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval).intValue());
+      OpProjectDatesModule projectDatesModule = (OpProjectDatesModule) OpModuleManager.getModuleRegistry().getModule(OpProjectDatesModule.MODULE_NAME);
+      if (!projectDatesModule.enableMilestoneControllingIntervalSetting()) {
+         milestoneControllingIntervalField.setEnabled(false);
+      }
 
       String emptyPasswordValue = OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD);
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
-      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue));
+      emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue).booleanValue());
 
       String showHours = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
-      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours));
+      showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours).booleanValue());
 
       String reportsRemovePeriod = OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
       XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod));
+      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod).intValue());
 
       String emailFromAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
@@ -132,28 +151,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
       logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
 
-      //enable time tracking
-      XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
-      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.ENABLE_TIME_TRACKING)));
-
-      //pulsing
-      XComponent enablePulsingField = form.findComponent(ENABLE_PULSING);
-      XComponent pulsingField = form.findComponent(PULSING);
-      String pulsingValue = OpSettings.get(OpSettings.PULSING);
-      if (pulsingValue == null) {
-         enablePulsingField.setBooleanValue(false);
-         pulsingField.setEnabled(false);
-      }
-      else {
-         enablePulsingField.setBooleanValue(true);
-         pulsingField.setIntValue(Integer.valueOf(pulsingValue));
-      }
-
-      //currency
-      fillCurency(form);
-
       // hide multi-user fields
-      if (!OpEnvironmentManager.isMultiUser()) {
+      if (!OpInitializer.isMultiUser()) {
          mailMessageTextField.setVisible(false);
          form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
          emptyPasswordCheckBox.setVisible(false);
@@ -161,116 +160,21 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       // only administrator can modifiy the settings
       if (!session.userIsAdministrator()) {
-         disableFields(form);
-      }
-   }
-
-   protected void fillMilestoneTrendSettings(XComponent form) {
-      String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
-      XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval));
-      OpProjectDatesModule projectDatesModule = (OpProjectDatesModule) OpModuleManager.getModuleRegistry().getModule(OpProjectDatesModule.MODULE_NAME);
-      if (!projectDatesModule.enableMilestoneControllingIntervalSetting()) {
+         XComponent saveButton = form.findComponent(SAVE_BUTTON);
+         userLocaleChoiceField.setEnabled(false);
+         fw.setEnabled(false);
+         lw.setEnabled(false);
+         dayWorkTimeField.setEnabled(false);
+         weekWorkTimeField.setEnabled(false);
+         mailMessageTextField.setEnabled(false);
+         reportRemovePeriodTextField.setEnabled(false);
+         emptyPasswordCheckBox.setEnabled(false);
+         resourceMaxAvailabilityTextField.setEnabled(false);
+         showHoursCheckBox.setEnabled(false);
+         holidays.setEnabled(false);
+         saveButton.setEnabled(false);
          milestoneControllingIntervalField.setEnabled(false);
       }
-   }
-
-   private void fillWorkTime(XComponent form) {
-      XComponent dayWorkTimeField = form.findComponent(DAY_WORK_TIME);
-      String dayWorkTimeString = OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
-      double dayWorkTime;
-      try {
-         dayWorkTime = Double.valueOf(dayWorkTimeString);
-      }
-      catch (NumberFormatException e) {
-         dayWorkTime = 0;
-      }
-      dayWorkTimeField.setDoubleValue(dayWorkTime);
-      logger.debug("   dwt " + dayWorkTimeString);
-
-      XComponent weekWorkTimeField = form.findComponent(WEEK_WORK_TIME);
-      String weekWorkTimeString = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
-      double weekWorkTime;
-      try {
-         weekWorkTime = Double.valueOf(weekWorkTimeString);
-      }
-      catch (NumberFormatException e) {
-         weekWorkTime = 0;
-      }
-      weekWorkTimeField.setDoubleValue(weekWorkTime);
-   }
-
-   private void fillCurency(XComponent form) {
-      String currencyShortName = OpSettings.get(OpSettings.CURRENCY_SHORT_NAME);
-      XComponent currencyChoice = form.findComponent(CURRENCY_CHOICE_ID);
-      String currencySeparator = form.findComponent(CURRENCY_NAME_SYMBOL_SEPARATOR_ID).getStringValue();
-      XComponent currencyDataSet = form.findComponent(CURRENCY_DATASET_ID);
-      for (int i = 0; i < currencyDataSet.getChildCount(); i++) {
-         XComponent currencyRow = (XComponent) currencyDataSet.getChild(i);
-         String currencyChoiceId = XValidator.choiceID(currencyRow.getStringValue());
-         int symbolShortNameIndex = currencyChoiceId.indexOf(currencySeparator);
-         String rowCurrencyShortName = currencyChoiceId.substring(0, symbolShortNameIndex);
-         if (currencyShortName.equalsIgnoreCase(rowCurrencyShortName)) {
-            currencyRow.setSelected(true);
-            currencyChoice.setSelectedIndex(i);
-            break;
-         }
-      }
-   }
-
-
-   private void disableFields(XComponent form) {
-      XComponent saveButton = form.findComponent(SAVE_BUTTON);
-      saveButton.setEnabled(false);
-
-      XComponent userLocaleChoiceField = form.findComponent(USER_LOCALE);
-      userLocaleChoiceField.setEnabled(false);
-
-      XComponent fw = form.findComponent(FIRST_WORK_DAY);
-      fw.setEnabled(false);
-
-      XComponent lw = form.findComponent(LAST_WORK_DAY);
-      lw.setEnabled(false);
-
-      XComponent dayWorkTimeField = form.findComponent(DAY_WORK_TIME);
-      dayWorkTimeField.setEnabled(false);
-
-      XComponent weekWorkTimeField = form.findComponent(WEEK_WORK_TIME);
-      weekWorkTimeField.setEnabled(false);
-
-      XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
-      mailMessageTextField.setEnabled(false);
-
-      XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setEnabled(false);
-
-      XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
-      emptyPasswordCheckBox.setEnabled(false);
-
-      XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
-      resourceMaxAvailabilityTextField.setEnabled(false);
-
-      XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
-      showHoursCheckBox.setEnabled(false);
-
-      XComponent holidays = form.findComponent(HOLYDAYS);
-      holidays.setEnabled(false);
-
-      XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setEnabled(false);
-
-      XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
-      enableTimeTrackingField.setEnabled(false);
-
-      XComponent enablePulsingField = form.findComponent(ENABLE_PULSING);
-      enablePulsingField.setEnabled(false);
-
-      XComponent pulsingField = form.findComponent(PULSING);
-      pulsingField.setEnabled(false);
-
-      XComponent currencyChoice = form.findComponent(CURRENCY_CHOICE_ID);
-      currencyChoice.setEnabled(false);
-
    }
 
    private void fillHolidaysDataSet(XComponent holidaysDataSet, XComponent holidays, String lastLocation, XLocalizer localizer) {
@@ -281,8 +185,8 @@ public class OpSettingsFormProvider implements XFormProvider {
          //use an intermediate data set in order to sort
          XComponent sorterDataSet = new XComponent(XComponent.DATA_SET);
          XComponent dataRow;
-         for (Object key : keys) {
-            String id = (String) key;
+         for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
+            String id = (String) iterator.next();
             OpHolidayCalendar manager = (OpHolidayCalendar) holidayMap.get(id);
             String label = manager.getLabel();
             if (label == null) {
@@ -313,7 +217,7 @@ public class OpSettingsFormProvider implements XFormProvider {
                selectedIndex = i + 1;
             }
          }
-         holidays.setSelectedIndex(selectedIndex);
+         holidays.setSelectedIndex(new Integer(selectedIndex));
          ((XComponent) holidaysDataSet.getChild(selectedIndex)).setSelected(true);
       }
       else {
@@ -326,8 +230,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       String val;
       int selectedIndex = -1;
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SUNDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Sunday}")));
+      val = "" + XCalendar.SUNDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Sunday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 0;
@@ -335,8 +239,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.MONDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Monday}")));
+      val = "" + XCalendar.MONDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Monday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 1;
@@ -344,8 +248,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.TUESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Tuesday}")));
+      val = "" + XCalendar.TUESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Tuesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 2;
@@ -353,8 +257,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.WEDNESDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Wednesday}")));
+      val = "" + XCalendar.WEDNESDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Wednesday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 3;
@@ -362,8 +266,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.THURSDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Thursday}")));
+      val = "" + XCalendar.THURSDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Thursday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 4;
@@ -371,8 +275,8 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.FRIDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Friday}")));
+      val = "" + XCalendar.FRIDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Friday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 5;
@@ -380,14 +284,14 @@ public class OpSettingsFormProvider implements XFormProvider {
       data_set.addChild(data_row);
 
       data_row = new XComponent(XComponent.DATA_ROW);
-      val = "" + Calendar.SATURDAY;
-      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("${Saturday}")));
+      val = "" + XCalendar.SATURDAY;
+      data_row.setStringValue(XValidator.choice(val, weekdaysLocalizer.localize("{$Saturday}")));
       if (orig_value.equals(val)) {
          data_row.setSelected(true);
          selectedIndex = 6;
       }
       data_set.addChild(data_row);
 
-      choice.setSelectedIndex(selectedIndex);
+      choice.setSelectedIndex(new Integer(selectedIndex));
    }
 }

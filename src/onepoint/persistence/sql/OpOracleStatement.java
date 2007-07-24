@@ -1,12 +1,12 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.sql;
 
-import java.sql.Types;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+import java.sql.Types;
 
 /**
  * Class used for obtaining Oracle statements.

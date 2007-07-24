@@ -19,33 +19,7 @@
       <resource id="Save">Сохранить настройки</resource>
       <resource id="SaveTooltip">Сохранить системные настройки</resource>
       <resource id="SelectCalendar">(Выбор календаря)</resource>
-      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>
-      <resource id="EnableTimeTracking">Enable time tracking</resource>
-      <resource id="EnablePulsing">Enable pulsing</resource>
-      <resource id="Pulsing">Pulsing (minutes)</resource>
-      <resource id="Currency">Currency</resource>
-      <!-- Currencies -->
-      <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
-      <resource id="CAD">Canada Dollars (CAD, CAD)</resource>
-      <resource id="CHF">Switzerland Francs (CHF, CHF)</resource>
-      <resource id="CNY">China Yuan Renminbi (CNY, CNY)</resource>
-      <resource id="DKK">DKK Denmark Kroner (DKK, DKK)</resource>
-      <resource id="EUR">Euro (EUR, €)</resource>
-      <resource id="GBP">United Kingdom Pounds (GBP, ₤)</resource>
-      <resource id="HKD">Hong Kong Dollars (HKD, HKD)</resource>
-      <resource id="HUF">Hungary Forint (HUF, HUF)</resource>
-      <resource id="INR">India Rupees (INR, INR)</resource>
-      <resource id="JPY">Japan Yen (JPY, JPY)</resource>
-      <resource id="MXN">Mexico Pesos (MXN, MXN)</resource>
-      <resource id="MYR">Malaysia Ringgits (MYR, MYR)</resource>
-      <resource id="NOK">Norway Kroner (NOK, NOK)</resource>
-      <resource id="NZD">New Zealand Dollars (NZD, NZD)</resource>
-      <resource id="RUB">Russia Rubles (RUB, RUB)</resource>
-      <resource id="SEK">Sweden Kronor (SEK, SEK)</resource>
-      <resource id="SGD">Singapore Dollars (SGD, SGD)</resource>
-      <resource id="THB">Thailand Baht (THB, THB)</resource>
-      <resource id="USD">United States Dollars (USD, $)</resource>
-      <resource id="ZAR">South Africa Rand (ZAR, ZAR)</resource>      
+      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>      
    </resource-map>
 
    <resource-map id="settings.weekdays">
@@ -67,7 +41,6 @@
       <resource id="ResourceMaxAvailabilityIncorrect">The specified resource maximum availability value is not valid</resource>
       <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
       <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
-      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
    </resource-map>
 
    <resource-map id="settings.calendar">
@@ -94,4 +67,7 @@
       <resource id="Saturday">С</resource>
       <resource id="Sunday">В</resource>
    </resource-map>
+
+
+
 </language-kit>

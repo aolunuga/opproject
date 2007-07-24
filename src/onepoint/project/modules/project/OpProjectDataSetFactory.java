@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -11,10 +11,7 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
-import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
@@ -23,20 +20,22 @@ import java.util.*;
 
 public final class OpProjectDataSetFactory {
 
-   // Type filter
-   // FIXME(dfreis Mar 22, 2007 3:04:24 PM)
-   // should really be the same as in OpProjectNode!!!!
+   public final static int DESCRIPTOR_COLUMN_INDEX = 0;
 
+   public final static String PORTFOLIO_DESCRIPTOR = "f";
+   public final static String TEMPLATE_DESCRIPTOR = "t";
+   public final static String PROJECT_DESCRIPTOR = "p";
+
+   public final static int PORTFOLIO_ICON_INDEX = 0;
+   public final static int TEMPLATE_ICON_INDEX = 1;
+   public final static int PROJECT_ICON_INDEX = 2;
+
+   // Type filter
    public final static int PORTFOLIOS = 1;
    public final static int TEMPLATES = 2;
    public final static int PROJECTS = 4;
    public final static int PROGRAMS = 8;
    public final static int ALL_TYPES = PORTFOLIOS + TEMPLATES + PROJECTS + PROGRAMS;
-
-   public final static int ALL_PROJECT_NODE_TYPES = OpProjectNode.PORTFOLIO +
-        OpProjectNode.TEMPLATE +
-        OpProjectNode.PROJECT +
-        OpProjectNode.PROGRAM;
 
    public final static String PROJECT_OBJECTS = "project.objects";
 
@@ -51,20 +50,8 @@ public final class OpProjectDataSetFactory {
              "and permission.Subject.ID in (:subjectIds) " +
              "and project.Type in (:projectTypes)" +
              "and permission.AccessLevel in (:levels) " +
-             "and project.Archived=false " +
              "group by project.ID";
 
-   private final static String PORTFOLIO_DESCRIPTOR = "f";
-   private final static String TEMPLATE_DESCRIPTOR = "t";
-   private final static String PROJECT_DESCRIPTOR = "p";
-
-   private final static int PORTFOLIO_ICON_INDEX = 0;
-   private final static int TEMPLATE_ICON_INDEX = 1;
-   private final static int PROJECT_ICON_INDEX = 2;
-   private final static int PROJECT_EDITED_ICON_INDEX = 3;
-   private final static int PROJECT_LOCKED_ICON_INDEX = 4;
-   private final static int TEMPLATE_EDITED_ICON_INDEX = 5;
-   private final static int TEMPLATE_LOCKED_ICON_INDEX = 6;
 
    /**
     * Utility class.
@@ -218,15 +205,6 @@ public final class OpProjectDataSetFactory {
       switch (projectNode.getType()) {
          case OpProjectNode.PROJECT: {
             iconIndex = PROJECT_ICON_INDEX;
-            if (projectNode.getLocks().size() > 0) {
-               iconIndex = PROJECT_LOCKED_ICON_INDEX;
-               for (OpLock lock : projectNode.getLocks()) {
-                  if (lock.getOwner().getID() == session.user(broker).getID()) {
-                     iconIndex = PROJECT_EDITED_ICON_INDEX;
-                     break;
-                  }
-               }
-            }
             descriptor = PROJECT_DESCRIPTOR;
             break;
          }
@@ -237,15 +215,6 @@ public final class OpProjectDataSetFactory {
          }
          case OpProjectNode.TEMPLATE: {
             iconIndex = TEMPLATE_ICON_INDEX;
-            if (projectNode.getLocks().size() > 0) {
-               iconIndex = TEMPLATE_LOCKED_ICON_INDEX;
-               for (OpLock lock : projectNode.getLocks()) {
-                  if (lock.getOwner().getID() == session.user(broker).getID()) {
-                     iconIndex = TEMPLATE_EDITED_ICON_INDEX;
-                     break;
-                  }
-               }
-            }
             descriptor = TEMPLATE_DESCRIPTOR;
             break;
          }
@@ -290,11 +259,6 @@ public final class OpProjectDataSetFactory {
       else {
          dataRow.setStringValue(XValidator.choice(projectNode.locator(), localizer.localize(projectNode.getName()),
               iconIndex));
-
-         //0 - descriptor
-         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(descriptor);
-         dataRow.addChild(dataCell);
       }
       return dataRow;
    }
@@ -306,7 +270,7 @@ public final class OpProjectDataSetFactory {
     * @param dataSet     a <code>XComponent(DATA_SET)</code> representing the data-set which will be populated.
     * @param types       a <code>int</code> representing a filter of project types.
     * @param tabular     a <code>boolean</code> indicating whether the retrieved structure should be tabular (will contain more info).
-    * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should not be retrieved).
+    * @param idsToFilter a <code>List</code> of <code>String</code> representing locator strings for ids to filter out (children that should be retrieved).
     */
    public static void retrieveProjectDataSetRootHierarchy(OpProjectSession session, XComponent dataSet, int types,
         boolean tabular, List idsToFilter) {
@@ -348,26 +312,6 @@ public final class OpProjectDataSetFactory {
          }
       }
       broker.close();
-   }
-
-   /**
-    * Returns a list with the locators of all the project which are or aren't archived.
-    * @param session a <code>OpProjectSession</code> a server session.
-    * @param archived a <code>boolean</code> indicating whether to search for archived or non-archived projects.
-    * @return a <code>List(String)</code> a list of project locators.
-    */
-   public static ArrayList<String> retrieveArchivedProjects(OpProjectSession session, boolean archived) {
-      ArrayList<String> result = new ArrayList<String>();
-      OpBroker broker = session.newBroker();
-      OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
-      projectsQuery.setParameter("type", OpProjectNode.PROJECT);
-      projectsQuery.setParameter("archived", archived);
-      for (Iterator it = broker.list(projectsQuery).iterator(); it.hasNext(); ) {
-         String locator = ((OpProjectNode) it.next()).locator();
-         result.add(locator);
-      }
-      broker.close();
-      return result;
    }
 
    /**
@@ -456,12 +400,12 @@ public final class OpProjectDataSetFactory {
          queryString.append("projectNode.SuperNode is null");
       }
 
-      List<Byte> typeParams = new ArrayList<Byte>();
+      List typeParams = new ArrayList();
       queryString.append(" and ( ");
       boolean filterAdded = false;
       if ((types & PORTFOLIOS) == PORTFOLIOS) {
          queryString.append("projectNode.Type = ?");
-         typeParams.add(OpProjectNode.PORTFOLIO);
+         typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
          filterAdded = true;
       }
 
@@ -470,7 +414,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(OpProjectNode.PROJECT);
+         typeParams.add(new Byte(OpProjectNode.PROJECT));
          filterAdded = true;
       }
 
@@ -479,7 +423,7 @@ public final class OpProjectDataSetFactory {
             queryString.append(" or ");
          }
          queryString.append(" projectNode.Type = ?");
-         typeParams.add(OpProjectNode.TEMPLATE);
+         typeParams.add(new Byte(OpProjectNode.TEMPLATE));
       }
       queryString.append(" )");
       OpQuery query = broker.newQuery(queryString.toString());
@@ -492,13 +436,14 @@ public final class OpProjectDataSetFactory {
       else {
          paramStartIndex = 0;
       }
-      for (Object typeParam : typeParams) {
-         query.setByte(paramStartIndex++, (Byte) typeParam);
+      for (int i = 0; i < typeParams.size(); i++) {
+         query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
       }
 
-      Map<Long, Number> result = new HashMap<Long, Number>();
-      for (Object o : broker.list(query)) {
-         Long id = (Long) o;
+      Map result = new HashMap();
+      Iterator queryResultIterator = broker.list(query).iterator();
+      while (queryResultIterator.hasNext()) {
+         Long id = (Long) queryResultIterator.next();
 
          StringBuffer childCountQuery = new StringBuffer("select count(subNode.ID) from OpProjectNode parentNode left join parentNode.SubNodes subNode");
          childCountQuery.append(" where parentNode.ID=? ");
@@ -525,14 +470,14 @@ public final class OpProjectDataSetFactory {
          childCountQuery.append(" group by parentNode.ID");
 
          OpQuery childQuery = broker.newQuery(childCountQuery.toString());
-         childQuery.setLong(0, id);
+         childQuery.setLong(0, id.longValue());
          for (int i = 0; i < typeParams.size(); i++) {
-            childQuery.setByte(i + 1, (Byte) typeParams.get(i));
+            childQuery.setByte(i + 1, ((Byte) typeParams.get(i)).byteValue());
          }
-         Number count = 0;
+         Long count = new Long(0);
          Iterator childCountIterator = broker.list(childQuery).iterator();
          if (childCountIterator.hasNext()) {
-            count = (Number) childCountIterator.next();
+            count = new Long(((Number) childCountIterator.next()).longValue());
          }
          result.put(id, count);
       }
@@ -582,37 +527,6 @@ public final class OpProjectDataSetFactory {
             dataCell.setDoubleValue(value);
          }
          dataRow.addChild(dataCell);
-
-         //9 - Status
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
-            String projectStatus = projectNode.getStatus() != null ? projectNode.getStatus().getName() :
-                 null;
-            dataCell.setStringValue(projectStatus);
-         }
-         dataRow.addChild(dataCell);
-
-         //10 - Priority
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if (isOfType(dataRow, PROJECT_DESCRIPTOR)) {
-            dataCell.setIntValue(projectNode.getPriority());
-         }
-         dataRow.addChild(dataCell);
-
-         //for portofolios add empty cells for effors and costs and cells with values set to 0 for deviations
-         if(projectNode.getType() != OpProjectNode.PROJECT){
-            addPortofolioCostAndEffortCells(dataRow);
-         }
-         //for regular projects calculate the values of the cells
-         else {
-            XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
-
-            XComponent costDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);
-
-            addProjectCostAndEffortCells(dataRow, effortDataSet, costDataSet);
-         }
       }
       return dataRow;
    }
@@ -628,7 +542,7 @@ public final class OpProjectDataSetFactory {
    public static double getCompletedValue(OpBroker broker, long projectId, List activityTypes) {
       StringBuffer queryBuffer = new StringBuffer("select sum(activity.Complete * activity.Duration),  sum(activity.Duration)");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as plan inner join plan.Activities as activity");
-      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
+      queryBuffer.append(" where project.ID = :projectId and activity.OutlineLevel = 0 " + "and activity.Type in (:activityTypes) and activity.Deleted = false group by project.ID");
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
@@ -774,23 +688,34 @@ public final class OpProjectDataSetFactory {
     * @param dataRows   a <code>List</code> of data rows representing project nodes.
     */
    public static void enableNodes(Map parameters, List dataRows) {
-      boolean enablePortfolios = (Boolean) parameters.get(ENABLE_PORTFOLIOS);
-      boolean enableTemplates = (Boolean) parameters.get(ENABLE_TEMPLATES);
-      boolean enableProjects = (Boolean) parameters.get(ENABLE_PROJECTS);
+      boolean enablePortfolios = ((Boolean) parameters.get(ENABLE_PORTFOLIOS)).booleanValue();
+      boolean enableTemplates = ((Boolean) parameters.get(ENABLE_TEMPLATES)).booleanValue();
+      boolean enableProjects = ((Boolean) parameters.get(ENABLE_PROJECTS)).booleanValue();
       for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
-         if (dataRow.getStringValue().equals(OpProjectConstants.DUMMY_ROW_ID)) {
-            continue;
-         }
-         String descriptor = ((XComponent) dataRow.getChild(0)).getStringValue();
-         if (descriptor.equals(PROJECT_DESCRIPTOR) && !enableProjects) {
-            dataRow.setSelectable(false);
-         }
-         if (descriptor.equals(PORTFOLIO_DESCRIPTOR) && !enablePortfolios) {
-            dataRow.setSelectable(false);
-         }
-         if (descriptor.equals(TEMPLATE_DESCRIPTOR) && !enableTemplates) {
-            dataRow.setSelectable(false);
+         String choice = dataRow.getStringValue();
+         //<FIXME author="Horia Chiorean" description="Using the icon index as a denominator is not the best choice">
+         int iconIndex = XValidator.choiceIconIndex(choice);
+         //<FIXME>
+         switch (iconIndex) {
+            case OpProjectDataSetFactory.PROJECT_ICON_INDEX: {
+               if (!enableProjects) {
+                  dataRow.setSelectable(false);
+               }
+               break;
+            }
+            case OpProjectDataSetFactory.PORTFOLIO_ICON_INDEX: {
+               if (!enablePortfolios) {
+                  dataRow.setSelectable(false);
+               }
+               break;
+            }
+            case OpProjectDataSetFactory.TEMPLATE_ICON_INDEX: {
+               if (!enableTemplates) {
+                  dataRow.setSelectable(false);
+               }
+               break;
+            }
          }
       }
    }
@@ -816,9 +741,10 @@ public final class OpProjectDataSetFactory {
       String queryString = "select count(projectNode) from OpProjectNode projectNode where projectNode.Type=?";
       OpQuery query = broker.newQuery(queryString);
       query.setByte(0, type);
-      Number result = 0;
-      for (Object o : broker.list(query)) {
-         result = (Number) o;
+      Number result = new Integer(0);
+      Iterator it = broker.list(query).iterator();
+      while (it.hasNext()) {
+         result = (Number) it.next();
       }
       return result.intValue();
    }
@@ -832,13 +758,13 @@ public final class OpProjectDataSetFactory {
     * @param session current session
     * @return List of project ids.
     */
-   public static List<Long> getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
+   public static List getProjectsByPermissions(OpProjectSession session, OpBroker broker, List levels) {
       OpQuery query = broker.newQuery(PROJECT_BY_PERMISSIONS_QUERY);
       List subjectIds = session.getSubjectIds();
 
       query.setCollection("subjectIds", subjectIds);
-      List<Byte> types = new ArrayList<Byte>();
-      types.add(OpProjectNode.PROJECT);
+      List types = new ArrayList();
+      types.add(new Byte(OpProjectNode.PROJECT));
       query.setCollection("projectTypes", types);
       query.setCollection("levels", levels);
       return broker.list(query);
@@ -847,243 +773,46 @@ public final class OpProjectDataSetFactory {
    /**
     * Creates a map of projects->resources for the current session user taking into account also his permissions over
     * the resources.
-    * Gets a set containing all {@link OpProjectNode}s
-    * (Portfolios, Projects and/or Templates) representing
-    * direct children of the given parent.
-    *
-    * @param broker   the broker to perform any operation.
-    * @param types    bitset, one of (
-    * @param parentId the id of the parent to get child nodes.
-    * @return a set containing all children nodes.
-    * @pre none
-    * @post none
-    */
-
-   public static Set<OpProjectNode> getProjectNodes(OpBroker broker, int types, long parentId) {
-      StringBuffer queryString = new StringBuffer("select projectNode from OpProjectNode as projectNode where ");
-      if (parentId != -1) {
-         queryString.append("projectNode.SuperNode.ID = ?");
-      }
-      else {
-         queryString.append("projectNode.SuperNode is null");
-      }
-
-      List<Byte> typeParams = new ArrayList<Byte>();
-      boolean filterAdded = false;
-
-      if ((types & ALL_PROJECT_NODE_TYPES) == ALL_PROJECT_NODE_TYPES) {
-      }
-      else {
-         queryString.append(" and (");
-         if ((types & OpProjectNode.PORTFOLIO) == OpProjectNode.PORTFOLIO) {
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.PORTFOLIO));
-            filterAdded = true;
-         }
-         if ((types & OpProjectNode.PROJECT) == OpProjectNode.PROJECT) {
-            if (filterAdded) {
-               queryString.append(" or ");
-            }
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.PROJECT));
-            filterAdded = true;
-         }
-
-         if ((types & OpProjectNode.TEMPLATE) == OpProjectNode.TEMPLATE) {
-            if (filterAdded) {
-               queryString.append(" or ");
-            }
-            queryString.append(" projectNode.Type = ?");
-            typeParams.add(new Byte(OpProjectNode.TEMPLATE));
-         }
-
-         queryString.append(" )");
-      }
-      OpQuery query = broker.newQuery(queryString.toString());
-
-      //set the query parameters (based on the filtered types)
-      // set parent id
-      int paramStartIndex = 0;
-      if (parentId != -1) {
-         query.setLong(0, parentId);
-         ++paramStartIndex;
-      }
-      for (int i = 0; i < typeParams.size(); i++) {
-         query.setByte(paramStartIndex++, ((Byte) typeParams.get(i)).byteValue());
-      }
-
-      List children = broker.list(query);
-      Iterator childrenIterator = children.iterator();
-      OpProjectNode node;
-      HashSet<OpProjectNode> result = new HashSet<OpProjectNode>(children.size());
-      while (childrenIterator.hasNext()) {
-         node = (OpProjectNode) childrenIterator.next();
-         result.add(node);
-      }
-      return result;
-   }
-
-   /**
-    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
-    * Contains all the resources from projects where the user has atleast MANAGER permissions and all the resources
-    * for which is reposnsible from projects where is CONTRIBUTOR.
     *
     * @param session Current project session (used for db access and current user)
     * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
     */
-   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
+   public static Map getProjectToResourceMap(OpProjectSession session) {
+      Map projectsMap = new HashMap();
       OpBroker broker = session.newBroker();
       long userId = session.getUserID();
+      List types = new ArrayList();
 
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
       //add all the projects the user has access to (at least CONTRIBUTOR)
-      levels.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, true);
+      types.add(new Byte(OpPermission.CONTRIBUTOR));
+      types.add(new Byte(OpPermission.ADMINISTRATOR));
+      types.add(new Byte(OpPermission.MANAGER));
+
+      List projects = getProjectsByPermissions(session, broker, types);
+      for (int i = 0; i < projects.size(); i++) {
+         Long id = (Long) projects.get(i);
+         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
+         Set assignments = project.getAssignments();
+         List resources = new ArrayList();
+         for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
+            OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) iterator.next();
+            OpResource resource = assignment.getResource();
+            if (resource.getUser() != null && resource.getUser().getID() == userId) {
+               //responsible user for this resource
+               resources.add(XValidator.choice(resource.locator(), resource.getName()));
+            }
+            else {
+               if (session.effectiveAccessLevel(broker, resource.getID()) >= OpPermission.MANAGER) {
+                  //the user is at least manager on the resource
+                  resources.add(XValidator.choice(resource.locator(), resource.getName()));
+               }
+            }
+         }
          if (!resources.isEmpty()) {
             projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
          }
       }
-
-      // add all the resources from project where the user has manager access
-      levels.clear();
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, false);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
       broker.close();
       return projectsMap;
-   }
-
-   /**
-    * Get the list of reources linked to a given project
-    *
-    * @param project     the project node
-    * @param userId      the used id
-    * @param responsible to enforce that the given user (userId) is responsible for the returned resources
-    * @return a <code>List&lt;String&gt;</code> of resource choices - e.g. locator['label'].
-    */
-   public static List<String> getProjectResources(OpProjectNode project, long userId, boolean responsible) {
-      List<String> resources = new ArrayList<String>();
-      Set<OpProjectNodeAssignment> assignments = project.getAssignments();
-      for (OpProjectNodeAssignment assignment : assignments) {
-         OpResource resource = assignment.getResource();
-         if (responsible && (resource.getUser() == null || resource.getUser().getID() != userId)) {
-            continue;
-         }
-         resources.add(XValidator.choice(resource.locator(), resource.getName()));
-      }
-      return resources;
-   }
-
-   /**
-    * Adds 8 cells with value set to null and 4 cells woth values set to 0 to a <code>XComponent</code> data row.
-    *
-    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
-    */
-   private static void addPortofolioCostAndEffortCells(XComponent dataRow) {
-      //for portofolios do not show any efforts or costs
-      for (int i = 0; i < 8; i++) {
-         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         dataRow.addChild(dataCell);
-      }
-
-      //the deviation cells values are set to 0 so that they show a disabled line
-      for (int i = 0; i < 4; i++) {
-         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(0d);
-         dataRow.addChild(dataCell);
-      }
-   }
-
-   /**
-    * Adds 12 cells to the dataRow parameter. These cells will contain information about the efforts and costs regarding
-    *    the project that is being represented by the dataRow parameter.
-    *
-    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
-    * @param effortDataSet - the <code>XComponent</code> data set from which the information about the efforts is taken
-    * @param costDataSet - the <code>XComponent</code> data set from which the information about the costs is taken.
-    */
-   private static void addProjectCostAndEffortCells(XComponent dataRow, XComponent effortDataSet, XComponent costDataSet) {
-      //11 - base effort
-      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(baseEffort);
-      dataRow.addChild(dataCell);
-
-      //12 - actual effort
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(actualEffort);
-      dataRow.addChild(dataCell);
-
-      //13 - predicted effort
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(predictedEffort);
-      dataRow.addChild(dataCell);
-
-      //14 - remaining effort (base - actual)
-      double remainingEffort = baseEffort - actualEffort;
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(remainingEffort);
-      dataRow.addChild(dataCell);
-
-      //15 - base costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(baseCost);
-      dataRow.addChild(dataCell);
-
-      //16 - actual costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(actualCost);
-      dataRow.addChild(dataCell);
-
-      //17 - predicted costs
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(predictedCost);
-      dataRow.addChild(dataCell);
-
-      //18 - remaining cost (base - actual)
-      double remainingCost = baseCost - actualCost;
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(remainingCost);
-      dataRow.addChild(dataCell);
-
-      //19 - effort deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(deviationEffort);
-      dataRow.addChild(dataCell);
-
-      //20 - effort %deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
-      dataRow.addChild(dataCell);
-
-      //21 - costs deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
-      dataCell.setDoubleValue(deviationCost);
-      dataRow.addChild(dataCell);
-
-      //22 - costs %deviation
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
-      dataRow.addChild(dataCell);
    }
 }

@@ -1,4 +1,4 @@
-<prototype name="OpDependencyVersion" instance-class="onepoint.project.modules.project.OpDependencyVersion" super-type="OpObject">
+<prototype name="OpDependencyVersion" instance-class="onepoint.project.modules.project.OpDependencyVersion">
    <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="DependencyVersions"/>
    <relationship name="PredecessorVersion" type="OpActivityVersion" back-relationship="SuccessorVersions"/>
    <relationship name="SuccessorVersion" type="OpActivityVersion" back-relationship="PredecessorVersions"/>

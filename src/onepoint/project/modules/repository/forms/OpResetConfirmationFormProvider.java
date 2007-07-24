@@ -1,14 +1,13 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository.forms;
 
-import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
-import onepoint.project.OpInitializer;
-import onepoint.project.util.OpEnvironmentManager;
+import onepoint.express.XComponent;
 import onepoint.service.server.XSession;
+import onepoint.project.OpInitializer;
 
 import java.util.HashMap;
 
@@ -30,7 +29,7 @@ public class OpResetConfirmationFormProvider implements XFormProvider {
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
-      boolean multiUser = OpEnvironmentManager.isMultiUser();
+      boolean multiUser = OpInitializer.isMultiUser();
       if (multiUser) {
          form.findComponent(MULTI_USER_MESSAGE_LABEL_ID).setVisible(true);
          form.findComponent(ADMIN_PASSWORD_FIELD_ID).setVisible(true);

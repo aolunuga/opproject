@@ -1,26 +1,24 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.work.forms;
 
 import onepoint.express.XComponent;
-import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.my_tasks.forms.OpMyTasksFormProvider;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.work.OpCostRecordDataSetFactory;
-import onepoint.project.modules.work.OpTimeRecordDataSetFactory;
-import onepoint.project.modules.work.OpWorkEffortDataSetFactory;
 import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
-import onepoint.project.modules.work.validators.OpWorkCostValidator;
-import onepoint.project.modules.work.validators.OpWorkEffortValidator;
-import onepoint.project.modules.work.validators.OpWorkTimeValidator;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
@@ -29,20 +27,18 @@ import java.util.*;
 
 public class OpNewWorkSlipFormProvider implements XFormProvider {
 
-   private final static String WORK_EFFORT_RECORD_SET = "WorkEffortRecordSet";
-   private final static String WORK_TIME_RECORD_SET = "WorkTimeRecordSet";
-   private final static String WORK_COST_RECORD_SET = "WorkCostRecordSet";
+   private static final XLog logger = XLogFactory.getLogger(OpNewWorkSlipFormProvider.class, true);
 
-   private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
-   private final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
-   private final static String FILTER_PROJECT_SET = "FilterProjectSet";
-   private final static String COST_TYPES_SET = "CostTypesSet";
+   public final static String WORK_RECORD_SET = "WorkRecordSet";
+   public final static String RESOURCE_COLUMN_EFFORT = "ResourceColumnEffort";
+   public final static String RESOURCE_COLUMN_COSTS = "ResourceColumnCosts";
+   public final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
+   public final static String START_TIME_CHOICE_FIELD = "StartTimeChooser";
+   public final static String PROJECT_SET = "ProjectSet";
 
    // filters
-   private final static String START_BEFORE_ID = "start_before_id";
-   private final static String PROJECT_CHOICE_ID = "project_choice_id";
-
-   private final static String EFFORT_TABLE = "EffortTable";
+   public final static String START_BEFORE_ID = "start_before_id";
+   public final static String PROJECT_CHOICE_ID = "project_choice_id";
 
    //start from filter choices
    private final static String ALL = "all";
@@ -51,22 +47,12 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    private final static String NEXT_MONTH = "nm";
    private final static String NEXT_2_MONTHS = "n2m";
 
-   private static final String TIME_TAB = "TimeTab";
-   private static final String TAB_BOX = "WorkSlipsTabBox";
-
-   private final static String TIME_TRACKING = "TimeTrackingOn";
-   private final static String PULSING = "Pulsing";
-   private final static String ADD_HOURS_BUTTON = "AddHoursButton";
-   private final static String REMOVE_HOURS_BUTTON = "RemoveHoursButton";
-
-   private static final String ASSIGNMENT_MAP = "AssignmentMap";
-
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
-
-      // Locate effort record data set in form
-      XComponent effortRecordSet = form.findComponent(WORK_EFFORT_RECORD_SET);
+      // Locate time record data set in form
+      XComponent work_record_set = form.findComponent(WORK_RECORD_SET);
+      XComponent data_row;
 
       // Note: OpUser instance in session is detached, we therefore have to refetch it
       OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
@@ -74,10 +60,26 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          return; // TODO: UI-level error -- no resource associated with this user
       }
 
-      //fill the list of resource ids
-      List resourceIds = OpWorkSlipDataSetFactory.getListOfSubordinateResourceIds(session, broker);
-       if (resourceIds.isEmpty()) {
-         return; //Maybe display a message that no resources are available?
+      OpQuery query = broker.newQuery("select resource.ID, resource.Name from OpResource as resource where resource.User.ID = ?");
+      query.setLong(0, session.getUserID());
+      Iterator result = broker.list(query).iterator();
+      if (!result.hasNext()) {
+         return; // Nothing to do (TODO: Maybe display a message that no resources are available?)
+      }
+
+      List resourceIds = new ArrayList();
+      HashMap resourceMap = new HashMap();
+      Object[] record = null;
+      while (result.hasNext()) {
+         record = (Object[]) result.next();
+         resourceIds.add(record[0]);
+         resourceMap.put(record[0], record[1]);
+      }
+
+      // Hide "Resource" column if user only manages a single resource (keep it simple)
+      if (resourceIds.size() == 1) {
+         form.findComponent(RESOURCE_COLUMN_EFFORT).setHidden(true);
+         form.findComponent(RESOURCE_COLUMN_COSTS).setHidden(true);
       }
 
       List activityTypes = new ArrayList();
@@ -86,89 +88,43 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.TASK));
       activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
 
+      //fill project set
+      XComponent projectDataSet = form.findComponent(PROJECT_SET);
+      List projectNodes = OpMyTasksFormProvider.getProjects(broker, resourceIds, activityTypes);
+         for (Iterator it = projectNodes.iterator(); it.hasNext();) {
+            OpProjectNode projectNode = (OpProjectNode) it.next();
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            String choice = XValidator.choice(projectNode.locator(), projectNode.getName());
+            row.setStringValue(choice);
+            projectDataSet.addDataRow(row);
+         }
+
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
       long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId, false);
+      result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId);
 
-      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
-      Object[] record;
+      OpAssignment assignment;
+      OpActivity activity;
       while (result.hasNext()) {
          record = (Object[]) result.next();
-         assignmentList.add((OpAssignment) record[0]);
+         assignment = (OpAssignment) record[0];
+         activity = (OpActivity) record[1];
+         logger.debug("   Assignment: " + assignment.getID());
+         logger.debug("   Assignment.Activity: " + assignment.getActivity());
+         logger.debug("   Assignment.Activity.ID: " + assignment.getActivity().getID());
+
+         boolean progressTracked = activity.getProjectPlan().getProgressTracked();
+         //filter out milestones when progress tracking is off
+         if (!progressTracked && activity.getType() == OpActivity.MILESTONE) {
+            continue;
+         }
+
+         data_row = OpWorkSlipDataSetFactory.createWorkSlipDataRow(activity, assignment, progressTracked, resourceMap);
+         work_record_set.addChild(data_row);
+
       }
-
-      //fill project filter set
-      XComponent projectFilterDataSet = form.findComponent(FILTER_PROJECT_SET);
-      OpWorkSlipDataSetFactory.fillProjectSet(projectFilterDataSet, assignmentList);
-
-      //fill all the choice data sets for all three tabs
-      XComponent choiceTimeActivitySet = form.findComponent(OpWorkTimeValidator.ACTIVITY_SET);
-      XComponent choiceTimeResourceSet = form.findComponent(OpWorkTimeValidator.RESOURCE_SET);
-      XComponent choiceTimeProjectSet = form.findComponent(OpWorkTimeValidator.PROJECT_SET);
-      XComponent choiceEffortActivitySet = form.findComponent(OpWorkEffortValidator.ACTIVITY_SET);
-      XComponent choiceEffortResourceSet = form.findComponent(OpWorkEffortValidator.RESOURCE_SET);
-      XComponent choiceEffortProjectSet = form.findComponent(OpWorkEffortValidator.PROJECT_SET);
-      XComponent choiceCostActivitySet = form.findComponent(OpWorkCostValidator.ACTIVITY_SET);
-      XComponent choiceCostResourceSet = form.findComponent(OpWorkCostValidator.RESOURCE_SET);
-      XComponent choiceCostProjectSet = form.findComponent(OpWorkCostValidator.PROJECT_SET);
-
-      //check time tracking
-      boolean timeTrackingEnabled = false;
-      String timeTracking = OpSettings.get(OpSettings.ENABLE_TIME_TRACKING);
-      if(timeTracking != null){
-         timeTrackingEnabled = Boolean.valueOf(timeTracking);
-      }
-
-      //pulsing
-      String pulsingSetting = OpSettings.get(OpSettings.PULSING);
-      if (pulsingSetting != null) {
-         Integer pulsing = Integer.valueOf(pulsingSetting);
-         form.findComponent(PULSING).setValue(pulsing);
-      }
-      
-      OpTimeRecordDataSetFactory.fillChoiceDataSets(choiceTimeProjectSet, choiceTimeActivitySet, choiceTimeResourceSet, assignmentList);
-      OpWorkEffortDataSetFactory.fillChoiceDataSets(choiceEffortProjectSet, choiceEffortActivitySet, choiceEffortResourceSet, assignmentList, timeTrackingEnabled);
-      OpCostRecordDataSetFactory.fillChoiceDataSets(choiceCostProjectSet, choiceCostActivitySet, choiceCostResourceSet, assignmentList);
-
-      //set the "maps" between the projects -> activity, resources, activities -> resources, resouces -> activities
-      //for all choice data sets
-      OpWorkSlipDataSetFactory.configureProjectChoiceMap(broker, choiceTimeProjectSet, choiceTimeActivitySet, choiceTimeResourceSet);
-      OpWorkSlipDataSetFactory.configureResourceChoiceMap(broker, choiceTimeResourceSet, choiceTimeActivitySet);
-      OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceTimeActivitySet, choiceTimeResourceSet);
-      OpWorkSlipDataSetFactory.configureProjectChoiceMap(broker, choiceEffortProjectSet, choiceEffortActivitySet, choiceEffortResourceSet);
-      OpWorkSlipDataSetFactory.configureResourceChoiceMap(broker, choiceEffortResourceSet, choiceEffortActivitySet);
-      OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceEffortActivitySet, choiceEffortResourceSet);
-      OpWorkSlipDataSetFactory.configureProjectChoiceMap(broker, choiceCostProjectSet, choiceCostActivitySet, choiceCostResourceSet);
-      OpWorkSlipDataSetFactory.configureResourceChoiceMap(broker, choiceCostResourceSet, choiceCostActivitySet);
-      OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceCostActivitySet, choiceCostResourceSet);
-
-      //fill the assignmentMapDataField
-      form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.createAssignmentMap(assignmentList));
-
-      //filter effort, time & cost data sets
-      XComponent timeRecordSet = form.findComponent(WORK_TIME_RECORD_SET);
-      XComponent costRecordSet = form.findComponent(WORK_COST_RECORD_SET);
-      OpWorkSlipDataSetFactory.filterDataSetForAssignments(effortRecordSet, assignmentList);
-      OpWorkSlipDataSetFactory.filterDataSetForAssignments(timeRecordSet, assignmentList);
-      OpWorkSlipDataSetFactory.filterDataSetForAssignments(costRecordSet, assignmentList);
-
+      logger.debug("*** after loop");
       broker.close();
-
-      //fill the cost types for the costs tab
-      XComponent costTypesDataSet = form.findComponent(COST_TYPES_SET);
-      OpCostRecordDataSetFactory.fillCostTypesDataSet(session, costTypesDataSet);
-
-      //check time tracking
-      form.findComponent(TIME_TRACKING).setValue(timeTrackingEnabled);
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(choiceEffortActivitySet.getChildCount() > 0);
-
-      //if time tracking is off hide the time tab and select hours tab
-      if(!timeTrackingEnabled) {
-         form.findComponent(TIME_TAB).setHidden(true);
-         form.findComponent(TAB_BOX).selectDifferentTab(1);
-      }
    }
 
    private Date getFilteredStartBeforeDate(OpProjectSession session, Map parameters, XComponent form) {
@@ -180,7 +136,6 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          if (stateMap != null) {
             Integer defaultSelectedIndex = new Integer(0);
             stateMap.put(START_TIME_CHOICE_FIELD, defaultSelectedIndex);
-
          }
          return null;
       }
@@ -216,7 +171,7 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    }
 
    private long getFilteredProjectNodeId(OpProjectSession session, Map parameters, XComponent form) {
-      //get project from choice field
+      //get project from choice field 
       String filteredProjectChoiceId = (String) parameters.get(PROJECT_CHOICE_ID);
       if (filteredProjectChoiceId == null) {
          //set the default selected index for the project chooser

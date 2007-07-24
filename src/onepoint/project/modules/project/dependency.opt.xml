@@ -1,4 +1,4 @@
-<prototype name="OpDependency" instance-class="onepoint.project.modules.project.OpDependency" super-type="OpObject">
+<prototype name="OpDependency" instance-class="onepoint.project.modules.project.OpDependency">
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Dependencies"/>
    <relationship name="PredecessorActivity" type="OpActivity" back-relationship="SuccessorDependencies"/>
    <relationship name="SuccessorActivity" type="OpActivity" back-relationship="PredecessorDependencies"/>

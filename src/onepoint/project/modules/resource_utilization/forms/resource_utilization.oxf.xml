@@ -3,18 +3,18 @@
       <data-row icon="/modules/resource/icons/pool.png"/>
       <data-row icon="/modules/resource/icons/resource.png"/>
    </data-set>
-   <data-field id="PrintTitle" string-value="${PrintTitle}"/>
+   <data-field id="PrintTitle" string-value="{$PrintTitle}"/>
    <data-field id="resourceColumnsSelector"/>
    <data-field id="poolColumnsSelector"/>
    <data-set id="UtilizationDataSet" stateful="true" on-expand="expandDataSet"/>
 
    <data-set id="TimeUnitSet">
-      <data-row string-value="d['${Days}']"/>
-      <data-row string-value="w['${Weeks}']"/>
-      <data-row string-value="m['${Months}']"/>
+      <data-row string-value="d['{$Days}']"/>
+      <data-row string-value="w['{$Weeks}']"/>
+      <data-row string-value="m['{$Months}']"/>
    </data-set>
    <pop-up-menu id="UtilizationPopupMenu">
-      <pop-up-item text="${SaveImage}" on-item-selected="saveUtilizationImage"/>
+      <pop-up-item text="{$SaveImage}" on-item-selected="saveUtilizationImage"/>
    </pop-up-menu>
 
     <panel layout="border" style-ref="compact-panel-default">
@@ -23,13 +23,13 @@
 
 	<panel layout="border" style-ref="tool-panel-default" y="-1">
          <tool-bar x="-1">
-            <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png"
-                         disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
+            <tool-button id="PrintButton" text="{$Print}" icon="/icons/print.png"
+                         on-button-pressed="print" tooltip="{$PrintTooltip}"/>
          </tool-bar>
 
      <panel x="1" layout="border" style-ref="compact-panel-default">
         <panel layout="table" flexible="false">
-           <label x="0" width="2" text="${ChangeTimeUnit}"/>
+           <label x="0" width="2" text="{$ChangeTimeUnit}"/>
            <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
                          on-value-changed="timeUnitChanged" selected-index="0" stateful="true"/>
         </panel>

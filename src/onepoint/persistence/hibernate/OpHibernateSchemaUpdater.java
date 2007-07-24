@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -33,7 +33,7 @@ public final class OpHibernateSchemaUpdater {
    /**
     * A list of tables that don't have matching prototype entities in the application.
     */
-   private static final List<String> TABLES_WITHOUT_PROTOTYPE = new ArrayList<String>();
+   private static final List TABLES_WITHOUT_PROTOTYPE = new ArrayList();
 
 
    static {
@@ -44,19 +44,19 @@ public final class OpHibernateSchemaUpdater {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSchemaUpdater.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateSchemaUpdater.class, true);
 
    /**
     * Constants used in the various JDBC method calls
     */
-   private static final String TABLE_PREFIX = OpMappingsGenerator.TABLE_NAME_PREFIX + "%";
+   private static final String TABLE_PREFIX = OpHibernateSource.TABLE_NAME_PREFIX + "%";
    private static final String[] TABLE_TYPES = new String[]{"TABLE"};
    private static final String TABLE_NAME_COLUMN = "TABLE_NAME";
 
    /**
     * The map of db types.
     */
-   private static final Map<Integer, Integer> DB_TYPES_MAP = new HashMap<Integer, Integer>();
+   private static final Map DB_TYPES_MAP = new HashMap();
 
    /**
     * List of predifined indexes
@@ -64,9 +64,14 @@ public final class OpHibernateSchemaUpdater {
    private static final List EXCLUDE_INDEX_NAMES = Arrays.asList(new String[]{"PRIMARY"});
 
    /**
+    * The Hibernate source that backs up the updater.
+    */
+   private OpHibernateSource source = null;
+
+   /**
     * A map of table metadata.
     */
-   private Map<String, Map> tableMetaData = new HashMap<String, Map>();
+   private Map tableMetaData = new HashMap();
 
    /**
     * DB dependent sql statement.
@@ -77,6 +82,7 @@ public final class OpHibernateSchemaUpdater {
     * Initialize the db types map.
     */
    static {
+      DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MYSQL_INNODB), new Integer(OpSqlStatementFactory.MYSQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.POSTGRESQL), new Integer(OpSqlStatementFactory.POSTGRESQL));
       DB_TYPES_MAP.put(new Integer(OpHibernateSource.MSSQL), new Integer(OpSqlStatementFactory.MSSQL));
@@ -90,6 +96,7 @@ public final class OpHibernateSchemaUpdater {
     * @param source a <code>OpHibernateSource</code> that is used during the update process.
     */
    public OpHibernateSchemaUpdater(OpHibernateSource source) {
+      this.source = source;
       Integer dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
       if (dbType != null) {
          statement = OpSqlStatementFactory.createSqlStatement(dbType);
@@ -157,7 +164,7 @@ public final class OpHibernateSchemaUpdater {
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
    public List generateDropPredefinedTablesScripts() {
-      List<String> dropTableScripts = new ArrayList<String>();
+      List dropTableScripts = new ArrayList();
       if (statement != null) {
          String dropStatement = statement.getDropTableStatement(OpHibernateSource.SCHEMA_TABLE);
          logger.info("Adding drop statement: " + dropStatement);
@@ -176,12 +183,12 @@ public final class OpHibernateSchemaUpdater {
    private List generateDropIndexConstraints(String tableName, DatabaseMetaData dbMetaData) {
       if (statement != null) {
          try {
-            List<String> dropIndexScripts = new ArrayList<String>();
+            List dropIndexScripts = new ArrayList();
             ResultSet rs = dbMetaData.getIndexInfo(null, null, tableName, false, false);
             while (rs.next()) {
                String indexName = rs.getString("INDEX_NAME");
                //<FIXME author="Horia Chiorean" description="Can we be 100% that this way we only get the hibernate generated indexes ?">
-               if (indexName == null || indexName.startsWith(OpMappingsGenerator.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
+               if (indexName == null || indexName.startsWith(OpHibernateSource.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
                   continue;
                }
                //<FIXME>
@@ -209,7 +216,7 @@ public final class OpHibernateSchemaUpdater {
    private List generateDropFKConstraints(String tableName, DatabaseMetaData dbMetaData) {
       if (statement != null) {
          try {
-            List<String> dropFkConstraints = new ArrayList<String>();
+            List dropFkConstraints = new ArrayList();
             ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
             while (rs.next()) {
                String fkName = rs.getString("FK_NAME");
@@ -238,16 +245,16 @@ public final class OpHibernateSchemaUpdater {
       if (statement != null) {
          try {
             //get current tables
-            List<String> currentTables = new ArrayList<String>();
+            List currentTables = new ArrayList();
             Iterator it = OpTypeManager.getPrototypes();
             while (it.hasNext()) {
                OpPrototype prototype = (OpPrototype) it.next();
-               String tableName = OpMappingsGenerator.generateTableName(prototype.getName());
+               String tableName = source.newTableName(prototype.getName());
                currentTables.add(tableName);
             }
 
             ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
-            List<String> dropStatements = new ArrayList<String>();
+            List dropStatements = new ArrayList();
             while (rs.next()) {
                String tableName = rs.getString(TABLE_NAME_COLUMN);
                if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
@@ -277,8 +284,8 @@ public final class OpHibernateSchemaUpdater {
       ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
       while (rs.next()) {
          String tableName = rs.getString(TABLE_NAME_COLUMN);
-         ResultSet rs1 = dbMetaData.getColumns(null, null, tableName, OpMappingsGenerator.COLUMN_NAME_PREFIX + "%");
-         Map<String, Short> tableColumnsMetaData = new HashMap<String, Short>();
+         ResultSet rs1 = dbMetaData.getColumns(null, null, tableName, OpHibernateSource.COLUMN_NAME_PREFIX + "%");
+         Map tableColumnsMetaData = new HashMap();
          while (rs1.next()) {
             String columnName = rs1.getString("COLUMN_NAME");
             Short columnType = new Short(rs1.getShort("DATA_TYPE"));
@@ -296,7 +303,7 @@ public final class OpHibernateSchemaUpdater {
     */
    private List generateUpdateTableColumnsScripts(OpPrototype prototype) {
       if (statement != null) {
-         List<String> result = new ArrayList<String>();
+         List result = new ArrayList();
          Iterator membersIt = prototype.getMembers();
          while (membersIt.hasNext()) {
             OpMember member = (OpMember) membersIt.next();
@@ -305,7 +312,7 @@ public final class OpHibernateSchemaUpdater {
                continue;
             }
             //find out the sql type for our current registered prototype
-            String hibernateTypeName = OpMappingsGenerator.getHibernateTypeName(member.getTypeID());
+            String hibernateTypeName = OpHibernateSource.getHibernateTypeName(member.getTypeID());
             if (hibernateTypeName == null) {
                logger.info("Cannot get hibernate type for OpType.id:" + member.getTypeID());
                continue;
@@ -318,13 +325,13 @@ public final class OpHibernateSchemaUpdater {
             int hibernateSqlType = ((PrimitiveType) hibernateType).sqlType();
 
             //now find out what we have in the db
-            String tableName = OpMappingsGenerator.generateTableName(prototype.getName());
+            String tableName = source.newTableName(prototype.getName());
             Map columnMetaData = (Map) this.tableMetaData.get(tableName);
             if (columnMetaData == null) {
                logger.info("No metadata found for table:" + tableName);
                continue;
             }
-            String columnName = OpMappingsGenerator.generateColumnName(member.getName());
+            String columnName = source.newColumnName(member.getName());
             Short columnType = (Short) columnMetaData.get(columnName);
             if (columnType == null) {
                logger.info("No metadata found for column:" + columnName);

@@ -1,15 +1,13 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
-import onepoint.persistence.OpEntityException;
 
 import java.sql.Date;
 import java.util.Set;
-import java.util.Map;
 
 public class OpProjectNode extends OpObject {
 
@@ -30,9 +28,6 @@ public class OpProjectNode extends OpObject {
    public final static String GOALS = "Goals";
    public final static String TO_DOS = "ToDos";
    public final static String STATUS = "Status";
-   public final static String PROBABILITY = "Probability";
-   public final static String PRIORITY = "Priority";
-   public final static String ARCHIVED = "Archived";
 
    // Project types are ordered in default sort order
    public final static byte PORTFOLIO = 1;
@@ -41,32 +36,25 @@ public class OpProjectNode extends OpObject {
    public final static byte TEMPLATE = 4;
 
    // Root portfolio name and description
-   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "${RootProjectPortfolioName}";
-   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "${RootProjectPortfolioDescription}";
+   public final static String ROOT_PROJECT_PORTFOLIO_NAME = "{$RootProjectPortfolioName}";
+   public final static String ROOT_PROJECT_PORTFOLIO_DESCRIPTION = "{$RootProjectPortfolioDescription}";
    public final static String ROOT_PROJECT_PORTFOLIO_ID_QUERY = "select portfolio.ID from OpProjectNode as portfolio where portfolio.Name = '"
-        + ROOT_PROJECT_PORTFOLIO_NAME + "' and portfolio.Type = " + PORTFOLIO;
-
-   public final static Integer DEFAULT_PRIORITY = 5;
-   public final static Integer DEFAULT_PROBABILITY = 100;
-   public final static Boolean DEFAULT_ARCHIVED = Boolean.FALSE;
+         + ROOT_PROJECT_PORTFOLIO_NAME + "' and portfolio.Type = " + PORTFOLIO;
 
    private String name;
    private byte type;
    private String description;
    private Date start;
    private Date finish;
-   private Double budget;
-   private Integer probability = DEFAULT_PROBABILITY;
-   private Boolean archived = DEFAULT_ARCHIVED;
-   private Integer priority = DEFAULT_PRIORITY;
+   private double budget;
    private OpProjectNode superNode;
    private Set subNodes;
    private OpProjectNode templateNode;
    private Set instanceNodes;
    private OpProjectPlan plan;
-   private Set<OpProjectNodeAssignment> assignments;
-   private Set<OpGoal> goals;
-   private Set<OpToDo> toDos;
+   private Set assignments;
+   private Set goals;
+   private Set toDos;
    private OpProjectStatus status;
 
    public void setName(String name) {
@@ -109,11 +97,11 @@ public class OpProjectNode extends OpObject {
       return finish;
    }
 
-   public void setBudget(Double budget) {
+   public void setBudget(double budget) {
       this.budget = budget;
    }
 
-   public Double getBudget() {
+   public double getBudget() {
       return budget;
    }
 
@@ -149,11 +137,11 @@ public class OpProjectNode extends OpObject {
       return instanceNodes;
    }
 
-   public void setAssignments(Set<OpProjectNodeAssignment> assignments) {
+   public void setAssignments(Set assignments) {
       this.assignments = assignments;
    }
 
-   public Set<OpProjectNodeAssignment> getAssignments() {
+   public Set getAssignments() {
       return assignments;
    }
 
@@ -165,19 +153,19 @@ public class OpProjectNode extends OpObject {
       return plan;
    }
 
-   public void setGoals(Set<OpGoal> goals) {
+   public void setGoals(Set goals) {
       this.goals = goals;
    }
 
-   public Set<OpGoal> getGoals() {
+   public Set getGoals() {
       return goals;
    }
 
-   public void setToDos(Set<OpToDo> toDos) {
+   public void setToDos(Set toDos) {
       this.toDos = toDos;
    }
 
-   public Set<OpToDo> getToDos() {
+   public Set getToDos() {
       return toDos;
    }
 
@@ -188,189 +176,4 @@ public class OpProjectNode extends OpObject {
    public OpProjectStatus getStatus() {
       return status;
    }
-
-
-   /**
-    * Gets the project's probability (%)
-    *
-    * @return a <code>Byte</code> the project's probability in %.
-    */
-   public Integer getProbability() {
-      return probability;
-   }
-
-   /**
-    * Sets the project's probability (%)
-    *
-    * @param probability a <code>Byte</code> the project's probability in %.
-    */
-   public void setProbability(Integer probability) {
-      this.probability = probability;
-   }
-
-
-   /**
-    * Gets the value of the archived attribute.
-    *
-    * @return a <code>Boolean</code> representing the value of the archived attribute.
-    */
-   public Boolean getArchived() {
-      return archived;
-   }
-
-   /**
-    * Sets the value of the archived attributed.
-    *
-    * @param archived a <code>Boolean</code> which if true, indicates the project is archived.
-    */
-   public void setArchived(Boolean archived) {
-      this.archived = archived;
-   }
-
-   /**
-    * Gets the project's priority (1..9).
-    *
-    * @return a <code>Byte</code> the project's priority.
-    */
-   public Integer getPriority() {
-      return priority;
-   }
-
-   /**
-    * Sets the project's priority (1..9).
-    *
-    * @param priority a <code>Byte</code> the project's priority.
-    */
-   public void setPriority(Integer priority) {
-      this.priority = priority;
-   }
-
-   /**
-    * Fills the project node object with values from the request map, and validates the data.
-    *
-    * @param request a <code>Map</code> of (String,Object) pairs representing a client
-    *                request.
-    * @throws OpEntityException if the project data is not valid.
-    */
-   public void fillProjectNode(Map request)
-        throws OpEntityException {
-      Number type = (Number) request.get(TYPE);
-      if (type == null) {
-         throw new IllegalArgumentException("The type of the project node was not set on the request");
-      }
-      switch(type.byteValue()) {
-         case PORTFOLIO: {
-            fillBasicProjectNode(request);
-            break;
-         }
-         case PROJECT: {
-            fillProject(request);
-            break;
-         }
-      }
-      this.validate();
-   }
-
-   /**
-    * Fills a project with data from a request.
-    * @param request a <code>Map</code> of (String, Object) representing a client request.
-    */
-   private void fillProject(Map request) {
-      this.fillBasicProjectNode(request);
-
-      Date start = (Date) request.get(START);
-      this.setStart(start);
-
-      Date finish = (Date) request.get(FINISH);
-      this.setFinish(finish);
-
-      Double budget = (Double) request.get(BUDGET);
-      this.setBudget(budget != null ? budget : 0);
-
-      Integer priority = (Integer) request.get(PRIORITY);
-      this.setPriority(priority);
-
-      Integer probability = (Integer) request.get(PROBABILITY);
-      this.setProbability(probability);
-
-      Boolean archived = (Boolean) request.get(ARCHIVED);
-      this.setArchived(archived);
-   }
-
-   /**
-    * Fills a portfolio with data from a request.
-    *
-    * @param request a <code>Map</code> of (String, Object) representing a client request.
-    */
-   private void fillBasicProjectNode(Map request) {
-      Number type = (Number) request.get(TYPE);
-      if (type != null) {
-         this.setType(type.byteValue());
-      }
-
-      String name = (String) request.get(NAME);
-      this.setName(name);
-
-      String description = (String) request.get(DESCRIPTION);
-      this.setDescription(description);
-   }
-
-   /**
-    * Validates the project node according to its type.
-    *
-    * @throws OpEntityException if the project is not valid.
-    */
-   private void validate()
-        throws OpEntityException {
-      switch (type) {
-         case PROJECT: {
-            validateProject();
-            break;
-         }
-         case PORTFOLIO: {
-            validateBasicProjectNode();
-            break;
-         }
-      }
-   }
-
-   /**
-    * Validates a project based on the value of its fields.
-    *
-    * @throws OpEntityException if the project is not valid.
-    */
-   private void validateProject()
-        throws OpEntityException {
-      if (name == null || name.trim().length() == 0) {
-         throw new OpEntityException(OpProjectError.PROJECT_NAME_MISSING);
-      }
-      if (start == null) {
-         throw new OpEntityException(OpProjectError.START_DATE_MISSING);
-      }
-      if (finish != null && start.after(finish)) {
-         throw new OpEntityException(OpProjectError.END_DATE_INCORRECT);
-      }
-      if (budget == null || budget < 0) {
-         throw new OpEntityException(OpProjectError.BUDGET_INCORRECT);
-      }
-      if (probability == null || probability < 0 || probability > 100) {
-         throw new OpEntityException(OpProjectError.PROBABILITY_NOT_VALID);
-      }
-      if (priority == null || priority < 1 || priority > 9) {
-         throw new OpEntityException(OpProjectError.PRIORITY_NOT_VALID);
-      }
-   }
-
-   /**
-    * Validates a portfolio based on the value of its fields.
-    *
-    * @throws OpEntityException if the portfolio is not valid.
-    */
-   private void validateBasicProjectNode()
-        throws OpEntityException {
-      if (name == null || name.trim().length() == 0) {
-         throw new OpEntityException(OpProjectError.PORTFOLIO_NAME_MISSING);
-      }
-   }
-
 }

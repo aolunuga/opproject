@@ -49,7 +49,4 @@
       <parameter name="EnablePools" instance-class="java.lang.Boolean" mode="input"/>
       <parameter name="EnableResources" instance-class="java.lang.Boolean" mode="input"/>
    </method>
-   <method name="getResourceRates">
-      <parameter name="resource_id" instance-class="java.lang.String" mode="input"/>
-   </method>
 </service>

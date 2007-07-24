@@ -26,13 +26,13 @@
       <resource id="PasswordRetyped">Kennwort bestätigen</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="UserLanguage">Sprache</resource>
-
+      
       <resource id="Contact">Kontakt</resource>
       <resource id="EMail">EMail</resource>
       <resource id="Phone">Tel. Nr.</resource>
       <resource id="Mobile">Mobil</resource>
       <resource id="Fax">Fax</resource>
-
+      
       <resource id="Groups">Gruppen</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
@@ -48,11 +48,11 @@
       <resource id="ConfirmDeleteMultipleMessage">Wollen Sie die ausgewählten Benutzer und Gruppen wirklich löschen?</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
-   </resource-map>
-   <resource-map id="user.Info">
+  </resource-map>
+  <resource-map id="user.Info">
       <resource id="InfoUser">Benutzereigenschaften</resource>
       <resource id="InfoGroup">Gruppeneigenschaften</resource>
-   </resource-map>
+  </resource-map>
 
    <resource-map id="user.new_group">
       <resource id="NewGroup">Neue Gruppe</resource>
@@ -85,14 +85,15 @@
 
       <resource id="UserLevel">Benutzerebene</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="StandardLevel">Standard</resource>      
    </resource-map>
-   <resource-map id="user.users">
-      <resource id="NewGroup">Neue Gruppe</resource>
-      <resource id="NewUser">Neuer Benutzer</resource>
-      <resource id="Properties">Eigenschaften</resource>
-      <resource id="Delete">Löschen</resource>
-      <resource id="AssignToGroup">Zuweisen</resource>
+	<resource-map id="user.users">
+		<resource id="NewGroup">Neue Gruppe</resource>
+		<resource id="NewUser">Neuer Benutzer</resource>
+		<resource id="Properties">Eigenschaften</resource>
+		<resource id="Edit">Bearbeiten</resource>
+		<resource id="Delete">Löschen</resource>
+		<resource id="AssignToGroup">Zuweisen</resource>
       <resource id="Search">Suchen</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
@@ -101,10 +102,11 @@
       <resource id="NewGroupTooltip">Neue Benutzergruppe erstellen</resource>
       <resource id="NewUserTooltip">Neuen Benutzer erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählten Benutzer oder Gruppe anzeigen</resource>
+      <resource id="EditTooltip">Metainformation für ausgewählten Benutzer oder Gruppe bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Benutzer oder Gruppen löschen</resource>
       <resource id="AssignToGroupTooltip">Ausgewählte Benutzer und Gruppen zu einer Gruppe zuweisen</resource>
-
-   </resource-map>
+				
+	</resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Benutzer oder Gruppe auswählen</resource>
       <resource id="Cancel">Abbrechen</resource>
@@ -115,7 +117,7 @@
       <resource id="Managers">Manager</resource>
       <resource id="Contributors">Mitarbeiter</resource>
       <resource id="Observers">Beobachter</resource>
-   </resource-map>
+   </resource-map>   
    <resource-map id="user.objects">
       <resource id="AdministratorDisplayName">Administrator</resource>
       <resource id="AdministratorDescription">Der Administrator hat ursprünglich überall Administratorrechte</resource>
@@ -139,8 +141,8 @@
       <resource id="InsufficientPrivileges">Sie haben nicht die notwendigen Rechte um diese Operation auszuführen</resource>
       <resource id="SessionUser">Sie können den Benutzer mit dem Sie derzeit arbeiten nicht löschen</resource>
       <resource id="EveryoneGroup">Die Gruppe "Alle" ist ein System-Objekt und kann nicht gelöscht werden</resource>
-      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
-      <resource id="InvalidUserLevel">Ungültie Benutzerebene</resource>
+      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>      
+      <resource id="InvalidUserLevel">Ungültie Benutzerebene</resource>      
       <resource id="UserDemoteError">Dieser Benutzer kann nicht zum Standard-Benutzer degradiert werden: Es existieren noch Manager-Rechte in der Datenbank</resource>
       <resource id="PermissionLevelError">Die Benutzer-Ebene ist zu niedrig um dieses Recht zu gewährleisten</resource>
       <resource id="AdminPermissionError">Sie können die Rechte des Administrator-Benutzers nicht verändern</resource>

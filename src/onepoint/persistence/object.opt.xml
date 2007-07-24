@@ -1,8 +1,8 @@
 <prototype name="OpObject" instance-class="onepoint.persistence.OpObject">
 	<!-- ID is added hard-coded in OpSource -->
-	<field name="Created" type="Timestamp" mandatory="true" indexed="true" column="Created"/>
-	<field name="Modified" type="Timestamp" column="Modified"/>
-  <relationship name="Permissions" type="OpPermission" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
-	<relationship name="Locks" type="OpLock" collection-type="Set" back-relationship="Target" inverse="true" cascade="delete"/>
+	<field name="Created" type="Timestamp"/>
+	<field name="Modified" type="Timestamp"/>
+	<relationship name="Permissions" type="OpPermission" collection-type="Set" back-relationship="Object" inverse="true"/>
+	<relationship name="Locks" type="OpLock" collection-type="Set" back-relationship="Target" inverse="true"/>
 	<relationship name="DynamicResources" type="OpDynamicResource" collection-type="Set" back-relationship="Object" inverse="true" cascade="delete"/>
 </prototype>

@@ -1,13 +1,13 @@
-<form width="400" height="240" layout="border" text="${NewGroup}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="user.new_group" script="/modules/user/scripts/new_group.jes">
+<form width="400" height="240" layout="border" text="{$NewGroup}" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="user.new_group" script="/modules/user/scripts/new_group.jes">
    <!-- Maybe have a white background (border element w/white background) for the user data -->
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
    <tab-box y="0">
-   <tab text="${General}" layout="table" id="GeneralTab">
-      <label x="0" y="0" width="2" text="${Name}"  style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
-      <label x="0" y="1" width="2" text="${Description}"/><text-box x="2" y="1" width="3" id="Description"/>
+   <tab text="{$General}" layout="table" id="GeneralTab">
+      <label x="0" y="0" width="2" text="{$Name}"  style-ref="label-emphasized-default" /><text-field x="2" y="0" width="3" id="Name"/>
+      <label x="0" y="1" width="2" text="{$Description}"/><text-box x="2" y="1" width="3" id="Description"/>
    </tab>
-   <tab text="${GroupAffiliation}" layout="border" id="GroupAffiliationTab">
+   <tab text="{$GroupAffiliation}" layout="border" id="GroupAffiliationTab">
       <data-set id="AssignedGroupDataSet"/>
       <list-box y="0" id="AssignedGroupListBox" data-set-ref="AssignedGroupDataSet" flexible="true"/>
       <panel y="1" layout="flow" direction="east">
@@ -19,8 +19,8 @@
 
    <panel y="1" layout="flow" direction="west">
 	  <panel layout="border">
-      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
-      <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+      <button x="0" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+      <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
 	  </panel>
    </panel>
 	   

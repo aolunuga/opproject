@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.mail;
@@ -14,7 +14,7 @@ import javax.mail.internet.AddressException;
 
 public class OpMailerProxy extends XExpressProxy {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpMailerProxy.class);
+   private static final XLog logger = XLogFactory.getLogger(OpMailerProxy.class,true);
 
 	 // Class names
 	 public final static String MAILER = OpMailer.class.getName().intern();

@@ -5,35 +5,27 @@ package onepoint.project.modules.user.test;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
-import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
-import onepoint.project.util.OpHashProvider;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.resource.XLocaleManager;
+import onepoint.project.util.OpSHA1;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class test user service methods and form providers.
  *
  * @author calin.pavel
  */
-public class OpUserServiceTest extends OpBaseOpenTestCase {
+public class OpUserServiceTest extends OpBaseTestCase {
    // class logger.
-   private static final XLog logger = XLogFactory.getServerLogger(OpUserServiceTest.class);
+   private static final XLog logger = XLogFactory.getLogger(OpUserServiceTest.class, true);
 
    // Password used for tests.
-   private static final String TEST_PASS = new OpHashProvider().calculateHash("password");
+   private static final String TEST_PASS = new OpSHA1().calculateHash("password");
 
    // User data used through tests.
    private static final String TEST_USER_NAME = "tester";
@@ -48,7 +40,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    private static final String DUMMY_STRING = "tester";
 
    private OpUserService userService;
-   private OpUserTestDataFactory dataFactory;
+   private UserTestDataFactory dataFactory;
 
    /**
     * Here we prepare data for these tests.
@@ -59,8 +51,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      dataFactory = new OpUserTestDataFactory(session);
-      userService = OpTestDataFactory.getUserService();
+      dataFactory = new UserTestDataFactory(session);
+      userService = getUserService();
       cleanUp();
    }
 
@@ -81,28 +73,47 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     * Delete users/groups that are used into out tests.
     */
    private void cleanUp() {
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
+      // create a list of Subjects that have to be deleted.
+      ArrayList idsToDelete = new ArrayList();
 
       // delete all users except Administrator
-      for (OpUser user : dataFactory.getAllUsers(broker)) {
-         if (OpUser.ADMINISTRATOR_NAME.equals(user.getName())) {
-            continue;
+      List users = dataFactory.getAllUsers();
+      if (users != null) {
+         Iterator it = users.iterator();
+         while (it.hasNext()) {
+            OpUser opUser = (OpUser) it.next();
+
+            if (!OpUser.ADMINISTRATOR_NAME.equals(opUser.getName())) {
+               idsToDelete.add(opUser.locator());
+            }
          }
-         broker.deleteObject(user);
       }
 
-      // delete all groups except Everyone
-      for (OpGroup group : dataFactory.getAllGroups(broker)) {
-         if (OpGroup.EVERYONE_NAME.equals(group.getName())) {
-            continue;
+      // delete all groups except Administrator
+      List groups = dataFactory.getAllGroups();
+      if (groups != null) {
+         Iterator it = groups.iterator();
+         while (it.hasNext()) {
+            OpGroup opGroup = (OpGroup) it.next();
+
+            if (!OpGroup.EVERYONE_NAME.equals(opGroup.getName())) {
+               idsToDelete.add(opGroup.locator());
+            }
          }
-         broker.deleteObject(group);
       }
 
-      transaction.commit();
-      broker.close();
+      // delete if exists user "tester".
+      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      if (group != null) {
+         idsToDelete.add(group.locator());
+      }
+
+      XMessage req = new XMessage();
+      req.setArgument(OpUserService.SUBJECT_IDS, idsToDelete);
+      XMessage res = userService.deleteSubjects(session, req);
+      if (res != null && res.getError() != null) {
+         logger.error("Could not cleanUp subjects because: " + res.getError().getMessage());
+      }
    }
 
    /**
@@ -131,7 +142,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME.toLowerCase());
-      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 
@@ -184,7 +195,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // first try with lower case (for all letters)
       request.setArgument(OpUserService.LOGIN, OpUser.ADMINISTRATOR_NAME);
-      request.setArgument(OpUserService.PASSWORD, OpUser.BLANK_PASSWORD);
+      request.setArgument(OpUserService.PASSWORD, OpUserService.BLANK_PASSWORD);
       XMessage response = userService.signOn(session, request);
       assertNoError(response);
 
@@ -233,7 +244,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddUserWithoutUserName()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(null, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(null, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
 
       XMessage request = new XMessage();
 
@@ -250,7 +261,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddUserWithInvalidEmail()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
@@ -268,7 +279,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddUserWrongRetypePass()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       // insert a wrong retype password
@@ -289,7 +300,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddUserWrongLevel()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
 
       // insert a wrong level (not INT)
       userData.put(OpUserService.USER_LEVEL, "not_int");
@@ -302,7 +313,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertError(response, OpUserError.INVALID_USER_LEVEL);
 
       // now try with a level which is not supported.
-      userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, (byte) 5);
+      userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, (byte) 5);
 
       // now try to create user
       request.setArgument(OpUserService.USER_DATA, userData);
@@ -317,7 +328,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddUserWithExistingUserName()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(OpUser.ADMINISTRATOR_NAME, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(OpUser.ADMINISTRATOR_NAME, TEST_PASS, OpUser.MANAGER_USER_LEVEL);
 
       XMessage request = new XMessage();
 
@@ -340,7 +351,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
       assertNotNull(group);
 
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING,
            Arrays.asList(new String[]{group.locator()}));
 
@@ -373,7 +384,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    public void testAddUserWithWrongGroup()
         throws Exception {
 
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING,
            Arrays.asList(new String[]{"OpGroup.9999.xid"}));
 
@@ -402,7 +413,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       String newValue = "newVaue";
       String newLanguage = "de";
       String newEmail = "aaa@bbb.de";
-      Map userData = OpUserTestDataFactory.createUserData(newValue, newValue, newValue, OpUser.STANDARD_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(newValue, newValue, newValue, OpUser.STANDARD_USER_LEVEL,
            newValue, newValue, newLanguage, newEmail, newValue, newValue, newValue, null);
 
       XMessage request = new XMessage();
@@ -459,7 +470,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(user);
 
       // now update user with Administrator username.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
       userData.put(OpUser.NAME, OpUser.ADMINISTRATOR_NAME);
 
@@ -484,7 +495,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(user);
 
       // now update user with Administrator username.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
       userData.put(OpUser.NAME, null);
 
@@ -509,7 +520,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(user);
 
       // now update user with Administrator username.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
@@ -535,7 +546,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(user);
 
       // now update user with Administrator username.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       // set wrong level (not number)
@@ -567,7 +578,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(user);
 
       // now update user with Administrator username.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
@@ -604,7 +615,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testAddGroupWithoutName()
         throws Exception {
-      Map groupData = OpUserTestDataFactory.createGroupData(null, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(null, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -627,7 +638,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
       assertNotNull(group);
 
-      Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -645,7 +656,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    public void testAddGroupWithSuperGroups()
         throws Exception {
       String superGroupName = "superGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -659,7 +670,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(superGroup);
 
       // now try to add a new group with super group.
-      groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
+      groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
       request = new XMessage();
@@ -695,7 +706,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
         throws Exception {
 
       // now try to add a new group with super group.
-      Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
+      Map groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
            Arrays.asList(new String[]{"OpGroup.9999.xid"}));
 
       XMessage request = new XMessage();
@@ -720,7 +731,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(group);
 
       String newValue = "newValue";
-      Map groupData = OpUserTestDataFactory.createGroupData(newValue, newValue, null);
+      Map groupData = UserTestDataFactory.createGroupData(newValue, newValue, null);
 
       XMessage request = new XMessage();
 
@@ -743,7 +754,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateGroupWithoutId()
         throws Exception {
-      Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -767,7 +778,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
       assertNotNull(group);
 
-      Map groupData = OpUserTestDataFactory.createGroupData(OpGroup.EVERYONE_NAME, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(OpGroup.EVERYONE_NAME, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -791,7 +802,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
       assertNotNull(group);
 
-      Map groupData = OpUserTestDataFactory.createGroupData(null, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(null, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -810,7 +821,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    public void testUpdateGroupWithSuperGroups()
         throws Exception {
       String superGroupName = "superGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 
@@ -832,7 +843,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now update group
       request = new XMessage();
-      groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
+      groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
            Arrays.asList(new String[]{superGroup.locator()}));
       request.setArgument(OpUserService.GROUP_ID, group.locator());
       request.setArgument(OpUserService.GROUP_DATA, groupData);
@@ -869,7 +880,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now update group
       XMessage request = new XMessage();
-      Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
+      Map groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING,
            Arrays.asList(new String[]{"OpGroup.9999.xid"}));
       request.setArgument(OpUserService.GROUP_ID, group.locator());
       request.setArgument(OpUserService.GROUP_DATA, groupData);
@@ -885,7 +896,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    public void testUpdateGroupWithLoops()
         throws Exception {
       String firstGroupName = "Group_A";
-      Map groupData = OpUserTestDataFactory.createGroupData(firstGroupName, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(firstGroupName, DUMMY_STRING, null);
 
       // Create first group
       XMessage request = new XMessage();
@@ -897,7 +908,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // create second group
       String secondGroupName = "Group_B";
-      groupData = OpUserTestDataFactory.createGroupData(secondGroupName, DUMMY_STRING,
+      groupData = UserTestDataFactory.createGroupData(secondGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{firstGroup.locator()}));
       request = new XMessage();
       request.setArgument(OpUserService.GROUP_DATA, groupData);
@@ -910,7 +921,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // create second group
       String thirdGroupName = "Group_C";
-      groupData = OpUserTestDataFactory.createGroupData(thirdGroupName, DUMMY_STRING,
+      groupData = UserTestDataFactory.createGroupData(thirdGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{secondGroup.locator()}));
       request = new XMessage();
       request.setArgument(OpUserService.GROUP_DATA, groupData);
@@ -922,7 +933,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(thirdGroup);
 
       // now update group Group_A to have as a parent Group_C. In this case we would have a loop.
-      groupData = OpUserTestDataFactory.createGroupData(firstGroupName, DUMMY_STRING,
+      groupData = UserTestDataFactory.createGroupData(firstGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{thirdGroup.locator()}));
       request = new XMessage();
       request.setArgument(OpUserService.GROUP_ID, firstGroup.locator());
@@ -948,7 +959,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // create supergroup
       String superGroupName = "SuperGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
       XMessage req = new XMessage();
       req.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage res = userService.insertGroup(session, req);
@@ -1013,7 +1024,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now try to add a new group with super group.
       String subGroupName = "SubGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
+      Map groupData = UserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
       XMessage request = new XMessage();
@@ -1061,7 +1072,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(superGroup);
 
       // now try to add a new user with super group.
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING,
            Arrays.asList(new String[]{superGroup.locator()}));
       XMessage request = new XMessage();
@@ -1102,13 +1113,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteUser()
         throws Exception {
-
       // count existing users.
-      OpBroker broker = session.newBroker();
-      List allUsers = dataFactory.getAllUsers(broker);
+      List allUsers = dataFactory.getAllUsers();
       assertNotNull(allUsers);
       int usersListSize = allUsers.size();
-      broker.close();
 
       createDefaultUser();
       OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
@@ -1120,12 +1128,9 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       XMessage res = userService.deleteSubjects(session, req);
       assertNoError(res);
 
-      broker = session.newBroker();
-      allUsers = dataFactory.getAllUsers(broker);
+      allUsers = dataFactory.getAllUsers();
       assertNotNull(allUsers);
       assertEquals(usersListSize, allUsers.size());
-      broker.close();
-      
    }
 
    /**
@@ -1135,13 +1140,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteGroup()
         throws Exception {
-
       // count existing groups.
-      OpBroker broker = session.newBroker();
-      List allGroups = dataFactory.getAllGroups(broker);
+      List allGroups = dataFactory.getAllGroups();
       assertNotNull(allGroups);
       int groupsListSize = allGroups.size();
-      broker.close();
 
       createDefaultGroup();
       OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
@@ -1149,15 +1151,13 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // Now delete group.
       XMessage req = new XMessage();
-      req.setArgument(OpUserService.SUBJECT_IDS, Arrays.asList(group.locator()));
+      req.setArgument(OpUserService.SUBJECT_IDS, Arrays.asList(new String[]{group.locator()}));
       XMessage res = userService.deleteSubjects(session, req);
       assertNoError(res);
 
-      broker = session.newBroker();
-      allGroups = dataFactory.getAllGroups(broker);
+      allGroups = dataFactory.getAllGroups();
       assertNotNull(allGroups);
       assertEquals(groupsListSize, allGroups.size());
-      broker.close();
    }
 
    /**
@@ -1199,7 +1199,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now try to add a new group with super group.
       String subGroupName = "SubGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
+      Map groupData = UserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
       XMessage request = new XMessage();
@@ -1212,7 +1212,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(subGroup);
 
       // Now create also an user
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
@@ -1255,7 +1255,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       // now try to add a new group with super group.
       String subGroupName = "SubGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
+      Map groupData = UserTestDataFactory.createGroupData(subGroupName, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
       XMessage request = new XMessage();
@@ -1268,7 +1268,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(subGroup);
 
       // Now create also an user
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING,
            Arrays.asList(new String[]{String.valueOf(superGroup.locator())}));
 
@@ -1308,39 +1308,25 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If somethign goes wrong.
     */
-   //<FIXME author="Mihai Costin" description="request parameter should be updated for each method call!!">  
    public void testMethodsSecurity()
         throws Exception {
 
-      createDefaultUser();
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
-      assertNotNull(user);
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+           DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
-      createDefaultGroup();
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
-      assertNotNull(group);
-
-      // create supergroup
-      String superGroupName = "SuperGroup";
-      Map groupData = OpUserTestDataFactory.createGroupData(superGroupName, DUMMY_STRING, null);
       XMessage request = new XMessage();
-      request.setArgument(OpUserService.GROUP_DATA, groupData);
-      XMessage response = userService.insertGroup(session, request);
+
+      // first try with lower case (for all letters)
+      request.setArgument(OpUserService.USER_DATA, userData);
+      XMessage response = userService.insertUser(session, request);
       assertNoError(response);
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
-      assertNotNull(superGroup);
 
       //log-out Administrator
       logOut();
       logIn(TEST_USER_NAME, TEST_PASS);
 
       // now try to call secured methods.
-      List subIds = Arrays.asList(new String[]{user.locator()});
-
       request = new XMessage();
-      request.setArgument(OpUserService.TARGET_GROUP_ID, superGroup.locator());
-      request.setArgument(OpUserService.SUBJECT_IDS, subIds);
-
       try {
          // check insertUser method security
          response = userService.insertUser(session, request);
@@ -1377,31 +1363,6 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       }
    }
 
-   /**
-    * Tests that after a user with a default language preference logs in and out, after logout,
-    * the session's language is the same as the system language.
-    *
-    * @throws Exception if anything fails.
-    */
-   public void testSystemDefaultLanguage()
-        throws Exception {
-      String language = "de";
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_USER_NAME, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
-           DUMMY_STRING, DUMMY_STRING, language, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
-
-      //create user
-      XMessage request = new XMessage();
-      request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = userService.insertUser(session, request);
-      assertNoError(response);
-
-      logIn(TEST_USER_NAME, TEST_USER_NAME);
-      assertEquals("The locale of the logged in user is not correct ", language, session.getLocale().getID());
-      logOut();
-      String systemLocaleId = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE)).getID();
-      assertEquals("The locale of the session is not the system locale ", systemLocaleId, session.getLocale().getID());
-   }
-
    // ------------- Helper methods ----------------------------
    /**
     * Creates default user with default data.
@@ -1409,7 +1370,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     * @return service response
     */
    private XMessage createDefaultUser() {
-      Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
+      Map userData = UserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
            DUMMY_STRING, DUMMY_STRING, TEST_LANGUAGE, TEST_EMAIL, DUMMY_STRING, DUMMY_STRING, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
@@ -1428,7 +1389,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     * @return service response
     */
    private XMessage createDefaultGroup() {
-      Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
+      Map groupData = UserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
 
       XMessage request = new XMessage();
 

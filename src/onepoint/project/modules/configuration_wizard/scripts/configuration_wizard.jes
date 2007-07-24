@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for db_configuration_wizard.oxf.xml
@@ -35,7 +35,7 @@ function connect(event) {
    if (handleError(form, response, "ErrorLabel") == true) {
       params = response.getArgument("initParams");
       //show login form
-      XDisplay.showStartForm(params);
+      XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml", params);
    }
 
 }

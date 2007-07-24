@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_tasks.forms;
@@ -10,14 +10,9 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpAttachment;
-import onepoint.project.modules.project.OpProjectDataSetFactory;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.service.server.XSession;
 
@@ -67,8 +62,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       XComponent adhocRow = (XComponent) parameters.get(SELECTED_ROW);
       int activityIndex = adhocRow.getIndex();
       form.findComponent(ACTIVITY_ROW_INDEX).setIntValue(activityIndex);
-      // if EDIT_MODE == null the edit mode is Enabled
-      boolean editMode = parameters.get(EDIT_MODE) == null || (Boolean) parameters.get(EDIT_MODE);
+      Boolean editMode = (Boolean) parameters.get(EDIT_MODE);
       OpProjectSession session = (OpProjectSession) s;
 
       Map projectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
@@ -89,15 +83,12 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       XComponent dueField = form.findComponent(TASK_DUE_DATE);
       dueField.setDateValue(task.getFinish());
 
-      // set view mode if no write rights
-      editMode &= OpMyTasksServiceImpl.editGranted((OpProjectSession) s, task);
-
       //fill project data set
       int index = 0;
       int selectedIndex = 0;
       List resources = new ArrayList();
-      for (Object o : projectsMap.keySet()) {
-         String choice = (String) o;
+      for (Iterator iterator = projectsMap.keySet().iterator(); iterator.hasNext();) {
+         String choice = (String) iterator.next();
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          projectDataSet.addChild(row);
@@ -108,20 +99,20 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          index++;
       }
       XComponent projectChooser = form.findComponent(TASK_PROJECT);
-      projectChooser.setSelectedIndex(selectedIndex);
+      projectChooser.setSelectedIndex(new Integer(selectedIndex));
 
       //fill resource data set
       XComponent resourcetChooser = form.findComponent(TASK_RESOURCE);
       OpResource resource = null;
       Set assignments = task.getAssignments();
-      for (Object assignment1 : assignments) {
-         OpAssignment assignment = (OpAssignment) assignment1;
+      for (Iterator iterator = assignments.iterator(); iterator.hasNext();) {
+         OpAssignment assignment = (OpAssignment) iterator.next();
          resource = assignment.getResource();
       }
       index = 0;
       selectedIndex = 0;
-      for (Object resource1 : resources) {
-         String choice = (String) resource1;
+      for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
+         String choice = (String) iterator.next();
          XComponent row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(choice);
          resourceDataSet.addChild(row);
@@ -130,17 +121,17 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          }
          index++;
       }
-      resourcetChooser.setSelectedIndex(selectedIndex);
+      resourcetChooser.setSelectedIndex(new Integer(selectedIndex));
 
       //fill attachement tab
-      Set<OpAttachment> attachments = task.getAttachments();
+      Set attachments = task.getAttachments();
       addAttachments(form, attachments);
       XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(AD_HOC_RESOURCE_MAP);
       OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
 
       broker.close();
 
-      if (!editMode) {
+      if (editMode != null && !editMode.booleanValue()) {
          //disable all fields
          String title = session.getLocale().getResourceMap(RESOURCE_MAP).getResource(INFO_TITLE).getText();
          form.setText(title);
@@ -163,12 +154,14 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    }
 
 
-   private void addAttachments(XComponent form, Set<OpAttachment> attachments) {
+   private void addAttachments(XComponent form, Set attachments) {
       //attachments tab
 
       // Fill attachments tab
       XComponent attachmentSet = form.findComponent(ATTACHMENT_SET);
-      for (OpAttachment attachment : attachments) {
+      Iterator it = attachments.iterator();
+      while (it.hasNext()) {
+         OpAttachment attachment = (OpAttachment) it.next();
          XComponent attachmentRow = new XComponent(XComponent.DATA_ROW);
 
          //0 - type "u" or "d" identifier
@@ -176,11 +169,11 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          String type;
          int idx;
          if (attachment.getLinked()) {
-            type = OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR;
+            type = OpActivityDataSetFactory.LINKED_ATTACHMENT_DESCRIPTOR;
             idx = 0;
          }
          else {
-            type = OpProjectConstants.DOCUMENT_ATTACHMENT_DESCRIPTOR;
+            type = OpActivityDataSetFactory.DOCUMENT_ATTACHMENT_DESCRIPTOR;
             idx = 1;
          }
          cell.setStringValue(type);
@@ -205,7 +198,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
             attachmentRow.addChild(cell);
          }
 
-         attachmentSet.addChild(attachmentRow);
+         attachmentSet.addDataRow(attachmentRow);
       }
    }
 

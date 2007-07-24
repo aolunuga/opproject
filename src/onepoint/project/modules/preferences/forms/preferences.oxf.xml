@@ -1,34 +1,31 @@
 <form layout="border"
-      text="${Preferences}"
+      text="{$Preferences}"
       resource-map-ref="preferences.preferences"
       start-focus-ref="UserLanguage"
       provider-class="onepoint.project.modules.preferences.forms.OpPreferencesFormProvider"
       script="/modules/preferences/scripts/preferences.jes">
    <data-set id="UserLanguageDataSet"/>
-
-   <panel layout="border" style-ref="compact-panel-default">
-
-      <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar>
-            <tool-button id="Save" text="${Save}" icon="/icons/save.png" disabled-icon="/icons/save_disabled.png"
-                         on-button-pressed="save" tooltip="${SaveTooltip}"/>
-         </tool-bar>
-      </panel>
+	
+    <panel layout="border" style-ref="compact-panel-default">
+		
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+   <tool-bar>
+      <tool-button id="Save" text="{$Save}" icon="/icons/save.png" disabled-icon="/icons/save_disabled.png"
+                   on-button-pressed="save" tooltip="{$SaveTooltip}"/>
+   </tool-bar>
+		</panel>
       <panel layout="border" style-ref="layout-panel-default">
-         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-         <panel id="preferencesPanel" layout="table" style-ref="table-panel-default">
-            <label x="0" y="0" width="2" text="${UserLanguage}"/>
-            <choice-field x="2" y="0" width="3" id="UserLanguage" data-set-ref="UserLanguageDataSet"/>
-            <label x="0" y="1" width="2" text="${Password}"/>
-            <text-field x="2" y="1" width="3" id="Password" secret="true"/>
-            <label x="0" y="2" width="2" text="${PasswordRetyped}"/>
-            <text-field x="2" y="2" width="3" id="PasswordRetyped" secret="true"/>
-            <check-box x="2" y="3" width="3" id="ShowResourceHours" text="${ShowResourceHours}"/>
+		   <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+		<panel layout="table" style-ref="table-panel-default">
+            <label x="0" y="0" width="2" text="{$UserLanguage}"/><choice-field x="2" y="0" width="3" id="UserLanguage" data-set-ref="UserLanguageDataSet"/>
+            <label x="0" y="1" width="2" text="{$Password}"/><text-field x="2" y="1" width="3" id="Password" secret="true" />
+            <label x="0" y="2" width="2" text="{$PasswordRetyped}"/><text-field x="2" y="2" width="3" id="PasswordRetyped" secret="true"/>
+            <check-box x="2" y="3" width="3" id="ShowResourceHours" text="{$ShowResourceHours}"/>
          </panel>
       </panel>
-
-      <status-bar y="1"/>
-
-   </panel>
-
+		
+	<status-bar y="1"/>
+		
+	</panel>
+		
 </form>

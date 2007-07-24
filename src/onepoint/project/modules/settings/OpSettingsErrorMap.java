@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -24,7 +24,6 @@ public class OpSettingsErrorMap extends XErrorMap {
         registerErrorCode(OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT, OpSettingsError.RESOURCE_MAX_AVAILABILITY_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.MILESTONE_CONTROLING_INCORRECT, OpSettingsError.MILESTONE_CONTROLING_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.FIRST_WORK_DAY_INCORRECT, OpSettingsError.FIRST_WORK_DAY_INCORRECT_NAME);
-        registerErrorCode(OpSettingsError.INVALID_PULSE_VALUE, OpSettingsError.INVALID_PULSE_VALUE_NAME);
      }
 
 }

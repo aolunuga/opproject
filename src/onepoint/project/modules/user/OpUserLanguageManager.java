@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user;
@@ -30,7 +30,7 @@ public final class OpUserLanguageManager {
     * @param languageDataSet a <code>XComponent(DATA_SET)</code> representing a dataset that will hold the user languages.
     * @param languageField   a <code>XComponent(CHOICE_FIELD)</code> representing the choice field where the user selected language
     *                        will be displayed. This may be <code>null</code>.
-    * @param user            a <code>OpUser</code> representing the user for which to fill the data.
+    * @param user a <code>OpUser</code> representing the user for which to fill the data.
     */
    public static void fillLanguageDataSet(XComponent languageDataSet, XComponent languageField, OpUser user) {
 

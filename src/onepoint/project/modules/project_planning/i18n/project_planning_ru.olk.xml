@@ -1,8 +1,8 @@
 ﻿<language-kit locale="ru">
 
    <resource-map id="project_planning.module">
-      <resource id="PlanningTool">Планирование</resource>
-   </resource-map>
+        <resource id="PlanningTool">Планирование</resource>
+    </resource-map>
 
    <resource-map id="project_planning.activities">
       <resource id="EditPlan">Изменить</resource>
@@ -12,7 +12,7 @@
       <resource id="ExportProject">Экспорт</resource>
       <resource id="Revert">Откат версии</resource>
       <resource id="Print">Печать</resource>
-
+	   
       <resource id="Cut">Вырезать</resource>
       <resource id="Copy">Копировать</resource>
       <resource id="Paste">Вставить</resource>
@@ -46,13 +46,12 @@
 
       <resource id="CostsProjection">Базовые затраты</resource>
       <resource id="Activity">Activity</resource>
-      <resource id="Personnel">Pers. ({CurrencySymbol})</resource>
-      <resource id="Travel">Travel ({CurrencySymbol})</resource>
-      <resource id="Material">Material ({CurrencySymbol})</resource>
-      <resource id="External">External ({CurrencySymbol})</resource>
-      <resource id="Misc">Misc. ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
-      <resource id="Costs">Costs ({CurrencySymbol})</resource>
+      <resource id="Personnel">Pers. (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Misc. (€)</resource>
+      <resource id="Costs">Costs (€)</resource>
 
       <resource id="EditTooltip">Изменить план проекта</resource>
       <resource id="SaveTooltip">Сохранить изменения в рабочей версии</resource>
@@ -78,9 +77,7 @@
       <resource id="CopyActivities">Копировать задачу в буфер</resource>
       <resource id="PasteActivities">Вставить задачу из буфера</resource>
       <resource id="Undo">Отменить</resource>
-      <resource id="Redo">Повторить</resource>
-
-      <resource id="Total">Total</resource>
+      <resource id="Redo">Повторить</resource>      
 
       <resource id="LoopErrorMessage">Это действие вызовет замыкание плана в цикл</resource>
       <resource id="ResourcesErrorMessage">Наименование ресурса не найдено в пуле ресурсов данного проекта</resource>
@@ -93,12 +90,12 @@
       <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
       <resource id="WorkRecordsExistErrorMessage">По данной задаче уже внесен табель</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Импорт плана проекта</resource>
       <resource id="ExportProjectTitle">Экспорт плана проекта</resource>
-      <resource id="FileWriteError">File Write Errort</resource>
+      <resource id="FileWriteError">File Write Errort</resource>      
    </resource-map>
 
    <resource-map id="project_planning.RevertProjectPlan">
@@ -144,8 +141,7 @@
       <resource id="Priority">Приоритет</resource>
       <resource id="Mandatory">Mandatory</resource>
       <resource id="ResponsibleResource">Responsible Resource</resource>
-      <resource id="Payment">Payment</resource>
-      
+
       <resource id="Resources">Ресурсы</resource>
       <resource id="Resource">Ресурс</resource>
       <resource id="PercentageAssigned">% назначения</resource>
@@ -154,18 +150,17 @@
       <resource id="Predecessor">Предки</resource>
 
       <resource id="Costs">Costs</resource>
-      <resource id="Personnel">Personnel ({CurrencySymbol})</resource>
-      <resource id="Travel">Travel ({CurrencySymbol})</resource>
-      <resource id="Material">Material ({CurrencySymbol})</resource>
-      <resource id="External">External ({CurrencySymbol})</resource>
-      <resource id="Misc">Miscellaneous ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
+      <resource id="Personnel">Personnel (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Miscellaneous (€)</resource>
 
       <resource id="Attachments">Attachments</resource>
-      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
-      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
-      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
-      <resource id="ViewAttachmentTooltip">View attachment</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+	  <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+	  <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+	  <resource id="ViewAttachmentTooltip">View attachment</resource>
 
       <resource id="Title">Title</resource>
       <resource id="Location">Location</resource>
@@ -191,7 +186,7 @@
 
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>
-
+      
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -201,7 +196,7 @@
 
       <resource id="Subject">Тема</resource>
       <resource id="Text">Текст</resource>
-
+	   
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -248,18 +243,13 @@
       <resource id="Duration">Длительность (д)</resource>
       <resource id="PercentComplete">% выполнения</resource>
       <resource id="Effort">Объем работ (ч)</resource>
-      <resource id="Costs">Costs ({CurrencySymbol})</resource>
+      <resource id="Costs">Costs (€)</resource>
       <resource id="Resources">Ресурсы</resource>
       <resource id="Category">Category</resource>
-      <resource id="Proceeds">Proceeds ({CurrencySymbol})</resource>
    </resource-map>
 
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
-   </resource-map>
-
-   <resource-map id="resource.incorrectFile">
-      <resource id="IncorrectFileName">Incorrect File Name</resource>
    </resource-map>
 
    <resource-map id="project_planning.error">
@@ -279,9 +269,8 @@
       <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
       <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
-      <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
-      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>      
    </resource-map>
 
 </language-kit>

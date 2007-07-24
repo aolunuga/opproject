@@ -1,47 +1,23 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.backup;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.persistence.*;
+import onepoint.project.OpProjectSession;
+import onepoint.util.XEnvironmentManager;
+import onepoint.xml.XDocumentWriter;
+
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpField;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpRelationship;
-import onepoint.persistence.OpType;
-import onepoint.persistence.OpTypeManager;
-import onepoint.persistence.hibernate.OpHibernateSource;
-import onepoint.project.OpProjectSession;
-import onepoint.service.XSizeInputStream;
-import onepoint.util.XEnvironmentManager;
-import onepoint.xml.XDocumentWriter;
+import java.util.*;
 
 /**
  * Class that backs-up and restores the application repository.
@@ -61,7 +37,6 @@ public class OpBackupManager {
     */
    public final static String OPP_BACKUP = "opp-backup";
    public final static String VERSION = "version";
-   public final static String SCHEMA_VERSION = "schema-version";
 
    public final static String PROTOTYPES = "prototypes";
    public final static String PROTOTYPE = "prototype";
@@ -83,7 +58,7 @@ public class OpBackupManager {
    /**
     * This class's logger
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpBackupManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpBackupManager.class, true);
 
    /**
     * The size of a page, when performing backup.
@@ -104,12 +79,12 @@ public class OpBackupManager {
    /**
     * The map of prototypes (their load order is important).
     */
-   private static Map<String, OpPrototype> prototypes = new LinkedHashMap<String, OpPrototype>();
+   private static Map prototypes = new LinkedHashMap();
 
    /**
     * A map of [systemObjectName, systemObjectQuery] used for retrieving system objects.
     */
-   private static Map<String, String> systemObjectIdQueries = new HashMap<String, String>();
+   private static Map systemObjectIdQueries = new HashMap();
 
    /**
     * The class instance
@@ -117,7 +92,7 @@ public class OpBackupManager {
    private static OpBackupManager backupManager = null;
 
    /**
-    * "/" string
+    *  "/" string 
     */
    private static final String SLASH_STRING = "/";
 
@@ -196,8 +171,10 @@ public class OpBackupManager {
     * @return a <code>Map</code> of [<code>String</code>, <code>Long</code>] pairs representing [name, id] pairs.
     */
    public static Map querySystemObjectIdMap(OpBroker broker) {
-      Map<Long, String> systemObjectIdMap = new HashMap<Long, String>();
-      for (String name : systemObjectIdQueries.keySet()) {
+      HashMap systemObjectIdMap = new HashMap();
+      Iterator names = systemObjectIdQueries.keySet().iterator();
+      while (names.hasNext()) {
+         String name = (String) names.next();
          String queryString = (String) systemObjectIdQueries.get(name);
          logger.info("Query:" + queryString);
 
@@ -259,11 +236,11 @@ public class OpBackupManager {
     */
    private List exportPrototypes(XDocumentWriter writer)
         throws IOException {
-      List<OpBackupMember[]> allMembers = new ArrayList<OpBackupMember[]>();
+      List allMembers = new ArrayList();
 
       writer.writeStartElement(PROTOTYPES, null, false);
 
-      Map<String, String> attributes = new HashMap<String, String>();
+      HashMap attributes = new HashMap();
       Iterator it = prototypes.values().iterator();
       while (it.hasNext()) {
          OpPrototype prototype = (OpPrototype) it.next();
@@ -283,7 +260,7 @@ public class OpBackupManager {
             // Cache accessor method (Note that we assume that persistent member names start with an upper-case letter)
             Method accessor = null;
             try {
-               accessor = prototype.getInstanceClass().getMethod("get" + member.getName());
+               accessor = prototype.getInstanceClass().getMethod("get" + member.getName(), null);
             }
             catch (NoSuchMethodException e) {
                logger.error("No accessor method for " + prototype.getName() + "." + member.getName());
@@ -385,10 +362,7 @@ public class OpBackupManager {
                   writer.writeContent(NULL);
                }
                else {
-            	  if(value instanceof XSizeInputStream)
-            		  writer.writeContent(writeBinaryFile(object.getID(), member.name, (XSizeInputStream) value));
-            	  else
-            		  writer.writeContent(writeBinaryFile(object.getID(), member.name, (byte[]) value));
+                  writer.writeContent(writeBinaryFile(object.getID(), member.name, (byte[]) value));
                }
                break;
             case OpType.BYTE:
@@ -430,8 +404,8 @@ public class OpBackupManager {
    /**
     * @param orderedBy   a <code>String</code> representing the name of the member field after which to order by.
     * @param recursiveBy a <code>String</code> representing the name of the member relationship which is recursive.
-    * @param objects     a <code>List</code> of <code>OpObject</code> representing child objects in case of a recursive backup.
-    * @see OpBackupManager#exportObjects(onepoint.project.OpProjectSession,onepoint.xml.XDocumentWriter,String,OpBackupMember[],java.util.Map)
+    * @param objects    a <code>List</code> of <code>OpObject</code> representing child objects in case of a recursive backup.
+    * @see OpBackupManager#exportObjects(onepoint.project.OpProjectSession, onepoint.xml.XDocumentWriter, String, OpBackupMember[], java.util.Map)
     */
    private void exportSubObjects(OpProjectSession session, XDocumentWriter writer, String prototypeName,
         OpBackupMember[] members, String orderedBy, String recursiveBy, List objects, Map systemIdMap)
@@ -449,7 +423,7 @@ public class OpBackupManager {
          logger.info("Backing up " + count + " " + prototypeName);
          if (count > pageSize) {
             while (startIndex < count) {
-               logger.info("Backing up objects between " + startIndex + " and " + (startIndex + BACKUP_PAGE_SIZE));
+               logger.info("Backing up objects between " +  startIndex + " and " + (startIndex + BACKUP_PAGE_SIZE));
                OpBroker pagingBroker = session.newBroker();
                result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, BACKUP_PAGE_SIZE);
                startIndex += pageSize;
@@ -460,7 +434,7 @@ public class OpBackupManager {
                   pageSize = count - startIndex;
                }
                //export each object
-               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker, prototypeName);
+               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker,  prototypeName);
                if ((recursiveBy != null) && (childObjects.size() > 0)) {
                   exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
                }
@@ -480,7 +454,7 @@ public class OpBackupManager {
       if ((recursiveBy != null) && (childObjects.size() > 0)) {
          exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
       }
-      broker.close();
+      broker.close();      
    }
 
    private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
@@ -488,7 +462,7 @@ public class OpBackupManager {
         throws IOException {
       List childObjects = (recursiveBy != null) ? new ArrayList() : null;
       try {
-         Map<String, String> attributes = new HashMap<String, String>();
+         HashMap attributes = new HashMap();
          while (result.hasNext()) {
             OpObject object = (OpObject) result.next();
             //object id
@@ -511,13 +485,13 @@ public class OpBackupManager {
                   continue;
                }
 
-               Object value = member.accessor.invoke(object);
+               Object value = member.accessor.invoke(object, null);
                if (member.relationship) {
                   this.writeRelationshipMember(writer, value);
                   if (recursiveBy != null && recursiveBy.equals(member.name)) {
                      try {
-                        Method m = object.getClass().getMethod("get" + member.backRelationshipName);
-                        Object backReturnValue = m.invoke(object);
+                        Method m = object.getClass().getMethod("get" + member.backRelationshipName, null);
+                        Object backReturnValue = m.invoke(object, null);
                         if (backReturnValue != null && (backReturnValue instanceof Collection)) {
                            childObjects.addAll((Collection) backReturnValue);
                         }
@@ -545,12 +519,11 @@ public class OpBackupManager {
 
    /**
     * Gets a list of objects to back-up.
-    *
     * @param prototypeName a <code>String</code> representing the name of a prototype.
-    * @param recursiveBy   a <code>String</code> indicating the name of the recursive relationship.
-    * @param orderedBy     a <code>String</code> representing the name of the field after which to order the objects.
-    * @param broker        a <code>OpBroker</code> used for performing business operations.
-    * @return an <code>Iterator</code> over <code>OpObjects</code>.
+    * @param recursiveBy a <code>String</code> indicating the name of the recursive relationship.
+    * @param orderedBy a <code>String</code> representing the name of the field after which to order the objects.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
+    * @return an <code>Iterator</code> over <code>OpObjects</code>. 
     */
    private Iterator getObjectsToBackup(String prototypeName, String recursiveBy, String orderedBy, OpBroker broker,
         int startIndex, int count) {
@@ -585,9 +558,8 @@ public class OpBackupManager {
 
    /**
     * Gets the number of objects to back-up from the db.
-    *
     * @param prototypeName a <code>String</code> representing the name of a prototype.
-    * @param broker        a <code>OpBroker</code> used for performing business operations.
+    * @param broker a <code>OpBroker</code> used for performing business operations.
     * @return an <code>Iterator</code> over <code>OpObjects</code>.
     */
    private int getObjectsToBackupCount(String prototypeName, String recursiveBy, OpBroker broker) {
@@ -606,13 +578,14 @@ public class OpBackupManager {
       logger.debug("***QUERY: " + queryBuffer);
       OpQuery query = broker.newQuery(queryBuffer.toString());
 
-      return ((Number) broker.iterate(query).next()).intValue();
+      int count = ((Number) broker.iterate(query).next()).intValue();
+      return count;
    }
 
    /**
     * For the given proptotype and members of the prototype exports all current db values.
     *
-    * @param session       a <code>OpProjectSession</code> used for creating brokers that perform db operations.
+    * @param session        a <code>OpProjectSession</code> used for creating brokers that perform db operations.
     * @param writer        a <code>XDocumentWriter</code> that is used to output xml.
     * @param prototypeName a <code>String</code> representing the name of the prototype.
     * @param members       a <code>OpBackupMember[]</code> representing the members to be exported for the given prototype.
@@ -623,7 +596,7 @@ public class OpBackupManager {
         OpBackupMember[] members, Map systemIdMap)
         throws IOException {
       logger.info("Backing up ******** " + prototypeName + " ********");
-      Map<String, String> attributes = new HashMap<String, String>();
+      HashMap attributes = new HashMap();
       attributes.put(TYPE, prototypeName);
       writer.writeStartElement(OBJECTS, attributes, false);
       attributes.clear();
@@ -674,8 +647,7 @@ public class OpBackupManager {
 
    /**
     * Checks whether the given path points to an existent file or not.
-    *
-    * @param path        a <code>String</code> representing a path.
+    * @param path a <code>String</code> representing a path.
     * @param shouldExist a <code>boolean</code> indicating whether an existence check should be done or not.
     * @return <code>true</code> if the given path points to an existent file.
     */
@@ -695,7 +667,6 @@ public class OpBackupManager {
 
    /**
     * From the given path to a file, extracts the parent directory of the file.
-    *
     * @param filePath a <code>String</code> representing the path to an existent file.
     * @return a <code>String</code> representing the parent directory of the given file.
     * @throws IllegalArgumentException if the given string does not point to an exiting file.
@@ -720,13 +691,13 @@ public class OpBackupManager {
 
       // Write XML header
       writer.writeHeader1_0();
-      Map<String, String> attributes = new HashMap<String, String>();
+      HashMap attributes = new HashMap();
 
-      // Write root elements
-      attributes.put(VERSION, String.valueOf(CURRENT_VERSION_NUMBER));
-      attributes.put(SCHEMA_VERSION, String.valueOf(OpHibernateSource.SCHEMA_VERSION));
+      // Write root elements (pilot release uses version="0")
+      attributes.put(VERSION, new StringBuffer().append(CURRENT_VERSION_NUMBER).toString());
       writer.writeStartElement(OPP_BACKUP, attributes, false);
       attributes.clear();
+
 
       // Export prototype order
       List allMembers = exportPrototypes(writer);
@@ -737,7 +708,9 @@ public class OpBackupManager {
       broker.close();
 
       int memberIndex = 0;
-      for (OpPrototype prototype : prototypes.values()) {
+      Iterator it = prototypes.values().iterator();
+      while (it.hasNext()) {
+         OpPrototype prototype = (OpPrototype) it.next();
          exportObjects(session, writer, prototype.getName(), (OpBackupMember[]) allMembers.get(memberIndex), systemIdMap);
          memberIndex++;
       }
@@ -755,7 +728,7 @@ public class OpBackupManager {
     *
     * @param session a <code>OpProjectSession</code> representing an application session.
     * @param path    a <code>String</code> representing a path to the backup file.
-    * @throws IOException              if the repository cannot be restored.
+    * @throws IOException if the repository cannot be restored.
     * @throws IllegalArgumentException if the given path does not point to an existing file.
     */
    public final void restoreRepository(OpProjectSession session, String path)
@@ -827,37 +800,6 @@ public class OpBackupManager {
       }
       return SLASH_STRING + this.binaryDirName + fileName;
    }
-   /**
-    * Writes a binary file under the given path, in a special directory.
-    *
-    * @param id               a <code>long</code> representing the if of the object which contains the written content.
-    * @param backupMemberName a <code>String</code> representing the name of the backup member which has the content.
-    * @param content          a <code>XSizeInputStream</code> representing the actual content.
-    * @return the path to the newly written binary file.
-    */
-   private String writeBinaryFile(long id, String backupMemberName, XSizeInputStream content) {
-      File directory = new File(binaryDirPath);
-      if (!directory.exists()) {
-         directory.mkdir();
-      }
-      // Write binary data to file
-      String fileName = binaryFilePath(id, backupMemberName);
-      try {
-         FileOutputStream fileOutput = new FileOutputStream(binaryDirPath + fileName);
-		 byte[] buff = new byte[1000];
-		 int buffLength = -1;
-		 while((buffLength = content.read(buff)) != -1) {
-			fileOutput.write(buff, 0, buffLength);
-		 }
-         fileOutput.flush();
-         fileOutput.close();
-      }
-      catch (IOException e) {
-         logger.error("ERROR: An I/O exception occured when trying to write binary file: ", e);
-      }
-      return SLASH_STRING + this.binaryDirName + fileName;
-   }
-	
 
    /**
     * Reads the contents of a binary file from the given path.

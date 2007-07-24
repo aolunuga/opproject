@@ -1,4 +1,4 @@
-<prototype name="OpActivityCategory" instance-class="onepoint.project.modules.project.OpActivityCategory" super-type="OpObject">
+<prototype name="OpActivityCategory" instance-class="onepoint.project.modules.project.OpActivityCategory">
    <field name="Name" type="String" mandatory="true" unique="true"/>
    <field name="Description" type="Text"/>
    <field name="Color" type="Integer"/>

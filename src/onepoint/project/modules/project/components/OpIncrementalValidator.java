@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.components;
@@ -23,11 +23,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
    /**
     * In adition, start points are computed for each different type of update and used then in the validation process.
     *
-    * @see onepoint.express.XValidator#setDataCellValue(onepoint.express.XComponent,int,Object)
+    * @see onepoint.express.XValidator#setDataCellValue(onepoint.express.XComponent, int, Object)
     */
    public void setDataCellValue(XComponent data_row, int column_index, Object value) {
 
-      data_set.removeAllDummyRows();
       switch (column_index) {
          case START_COLUMN_INDEX:
             preCheckSetStartValue(data_row, value);
@@ -51,7 +50,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
                setStart(data_row, start);
                if (getEnd(data_row) == null) {
                   setEnd(data_row, start);
-                  updateProjectPlanFinish();
                }
                updateDuration(data_row, getDuration(data_row));
                startPoints.add(data_row);
@@ -200,6 +198,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
                resources = prepareResources(data_row, resources);
                addToUndo();
                setResources(data_row, resources);
+
                //effort stays the same.
                updateBaseEffort(data_row, getBaseEffort(data_row));
 
@@ -458,6 +457,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
             }
          }
 
+
          //start validation for all start points
          for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
             XComponent activity = (XComponent) iterator.next();
@@ -524,7 +524,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
       if (node != null) {
          preds = node.getPredecessors();
       }
-
+      
       //get the last end date from predecessors ( end = maxend(preds) )
       for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
          OpGraphNode pred = (OpGraphNode) iterator.next();
@@ -557,7 +557,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
       //check for the project start
       Date start = OpGanttValidator.getStart(dataRow);
       if (start != null) {
-         if (!calendar.isWorkDay(start)) {
+         if (!calendar.isWorkDay(start)){
             start = calendar.nextWorkDay(start);
             validateSuccessors = true;
             OpGanttValidator.setStart(dataRow, start);
@@ -635,7 +635,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
 
       if (endCollection == null || (maxEnd != null && !endCollection.equals(maxEnd))) {
          setEnd(collection, maxEnd);
-         updateProjectPlanFinish();
          changed = true;
       }
 
@@ -658,7 +657,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
    }
 
    /**
-    * @see onepoint.express.XValidator#addDataRow(int,onepoint.express.XComponent)
+    * @see onepoint.express.XValidator#addDataRow(int, onepoint.express.XComponent)
     */
    public void addDataRow(int index, XComponent data_row) {
       initStartPoints();

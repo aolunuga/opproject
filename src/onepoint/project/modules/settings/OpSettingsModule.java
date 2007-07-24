@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings;
@@ -12,7 +12,7 @@ import onepoint.project.modules.backup.OpBackupManager;
 
 public class OpSettingsModule extends OpModule {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpSettingsModule.class);
+   private static final XLog logger = XLogFactory.getLogger(OpSettingsModule.class, true);
 
    public void start(OpProjectSession session) {
       // Load settings

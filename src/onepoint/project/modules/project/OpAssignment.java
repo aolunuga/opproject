@@ -1,12 +1,11 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.work.OpWorkRecord;
 
 import java.util.Set;
 
@@ -18,8 +17,6 @@ public class OpAssignment extends OpObject {
    public final static String COMPLETE = "Complete";
    public final static String BASE_EFFORT = "BaseEffort";
    public final static String ACTUAL_EFFORT = "ActualEffort";
-   public final static String BASE_PROCEEDS = "BaseProceeds";
-   public final static String ACTUAL_PROCEEDS = "ActualProceeds";
    public final static String REMAINING_EFFORT = "RemainingEffort";
    public final static String BASE_COSTS = "BaseCosts";
    public final static String ACTUAL_COSTS = "ActualCosts";
@@ -33,16 +30,12 @@ public class OpAssignment extends OpObject {
    private double baseEffort; // Person-hours
    private double actualEffort; // Person-hours
    private double remainingEffort; // Person-hours
-
    private double baseCosts; // Personnel costs
    private double actualCosts; // Personnel costs
-
-   private double baseProceeds; // Base External costs
-   private double actualProceeds; // Base Actual costs
    private OpProjectPlan projectPlan;
    private OpResource resource;
    private OpActivity activity;
-   private Set<OpWorkRecord> workRecords;
+   private Set workRecords;
 
    public void setAssigned(double assigned) {
       this.assigned = assigned;
@@ -100,22 +93,6 @@ public class OpAssignment extends OpObject {
       return actualCosts;
    }
 
-   public double getBaseProceeds() {
-      return baseProceeds;
-   }
-
-   public void setBaseProceeds(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0 ;
-   }
-
-   public double getActualProceeds() {
-      return actualProceeds;
-   }
-
-   public void setActualProceeds(Double actualProceeds) {
-      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
-   }
-
    public void setProjectPlan(OpProjectPlan projectPlan) {
       this.projectPlan = projectPlan;
    }
@@ -140,11 +117,12 @@ public class OpAssignment extends OpObject {
       return activity;
    }
 
-   public void setWorkRecords(Set<OpWorkRecord> workRecords) {
+   public void setWorkRecords(Set workRecords) {
       this.workRecords = workRecords;
    }
 
-   public Set<OpWorkRecord> getWorkRecords() {
+   public Set getWorkRecords() {
       return workRecords;
    }
+
 }

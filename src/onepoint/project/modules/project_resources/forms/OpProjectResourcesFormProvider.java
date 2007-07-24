@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_resources.forms;
@@ -22,8 +22,6 @@ public class OpProjectResourcesFormProvider implements XFormProvider {
 
    private final static String PRINT_TITLE = "PrintTitle";
    private final static String PRINT_BUTTON = "PrintButton";
-   private final static String RESOURCE_FOOTER_DATA_SET = "ResourceFooterSet";
-   private final static String TOTAL_CAPTION = "Total";
    // NL: Remaining is estimation of resource (effortToComplete); predicted = actual + remaining
    // (Therefore, deviation = predicted - base)
 
@@ -58,55 +56,6 @@ public class OpProjectResourcesFormProvider implements XFormProvider {
          OpProjectResourceDataSetFactory.fillEffortDataSet(broker, project, max_outline_level, data_set);
       }
       broker.close();
-      updateFooterData(form);
-   }
-
-   private void updateFooterData(XComponent form) {
-      XComponent dataSet = form.findComponent(RESOURCE_SET);
-      XComponent footerDataSet = form.findComponent(RESOURCE_FOOTER_DATA_SET);
-
-      XComponent row = new XComponent(XComponent.DATA_ROW);
-      double sum;
-      XComponent cell;
-
-      //total 0
-      cell = new XComponent(XComponent.DATA_CELL);
-      cell.setStringValue(form.findComponent(TOTAL_CAPTION).getText());
-      row.addChild(cell);
-
-      //base 1
-      cell = new XComponent(XComponent.DATA_CELL);
-      sum = dataSet.calculateDoubleSum(1, 0);
-      cell.setDoubleValue(sum);
-      row.addChild(cell);
-
-      //actual 2
-      cell = new XComponent(XComponent.DATA_CELL);
-      sum = dataSet.calculateDoubleSum(2, 0);
-      cell.setDoubleValue(sum);
-      row.addChild(cell);
-
-      //remaining 3
-      cell = new XComponent(XComponent.DATA_CELL);
-      sum = dataSet.calculateDoubleSum(3, 0);
-      cell.setDoubleValue(sum);
-      row.addChild(cell);
-
-      //expected 4
-      cell = new XComponent(XComponent.DATA_CELL);
-      sum = dataSet.calculateDoubleSum(4, 0);
-      cell.setDoubleValue(sum);
-      row.addChild(cell);
-
-      //5
-      cell = new XComponent(XComponent.DATA_CELL);
-      row.addChild(cell);
-
-      //6
-      cell = new XComponent(XComponent.DATA_CELL);
-      row.addChild(cell);
-
-      footerDataSet.addChild(row);
    }
 
    protected int getMaxOutlineLevel(XComponent form, OpProjectSession session) {

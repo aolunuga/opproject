@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for db_configuration_wizard.oxf.xml
@@ -20,10 +20,10 @@ function connect(event) {
    // Gather -data
    form = XDisplay.getActiveForm();
    config.is_standalone = true;
-   config.database_type = form.findComponent("DbTypeDataField").getStringValue();
-   config.database_url = form.findComponent("DbPathTextField").getStringValue();
-   config.database_login = form.findComponent("DbLoginDataField").getStringValue();
-   config.database_password = form.findComponent("DbPasswordDataField").getStringValue();
+   config.database_type = form.findComponent("HSQLDbTypeDataField").getStringValue();
+   config.database_url = form.findComponent("HSQLDbPathTextField").getStringValue();
+   config.database_login = form.findComponent("HSQLDbLoginDataField").getStringValue();
+   config.database_password = form.findComponent("HSQLDbPasswordDataField").getStringValue();
    config.is_multi_user = false;
 
    //save configuration file
@@ -35,16 +35,24 @@ function connect(event) {
    XDisplay.resetCursor();
    if (handleError(form, response, "ErrorLabel") == true) {
       params = response.getArgument("initParams");
-      XDisplay.showStartForm(params);
+      login = form.findComponent("DefaultLogin").getStringValue();
+      password = form.findComponent("DefaultPassword").getStringValue();
+      //perform silent authentication (without login form)
+      authenticate(login, password);
+      //show login form
+      XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", params);
    }
 }
 
 function selectFolder(event) {
    form = XDisplay.getActiveForm();
-   defaultPath = form.findComponent("DbPathTextField").getStringValue();
-   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultPath, null, false);
+   defaultName = form.findComponent("HSQLDbDefaultName").getStringValue();
+   defaultDir = form.findComponent("HSQLDbDefaultDir").getStringValue();
+   path = XDisplay.showFileDialog(form.findComponent("FolderDialogTitle").getText(), false, defaultDir, defaultName);
    if (path != null) {
-      form.findComponent("DbPathTextField").setStringValue(path);
+      form.findComponent("HSQLDbPathTextField").setStringValue(path);
+      form.findComponent("HSQLDbPathTextField").getChild(0).setTooltip(path);
+      form.findComponent("HSQLDbDefaultDir").setStringValue(path);
       form.repaint();
    }
 }

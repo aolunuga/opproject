@@ -23,6 +23,7 @@
       <resource id="NewProject">New Project</resource>
       <resource id="Move">Move</resource>
       <resource id="Info">Properties</resource>
+      <resource id="Edit">Edit</resource>
       <resource id="Delete">Delete</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
@@ -31,31 +32,12 @@
       <resource id="Activities">Activities</resource>
       <resource id="Resources">Resources</resource>
       <resource id="Costs">Costs</resource>
-      <resource id="Status">Status</resource>
-      <resource id="Priority">Priority</resource>
-
-      <resource id="ProjectList">Projects</resource>
-      <resource id="ProjectResources">Resources</resource>
-      <resource id="ProjectCosts">Costs</resource>
-
-      <resource id="Project">Project</resource>
-      <resource id="BaseEffort">Base (h)</resource>
-      <resource id="ActualEffort">Actual (h)</resource>
-      <resource id="RemainingEffort">Rem. (h)</resource>
-      <resource id="ProjectedEffort">Expected (h)</resource>
-      <resource id="DeviationEffort">Deviation (h)</resource>
-      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
-      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
-      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
-      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
-      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
-      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Create new project porfolio</resource>
       <resource id="NewProjectTooltip">Create new project</resource>
       <resource id="MoveTooltip">Move the selected project or portfolio to a different portfolio</resource>
       <resource id="InfoTooltip">View meta information for the selected project or portfolio</resource>
+      <resource id="EditTooltip">Edit meta information for the selected project or portfolio</resource>
       <resource id="DeleteTooltip">Delete selected projects and portfolios</resource>
 
    </resource-map>
@@ -83,10 +65,7 @@
       <resource id="Description">Description</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="Priority">Priority</resource>
-      <resource id="Probability">Probability (%)</resource>
-      <resource id="Archived">Archived</resource>
-      <resource id="Budget">Budget ({CurrencySymbol})</resource>
+      <resource id="Budget">Budget (€)</resource>
       <resource id="Template">Template</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -98,10 +77,6 @@
       <resource id="DueTo">Due</resource>
 
       <resource id="Resources">Resources</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
 
       <resource id="Permissions">Permissions</resource>
 
@@ -122,10 +97,7 @@
       <resource id="Description">Description</resource>
       <resource id="Start">Start</resource>
       <resource id="End">Finish</resource>
-      <resource id="Budget">Budget ({CurrencySymbol})</resource>
-      <resource id="Priority">Priority</resource>
-      <resource id="Probability">Probability (%)</resource>
-      <resource id="Archived">Archived</resource>      
+      <resource id="Budget">Budget (€)</resource>
       <resource id="Template">Template</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -140,10 +112,7 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Created By</resource>
       <resource id="CreatedOn">Created On</resource>
-      <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Delete versions</resource>
-
-      <resource id="WorkingVersion">Checked out Project Plan</resource>
 
       <resource id="Permissions">Permissions</resource>
 
@@ -151,10 +120,6 @@
       <resource id="ProgressTracked">Enable progress tracking</resource>
 
       <resource id="Resources">Resources</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
 
@@ -210,11 +175,6 @@
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
       <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
-      <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
-      <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
-      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
    </resource-map>
 
    <resource-map id="project.delete">
@@ -231,13 +191,6 @@
       <resource id="ConfirmStartDateFuture">Moving of the Start Date</resource>
       <resource id="ConfirmStartDateFutureText">Moving the start date into the future also moves all activities respectively</resource>
       <resource id="Ok">OK</resource>
-      <resource id="Cancel">Cancel</resource>
-   </resource-map>
-
-    <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>
-      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
-      <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 

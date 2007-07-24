@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -29,14 +29,10 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.MANAGER_ACCESS_DENIED,OpProjectError.MANAGER_ACCESS_DENIED_NAME);
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_ERROR,OpProjectError.WORKRECORDS_STILL_EXIST_ERR0R_NAME);
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_WARNING,OpProjectError.WORKRECORDS_STILL_EXIST_WARNING_NAME);
+      registerErrorCode(OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR, OpProjectError.ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME);
       registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
       registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.LOOP_ASSIGNMENT_ERROR, OpProjectError.LOOP_ASSIGNMENT_ERROR_NAME);
-      registerErrorCode(OpProjectError.INTERNAL_RATE_NOT_VALID, OpProjectError.INTERNAL_RATE_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.EXTERNAL_RATE_NOT_VALID, OpProjectError.EXTERNAL_RATE_NOT_VALID_NAME);     
-      registerErrorCode(OpProjectError.PRIORITY_NOT_VALID, OpProjectError.PRIORITY_NOT_VALID_NAME);
-      registerErrorCode(OpProjectError.PROBABILITY_NOT_VALID, OpProjectError.PROBABILITY_NOT_VALID_NAME);     
-      registerErrorCode(OpProjectError.DUPLICATE_BASELINE_ERROR, OpProjectError.DUPLICATE_BASELINE_ERROR_NAME);     
    }
 }

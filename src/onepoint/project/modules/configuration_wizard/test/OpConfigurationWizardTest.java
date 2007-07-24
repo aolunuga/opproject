@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.configuration_wizard.test;
@@ -7,9 +7,7 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
-import onepoint.project.util.OpProjectConstants;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 
 import java.util.HashMap;
@@ -22,7 +20,7 @@ import java.util.Map;
  *
  * @author lucian.furtos
  */
-public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
+public class OpConfigurationWizardTest extends OpBaseTestCase {
    private String dbURL;
    private String dbUserName;
    private String dbPassword;
@@ -38,7 +36,7 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
       super.setUp();
 
       // read testing configuration.
-      OpConfiguration configuration = OpTestDataFactory.getTestingConfiguration();
+      OpConfiguration configuration = getTestingConfiguration();
       OpConfiguration.DatabaseConfiguration dataBaseConfiguration = configuration.getDatabaseConfiguration();
 
       dbURL = dataBaseConfiguration.getDatabaseUrl();
@@ -61,9 +59,9 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
 
       XMessage request = new XMessage();
       request.setArgument("parameters", params);
-      XMessage response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+      XMessage response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertNoError(response);
-      assertNotNull(response.getArgument(OpProjectConstants.INIT_PARAMS));
+      assertNotNull(response.getArgument("initParams"));
    }
 
    public void testDBConfigErrors()
@@ -74,14 +72,14 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
 
       XMessage request = new XMessage();
       request.setArgument("parameters", new HashMap(params));
-      XMessage response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+      XMessage response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.DATABASE_URL_MISSING);
 
       params.put("database_url", dbURL);
 
       request = new XMessage();
       request.setArgument("parameters", new HashMap(params));
-      response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+      response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.DATABASE_LOGIN_MISSING);
 
       params.put("database_url", "wrong_url");
@@ -90,7 +88,7 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
 
       request = new XMessage();
       request.setArgument("parameters", new HashMap(params));
-      response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+      response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.INVALID_CONNECTION_STRING);
 
       params.put("database_url", dbURL);
@@ -99,7 +97,7 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
 
       request = new XMessage();
       request.setArgument("parameters", new HashMap(params));
-      response = OpTestDataFactory.getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
+      response = getConfigurationWizardService().writeDatabaseConfigurationFile(session, request);
       assertError(response, OpDbConfigurationWizardError.INVALID_CREDENTIALS);
    }
 
@@ -121,6 +119,6 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
          }
       }
 
-      return OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE;
+      return OpConfigurationValuesHandler.MYSQL_DB_TYPE;
    }
 }

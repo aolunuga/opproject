@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -33,7 +33,7 @@ public class OpProjectPlanVersion extends OpObject {
    private boolean template;
    private OpProjectPlan projectPlan;
    private OpUser creator;
-   private Set<OpActivityVersion> activityVersions;
+   private Set activityVersions;
    private Set attachmentVersions;
    private Set assignmentVersions;
    private Set workPeriodVersions;
@@ -95,11 +95,11 @@ public class OpProjectPlanVersion extends OpObject {
       this.creator = creator;
    }
 
-   public void setActivityVersions(Set<OpActivityVersion> activityVersions) {
+   public void setActivityVersions(Set activityVersions) {
       this.activityVersions = activityVersions;
    }
 
-   public Set<OpActivityVersion> getActivityVersions() {
+   public Set getActivityVersions() {
       return activityVersions;
    }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.backup;
@@ -25,7 +25,7 @@ public class OpPropertyHandler implements XNodeHandler {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpPropertyHandler.class);
+   private static final XLog logger = XLogFactory.getLogger(OpPropertyHandler.class, true);
 
    /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)
@@ -109,11 +109,7 @@ public class OpPropertyHandler implements XNodeHandler {
       // Call accessor method in order to set value
       Object[] arguments = new Object[] {value};
       try {
-      	//we should be somewhat graceful. It may happen, that members vanish...
-    	 if(backupMember.accessor != null)
-            backupMember.accessor.invoke(object, arguments);
-    	 else
-    		logger.error("skipped execution of accessor for " + backupMember.name + " as it was null.");
+         backupMember.accessor.invoke(object, arguments);
       }
       catch (InvocationTargetException e) {
          logger.error("Could not restore property value" , e);

@@ -8,11 +8,11 @@
       <resource id="Date">Date</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Hours">Effort (h)</resource>
-      <resource id="Costs">Pers. ({CurrencySymbol})</resource>
-      <resource id="Travel">Voyage ({CurrencySymbol})</resource>
-      <resource id="Material">Materiel ({CurrencySymbol})</resource>
-      <resource id="External">Externe ({CurrencySymbol})</resource>
-      <resource id="Miscellaneous">Divers ({CurrencySymbol})</resource>
+      <resource id="Costs">Pers. (€)</resource>
+      <resource id="Travel">Voyage (€)</resource>
+      <resource id="Material">Materiel (€)</resource>
+      <resource id="External">Externe (€)</resource>
+      <resource id="Miscellaneous">Divers (€)</resource>
       <resource id="TotalHours">Effort Total (h)</resource>
       <resource id="InvalidUser">Veuillez choisir un utilisateur</resource>
 
@@ -21,6 +21,6 @@
 
       <resource id="InvalidStart">La date de début est invalide</resource>
       <resource id="InvalidFinish">La date de fin est invalide</resource>
-      <resource id="InvalidUser">Please select an user</resource>
+
    </resource-map>
 </language-kit>

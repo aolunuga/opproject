@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Open activity details script
@@ -57,7 +57,6 @@ function editActivity(event) {
          hiddenFieldsIds[0] = "Priority";
 
          disabledFieldsIds[0] = "PersonnelCosts";
-         disabledFieldsIds[1] = "ProceedsCosts";
 
          addAlwaysDisableFields(disabledFieldsIds);
          baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, true);
@@ -75,7 +74,6 @@ function editActivity(event) {
          disabledFieldsIds[7] = "MaterialCosts";
          disabledFieldsIds[8] = "MiscellaneousCosts";
          disabledFieldsIds[9] = "ExternalCosts";
-         disabledFieldsIds[10] = "ProceedsCosts";
 
          hiddenFieldsIds[0] = "Priority";
 
@@ -100,7 +98,6 @@ function editActivity(event) {
          titleComponentId = "TaskDialogTitle";
 
          disabledFieldsIds[0] = "PersonnelCosts";
-         disabledFieldsIds[1] = "ProceedsCosts";
 
          hiddenFieldsIds[0] = "Start";
          hiddenFieldsIds[1] = "End";
@@ -121,7 +118,6 @@ function editActivity(event) {
          disabledFieldsIds[4] = "MiscellaneousCosts";
          disabledFieldsIds[5] = "ExternalCosts";
          disabledFieldsIds[6] = "BaseEffort";
-         disabledFieldsIds[7] = "ProceedsCosts";
 
          hiddenFieldsIds[0] = "Start";
          hiddenFieldsIds[1] = "End";
@@ -143,7 +139,6 @@ function editActivity(event) {
          disabledFieldsIds[3] = "MaterialCosts";
          disabledFieldsIds[4] = "MiscellaneousCosts";
          disabledFieldsIds[5] = "ExternalCosts";
-         disabledFieldsIds[6] = "ProceedsCosts";
 
          hiddenFieldsIds[0] = "Priority";
 
@@ -350,15 +345,6 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          mandatory_field.setEnabled(true);
       }
 
-      //payment
-      data_cell = data_row.getChild(29);
-      field_id = "Payment";
-      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
-         paymentField = dialog_form.findComponent(field_id);
-         paymentField.setDoubleValue(data_cell.getDoubleValue());
-         setFieldEditMode(edit_mode, paymentField, disabledFieldsIds);
-      }
-
       //Fill project assignment set & responsible resource
       assignmentsSet = XDisplay.getActiveForm().findComponent("AssignmentSet");
       responsibleSet = dialog_form.findComponent("ResponsibleResourceSet");
@@ -529,15 +515,6 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
             miscellaneous_costs_field.setDoubleValue(data_cell.getDoubleValue());
             setFieldEditMode(edit_mode, miscellaneous_costs_field, disabledFieldsIds);
          }
-
-         //proceeds costs
-         data_cell = data_row.getChild(30);
-         field_id = "ProceedsCosts";
-         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
-            proceeds_costs_field = dialog_form.findComponent(field_id);
-            proceeds_costs_field.setDoubleValue(data_cell.getDoubleValue());
-            setFieldEditMode(edit_mode, proceeds_costs_field, disabledFieldsIds);
-         }
       }
 
       //attachments tab
@@ -579,8 +556,19 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
             if (attachment.get(0).equals("d")) {
                //3 - contentId
                dc = XComponent.newDataCell();
-               dc.setValue(attachment.get(4));
+               dc.setStringValue(attachment.get(4));
                data_row.addChild(dc);
+
+               //new attachments
+               if (id.equals("0")) {
+                  //4 - bytes
+                  dc = XComponent.newDataCell();
+                  dc.setValue(attachment.get(5));
+                  data_row.addChild(dc);
+
+                  //full document path (for viewing)
+                  data_row.setStringValue(attachment.get(6));
+               }
             }
 
             attachment_set.addDataRow(data_row);

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for settings.oxf.xml
@@ -9,9 +9,7 @@ import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 
-
-function gatherData(){
-
+function save(event) {
    // Gather resource-data
    form = XDisplay.getActiveForm();
 
@@ -27,30 +25,6 @@ function gatherData(){
    settings.Resource_MaxAvailability = form.findComponent("ResourceMaxAvailability").getDoubleValue();
    settings.Milestone_ControllingInterval = form.findComponent("MilestoneControllingInterval").getIntValue();
    settings.Show_ResourceHours = form.findComponent("ShowResourceHours").getBooleanValue();
-
-   enablePulsing = form.findComponent("EnablePulsing").getBooleanValue();
-   if (enablePulsing) {
-       settings.Pulsing = form.findComponent("Pulsing").getIntValue();
-   }
-   settings.EnableTimeTracking = form.findComponent("EnableTimeTracking").getBooleanValue();
-
-   selectedCurrencyId =  XValidator.choiceID(form.findComponent("CurrencyChoice").getStringValue());
-   currencyNameSymbolSeparator = form.findComponent("CurrencyNameSymbolSeparator").getStringValue();
-   separatorIndex = selectedCurrencyId.indexOf(currencyNameSymbolSeparator);
-   settings.Currency_ShortName = selectedCurrencyId.substring(0, separatorIndex);
-   settings.Currency_Symbol = selectedCurrencyId.substring(separatorIndex + 1);
-
-   return settings;
-}
-
-
-function save(event) {
-
-
-   settings = gatherData();
-
-   // Gather resource-data
-   form = XDisplay.getActiveForm();
 
    request = new XMessage;
    request.setAction("SettingsService.saveSettings");
@@ -156,17 +130,4 @@ function updateDayWorkTime(event) {
    dayWorkTime = weekWorkTime / workingDays;
    dayWorkComponent.setDoubleValue(dayWorkTime);
    dayWorkComponent.update();
-}
-
-function pulsingChanged(event) {
-   form = XDisplay.getActiveForm();
-   enablePulsing = form.findComponent("EnablePulsing").getBooleanValue();
-   pulsingField = form.findComponent("Pulsing");
-   if (enablePulsing) {
-      pulsingField.setEnabled(true);
-   }
-   else {
-      pulsingField.setEnabled(false);
-   }
-   form.repaint();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.settings.holiday_calendar;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class OpHolidayCalendarManager {
 
    /**
-    * Map of holidays. key is locale of form ${au} and value is a OpHolidayCalendarManager manager
+    * Map of holidays. key is locale of form {$au} and value is a OpHolidayCalendarManager manager
     */
    private static Map holidayMap;
 
@@ -28,7 +28,7 @@ public class OpHolidayCalendarManager {
 
    /**
     * Gets the holiday map.
-    * key is locale of form ${au} and value is a OpHolidayCalendar.
+    * key is locale of form {$au} and value is a OpHolidayCalendar.
     *
     * @return holiday map
     */

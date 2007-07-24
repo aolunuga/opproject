@@ -23,6 +23,7 @@
       <resource id="NewProject">Новый проект</resource>
       <resource id="Move">Переместить</resource>
       <resource id="Info">Свойства</resource>
+      <resource id="Edit">Изменить</resource>
       <resource id="Delete">Удалить</resource>
       <resource id="Name">Название</resource>
       <resource id="Description">Описание</resource>
@@ -31,31 +32,12 @@
       <resource id="Activities">Активность</resource>
       <resource id="Resources">Ресурсы</resource>
       <resource id="Costs">Затраты</resource>
-      <resource id="Status">Status</resource>
-      <resource id="Priority">Priority</resource>
-
-      <resource id="ProjectList">Projects</resource>
-      <resource id="ProjectResources">Resources</resource>
-      <resource id="ProjectCosts">Costs</resource>
-
-      <resource id="Project">Project</resource>
-      <resource id="BaseEffort">Base (h)</resource>
-      <resource id="ActualEffort">Actual (h)</resource>
-      <resource id="RemainingEffort">Rem. (h)</resource>
-      <resource id="ProjectedEffort">Expected (h)</resource>
-      <resource id="DeviationEffort">Deviation (h)</resource>
-      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
-      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
-      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
-      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
-      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
-      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Создать новый портфель проектов</resource>
       <resource id="NewProjectTooltip">Создать новый проект</resource>
       <resource id="MoveTooltip">Переместить указанный проект или портфель в другой портфель</resource>
-      <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>      
+      <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>   
+      <resource id="EditTooltip">Изменить мета-данные для указанного проекта или портфеля</resource>
       <resource id="DeleteTooltip">Удалить указанный проект или портфель</resource>
 
    </resource-map>
@@ -84,9 +66,6 @@
       <resource id="Start">Начало</resource>
       <resource id="End">Окончание</resource>
       <resource id="Budget">Бюджет (р.)</resource>
-      <resource id="Priority">Priority</resource>
-      <resource id="Probability">Probability (%)</resource>
-      <resource id="Archived">Archived</resource>      
       <resource id="Template">Шаблон</resource>
       <resource id="NotSelected">(Not selected)</resource>
 
@@ -98,10 +77,6 @@
       <resource id="DueTo">Due</resource>
 
       <resource id="Resources">Ресурсы</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
 
       <resource id="Permissions">Доступ</resource>
 
@@ -137,10 +112,7 @@
       <resource id="Version">Версия</resource>
       <resource id="CreatedBy">Создана пользователем</resource>
       <resource id="CreatedOn">Дата создания</resource>
-      <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Удалить версию</resource>
-
-      <resource id="WorkingVersion">Checked out Project Plan</resource>
 
       <resource id="Permissions">Доступ</resource>
 	   
@@ -148,10 +120,6 @@
       <resource id="ProgressTracked">Разрешить отслеживание выполнения</resource>
 
       <resource id="Resources">Ресурсы</resource>
-      <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
 
@@ -207,11 +175,6 @@
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
       <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
-      <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
-      <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
-      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
    </resource-map>
 
    <resource-map id="project.delete">
@@ -228,13 +191,6 @@
       <resource id="ConfirmStartDateFuture">Moving of the Start Date</resource>
       <resource id="ConfirmStartDateFutureText">Moving the start date into the future also moves all activities respectively</resource>
       <resource id="Ok">OK</resource>
-      <resource id="Cancel">Cancel</resource>
-   </resource-map>
-
-    <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>      
-      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
-      <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
 

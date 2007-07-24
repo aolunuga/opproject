@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpEditUserFormProvider implements XFormProvider {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpEditUserFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEditUserFormProvider.class, true);
 
    public final static String ASSIGNED_GROUP_DATA_SET = "AssignedGroupDataSet";
    private final static String ADD_TO_GROUP = "AddToGroupButton";
@@ -30,8 +30,8 @@ public class OpEditUserFormProvider implements XFormProvider {
    private final static String PASSWORD_RETYPED = "PasswordRetyped";
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
-   public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
+   public final static String MANAGER_LEVEL_CAPTION = "{$ManagerLevel}";
+   public final static String STANDARD_LEVEL_CAPTION = "{$StandardLevel}";
    public final static String RESOURCE_MAP = "user.edit_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -79,7 +79,10 @@ public class OpEditUserFormProvider implements XFormProvider {
       XComponent fax = form.findComponent(OpContact.FAX);
       fax.setStringValue(contact.getFax());
 
-      XComponent languageField = this.fillLanguageDataSet(form, session, broker, user);
+      XComponent languageField = form.findComponent("UserLanguage");
+      XComponent languageDataSet = form.findComponent("UserLanguageDataSet");
+      OpUser currentUser = session.user(broker);
+      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageField, currentUser);
 
       //fill the user level dataset
       XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(), RESOURCE_MAP);
@@ -151,35 +154,6 @@ public class OpEditUserFormProvider implements XFormProvider {
       }
       broker.close();
 
-   }
-
-   /**
-    * Fills the language dataset, selecting the user language in the combo, but displaying in the
-    * language of the currently logged user.
-    * @param form a <code>XComponent(FORM)</code> representing the current edit/info form.
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param broker a <code>OpBroker</code> used for persistence operations.
-    * @param user a <code>OpUser</code> representing the user being edited.
-    * @return a <code>XComponent(CHOICE_FIELD)</code> representing the language
-    * choice field.  
-    */
-   private XComponent fillLanguageDataSet(XComponent form, OpProjectSession session, OpBroker broker, OpUser user) {
-      XComponent languageField = form.findComponent("UserLanguage");
-      XComponent languageDataSet = form.findComponent("UserLanguageDataSet");
-      OpUser currentUser = session.user(broker);
-      OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageField, currentUser);
-      for (int i =0 ; i  < languageDataSet.getChildCount(); i++) {
-         XComponent dataRow = (XComponent) languageDataSet.getChild(i);
-         String localeChoice = dataRow.getStringValue();
-         if (XValidator.choiceID(localeChoice).equalsIgnoreCase(user.getPreference(OpPreference.LOCALE).getValue())) {
-            dataRow.setSelected(true);
-            languageField.setSelectedIndex(i);
-         }
-         else {
-            dataRow.setSelected(false);
-         }
-      }
-      return languageField;
    }
 
 }

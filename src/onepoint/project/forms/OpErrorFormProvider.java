@@ -1,6 +1,6 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
+* Copyright(c) OnePoint Software GmbH 2005. All Rights Reserved.
+*/
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;
@@ -20,7 +20,7 @@ public class OpErrorFormProvider implements XFormProvider {
    private static final String LABEL = "Message";
    private static final String RESOURCE_MAP_ID = "errorMap";
    private static final String ERROR_TEXT_ID = "errorID";
-   protected static final String TEXT_MESSAGE = "errorMessage";
+   private static final String TEXT_MESSAGE = "errorMessage";
    private static final String WARNING = "warning";
    private static final String CALLBACK_FRAME = "FrameName";
    private static final String CALLBACK_FRAME_PARAM = "frameName";
@@ -50,32 +50,23 @@ public class OpErrorFormProvider implements XFormProvider {
       }
 
       String text;
-      if (errorIdText != null) {
+      if (errorIdText != null){
          text = session.getLocale().getResourceMap(resourceMap).getResource(errorIdText).getText();
          label.setText(text);
       }
-      else if (errorText != null) {
+      else if (errorText != null){
          label.setText(errorText);
       }
       else {
+         //<FIXME author="Mihai Costin" description="should be from resource map. Also the form title could be a parameter">
          //no message or id was specified.
-         label.setText(form.getText());
+         label.setText("Error");
+         //</FIXME>
       }
 
       //set the callback and frame name
-      XComponent callBackFrame = form.findComponent(CALLBACK_FRAME);
-      if (callBackFrame != null) {
-         callBackFrame.setStringValue((String) parameters.get(CALLBACK_FRAME_PARAM));
-      }
-
-      XComponent callbackName = form.findComponent(CALLBACK_NAME);
-      if (callbackName != null) {
-         callbackName.setStringValue((String) parameters.get(CALLBACK_NAME_PARAM));
-      }
-
-      XComponent callbackParam = form.findComponent(CALLBACK_PARAMETERS);
-      if (callbackParam != null) {
-         callbackParam.setValue(parameters.get(CALLBACK_PARAMETERS_PARAM));
-      }
+      form.findComponent(CALLBACK_FRAME).setStringValue((String) parameters.get(CALLBACK_FRAME_PARAM));
+      form.findComponent(CALLBACK_NAME).setStringValue((String) parameters.get(CALLBACK_NAME_PARAM));
+      form.findComponent(CALLBACK_PARAMETERS).setValue(parameters.get(CALLBACK_PARAMETERS_PARAM));
    }
 }

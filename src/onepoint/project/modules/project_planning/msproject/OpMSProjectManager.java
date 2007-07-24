@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.msproject;
@@ -20,8 +20,8 @@ import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.util.XCalendar;
 import onepoint.resource.XLocale;
+import onepoint.util.XCalendar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class OpMSProjectManager {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpMSProjectManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpMSProjectManager.class, true);
 
    //utility class
    private OpMSProjectManager() {

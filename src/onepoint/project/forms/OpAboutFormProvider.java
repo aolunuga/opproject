@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.forms;
@@ -8,7 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.OpInitializer;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
 import org.w3c.dom.Document;
@@ -37,7 +37,7 @@ public class OpAboutFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpAboutFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpAboutFormProvider.class, true);
 
    /**
     * The map of [product_code, description] for the different flavours of the application.
@@ -75,11 +75,10 @@ public class OpAboutFormProvider implements XFormProvider {
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.OPEN_EDITION_CODE, "Onepoint Project Open Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.TEAM_EDITION_CODE, "Onepoint Project Team Edition");
-      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "Onepoint Project On Demand Edition");
    }
 
    /**
-    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
       Map versionsMap = Collections.EMPTY_MAP;
@@ -95,7 +94,7 @@ public class OpAboutFormProvider implements XFormProvider {
       catch (IOException e) {
          logger.error("Cannot open the connection to get the product information because:" + e.getMessage(), e);
       }
-      String productCode = OpEnvironmentManager.getProductCode();
+      String productCode = OpInitializer.getProductCode();
       String currentVersion = (String) versionsMap.get(productCode);
       if (currentVersion == null) {
          currentVersion = UNKNOWN_VERSION_NUMBER;

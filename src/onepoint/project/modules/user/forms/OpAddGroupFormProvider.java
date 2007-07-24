@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class OpAddGroupFormProvider implements XFormProvider {
    /* logger for this class*/
-   private static final XLog logger = XLogFactory.getServerLogger(OpAddGroupFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpAddGroupFormProvider.class,true);
    /* groups that can be assigned for subject*/
    public final static String ASSIGNABLE_GROUP_DATA_SET = "AssignableGroupDataSet";
    /* groups that are already assigned*/

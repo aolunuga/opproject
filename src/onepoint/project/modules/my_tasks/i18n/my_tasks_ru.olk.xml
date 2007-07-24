@@ -5,13 +5,15 @@
 
    <resource-map id="my_tasks.my_tasks">
 
-      <resource id="NewAdhoc">Новая Задача</resource>
-      <resource id="DeleteAdhoc">Удалить</resource>
-      <resource id="NewComment">Новый Комментарий</resource>
+      <resource id="NewAdhoc">New task</resource>
+      <resource id="EditAdhoc">Edit task</resource>
+      <resource id="DeleteAdhoc">Delete task</resource>
+      <resource id="NewComment">Новый комментарий</resource>
       <resource id="Info">Свойства</resource>
       <resource id="Print">Печать</resource>
 
       <resource id="NewAdhocTooltip">Create new ad hoc task</resource>
+      <resource id="EditAdhocTooltip">Edit the selected ad hoc task</resource>
       <resource id="DeleteAdhocTooltip">Delete the selected ad hoc tasks</resource>
       <resource id="NewCommentTooltip">Добавить новый комментарий</resource>
       <resource id="InfoTooltip">Показать свойства задачи</resource>
@@ -47,8 +49,6 @@
 
       <resource id="SaveCSV">Сохранить как таблицу...</resource>
       <resource id="SaveImage">Сохранить как изображение...</resource>
-
-      <resource id="NoResourcesForUser">There are no assigned resources for this user</resource>      
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
@@ -103,8 +103,6 @@
       <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
       <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
-      <resource id="InvalidTypeError">Type of Task is not valid.</resource>
-      <resource id="TaskNotFoundError">Missing Task</resource>
    </resource-map>
 
 </language-kit>

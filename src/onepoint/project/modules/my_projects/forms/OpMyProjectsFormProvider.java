@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_projects.forms;
@@ -8,18 +8,15 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
 import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Form provider for my projects tool.
@@ -32,7 +29,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
    private final static String PROJECT_CHOICE_FIELD = "ProjectChooser";
    private final static String ROLE_PANEL = "RolePanel";
-   private final static String PRINT_BUTTON = "PrintButton";
    private final static int DEFAULT_PROJECT_CHOICE_FIELD_INDEX = 0;
 
    //project choice values
@@ -46,7 +42,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
    protected final int BASE_COST_INDEX = 5;
    protected final int PREDICTED_COSTS_INDEX = 7;
    protected final int PREDICTED_EFFORT_INDEX = 10;
-   protected final int COMPLETED_INDEX = 2;
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -59,7 +54,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
 
       // hide multi-user components
-      if (!OpEnvironmentManager.isMultiUser()) {
+      if (!OpInitializer.isMultiUser()) {
          form.findComponent(ROLE_PANEL).setVisible(false);
       }
 
@@ -68,9 +63,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       List projectNodeIDs = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
 
       //projectMap = new HashMap();
-      for (Object projectNodeID : projectNodeIDs) {
-         Long id = (Long) projectNodeID;
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+      for (Iterator iterator = projectNodeIDs.iterator(); iterator.hasNext();) {
+         Long id = (Long) iterator.next();
+         OpProjectNode projectNode = (OpProjectNode) broker.getObject(OpProjectNode.class, id.longValue());
          XComponent row = createProjectRow(projectNode, broker);
          projectsDataSet.addChild(row);
       }
@@ -78,33 +73,28 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       //sort by name
       projectsDataSet.sort(PROJECT_NAME_INDEX);
 
-      //enable the print button if there are any projects
-      if (projectsDataSet.getChildCount() > 0) {
-         form.findComponent(PRINT_BUTTON).setEnabled(true);
-      }
-
       broker.close();
    }
 
    private List getLevelsForChoice(String permission) {
-      List<Byte> levels = new ArrayList<Byte>();
+      List levels = new ArrayList();
       if (OBSERVER.equals(permission)) {
          //show all projects the user has at least read access to
-         levels.add(OpPermission.OBSERVER);
-         levels.add(OpPermission.CONTRIBUTOR);
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.OBSERVER));
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       else if (CONTRIB.equals(permission)) {
          //show projects the user has at least contributor permissions to
-         levels.add(OpPermission.CONTRIBUTOR);
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.CONTRIBUTOR));
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       else if (MANAGER.equals(permission)) {
          //show projects the user has at least manager permissions to
-         levels.add(OpPermission.MANAGER);
-         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(new Byte(OpPermission.MANAGER));
+         levels.add(new Byte(OpPermission.ADMINISTRATOR));
       }
       return levels;
    }
@@ -127,7 +117,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          if (stateMap != null) {
             Integer state = (Integer) stateMap.get(PROJECT_CHOICE_FIELD);
             if (state != null) {
-               selectedIndex = state;
+               selectedIndex = state.intValue();
                String value = (String) ((XComponent) chooser.getDataSetComponent().getChild(selectedIndex)).getValue();
                projectChoice = XValidator.choiceID(value);
             }
@@ -140,10 +130,29 @@ public class OpMyProjectsFormProvider implements XFormProvider {
             projectChoice = DEFAULT_VALUE;
             selectedIndex = DEFAULT_PROJECT_CHOICE_FIELD_INDEX;
          }
-         chooser.setSelectedIndex(selectedIndex);
+         chooser.setSelectedIndex(new Integer(selectedIndex));
       }
       return projectChoice;
-   }  
+   }
+
+   /**
+    * Sums up the values from the datacell at the given index, data cel taken from the rows in the given dataSet.
+    *
+    * @param dataSet DataSet containing the rows with datacell to be summed up
+    * @param index   index of the data cell to use in the sum
+    * @return the resulting sum -> sum(dataRow.getChild(index).value)
+    */
+   private double sumDataSetValues(XComponent dataSet, int index) {
+      double sum = 0;
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent row = (XComponent) dataSet.getChild(i);
+         if (row.getOutlineLevel() == 0 && index < row.getChildCount()) {
+            XComponent dataCell = (XComponent) row.getChild(index);
+            sum += dataCell.getDoubleValue();
+         }
+      }
+      return sum;
+   }
 
    /**
     * Creates a my-project dataRow for a given project node.
@@ -157,9 +166,9 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       XComponent dataCell;
 
-      ArrayList<Byte> activityTypes = new ArrayList<Byte>();
-      activityTypes.add(OpActivity.STANDARD);
-      activityTypes.add(OpActivity.COLLECTION);
+      ArrayList activityTypes = new ArrayList();
+      activityTypes.add(new Byte(OpActivity.STANDARD));
+      activityTypes.add(new Byte(OpActivity.COLLECTION));
 
       double complete = OpProjectDataSetFactory.getCompletedValue(broker, projectNode.getID(), activityTypes);
 
@@ -192,33 +201,33 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
       //base effort  3
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX, 0);
+      double baseEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.BASE_COLUMN_INDEX);
       dataCell.setDoubleValue(baseEffort);
       dataRow.addChild(dataCell);
-      //actual effort 4
+      //acctual effort 4
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      double actualEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.ACTUAL_COLUMN_INDEX);
       dataCell.setDoubleValue(actualEffort);
       dataRow.addChild(dataCell);
       //base costs  5
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double baseCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX, 0);
+      double baseCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.BASE_COLUMN_INDEX);
       dataCell.setDoubleValue(baseCost);
       dataRow.addChild(dataCell);
-      //actual costs  6
+      //acctual costs  6
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double actualCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX, 0);
+      double actualCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.ACTUAL_COLUMN_INDEX);
       dataCell.setDoubleValue(actualCost);
       dataRow.addChild(dataCell);
 
       //predicted costs 7
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      double predictedCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.PREDICTED_COLUMN_INDEX);
       dataCell.setDoubleValue(predictedCost);
       dataRow.addChild(dataCell);
       //costs deviation 8
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationCost = costDataSet.calculateDoubleSum(OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      double deviationCost = sumDataSetValues(costDataSet, OpProjectCostsDataSetFactory.DEVIATION_COLUMN_INDEX);
       dataCell.setDoubleValue(deviationCost);
       dataRow.addChild(dataCell);
       //costs %deviation 9
@@ -228,15 +237,15 @@ public class OpMyProjectsFormProvider implements XFormProvider {
 
       //predicted effort 10
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      double predictedEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX);
       dataCell.setDoubleValue(predictedEffort);
       dataRow.addChild(dataCell);
-      //effort deviation 11
+      //costs deviation 11
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double deviationEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX, 0);
+      double deviationEffort = sumDataSetValues(effortDataSet, OpProjectResourceDataSetFactory.DEVIATION_COLUMN_INDEX);
       dataCell.setDoubleValue(deviationEffort);
       dataRow.addChild(dataCell);
-      //effort %deviation 12
+      //costs %deviation 12
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseEffort, deviationEffort));
       dataRow.addChild(dataCell);
@@ -275,11 +284,6 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       double remainingCost = baseCost - actualCost;
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(remainingCost);
-      dataRow.addChild(dataCell);
-
-      //priority 20
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setIntValue(projectNode.getPriority());
       dataRow.addChild(dataCell);
 
       return dataRow;

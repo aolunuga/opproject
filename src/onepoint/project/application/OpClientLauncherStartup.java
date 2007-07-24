@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.application;
@@ -12,7 +12,6 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpClientLauncherConfiguration;
 import onepoint.project.configuration.OpClientLauncherLoader;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
-import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
@@ -29,7 +28,7 @@ import java.util.HashMap;
  */
 public class OpClientLauncherStartup {
    /*logger for this class */
-   private static final XLog logger = XLogFactory.getClientLogger(XClientLauncherApplication.class);
+   private static final XLog logger = XLogFactory.getLogger(XClientLauncherApplication.class);
 
 
    /**
@@ -60,7 +59,6 @@ public class OpClientLauncherStartup {
       XClientLauncherApplication application = createStartupApplication();
       // Register UI-scripting proxies
       XComponent.registerProxy(new OpProjectComponentProxy());
-      XComponent.registerProxy(new OpWorkProxy());
 
       application.getServer().setSessionClass(OpProjectSession.class);
 
@@ -77,7 +75,7 @@ public class OpClientLauncherStartup {
       logger.info("Run level is:" + runLevel);
       // Show GUI
       application.setVisible(true);
-      if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
+      if (Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL.byteValue()) {
          application.getDisplay().showForm(OpProjectConstants.CONFIGURATION_WIZARD_FORM);
       }
       else {

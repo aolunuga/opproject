@@ -1,11 +1,12 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.service.server.XSession;
@@ -67,20 +68,15 @@ public class OpProjectChooserFormProvider implements XFormProvider {
 
       //filter out any nodes if necessary
       ArrayList filteredIds = (ArrayList) parameters.get(OpProjectDataSetFactory.FILTERED_OUT_IDS);
-      ArrayList<String> archivedProjectLocators = OpProjectDataSetFactory.retrieveArchivedProjects(session, true);
-      if (filteredIds != null) {
-         filteredIds.addAll(archivedProjectLocators);
-      }
-      else {
-         filteredIds = archivedProjectLocators;
-      }
       form.findComponent(OpProjectDataSetFactory.FILTERED_OUT_IDS).setListValue(filteredIds);
 
       // *** Put all project names into project data-set (values are IDs)
       XComponent dataSet = form.findComponent(PROJECT_SET);
 
+      OpBroker broker = session.newBroker();
       int types = OpProjectDataSetFactory.PROJECTS + OpProjectDataSetFactory.PORTFOLIOS + OpProjectDataSetFactory.TEMPLATES;
       OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, types, false, filteredIds);
+      broker.close();
 
       //enable or disable any nodes
       OpProjectDataSetFactory.enableNodes(parameters, dataSet);

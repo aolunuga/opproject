@@ -1,4 +1,4 @@
-<prototype name="OpWorkPeriodVersion" instance-class="onepoint.project.modules.project.OpWorkPeriodVersion" super-type="OpObject">
+<prototype name="OpWorkPeriodVersion" instance-class="onepoint.project.modules.project.OpWorkPeriodVersion">
    <field name="Start" type="Date" indexed="true"/>
    <field name="BaseEffort" type="Double"/>
    <field name="WorkingDays" type="Long"/>

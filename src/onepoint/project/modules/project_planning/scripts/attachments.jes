@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 /**
@@ -14,14 +14,14 @@ import onepoint.express.XDisplay;
 
 function addURL(event) {
    dialog = XComponent.newDialog();
-   dialog.setText("URL Attachment hinzufügen");
+   dialog.setText("URL Attachment hinzufÃ¼gen");
    form = dialog.loadForm("/modules/project_planning/forms/add_url.oxf.xml");
    dialog.open();
 }
 
 function addDocument(event) {
    dialog = XComponent.newDialog();
-   dialog.setText("Dokument Attachment hinzufügen");
+   dialog.setText("Dokument Attachment hinzufÃ¼gen");
    form = dialog.loadForm("/modules/project_planning/forms/add_document.oxf.xml");
    dialog.open();
 }
@@ -69,7 +69,7 @@ function view(event) {
             }
          }
          else {
-            content = row.getChild(3).getValue();
+            content = row.getChild(4).getValue();
             parameters.content = content;
             parameters.fileName = location;
 
@@ -79,7 +79,6 @@ function view(event) {
             response = XDisplay.getClient().invokeMethod(request);
 
             attachmentUrl = response.getArgument("attachmentUrl");
-            contentId = response.getArgument("contentId");
             XDisplay.showDocument(attachmentUrl, contentId);
          }
       }
@@ -118,7 +117,18 @@ function getAttachments() {
       //for documents only
       if (type.equals("d")) {
          //4 - contentId
-         arr.add(data_row.getChild(3).getValue());
+         arr.add(data_row.getChild(3).getStringValue());
+         //new document
+         id = XValidator.choiceID(choice);
+         if (id.equals("0")) {
+            //5 - file bytes
+            bytes = data_row.getChild(4).getValue();
+            arr.add(bytes);
+
+            //6 - document full path (for viewing)
+            documentPath = data_row.getStringValue();
+            arr.add(documentPath);
+         }
       }
 
       att_array.add(arr);

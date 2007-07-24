@@ -1,30 +1,27 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
 
-import onepoint.project.modules.user.OpLock;
-
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 public class OpObject {
 
-   public final static String CREATED = "Created";
-   public final static String MODIFIED = "Modified";
    public final static String ID = "ID";
 
    private OpPrototype prototype;
-   private Timestamp created;
-   private Timestamp modified;
+   private Date created;
+   private Date modified;
+   // private OpObject _access_context;
+   // private Set _guarded_objects;
    private Set permissions;
-   private Set<OpLock> locks;
+   private Set locks;
    private long id = 0;
    private Set dynamicResources = new HashSet();
-   private String siteId;
-   
+
    // The following field is intentionally transient and dynamic
    private byte effectiveAccessLevel;
 
@@ -36,7 +33,14 @@ public class OpObject {
       return prototype;
    }
 
-   private void setID(long id) {
+   // TODO: Had to make this public for personal object store; find a solution
+   // (Hibernate is able to call private methods; check its source code)
+
+   // TODO: We probably do not need personal store anymore -- make setID() private again?
+
+   // Attention: Hibernate needs non-final setters and getters for proxy handling
+
+   public void setID(long id) {
       this.id = id;
    }
 
@@ -44,29 +48,39 @@ public class OpObject {
       return id;
    }
 
-   public String getSiteId() {
-      return siteId;
-   }
-
-   public void setSiteId(String siteId) {
-      this.siteId = siteId;
-   }
-
-   public void setCreated(Timestamp created) {
+   public void setCreated(Date created) {
       this.created = created;
    }
 
-   public Timestamp getCreated() {
+   public Date getCreated() {
       return created;
    }
 
-   public void setModified(Timestamp modified) {
+   public void setModified(Date modified) {
       this.modified = modified;
    }
 
-   public Timestamp getModified() {
+   public Date getModified() {
       return modified;
    }
+
+   /*
+   public void setAccessContext(OpObject access_context) {
+      _access_context = access_context;
+   }
+   
+   public OpObject getAccessContext() {
+      return _access_context;
+   }
+
+   public void setGuardedObjects(Set guarded_objects) {
+      _guarded_objects = guarded_objects;
+   }
+   
+   public Set getGuardedObjects() {
+      return _guarded_objects;
+   }
+   */
 
    public void setPermissions(Set permissions) {
       this.permissions = permissions;
@@ -76,11 +90,11 @@ public class OpObject {
       return permissions;
    }
 
-   public void setLocks(Set<OpLock> locks) {
+   public void setLocks(Set locks) {
       this.locks = locks;
    }
 
-   public Set<OpLock> getLocks() {
+   public Set getLocks() {
       return locks;
    }
 
@@ -104,13 +118,13 @@ public class OpObject {
       this.dynamicResources = dynamicResources;
    }
 
-   @Override
+   // Note: Both methods should be overriden by business key implementations
+
    public boolean equals(Object object) {
       return (object.getClass() == getClass()) && (((OpObject) object).id == id) && (((OpObject) object).id != 0)
                && (id != 0);
    }
 
-   @Override
    public int hashCode() {
       if (id != 0) {
          return (int) (id ^ (id >>> 32));

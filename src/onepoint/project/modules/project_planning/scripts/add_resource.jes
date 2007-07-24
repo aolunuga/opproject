@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 // Controller script for add_resource.oxf.xml
@@ -42,7 +42,7 @@ function ok(event) {
    if (shouldCheckAvailability == null) {
       shouldCheckAvailability = false;
    }
-   
+
    form = XDisplay.getActiveForm();
    resource_data_set = form.findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();

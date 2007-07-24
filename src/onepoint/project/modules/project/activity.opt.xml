@@ -1,4 +1,4 @@
-<prototype name="OpActivity" instance-class="onepoint.project.modules.project.OpActivity" super-type="OpObject">
+<prototype name="OpActivity" instance-class="onepoint.project.modules.project.OpActivity">
    <field name="Name" type="String"/>
    <field name="Description" type="Text"/>
    <field name="Type" type="Byte"/>
@@ -19,18 +19,11 @@
    <field name="BaseMiscellaneousCosts" type="Double"/>
    <field name="ActualEffort" type="Double"/>
    <field name="ActualTravelCosts" type="Double"/>
-   <field name="RemainingTravelCosts" type="Double"/>
    <field name="ActualPersonnelCosts" type="Double"/>
    <field name="ActualMaterialCosts" type="Double"/>
-   <field name="RemainingMaterialCosts" type="Double"/>
    <field name="ActualExternalCosts" type="Double"/>
-   <field name="RemainingExternalCosts" type="Double"/>
    <field name="ActualMiscellaneousCosts" type="Double"/>
-   <field name="RemainingMiscellaneousCosts" type="Double"/>
    <field name="RemainingEffort" type="Double"/>
-   <field name="BaseProceeds" type="Double"/>
-   <field name="ActualProceeds" type="Double"/>
-   <field name="Payment" type="Double"/>
    <field name="Deleted" type="Boolean"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>

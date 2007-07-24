@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.util;
@@ -23,7 +23,7 @@ public final class OpEnvironmentManager {
    /**
     * This class logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpEnvironmentManager.class);
+   private static final XLog logger = XLogFactory.getLogger(OpEnvironmentManager.class);
 
    /**
     * The name of the OS.
@@ -36,11 +36,6 @@ public final class OpEnvironmentManager {
    private static final String ONEPOINT_HOME = "ONEPOINT_HOME";
 
    /**
-    * The path to the application data folder.
-    */
-   private static String DATA_FOLDER_PATH;
-
-   /**
     * A command that will be executed to get the env. variables.
     */
    private static String COMMAND;
@@ -49,6 +44,11 @@ public final class OpEnvironmentManager {
     * The environment properties.
     */
    private static Properties envProps = new Properties();
+
+   /**
+    * Path of the data folder (containing backup and repository folders)
+    */
+   private static String ONEPOINT_DATA_FOLDER_PATH;
 
    /**
     * A map of [productCode, boolean] pairs, indicating which application is multi user and which is not.
@@ -63,14 +63,12 @@ public final class OpEnvironmentManager {
       PRODUCT_CODES_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, Boolean.FALSE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
-      PRODUCT_CODES_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, Boolean.TRUE);
    }
-   
+
    /**
     * The product code used in the initialization process
     */
    private static String productCode = null;
-   public static final String ONEPOINT_FOLDER = "Onepoint Project";
 
    /**
     * Initializes the command variable of the environment manager according to the type of OS.
@@ -152,87 +150,11 @@ public final class OpEnvironmentManager {
    /**
     * Sets the home directory path of the application.
     *
-    * @param onepointHome a <code>String</code> representing the path of the application home. Path uses "/" separator.
+    * @param onepointHome a <code>String</code> representing the path of the application home.
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
    }
-
-   /**
-    * Sets the application data folder path of the application.
-    *
-    * @param dataFolder a <code>String</code> representing the path of the application data folder.
-    */
-   private static void setDataFolderPath(String dataFolder) {
-      DATA_FOLDER_PATH = dataFolder;
-      //also create the folder if it doesn't exist
-      File folder = new File(DATA_FOLDER_PATH);
-      if (!folder.exists() || !folder.isDirectory()) {
-         folder.mkdir();
-      }
-   }
-
-   /**
-    * Sets the data folder path using a given db path.
-    *
-    * @param databaseURL data base folders path
-    */
-   public static void setDataFolderPathFromDbPath(String databaseURL) {
-      File url = new File(databaseURL);
-      File parentFile = url.getParentFile();
-
-      File dataFolder = parentFile.getParentFile();
-      if (dataFolder == null) {
-         throw new IllegalArgumentException("Given path is not valid");
-      }
-      setDataFolderPath(dataFolder.getAbsolutePath());
-
-   }
-
-
-   /**
-    * Returns the path to the onepoint data directory. This path is system dependent.
-    *
-    * @return  Path of the onepoint data folder. Path uses "/" separator.
-    */
-   public static String getDataFolderPath() {
-      if (isMultiUser()) {
-         return getOnePointHome();
-      }
-      else {
-         if (DATA_FOLDER_PATH == null) {
-            String userHome = System.getProperty("user.home");
-            String path;
-            if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
-               //$HOME/Library/Application Support/Onepoint Project
-               path = userHome + File.separator + "Library" + File.separator + "Application Support" +
-                    File.separator + ONEPOINT_FOLDER;
-            }
-            else {
-               //$HOME/Onepoint Project
-               path = userHome + File.separator + ONEPOINT_FOLDER;
-            }
-            path = XEnvironmentManager.convertPathToSlash(path);
-            setDataFolderPath(path);
-         }
-      }
-      return DATA_FOLDER_PATH;
-   }
-
-
-   /**
-    * Returns the value of the multi-user flag, using the product code.
-    *
-    * @return true if the application is in multi-user mode
-    */
-   public static boolean isMultiUser() {
-      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
-      if (isMultiUser == null) {
-         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
-      }
-      return isMultiUser.booleanValue();
-   }   
-
 
    /**
     * Returns the product code - one of the keys in PRODUCT_CODES_MAP
@@ -250,6 +172,19 @@ public final class OpEnvironmentManager {
     */
    public static void setProductCode(String productCode) {
       OpEnvironmentManager.productCode = productCode;
+   }
+
+   /**
+    * Returns the value of the multi-user flag, using the product code.
+    *
+    * @return true if the application is in multi-user mode
+    */
+   public static boolean isMultiUser() {
+      Boolean isMultiUser = (Boolean) PRODUCT_CODES_MAP.get(productCode);
+      if (isMultiUser == null) {
+         throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
+      }
+      return isMultiUser.booleanValue();
    }
 
    /**
@@ -289,5 +224,69 @@ public final class OpEnvironmentManager {
          }
       }
    }
+
+   /**
+    * @return The path to the onepoint data directory. This path is system dependent.
+    */
+   public static String getOnepointDataFolderPath() {
+      if (isMultiUser()) {
+         return getOnePointHome();
+      }
+      else {
+         if (ONEPOINT_DATA_FOLDER_PATH == null) {
+            String userHome = System.getProperty("user.home");
+            String path;
+            if (OpEnvironmentManager.OS_NAME.equals("Mac OS X")) {
+               //$HOME/Library/Application Support/Onepoint Project
+               path = userHome + File.separator + "Library" + File.separator + "Application Support" +
+                    File.separator + "Onepoint Project";
+            }
+            else {
+               //$HOME/Onepoint Project
+               path = userHome + File.separator + "Onepoint Project";
+            }
+            setOnepointDataFolderPath(path);
+         }
+      }
+      return ONEPOINT_DATA_FOLDER_PATH;
+   }
+
+   /**
+    * Sets the value of the data folder path. Also, creates the folder defind by this path if it doesnt exist.
+    *
+    * @param dataDirPath new path of the data folder
+    */
+   private static void setOnepointDataFolderPath(String dataDirPath) {
+      ONEPOINT_DATA_FOLDER_PATH = dataDirPath;
+      File dataDir = new File(ONEPOINT_DATA_FOLDER_PATH);
+      if (!dataDir.exists() || !dataDir.isDirectory()) {
+         dataDir.mkdir();
+      }
+   }
+
+   /**
+    * Sets the data folder path using a given db path.
+    *
+    * @param databaseURL data base folders path
+    */
+   public static void setDataFolderPathFromDbPath(String databaseURL) {
+      File url = new File(databaseURL);
+      String dataDirPath;
+      File parentFile = url.getParentFile();
+      
+      String parentName = parentFile.getName();
+      dataDirPath = parentFile.getAbsolutePath();
+      if (parentName.equals(OpProjectConstants.DEFAULT_HSQL_DB_DIR)) {
+         //use the parent folder as the data folder
+         File secondLevelParent = parentFile.getParentFile();
+         if (secondLevelParent != null) {
+            dataDirPath = parentFile.getParentFile().getAbsolutePath();
+         }
+      }
+      
+      setOnepointDataFolderPath(dataDirPath);
+   }
+
+
 }
 

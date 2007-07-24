@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -25,20 +25,13 @@ public interface OpProjectError {
    public final static int MANAGER_ACCESS_DENIED = 14;
    public final static int WORKRECORDS_STILL_EXIST_ERROR = 15;
    public final static int WORKRECORDS_STILL_EXIST_WARNING = 16;
+   public final static int ACTIVITY_ASSIGNMENTS_EXIST_ERROR = 17;
 
    public final static int PROJECT_LOCKED_ERROR = 18;
    public final static int GOAL_PRIORITY_ERROR = 19;
    public final static int TODO_PRIORITY_ERROR = 20;
 
    public final static int LOOP_ASSIGNMENT_ERROR = 21;
-
-   public final static int INTERNAL_RATE_NOT_VALID = 22;
-   public final static int EXTERNAL_RATE_NOT_VALID = 23;
-
-   public final static int PROBABILITY_NOT_VALID = 24;
-   public final static int PRIORITY_NOT_VALID = 25;
-
-   public final static int DUPLICATE_BASELINE_ERROR = 26;
 
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
@@ -57,14 +50,9 @@ public interface OpProjectError {
    public final static String MANAGER_ACCESS_DENIED_NAME = "ManagerAccessDenied";
    public final static String WORKRECORDS_STILL_EXIST_ERR0R_NAME = "WorkRecordsStillExistError";
    public final static String WORKRECORDS_STILL_EXIST_WARNING_NAME = "WorkRecordsStillExistWarning";
+   public final static String ACTIVITY_ASSIGNMENTS_EXIST_ERROR_NAME = "ActivityAssignmentsExistError";
    public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
    public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
    public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
    public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
-   public final static String INTERNAL_RATE_NOT_VALID_NAME = "InternalRateNotValid";
-   public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";
-   public final static String PROBABILITY_NOT_VALID_NAME = "ProbabilityNotValid";
-   public final static String PRIORITY_NOT_VALID_NAME = "PriorityNotValid";
-   public final static String DUPLICATE_BASELINE_ERROR_NAME = "DuplicateBaselineError";
-
 }

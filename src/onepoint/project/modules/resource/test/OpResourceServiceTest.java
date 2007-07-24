@@ -1,14 +1,11 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.resource.test;
 
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
+import onepoint.persistence.*;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.project.test.OpActivityTestDataFactory;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
+import onepoint.project.modules.project.test.ProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceError;
 import onepoint.project.modules.resource.OpResourcePool;
@@ -16,28 +13,23 @@ import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
-import onepoint.project.modules.work.OpWorkRecord;
-import onepoint.project.modules.work.OpWorkSlip;
-import onepoint.project.modules.work.test.OpWorkTestDataFactory;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
+import onepoint.project.modules.user.test.UserTestDataFactory;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.project.util.OpProjectConstants;
-import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
-import onepoint.util.XCalendar;
 
-import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.sql.Date;
 
 /**
  * This class test resource service methods.
  *
  * @author lucian.furtos
  */
-public class OpResourceServiceTest extends OpBaseOpenTestCase {
+public class OpResourceServiceTest extends OpBaseTestCase {
 
    private static final String NAME = "resource_one";
    private static final String DESCRIPTION = "The Resource Description";
@@ -51,11 +43,8 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    private static final String DEFAULT_PASSWORD = "pass";
 
    private OpResourceService service;
-   private OpResourceTestDataFactory dataFactory;
-   private OpActivityTestDataFactory activityFactory;
-   private OpWorkTestDataFactory workFactory;
+   private ResourceTestDataFactory dataFactory;
    private static final String NEW_NAME = "new_resource";
-   private XCalendar xCalendar;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -66,21 +55,16 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      service = OpTestDataFactory.getResourceService();
-      dataFactory = new OpResourceTestDataFactory(session);
-      activityFactory = new OpActivityTestDataFactory(session);
-      workFactory = new OpWorkTestDataFactory(session);
+      service = getResourceService();
+      dataFactory = new ResourceTestDataFactory(session);
 
       clean();
 
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
+      XMessage response = getUserService().insertUser(session, request);
       assertNoError(response);
-
-      XCalendar.getDefaultCalendar().configure(null, XLocaleManager.getDefaultLocale(), null, XCalendar.GMT_TIMEZONE);
-      xCalendar = XCalendar.getDefaultCalendar();
    }
 
    /**
@@ -105,7 +89,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateResourcePool()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
@@ -121,27 +105,23 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateResourcePoolWrongName()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(null, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(null, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.createPoolMsg("", POOL_DESCRIPTION, 2d, 2d, null);
+      request = dataFactory.createPoolMsg("", POOL_DESCRIPTION, 2d, null);
       response = service.insertPool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, -2d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, -2d, null);
       response = service.insertPool(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
 
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, -2d, null);
-      response = service.insertPool(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
-
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
 
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 1d, 1d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 1d, null);
       response = service.insertPool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_UNIQUE);
    }
@@ -153,13 +133,13 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateResourcePool()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
       String id = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.updatePoolMsg(id, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d), new Double(7d));
+      request = dataFactory.updatePoolMsg(id, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertNoError(response);
 
@@ -177,39 +157,35 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    public void testUpdateResourcePoolErrors()
         throws Exception {
       String fakceid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0);
-      XMessage request = dataFactory.updatePoolMsg(fakceid, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      XMessage request = dataFactory.updatePoolMsg(fakceid, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d));
       XMessage response = service.updatePool(session, request);
       assertError(response, OpResourceError.POOL_NOT_FOUND);
 
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
 
       String id = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.updatePoolMsg(id, null, NEW_POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(id, null, NEW_POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.updatePoolMsg(id, "", NEW_POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(id, "", NEW_POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.createPoolMsg(NEW_POOL_NAME, NEW_POOL_DESCRIPTION, 3d, 2d, null);
+      request = dataFactory.createPoolMsg(NEW_POOL_NAME, NEW_POOL_DESCRIPTION, 3d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
 
-      request = dataFactory.updatePoolMsg(id, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(id, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertError(response, OpResourceError.POOL_NAME_NOT_UNIQUE);
 
-      request = dataFactory.updatePoolMsg(id, POOL_NAME, POOL_DESCRIPTION, new Double(-5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(id, POOL_NAME, POOL_DESCRIPTION, new Double(-5d));
       response = service.updatePool(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
-
-      request = dataFactory.updatePoolMsg(id, POOL_NAME, POOL_DESCRIPTION, new Double(5d), new Double(-5d));
-      response = service.updatePool(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
    }
 
    /**
@@ -219,11 +195,11 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testDeleteResourcePool()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
-      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 3d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 3d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
 
@@ -244,7 +220,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    public void testCreateResource()
         throws Exception {
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
-      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 1d, false, poolid);
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, poolid);
       XMessage response = service.insertResource(session, request);
       assertNoError(response);
 
@@ -252,7 +228,6 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       assertEquals(DESCRIPTION, resource.getDescription());
       assertEquals(50d, resource.getAvailable(), 0d);
       assertEquals(2d, resource.getHourlyRate(), 0d);
-      assertEquals(1d, resource.getExternalRate(), 0d);
       assertFalse(resource.getInheritPoolRate());
    }
 
@@ -263,30 +238,26 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateResourceError()
         throws Exception {
-      XMessage request = dataFactory.createResourceMsg(null, DESCRIPTION, 50d, 2d, 1d, false, null);
+      XMessage request = dataFactory.createResourceMsg(null, DESCRIPTION, 50d, 2d, false, null);
       XMessage response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.createResourceMsg("", DESCRIPTION, 50d, 2d, 1d, false, null);
+      request = dataFactory.createResourceMsg("", DESCRIPTION, 50d, 2d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.createResourceMsg(NAME + '%', DESCRIPTION, 50d, 2d, 1d, false, null);
+      request = dataFactory.createResourceMsg(NAME + '%', DESCRIPTION, 50d, 2d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_VALID);
 
       double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, 1d, false, null);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, -1d, 1d, false, null);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, -1d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
-
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, 1d, -1d, false, null);
-      response = service.insertResource(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
    }
 
    /**
@@ -296,30 +267,26 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateResourceDuplicateName()
         throws Exception {
-      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 1d, false, null);
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null);
       XMessage response = service.insertResource(session, request);
       assertNoError(response);
 
-      request = dataFactory.createResourceMsg(NAME, NEW_DESCRIPTION, 30d, 6d, 3d, false, null);
+      request = dataFactory.createResourceMsg(NAME, NEW_DESCRIPTION, 30d, 6d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_UNIQUE);
 
-      request = dataFactory.createResourceMsg(NAME + '%', DESCRIPTION, 50d, 2d, 1d, false, null);
+      request = dataFactory.createResourceMsg(NAME + '%', DESCRIPTION, 50d, 2d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_VALID);
 
       double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, 3d, false, null);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, -1d, 2d, false, null);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, -1d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
-
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 99d, 1d, -2d, false, null);
-      response = service.insertResource(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
    }
 
    /**
@@ -329,20 +296,20 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testCreateResourceWithProjects()
         throws Exception {
-      XMessage request = OpProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
-      XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      XMessage request = ProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
+      XMessage response = getProjectService().insertProject(session, request);
       assertNoError(response);
 
-      request = OpProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      request = ProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
 
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
       ArrayList projects = new ArrayList();
       projects.add(projectDataFactory.getProjectId("prj1"));
       projects.add(projectDataFactory.getProjectId("prj2"));
 
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 1d, false, null, projects);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null, projects);
       response = service.insertResource(session, request);
       assertNoError(response);
 
@@ -354,49 +321,117 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    }
 
    /**
+    * Test happy-flow update of resources
+    *
+    * @throws Exception if the test fails
+    */
+   public void testUpdateResource()
+        throws Exception {
+      UserTestDataFactory userDataFactory = new UserTestDataFactory(session);
+      OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
+
+      XMessage request = ProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
+      XMessage response = getProjectService().insertProject(session, request);
+      assertNoError(response);
+      request = ProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
+      response = getProjectService().insertProject(session, request);
+      assertNoError(response);
+      request = ProjectTestDataFactory.createProjectMsg("prj3", new Date(System.currentTimeMillis()), 2000d, null, null);
+      response = getProjectService().insertProject(session, request);
+      assertNoError(response);
+
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
+      ArrayList projectIds = new ArrayList();
+      projectIds.add(projectDataFactory.getProjectId("prj1"));
+      projectIds.add(projectDataFactory.getProjectId("prj3"));
+
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null, projectIds);
+      response = service.insertResource(session, request);
+      assertNoError(response);
+
+      String id = dataFactory.getResourceId(NAME);
+
+      OpResource resource = dataFactory.getResourceById(id);
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+
+      OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
+      planVersion.setVersionNumber(OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      planVersion.setStart(new Date(System.currentTimeMillis()));
+      planVersion.setFinish(new Date(System.currentTimeMillis() + 1000));
+      planVersion.setProjectPlan(projectDataFactory.getProjectByName("prj1").getPlan());
+      broker.makePersistent(planVersion);
+
+      OpActivityVersion activity = new OpActivityVersion();
+      activity.setPlanVersion(planVersion);
+      broker.makePersistent(activity);
+
+      OpAssignmentVersion assignment = new OpAssignmentVersion();
+      assignment.setActivityVersion(activity);
+      assignment.setResource(resource);
+      assignment.setPlanVersion(planVersion);
+      broker.makePersistent(assignment);
+
+      t.commit();
+      broker.close();
+
+      projectIds = new ArrayList();
+      projectIds.add(projectDataFactory.getProjectId("prj1"));
+      projectIds.add(projectDataFactory.getProjectId("prj2"));
+
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 80d, 7d, true, user.locator(), projectIds);
+      response = service.updateResource(session, request);
+      assertNoError(response);
+
+      resource = dataFactory.getResourceById(id);
+      assertEquals(NEW_NAME, resource.getName());
+      assertEquals(NEW_DESCRIPTION, resource.getDescription());
+      assertEquals(80d, resource.getAvailable(), 0d);
+      OpResourcePool pool = OpResourceService.findRootPool(session.newBroker());
+      assertEquals(pool.getHourlyRate(), resource.getHourlyRate(), 0d);
+      assertTrue(resource.getInheritPoolRate());
+   }
+
+   /**
     * Test update of resources with error
     *
     * @throws Exception if the test fails
     */
    public void testUpdateResourceWithErrors()
         throws Exception {
-      XMessage request = dataFactory.updateResourceMsg(OpLocator.locatorString(OpResource.RESOURCE, 0), "", "", 0d, 0d, 0d, false, null, null);
+      XMessage request = dataFactory.updateResourceMsg(OpLocator.locatorString(OpResource.RESOURCE, 0), "", "", 0d, 0d, false, null, null);
       XMessage response = service.updateResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NOT_FOUND);
 
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 3d, false, null);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null);
       response = service.insertResource(session, request);
       assertNoError(response);
 
       String id = dataFactory.getResourceId(NAME);
 
-      request = dataFactory.updateResourceMsg(id, null, NEW_DESCRIPTION, 80d, 7d, 2d, true, null, null);
+      request = dataFactory.updateResourceMsg(id, null, NEW_DESCRIPTION, 80d, 7d, true, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.updateResourceMsg(id, "", NEW_DESCRIPTION, 80d, 7d, 2d, true, null, null);
+      request = dataFactory.updateResourceMsg(id, "", NEW_DESCRIPTION, 80d, 7d, true, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED);
 
-      request = dataFactory.updateResourceMsg(id, "name%", NEW_DESCRIPTION, 80d, 7d, 2d, true, null, null);
+      request = dataFactory.updateResourceMsg(id, "name%", NEW_DESCRIPTION, 80d, 7d, true, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_VALID);
 
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 104d, 7d, 2d, false, null, null);
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 104d, 7d, false, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, -4d, 7d, 2d, false, null, null);
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, -4d, 7d, false, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 66d, -3d, 3d, false, null, null);
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 66d, -3d, false, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
-
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 66d, 3d, -3d, false, null, null);
-      response = service.updateResource(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
    }
 
    /**
@@ -406,17 +441,17 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testUpdateResourceDuplicateName()
         throws Exception {
-      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 1d, false, null);
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null);
       XMessage response = service.insertResource(session, request);
       assertNoError(response);
 
-      request = dataFactory.createResourceMsg(NEW_NAME, NEW_DESCRIPTION, 90d, 3d, 1d, true, null);
+      request = dataFactory.createResourceMsg(NEW_NAME, NEW_DESCRIPTION, 90d, 3d, true, null);
       response = service.insertResource(session, request);
       assertNoError(response);
 
       String id = dataFactory.getResourceId(NAME);
 
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 80d, 7d, 3d, true, null, null);
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 80d, 7d, true, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_UNIQUE);
    }
@@ -428,19 +463,19 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testHourlyRateUpdate()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 0d, 0d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 0d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 0d, 0d, true, poolid);
+      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 0d, true, poolid);
       response = service.insertResource(session, request);
       assertNoError(response);
-      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 50d, 0d, 0d, false, poolid);
+      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 50d, 0d, false, poolid);
       response = service.insertResource(session, request);
       assertNoError(response);
 
-      request = dataFactory.updatePoolMsg(poolid, POOL_NAME, POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(poolid, POOL_NAME, POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertNoError(response);
 
@@ -453,59 +488,28 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    }
 
    /**
-    * Test the inheritance of External rate from pools to resources
-    *
-    * @throws Exception if the test fails
-    */
-   public void testExternalRateUpdate()
-        throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 0d, 0d, null);
-      XMessage response = service.insertPool(session, request);
-      assertNoError(response);
-      String poolid = dataFactory.getResourcePoolId(POOL_NAME);
-
-      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 0d, 0d, true, poolid);
-      response = service.insertResource(session, request);
-      assertNoError(response);
-      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 50d, 0d, 0d, false, poolid);
-      response = service.insertResource(session, request);
-      assertNoError(response);
-
-      request = dataFactory.updatePoolMsg(poolid, POOL_NAME, POOL_DESCRIPTION, new Double(5d), new Double(5d));
-      response = service.updatePool(session, request);
-      assertNoError(response);
-
-      OpResource resource = dataFactory.getResourceByName(NAME + 1);
-      assertTrue(resource.getInheritPoolRate());
-      assertEquals(5d, resource.getExternalRate(), 0d);
-      resource = dataFactory.getResourceByName(NAME + 2);
-      assertFalse(resource.getInheritPoolRate());
-      assertEquals(0d, resource.getExternalRate(), 0d);
-   }
-
-   /**
     * Test the user import
     *
     * @throws Exception if the test fails
     */
    public void testImportUser()
         throws Exception {
-      OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
+      UserTestDataFactory userDataFactory = new UserTestDataFactory(session);
       OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
 
-      XMessage request = OpProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
-      XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      XMessage request = ProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
+      XMessage response = getProjectService().insertProject(session, request);
       assertNoError(response);
-      request = OpProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      request = ProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
 
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
       ArrayList projectIds = new ArrayList();
       projectIds.add(projectDataFactory.getProjectId("prj1"));
       projectIds.add(projectDataFactory.getProjectId("prj2"));
 
-      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, 10d, false, null, projectIds);
+      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, false, null, projectIds);
       response = service.importUser(session, request);
       assertNoError(response);
 
@@ -514,7 +518,6 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       assertEquals(res.getDescription(), null);
       assertEquals(res.getAvailable(), 34d, 0d);
       assertEquals(res.getHourlyRate(), 8d, 0d);
-      assertEquals(res.getExternalRate(), 10d, 0d);
       assertFalse(res.getInheritPoolRate());
    }
 
@@ -525,11 +528,11 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testImportUnknownUser()
         throws Exception {
-      XMessage request = dataFactory.importUserMsg(null, 34d, 8d, 10d, false, null, null);
+      XMessage request = dataFactory.importUserMsg(null, 34d, 8d, false, null, null);
       XMessage response = service.importUser(session, request);
       assertError(response, OpResourceError.USER_ID_NOT_SPECIFIED);
 
-      request = dataFactory.importUserMsg("", 34d, 8d, 10d, false, null, null);
+      request = dataFactory.importUserMsg("", 34d, 8d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.USER_ID_NOT_SPECIFIED);
    }
@@ -541,24 +544,20 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testImportUserWithErrors()
         throws Exception {
-      OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
+      UserTestDataFactory userDataFactory = new UserTestDataFactory(session);
       OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
 
-      XMessage request = dataFactory.importUserMsg(user.locator(), -4d, 8d, 10d, false, null, null);
+      XMessage request = dataFactory.importUserMsg(user.locator(), -4d, 8d, false, null, null);
       XMessage response = service.importUser(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.importUserMsg(user.locator(), 101d, 8d, 10d, false, null, null);
+      request = dataFactory.importUserMsg(user.locator(), 101d, 8d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
 
-      request = dataFactory.importUserMsg(user.locator(), 50d, -4d, 10d, false, null, null);
+      request = dataFactory.importUserMsg(user.locator(), 50d, -4d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.HOURLY_RATE_NOT_VALID);
-
-      request = dataFactory.importUserMsg(user.locator(), 50d, 4d, -10d, false, null, null);
-      response = service.importUser(session, request);
-      assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
    }
 
    /**
@@ -568,18 +567,56 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testImportUserDuplicate()
         throws Exception {
-      XMessage request = dataFactory.createResourceMsg(DEFAULT_USER, DESCRIPTION, 50d, 2d, 2d, false, null);
+      XMessage request = dataFactory.createResourceMsg(DEFAULT_USER, DESCRIPTION, 50d, 2d, false, null);
       XMessage response = service.insertResource(session, request);
       assertNoError(response);
 
-      OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
+      UserTestDataFactory userDataFactory = new UserTestDataFactory(session);
       OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
 
-      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, 10d, false, null, null);
+      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_UNIQUE);
    }
 
+   /**
+    * Test if the resource has assignments
+    *
+    * @throws Exception if the test fails
+    */
+   public void testHasAssignments()
+        throws Exception {
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, null);
+      XMessage response = service.insertResource(session, request);
+      assertNoError(response);
+
+      String id = dataFactory.getResourceId(NAME);
+
+      request = new XMessage();
+      request.setArgument(OpResourceService.RESOURCE_ID, id);
+      response = service.hasAssignments(session, request);
+      assertFalse(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+
+      OpResource resource = dataFactory.getResourceById(id);
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      OpActivity activity = new OpActivity();
+      OpAssignment assignment = new OpAssignment();
+      assignment.setActivity(activity);
+      assignment.setResource(resource);
+      OpActivityVersion version = new OpActivityVersion();
+      version.setActivity(activity);
+      broker.makePersistent(activity);
+      broker.makePersistent(assignment);
+      broker.makePersistent(version);
+      t.commit();
+      broker.close();
+
+      request = new XMessage();
+      request.setArgument(OpResourceService.RESOURCE_ID, id);
+      response = service.hasAssignments(session, request);
+      assertTrue(((Boolean) response.getArgument(OpResourceService.HAS_ASSIGNMENTS)).booleanValue());
+   }
 
    /**
     * Test if the pool has resources with assignments
@@ -588,13 +625,13 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testHasResourceAssignments()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 2d, false, poolid);
+      request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, poolid);
       response = service.insertResource(session, request);
       assertNoError(response);
 
@@ -633,15 +670,15 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testAssignToProjects()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
-      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, 2d, true, poolid);
+      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, true, poolid);
       response = service.insertResource(session, request);
       assertNoError(response);
 
-      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 99d, 0d, 0d, false, null);
+      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 99d, 0d, false, null);
       response = service.insertResource(session, request);
       assertNoError(response);
       String resourceid = dataFactory.getResourceId(NAME + 2);
@@ -650,14 +687,14 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       resouceIds.add(poolid);
       resouceIds.add(resourceid);
 
-      request = OpProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      request = ProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
-      request = OpProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      request = ProjectTestDataFactory.createProjectMsg("prj2", new Date(System.currentTimeMillis()), 4000d, null, null);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
 
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
       ArrayList projectIds = new ArrayList();
       projectIds.add(projectDataFactory.getProjectId("prj1"));
       projectIds.add(projectDataFactory.getProjectId("prj2"));
@@ -690,16 +727,16 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testMoveResourceNode()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, 5d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, 2d, true, null);
+      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, true, null);
       response = service.insertResource(session, request);
       assertNoError(response);
-      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 50d, 2d, 2d, false, null);
+      request = dataFactory.createResourceMsg(NAME + 2, DESCRIPTION, 50d, 2d, false, null);
       response = service.insertResource(session, request);
       assertNoError(response);
 
@@ -728,16 +765,16 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testMovePoolNode()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, 5d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
 
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
-      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 2d, 2d, null);
+      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 2d, null);
       response = service.insertPool(session, request);
       assertNoError(response);
 
@@ -766,15 +803,15 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testExpandResourcePool()
         throws Exception {
-      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, 5d, null);
+      XMessage request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 5d, null);
       XMessage response = service.insertPool(session, request);
       assertNoError(response);
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
 
-      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, 2d, poolid);
+      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, poolid);
       response = service.insertPool(session, request);
       assertNoError(response);
-      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 2d, 2d, poolid);
+      request = dataFactory.createPoolMsg(POOL_NAME + 2, POOL_DESCRIPTION, 2d, poolid);
       response = service.insertPool(session, request);
       assertNoError(response);
 
@@ -798,16 +835,14 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    public void testNoPermisions()
         throws Exception {
-      OpBroker broker = session.newBroker();
-      String superPoolId = OpResourceService.findRootPool(broker).locator();
-      broker.close();
+      String superPoolId = OpResourceService.findRootPool(session.newBroker()).locator();
 
-      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, 2d, false, superPoolId);
+      XMessage request = dataFactory.createResourceMsg(NAME, DESCRIPTION, 50d, 2d, false, superPoolId);
       XMessage response = service.insertResource(session, request);
       assertNoError(response);
       String id = dataFactory.getResourceId(NAME);
 
-      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, 2d, superPoolId);
+      request = dataFactory.createPoolMsg(POOL_NAME, POOL_DESCRIPTION, 2d, superPoolId);
       response = service.insertPool(session, request);
       assertNoError(response);
       String poolid = dataFactory.getResourcePoolId(POOL_NAME);
@@ -815,29 +850,29 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
 
       //create pool
-      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, 2d, superPoolId);
+      request = dataFactory.createPoolMsg(POOL_NAME + 1, POOL_DESCRIPTION, 2d, superPoolId);
       response = service.insertPool(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
 
       //create resource
-      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, 2d, false, superPoolId);
+      request = dataFactory.createResourceMsg(NAME + 1, DESCRIPTION, 50d, 2d, false, superPoolId);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
 
       //import users
-      OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
+      UserTestDataFactory userDataFactory = new UserTestDataFactory(session);
       OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
-      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, 10d, false, superPoolId, null);
+      request = dataFactory.importUserMsg(user.locator(), 34d, 8d, false, superPoolId, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
 
       //update pool
-      request = dataFactory.updatePoolMsg(superPoolId, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d), new Double(5d));
+      request = dataFactory.updatePoolMsg(superPoolId, NEW_POOL_NAME, NEW_POOL_DESCRIPTION, new Double(5d));
       response = service.updatePool(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
 
       //update resource
-      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 80d, 7d, 3d, true, null, null);
+      request = dataFactory.updateResourceMsg(id, NEW_NAME, NEW_DESCRIPTION, 80d, 7d, true, null, null);
       response = service.updateResource(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
 
@@ -867,52 +902,57 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
     */
    private void clean()
         throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpWorkSlip.WORK_SLIP);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Object aProjectList : projectList) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
-      }
-
-      List resoucesList = dataFactory.getAllResources(broker);
-      for (Object aResoucesList : resoucesList) {
-         OpResource resource = (OpResource) aResoucesList;
-         broker.deleteObject(resource);
-      }
-
-      List poolList = dataFactory.getAllResourcePools(broker);
-      for (Object aPoolList : poolList) {
-         OpResourcePool pool = (OpResourcePool) aPoolList;
-         if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
-            continue;
-         }
-         broker.deleteObject(pool);
-      }
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
+      UserTestDataFactory usrData = new UserTestDataFactory(session);
+      ArrayList ids = new ArrayList();
+      List users = usrData.getAllUsers();
+      for (Iterator iterator = users.iterator(); iterator.hasNext();) {
+         OpUser user = (OpUser) iterator.next();
          if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
             continue;
          }
-         broker.deleteObject(user);
+         ids.add(user.locator());
+      }
+      XMessage request = new XMessage();
+      request.setArgument(OpUserService.SUBJECT_IDS, ids);
+      getUserService().deleteSubjects(session, request);
+//
+//      dataFactory.deleteAllActivities();
+
+      deleteAllObjects(OpAssignmentVersion.ASSIGNMENT_VERSION);
+      deleteAllObjects(OpProjectPlanVersion.PROJECT_PLAN_VERSION);
+      deleteAllObjects(OpActivityVersion.ACTIVITY_VERSION);
+
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
+      List projectList = projectDataFactory.getAllProjects();
+      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
+         OpProjectNode project = (OpProjectNode) iterator.next();
+         projectDataFactory.deleteObject(project);
       }
 
-      transaction.commit();
-      broker.close();
+      List resoucesList = dataFactory.getAllResources();
+      for (Iterator iterator = resoucesList.iterator(); iterator.hasNext();) {
+         OpResource resource = (OpResource) iterator.next();
+         dataFactory.deleteObject(resource);
+      }
+
+      List poolList = dataFactory.getAllResourcePools();
+      for (Iterator iterator = poolList.iterator(); iterator.hasNext();) {
+         OpResourcePool pool = (OpResourcePool) iterator.next();
+         if (pool.getName().equals(OpResourcePool.ROOT_RESOURCE_POOL_NAME)) {
+            continue;
+         }
+         dataFactory.deleteObject(pool);
+      }
    }
 
+   private void deleteAllObjects(String prototypeName) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from " + prototypeName);
+      Iterator it = broker.list(query).iterator();
+      broker.close();
+      while (it.hasNext()) {
+         OpObject object = (OpObject) it.next();
+         dataFactory.deleteObject(object);
+      }
+   }
 }

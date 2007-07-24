@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence.hibernate;
@@ -8,27 +8,24 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.persistence.hibernate.cache.OpOSCache;
-import org.hibernate.*;
+import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
 
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
-/**
- * This is an implementation of a data source  based on Hibernate.
- */
 public class OpHibernateSource extends OpSource {
 
    /**
     * The logger used in this class.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSource.class);
+   private static final XLog logger = XLogFactory.getLogger(OpHibernateSource.class, true);
 
    /**
     * Constant that defines
@@ -36,31 +33,39 @@ public class OpHibernateSource extends OpSource {
 
    // Hibernate source that is always auto-mapped
    public final static int DERBY = 1; // Default database type
-   public final static int MYSQL_INNODB = 2;
-   public final static int POSTGRESQL = 3;
-   public final static int ORACLE = 4;
-   public final static int HSQLDB = 5;
-   public final static int IBM_DB2 = 6;
-   public final static int MSSQL = 7;
+   public final static int MYSQL = 2;
+   public final static int MYSQL_INNODB = 3;
+   public final static int POSTGRESQL = 4;
+   public final static int ORACLE = 5;
+   public final static int HSQLDB = 6;
+   public final static int IBM_DB2 = 7;
+   public final static int MSSQL = 8;
+
+   public final static String INDEX_NAME_PREFIX = "op_";
+   public final static String INDEX_NAME_POSTFIX = "_i";
+   public final static String COLUMN_NAME_PREFIX = "op_";
+   public final static String COLUMN_NAME_POSTFIX = "";
+   public final static String TABLE_NAME_PREFIX = "op_";
+   public final static String TABLE_NAME_POSTFIX = "";
+   public final static String JOIN_NAME_SEPARATOR = "_";
 
    public final static String HSQLDB_TYPE = "file:";
    public final static String HSQLDB_JDBC_CONNECTION_PREFIX = "jdbc:hsqldb:" + HSQLDB_TYPE;
-   public final static String DERBY_JDBC_CONNECTION_PREFIX = "jdbc:derby:";
-   public final static String DERBY_JDBC_CONNECTION_SUFIX = ";create=true";
    public final static String SCHEMA_TABLE = "op_schema";
 
    /**
-    * The latest schema version
+    * Strings representing prototype prefixes
     */
-   public static final int SCHEMA_VERSION = 14;
+   private static final List PROTOTYPE_PREFIXES = Arrays.asList(new String[]{"X", "Op"});
 
    /**
     * Db schema related constants
     */
+   private static final int SCHEMA_VERSION = 4;
    private static final String VERSION_COLUMN = "op_version";
-   private static final String VERSION_PLACEHOLDER = "#";
-   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
-   private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
+
+   private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int) " ;
+   private static final String INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(0)";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
 
@@ -79,36 +84,30 @@ public class OpHibernateSource extends OpSource {
    /**
     * Configuration settings
     */
-   protected String url = null;
-   protected String login = ""; // For embedded databases (DERBY)
-   protected String password = "";
-   protected String driverClassName = null;
-   protected String mapping = null;
-   protected int databaseType = DERBY;
-   protected String connectionPoolMinSize;
-   protected String connectionPoolMaxSize;
-   protected String cacheCapacity;
+   private String url = null;
+   private String login = ""; // For embedded databases (DERBY)
+   private String password = "";
+   private String driverClassName = null;
+   private String mapping = null;
+   private int databaseType = DERBY;
+   private String connectionPoolMinSize;
+   private String connectionPoolMaxSize;
+   private String cacheCapacity;
 
    /**
-    * Creates a new instance with the provided information. In case that choosen database is HSQLDB, embeded mode will
-    * be used.
-    *
-    * @param url          databse connection URL
-    * @param driver       JDBC driver to be used
-    * @param password     database user password
-    * @param login        database username
-    * @param databaseType database type
+    * IBM DB2 index maximum length is 18 (SQLSTATE=42622)
     */
-   public OpHibernateSource(String url, String driver, String password, String login, int databaseType) {
-      this.url = url;
-      this.driverClassName = driver;
-      this.password = password;
-      this.login = login;
-      this.databaseType = databaseType;
+   private static final int IBM_DB2_INDEX_NAME_LENGTH = 18;
 
-      OpBlobUserType.setDatabaseType(databaseType);
+   public OpHibernateSource(String _url, String _driver_class_name, String _password, String _login, int _database_type) {
+      this.url = _url;
+      this.driverClassName = _driver_class_name;
+      this.password = _password;
+      this.login = _login;
+      this.databaseType = _database_type;
+      OpBlobUserType.setDatabaseType(_database_type);
 
-      if (databaseType == HSQLDB) {
+      if (_database_type == HSQLDB) {
          this.setEmbeded(true);
       }
    }
@@ -121,16 +120,32 @@ public class OpHibernateSource extends OpSource {
       return sessionFactory;
    }
 
+   public final void setURL(String url) {
+      this.url = url;
+   }
+
    public final String getURL() {
       return url;
+   }
+
+   public final void setLogin(String login) {
+      this.login = login;
    }
 
    public final String getLogin() {
       return login;
    }
 
+   public final void setPassword(String password) {
+      this.password = password;
+   }
+
    public final String getPassword() {
       return password;
+   }
+
+   public final void setDriverClassName(String driver_class_name) {
+      driverClassName = driver_class_name;
    }
 
    public final String getDriverClassName() {
@@ -191,34 +206,17 @@ public class OpHibernateSource extends OpSource {
       this.cacheCapacity = cacheCapacity;
    }
 
-   /**
-    * Creates a new connection.
-    *
-    * @return new connection
-    */
    public OpConnection newConnection() {
-      return new OpHibernateConnection(this, getSession());
-   }
-
-   /**
-    * Here we create a new instance of Hibernate session with or without an interceptor attached.
-    *
-    * @return hibernate session or <code>Null</code> if somethig happens and session can't be created.
-    */
-   protected Session getSession() {
-      List<Interceptor> interceptors = getInterceptors();
-      OpHibernateInterceptor interceptor = new OpHibernateInterceptor(interceptors);
-
       Session session = null;
       try {
          if (this.isEmbeded()) {
             if (embededConnection == null) {
                embededConnection = DriverManager.getConnection(this.getURL(), null);
             }
-            session = sessionFactory.openSession(embededConnection, interceptor);
+            session = sessionFactory.openSession(embededConnection);
          }
          else {
-            session = sessionFactory.openSession(interceptor);
+            session = sessionFactory.openSession();
             if (session.connection().isClosed()) {
                logger.warn("ERROR: Hibernate supplied closed connection");
             }
@@ -228,31 +226,15 @@ public class OpHibernateSource extends OpSource {
          logger.error("OpHibernateSource.newConnection(): Could not open session: " + e);
          // *** TODO: Throw OpPersistenceException
       }
-
-      return session;
+      return new OpHibernateConnection(this, session);
    }
 
-   /**
-    * This method should return a list of Hibernate interceptors. They will be wrapped inside
-    * a <code>OpHibernateInterceptor</code> and passed to hibernate.
-    *
-    * @return a <code>List(Interceptor)</code>.
-    */
-   protected List<Interceptor> getInterceptors() {
-      List<Interceptor> interceptors =  new ArrayList<Interceptor>();
-      interceptors.add(new OpTimestampInterceptor());
-      return interceptors;
-   }
-
-   /**
-    * Based on the database type determine Hibernate dialect to be used.
-    *
-    * @return Hibernate dialect
-    */
-   private Class hibernateDialectClass() {
+   public Class hibernateDialectClass() {
       switch (databaseType) {
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
+         case MYSQL:
+            return org.hibernate.dialect.MySQLDialect.class;
          case MYSQL_INNODB:
             return org.hibernate.dialect.MySQLInnoDBDialect.class;
          case POSTGRESQL:
@@ -289,7 +271,7 @@ public class OpHibernateSource extends OpSource {
    private void initDefaultConfigurationSettings() {
       configuration = new Configuration();
       if (defaultHibernateConfigProperties == null) {
-         InputStream input = OpHibernateSource.class.getResourceAsStream("hibernate.properties");
+         InputStream input = this.getClass().getResourceAsStream("hibernate.properties");
          defaultHibernateConfigProperties = new Properties();
          try {
             defaultHibernateConfigProperties.load(input);
@@ -313,11 +295,10 @@ public class OpHibernateSource extends OpSource {
       configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
 
       //Important: the following setting is critical for MySQL to store all dates in GMT
-      if (databaseType == MYSQL_INNODB) {
+      if (databaseType == MYSQL_INNODB || databaseType == MYSQL) {
          configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
-         configuration.setProperty("hibernate.connection.useJDBCCompliantTimezoneShift", Boolean.TRUE.toString());
       }
-
+      
       //connection pool configuration override
       if (connectionPoolMinSize != null) {
          configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
@@ -364,6 +345,10 @@ public class OpHibernateSource extends OpSource {
       Session session = sessionFactory.openSession();
       String queryString = "select * from " + tableName;
       switch (this.databaseType) {
+         case MYSQL: {
+            queryString += " limit 1";
+            break;
+         }
          case MYSQL_INNODB: {
             queryString += " limit 1";
             break;
@@ -419,35 +404,423 @@ public class OpHibernateSource extends OpSource {
 	          localSess.commit();
 	          localSess.close();
 	    	  OpHibernateConnection.cleanupHSQLDBDefaultTableType (this); //somehow the shutdown overwrites with the loaded values...
-    	  }
+   	  }
           catch (Exception e) {
               logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
               dbmgr.closeDatabases(1);
           }
       }
+    	  
+   }
+
+   public final String newColumnName(String property_name) {
+      StringBuffer buffer = new StringBuffer(COLUMN_NAME_PREFIX);
+      buffer.append(property_name.toLowerCase());
+      buffer.append(COLUMN_NAME_POSTFIX);
+      return buffer.toString();
+   }
+
+   public final String newTableName(String prototype_name) {
+      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
+      buffer.append(removePrototypeNamePrefixes(prototype_name).toLowerCase());
+      buffer.append(TABLE_NAME_POSTFIX);
+      return buffer.toString();
+   }
+
+   /**
+    * Removes prefixes from the name of a prototype, each prefix at most once.
+    *
+    * @param prototypeName a <code>String</code> representing the name of a prototype.
+    * @return a <code>String</code> representing the name of the prototype without the prefixes.
+    */
+   private String removePrototypeNamePrefixes(String prototypeName) {
+      for (int i = 0; i < PROTOTYPE_PREFIXES.size(); i++) {
+         String prefix = (String) PROTOTYPE_PREFIXES.get(i);
+         if (prototypeName.startsWith(prefix)) {
+            prototypeName = prototypeName.replaceAll(prefix, "");
+         }
+      }
+      return prototypeName;
+   }
+
+   public final String newJoinTableName(String prototype_name1, String prototype_name2) {
+      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
+      buffer.append(prototype_name1.toLowerCase());
+      buffer.append(JOIN_NAME_SEPARATOR);
+      buffer.append(prototype_name2.toLowerCase());
+      buffer.append(TABLE_NAME_POSTFIX);
+      return buffer.toString();
+   }
+
+   public final String newJoinColumnName(String prototype_name, String property_name) {
+      // TODO: Attention -- we should probably remove this (outdated and uses "X" names)
+      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
+      buffer.append(prototype_name.toLowerCase());
+      buffer.append(JOIN_NAME_SEPARATOR);
+      buffer.append(property_name.toLowerCase());
+      buffer.append(TABLE_NAME_POSTFIX);
+      return buffer.toString();
+   }
+
+   public final String newIndexName(String prototype_name, String property_name) {
+      StringBuffer buffer = new StringBuffer(newTableName(prototype_name));
+      buffer.append(JOIN_NAME_SEPARATOR);
+      buffer.append(property_name.toLowerCase());
+      buffer.append(INDEX_NAME_POSTFIX);
+      if (databaseType == IBM_DB2 && buffer.length() > IBM_DB2_INDEX_NAME_LENGTH) {
+         String indexName = buffer.substring(TABLE_NAME_PREFIX.length());
+         int start = 0;
+         if (indexName.length() > IBM_DB2_INDEX_NAME_LENGTH) {
+            start = indexName.length() - IBM_DB2_INDEX_NAME_LENGTH;
+         }
+         return indexName.substring(start, indexName.length());
+      }
+      return buffer.toString();
    }
 
    // Callbacks invoked by source-manager
 
    /**
-    * This method is called after source registration and should produce Hibernate mappings XML.
+    * <FIXME author="Horia Chiorean" description="Remove HARD CODING config for OpObject !">
     */
    public void onRegister() {
-      OpMappingsGenerator gen = getMappingsGenerator();
-      gen.init(OpTypeManager.getPrototypes());
+      logger.debug("ON_REG\n\n");
+      // Create Hibernate mapping file
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("<?xml version=\"1.0\"?>\n");
+      buffer.append("<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">");
+      buffer.append("<hibernate-mapping>\n");
+      // TODO: Finalize inheritance (now we assume a simple, fixed 2-level
+      // inheritance, i.e., all extend OpObject)
+      buffer.append("<class name=\"onepoint.persistence.OpObject\" table=\"op_object\">\n");
+      // Add hard-coded primary key property "ID"
+      buffer.append("<cache usage=\"read-write\"/>\n");
+      buffer.append("      <id name=\"ID\" column=\"op_id\" type=\"long\">\n");
+      buffer.append("         <generator class=\"hilo\"/>\n");
+      buffer.append("      </id>\n");
+      // Add remaining OpObject relationships and fields
+      // TODO: When finalizing inheritance, try to hard-code "less" for OpObject
+      // (Now, this code maps OpObject in a totally hard-coded way)
+      /*
+      buffer.append("      <many-to-one name=\"AccessContext\" column=\"");
+      buffer.append(newColumnName("AccessContext"));
+      buffer.append("\" class=\"onepoint.persistence.OpObject\"/>\n");
+      buffer.append("      <set name=\"GuardedObjects\" inverse=\"true\">\n");
+      buffer.append("         <key column=\"");
+      buffer.append(newColumnName("AccessContext"));
+      buffer.append("\"/>\n");
+      buffer.append("         <one-to-many class=\"onepoint.persistence.OpObject\"/>\n");
+      buffer.append("      </set>\n");
+      */
+      buffer.append("      <property name=\"Created\" type=\"timestamp\" not-null=\"true\" index=\"object_created_i\"/>\n");
+      buffer.append("      <property name=\"Modified\" type=\"timestamp\"/>\n");
+      buffer.append("      <set name=\"Permissions\" inverse=\"true\" cascade=\"delete\">\n");
+      buffer.append("         <key column=\"");
+      buffer.append(newColumnName("Object"));
+      buffer.append("\"/>\n");
+      buffer.append("         <one-to-many class=\"onepoint.project.modules.user.OpPermission\"/>\n");
+      buffer.append("      </set>\n");
+      buffer.append("      <set name=\"Locks\" inverse=\"true\" cascade=\"delete\">\n");
+      buffer.append("         <key column=\"");
+      buffer.append(newColumnName("Target"));
+      buffer.append("\"/>\n");
+      buffer.append("         <one-to-many class=\"onepoint.project.modules.user.OpLock\"/>\n");
+      buffer.append("      </set>\n");
+      buffer.append("      <set name=\"DynamicResources\" inverse=\"true\" cascade=\"delete\">\n");
+      buffer.append("         <key column=\"");
+      buffer.append(newColumnName("Object"));
+      buffer.append("\"/>\n");
+      buffer.append("         <one-to-many class=\"onepoint.project.modules.documents.OpDynamicResource\"/>\n");
+      buffer.append("      </set>\n");
 
-      mapping = gen.generateMappings();
+      // Find out which "start" prototypes (only derived from OpObject)
+      Iterator prototypes = OpTypeManager.getPrototypes();
+      ArrayList extendObjectOnly = new ArrayList();
+      OpPrototype prototype = null;
+      while (prototypes.hasNext()) {
+         prototype = (OpPrototype) prototypes.next();
+         if (prototype.getSuperType() == null) {
+            extendObjectOnly.add(prototype);
+         }
+      }
+      prototypes = extendObjectOnly.iterator();
+
+      while (prototypes.hasNext()) {
+         prototype = (OpPrototype) (prototypes.next());
+         // Ignore hard-coded prototype "OpObject"
+         if (prototype.getName().equals("OpObject")) {
+            continue;
+         }
+         appendSubTypeMapping(buffer, prototype);
+      }
+      buffer.append("\n</class>\n");
+      buffer.append("</hibernate-mapping>\n");
+      // Set mapping
+      mapping = buffer.toString();
+
+//      System.err.println("***MAPPING\n---\n");
+//      System.err.println(mapping);
+//      System.err.println("\n");
+
+      logger.debug(mapping);
+   }
+
+   protected void appendSubTypeMapping(StringBuffer buffer, OpPrototype prototype) {
+      buffer.append("\n   <joined-subclass name=\"");
+      buffer.append(prototype.getInstanceClass().getName());
+      buffer.append("\" table=\"");
+      String table_name = newTableName(prototype.getName());
+      buffer.append(table_name);
+      buffer.append("\">\n");
+      // Add hard-coded join-key for column of property "ID"
+      buffer.append("      <key column=\"op_id\"/>\n");
+      // Add declared members (only these of this inheritance level)
+      Iterator members = prototype.getDeclaredMembers();
+      OpMember member = null;
+      OpField field = null;
+      OpRelationship relationship = null;
+      while (members.hasNext()) {
+         member = (OpMember) (members.next());
+         if (member instanceof OpField) {
+            // Map field
+            field = (OpField) member;
+            buffer.append("      <property name=\"");
+            buffer.append(field.getName());
+
+            buffer.append("\" type=\"");
+            buffer.append(OpHibernateSource.getHibernateTypeName(field.getTypeID()));
+
+            if (field.getMandatory()) {
+               buffer.append("\" not-null=\"true");
+            }
+
+            if (field.getUnique()) {
+               buffer.append("\" unique=\"true");
+            }
+
+            buffer.append("\"><column name=\"");
+            buffer.append(newColumnName(field.getName()));
+            buffer.append('"');
+
+            // Exception for MySQL: Use mediumblob (otherwise very limited
+            // storage capability)
+            if ((field.getTypeID() == OpType.CONTENT)) {
+               if ((databaseType == MYSQL) || (databaseType == MYSQL_INNODB)) {
+                  buffer.append(" sql-type=\"mediumblob\"");
+               }
+               if ((databaseType == IBM_DB2)) {
+                  buffer.append(" sql-type=\"blob(100M)\"");
+               }
+            }
+
+            if (field.getMandatory()) {
+               buffer.append(" not-null=\"true\"");
+            }
+
+            if (field.getUnique() && !(field.getTypeID() == OpType.TEXT)) {
+               buffer.append(" unique=\"true\"");
+            }
+
+            if (field.getIndexed() && !(field.getTypeID() == OpType.TEXT)) {
+               buffer.append(" index=\"");
+               buffer.append(newIndexName(prototype.getName(), field.getName()));
+               buffer.append('\"');
+            }
+
+            if (field.getTypeID() == OpType.TEXT) {
+               int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
+               buffer.append(" length=\"").append(maxLen).append("\"");
+            }
+
+            buffer.append("/></property>\n");
+
+         }
+         else {
+            // Map relationship
+            relationship = (OpRelationship) member;
+            String cascadeMode = relationship.getCascadeMode();
+            OpRelationship back_relationship = relationship.getBackRelationship();
+            OpPrototype target_prototype = OpTypeManager.getPrototypeByID(relationship.getTypeID());
+            if (relationship.getCollectionTypeID() != OpType.SET) {
+               // Map one-to-one or many-to-one relationship
+               if ((back_relationship != null) && (back_relationship.getCollectionTypeID() != OpType.SET)) {
+                  // Map one-to-one relationship
+                  if (relationship.getInverse()) {
+                     buffer.append("      <one-to-one name=\"");
+                     buffer.append(relationship.getName());
+                     /*
+                     buffer.append("\" column=\"");
+                     buffer.append(newColumnName(relationship.getName()));
+                     buffer.append("\" class=\"");
+                     buffer.append(target_prototype.getInstanceClass().getName());
+                     */
+                     buffer.append("\" property-ref=\"");
+                     buffer.append(back_relationship.getName());
+                     if (cascadeMode != null) {
+                        buffer.append("\" cascade=\"");
+                        buffer.append(cascadeMode);
+                     }
+                     buffer.append("\"/>\n");
+                  }
+                  else {
+                     buffer.append("      <many-to-one name=\"");
+                     buffer.append(relationship.getName());
+                     buffer.append("\" column=\"");
+                     buffer.append(newColumnName(relationship.getName()));
+                     buffer.append("\" class=\"");
+                     buffer.append(target_prototype.getInstanceClass().getName());
+                     buffer.append("\" unique=\"true\" not-null=\"true");
+                     if (cascadeMode != null) {
+                        buffer.append("\" cascade=\"");
+                        buffer.append(cascadeMode);
+                     }
+                     buffer.append("\"/>\n");
+                  }
+               }
+               else {
+                  // Map many-to-one relationship
+                  buffer.append("      <many-to-one name=\"");
+                  buffer.append(relationship.getName());
+                  buffer.append("\" column=\"");
+                  buffer.append(newColumnName(relationship.getName()));
+                  buffer.append("\" class=\"");
+                  buffer.append(target_prototype.getInstanceClass().getName());
+                  if (cascadeMode != null) {
+                     buffer.append("\" cascade=\"");
+                     buffer.append(cascadeMode);
+                  }
+                  buffer.append("\"/>\n");
+               }
+            }
+            else if (back_relationship != null) {
+               // Map one-to-many or many-to-many relationship
+               if (back_relationship.getCollectionTypeID() != OpType.SET) {
+                  // Map one-to-many relationship
+                  buffer.append("      <set name=\"");
+                  buffer.append(relationship.getName());
+                  if (relationship.getInverse()) {
+                     buffer.append("\" inverse=\"true");
+                  }
+                  buffer.append("\" lazy=\"true");
+                  if (cascadeMode != null) {
+                     buffer.append("\" cascade=\"");
+                     buffer.append(cascadeMode);
+                  }
+                  buffer.append("\">\n");
+//                  buffer.append("<cache usage=\"read-write\"/>\n");
+                  buffer.append("         <key column=\"");
+                  buffer.append(newColumnName(back_relationship.getName()));
+                  buffer.append("\"/>\n");
+                  buffer.append("         <one-to-many class=\"");
+                  buffer.append(target_prototype.getInstanceClass().getName());
+                  buffer.append("\"/>\n");
+                  buffer.append("      </set>\n");
+               }
+               else {
+                  // Map many-to-many relationship
+                  buffer.append("      <set name=\"");
+                  buffer.append(relationship.getName());
+                  String join_table_name = null;
+                  String key_column_name = null;
+                  String column_name = null;
+                  if (relationship.getInverse()) {
+                     buffer.append("\" inverse=\"true");
+                     join_table_name = newJoinTableName(target_prototype.getName(), back_relationship.getName());
+                  }
+                  else {
+                     join_table_name = newJoinTableName(prototype.getName(), relationship.getName());
+                  }
+                  key_column_name = newJoinColumnName(prototype.getName(), relationship.getName());
+                  column_name = newJoinColumnName(target_prototype.getName(), back_relationship.getName());
+                  buffer.append("\" table=\"");
+                  buffer.append(join_table_name);
+                  buffer.append("\" lazy=\"true");
+                  if (cascadeMode != null) {
+                     buffer.append("\" cascade=\"");
+                     buffer.append(cascadeMode);
+                  }
+                  buffer.append("\">\n");
+//                  buffer.append("<cache usage=\"read-write\"/>\n");
+                  buffer.append("         <key column=\"");
+                  buffer.append(key_column_name);
+                  buffer.append("\"/>\n");
+                  buffer.append("         <many-to-many class=\"");
+                  buffer.append(target_prototype.getInstanceClass().getName());
+                  buffer.append("\" column=\"");
+                  buffer.append(column_name);
+                  buffer.append("\"/>\n");
+                  buffer.append("      </set>\n");
+               }
+            }
+            else {
+               logger.warn("Warning: To-many relationships not supported for null back-relationship: " + prototype.getName() + "." + relationship.getName());
+            }
+         }
+      }
+
+      // Recursively map sub-types
+      Iterator subTypes = prototype.subTypes();
+      OpPrototype subType = null;
+      while (subTypes.hasNext()) {
+         subType = (OpPrototype) subTypes.next();
+         appendSubTypeMapping(buffer, subType);
+      }
+
+      buffer.append("   </joined-subclass>\n");
    }
 
    /**
-    * Creates and return an instance of <code>OpMappingsGenerator</code> to be used for XML mappings generation
+    * Returns the name of the hibernate type associated with the given id of an <code>OpType</code>.
     *
-    * @return returns a new instance.
+    * @param xTypeId a <code>int</code> representing the id of an OpType.
+    * @return a <code>String</code> representing the name of the equivalent hibernate type, or the name of a custom type.
     */
-   protected OpMappingsGenerator getMappingsGenerator() {
-      return new OpMappingsGenerator(databaseType);
+   static String getHibernateTypeName(int xTypeId) {
+      String typeName = null;
+      switch (xTypeId) {
+         case OpType.BOOLEAN: {
+            typeName = "boolean";
+            break;
+         }
+         case OpType.INTEGER: {
+            typeName = "integer";
+            break;
+         }
+         case OpType.LONG: {
+            typeName = "long";
+            break;
+         }
+         case OpType.STRING: {
+            typeName = "string";
+            break;
+         }
+         case OpType.TEXT: {
+            typeName = "string";
+            break;
+         }
+         case OpType.DATE: {
+            typeName = "java.sql.Date";
+            break;
+         }
+         case OpType.CONTENT: {
+            typeName = "onepoint.persistence.hibernate.OpBlobUserType";
+            break;
+         }
+         case OpType.BYTE: {
+            typeName = "byte";
+            break;
+         }
+         case OpType.DOUBLE: {
+            typeName = "double";
+            break;
+         }
+         case OpType.TIMESTAMP: {
+            typeName = "timestamp";
+            break;
+         }
+      }
+      return typeName;
    }
-
 
    /**
     * Updates the schema version number in the db, to the value of the SCHEMA_VERSION constant.
@@ -466,10 +839,26 @@ public class OpHibernateSource extends OpSource {
          logger.error("Cannot update db schema number", e);
       }
       finally {
-         //the jdbc connection is closed by Hibernate
-         OpConnectionManager.closeJDBCObjects(null, statement, null);
+         if (statement != null) {
+            try {
+               statement.close();
+            }
+            catch (SQLException e) {
+               logger.error("Cannot close statement:" + e.getMessage(), e);
+            }
+         }
          session.close();
       }
+   }
+
+   /**
+    * Checks whether the db schema needs upgrading or not.
+    *
+    * @return <code>true</code> if the db schema needs upgrading.
+    */
+   public boolean needSchemaUpgrading() {
+      int existingVersionNumber = this.getExistingSchemaVersionNumber();
+      return existingVersionNumber < SCHEMA_VERSION;
    }
 
    /**
@@ -484,8 +873,15 @@ public class OpHibernateSource extends OpSource {
       Statement statement = null;
       ResultSet rs = null;
       try {
-         createSchemaTable(SCHEMA_VERSION);
          statement = jdbcConnection.createStatement();
+
+         if (!existsTable(SCHEMA_TABLE)) {
+            statement.execute(getCreateSchemaTableStatement());
+            statement.executeUpdate(INSERT_ZERO_INTO_SCHEMA_TABLE_STATEMENT);
+            jdbcConnection.commit();
+            logger.info("Created table op_schema for versioning");
+         }
+
          rs = statement.executeQuery(GET_SCHEMA_VERSION_STATEMENT);
          rs.next();
          return rs.getInt(VERSION_COLUMN);
@@ -494,50 +890,28 @@ public class OpHibernateSource extends OpSource {
          logger.error("Cannot get version number ", e);
       }
       finally {
-         //the connection object is closed by Hibernate
-         OpConnectionManager.closeJDBCObjects(null, statement, rs);
+         try {
+            if (rs != null) {
+               rs.close();
+            }
+            if (statement != null) {
+               statement.close();
+            }
+         }
+         catch (SQLException e) {
+            logger.error("Cannot close result set and statement", e);
+         }
          session.close();
       }
       return -1;
    }
 
    /**
-    * Creates the schema table and inserts the given version number if the schema table doesn't exist..
-    *
-    * @param versionNumber a <code>int</code> representing the schema version.
-    */
-   public void createSchemaTable(int versionNumber)
-        throws SQLException {
-      if (!existsTable(SCHEMA_TABLE)) {
-         Session session = sessionFactory.openSession();
-         Connection jdbcConnection = session.connection();
-         Statement statement = null;
-         try {
-            statement = jdbcConnection.createStatement();
-            statement.execute(getCreateSchemaTableStatement());
-            statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
-            jdbcConnection.commit();
-            logger.info("Created table op_schema for versioning");
-         }
-         catch (SQLException e) {
-            logger.error("Cannot create schema version or insert version number because:" + e.getMessage(), e);
-            throw e;
-         }
-         finally {
-            //the connection object is closed by Hibernate
-            OpConnectionManager.closeJDBCObjects(null, statement, null);
-            session.close();
-         }
-      }
-   }
-
-   /**
     * Returns a string representing the SQL statement for creating the op_schema table.
-    *
-    * @return a <code>String</code> representing an SQL "create" statement.
+   * @return a <code>String</code> representing an SQL "create" statement.
     */
    private String getCreateSchemaTableStatement() {
-      if (databaseType == MYSQL_INNODB) {
+      if (databaseType == MYSQL || databaseType == MYSQL_INNODB) {
          return CREATE_SCHEMA_TABLE_STATEMENT + "  ENGINE=InnoDB";
       }
       return CREATE_SCHEMA_TABLE_STATEMENT;

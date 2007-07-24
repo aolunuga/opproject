@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -9,38 +9,21 @@ import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Super class for all connection implementations.
- */
-public abstract class OpConnection {
+public abstract class OpConnection { // Extra interfaces XReadConnection/XWriteConnection?
 
-   public static final int FLUSH_MODE_MANUAL = 0;
-   public static final int FLUSH_MODE_COMMIT = 1;
-   public static final int FLUSH_MODE_AUTO = 2;
-   public static final int FLUSH_MODE_ALWAYS = 3;
+   private OpSource source; // The source the connection belongs to
 
-   /**
-    * The source the connection belongs to
-    */
-   private OpSource source;
-
-   /**
-    * Creates a new connection that will use provided data source.
-    *
-    * @param source data source.
-    */
    public OpConnection(OpSource source) {
       this.source = source;
    }
 
-   /**
-    * Retrieve data source used by this connection.
-    *
-    * @return data source
-    */
    public final OpSource getSource() {
       return source;
    }
+
+   // public abstract void createPrototype(String name);
+
+   // public abstract void dropPrototype(String name);
 
    public abstract void createSchema();
 
@@ -62,8 +45,6 @@ public abstract class OpConnection {
 
    public abstract int execute(OpQuery query);
 
-   public abstract void flush();
-
    public abstract OpTransaction newTransaction();
 
    public abstract Blob newBlob(byte[] bytes);
@@ -77,8 +58,4 @@ public abstract class OpConnection {
    public abstract boolean isValid();
 
    public abstract boolean isOpen();
-
-   public abstract void setFlushMode(int flushMode);
-
-   public abstract int getFlushMode();
 }

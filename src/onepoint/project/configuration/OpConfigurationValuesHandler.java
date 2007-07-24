@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.configuration;
@@ -10,6 +10,7 @@ import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class OpConfigurationValuesHandler implements XNodeHandler {
@@ -36,6 +37,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
     * Database types
     */
    public final static String DERBY_DB_TYPE = "Derby";
+   public final static String MYSQL_DB_TYPE = "MySQL";
    public final static String MYSQL_INNO_DB_TYPE = "MySQLInnoDB";
    public final static String POSTGRESQL_DB_TYPE = "PostgreSQL";
    public final static String ORACLE_DB_TYPE = "Oracle";
@@ -46,7 +48,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    /**
     * A map from db type name to db type (int constant).
     */
-   public final static Map<String, Integer> DATABASE_TYPES_MAP;
+   public final static Map DATABASE_TYPES_MAP;
 
    /**
     * Db password encrypted attribute.
@@ -54,21 +56,23 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    final static String ENCRYPTED_ATTRIBUTE = "encrypted";
 
    static {
-      DATABASE_TYPES_MAP = new HashMap<String, Integer>();
-      DATABASE_TYPES_MAP.put(DERBY_DB_TYPE, OpHibernateSource.DERBY);
-      DATABASE_TYPES_MAP.put(MYSQL_INNO_DB_TYPE, OpHibernateSource.MYSQL_INNODB);
-      DATABASE_TYPES_MAP.put(POSTGRESQL_DB_TYPE, OpHibernateSource.POSTGRESQL);
-      DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, OpHibernateSource.ORACLE);
-      DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, OpHibernateSource.HSQLDB);
-      DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, OpHibernateSource.IBM_DB2);
-      DATABASE_TYPES_MAP.put(MSSQL_DB_TYPE, OpHibernateSource.MSSQL);
+      DATABASE_TYPES_MAP = new HashMap();
+      DATABASE_TYPES_MAP.put(DERBY_DB_TYPE, new Integer(OpHibernateSource.DERBY));
+      DATABASE_TYPES_MAP.put(MYSQL_DB_TYPE, new Integer(OpHibernateSource.MYSQL));
+      DATABASE_TYPES_MAP.put(MYSQL_INNO_DB_TYPE, new Integer(OpHibernateSource.MYSQL_INNODB));
+      DATABASE_TYPES_MAP.put(POSTGRESQL_DB_TYPE, new Integer(OpHibernateSource.POSTGRESQL));
+      DATABASE_TYPES_MAP.put(ORACLE_DB_TYPE, new Integer(OpHibernateSource.ORACLE));
+      DATABASE_TYPES_MAP.put(HSQL_DB_TYPE, new Integer(OpHibernateSource.HSQLDB));
+      DATABASE_TYPES_MAP.put(IBM_DB2_DB_TYPE, new Integer(OpHibernateSource.IBM_DB2));
+      DATABASE_TYPES_MAP.put(MSSQL_DB_TYPE, new Integer(OpHibernateSource.MSSQL));
    }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       //see whether we have an encrypted password
       if (name.equals(DATABASE_PASSWORD)) {
-         for (Object o : attributes.keySet()) {
-            String attributeName = (String) o;
+         Iterator it = attributes.keySet().iterator();
+         while (it.hasNext()) {
+            String attributeName = (String) it.next();
             String attributeValue = (String) attributes.get(attributeName);
             if (attributeName.equals(ENCRYPTED_ATTRIBUTE)) {
                context.setVariable(attributeName, attributeValue);
@@ -86,53 +90,39 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    }
 
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
-      if (DATABASE_TYPE.equals(name)) {
-         String value = node.toString().trim();
-         Integer dbType = DATABASE_TYPES_MAP.get(value);
+      if (name == DATABASE_TYPE) {
+         String value = ((StringBuffer) node).toString().trim();
+         Integer dbType = (Integer) DATABASE_TYPES_MAP.get(value);
          if (dbType != null) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(dbType);
+            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(dbType.intValue());
          }
          else {
             System.err.println("WARNING: Unknown database type specified in configuration: " + value);
          }
       }
-      else if (DATABASE_DRIVER.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(node.toString());
+      else if (name == DATABASE_DRIVER) {
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(((StringBuffer) node).toString());
       }
-      else if (DATABASE_URL.equals(name)) {
+      else if (name == DATABASE_URL) {
          OpConfiguration.DatabaseConfiguration configuration = ((OpConfiguration) parent).getDatabaseConfiguration();
-         String databaseUrl = node.toString();
+         String databaseUrl = ((StringBuffer) node).toString();
          if (configuration.getDatabaseType() == OpHibernateSource.HSQLDB) {
-            databaseUrl = databaseUrl.replaceAll("[\\\\]", "/");
+            databaseUrl = databaseUrl.replaceAll("[\\\\]","/");
             OpEnvironmentManager.setDataFolderPathFromDbPath(databaseUrl.replaceFirst(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, ""));
-         }
-         else if (configuration.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
-            // set the connection params to support large blobs
-            databaseUrl = setJDBCBoolParam(databaseUrl, "useServerPrepStmts", true);
-            databaseUrl = setJDBCBoolParam(databaseUrl, "emulateLocators", true);
-         }
-         else if (configuration.getDatabaseType() == OpHibernateSource.MSSQL) {
-            // set the timezone
-            StringBuffer sb = new StringBuffer(databaseUrl);
-            if (!databaseUrl.endsWith(";")) {
-               sb.append(';');
-            }
-            sb.append("useTimeZone=GMT");
-            databaseUrl = sb.toString();
          }
          configuration.setDatabaseUrl(databaseUrl);
       }
-      else if (DATABASE_LOGIN.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(node.toString());
+      else if (name == DATABASE_LOGIN) {
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(((StringBuffer) node).toString());
       }
-      else if (DATABASE_PATH.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabasePath(node.toString());
+      else if (name == DATABASE_PATH) {
+         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabasePath(((StringBuffer) node).toString());
       }
-      else if (DATABASE_PASSWORD.equals(name)) {
+      else if (name == DATABASE_PASSWORD) {
          String encryptedValue = (String) context.getVariable(ENCRYPTED_ATTRIBUTE);
-         String databasePassword = node.toString();
+         String databasePassword = ((StringBuffer) node).toString();
          OpConfiguration.DatabaseConfiguration databaseConfiguration = ((OpConfiguration) parent).getDatabaseConfiguration();
-         if (encryptedValue == null || !Boolean.valueOf(encryptedValue)) {
+         if (encryptedValue == null || !Boolean.valueOf(encryptedValue).booleanValue()) {
             databaseConfiguration.setNeedsPasswordEncryption(true);
             databaseConfiguration.setDatabasePassword(databasePassword);
          }
@@ -141,72 +131,44 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
             databaseConfiguration.setDatabasePassword(onepoint.project.configuration.OpConfiguration.getUnEncryptedDbPassword(databasePassword));
          }
       }
-      else if (CONNECTION_POOL_MINSIZE.equals(name)) {
-         String value = node.toString();
+      else if (name == CONNECTION_POOL_MINSIZE) {
+         String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMinSize(value);
       }
-      else if (CONNECTION_POOL_MAXSIZE.equals(name)) {
-         String value = node.toString();
+      else if (name == CONNECTION_POOL_MAXSIZE) {
+         String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMaxSize(value);
       }
-      else if (CACHE_SIZE.equals(name)) {
-         String value = node.toString();
+      else if (name == CACHE_SIZE) {
+         String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).getCacheConfiguration().setCacheSize(value);
       }
-      else if (BROWSER.equals(name)) {
-         ((OpConfiguration) parent).setBrowserApplication(node.toString());
+      else if (name == BROWSER) {
+         ((OpConfiguration) parent).setBrowserApplication(((StringBuffer) node).toString());
       }
-      else if (SMTP_SERVER.equals(name)) {
-         ((OpConfiguration) parent).setSMTPServer(node.toString());
+      else if (name == SMTP_SERVER) {
+         ((OpConfiguration) parent).setSMTPServer(((StringBuffer) node).toString());
       }
-      else if (LOG_FILE.equals(name)) {
-         ((OpConfiguration) parent).setLogFile(node.toString());
+      else if (name == LOG_FILE) {
+         ((OpConfiguration) parent).setLogFile(((StringBuffer) node).toString());
       }
-      else if (LOG_LEVEL.equals(name)) {
-         ((OpConfiguration) parent).setLogLevel(node.toString());
+      else if (name == LOG_LEVEL) {
+         ((OpConfiguration) parent).setLogLevel(((StringBuffer) node).toString());
       }
-      else if (SECURE_SERVICE.equals(name)) {
-         ((OpConfiguration) parent).setSecureService(node.toString());
+      else if (name == SECURE_SERVICE) {
+         ((OpConfiguration) parent).setSecureService(((StringBuffer) node).toString());
       }
-      else if (JES_DEBUGGING.equals(name)) {
-         boolean jessDebugging = Boolean.valueOf(node.toString());
+      else if (name == JES_DEBUGGING) {
+         boolean jessDebugging = Boolean.valueOf(((StringBuffer) node).toString()).booleanValue();
          ((OpConfiguration) parent).setSourceDebugging(jessDebugging);
       }
-      else if (RESOURCE_CACHE_SIZE.equals(name)) {
-         String value = node.toString();
+      else if (name == RESOURCE_CACHE_SIZE) {
+         String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).getCacheConfiguration().setResourceCacheSize(value);
       }
-      else if (BACKUP_PATH.equals(name)) {
-         String value = node.toString();
+      else if (name == BACKUP_PATH) {
+         String value = ((StringBuffer) node).toString();
          ((OpConfiguration) parent).setBackupPath(value);
       }
-   }
-
-   /**
-    * Set a boolean parameter for a JDBC connection URL
-    *
-    * @param databaseUrl the initial JDBC connection URL
-    * @param param       the name of the parameter to set
-    * @param value       the <code>boolean</code> value of the parameter to be set
-    * @return the new JDBC connection URL string
-    */
-   private static String setJDBCBoolParam(String databaseUrl, String param, boolean value) {
-      boolean hasParams = databaseUrl.indexOf('?') > -1;
-      if (hasParams) {
-         boolean hasThisParam = databaseUrl.contains(param);
-         if (hasThisParam) {
-            boolean isParamSet = databaseUrl.contains(param + '=' + value);
-            if (!isParamSet) {
-               databaseUrl = databaseUrl.replace(param + '=' + !value, param + '=' + value);
-            }
-         }
-         else {
-            databaseUrl = databaseUrl.concat('&' + param + '=' + value);
-         }
-      }
-      else {
-         databaseUrl = databaseUrl.concat('?' + param + '=' + value);
-      }
-      return databaseUrl;
    }
 }

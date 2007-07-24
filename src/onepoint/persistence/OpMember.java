@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -31,15 +31,15 @@ public abstract class OpMember {
 		return id;
 	}
 
-	public final void setTypeName(String type_name) {
+	final void setTypeName(String type_name) {
 		this.typeName = type_name;
 	}
 
-	public final String getTypeName() {
+	final String getTypeName() {
 		return typeName;
 	}
 
-	public final void setTypeID(int type_id) {
+	final void setTypeID(int type_id) {
 		// Called by OpPrototype
 		typeId = type_id;
 	}

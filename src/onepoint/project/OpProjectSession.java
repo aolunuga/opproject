@@ -1,7 +1,3 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
 package onepoint.project;
 
 import onepoint.error.XErrorMap;
@@ -11,36 +7,15 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.documents.OpContentManager;
-import onepoint.project.modules.documents.OpContent;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
-import onepoint.service.XMessage;
-import onepoint.service.XSizeInputStream;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 
 import java.util.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 public class OpProjectSession extends XExpressSession {
 
-   /**
-    * Thread local OpProjectSession. Used by all Xml-Rpc service implementations to get the
-    * OpProjectSession.
-    */
-   static ThreadLocal<OpProjectSession> opProjectSession = new ThreadLocal<OpProjectSession>();
-   /**
-    * This class logger.
-    */
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectSession.class);
-
    private static final long NO_ID = -1;
-
    protected long userId = NO_ID;
    protected long administratorId = NO_ID; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
@@ -50,7 +25,8 @@ public class OpProjectSession extends XExpressSession {
    public OpProjectSession() {
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
-         resetLocaleToSystemDefault();
+         XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+         super.setLocale(default_locale);
 
          lookUpAdministratorID(broker);
          lookUpEveryoneID(broker);
@@ -59,25 +35,11 @@ public class OpProjectSession extends XExpressSession {
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
       }
-      super.setLocalizerParameters(OpSettings.getI18NParameters());
-   }
-
-   /**
-    * Resets the session locale to the system default locale.
-    */
-   public void resetLocaleToSystemDefault() {
-      XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
-      super.setLocale(default_locale);
    }
 
    public void authenticateUser(OpBroker broker, OpUser user) {
       // Set user ID and
-      if (user == null) {
-         userId = NO_ID;
-      }
-      else {
-         userId = user.getID();
-      }
+      userId = user.getID();
 
       loadSubjectIds(broker);
       lookUpAdministratorID(broker);
@@ -104,7 +66,7 @@ public class OpProjectSession extends XExpressSession {
       query.setString(0, OpUser.ADMINISTRATOR_NAME);
       Iterator result = broker.iterate(query);
       if (result.hasNext()) {
-         administratorId = (Long) result.next();
+         administratorId = ((Long) result.next()).longValue();
       }
       else {
          administratorId = NO_ID;
@@ -116,9 +78,6 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public OpUser administrator(OpBroker broker) {
-      if (administratorId == NO_ID) {
-         lookUpAdministratorID(broker);
-      }
       return (OpUser) broker.getObject(OpUser.class, administratorId);
    }
 
@@ -127,7 +86,7 @@ public class OpProjectSession extends XExpressSession {
       query.setString(0, OpGroup.EVERYONE_NAME);
       Iterator result = broker.iterate(query);
       if (result.hasNext()) {
-         everyoneId = (Long) result.next();
+         everyoneId = ((Long) result.next()).longValue();
       }
       else {
          everyoneId = NO_ID;
@@ -146,7 +105,7 @@ public class OpProjectSession extends XExpressSession {
       // TODO: Get all subject-Ids of the current user
       // Clear subject ID list and insert user as first entry
       subjectIds.clear();
-      subjectIds.add(userId);
+      subjectIds.add(new Long(userId));
       // Use HQL, because we only need the IDs
       OpQuery query = broker
            .newQuery("select assignment.Group.ID from OpUserAssignment as assignment where assignment.User.ID = ?");
@@ -202,16 +161,16 @@ public class OpProjectSession extends XExpressSession {
          return 0;
       }
       // Check for locks and respective lock owners
-      query = broker.newQuery("select count(lock.ID) from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
+      query = broker
+           .newQuery("select count(lock.ID) from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
       query.setLong(0, objectId);
       query.setLong(1, getUserID());
       result = broker.iterate(query);
       // If someone beside the current user has a lock: Downgrade the user access level accordingly
-      int locks = ((Number) result.next()).intValue();
-      if ((locks > 0) && (userAccessLevel > OpPermission.CONTRIBUTOR)) {
-         userAccessLevel = OpPermission.CONTRIBUTOR;
+      if ((((Integer) result.next()).intValue() > 0) && (userAccessLevel.byteValue() > OpPermission.CONTRIBUTOR)) {
+         userAccessLevel = new Byte(OpPermission.CONTRIBUTOR);
       }
-      return userAccessLevel;
+      return userAccessLevel.byteValue();
    }
 
    public boolean checkAccessLevel(OpBroker broker, long objectId, byte accessLevel) {
@@ -233,8 +192,9 @@ public class OpProjectSession extends XExpressSession {
       // Administrator user has always administrative access level
       Set accessibleIds = new HashSet();
       if (userId == administratorId) {
-         for (Object objectId : objectIds) {
-            accessibleIds.add(objectId);
+         Iterator i = objectIds.iterator();
+         while (i.hasNext()) {
+            accessibleIds.add(i.next());
          }
       }
       else {
@@ -271,7 +231,7 @@ public class OpProjectSession extends XExpressSession {
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
-         if (((Number) record[1]).intValue() > 0) {
+         if (((Integer) record[1]).intValue() > 0) {
             accessibleIds.remove(record[0]);
          }
       }
@@ -298,11 +258,11 @@ public class OpProjectSession extends XExpressSession {
          OpQuery query = broker.newQuery(queryString.toString());
          query.setCollection("objectIds", objectIds);
          Iterator result = broker.iterate(query);
-         OpObject object;
+         OpObject object = null;
          while (result.hasNext()) {
             object = (OpObject) result.next();
             object.setEffectiveAccessLevel(OpPermission.ADMINISTRATOR);
-            accessibleObjectMap.put(object.getID(), object);
+            accessibleObjectMap.put(new Long(object.getID()), object);
             accessibleObjects.add(object);
          }
       }
@@ -333,8 +293,8 @@ public class OpProjectSession extends XExpressSession {
          while (result.hasNext()) {
             record = (Object[]) result.next();
             object = (OpObject) record[0];
-            object.setEffectiveAccessLevel((Byte) record[1]);
-            accessibleObjectMap.put(object.getID(), object);
+            object.setEffectiveAccessLevel(((Byte) record[1]).byteValue());
+            accessibleObjectMap.put(new Long(object.getID()), object);
             accessibleObjects.add(object);
          }
       }
@@ -347,12 +307,12 @@ public class OpProjectSession extends XExpressSession {
       query.setCollection("accessibleIds", accessibleObjectMap.keySet());
       query.setLong("userId", userId);
       Iterator result = broker.iterate(query);
-      Object[] record;
-      OpObject object;
+      Object[] record = null;
+      OpObject object = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
          object = (OpObject) accessibleObjectMap.get(record[0]);
-         if ((((Number) record[1]).intValue() > 0) && (object.getEffectiveAccessLevel() > OpPermission.CONTRIBUTOR)) {
+         if ((((Integer) record[1]).intValue() > 0) && (object.getEffectiveAccessLevel() > OpPermission.CONTRIBUTOR)) {
             object.setEffectiveAccessLevel(OpPermission.CONTRIBUTOR);
          }
       }
@@ -372,7 +332,7 @@ public class OpProjectSession extends XExpressSession {
     */
    public void clearSession() {
       super.clearSession();
-
+      
       userId = NO_ID;
       administratorId = NO_ID;
       everyoneId = NO_ID;
@@ -402,7 +362,7 @@ public class OpProjectSession extends XExpressSession {
       queryStringBuffer.append(" as entity");
       OpQuery query = broker.newQuery(queryStringBuffer.toString());
       Iterator it = broker.list(query).iterator();
-      Number result = 0;
+      Number result = new Integer(0);
       while (it.hasNext()) {
          result = (Number) it.next();
       }
@@ -421,121 +381,5 @@ public class OpProjectSession extends XExpressSession {
          }
          it.remove();
       }
-   }
-
-   public boolean isUser(OpUser user) {
-      if (user == null) {
-         return (userId == NO_ID);
-      }
-      return (isUser(user.getID()));
-   }
-
-   public boolean isUser(long user_id) {
-      return (userId == user_id);
-   }
-
-   public boolean isLoggedOn() {
-      return (getUserID() != OpProjectSession.NO_ID);
-   }
-
-   /**
-    * Gets the session variable which holds the client-timezone.
-    *
-    * @return a <code>TimeZone</code> object, representing the time zone of this client's session.
-    */
-   public TimeZone getClientTimeZone() {
-      return (TimeZone) this.getVariable(OpProjectConstants.CLIENT_TIMEZONE);
-   }
-
-   /**
-    * Gets the OpProjectSession held as thread local.
-    *
-    * @return the thread depending OpProjectSession.
-    */
-   public static OpProjectSession getSession() {
-      return opProjectSession.get();
-   }
-
-   /**
-    * Sets the given session as thread local.
-    *
-    * @param session the session to set
-    */
-   public static void setSession(OpProjectSession session) {
-      opProjectSession.set(session);
-   }
-
-   /**
-    * Removes the thread local session
-    */
-   public static void removeSession() {
-      opProjectSession.set(null);
-      //remove() in >= java 1.5;
-   }
-
-   /**
-    * @see onepoint.service.server.XSession#invalidate()
-    */
-   @Override
-   public void invalidate() {
-      super.invalidate();
-      this.resetLocaleToSystemDefault();
-   }
-
-   /**
-    * Process the client request to persist the uploaded files. The request will be updated with the persisted files id
-    *
-    * @param message a <code>XMessage</code> instance
-    */
-   @Override
-   public void processFiles(XMessage message) {
-      if (message != null) {
-         Map<String, File> files = message.extractObjectsFromArguments(File.class);
-         Map<String, String> contents = new HashMap<String, String>();
-         Map<File, String> processed = new HashMap<File, String>();
-         OpBroker broker = newBroker();
-         for (Map.Entry<String, File> entry : files.entrySet()) {
-            String id = entry.getKey();
-            File file = entry.getValue();
-            if (processed.keySet().contains(file)) {
-               // this file was allready processed, reuse the content
-               contents.put(id, processed.get(file));
-            }
-            else {
-               // process the file for the first time
-               try {
-                  XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
-                  String mimeType = OpContentManager.getFileMimeType(file.getName());
-                  OpContent content = OpContentManager.newContent(stream, mimeType, 0);
-
-                  OpTransaction t = broker.newTransaction();
-                  broker.makePersistent(content);
-                  t.commit();
-
-                  String contentId = content.locator();
-                  contents.put(id, contentId);
-                  processed.put(file, contentId);
-               }
-               catch (FileNotFoundException e) {
-                  logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
-                  contents.put(id, null);
-               }
-            }
-         }
-         broker.close();
-         message.insertObjectsIntoArguments(contents);
-      }
-   }
-
-   /**
-    * Delete the contents from the database which are not refered by a container object.
-    */
-   public void deleteUnreferedContents() {
-      OpBroker broker = newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpQuery query = broker.newQuery("delete OpContent content where content.RefCount = 0");
-      broker.execute(query);
-      t.commit();
-      broker.close();
    }
 }

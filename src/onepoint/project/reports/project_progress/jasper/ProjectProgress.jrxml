@@ -36,7 +36,7 @@
 FROM op_activity as a
 left outer join op_projectplan as p on a.op_projectplan = p.op_id
 left outer join op_projectnode as n on p.op_projectnode = n.op_id
-where n.op_id = $P{ProjectId} and n.op_archived=false and a.op_deleted = false and a.op_type != 3 and a.op_type != 4
+where n.op_id = $P{ProjectId} and a.op_deleted = false and a.op_type != 3 and a.op_type != 4 
 order by op_sequence]]></queryString>
 
 	<field name="op_name" class="java.lang.String"/>
@@ -489,7 +489,7 @@ $V{amber}.booleanValue()))]]></variableExpression>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$V{activity_name}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="#,##0.0 d" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="#,##0.0t" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="358"

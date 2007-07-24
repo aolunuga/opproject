@@ -1,4 +1,4 @@
-<prototype name="OpActivityVersion" instance-class="onepoint.project.modules.project.OpActivityVersion" super-type="OpObject">
+<prototype name="OpActivityVersion" instance-class="onepoint.project.modules.project.OpActivityVersion">
    <field name="Name" type="String"/>
    <field name="Description" type="Text"/>
    <field name="Type" type="Byte"/>
@@ -16,8 +16,6 @@
    <field name="BaseMaterialCosts" type="Double"/>
    <field name="BaseExternalCosts" type="Double"/>
    <field name="BaseMiscellaneousCosts" type="Double"/>
-   <field name="BaseProceeds" type="Double"/>
-   <field name="Payment" type="Double"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>
    <relationship name="Category" type="OpActivityCategory" back-relationship="ActivityVersions"/>

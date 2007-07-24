@@ -1,39 +1,32 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
-
 package onepoint.project.modules.project_status.test;
 
 import onepoint.express.XComponent;
-import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectStatus;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
+import onepoint.project.modules.project.test.ProjectTestDataFactory;
 import onepoint.project.modules.project_status.OpProjectStatusError;
 import onepoint.project.modules.project_status.OpProjectStatusService;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
+import onepoint.project.modules.user.test.UserTestDataFactory;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class test project status service methods and form providers.
  *
  * @author lucian.furtos
  */
-public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
+public class OpProjectStatusServiceTest extends OpBaseTestCase {
 
    private static final String NAME = "prj_status";
    private static final String NEW_NAME = "new_prj_status";
@@ -44,7 +37,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
    private static final String DEFAULT_PASSWORD = "pass";
 
    private OpProjectStatusService service;
-   private OpProjectStatusTestDataFactory dataFactory;
+   private ProjectStatusTestDataFactory dataFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -54,8 +47,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-      service = OpTestDataFactory.getProjectStatusService();
-      dataFactory = new OpProjectStatusTestDataFactory(session);
+      service = getProjectStatusService();
+      dataFactory = new ProjectStatusTestDataFactory(session);
       clean();
    }
 
@@ -341,14 +334,9 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       OpProjectStatus status2 = dataFactory.getProjectStatusByName(NAME + 2);
 
       args.clear();
-      args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
       args.put(OpProjectNode.NAME, "Project");
       args.put(OpProjectNode.START, new Date(System.currentTimeMillis()));
       args.put(OpProjectNode.BUDGET, new Double(0d));
-      args.put(OpProjectNode.STATUS, status2.locator());
-      args.put(OpProjectNode.PROBABILITY, OpProjectNode.DEFAULT_PROBABILITY);
-      args.put(OpProjectNode.PRIORITY, OpProjectNode.DEFAULT_PRIORITY);
-      args.put(OpProjectNode.ARCHIVED, OpProjectNode.DEFAULT_ARCHIVED);
       args.put(OpProjectNode.STATUS, status2.locator());
       args.put("PortfolioID", "OpProjectNode.0.xid");
       args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
@@ -357,7 +345,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, new XComponent(XComponent.DATA_SET));
       request.setArgument(OpProjectAdministrationService.TO_DOS_SET, new XComponent(XComponent.DATA_SET));
-      response = OpTestDataFactory.getProjectService().insertProject(session, request);
+      response = getProjectService().insertProject(session, request);
       assertNoError(response);
 
       ArrayList ids = new ArrayList(1);
@@ -479,10 +467,10 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
     */
    public void testRights()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = UserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
-      XMessage response = OpTestDataFactory.getUserService().insertUser(session, request);
+      XMessage response = getUserService().insertUser(session, request);
       assertNoError(response);
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
 
@@ -505,34 +493,27 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       logOut();
       logIn();
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
+      UserTestDataFactory usrData = new UserTestDataFactory(session);
       OpUser user = usrData.getUserByName(DEFAULT_USER);
       if (user != null) {
          List ids = new ArrayList();
          ids.add(user.locator());
          XMessage request = new XMessage();
          request.setArgument(OpUserService.SUBJECT_IDS, ids);
-         OpTestDataFactory.getUserService().deleteSubjects(session, request);
+         getUserService().deleteSubjects(session, request);
       }
 
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);
-      List projectList = projectDataFactory.getAllProjects(broker);
-      for (Object aProjectList : projectList) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
+      ProjectTestDataFactory projectDataFactory = new ProjectTestDataFactory(session);
+      List projectList = projectDataFactory.getAllProjects();
+      for (Iterator iterator = projectList.iterator(); iterator.hasNext();) {
+         OpProjectNode project = (OpProjectNode) iterator.next();
+         projectDataFactory.deleteObject(project);
       }
 
       List statusList = dataFactory.getAllProjectsStatus();
-      for (Object aStatusList : statusList) {
-         OpProjectStatus status = (OpProjectStatus) aStatusList;
-         broker.deleteObject(status);
+      for (Iterator iterator = statusList.iterator(); iterator.hasNext();) {
+         OpProjectStatus status = (OpProjectStatus) iterator.next();
+         dataFactory.deleteObject(status);
       }
-
-      transaction.commit();
-      broker.close();
-
    }
 }

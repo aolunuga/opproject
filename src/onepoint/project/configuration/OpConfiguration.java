@@ -1,13 +1,10 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
-/*
  * (c) 2005 OnePoint Software GmbH (Graz/Austria)
  * All rights reserved
  */
 package onepoint.project.configuration;
 
+import onepoint.project.util.OpProjectConstants;
 import onepoint.util.XBase64;
 
 import java.util.HashMap;
@@ -22,7 +19,7 @@ public class OpConfiguration {
    /**
     * Map of database drivers. Contains [database_type,datatabase driver] entries.
     */
-   public final static Map<String, String> DATABASE_DRIVERS = new HashMap<String, String>();
+   public final static Map DATABASE_DRIVERS = new HashMap();
 
    static {
       initDatabaseDriversMap();
@@ -49,10 +46,11 @@ public class OpConfiguration {
    private String logFile;
    private String logLevel;
    private String secureService;
+
    /**
     * Name of the default backup directory
     */
-   private String backupPath = "backup";
+   private String backupPath = OpProjectConstants.DEFAULT_BACKUP_FOLDER_NAME;
 
    /**
     * Flag that indicates whether source debugging should be used or not for script files.
@@ -424,12 +422,12 @@ public class OpConfiguration {
     * Performs static initialization of the database drivers map
     */
    private static void initDatabaseDriversMap() {
+      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_DB_TYPE, "com.mysql.jdbc.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE, "com.mysql.jdbc.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.ORACLE_DB_TYPE, "oracle.jdbc.driver.OracleDriver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.IBM_DB2_DB_TYPE, "com.ibm.db2.jcc.DB2Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.POSTGRESQL_DB_TYPE, "org.postgresql.Driver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.HSQL_DB_TYPE, "org.hsqldb.jdbcDriver");
       DATABASE_DRIVERS.put(OpConfigurationValuesHandler.MSSQL_DB_TYPE, "net.sourceforge.jtds.jdbc.Driver");
-      DATABASE_DRIVERS.put(OpConfigurationValuesHandler.DERBY_DB_TYPE, "org.apache.derby.jdbc.EmbeddedDriver");
    }
 }

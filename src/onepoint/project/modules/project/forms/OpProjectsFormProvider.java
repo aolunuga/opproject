@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project.forms;
@@ -21,10 +21,11 @@ public class OpProjectsFormProvider implements XFormProvider {
    /**
     * Form component ids.
     */
-   protected final static String PROJECT_DATA_SET = "ProjectDataSet";
+   private final static String PROJECT_DATA_SET = "ProjectDataSet";
 
    private static final String NEW_PROJECT_BUTTON = "NewProjectButton";
    private static final String NEW_PORTFOLIO_BUTTON = "NewPortfolioButton";
+   private static final String EDIT_BUTTON = "EditButton";
    private static final String INFO_BUTTON = "InfoButton";
    private static final String MOVE_BUTTON = "MoveButton";
    private static final String DELETE_BUTTON = "DeleteButton";
@@ -65,5 +66,6 @@ public class OpProjectsFormProvider implements XFormProvider {
       form.findComponent(INFO_BUTTON).setEnabled(false);
       form.findComponent(MOVE_BUTTON).setEnabled(false);
       form.findComponent(DELETE_BUTTON).setEnabled(false);
+      form.findComponent(EDIT_BUTTON).setEnabled(false);
    }
 }

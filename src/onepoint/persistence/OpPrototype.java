@@ -1,29 +1,36 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 
 public class OpPrototype extends OpType {
 
    private String superTypeName;
    private OpPrototype superType; // Resolved on-register
-   private Set<OpPrototype> subTypes;
-   private Map<String, OpMember> declaredMembers;
-   private Map<String, OpMember> members; // Resolved on-register
+   private ArrayList subTypes;
+   private ArrayList declaredMembers;
+   private Hashtable declaredMemberNames;
+   private ArrayList members; // Resolved on-register
+   private Hashtable memberNames; // Resolved on-register
    private int size; // Calculated on-register
 
    /**
     * List of prototypes this prototypes depends on for backup.
     */
-   private List<OpPrototype> backupDependencies = null;
+   private List backupDependencies = null;
 
    public OpPrototype() {
-      subTypes = new HashSet<OpPrototype>();
-      declaredMembers = new LinkedHashMap<String, OpMember>();
-      members = new LinkedHashMap<String, OpMember>();
+      subTypes = new ArrayList();
+      declaredMembers = new ArrayList();
+      declaredMemberNames = new Hashtable();
+      members = new ArrayList();
+      memberNames = new Hashtable();
    }
 
    public final void setSuperTypeName(String super_type_name) {
@@ -44,7 +51,8 @@ public class OpPrototype extends OpType {
 
    public void addDeclaredMember(OpMember member) {
       // *** Check if name is set and unique
-      declaredMembers.put(member.getName(), member);
+      declaredMemberNames.put(member.getName(), member);
+      declaredMembers.add(member);
    }
 
    public final int getDeclaredSize() {
@@ -52,23 +60,28 @@ public class OpPrototype extends OpType {
       return declaredMembers.size();
    }
 
-   public final Iterator<OpMember> getDeclaredMembers() {
-      return declaredMembers.values().iterator();
+   public final Iterator getDeclaredMembers() {
+      return declaredMembers.iterator();
    }
 
    public final OpMember getDeclaredMember(String name) {
-      return (OpMember) declaredMembers.get(name);
+      return (OpMember) (declaredMemberNames.get(name));
    }
 
-   public final Iterator<OpMember> getMembers() {
-      return members.values().iterator();
+   public final Iterator getMembers() {
+      return members.iterator();
+   }
+
+   public final OpMember getMember(int id) {
+      return (OpMember) (members.get(id));
    }
 
    public final OpMember getMember(String name) {
-      return (OpMember) members.get(name);
+      return (OpMember) (memberNames.get(name));
    }
 
    // On-register callback
+
    public void onRegister() {
       super.onRegister();
       size = declaredMembers.size();
@@ -76,37 +89,36 @@ public class OpPrototype extends OpType {
       if (superTypeName != null) {
          OpType super_type = OpTypeManager.getType(superTypeName);
          if (!(super_type instanceof OpPrototype)) {
-            ; // TODO - ERROR handling
+            ; // ERROR handling
          }
          superType = (OpPrototype) super_type;
          superType.subTypes.add(this);
-
          // Add size of super-type to total size
          size += superType.size;
-
          // First add resolved members of super-type to members (presume order)
          Iterator super_members = superType.getMembers();
          while (super_members.hasNext()) {
             OpMember member = (OpMember) (super_members.next());
-            members.put(member.getName(), member);
+            memberNames.put(member.getName(), member);
+            members.add(member);
          }
       }
-
+      // }
       // Add declared members of this prototype
-      for (OpMember declaredMember : declaredMembers.values()) {
-         members.put(declaredMember.getName(), declaredMember);
+      for (int i = 0; i < declaredMembers.size(); i++) {
+         OpMember member = (OpMember) (declaredMembers.get(i));
+         memberNames.put(member.getName(), member);
+         members.add(member);
       }
    }
 
    /**
     * Returns a list with this prototype's dependencies, in terms of the order in which the backup has to be done.
-    *
     * @return a <code>List</code> of <code>XProptotype</code> representing the dependent prototypes.
     */
    public List getBackupDependencies() {
       if (backupDependencies == null) {
-         backupDependencies = new ArrayList<OpPrototype>();
-
+         backupDependencies = new ArrayList();
          Iterator it = this.getMembers();
          while (it.hasNext()) {
             OpMember member = (OpMember) it.next();
@@ -114,30 +126,11 @@ public class OpPrototype extends OpType {
                OpRelationship relationship = (OpRelationship) member;
                if (!relationship.getInverse() && !relationship.getRecursive()) {
                   OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
-                  if (!dependentType.getBackupDependencies().contains(this)) {
-                     backupDependencies.add(dependentType);
-                  }
+                  backupDependencies.add(dependentType);
                }
             }
          }
       }
-
       return backupDependencies;
-   }
-
-   /**
-    * Extends this prototype with the information from the parent prototype (extension means
-    * copying all non-conflicting members.
-    * @param parentPrototype a <code>OpPrototype</code> representing the parent
-    * prototype.
-    */
-   public void extend(OpPrototype parentPrototype) {
-      Iterator<OpMember> parentMemebersIt = parentPrototype.getDeclaredMembers();
-      while (parentMemebersIt.hasNext()) {
-         OpMember parentMember = parentMemebersIt.next();
-         if (this.declaredMembers.get(parentMember.getName()) == null) {
-            this.declaredMembers.put(parentMember.getName(), parentMember);
-         }
-      }
    }
 }

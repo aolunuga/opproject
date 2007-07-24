@@ -19,7 +19,6 @@
       <resource id="Role">Rolle</resource>
       <resource id="Project">Projekt</resource>
       <resource id="Status">Status</resource>
-      <resource id="Priority">Priorität</resource>      
       <resource id="Complete">% Abg.</resource>
       <resource id="Resources">Ressourcen</resource>
       <resource id="Costs">Kosten</resource>
@@ -35,11 +34,11 @@
       <resource id="PercentageDeviationEffort">Abw. (%)</resource>
 
       <resource id="ProjectCosts">Projektkosten</resource>
-      <resource id="BaseCosts">Plan ({CurrencySymbol})</resource>
-      <resource id="ActualCosts">Ist ({CurrencySymbol})</resource>
-      <resource id="RemainingCosts">Rest ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Erwartet ({CurrencySymbol})</resource>
-      <resource id="DeviationCosts">Abw. ({CurrencySymbol})</resource>
+      <resource id="BaseCosts">Plan (€)</resource>
+      <resource id="ActualCosts">Ist (€)</resource>
+      <resource id="RemainingCosts">Rest (€)</resource>
+      <resource id="ProjectedCosts">Erwartet (€)</resource>
+      <resource id="DeviationCosts">Abw. (€)</resource>
       <resource id="PercentageDeviationCosts">Abw. (%)</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_dates.forms;
@@ -272,7 +272,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
          OpResource resource = assignment.getResource();
          XComponent dataRow = resourceDataSet.newDataRow();
          dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
-         resourceDataSet.addChild(dataRow);
+         resourceDataSet.addDataRow(dataRow);
          resourceDataSet.sort();
       }
    }

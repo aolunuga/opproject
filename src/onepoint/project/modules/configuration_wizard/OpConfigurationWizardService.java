@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard;
@@ -9,13 +9,11 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpConnectionManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpInitializer;
-import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
 import onepoint.project.util.OpEnvironmentManager;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
@@ -44,7 +42,7 @@ public class OpConfigurationWizardService extends OpProjectService {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpConfigurationWizardService.class);
+   private static final XLog logger = XLogFactory.getLogger(OpConfigurationWizardService.class);
 
    /**
     * Request argument names.
@@ -56,16 +54,16 @@ public class OpConfigurationWizardService extends OpProjectService {
     */
    private static final OpDbConfigurationWizardErrorMap ERROR_MAP = new OpDbConfigurationWizardErrorMap();
 
-   public static final String MYSQL_INNO_DB_DISPLAY = "MySQL InnoDB";
+   public static final String MY_SQL_INNODB_DISPLAY = "MySQL InnoDB";
    public static final String ORACLE_DISPLAY = "Oracle";
    public static final String IBM_DB_DISPLAY = "IBM DB/2";
    public static final String MSSQL_DISPLAY = "Microsoft SQL Server";
    public static final String POSTGRE_DISPLAY = "PostgreSQL";
 
-   private static final Map<String, String> DISPLAY_TO_DB_TYPE = new HashMap<String, String>();
+   private static final Map DISPLAY_TO_DB_TYPE = new HashMap();
 
    static {
-      DISPLAY_TO_DB_TYPE.put(MYSQL_INNO_DB_DISPLAY, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
+      DISPLAY_TO_DB_TYPE.put(MY_SQL_INNODB_DISPLAY, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(ORACLE_DISPLAY, OpConfigurationValuesHandler.ORACLE_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(IBM_DB_DISPLAY, OpConfigurationValuesHandler.IBM_DB2_DB_TYPE);
       DISPLAY_TO_DB_TYPE.put(MSSQL_DISPLAY, OpConfigurationValuesHandler.MSSQL_DB_TYPE);
@@ -84,11 +82,11 @@ public class OpConfigurationWizardService extends OpProjectService {
       HashMap parameters = (HashMap) (request.getArgument(PARAMETERS));
 
       Boolean isStandaloneParameter = (Boolean) parameters.get("is_standalone");
-      boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter;
+      boolean isStandalone = (isStandaloneParameter != null) && isStandaloneParameter.booleanValue();
 
       String databaseType = (String) parameters.get("database_type");
       if (DISPLAY_TO_DB_TYPE.get(databaseType) != null) {
-         databaseType = DISPLAY_TO_DB_TYPE.get(databaseType);
+         databaseType = (String) DISPLAY_TO_DB_TYPE.get(databaseType);
       }
       String databaseDriver = (String) onepoint.project.configuration.OpConfiguration.DATABASE_DRIVERS.get(databaseType);
 
@@ -107,18 +105,9 @@ public class OpConfigurationWizardService extends OpProjectService {
          return response;
       }
       else if (isStandalone) {
-         String dataFolder = XEnvironmentManager.convertPathToSlash(databaseURL);
-         StringBuffer dbPath = new StringBuffer(dataFolder);
-         dbPath.append(File.separator);
-         dbPath.append(OpProjectConstants.DB_DIR_NAME);
-         dbPath.append(File.separator);
-         dbPath.append(OpProjectConstants.DB_FILE_NAME);
-
-         OpEnvironmentManager.setDataFolderPathFromDbPath(dbPath.toString());
-
-         StringBuffer dbUrl = new StringBuffer(OpHibernateSource.DERBY_JDBC_CONNECTION_PREFIX);
-         dbUrl.append(dbPath);
-         dbUrl.append(OpHibernateSource.DERBY_JDBC_CONNECTION_SUFIX);
+         OpEnvironmentManager.setDataFolderPathFromDbPath(databaseURL);
+         StringBuffer dbUrl = new StringBuffer(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX);
+         dbUrl.append(XEnvironmentManager.convertPathToSlash(databaseURL));
          databaseURL = dbUrl.toString();
       }
 
@@ -131,9 +120,8 @@ public class OpConfigurationWizardService extends OpProjectService {
       //password is not a mandatory field
       String databasePassword = (String) parameters.get("database_password");
 
-      int dbType = OpConfigurationValuesHandler.DATABASE_TYPES_MAP.get(databaseType);
-
-      int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword, dbType);
+      int errorCode = testConnectionParameters(((Integer) OpConfigurationValuesHandler.DATABASE_TYPES_MAP.get(databaseType)).intValue(),
+           databaseDriver, databaseURL, databaseLogin, databasePassword);
       if (errorCode != OpConnectionManager.SUCCESS) {
          response.setError(session.newError(ERROR_MAP, errorCode));
          return response;
@@ -143,13 +131,8 @@ public class OpConfigurationWizardService extends OpProjectService {
       String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
       writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
-      OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
-      Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
-
-      response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
-
-      //restore the locale to the system locale (issue OPP-19)
-      session.resetLocaleToSystemDefault();
+      Map initParams = OpInitializer.init(OpInitializer.getProductCode());
+      response.setArgument("initParams", initParams);
 
       return response;
    }
@@ -157,15 +140,15 @@ public class OpConfigurationWizardService extends OpProjectService {
    /**
     * Checks whether the given db connection parameters are ok to establish a db connection.
     *
+    * @param dbType a <code>int</code> constant representing the type of the db.
     * @param databaseDriver   a <code>String</code> representing the database driver class.
     * @param databaseURL      a <code>String</code> representing the db connection url.
     * @param databaseLogin    a <code>String</code> representing the user name of the db connection.
     * @param databasePassword a <code>String</code> representing the db password.
-    * @param dbType           an <code>int</code> representing the db type.
     * @return an <code>int</code> representing an error code or 0, representing no error.
     */
-   private int testConnectionParameters(String databaseDriver, String databaseURL, String databaseLogin, String databasePassword, int dbType) {
-      int testResult = OpConnectionManager.testConnection(databaseDriver, databaseURL, databaseLogin, databasePassword, dbType);
+   private int testConnectionParameters(int dbType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
+      int testResult = OpConnectionManager.testConnection(dbType, databaseDriver, databaseURL, databaseLogin, databasePassword);
       switch (testResult) {
          case OpConnectionManager.GENERAL_CONNECTION_EXCEPTION: {
             return OpDbConfigurationWizardError.GENERAL_CONNECTION_ERROR;

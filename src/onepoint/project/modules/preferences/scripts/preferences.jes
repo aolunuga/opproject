@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 require "onepoint/project/scripts/error.jes";
@@ -7,19 +7,6 @@ require "onepoint/project/scripts/error.jes";
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
 import onepoint.express.XValidator;
-import onepoint.express.XComponent;
-
-
-function gatherData() {
-   // Gather resource-data
-   form = XDisplay.getActiveForm();
-   preferences.language = XValidator.choiceID(form.findComponent("UserLanguage").getStringValue());
-   preferences.password = form.findComponent("Password").getStringValue();
-   preferences.passwordRetyped = form.findComponent("PasswordRetyped").getStringValue();
-   preferences.showHours = form.findComponent("ShowResourceHours").getBooleanValue();
-   return preferences;
-}
-
 
 /**
  * Saves the current user preferences.
@@ -27,7 +14,10 @@ function gatherData() {
 function save(event) {
    form = XDisplay.getActiveForm();
 
-   preferences = gatherData();
+   preferences.language = XValidator.choiceID(form.findComponent("UserLanguage").getStringValue());
+   preferences.password = form.findComponent("Password").getStringValue();
+   preferences.passwordRetyped = form.findComponent("PasswordRetyped").getStringValue();
+   preferences.showHours = form.findComponent("ShowResourceHours").getBooleanValue();
 
    request = new XMessage;
    request.setAction("PreferencesService.savePreferences");

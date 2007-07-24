@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.my_tasks;
@@ -21,8 +21,7 @@ public interface OpMyTasksError {
    static final int EXISTING_WORKSLIP_ERROR_CODE = 5;
    static final int INSUFICIENT_PERMISSIONS_ERROR_CODE = 6;
    static final int INVALID_PRIORITY_ERROR_CODE = 7;
-   static final int INVALID_TYPE_ERROR_CODE = 8;
-   static final int TASK_NOT_FOUND_ERROR_CODE = 9;
+
 
    /**
     * Error names
@@ -34,7 +33,5 @@ public interface OpMyTasksError {
    static final String EXISTING_WORKSLIP_ERROR_NAME = "ExistingWorkSlipError";
    static final String INSUFICIENT_PERMISSIONS_ERROR_NAME = "InsuficientPermissions";
    static final String INVALID_PRIORITY_ERROR_NAME = "InvalidPriorityErrorMessage";
-   static final String INVALID_TYPE_ERROR_NAME = "InvalidTypeError";
-   static final String TASK_NOT_FOUND_ERROR_NAME = "TaskNotFoundError";
 
 }

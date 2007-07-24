@@ -22,6 +22,7 @@
       <resource id="NewProject">Neues Projekt</resource>
       <resource id="Move">Verschieben</resource>
       <resource id="Info">Eigenschaften</resource>
+      <resource id="Edit">Bearbeiten</resource>
       <resource id="Delete">Löschen</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
@@ -30,31 +31,12 @@
       <resource id="Activities">Vorgänge</resource>
       <resource id="Resources">Ressourcen</resource>
       <resource id="Costs">Kosten</resource>
-      <resource id="Status">Status</resource>
-      <resource id="Priority">Priorität</resource>
-
-      <resource id="ProjectList">Projects</resource>
-      <resource id="ProjectResources">Resources</resource>
-      <resource id="ProjectCosts">Costs</resource>
-
-      <resource id="Project">Project</resource>
-      <resource id="BaseEffort">Base (h)</resource>
-      <resource id="ActualEffort">Actual (h)</resource>
-      <resource id="RemainingEffort">Rem. (h)</resource>
-      <resource id="ProjectedEffort">Expected (h)</resource>
-      <resource id="DeviationEffort">Deviation (h)</resource>
-      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
-      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
-      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
-      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
-      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
-      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
       <resource id="NewPortfolioTooltip">Neues Projektportfolio erstellen</resource>
       <resource id="NewProjectTooltip">Neues Projekt erstellen</resource>
       <resource id="MoveTooltip">Ausgewähltes Projekt, Vorlage oder Portfolio in ein anderes Portfolio verschieben</resource>
       <resource id="InfoTooltip">Metainformation für ausgewähltes Projekt oder Portfolio anzeigen</resource>
+      <resource id="EditTooltip">Metainformation for ausgewähltes Projekt oder Portfolio bearbeiten</resource>
       <resource id="DeleteTooltip">Ausgewählte Projekte, Vorlagen und Portfolios löschen</resource>
 
    </resource-map>
@@ -74,7 +56,7 @@
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
    </resource-map>
-
+	
    <resource-map id="project.NewProject">
       <resource id="NewProject">Neues Projekt</resource>
 
@@ -83,10 +65,7 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
-      <resource id="Budget">Budget ({CurrencySymbol})</resource>
-      <resource id="Priority">Priorität</resource>
-      <resource id="Probability">Wahrscheinlichkeit (%)</resource>
-      <resource id="Archived">Archived</resource>      
+      <resource id="Budget">Budget (€)</resource>
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -98,10 +77,6 @@
       <resource id="DueTo">Fällig am</resource>
 
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Resource">Ressource</resource>
-      <resource id="AdjustRates">Stundensätze anpassen</resource>
-      <resource id="InternalRate">Interner Stundensatz</resource>
-      <resource id="ExternalRate">Externer Stundensatz</resource>
 
       <resource id="Permissions">Berechtigungen</resource>
 
@@ -122,10 +97,7 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Start">Anfang</resource>
       <resource id="End">Ende</resource>
-      <resource id="Budget">Budget ({CurrencySymbol})</resource>
-      <resource id="Priority">Priorität</resource>
-      <resource id="Probability">Wahrscheinlichkeit (%)</resource>
-      <resource id="Archived">Archived</resource>            
+      <resource id="Budget">Budget (€)</resource>
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -145,18 +117,11 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Erstellt von</resource>
       <resource id="CreatedOn">Erstellt am</resource>
-      <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Versionen löschen</resource>
 
-      <resource id="WorkingVersion">Freigegebener Projektplan</resource>
-
       <resource id="Resources">Ressourcen</resource>
-      <resource id="Resource">Ressource</resource>
-      <resource id="AdjustRates">Stundensätze anpassen</resource>
-      <resource id="InternalRate">Interner Stundensatz</resource>
-      <resource id="ExternalRate">Externer Stundensatz</resource>
       <resource id="Status">Projektstatus</resource>
-      <resource id="NoStatus">(No Status)</resource>
+      <resource id="NoStatus">(Keiner)</resource>
 
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
@@ -214,11 +179,6 @@
       <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind ungültig (1-9)</resource>
       <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind ungültig (1-9)</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
-      <resource id="InternalRateNotValid">Der angegebene interne Stundensatz ist ungültig</resource>
-      <resource id="ExternalRateNotValid">Der angegebene externe Stundensatz ist ungültig</resource>      
-      <resource id="ProbabilityNotValid">Der angegebene Wahrscheinlichkeit ist ungültig (0-100)</resource>      
-      <resource id="PriorityNotValid">Der angegebene Priorität ist ungültig (1-9)</resource>
-      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekt oder Portfolio löschen</resource>
@@ -234,13 +194,6 @@
       <resource id="ConfirmStartDateFuture">Verschiebung des Startdatums</resource>
       <resource id="ConfirmStartDateFutureText">Eine Verschiebung des Startdatums in die Zukunft verschiebt auch alle Vorgänge adäquat</resource>
       <resource id="Ok">OK</resource>
-      <resource id="Cancel">Abbrechen</resource>
-   </resource-map>
-
-   <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>      
-      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
-      <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
 

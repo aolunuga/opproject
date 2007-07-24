@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning;
@@ -13,17 +13,15 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.work.OpWorkRecord;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.sql.Date;
 
 /**
- * Project planning module class.
  *
+ * <FIXME author="Horia Chiorean" description="Be so nice as to add comments to classes [-(">
  * @author : mihai.costin
  */
 public class OpProjectPlanningModule extends OpModule {
@@ -31,13 +29,12 @@ public class OpProjectPlanningModule extends OpModule {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpProjectPlanningModule.class);
+   private XLog logger = XLogFactory.getLogger(OpProjectPlanningModule.class, true);
 
 
    /**
     * @see onepoint.project.module.OpModule#start(onepoint.project.OpProjectSession)
     */
-   @Override
    public void start(OpProjectSession session) {
       // Register project components
       OpProjectComponentHandler project_handler = new OpProjectComponentHandler();
@@ -47,123 +44,53 @@ public class OpProjectPlanningModule extends OpModule {
    }
 
    /**
-    *  Upgrades this module to version #5 (via reflection).
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    * @see onepoint.project.module.OpModule#upgrade(onepoint.project.OpProjectSession, int)
     */
-   public void upgradeToVersion5(OpProjectSession session) {
-      List<Long> projectPlanIds = new ArrayList<Long>();
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
-      query.setByte(0, OpProjectNode.PROJECT);
-      Iterator iterator = broker.list(query).iterator();
-      while (iterator.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
-         //due to a previous bug, we must make sure the start/end of the project plans are ok
-         updateActualProceeds(projectPlan, broker);
-         fixProjectPlanDates(projectPlan, broker);
-         projectPlanIds.add(projectPlan.getID());
-      }
-      broker.close();
-      revalidateProjectPlans(session, projectPlanIds);
-    }
+   public void upgrade(OpProjectSession session, int dbVersion) {
 
-   /**
-    * Fixes the problem with invalid project plan dates (weren't correct).
-    * 
-    * @param projectPlan a <code>OpProjectPlan</code> representing a project plan.
-    * @param broker a <code>OpBroker</code> used for db operations.
-    */
-   private void fixProjectPlanDates(OpProjectPlan projectPlan, OpBroker broker) {
-      OpTransaction tx = broker.newTransaction();
-      projectPlan.copyDatesFromProject();
-      Date projectPlanFinish = projectPlan.getFinish();
-      //there can't be activities before the project start, so we only need to update the end date
-      for (OpActivity activity : projectPlan.getActivities()) {
-         if (activity.getFinish() != null && activity.getFinish().after(projectPlanFinish)) {
-            projectPlanFinish = activity.getFinish();
-         }
-      }
-      projectPlan.setFinish(projectPlanFinish);
-      broker.updateObject(projectPlan);
-      tx.commit();
-   }
+      //update the project plan with scheduled task activities [ scheduled tasks added in version 2 ]
+      if (dbVersion < 3) {
+         logger.info("Upgrading for version < 3...");
+         OpBroker broker = session.newBroker();
+         OpQuery query = broker.newQuery("select project from OpProjectNode as project where project.Type = ?");
+         query.setByte(0, OpProjectNode.PROJECT);
 
+         Iterator result = broker.iterate(query);
+         List projectPlans = new ArrayList();
+         //validate the tasks & collection tasks.
+         while (result.hasNext()) {
+            OpProjectNode projectNode = (OpProjectNode) result.next();
+            OpProjectPlan projectPlan = projectNode.getPlan();
 
-   /**
-    * Upgrades this module to version #3 (via reflection).
-    *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-    */
-   public void upgradeToVersion3(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select project from OpProjectNode as project where project.Type = ?");
-      query.setByte(0, OpProjectNode.PROJECT);
+            logger.info("Upgrade tasks and scheduled tasks for " + projectNode.getName());
+            updateTasks(projectPlan.getID(), projectNode, session);
+            updateActivitiesAndChildren(projectPlan.getID(), session);
 
-      Iterator result = broker.iterate(query);
-      List<Long> projectPlans = new ArrayList<Long>();
-      //validate the tasks & collection tasks.
-      while (result.hasNext()) {
-         OpProjectNode projectNode = (OpProjectNode) result.next();
-         OpProjectPlan projectPlan = projectNode.getPlan();
+            //same update for all the activity versions from all the project versions.
+            Set allVersions = projectPlan.getVersions();
+            for (Iterator planVersionsIterator = allVersions.iterator(); planVersionsIterator.hasNext();) {
+               OpProjectPlanVersion planVersion = (OpProjectPlanVersion) planVersionsIterator.next();
 
-         logger.info("Upgrade tasks and scheduled tasks for " + projectNode.getName());
-         updateTasks(projectPlan.getID(), projectNode, session);
-         updateActivitiesAndChildren(projectPlan.getID(), session);
-
-         //same update for all the activity versions from all the project versions.
-         Set allVersions = projectPlan.getVersions();
-         for (Object allVersion : allVersions) {
-            OpProjectPlanVersion planVersion = (OpProjectPlanVersion) allVersion;
-
-            updateTasksVersions(planVersion.getID(), projectNode, session);
-            updateActivityVersionsAndChildren(planVersion.getID(), session);
-         }
-         projectPlans.add(projectPlan.getID());
-      }
-      broker.close();
-
-      //recalculate the project plans
-      revalidateProjectPlans(session, projectPlans);
-   }
-
-   /**
-    * Updates the actual proceeds of all activity, activity assignments and work records,
-    * by using the same values as the already existent acutual personnel costs.
-    * This update is caused by the fact that the external rate is the same as the internal one.
-    *
-    * @param projectPlan a <code>OpProjectPlan</code> object representing the project plan for
-    *                    which to update.
-    * @param broker      a <code>OpBroker</code> used for persistence operations.
-    */
-   private void updateActualProceeds(OpProjectPlan projectPlan, OpBroker broker) {
-      OpTransaction tx = broker.newTransaction();
-      for (OpActivity activity : projectPlan.getActivities()) {
-         activity.setActualProceeds(activity.getActualPersonnelCosts());
-         broker.updateObject(activity);
-         for (OpAssignment assignment : activity.getAssignments()) {
-            assignment.setActualProceeds(assignment.getActualCosts());
-            broker.updateObject(assignment);
-            for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
-               workRecord.setActualProceeds(workRecord.getPersonnelCosts());
-               broker.updateObject(workRecord);
+               updateTasksVersions(planVersion.getID(), projectNode, session);
+               updateActivityVersionsAndChildren(planVersion.getID(), session);
             }
+            projectPlans.add(new Long(projectPlan.getID()));
          }
+         broker.close();
+
+         //recalculate the project plans
+         revalidateProjectPlans(session, projectPlans);
       }
-      tx.commit();
    }
 
-   /**
-    * Performs a validation on the given list of project plan ids.
-    * @param session a <code>OpProjectSession</code> representing a server session.
-    * @param projectPlanIds a <code>List(Long)</code> representing a list of project plan ids.
-    */
-   private void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {
+   private void revalidateProjectPlans(OpProjectSession session, List projectPlanIds) {
       logger.info("Revalidating project plans...");
       OpBroker broker = session.newBroker();
 
       //validate all the project plans (this includes also the work phase -> work period upgrade)
-      for (Long projectPlanId : projectPlanIds) {
-         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
+      for (Iterator iterator = projectPlanIds.iterator(); iterator.hasNext();) {
+         Long projectPlanId = (Long) iterator.next();
+         OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId.longValue());
          new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
       }
       broker.close();
@@ -171,10 +98,9 @@ public class OpProjectPlanningModule extends OpModule {
 
    /**
     * Updates tasks of a given project plan, by updating the start and end date.
-    *
     * @param projectPlanId a <code>long</code> representing the id of a project plan .
-    * @param projectNode   a <code>OpProjectNode</code> representing the project to which the version belongs.
-    * @param session       a <code>OpProjectSession</code> representing the session on which the upgrade is done.
+    * @param projectNode a <code>OpProjectNode</code> representing the project to which the version belongs.
+    * @param session a <code>OpProjectSession</code> representing the session on which the upgrade is done.
     */
    private void updateTasks(long projectPlanId, OpProjectNode projectNode, OpProjectSession session) {
       OpBroker broker = session.newBroker();
@@ -203,10 +129,9 @@ public class OpProjectPlanningModule extends OpModule {
 
    /**
     * Updates tasks versions of a given project plan, by updating the start and end date.
-    *
     * @param projectPlanVersionId a <code>long</code> representing the id of a project plan version.
-    * @param projectNode          a <code>OpProjectNode</code> representing the project to which the version belongs.
-    * @param session              a <code>OpProjectSession</code> representing the session on which the upgrade is done.
+    * @param projectNode a <code>OpProjectNode</code> representing the project to which the version belongs.
+    * @param session a <code>OpProjectSession</code> representing the session on which the upgrade is done.
     */
    private void updateTasksVersions(long projectPlanVersionId, OpProjectNode projectNode, OpProjectSession session) {
       OpBroker broker = session.newBroker();
@@ -235,9 +160,8 @@ public class OpProjectPlanningModule extends OpModule {
 
    /**
     * For a given project plan, updates the tasks and scheduled tasks.
-    *
     * @param projectPlanId a <code>long</code> representing the id of a project plan.
-    * @param session       a <code>OpProjectSession</code> representing the session which started the upgrade procedure.
+    * @param session a <code>OpProjectSession</code> representing the session which started the upgrade procedure.
     */
    private void updateActivitiesAndChildren(long projectPlanId, OpProjectSession session) {
       OpBroker broker = session.newBroker();
@@ -255,8 +179,9 @@ public class OpProjectPlanningModule extends OpModule {
       while (it.hasNext()) {
          Object[] result = (Object[]) it.next();
 
+
          Long activityId = (Long) result[0];
-         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId);
+         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId.longValue());
          int activityType = activity.getType();
          int totalChildCount = activity.getSubActivities().size();
          int subTasksCount = ((Number) result[1]).intValue();
@@ -275,8 +200,9 @@ public class OpProjectPlanningModule extends OpModule {
             query.setLong(0, activity.getID());
             query.setByte(1, OpActivity.TASK);
             query.setByte(2, OpActivity.COLLECTION_TASK);
-            for (Object o : broker.list(query)) {
-               OpActivity subTask = (OpActivity) o;
+            Iterator subTasksIterator = broker.list(query).iterator();
+            while (subTasksIterator.hasNext()) {
+               OpActivity subTask = (OpActivity) subTasksIterator.next();
                subTask.setStart(activity.getStart());
                subTask.setFinish(activity.getFinish());
                subTask.setDuration(activity.getDuration());
@@ -296,9 +222,8 @@ public class OpProjectPlanningModule extends OpModule {
 
    /**
     * For a given project plan, updates the tasks and scheduled tasks versions.
-    *
     * @param projectPlanVersionId a <code>long</code> representing the id of a project plan version.
-    * @param session              a <code>OpProjectSession</code> representing the session which started the upgrade procedure.
+    * @param session a <code>OpProjectSession</code> representing the session which started the upgrade procedure.
     */
    private void updateActivityVersionsAndChildren(long projectPlanVersionId, OpProjectSession session) {
       OpBroker broker = session.newBroker();
@@ -317,7 +242,7 @@ public class OpProjectPlanningModule extends OpModule {
          Object[] result = (Object[]) it.next();
 
          Long activityVersionId = (Long) result[0];
-         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId);
+         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId.longValue());
          int activityVersionType = activityVersion.getType();
          int totalChildCount = activityVersion.getSubActivityVersions().size();
          int subTaskVersionsCount = ((Number) result[1]).intValue();
@@ -336,8 +261,9 @@ public class OpProjectPlanningModule extends OpModule {
             query.setLong(0, activityVersion.getID());
             query.setByte(1, OpActivity.TASK);
             query.setByte(2, OpActivity.COLLECTION_TASK);
-            for (Object o : broker.list(query)) {
-               OpActivityVersion subTaskVersion = (OpActivityVersion) o;
+            Iterator subTaskVersionsIterator = broker.list(query).iterator();
+            while (subTaskVersionsIterator.hasNext()) {
+               OpActivityVersion subTaskVersion = (OpActivityVersion) subTaskVersionsIterator.next();
                subTaskVersion.setStart(activityVersion.getStart());
                subTaskVersion.setFinish(activityVersion.getFinish());
                subTaskVersion.setDuration(activityVersion.getDuration());

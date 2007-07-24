@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.reports.project_progress;
@@ -41,10 +41,11 @@ public class OpProjectProgressFormProvider implements XFormProvider {
 
       // Execute query and fill result set if RunQuery is true
       if (parameters != null) {
-         Boolean runQuery = (Boolean) parameters.get(RUN_QUERY);
+         Boolean runQuery = (Boolean) parameters.get(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.RUN_QUERY);
          if ((runQuery != null) && (runQuery.booleanValue())) {
 
-            String projectLocator = (String) parameters.get(PROJECT_LOCATOR);
+            String projectLocator = (String) parameters
+                 .get(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_LOCATOR);
             if (projectLocator == null) {
                broker.close();
                return; // TODO: Throw exception
@@ -57,15 +58,17 @@ public class OpProjectProgressFormProvider implements XFormProvider {
                return; // TODO: Throw exception
             }
 
-            form.findComponent(PROJECT_LOCATOR_FIELD).setStringValue(projectLocator);
-            form.findComponent(PROJECT_NAME_FIELD).setStringValue(project.getName());
+            form.findComponent(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_LOCATOR_FIELD).setStringValue(
+                 projectLocator);
+            form.findComponent(onepoint.project.reports.project_progress.OpProjectProgressFormProvider.PROJECT_NAME_FIELD).setStringValue(
+                 project.getName());
 
             // Execute query
             StringBuffer queryBuffer = new StringBuffer("select activity.Name, activity.Complete, activity.BaseEffort, activity.ActualEffort");
             queryBuffer.append(", activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts");
             queryBuffer.append(", activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts");
             queryBuffer.append(" from OpProjectNode as project inner join project.Plan as projectPlan inner join projectPlan.Activities as activity");
-            queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false");
+            queryBuffer.append(" where project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false");
 
             OpQuery query = broker.newQuery(queryBuffer.toString());
             query.setLong(0, project.getID());

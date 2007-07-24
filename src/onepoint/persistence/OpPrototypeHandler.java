@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.persistence;
@@ -22,6 +22,10 @@ public class OpPrototypeHandler implements XNodeHandler {
       value = attributes.get("instance-class");
       if ((value != null) && (value instanceof String)) {
          prototype.setClassName((String) value);
+         /*
+          * try { prototype.setInstanceClass(Class.forName((String)value)); } catch (Exception e) {
+          * System.err.println(e); }
+          */
       }
       value = attributes.get("super-type");
       if ((value != null) && (value instanceof String)) {

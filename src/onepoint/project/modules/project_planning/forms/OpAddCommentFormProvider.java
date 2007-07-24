@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project_planning.forms;
@@ -18,7 +18,7 @@ public class OpAddCommentFormProvider implements XFormProvider {
 
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpActivitiesFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpActivitiesFormProvider.class, true);
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 

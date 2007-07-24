@@ -1,4 +1,4 @@
-<prototype name="OpProjectPlan" instance-class="onepoint.project.modules.project.OpProjectPlan" super-type="OpObject">
+<prototype name="OpProjectPlan" instance-class="onepoint.project.modules.project.OpProjectPlan">
    <field name="Start" type="Date" mandatory="true" indexed="true"/>
    <field name="Finish" type="Date" mandatory="true" indexed="true"/>
    <field name="CalculationMode" type="Byte"/>
@@ -11,5 +11,4 @@
    <relationship name="WorkPeriods" type="OpWorkPeriod" collection-type="Set" back-relationship="ProjectPlan" inverse="true"/>
    <relationship name="Dependencies" type="OpDependency" collection-type="Set" back-relationship="ProjectPlan" inverse="true"/>
    <relationship name="Versions" type="OpProjectPlanVersion" collection-type="Set" back-relationship="ProjectPlan" inverse="true" cascade="delete"/>
-   <relationship name="BaselineVersion" type="OpProjectPlanVersion"/>
 </prototype>

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.repository.forms;
@@ -10,7 +10,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpInitializer;
-import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
@@ -39,12 +38,12 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getServerLogger(OpRepositoryFormProvider.class);
+   private static final XLog logger = XLogFactory.getLogger(OpRepositoryFormProvider.class, true);
 
    /**
     * Error id for creating the backup directory
     */
-   private static final String BACKUP_DIR_ERROR = "${BackupDirectoryError}";
+   private static final String BACKUP_DIR_ERROR = "{$BackupDirectoryError}";
 
    /**
     * Form component ids.
@@ -68,13 +67,13 @@ public class OpRepositoryFormProvider implements XFormProvider {
    private static final String BACKUP_ROOT_DIR_FIELD_ID = "BackupDirRootPath";
 
    /**
-    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
+    * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
     */
    public void prepareForm(XSession session, XComponent form, HashMap parameters) {
       OpProjectSession projectSession = (OpProjectSession) session;
 
       // hide multi user fields
-      if (!OpEnvironmentManager.isMultiUser()) {
+      if (!OpInitializer.isMultiUser()) {
          form.findComponent(USER_GROUPS_COUNT_ID).setVisible(false);
          form.findComponent(USER_GROUPS_COUNT_LABEL_ID).setVisible(false);
          form.findComponent(USERS_COUNT_ID).setVisible(false);
@@ -95,7 +94,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
       if (rootBackupDirectory == null) {
          form.findComponent(BACKUP_BUTTON_ID).setEnabled(false);
          form.findComponent(RESTORE_BUTTON_ID).setEnabled(false);
-
+         
          XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
          XLocalizer localizer = XLocaleManager.createLocalizer(projectSession.getLocale().getID(), OpRepositoryErrorMap.RESOURCE_MAP_ID);
          errorLabel.setText(localizer.localize(BACKUP_DIR_ERROR));
@@ -110,9 +109,8 @@ public class OpRepositoryFormProvider implements XFormProvider {
    /**
     * Checks if the user on the current session has enough permissions to perform repository operations.
     * At the moment, only the administrator can perform repository operations.
-    *
     * @param projectSession a <code>OpProjectSession</code> representing the user session.
-    * @param form           a <code>XComponent(FORM)</code> representing the main repository form.
+    * @param form a <code>XComponent(FORM)</code> representing the main repository form.
     * @return <code>true</code> if the user has enough permissions.
     */
    private boolean hasRepositoryPermissions(OpProjectSession projectSession, XComponent form) {
@@ -127,8 +125,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
 
    /**
     * Calculates the values for the fields of the form.
-    *
-    * @param form           a <code>XComponent(FORM)</code> representing the repository form.
+    * @param form a <code>XComponent(FORM)</code> representing the repository form.
     * @param projectSession a <code>OpProjectSession</code> representing the server session.
     */
    private void setFormFields(XComponent form, OpProjectSession projectSession) {
@@ -148,20 +145,18 @@ public class OpRepositoryFormProvider implements XFormProvider {
 
    /**
     * Creates (or retrieves) the root directory where backupp files will be stored.
-    *
-    * @return a <code>String</code> representing the path to the root directory, or null if an error occurred.
+    * @return  a <code>String</code> representing the path to the root directory, or null if an error occurred.
     */
    private String createRootBackupPath() {
       String fullBackupRootPath;
       try {
-         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
-         String backupDirectoryName = XEnvironmentManager.convertPathToSlash(initializer.getConfiguration().getBackupPath());
+         String backupDirectoryName = XEnvironmentManager.convertPathToSlash(OpInitializer.getConfiguration().getBackupPath());
          File absoluteDirectory = new File(backupDirectoryName);
          if (absoluteDirectory.exists() && absoluteDirectory.isDirectory() && absoluteDirectory.isAbsolute()) {
             fullBackupRootPath = absoluteDirectory.getCanonicalPath();
          }
          else {
-            String parentDir = OpEnvironmentManager.getDataFolderPath();
+            String parentDir = OpEnvironmentManager.getOnepointDataFolderPath();
             File backupDir = new File(parentDir, backupDirectoryName);
             if (!backupDir.exists() || !backupDir.isDirectory()) {
                boolean dirCreated = backupDir.mkdir();

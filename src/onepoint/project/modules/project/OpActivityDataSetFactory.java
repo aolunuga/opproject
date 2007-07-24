@@ -1,14 +1,11 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
 
-import onepoint.error.XLocalizableException;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
@@ -20,8 +17,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
-import onepoint.project.util.OpProjectConstants;
-import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
@@ -29,7 +24,9 @@ import java.util.*;
 
 public abstract class OpActivityDataSetFactory {
 
-   private static final XLog logger = XLogFactory.getServerLogger(OpActivityDataSetFactory.class);
+   public final static String LINKED_ATTACHMENT_DESCRIPTOR = "u";
+   public final static String DOCUMENT_ATTACHMENT_DESCRIPTOR = "d";
+   public final static String NO_CONTENT_ID = "0";
 
    public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
@@ -45,22 +42,6 @@ public abstract class OpActivityDataSetFactory {
       }
       return resourceMap;
    }
-
-   /**
-    * Fills the form data set with the resource hourly rates.
-    * Each row has the resource locator as value set on it and a data cell with a map containing
-    * the interval start date as key and a list with internal and external rates as value.
-    *
-    * @param project            The current project.
-    * @param workingPlanVersion The working version of the project (null if no working version)
-    * @param dataSet            Hourly rates data set.
-    */
-   //<FIXME author="Haizea Florin" description="This is not the proper way to use this method">
-   public static void fillHourlyRatesDataSet(OpProjectNode project, OpProjectPlanVersion workingPlanVersion, XComponent dataSet) {
-      OpProjectAdministrationService service = (OpProjectAdministrationService) XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
-      service.fillHourlyRatesDataSet(project, workingPlanVersion, dataSet);
-   }
-   //<FIXME>
 
    public static void retrieveResourceDataSet(HashMap resourceMap, XComponent dataSet) {
       Iterator resources = resourceMap.values().iterator();
@@ -370,6 +351,7 @@ public abstract class OpActivityDataSetFactory {
          queryBuffer.append(order.toHibernateQueryString("activity"));
       }
 
+      System.err.println("QUERY " + queryBuffer.toString());
       OpQuery query = broker.newQuery(queryBuffer.toString());
       // Note: We expect collections, booleans, dates and doubles
       Object value = null;
@@ -517,14 +499,9 @@ public abstract class OpActivityDataSetFactory {
 
    }
 
-   /**
-    * Sets the information regardind the set of attachments on the data row.
-    *
-    * @param attachments    - the <code>Set</code> of <code>OpAttachment</code> entities
-    * @param attachmentList - the <code>list</code> where the information regarding the attachments will be set
-    */
-   public static void retrieveAttachments(Set attachments, List attachmentList) {
+   private static void retrieveAttachments(Set attachments, XComponent dataRow) {
       // TODO: Bulk-fetch like other parts of the project plan
+      ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
       Iterator i = attachments.iterator();
       OpAttachment attachment = null;
       ArrayList attachmentElement = null;
@@ -532,10 +509,10 @@ public abstract class OpActivityDataSetFactory {
          attachment = (OpAttachment) i.next();
          attachmentElement = new ArrayList();
          if (attachment.getLinked()) {
-            attachmentElement.add(OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR);
+            attachmentElement.add(LINKED_ATTACHMENT_DESCRIPTOR);
          }
          else {
-            attachmentElement.add(OpProjectConstants.DOCUMENT_ATTACHMENT_DESCRIPTOR);
+            attachmentElement.add(DOCUMENT_ATTACHMENT_DESCRIPTOR);
          }
          attachmentElement.add(attachment.locator());
          attachmentElement.add(attachment.getName());
@@ -545,7 +522,7 @@ public abstract class OpActivityDataSetFactory {
             attachmentElement.add(contentId);
          }
          else {
-            attachmentElement.add(OpProjectConstants.NO_CONTENT_ID);
+            attachmentElement.add(NO_CONTENT_ID);
          }
          attachmentList.add(attachmentElement);
       }
@@ -560,8 +537,6 @@ public abstract class OpActivityDataSetFactory {
       boolean isStrictlyTask = (activity.getType() == OpActivity.TASK);
       boolean isTask = isStrictlyTask || (activity.getType() == OpActivity.COLLECTION_TASK);
       boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_TASK);
-      boolean isMilestone = (activity.getType() == OpActivity.MILESTONE);
-      boolean isAdHocTask = (activity.getType() == OpActivity.ADHOC_TASK);
 
       dataRow.setOutlineLevel(activity.getOutlineLevel());
       dataRow.setExpanded(activity.getExpanded());
@@ -616,13 +591,8 @@ public abstract class OpActivityDataSetFactory {
 
       // BaseEffort (7)
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && !isCollection && !isScheduledTask && !isAdHocTask);
-      if (!isAdHocTask) {
-         dataCell.setDoubleValue(activity.getBaseEffort());
-      }
-      else {
-         dataCell.setValue(null);
-      }
+      dataCell.setEnabled(editable && !isCollection && !isScheduledTask);
+      dataCell.setDoubleValue(activity.getBaseEffort());
       dataRow.addChild(dataCell);
 
       // Predecessors (8)
@@ -682,8 +652,7 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setListValue(new ArrayList());
       dataRow.addChild(dataCell);
       if (activity.getAttachments().size() > 0) {
-         ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
-         retrieveAttachments(activity.getAttachments(), attachmentList);
+         retrieveAttachments(activity.getAttachments(), dataRow);
       }
 
       // Attributes (18); not editable
@@ -760,17 +729,6 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setStringValue(XValidator.choice(projectNode.locator(), projectNode.getName()));
       dataRow.addChild(dataCell);
 
-      // Payment (29)
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && isMilestone);
-      dataCell.setDoubleValue(activity.getPayment());
-      dataRow.addChild(dataCell);
-
-      // Base Proceeds (30)
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDoubleValue(activity.getBaseProceeds());
-      dataRow.addChild(dataCell);
-
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -801,6 +759,7 @@ public abstract class OpActivityDataSetFactory {
       Object[] record = null;
       while (result.hasNext()) {
          record = (Object[]) result.next();
+         System.err.println("***MAP-ACT_V " + record[0] + " -> " + record[1]);
          activityVersionIdMap.put(record[0], record[1]);
       }
 
@@ -888,10 +847,11 @@ public abstract class OpActivityDataSetFactory {
 
          // Check project plan start and finish dates
          if (activity.getType() != OpActivity.TASK && activity.getType() != OpActivity.COLLECTION_TASK) {
-            if (activity.getStart().before(planStart)) {
+            if (activity.getStart().getTime() < planStart.getTime()) {
                planStart = activity.getStart();
             }
-            if (activity.getFinish().after(planFinish)) {
+            System.err.println("AF " + activity.getFinish() + " PF " + planFinish);
+            if (activity.getFinish().getTime() < planFinish.getTime()) {
                planFinish = activity.getFinish();
             }
          }
@@ -963,18 +923,11 @@ public abstract class OpActivityDataSetFactory {
          }
       }
 
-      // Phase 5: Delete unused activities
+      // Phase 5: Delete unused activity versions
       Iterator unusedActivitys = activities.values().iterator();
       while (unusedActivitys.hasNext()) {
          OpActivity markedActivity = (OpActivity) unusedActivitys.next();
-         OpResource responsibleRes = markedActivity.getResponsibleResource();
-         if (responsibleRes != null) {
-            responsibleRes.getResponsibleActivities().remove(markedActivity);
-            broker.updateObject(responsibleRes);
-         }
          markedActivity.setDeleted(true);
-         markedActivity.setResponsibleResource(null);
-         broker.updateObject(markedActivity);
       }
 
       // Finally, update project plan version start and finish fields
@@ -1049,7 +1002,7 @@ public abstract class OpActivityDataSetFactory {
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
       if (activity == null) {
          // Insert a new activity
-         activity = new OpActivity(OpGanttValidator.getType(dataRow));
+         activity = new OpActivity();
          activity.setProjectPlan(projectPlan);
          activity.setTemplate(projectPlan.getTemplate());
 
@@ -1079,6 +1032,7 @@ public abstract class OpActivityDataSetFactory {
          }
          activity.setDuration(OpGanttValidator.getDuration(dataRow));
          activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
+         activity.setType((OpGanttValidator.getType(dataRow)));
          if (categoryChoice != null) {
             category = (OpActivityCategory) broker.getObject(XValidator.choiceID(categoryChoice));
             activity.setCategory(category);
@@ -1088,21 +1042,14 @@ public abstract class OpActivityDataSetFactory {
             activity.setResponsibleResource(resource);
          }
          activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
-         activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
          activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
          activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
          activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
          activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
          activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         if (activity.getType() == OpGanttValidator.MILESTONE) {
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
-         if (OpGanttValidator.getPriority(dataRow) != null) {
-            activity.setPriority(OpGanttValidator.getPriority(dataRow).byteValue());
-         }
-         else {
-            activity.setPriority((byte) 0);
-         }
+         byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
+         activity.setPriority(priority);
+
          activity.setActualEffort(0);
 
          double complete = OpGanttValidator.getComplete(dataRow);
@@ -1113,13 +1060,10 @@ public abstract class OpActivityDataSetFactory {
          //actual costs are 0 initially
          activity.setActualPersonnelCosts(0);
          activity.setActualTravelCosts(0);
-         activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
          activity.setActualMaterialCosts(0);
-         activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
          activity.setActualExternalCosts(0);
-         activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
          activity.setActualMiscellaneousCosts(0);
-         activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+
          broker.makePersistent(activity);
 
       }
@@ -1213,7 +1157,7 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getBaseEffort() != baseEffort) {
             update = true;
             activity.setBaseEffort(baseEffort);
-            if (activity.getProjectPlan().getProgressTracked()) {
+            if (activity.getProjectPlan().getProgressTracked() && (activity.getActualEffort() <= baseEffort)) {
                activity.setRemainingEffort(baseEffort - activity.getActualEffort());
                complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
                activity.setComplete(complete);
@@ -1272,45 +1216,21 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
          }
-         if (activity.getBaseProceeds() != OpGanttValidator.getBaseProceeds(dataRow)) {
-            update = true;
-            activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
-         }
          if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
             update = true;
             activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-            double remaining = activity.getBaseTravelCosts() - activity.getActualTravelCosts();
-            if (remaining < 0) {
-               remaining = 0;
-            }
-            activity.setRemainingTravelCosts(remaining);
          }
          if (activity.getBaseMaterialCosts() != OpGanttValidator.getBaseMaterialCosts(dataRow)) {
             update = true;
             activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-            double remaining = activity.getBaseMaterialCosts() - activity.getActualMaterialCosts();
-            if (remaining < 0) {
-               remaining = 0;
-            }
-            activity.setRemainingMaterialCosts(remaining);
          }
          if (activity.getBaseExternalCosts() != OpGanttValidator.getBaseExternalCosts(dataRow)) {
             update = true;
             activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-            double remaining = activity.getBaseExternalCosts() - activity.getActualExternalCosts();
-            if (remaining < 0) {
-               remaining = 0;
-            }
-            activity.setRemainingExternalCosts(remaining);
          }
          if (activity.getBaseMiscellaneousCosts() != OpGanttValidator.getBaseMiscellaneousCosts(dataRow)) {
             update = true;
             activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-            double remaining = activity.getBaseMiscellaneousCosts() - activity.getActualMiscellaneousCosts();
-            if (remaining < 0) {
-               remaining = 0;
-            }
-            activity.setRemainingMiscellaneousCosts(remaining);
          }
          if (activity.getAttributes() != OpGanttValidator.getAttributes(dataRow)) {
             update = true;
@@ -1322,10 +1242,7 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setPriority(validatorPriority);
          }
-         if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
-            update = true;
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
+
          if (update) {
             broker.updateObject(activity);
          }
@@ -1394,6 +1311,7 @@ public abstract class OpActivityDataSetFactory {
          assignment = (OpAssignment) assignments.next();
          activitySequence = assignment.getActivity().getSequence();
          boolean reusable = false;
+
          if (!deletedActivity(assignment.getActivity(), dataSet)) { // activity was not deleted on the client
             dataRow = (XComponent) dataSet.getChild(activitySequence);
             resourceList = OpGanttValidator.getResources(dataRow);
@@ -1402,7 +1320,7 @@ public abstract class OpActivityDataSetFactory {
             for (i = resourceList.size() - 1; i >= 0; i--) {
                resourceChoice = (String) resourceList.get(i);
                String resourceChoiceId = XValidator.choiceID(resourceChoice);
-               //ignore invible resources
+               //ignore invisible resources
                if (resourceChoiceId.equals(OpGanttValidator.NO_RESOURCE_ID)) {
                   continue;
                }
@@ -1412,6 +1330,7 @@ public abstract class OpActivityDataSetFactory {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
                   baseEffort = ((Double) resourceBaseEffortList.remove(i)).doubleValue();
+                  baseCosts = baseEffort * assignment.getResource().getHourlyRate();
                   assigned = OpGanttValidator.percentageAssigned(resourceChoice);
                   if (assigned == OpGanttValidator.INVALID_ASSIGNMENT) {
                      assigned = assignment.getResource().getAvailable();
@@ -1437,7 +1356,7 @@ public abstract class OpActivityDataSetFactory {
 
                   if (assignment.getBaseEffort() != baseEffort) {
                      assignment.setBaseEffort(baseEffort);
-                     if (tracking && (baseEffort >= assignment.getActualEffort())) {
+                     if (tracking) {
                         double remaining = baseEffort - assignment.getActualEffort();
                         assignment.setRemainingEffort(remaining);
                         complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, remaining);
@@ -1450,9 +1369,11 @@ public abstract class OpActivityDataSetFactory {
                      update = true;
                   }
 
-                  XCalendar calendar = XCalendar.getDefaultCalendar();
-                  update = updateAssignmentCosts(assignment, calendar);
-                  
+                  if (assignment.getBaseCosts() != baseCosts) {
+                     assignment.setBaseCosts(baseCosts);
+                     update = true;
+                  }
+
                   if (update) {
                      broker.updateObject(assignment);
                   }
@@ -1469,10 +1390,6 @@ public abstract class OpActivityDataSetFactory {
          }
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
-               //check if the assignemnt still has work records - if so => error
-               if (!assignment.getWorkRecords().isEmpty()) {
-                  throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
-               }
                reusableAssignments.add(assignment);
                //break links to activity
                OpActivity activity = assignment.getActivity();
@@ -1524,10 +1441,7 @@ public abstract class OpActivityDataSetFactory {
          }
          assignment.setAssigned(assigned);
          assignment.setBaseEffort(baseEffort);
-
-         XCalendar calendar = XCalendar.getDefaultCalendar();
-         updateAssignmentCosts(assignment, calendar);
-
+         assignment.setBaseCosts(baseEffort * resource.getHourlyRate());
          assignment.setActualEffort(0);
          assignment.setRemainingEffort(baseEffort);
          boolean tracking = activity.getProjectPlan().getProgressTracked();
@@ -1744,14 +1658,12 @@ public abstract class OpActivityDataSetFactory {
 
    private static ArrayList updateOrDeleteAttachments(OpBroker broker, XComponent dataSet, Iterator attachments) {
       ArrayList reusableAttachments = new ArrayList();
-      int maxActivitySequence = dataSet.getChildCount();
       while (attachments.hasNext()) {
          OpAttachment attachment = (OpAttachment) attachments.next();
          OpActivity activity = attachment.getActivity();
          if (activity.getType() == OpActivity.ADHOC_TASK) {
             continue; // exclude attachments from ADHOC_TASKs
          }
-         int activitySequence = activity.getSequence();
          int i;
          boolean reusable = false;
          if (!deletedActivity(activity, dataSet)) { // activity was not deleted on client
@@ -1780,7 +1692,7 @@ public abstract class OpActivityDataSetFactory {
          }
          if (reusable) {
             OpContent content = attachment.getContent();
-            OpContentManager.updateContent(content, broker, false, attachment);
+            OpContentManager.updateContent(content, broker, false);
             reusableAttachments.add(attachment);
             //break link from activity to attachment
             activity.getAttachments().remove(attachment);
@@ -1801,17 +1713,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   /**
-    * Creates an <code>OpAttachment</code> entity out o a list of attachment atributes.
-    *
-    * @param broker
-    * @param activity            - the <code>OpActivity</code> entity for which the attachments is created
-    * @param plan                - the <code>OpProjectPlan</code> entity to which the activity belongs
-    * @param attachmentElement   - the <code>List</code> of attachment attributes
-    * @param reusableAttachments - the list of already created attachments that need to be updated
-    * @return - the newly created/updated <code>OpAttachment</code> entity , could be <code>null</code> if the content id is not valid
-    */
-   public static OpAttachment createAttachment(OpBroker broker, OpActivity activity, OpProjectPlan plan, List attachmentElement, List reusableAttachments) {
+   public static void createAttachment(OpBroker broker, OpActivity activity, OpProjectPlan plan, List attachmentElement, ArrayList reusableAttachments) {
       OpAttachment attachment;
       if ((reusableAttachments != null) && (reusableAttachments.size() > 0)) {
          attachment = (OpAttachment) reusableAttachments.remove(reusableAttachments.size() - 1);
@@ -1821,22 +1723,34 @@ public abstract class OpActivityDataSetFactory {
       }
       attachment.setProjectPlan(plan);
       attachment.setActivity(activity);
-      attachment.setLinked(OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0)));
+      attachment.setLinked(LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0)));
       attachment.setName((String) attachmentElement.get(2));
       attachment.setLocation((String) attachmentElement.get(3));
-      if (plan != null) {
-         OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);
+      OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);
+      OpContent content = null;
+      String mimeType = null;
+
+      if (!LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0))) {
+         String filePath = attachment.getLocation();
+         int index = filePath.lastIndexOf(".");
+         if (index != -1) {
+            String type = filePath.substring(index, filePath.length());
+            mimeType = OpContentManager.getFileMimeType(type);
+         }
       }
 
       if (!attachment.getLinked()) {
          String contentId = (String) attachmentElement.get(4);
-         if (OpLocator.validate(contentId)) {
-            OpContent content = (OpContent) broker.getObject(contentId);
-            OpContentManager.updateContent(content, broker, true, attachment);
+         if (contentId.equals(OpActivityDataSetFactory.NO_CONTENT_ID)) {
+            byte[] bytes = (byte[]) attachmentElement.get(5);
+            content = OpContentManager.newContent(bytes, mimeType);
+            broker.makePersistent(content);
             attachment.setContent(content);
-         } else {
-            logger.warn("The attachment " + attachment.getName() + " was not persisted because the content was null");            
-            return null; // the content is not persisted due to some IO errors
+         }
+         else {
+            content = (OpContent) broker.getObject(contentId);
+            OpContentManager.updateContent(content, broker, true);
+            attachment.setContent(content);
          }
       }
       if (attachment.getID() == 0) {
@@ -1846,7 +1760,10 @@ public abstract class OpActivityDataSetFactory {
          broker.updateObject(attachment);
       }
 
-      return attachment;
+      if (content != null) {
+         content.getAttachments().add(attachment);
+         broker.updateObject(content);
+      }
    }
 
    private static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
@@ -1857,7 +1774,6 @@ public abstract class OpActivityDataSetFactory {
       ArrayList successorIndexes = null;
       ArrayList reusableDependencys = new ArrayList();
 
-      int maxActivitySequence = dataSet.getChildCount();
       int successorActivitySequence = 0;
 
       while (dependencies.hasNext()) {
@@ -1992,12 +1908,13 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
+
    /**
     * Checks if a given activity entity was deletd on the client using the data set received.
     *
-    * @param activity
-    * @param dataSet
-    * @return true if the activity was deleted
+    * @param activity entity that has to be checked if it was removed in client side.
+    * @param dataSet  data set containing the client side activity information.
+    * @return true if the activity was deleted.
     */
    private static boolean deletedActivity(OpActivity activity, XComponent dataSet) {
       for (int i = 0; i < dataSet.getChildCount(); i++) {
@@ -2011,159 +1928,4 @@ public abstract class OpActivityDataSetFactory {
       return true;
    }
 
-   /**
-    * Updates the base personnel costs and base proceeds of the activities that belong to the assignments
-    * passed as parameter
-    *
-    * @param broker             - a <code>OpBroker</code> used for performing business operations.
-    * @param updatedAssignments - a <code>List</code> of <code>OpAssignmentVersion</code> that contain the
-    *                           <code>OpActivityVersion</code> to be updated
-    */
-   public static void updateActivityVersionPersonnelCosts(OpBroker broker, List<OpAssignmentVersion> updatedAssignments) {
-      OpActivityVersion activityVersion;
-
-      List<OpActivityVersion> updatedActivities = new ArrayList<OpActivityVersion>();
-
-      for (OpAssignmentVersion assignmentVersion : updatedAssignments) {
-         double sumBaseCosts = 0;
-         double sumBaseProceeds = 0;
-         activityVersion = assignmentVersion.getActivityVersion();
-         //when an activity udates it's costs, the update takes place for all the assignments that belong to the activity
-         //thus only the first assignment of the activity "updates" the activity, the rest of the activity assignments do nothing
-         if (!updatedActivities.contains(activityVersion)) {
-            double oldPersonnelCosts = activityVersion.getBasePersonnelCosts();
-            double oldProceedsCosts = activityVersion.getBaseProceeds();
-
-            for (OpAssignmentVersion assignmentVersionOfActivity : activityVersion.getAssignmentVersions()) {
-               sumBaseCosts += assignmentVersionOfActivity.getBaseCosts();
-               sumBaseProceeds += assignmentVersionOfActivity.getBaseProceeds();
-            }
-            activityVersion.setBasePersonnelCosts(sumBaseCosts);
-            activityVersion.setBaseProceeds(sumBaseProceeds);
-            updatedActivities.add(activityVersion);
-
-            //update all super activities
-            while (activityVersion.getSuperActivityVersion() != null) {
-               OpActivityVersion superActivityVersion = activityVersion.getSuperActivityVersion();
-               double personnelCostsDifference = activityVersion.getBasePersonnelCosts() - oldPersonnelCosts;
-               double proceedsCostsDifference = activityVersion.getBaseProceeds() - oldProceedsCosts;
-               oldPersonnelCosts = superActivityVersion.getBasePersonnelCosts();
-               oldProceedsCosts = superActivityVersion.getBaseProceeds();
-               superActivityVersion.setBasePersonnelCosts(superActivityVersion.getBasePersonnelCosts() + personnelCostsDifference);
-               superActivityVersion.setBaseProceeds(superActivityVersion.getBaseProceeds() + proceedsCostsDifference);
-               broker.updateObject(activityVersion);
-               activityVersion = superActivityVersion;
-            }
-            broker.updateObject(activityVersion);
-         }
-      }
-   }
-
-   /**
-    * Updates the actual personnel costs and actual proceeds of the activities that belong to the assignments
-    * passed as parameter
-    *
-    * @param broker             - a <code>OpBroker</code> used for performing business operations.
-    * @param updatedAssignments - a <code>List</code> of <code>OpAssignment</code> that contain the
-    *                           <code>OpActivity</code> to be updated
-    */
-   public static void updateActivityActualCosts(OpBroker broker, List<OpAssignment> updatedAssignments) {
-      List<OpActivity> updatedActivities = new ArrayList<OpActivity>();
-      OpActivity activity;
-
-      for (OpAssignment assignment : updatedAssignments) {
-         double sumActualCosts = 0;
-         double sumActualProceeds = 0;
-         activity = assignment.getActivity();
-         if (!updatedActivities.contains(activity)) {
-            double oldActualCosts = activity.getActualPersonnelCosts();
-            double oldActualProceeds = activity.getActualProceeds();
-
-            for (OpAssignment assignmentOfActivity : activity.getAssignments()) {
-               sumActualCosts += assignmentOfActivity.getActualCosts();
-               sumActualProceeds += assignmentOfActivity.getActualProceeds();
-            }
-            activity.setActualPersonnelCosts(sumActualCosts);
-            activity.setActualProceeds(sumActualProceeds);
-            updatedActivities.add(activity);
-
-            //update all super activities
-            while (activity.getSuperActivity() != null) {
-               OpActivity superActivity = activity.getSuperActivity();
-               double actualCostsDifference = activity.getActualPersonnelCosts() - oldActualCosts;
-               double actualProceedsDifference = activity.getActualProceeds() - oldActualProceeds;
-               oldActualCosts = superActivity.getActualPersonnelCosts();
-               oldActualProceeds = superActivity.getActualProceeds();
-               superActivity.setActualPersonnelCosts(superActivity.getActualPersonnelCosts() + actualCostsDifference);
-               superActivity.setActualProceeds(superActivity.getActualProceeds() + actualProceedsDifference);
-               broker.updateObject(activity);
-               activity = superActivity;
-            }
-            broker.updateObject(activity);
-         }
-      }
-   }
-
-   /**
-    * Checks if the base costs and the base proceeds have changed for the assignment passed as parameter and
-    * returns a <code>boolean</code> value indicating whether the costs have changed or not. If the costs have
-    * changed then the noew costs are set on the assignment.
-    *
-    * @param assignment - the <code>OpAssignment</code> entity on which the new costs are set
-    * @param calendar   - the <code>XCalendar</code> needed to handle dates
-    * @return - <code>true</code> if the base costs or the base proceeds or both have changed and <code>false</code>
-    *         otherwise.
-    */
-   public static boolean updateAssignmentCosts(OpAssignment assignment, XCalendar calendar) {
-      boolean modified = false;
-      OpActivity activity = assignment.getActivity();
-      OpProjectNode project = activity.getProjectPlan().getProjectNode();
-      OpProjectNodeAssignment projectNodeAssignment = null;
-      Double internalSum = 0d;
-      Double externalSum = 0d;
-
-      if (activity.getType() != OpActivity.MILESTONE) {
-         List<java.sql.Date> startEndList = activity.getStartEndDateByType();
-         List<java.sql.Date> workingDays = calendar.getWorkingDaysFromInterval(startEndList.get(OpActivityVersion.START_DATE_LIST_INDEX),
-              startEndList.get(OpActivityVersion.END_DATE_LIST_INDEX));
-         double workHoursPerDay = calendar.getWorkHoursPerDay();
-         if (activity.getType() == OpActivity.TASK) {
-            if (workingDays.size() != 0) {
-               workHoursPerDay = activity.getBaseEffort() / (double) workingDays.size();
-            }
-            else {
-               workHoursPerDay = 0;
-            }
-         }
-
-         if (startEndList != null) {
-            //get the project node assignment for this assignment's resource
-            for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
-               for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
-                  if (resourceAssignment.getID() == projectAssignment.getID()) {
-                     projectNodeAssignment = projectAssignment;
-                     break;
-                  }
-               }
-            }
-            List<List<Double>> ratesList = projectNodeAssignment.getRatesForListOfDays(workingDays);
-            List<Double> internalRatesList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
-            List<Double> externalRatesList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
-            for (Double internalRate : internalRatesList) {
-               internalSum += internalRate * workHoursPerDay * assignment.getAssigned() / 100;
-            }
-            for (Double externalRate : externalRatesList) {
-               externalSum += externalRate * workHoursPerDay * assignment.getAssigned() / 100;
-            }
-         }
-
-         if (assignment.getBaseCosts() != internalSum || assignment.getBaseProceeds() != externalSum) {
-            assignment.setBaseCosts(internalSum);
-            assignment.setBaseProceeds(externalSum);
-            modified = true;
-         }
-      }
-
-      return modified;
-   }
 }

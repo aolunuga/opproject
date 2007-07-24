@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 package onepoint.project.modules.report.test;
@@ -6,17 +6,17 @@ package onepoint.project.modules.report.test;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpLocator;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.report.OpReportError;
 import onepoint.project.modules.report.OpReportService;
-import onepoint.project.test.OpBaseOpenTestCase;
-import onepoint.project.test.OpTestDataFactory;
-import onepoint.service.XMessage;
+import onepoint.project.test.OpBaseTestCase;
 import onepoint.util.XEncodingHelper;
+import onepoint.service.XMessage;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,9 +25,9 @@ import java.util.List;
  *
  * @author calin.pavel
  */
-public class OpReportServiceTest extends OpBaseOpenTestCase {
+public class OpReportServiceTest extends OpBaseTestCase {
    // class logger.
-   private static final XLog logger = XLogFactory.getServerLogger(OpReportServiceTest.class);
+   private static final XLog logger = XLogFactory.getLogger(OpReportServiceTest.class, true);
 
    private OpReportService reportService;
    private OpReportTestDataFactory dataFactory;
@@ -44,7 +44,7 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
-      reportService = OpTestDataFactory.getReportService();
+      reportService = getReportService();
       dataFactory = new OpReportTestDataFactory(session);
 
       cleanUp();
@@ -259,9 +259,10 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
       assertTrue(reportPath.length() > 0);
 
       reportPath = XEncodingHelper.decodeValue(reportPath);
-
+      
       // now check if file really exists.
-      File reportFile = new File(OpReportService.SAVED_REPORTS_PATH + reportPath);
+      URL reportFileUrl = new URL(reportPath);
+      File reportFile = new File(reportFileUrl.getFile());
       assertTrue("Returned file should exist on disk.", reportFile.exists());
       assertTrue("Returned path must be a file", reportFile.isFile());
       assertTrue("Generated report must not be empty.", reportFile.length() > 0);

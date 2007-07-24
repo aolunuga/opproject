@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.user.forms;
@@ -10,9 +10,9 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpGroup;
-import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
+import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -34,8 +34,8 @@ public class OpNewUserFormProvider implements XFormProvider {
    public final static String USER_LANGUAGE_FIELD = "UserLanguage";
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
-   public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
+   public final static String MANAGER_LEVEL_CAPTION = "{$ManagerLevel}";
+   public final static String STANDARD_LEVEL_CAPTION = "{$StandardLevel}";
    public final static String RESOURCE_MAP = "user.new_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -53,7 +53,7 @@ public class OpNewUserFormProvider implements XFormProvider {
       XComponent assignmentDataSet = form.findComponent(ASSIGNMENT_GROUP_DATA_SET);
       XComponent dataRow = assignmentDataSet.newDataRow();
       dataRow.setStringValue(everyoneField.getStringValue());
-      assignmentDataSet.addChild(dataRow);
+      assignmentDataSet.addDataRow(dataRow);
 
       //fill the language dataset
       XComponent languageDataSet = form.findComponent(USER_LANGUAGE_DATA_SET);

@@ -1,4 +1,4 @@
-<form layout="border" width="240" height="144" text="${SelectProject}" resource-map-ref="project.ProjectChooser" provider-class="onepoint.project.modules.project.forms.OpProjectChooserFormProvider" script="/modules/project/scripts/project_chooser.jes">
+<form layout="border" width="240" height="144" text="{$SelectProject}" resource-map-ref="project.ProjectChooser" provider-class="onepoint.project.modules.project.forms.OpProjectChooserFormProvider" script="/modules/project/scripts/project_chooser.jes">
 
    <data-field id="CallingFrameID"/>
    <data-field id="ActionHandler"/>
@@ -15,10 +15,6 @@
       <data-row icon="/modules/project/icons/portfolio.png"/>
       <data-row icon="/modules/project/icons/template.png"/>
       <data-row icon="/modules/project/icons/project.png"/>
-      <data-row icon="/modules/project/icons/project_edit.png"/>
-      <data-row icon="/modules/project/icons/project_locked.png"/>      
-      <data-row icon="/modules/project/icons/template_edit.png"/>
-      <data-row icon="/modules/project/icons/template_locked.png"/>
    </data-set>
 
    <panel layout="border">
@@ -27,8 +23,8 @@
 
       <panel y="1" layout="flow" direction="west">
          <panel layout="border">
-            <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok"/>
-            <button x="1" id="Cancel" text="${Cancel}" on-button-pressed="cancel"/>
+            <button x="0" id="OkButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
          </panel>
       </panel>
 

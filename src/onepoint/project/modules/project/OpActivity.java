@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.project;
@@ -9,9 +9,8 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
+import java.util.Iterator;
 
 public class OpActivity extends OpObject {
 
@@ -55,7 +54,6 @@ public class OpActivity extends OpObject {
    public final static String ATTACHMENTS = "Attachments";
    public final static String VERSIONS = "Versions";
    public final static String COMMENTS = "Comments";
-   public final static String RESPONSIBLE_RESOURCE = "ResponsibleResource";
 
    // Activity types
    public final static byte STANDARD = OpGanttValidator.STANDARD;
@@ -72,10 +70,6 @@ public class OpActivity extends OpObject {
    public final static int HAS_ATTACHMENTS = OpGanttValidator.HAS_ATTACHMENTS;
    public final static int HAS_COMMENTS = OpGanttValidator.HAS_COMMENTS;
 
-   //Start & End date indexes
-   public final static int START_DATE_LIST_INDEX = 0;
-   public final static int END_DATE_LIST_INDEX = 1;
-
    private String name;
    private String description;
    private byte type = STANDARD;
@@ -87,7 +81,7 @@ public class OpActivity extends OpObject {
    private Date finish;
    private double duration;
    private double complete;
-   private byte priority; // Priority 1-9 (0 means N/A)
+   private byte priority; // Priority 1-9 (null means undefined)
    private double baseEffort; // Person hours
    private double baseTravelCosts;
    private double basePersonnelCosts;
@@ -96,43 +90,25 @@ public class OpActivity extends OpObject {
    private double baseMiscellaneousCosts;
    private double actualEffort; // Person hours
    private double actualTravelCosts;
-   private double remainingTravelCosts;
    private double actualPersonnelCosts;
    private double actualMaterialCosts;
-   private double remainingMaterialCosts;
    private double actualExternalCosts;
-   private double remainingExternalCosts;
    private double actualMiscellaneousCosts;
-   private double remainingMiscellaneousCosts;
    private double remainingEffort; // Person hours
-   private double baseProceeds;
-   private double actualProceeds;
-   private double payment;
    private boolean deleted;
    private boolean expanded;
    private boolean template;
    private OpProjectPlan projectPlan;
    private OpActivity superActivity;
    private OpResource responsibleResource;
-   private Set<OpActivity> subActivities; // *** Could also be a List (via sequence)
-   private Set<OpAssignment> assignments;
-   private Set<OpWorkPeriod> workPeriods;
-   private Set<OpDependency> successorDependencies;
-   private Set<OpDependency> predecessorDependencies;
-   private Set<OpAttachment> attachments;
-   private Set<OpActivityVersion> versions;
-   private Set<OpActivityComment> comments;
-
-
-   private boolean usesBaseline;
-
-   public OpActivity() {
-   }
-
-   public OpActivity(byte type) {
-      this();
-      setType(type);
-   }
+   private Set subActivities; // *** Could also be a List (via sequence)
+   private Set assignments;
+   private Set workPeriods;
+   private Set successorDependencies;
+   private Set predecessorDependencies;
+   private Set attachments;
+   private Set versions;
+   private Set comments;
 
    public void setName(String name) {
       this.name = name;
@@ -151,9 +127,6 @@ public class OpActivity extends OpObject {
    }
 
    public void setType(byte type) {
-      if ((type < 0) || (type > ADHOC_TASK)) {
-         throw (new IllegalArgumentException("type must be within [0," + ADHOC_TASK + "]!"));
-      }
       this.type = type;
    }
 
@@ -238,41 +211,7 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseEffort() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseEffort();
-         }
-         else {
-            return 0;
-         }
-      }
       return baseEffort;
-   }
-
-   public OpActivityVersion getBaselineVersion() {
-      OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
-      if (baselinePlanVersion != null) {
-         for (OpActivityVersion version : getVersions()) {
-            if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
-               return version;
-            }
-         }
-      }
-      return null;
-   }
-
-   public boolean isInBaselineVersion() {
-      OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
-      if (baselinePlanVersion == null) {
-         return true;
-      }
-      for (OpActivityVersion version : baselinePlanVersion.getActivityVersions()) {
-         if (version.getActivity().getID() == this.getID()) {
-            return true;
-         }
-      }
-      return false;
    }
 
    public void setBaseTravelCosts(double baseTravelCosts) {
@@ -280,15 +219,6 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseTravelCosts() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseTravelCosts();
-         }
-         else {
-            return 0;
-         }
-      }
       return baseTravelCosts;
    }
 
@@ -297,15 +227,6 @@ public class OpActivity extends OpObject {
    }
 
    public double getBasePersonnelCosts() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBasePersonnelCosts();
-         }
-         else {
-            return 0;
-         }
-      }
       return basePersonnelCosts;
    }
 
@@ -314,15 +235,6 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseMaterialCosts() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseMaterialCosts();
-         }
-         else {
-            return 0;
-         }
-      }
       return baseMaterialCosts;
    }
 
@@ -331,15 +243,6 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseExternalCosts() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseExternalCosts();
-         }
-         else {
-            return 0;
-         }
-      }
       return baseExternalCosts;
    }
 
@@ -348,15 +251,6 @@ public class OpActivity extends OpObject {
    }
 
    public double getBaseMiscellaneousCosts() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseMiscellaneousCosts();
-         }
-         else {
-            return 0;
-         }
-      }
       return baseMiscellaneousCosts;
    }
 
@@ -448,19 +342,19 @@ public class OpActivity extends OpObject {
       return projectPlan;
    }
 
-   public void setAssignments(Set<OpAssignment> assignments) {
+   public void setAssignments(Set assignments) {
       this.assignments = assignments;
    }
 
-   public Set<OpAssignment> getAssignments() {
+   public Set getAssignments() {
       return assignments;
    }
 
-   public void setWorkPeriods(Set<OpWorkPeriod> workPeriods) {
+   public void setWorkPeriods(Set workPeriods) {
       this.workPeriods = workPeriods;
    }
 
-   public Set<OpWorkPeriod> getWorkPeriods() {
+   public Set getWorkPeriods() {
       return workPeriods;
    }
 
@@ -472,51 +366,51 @@ public class OpActivity extends OpObject {
       return superActivity;
    }
 
-   public void setSubActivities(Set<OpActivity> subActivities) {
+   public void setSubActivities(Set subActivities) {
       this.subActivities = subActivities;
    }
 
-   public Set<OpActivity> getSubActivities() {
+   public Set getSubActivities() {
       return subActivities;
    }
 
-   public void setSuccessorDependencies(Set<OpDependency> successorDependencies) {
+   public void setSuccessorDependencies(Set successorDependencies) {
       this.successorDependencies = successorDependencies;
    }
 
-   public Set<OpDependency> getSuccessorDependencies() {
+   public Set getSuccessorDependencies() {
       return successorDependencies;
    }
 
-   public void setPredecessorDependencies(Set<OpDependency> predecessorDependencies) {
+   public void setPredecessorDependencies(Set predecessorDependencies) {
       this.predecessorDependencies = predecessorDependencies;
    }
 
-   public Set<OpDependency> getPredecessorDependencies() {
+   public Set getPredecessorDependencies() {
       return predecessorDependencies;
    }
 
-   public void setAttachments(Set<OpAttachment> attachments) {
+   public void setAttachments(Set attachments) {
       this.attachments = attachments;
    }
 
-   public Set<OpAttachment> getAttachments() {
+   public Set getAttachments() {
       return attachments;
    }
 
-   public void setVersions(Set<OpActivityVersion> versions) {
+   public void setVersions(Set versions) {
       this.versions = versions;
    }
 
-   public Set<OpActivityVersion> getVersions() {
+   public Set getVersions() {
       return versions;
    }
 
-   public void setComments(Set<OpActivityComment> comments) {
+   public void setComments(Set comments) {
       this.comments = comments;
    }
 
-   public Set<OpActivityComment> getComments() {
+   public Set getComments() {
       return comments;
    }
 
@@ -528,75 +422,11 @@ public class OpActivity extends OpObject {
       this.responsibleResource = responsibleResource;
    }
 
-   public double getBaseProceeds() {
-      if (usesBaseline) {
-         OpActivityVersion baselineVersion = getBaselineVersion();
-         if (baselineVersion != null) {
-            return baselineVersion.getBaseProceeds();
-         }
-         else {
-            return 0;
-         }
-      }
-      return baseProceeds;
-   }
-
-   public void setBaseProceeds(Double baseProceeds) {
-      this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
-   }
-
-   public double getActualProceeds() {
-      return actualProceeds;
-   }
-
-   public void setActualProceeds(Double actualProceeds) {
-      this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
-   }
-
-   public double getPayment() {
-      return payment;
-   }
-
-   public void setPayment(Double payment) {
-      this.payment = (payment != null) ? payment : 0;
-   }
-
-   public double getRemainingTravelCosts() {
-      return remainingTravelCosts;
-   }
-
-   public void setRemainingTravelCosts(Double remainingTravelCosts) {
-      this.remainingTravelCosts = remainingTravelCosts != null ? remainingTravelCosts : 0;
-   }
-
-   public double getRemainingMaterialCosts() {
-      return remainingMaterialCosts;
-   }
-
-   public void setRemainingMaterialCosts(Double remainingMaterialCosts) {
-      this.remainingMaterialCosts = remainingMaterialCosts != null ? remainingMaterialCosts : 0;
-   }
-
-   public double getRemainingExternalCosts() {
-      return remainingExternalCosts;
-   }
-
-   public void setRemainingExternalCosts(Double remainingExternalCosts) {
-      this.remainingExternalCosts = remainingExternalCosts != null ? remainingExternalCosts : 0;
-   }
-
-   public double getRemainingMiscellaneousCosts() {
-      return remainingMiscellaneousCosts;
-   }
-
-   public void setRemainingMiscellaneousCosts(Double remainingMiscellaneousCosts) {
-      this.remainingMiscellaneousCosts = remainingMiscellaneousCosts != null ? remainingMiscellaneousCosts : 0;
-   }
 
    /**
     * Calculates the actual total costs of this activity.
     *
-    * @return Total actual cost (Personnel + Travel + Material + External + Misc + Proceeds)
+    * @return Total actual cost (Personnel + Travel + Material + External + Misc)
     */
    public double calculateActualCost() {
       double actual = this.getActualPersonnelCosts();
@@ -604,7 +434,6 @@ public class OpActivity extends OpObject {
       actual += this.getActualMaterialCosts();
       actual += this.getActualExternalCosts();
       actual += this.getActualMiscellaneousCosts();
-      actual += this.getActualProceeds();
       return actual;
    }
 
@@ -623,71 +452,54 @@ public class OpActivity extends OpObject {
    }
 
    /**
-    * Returns a <code>List</code> containing two dates: a start date and an end date.
-    * if the activity is a STANDARD one then the list will contain it's start and end dates,
-    * if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
-    * from the activity's end date, the project's end date and the project'a plan end date. The first one
-    * (in this order) that is found not null will be returned.
+    * Recalculates the base personnell costs for this activity by summing up the base personnel
+    * costs of its assignments.
     *
-    * @return - a <code>List</code> containing two dates: a start date and an end date.
-    *         if the activity is a STANDARD one then the list will contain it's start and end dates,
-    *         if the activity is a TASK then the list will contain it's start date. If the end date will be chosen
-    *         from the activity's end date, the project's end date and the project'a plan end date. The first one
-    *         (in this order) that is found not null will be returned.
+    * @return a <code>double</code> representing the activitie's base personnel costs.
     */
-   public List<Date> getStartEndDateByType() {
-      List<Date> dates = null;
-
-      if (type == STANDARD) {
-         dates = new ArrayList<Date>();
-         dates.add(START_DATE_LIST_INDEX, start);
-         dates.add(END_DATE_LIST_INDEX, finish);
-      }
-
-      if (type == TASK) {
-         dates = new ArrayList<Date>();
-         dates.add(START_DATE_LIST_INDEX, start);
-         if (finish != null) {
-            dates.add(END_DATE_LIST_INDEX, finish);
-         }
-         else {
-            if (projectPlan.getProjectNode().getFinish() != null) {
-               dates.add(END_DATE_LIST_INDEX, projectPlan.getProjectNode().getFinish());
-            }
-            else {
-               dates.add(END_DATE_LIST_INDEX, projectPlan.getFinish());
-            }
+   public double recalculateBasePersonnelCosts() {
+      double sum = 0;
+      if (this.getSubActivities().size() > 0) {
+         Iterator subactivitiesIterator = this.getSubActivities().iterator();
+         while (subactivitiesIterator.hasNext()) {
+            OpActivity subActivity = (OpActivity) subactivitiesIterator.next();
+            sum += subActivity.recalculateBasePersonnelCosts();
          }
       }
-      if (type == ADHOC_TASK) {
-         dates = new ArrayList<Date>();
-         if (start != null) {
-            dates.add(START_DATE_LIST_INDEX, start);
-         }
-         else {
-            dates.add(START_DATE_LIST_INDEX, projectPlan.getProjectNode().getStart());
-         }
-         if (finish != null) {
-            dates.add(END_DATE_LIST_INDEX, finish);
-         }
-         else {
-            if (projectPlan.getProjectNode().getFinish() != null) {
-               dates.add(END_DATE_LIST_INDEX, projectPlan.getProjectNode().getFinish());
-            }
-            else {
-               dates.add(END_DATE_LIST_INDEX, projectPlan.getFinish());
-            }
+      else {
+         Iterator assignmentsIterator = assignments.iterator();
+         while (assignmentsIterator.hasNext()) {
+            OpAssignment assignment = (OpAssignment) assignmentsIterator.next();
+            sum += assignment.getBaseCosts();
          }
       }
-
-      return dates;
+      this.setBasePersonnelCosts(sum);
+      return sum;
    }
 
-   public void setIsUsingBaselineValues(boolean useBaseline) {
-      this.usesBaseline = useBaseline;
-   }
-
-   public boolean isUsingBaselineValues() {
-      return usesBaseline;
+   /**
+    * Recalculates the actual  personnel costs for this activity by summing up the actual personnel
+    * costs of its assignments.
+    *
+    * @return a <code>double</code> representing the activity's actual personnel costs.
+    */
+   public double recalculateActualPersonnelCosts() {
+      double sum = 0;
+      if (this.getSubActivities().size() > 0) {
+         Iterator subactivitiesIterator = this.getSubActivities().iterator();
+         while (subactivitiesIterator.hasNext()) {
+            OpActivity subActivity = (OpActivity) subactivitiesIterator.next();
+            sum += subActivity.recalculateActualPersonnelCosts();
+         }
+      }
+      else {
+         Iterator assignmentsIterator = assignments.iterator();
+         while (assignmentsIterator.hasNext()) {
+            OpAssignment assignment = (OpAssignment) assignmentsIterator.next();
+            sum += assignment.getActualCosts();
+         }
+      }
+      this.setActualPersonnelCosts(sum);
+      return sum;
    }
 }

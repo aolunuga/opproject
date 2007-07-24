@@ -1,10 +1,13 @@
 <module name="my_projects" caption="Meine Projekte" version="0.1"
         class="onepoint.project.modules.my_projects.OpMyProjectsModule">
-   <language-kit-paths>
-      <language-kit-path path="/modules/my_projects/i18n"/>
-   </language-kit-paths>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/my_projects/i18n/my_projects_en.olk.xml"/>
+      <language-kit-file file-name="/modules/my_projects/i18n/my_projects_de.olk.xml"/>
+      <language-kit-file file-name="/modules/my_projects/i18n/my_projects_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/my_projects/i18n/my_projects_fr.olk.xml"/>
+   </language-kit-files>
    <tools>
-      <tool name="my_projects" caption="${ProjectsTool}" group-ref="my"
+      <tool name="my_projects" caption="{$ProjectsTool}" group-ref="my"
             icon="/modules/my_projects/icons/my_projects_tool.png"
             start-form="/modules/my_projects/forms/my_projects.oxf.xml"/>
    </tools>

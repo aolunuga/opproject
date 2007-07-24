@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.resource.forms;
@@ -7,12 +7,12 @@ package onepoint.project.modules.resource.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermissionSetFactory;
-import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -54,7 +54,7 @@ public class OpNewPoolFormProvider implements XFormProvider {
 
       byte superPoolAccesssLevel = session.effectiveAccessLevel(broker, superPool.getID());
 
-      if (OpEnvironmentManager.isMultiUser()) {
+      if (OpInitializer.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          // Retrieve permission set of super pool -- inheritance of permissions

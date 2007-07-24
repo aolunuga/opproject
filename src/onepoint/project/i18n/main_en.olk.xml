@@ -2,8 +2,8 @@
    <resource-map id="main.login">
       <resource id="Login">Login</resource>
       <resource id="Password">Password</resource>
-      <resource id="Remember">Remember me on this computer</resource>
       <resource id="OK">OK</resource>
+      <resource id="MySQLEngineWarning">WARNING: You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>
    </resource-map>
    <resource-map id="main.levels">
       <resource id="runLevel0">Could not load configuration file</resource>
@@ -18,7 +18,7 @@
       <resource id="ClearImageCache">Clear Image Cache</resource>
       <resource id="GetBandwidthInfo">Show Bandwidth Information</resource>
       <resource id="SignOff">Sign off</resource>
-      <resource id="Quit">Quit</resource>
+      <resource id="Quit">Quit</resource>      
    </resource-map>
    <resource-map id="main.dock">
       <resource id="ToolDock">TOOL DOCK</resource>
@@ -27,8 +27,8 @@
    <resource-map id="main.about">
       <resource id="OK">OK</resource>
       <resource id="About">About Onepoint Project</resource>
-      <resource id="Version">Version:</resource>
-      <resource id="CurrentVersion">most current version:</resource>
+      <resource id="Version">Version: </resource>
+      <resource id="CurrentVersion">most current version: </resource>
    </resource-map>
 
    <resource-map id="main.bandwidth">

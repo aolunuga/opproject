@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
  */
 
 package onepoint.project.modules.work;
@@ -21,18 +21,6 @@ public class OpWorkErrorMap extends XErrorMap {
       registerErrorCode(OpWorkError.INCORRECT_REMAINING_EFFORT, OpWorkError.INCORRECT_REMAINING_EFFORT_NAME);
       registerErrorCode(OpWorkError.INCORRECT_TRAVEL_COSTS, OpWorkError.INCORRECT_TRAVEL_COSTS_NAME);
       registerErrorCode(OpWorkError.WORK_SLIP_NOT_FOUND, OpWorkError.WORK_SLIP_NOT_FOUND_NAME);
-      registerErrorCode(OpWorkError.CREATOR_MISSING, OpWorkError.CREATOR_MISSING_NAME);
-      registerErrorCode(OpWorkError.WORK_RECORDS_MISSING, OpWorkError.WORK_RECORDS_MISSING_NAME);
-      registerErrorCode(OpWorkError.START_TIME_IS_NEGATIVE, OpWorkError.START_TIME_IS_NEGATIVE_NAME);
-      registerErrorCode(OpWorkError.START_TIME_IS_TOO_LARGE, OpWorkError.START_TIME_IS_TOO_LARGE_NAME);
-      registerErrorCode(OpWorkError.FINISH_TIME_IS_NEGATIVE, OpWorkError.FINISH_TIME_IS_NEGATIVE_NAME);
-      registerErrorCode(OpWorkError.FINISH_TIME_IS_TOO_LARGE, OpWorkError.FINISH_TIME_IS_TOO_LARGE_NAME);
-      registerErrorCode(OpWorkError.START_AFTER_FINISH, OpWorkError.START_AFTER_FINISH_NAME);
-      registerErrorCode(OpWorkError.DURATION_NOT_VALID, OpWorkError.DURATION_NOT_VALID_NAME);
-      registerErrorCode(OpWorkError.ACTUAL_COSTS_NOT_VALID, OpWorkError.ACTUAL_COSTS_NOT_VALID_NAME);
-      registerErrorCode(OpWorkError.REMAINING_COSTS_NOT_VALID, OpWorkError.REMAINING_COSTS_NOT_VALID_NAME);
-      registerErrorCode(OpWorkError.COST_TYPE_NOT_VALID, OpWorkError.COST_TYPE_NOT_VALID_NAME);
-      registerErrorCode(OpWorkError.TIME_RECORDS_OVERLAP, OpWorkError.TIME_RECORDS_OVERLAP_NAME);
    }
 
 }
