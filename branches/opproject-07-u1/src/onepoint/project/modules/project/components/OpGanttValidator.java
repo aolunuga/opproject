@@ -1549,7 +1549,9 @@ public class OpGanttValidator extends XValidator {
          }
       }
       else {
-         updateDuration(activity, getDuration(activity));
+         if (getType(activity) != COLLECTION) {
+            updateDuration(activity, getDuration(activity));
+         }
          end = getEnd(activity);
       }
 
@@ -2437,10 +2439,6 @@ public class OpGanttValidator extends XValidator {
 
    protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
       
-      if (getActualEffort(data_row) > base_effort) {
-         throw new XValidationException(INVALID_BASE_EFFORT_EXCEPTION);
-      }
-
       if (isProjectMandatory(data_row)) {
          if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
               (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {

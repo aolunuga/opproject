@@ -5,6 +5,9 @@
 package onepoint.persistence;
 
 import java.util.Hashtable;
+import java.util.Iterator;
+
+import onepoint.service.server.XSession;
 
 public class OpSourceManager {
 
@@ -38,6 +41,33 @@ public class OpSourceManager {
 	public static OpSource getSource(String name) {
 		return (OpSource) (sources.get(name));
 	}
+
+	   /**
+	    * Closes the given Source and unregisters it.
+	    *
+	    * @param sourceName name of the source to be retrieved.
+	    */
+	   public static void closeSource(String sourceName) {
+	       OpSource currSource = (OpSource)sources.get(sourceName);
+	       if(currSource != null){
+	    	   currSource.close();
+	    	   sources.remove(sourceName);
+	       }
+	      
+	   }
+
+	   /**
+	    * Closes all registered Sources. Should be called before shutdown.
+	    *
+	    */
+	   public static void closeAllSources() {
+	      Iterator it = sources.keySet().iterator();
+	      while (it.hasNext()) {
+	         String key = (String)it.next();
+	         closeSource(key);
+	      }
+	      defaultSource.close();
+	   }
 
 	// Where to mount data sources (in sessions or here, more globally)?
 	// ==> Maybe both: Global for everyone and just have to be opened in a session?!

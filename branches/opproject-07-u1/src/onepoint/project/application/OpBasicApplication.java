@@ -4,11 +4,22 @@
 
 package onepoint.project.application;
 
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
+import java.io.File;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
+import onepoint.express.XExitHandler;
 import onepoint.express.application.XExpressApplication;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpSourceManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
@@ -22,13 +33,7 @@ import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
-import java.awt.*;
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
-public class OpBasicApplication {
+public class OpBasicApplication implements XExitHandler{
 
 
    /**
@@ -38,6 +43,7 @@ public class OpBasicApplication {
    private final String title;
    private static final int ERROR_WIDTH = 400;
    private static final int ERROR_HEIGHT = 100;
+   private XExpressApplication application;
 
 
    /**
@@ -62,7 +68,7 @@ public class OpBasicApplication {
    protected void start(String[] arguments) {
 
       // create startup application
-      XExpressApplication application = createStartupApplication(title);
+      application = createStartupApplication(title);
 
       // Register UI-scripting proxies
       XComponent.registerProxy(new OpProjectComponentProxy());
@@ -84,6 +90,9 @@ public class OpBasicApplication {
 
       //Start must be called *after* overriding session class
       application.start();
+
+        //we want do do some cleanup...
+      application.registerExitHandler(this);
 
       // Show GUI
       application.setVisible(true);
@@ -151,5 +160,10 @@ public class OpBasicApplication {
     */
    protected String getProductCode() {
       return OpProjectConstants.BASIC_EDITION_CODE;
+   }
+   
+   public void processExitEvent(){
+	   application.getServer().stop();
+	   OpSourceManager.closeAllSources();
    }
 }
