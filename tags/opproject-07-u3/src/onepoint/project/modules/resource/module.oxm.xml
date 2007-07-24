@@ -1,0 +1,18 @@
+<module name="resource" caption="Ressourcen" version="0.7" class="onepoint.project.modules.resource.OpResourceModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/resource/resource_pool.opt.xml"/>
+      <prototype-file file-name="/modules/resource/resource.opt.xml"/>
+   </prototype-files>
+   <service-files>
+      <service-file file-name="/modules/resource/resource_service.osd.xml"/>
+   </service-files>
+   <language-kit-files>
+      <language-kit-file file-name="/modules/resource/i18n/resource_en.olk.xml"/>
+      <language-kit-file file-name="/modules/resource/i18n/resource_de.olk.xml"/>
+      <language-kit-file file-name="/modules/resource/i18n/resource_ru.olk.xml"/>
+      <language-kit-file file-name="/modules/resource/i18n/resource_fr.olk.xml"/>
+   </language-kit-files>
+   <tools>
+      <tool name="resource" caption="{$AdministrationTool}" group-ref="resources" icon="/modules/resource/icons/resource_tool.png" start-form="/modules/resource/forms/resources.oxf.xml"/>
+   </tools>
+</module>

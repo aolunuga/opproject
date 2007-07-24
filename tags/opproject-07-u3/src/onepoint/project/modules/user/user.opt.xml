@@ -1,0 +1,12 @@
+<prototype name="OpUser" instance-class="onepoint.project.modules.user.OpUser" super-type="OpSubject">
+   <field name="Password" type="String"/>
+   <field name="AuthenticationType" type="Byte"/>
+   <field name="Level" type="Byte"/>
+   <relationship name="Contact" type="OpContact" back-relationship="User" inverse="true" cascade="delete"/>
+   <relationship name="Assignments" type="OpUserAssignment" collection-type="Set" back-relationship="User" inverse="true"  cascade="delete"/>
+   <relationship name="OwnedLocks" type="OpLock" collection-type="Set" back-relationship="Owner" inverse="true"  cascade="delete"/>
+   <relationship name="Resources" type="OpResource" collection-type="Set" back-relationship="User" inverse="true"/>
+   <relationship name="Preferences" type="OpPreference" collection-type="Set" back-relationship="User" inverse="true" cascade="delete"/>
+   <relationship name="ActivityComments" type="OpActivityComment" collection-type="Set" back-relationship="Creator" inverse="true" cascade="delete"/>
+   <relationship name="WorkSlips" type="OpWorkSlip" collection-type="Set" back-relationship="Creator" inverse="true" cascade="delete"/>
+</prototype>

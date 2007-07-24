@@ -1,0 +1,20 @@
+<form layout="border" provider-class="onepoint.project.forms.OpLoginFormProvider" resource-map-ref="main.login"
+      default-button-ref="okButton" start-focus-ref="Login" script="/scripts/login.jes" on-show="showForm">
+   <data-set id="UserDataSet"/>
+   <data-field id="MySQLEngineWarning" string-value="{$MySQLEngineWarning}"/>
+   <panel layout="border" style-ref="login-background-panel-default">
+      <panel layout="border" icon="/icons/login.png" flexible="false">
+         <panel layout="table" width="5" style-ref="login-panel-default">
+			<label x="0" y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+            <label x="0" y="1" width="2" text="{$Login}" style-ref="header-label-default"/>
+            <text-field x="2" y="1" width="3" id="Login"/>
+            <!-- should be pop-up referencing UserDataSet instead of text field -->
+            <label x="0" y="2" width="2" text="{$Password}" style-ref="header-label-default"/>
+            <text-field x="2" y="2" width="3" id="Password" secret="true"/>
+            <!-- should be password-field instead of text-field (not showing chars) -->
+            <button x="2" y="3" id="okButton" text="{$OK}" on-button-pressed="ok"/>
+            <!-- layouting bug: Default button style is center/center but filled -->
+         </panel>
+      </panel>
+   </panel>
+</form>

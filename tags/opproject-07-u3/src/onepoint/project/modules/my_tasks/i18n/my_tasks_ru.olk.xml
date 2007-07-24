@@ -1,0 +1,108 @@
+<language-kit locale="ru">
+   <resource-map id="my_tasks.module">
+      <resource id="TasksTool">Мои задачи</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.my_tasks">
+
+      <resource id="NewAdhoc">New task</resource>
+      <resource id="EditAdhoc">Edit task</resource>
+      <resource id="DeleteAdhoc">Delete task</resource>
+      <resource id="NewComment">Новый комментарий</resource>
+      <resource id="Info">Свойства</resource>
+      <resource id="Print">Печать</resource>
+
+      <resource id="NewAdhocTooltip">Create new ad hoc task</resource>
+      <resource id="EditAdhocTooltip">Edit the selected ad hoc task</resource>
+      <resource id="DeleteAdhocTooltip">Delete the selected ad hoc tasks</resource>
+      <resource id="NewCommentTooltip">Добавить новый комментарий</resource>
+      <resource id="InfoTooltip">Показать свойства задачи</resource>
+      <resource id="PrintTooltip">Печать данной области</resource>
+
+      <resource id="Tasklist">Список задач</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="PercentageFinished">% выполнения</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Effort">Объём работ</resource>
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Priority">Приоритет</resource>
+      <resource id="Project">Проект</resource>
+
+      <resource id="GanttDiagram">Диаграмма</resource>
+      <resource id="ChangeTimeUnit">Ед. времени</resource>
+      <resource id="Days">Дни</resource>
+      <resource id="Weeks">Недели</resource>
+      <resource id="Months">Месяцы</resource>
+
+      <resource id="StartBefore">Период</resource>
+      <resource id="All">Все</resource>
+      <resource id="Project">Проект</resource>
+      <resource id="NextWeek">След. неделя</resource>
+      <resource id="Next2Weeks">След. 2 недели</resource>
+      <resource id="NextMonth">След. месяц</resource>
+      <resource id="Next2Months">След. 2 месяца</resource>
+
+      <resource id="Resources">Resources</resource>
+      <resource id="Responsible">Responsible</resource>
+      <resource id="Managed">Managed</resource>
+
+      <resource id="SaveCSV">Сохранить как таблицу...</resource>
+      <resource id="SaveImage">Сохранить как изображение...</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.adhoc_tasks">
+      <resource id="NewAdhocTitle">New Task</resource>
+      <resource id="EditAdhocTitle">Edit Task</resource>
+      <resource id="InfoAdhocTitle">Properties</resource>
+
+      <resource id="General">General</resource>
+      <resource id="Name">Name</resource>
+      <resource id="Priority">Priority</resource>
+      <resource id="Description">Description</resource>
+      <resource id="DueDate">Due on</resource>
+      <resource id="Project">Project</resource>
+      <resource id="Resource">Resource</resource>
+
+      <resource id="Attachments">Attachments</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+
+      <resource id="Comments">Comments</resource>
+      <resource id="AddCommentTooltip">Add new comment</resource>
+      <resource id="RemoveCommentsTooltip">Delete selected comments</resource>
+      <resource id="By">By</resource>
+      <resource id="On">on</resource>
+      <resource id="At">at</resource>
+      <resource id="CommentSoFar">comment so far</resource>
+      <resource id="CommentsSoFar">comments so far</resource>
+      <resource id="NoCommentsPossible">No comments (activity not checked in yet)</resource>
+
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.delete">
+      <resource id="ConfirmDelete">Delete Ad Hoc Tasks</resource>
+      <resource id="NoSelectionMessage">Please select one or more ad hoc tasks which should be deleted</resource>
+      <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected ad hoc task?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected ad hoc tasks?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="my_tasks.error">
+      <resource id="EmptyName">The task name was not set</resource>
+      <resource id="InvalidDueDate">The entered due date is invalid</resource>
+      <resource id="NoProjectError">There was no project selected</resource>
+      <resource id="NoResourceError">There was no resource assigned</resource>
+      <resource id="ExistingWorkSlipError">Ad hoc tasks cannot be deleted since they are referenced by work slips</resource>
+      <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+   </resource-map>
+
+</language-kit>

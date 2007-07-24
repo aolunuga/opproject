@@ -1,0 +1,51 @@
+<language-kit locale="de">
+   <resource-map id="main.login">
+      <resource id="Login">Benutzername</resource>
+      <resource id="Password">Passwort</resource>
+      <resource id="OK">OK</resource>
+      <resource id="MySQLEngineWarning">ACHTUNG: Sie verwenden eine nicht-transaktionelle Datenbank was zu Dateninkonsistenzen führen kann. Bitte nehmen Sie zwecks Datenbank-Upgrade-Instruktionen das README-Datei zur Hand</resource>            
+   </resource-map>
+   <resource-map id="main.levels">
+      <resource id="runLevel0">Konfigurationsdatei konnte nicht geladen werden</resource>
+      <resource id="runLevel1">Registrierte Module konnten nicht geladen werden</resource>
+      <resource id="runLevel2">Keine Verbindung zur Datenbank.</resource>
+      <resource id="runLevel3">Ablagestruktur konnte nicht eingerichtet werden</resource>
+      <resource id="runLevel4">Datenbankschema konnte nicht auf den neuesten Stand gebracht werden</resource>
+      <resource id="runLevel5">Registerierte Module konnten nicht gestartet werden</resource>
+   </resource-map>
+   <resource-map id="main.header">
+      <resource id="ClearResourceCache">Ressourcen-Cache leeren</resource>
+      <resource id="ClearImageCache">Bilder-Cache leeren</resource>
+      <resource id="GetBandwidthInfo">Bandbreiten-Information anzeigen</resource>
+      <resource id="SignOff">Abmelden</resource>
+      <resource id="Quit">Beenden</resource>
+   </resource-map>
+   <resource-map id="main.dock">
+      <resource id="ToolDock">TOOL-DOCK</resource>
+   </resource-map>
+
+   <resource-map id="main.about">
+      <resource id="OK">OK</resource>
+      <resource id="About">Über Onepoint Project</resource>
+      <resource id="Version">Version: </resource>
+      <resource id="CurrentVersion">aktuellste Version: </resource>
+   </resource-map>
+
+   <resource-map id="main.bandwidth">
+      <resource id="OK">OK</resource>
+      <resource id="BandwidthInfo">Gemessene Bandbreite (Kb/s)</resource>
+      <resource id="MinVal">Minimum</resource>
+      <resource id="MaxVal">Maximum</resource>
+      <resource id="AvgVal">Durchschnitt</resource>
+   </resource-map>
+
+   <resource-map id="main.error">
+      <resource id="Error">Fehler</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Warning">Warnung</resource>
+      <resource id="SessionExpired">Ihre Benutzersitzung ist abgelaufen. Bitte melden Sie sich neu an.</resource>
+      <resource id="InsuficientViewPermissions">Sie haben nicht die notwendigen Zugriffsrechte um diese Information einzusehen</resource>
+      <resource id="InvalidSession">Sie müssen sich anmelden um diese Information einsehen zu dürfen</resource>
+      <resource id="InvalidFileURL">Could not open file, because of an invalid request format</resource>
+   </resource-map>
+</language-kit>

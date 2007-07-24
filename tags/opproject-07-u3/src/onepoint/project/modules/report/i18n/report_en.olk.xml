@@ -1,0 +1,34 @@
+<language-kit locale="en">
+   <resource-map id="report.module">
+      <resource id="QueryTool">Queries</resource>
+   </resource-map>
+   <resource-map id="report.report">
+      <resource id="ReportNavigator">REPORT NAVIGATOR</resource>
+      <resource id="RunQuery">Quick Query</resource>
+      <resource id="CreateReport">Create Report</resource>
+      <resource id="ResetQuery">Reset Query</resource>
+      <resource id="Print">Print</resource>
+      <resource id="ProjectEffort">Project Effort</resource>
+      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="ResourceEfforts">Resource Efforts</resource>
+      <resource id="ResourceCosts">Resource Costs</resource>
+      <resource id="WorkHours">Work Hours</resource>
+      <resource id="DaysPerProject">Days per Project (R)</resource>
+      <resource id="ProjectProgress">Project Progress (R)</resource>
+
+      <resource id="QuickQueryTooltip">Run a quick query</resource>
+      <resource id="CreateReportTooltip">Create and view selected report</resource>
+      <resource id="ResetQueryTooltip">Reset query form</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+
+   </resource-map>
+   <resource-map id="report.error">
+      <resource id="ValueConversionException">A value conversion exception occured</resource>
+      <resource id="CouldNotExecuteReportSQL">The report SQL statement could not be executed</resource>
+      <resource id="JasperCanNotBuildFilledReport">Jasper could not build filled report</resource>
+      <resource id="JasperCanNotExportReport">Jasper could not export report</resource>
+      <resource id="InvalidReportFormat">Requested report format is not supported</resource>
+      <resource id="CreateReportException">An error occured while trying to create the report</resource>
+      <resource id="SaveReportException">An error occured while trying to save the report</resource>
+   </resource-map>
+</language-kit>

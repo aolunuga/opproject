@@ -1,0 +1,125 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Reporting script for resource_allocation.oxf.xml
+
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function chooseProject(event) {
+   openProjectChooser("QueryFrame", null, "ProjectLocatorField", "ProjectNameField", true, false, false, null, false);
+}
+
+function runQuery() {
+   form = XDisplay.findFrame("QueryFrame").currentForm();
+   // *** Refresh form w/data-fields as parameters and a special boolean parameter runQuery=true
+   choice = form.findComponent("ProjectLocatorField").getStringValue();
+   project = form.findComponent("ProjectNameField").getStringValue();
+   if (choice != null && project != null) {
+      parameters.RunQuery = true;
+      parameters.ProjectLocator = XValidator.choiceID(choice);
+      XDisplay.findFrame("QueryFrame").refreshForm(parameters);
+   }
+
+}
+
+
+/**
+ * Creates a request that will be invoked when executing this report.
+ */
+function createRequest() {
+   form = XDisplay.findFrame("QueryFrame").currentForm();
+   choice = form.findComponent("ProjectLocatorField").getStringValue();
+   project = form.findComponent("ProjectNameField").getStringValue();
+   errorLabel = form.findComponent("ErrorLabel");
+
+   if (choice != null && project != null) {
+      if (errorLabel.getVisible()) {
+         errorLabel.setVisible(false);
+         form.doLayout();
+         form.repaint();
+      }
+
+      //important: as we can only have one "mainfile" in a jar, we refer here to the jar!!!
+      name = "resourceallocation.jar";
+
+      //report formats
+      formats[0] = "PDF";
+
+      request = new XMessage;
+      request.setArgument("name", name);
+      request.setArgument("formats", formats);
+
+      return request;
+   }
+   else {
+      errorLabel.setVisible(true);
+      form.doLayout();
+      form.repaint();
+      return null;
+   }
+}
+
+/**
+ * Returns a query that will be used to fill up the report.
+ */
+function getReportQuery() {
+   form = XDisplay.findFrame("QueryFrame").currentForm();
+   choice = form.findComponent("ProjectLocatorField").getStringValue();
+   project = form.findComponent("ProjectNameField").getStringValue();
+
+   if (choice != null && project != null) {
+
+      selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, ";
+      selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, asgn.RemainingEffort";
+      fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
+      fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
+      whereClause = " where projectNode.ID = ? and asgn.RemainingEffort > 0 order by projectNode.Name, pool.Name, resource.Name, activity.Start";
+
+      queryString = selectClause1 + selectClause2 + fromClause1 + fromClause2 + whereClause;
+      Console.println("Resource allocation query:" + queryString);
+
+      query.queryString = queryString;
+      query.queryParams[0] = XValidator.choiceID(choice);
+   }
+   return query;
+}
+
+/**
+ * Returns a map of [reportFieldName, reportFieldIndex] pairs that indicated how the fields from the report map to the
+ * result of the query.
+ */
+function getReportFields() {
+   result.pn_name = 0;
+   result.po_name = 1;
+   result.po_description = 2;
+   result.rs_name = 3;
+   result.rs_description = 4;
+   result.rs_rate = 5;
+   result.sac_name = 6;
+   result.op_name = 7;
+   result.op_start = 8;
+   result.op_finish = 9;
+   result.op_remainingeffort = 10;
+
+   return result;
+}
+
+function getResourceMapId() {
+   return "resource.objects";
+}
+function prepareForm(event){
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("PrintButton");
+   button.setEnabled(false);
+   button.update();
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("RunQueryButton");
+   button.setEnabled(false);
+   button.update();
+   button = XDisplay.findFrame("QueryFrame").getForm().findComponent("ResetQueryButton");
+   button.setEnabled(false);
+   button.update();
+}

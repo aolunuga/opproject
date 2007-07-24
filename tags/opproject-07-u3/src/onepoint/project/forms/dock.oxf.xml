@@ -1,0 +1,10 @@
+<form id="DockForm" layout="border" resource-map-ref="main.dock"
+      provider-class="onepoint.project.forms.OpDockFormProvider"
+      on-show="showForm"
+      script="/scripts/dock.jes">
+
+   <collapsible-box text="{$ToolDock}" stateful="true" id="ToolDockBox" orientation="vertical"
+                    on-expand="expandDivision" on-collapse="collapseDivision" on-value-changed="resizeDivision">
+      <navigation-box id="NavigationBox" stateful="true"/>
+   </collapsible-box>
+</form>

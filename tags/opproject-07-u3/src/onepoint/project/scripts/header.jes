@@ -1,0 +1,79 @@
+// Event-script for header.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+import onepoint.express.XComponent;
+
+function signOff(event) {
+   request = new XMessage;
+   request.setAction("UserService.signOff");
+   XDisplay.getClient().invokeMethod(request);
+   XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml");
+}
+
+function quit(event) {
+   XDisplay.getClient().quit();
+}
+
+function clearResourceCache(event){
+   XDisplay.clearResourceCache();
+   request = new XMessage;
+   request.setAction("Express.clearResourceCache");
+   XDisplay.getClient().invokeMethod(request);
+
+}
+
+function clearImageCache(event){
+   XDisplay.clearImageCache();
+   mainFrame = XDisplay.findFrame("MainFrame");
+   dockFrame = XDisplay.findFrame("DockFrame");
+   headerFrame = XDisplay.findFrame("HeaderFrame");
+   frames[0] = mainFrame;
+   frames[1] = dockFrame;
+   frames[2] = headerFrame;
+   XDisplay.refreshForms(frames);
+}
+
+function enablePopUp(event){
+   //filter pop up menu if resource cache size is disabled
+   resource_cache_size = XDisplay.getResourceCacheSize();
+   if (resource_cache_size == 0){
+      pop_up_menu = event.popUp;
+      pop_up_menu.getChild(0).setEnabled(false);//ClearResourceCache
+   }
+   XDisplay.closeAllPopUps();
+}
+
+function showAbout(event){
+   dialog = XComponent.newDialog();
+   dialog.openInNewThread("/forms/about.oxf.xml", parameters);
+}
+
+function bandwidthInfo(info){
+   XDisplay.setWaitingCursor();
+   client = XDisplay.getClient();
+   max = -1;
+   min = -1;
+   avg = 0.0;
+   repeatTime = 3.0;
+   index = 0;
+   while (index < repeatTime) {
+      band = client.getBandwidth();
+      if (band < min || min == -1) {
+         min = band;
+      }
+      if (band > max) {
+         max = band;
+      }
+      avg = avg + band;
+      index++;
+   }
+   avg = avg/repeatTime;
+   XDisplay.resetCursor();
+
+   parameters.MinValue = min;
+   parameters.MaxValue = max;
+   parameters.AvgValue = avg;
+   dialog = XComponent.newDialog();
+   dialog.open("/forms/bandwidthInfo.oxf.xml", parameters);   
+}

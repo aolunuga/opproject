@@ -1,0 +1,7 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+function ok(event) {
+   System.exitApplication(1);
+}

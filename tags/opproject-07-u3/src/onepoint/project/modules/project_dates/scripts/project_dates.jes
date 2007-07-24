@@ -1,0 +1,81 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for project_dates.oxf.xml
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+
+function timeUnitChanged(event) {
+   // *** Get current choice from choice-field
+   choice_field = XDisplay.getActiveForm().findComponent("TimeUnitChooser");
+   choice_id = XValidator.choiceID(choice_field.getStringValue());
+   // *** Find component gantt-box via ID
+   gantt_box = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
+   // *** Invoke setTimeUnit(time_unit) on gantt-box
+   if (choice_id.equals("d")) {
+      gantt_box.setTimeUnit(2); // XDuration.DAYS);
+   }
+   if (choice_id.equals("w")) {
+      gantt_box.setTimeUnit(3); // XDuration.WEEKS);
+   }
+   if (choice_id.equals("m")) {
+      gantt_box.setTimeUnit(4); // XDuration.MONTHS);
+   }
+
+   gantt_box.resetCalendar();
+   gantt_box.doLayout();
+   gantt_box.repaint();
+
+}
+
+function saveActivityChartImage(event) {
+   XDisplay.getActiveForm().findComponent("ActivityGanttChart").saveAsImage("Save Schedule History");
+}
+
+function saveMilestoneTableCSV(event){
+   XDisplay.getActiveForm().findComponent("MilestoneTable").saveAsCSV("Save Milestones");
+}
+
+function saveMilestoneTableImage(event) {
+   XDisplay.getActiveForm().findComponent("MilestoneTable").saveAsImage("Save Milestones");
+}
+
+function saveMilestoneChartImage(event) {
+   XDisplay.getActiveForm().findComponent("MilestoneChart").saveAsImage("Save Chart");   
+}
+
+function getPrintTitle() {
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectDatesBox");
+   cur_tab = tabBox.getIntValue();
+   tabName = tabBox.getChild(cur_tab + 1).getText();
+   printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
+   title = printTitle + " - ";
+   title = title + tabName;
+   return title;   
+}
+
+function print(event){
+   tabBox = XDisplay.getActiveForm().findComponent("ProjectDatesBox");
+   cur_tab = tabBox.getIntValue();
+   title = getPrintTitle();
+   if (cur_tab == 0) {
+      component = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
+      component.print(title);
+   }
+}
+
+function filterChanged(event){
+   resource_choice_field = XDisplay.getActiveForm().findComponent("ResourceChooser");
+   resource_choice_id = XValidator.choiceID(resource_choice_field.getStringValue());
+
+   version_choice_field = XDisplay.getActiveForm().findComponent("VersionChooser");
+   version_choice_id = XValidator.choiceID(version_choice_field.getStringValue());
+
+   parameters.version_id = version_choice_id;
+   parameters.resource_id = resource_choice_id;
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+}

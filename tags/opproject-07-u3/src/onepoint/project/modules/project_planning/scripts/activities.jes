@@ -1,0 +1,521 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for activities.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XValidator;
+import onepoint.util.XCalendar;
+
+function timeUnitChanged(event) {
+   // *** Get current choice from choice-field
+   choice_field = XDisplay.getActiveForm().findComponent("TimeUnitChooser");
+   choice_id = XValidator.choiceID(choice_field.getStringValue());
+   // *** Find component gantt-box via ID
+   gantt_box = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
+   // *** Invoke setTimeUnit(time_unit) on gantt-box
+   if (choice_id.equals("d")) {
+      gantt_box.setTimeUnit(2);
+      // XCalendar.DAYS;
+   }
+   if (choice_id.equals("w")) {
+      gantt_box.setTimeUnit(3);
+      // XCalendar.WEEKS;
+   }
+   if (choice_id.equals("m")) {
+      gantt_box.setTimeUnit(4);
+      // XCalendar.MONTHS;
+   }
+
+   gantt_box.resetCalendar();
+   gantt_box.doLayout();
+   gantt_box.repaint();
+}
+
+function editActivities(event) {
+
+   XDisplay.setWaitingCursor();
+   // *** Check-out project and go into "edit-mode"
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+   request = new XMessage;
+   request.setAction("PlanningService.editActivities");
+   request.setArgument("project_id", project_id);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   warning = response.getArgument("warning");
+   success = true;
+
+   if (warning != null) {
+      XDisplay.resetCursor();
+      //this needs to be the last call (otherwise the window is closed)
+      parameters.project_id = project_id;
+      parameters.validatePlan = true;
+      args[0] = parameters;
+      showWarning(response, warning, "ProjectContentFrame", "refreshForm", args);
+   }
+   else {
+      success = handleError(XDisplay.getActiveForm(),response,"ValidationErrorLabel");
+      if (success) {
+         parameters.project_id = project_id;
+         XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+      }
+      XDisplay.resetCursor();
+   }
+}
+
+function refreshForm(parameters) {
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+}
+
+function saveActivities(event) {
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+   working_plan_version_id_field = XDisplay.getActiveForm().findComponent("WorkingPlanVersionIDField");
+   working_plan_version_id = working_plan_version_id_field.getStringValue();
+   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+
+   XDisplay.setWaitingCursor();
+   request = new XMessage;
+   request.setAction("PlanningService.saveActivities");
+   request.setArgument("project_id", project_id);
+   request.setArgument("working_plan_version_id", working_plan_version_id);
+   request.setArgument("activity_set", activity_set);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   // *** TODO: Check error response and show error message
+   // Refresh form
+   parameters.project_id = project_id;
+   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+   XDisplay.resetCursor();
+}
+
+function importActivities(event) {
+
+   importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
+   fileName = XDisplay.showFileDialog(importProject, true, null, null);
+   if (fileName == null) {
+      return;
+   }
+   edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
+   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+
+   parameters.ProjectId = project_id;
+   parameters.EditMode = edit_mode;
+   parameters.ActivitySet = activity_set;
+   parameters.FileName = fileName;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project_planning/forms/confirm_import_project.oxf.xml", parameters);
+}
+
+function exportActivities(event) {
+
+   exportProject = XDisplay.getActiveForm().findComponent("ExportProjectTitle").getText();
+   fileName = XDisplay.showFileDialog(exportProject, false, null, null);
+   if (fileName == null) {
+      return;
+   }
+   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+
+   request = new XMessage;
+   request.setAction("PlanningService.exportActivities");
+   request.setArgument("project_id", projectId);
+   request.setArgument("activity_set", activity_set);
+   request.setArgument("file_name", fileName);
+
+   client = XDisplay.getClient();
+   response = client.invokeMethod(request);
+   if (handleResponse(response, null, null) == false) {
+      return;
+   }
+
+   //get byte array
+   byte_array = response.getArgument("bytes_array");
+   file_name = response.getArgument("file_name");
+   response = File.writeBytes(file_name, byte_array);
+
+   if (handleResponse(response, null, null) == false) {
+      return;
+   }
+}
+
+function getPrintTitle(tabBox){
+   cur_tab = tabBox.getIntValue();
+   tabName = tabBox.getChild(cur_tab + 1).getText();
+   printTitle = XDisplay.getActiveForm().findComponent("PrintTitle").getStringValue();
+   title = printTitle + " - ";
+   title = title + tabName;
+   return title;
+}
+
+
+function getCurrentTabId(tabBox){
+   cur_tab = tabBox.getIntValue();
+   tab = tabBox.getChild(cur_tab + 1);
+   tabId = tab.getID();
+   return tabId;
+}
+
+
+function print(event) {
+   tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
+   tabId = getCurrentTabId(tabBox);
+
+   if (tabId == "TasklistTab") {
+      title = getPrintTitle(tabBox);
+      activity_table = XDisplay.getActiveForm().findComponent("ActivityTable");
+      activity_table.print(title);
+   }
+   else {
+      if (tabId == "GanttDiagramTab") {
+         title = getPrintTitle(tabBox);
+         gantt_chart = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
+         gantt_chart.print(title);
+      }
+      else {
+         if (tabId == "CostsProjectionTab") {
+            title = getPrintTitle(tabBox);
+            cost_table = XDisplay.getActiveForm().findComponent("CostTable");
+            cost_table.print(title);
+         }
+      }
+   }
+}
+
+function autoSave(event) {
+   Console.println("AUTO-SAVING: Check if necessary");
+   project_id = event.sourceForm.findComponent("ProjectIDField").getStringValue();
+   // Only try to auto-save if a project is loaded and edit mode is on
+   if (project_id != null) {
+      Console.println("   Project id set");
+      edit_mode = event.sourceForm.findComponent("EditModeField").getBooleanValue();
+      if (edit_mode) {
+         Console.println("      Edit mode is on: Auto-save activities");
+         working_plan_version_id_field = event.sourceForm.findComponent("WorkingPlanVersionIDField");
+         working_plan_version_id = working_plan_version_id_field.getStringValue();
+         Console.println("AUTO-SAVING activity data set");
+         Console.println(project_id);
+         activity_set = event.sourceForm.findComponent("ActivitySet");
+         request = new XMessage;
+         request.setAction("PlanningService.saveActivities");
+         request.setArgument("project_id", project_id);
+         request.setArgument("working_plan_version_id", working_plan_version_id);
+         request.setArgument("activity_set", activity_set);
+         response = XDisplay.getClient().invokeMethod(request);
+         Console.println("/AUTO-SAVING activity data set");
+      }
+   }
+}
+
+function checkInActivities(event) {
+   // *** Optional dialog [check-box: Do not show again] for check-in?
+   // ==> Would allow to type in comments for a version and to control number
+   // *** In this case, check-in dialog would engage actual check-in method
+
+   XDisplay.setWaitingCursor();
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+   working_plan_version_id_field = XDisplay.getActiveForm().findComponent("WorkingPlanVersionIDField");
+   working_plan_version_id = working_plan_version_id_field.getStringValue();
+   activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   request = new XMessage;
+   request.setAction("PlanningService.checkInActivities");
+   request.setArgument("project_id", project_id);
+   request.setArgument("working_plan_version_id", working_plan_version_id);
+   request.setArgument("activity_set", activity_set);
+   response = XDisplay.getClient().invokeMethod(request);
+   success = handleResponse(response, null, null);
+
+   if (success == true) {
+      parameters.project_id = project_id;
+      XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+   }
+   XDisplay.resetCursor();
+}
+
+function revertActivities(event) {
+   // Revert project plan
+   project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
+   project_id = project_id_field.getStringValue();
+
+   parameters.ProjectId = project_id;
+   dialog = XComponent.newDialog();
+   dialog.open("/modules/project_planning/forms/confirm_revert_project.oxf.xml", parameters);
+}
+
+
+function updateAllViews(){
+   XDisplay.getActiveForm().findComponent("ActivityTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();
+   XDisplay.getActiveForm().findComponent("ActivityGanttChart").resetCalendar();
+   XDisplay.getActiveForm().findComponent("ActivityGanttChart").update();
+}
+
+
+function addActivity(before) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   selected_rows = activity_data_set.selectedRows();
+   data_row = activity_data_set.newDataRow();
+   outline_level = 0;
+
+   if (selected_rows.size() > 0) {
+      expanded = false;
+      if (before) {//insert before
+         index = selected_rows[0].getIndex();
+         if (index > 0) {
+            before_row = activity_data_set.getChild(index - 1);
+            outline_level = before_row.getOutlineLevel();
+            expanded = before_row.getExpanded();
+         }
+         data_row.setExpanded(expanded);
+         data_row.setOutlineLevel(outline_level);
+         activity_data_set.addDataRow(index, data_row);
+      }
+      else { //insert after
+         current_row = selected_rows[0];
+         index = current_row.getIndex();
+         outline_level = current_row.getOutlineLevel();
+         expanded = current_row.getExpanded();
+         data_row.setExpanded(expanded);
+         data_row.setOutlineLevel(outline_level);
+         activity_data_set.addDataRow(index + 1, data_row);
+      }
+   }
+   else {
+      nr_children = activity_data_set.getChildCount();
+      if (nr_children != 0) {
+         last_row = activity_data_set.getChild(nr_children - 1);
+         outline_level = last_row.getOutlineLevel();
+      }
+      data_row.setOutlineLevel(outline_level);
+      activity_data_set.addDataRow(data_row);
+   }
+
+   updateAllViews();
+}
+
+function addActivityBefore(event) {
+   addActivity(true);
+}
+
+function addActivityAfter(event) {
+   addActivity(false);
+}
+
+
+function removeActivities(event) {
+   // *** Same as above, but call DATA_SET.removeDataRows(selected_rows);
+   // ==> DATA_SET in turn calls validator if a validator is defined
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.completeSelection();
+   selected_rows = activity_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      activity_data_set.removeDataRows(selected_rows);
+      // activity_data_set.validate(); -- validate done in removeDataRows()
+      updateAllViews();
+   }
+}
+
+
+function moveActivitiesUp(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.move(-1);
+}
+
+function moveActivitiesDown(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.move(1);
+}
+
+function moveActivitiesIn(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.completeSelection();
+   selected_rows = activity_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      activity_data_set.changeOutlineLevels(selected_rows, 1);
+   }
+}
+
+function moveActivitiesOut(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.completeSelection();
+   selected_rows = activity_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      activity_data_set.changeOutlineLevels(selected_rows, -1);
+   }
+}
+
+function cutActivities(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.completeSelection();
+   selected_rows = activity_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      activity_data_set.cutToClipboard(selected_rows);
+      updateAllViews();
+   }
+}
+
+function copyActivities(event) {
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.completeSelection();
+   selected_rows = activity_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      activity_data_set.copyToClipboard(selected_rows);
+      updateAllViews();
+   }
+}
+
+function pasteActivities(event) {
+
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
+   tabId = getCurrentTabId(tabBox);
+
+   table = null;
+   if (tabId == "TasklistTab") {
+     activityTable = XDisplay.getActiveForm().findComponent("ActivityTable");
+     table = activityTable;
+   }
+   else {
+      if (tabId == "CostsProjectionTab") {
+         costTable = XDisplay.getActiveForm().findComponent("CostTable");
+         table = costTable;
+      }
+   }
+
+   insert = false; //replace/insert
+   selected_rows = null;
+
+   if (table != null ) {
+      //the tables - get only full selected rows
+      table.removeSorting();
+      activity_data_set.completeSelection();
+      data_selected_rows = activity_data_set.selectedRows();
+      all_selected_rows = table.fullSelectedRows(data_selected_rows);
+      if (all_selected_rows.size() == 0) {
+         //no full selected rows ->
+         selected_rows = data_selected_rows;
+         insert = true;
+      }
+      else {
+         selected_rows = all_selected_rows;
+      }
+   }
+   else {
+      //the other components
+      activity_data_set.completeSelection();
+      selected_rows = activity_data_set.selectedRows();
+   }
+
+   //paste action
+   if (selected_rows.size() > 0) {
+      activity_data_set.pasteFromClipboard(selected_rows, insert);
+      updateAllViews();
+   }
+}
+
+function changeGanttTool(event) {
+   // *** Find component gantt-box via ID
+   gantt_box = XDisplay.getActiveForm().findComponent("ActivityGanttChart");
+   toggle_bar = XDisplay.getActiveForm().findComponent("GanttToggleBar");
+   state = toggle_bar.getIntValue();
+   button = toggle_bar.getChild(state);
+   id = button.getID();
+   gantt_box.changeTool(id);
+}
+
+
+function saveActivitiesImage(event) {
+   XDisplay.getActiveForm().findComponent("ActivityTable").saveAsImage("Save Activities");
+}
+
+function saveCostsImage(event) {
+  XDisplay.getActiveForm().findComponent("CostTable").saveAsImage("Save Costs");
+}
+
+function saveGanttImage(event) {
+  XDisplay.getActiveForm().findComponent("ActivityGanttChart").saveAsImage("Save Gantt");
+}
+
+
+
+function saveActivitiesCSVFile(event){
+   activity_table = XDisplay.getActiveForm().findComponent("ActivityTable");
+   activity_table.saveAsCSV("Save Activities");
+}
+
+function saveCostsCSVFile(event){
+   cost_table = XDisplay.getActiveForm().findComponent("CostTable");
+   cost_table.saveAsCSV("Save Costs");
+}
+
+function enableActivitiesPopUp(event){
+   //filter pop up menu if project plan is not in edit mode
+   edit_mode = XDisplay.getActiveForm().findComponent("EditModeField").getBooleanValue();
+   if (!edit_mode){
+      pop_up_menu = event.popUp;
+      pop_up_menu.getChild(0).setEnabled(false);//cutActivities
+      pop_up_menu.getChild(1).setEnabled(false);//copyActivities
+      pop_up_menu.getChild(2).setEnabled(false);//pasteActivities
+      pop_up_menu.getChild(4).setEnabled(false);//addActivityBefore
+      pop_up_menu.getChild(5).setEnabled(false);//addActivityAfter
+      pop_up_menu.getChild(6).setEnabled(false);//removeActivities
+      pop_up_menu.getChild(8).setEnabled(false);//editActivity
+      pop_up_menu.getChild(10).setEnabled(false);//validateActivities
+  }
+
+}
+
+
+function undo(event){
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.dataSetUndo();
+   updateAllViews();
+}
+
+function redo(event){
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   activity_data_set.dataSetRedo();
+   updateAllViews();
+}
+
+function prepareResourceCaption(caption) {
+   percentString = "%";
+   hoursString = "h";
+   captionLen = caption.length();
+   captionToCompare = caption;
+   if (captionLen > 0) {
+      lastCaptionString = String.valueOf(caption.charAt(captionLen - 1));
+      if (lastCaptionString.equals(percentString) || lastCaptionString.equals(hoursString)) {
+         lastSpaceIndex = caption.lastIndexOf(" ");
+         number = caption.substring(lastSpaceIndex + 1, captionLen - 1);
+         if (XCalendar.isDouble(number)) {
+            captionToCompare = caption.substring(0, lastSpaceIndex);
+         }
+      }
+   }
+   return captionToCompare;
+}
+
+function compareChoiceResources(dataCaption, editValue) {
+   dataCaptionToCompare = prepareResourceCaption(dataCaption);
+   editValueToCompare = prepareResourceCaption(editValue);
+   result = dataCaptionToCompare.equals(editValueToCompare);
+   return result;
+}
+
+function validateActivities(event){
+   activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
+   validator = activity_data_set.validator();
+   validator.validateDataSet();
+}

@@ -1,0 +1,33 @@
+<form layout="border" width="240" height="144" text="{$SelectProject}" resource-map-ref="project.ProjectChooser" provider-class="onepoint.project.modules.project.forms.OpProjectChooserFormProvider" script="/modules/project/scripts/project_chooser.jes">
+
+   <data-field id="CallingFrameID"/>
+   <data-field id="ActionHandler"/>
+   <data-field id="ProjectLocatorFieldID"/>
+   <data-field id="ProjectNameFieldID"/>
+   <data-field id="MultipleSelection"/>
+   <data-field id="EnableProjects"/>
+   <data-field id="EnablePortfolios"/>
+   <data-field id="EnableTemplates"/>
+   <data-field id="FilteredOutIds"/>
+   <data-set id="ProjectSet" on-expand="retrieveChildren"/>
+
+   <data-set id="IconSet">
+      <data-row icon="/modules/project/icons/portfolio.png"/>
+      <data-row icon="/modules/project/icons/template.png"/>
+      <data-row icon="/modules/project/icons/project.png"/>
+   </data-set>
+
+   <panel layout="border">
+
+      <list-box id="ProjectList" tree="true" data-set-ref="ProjectSet" icon-set-ref="IconSet"/>
+
+      <panel y="1" layout="flow" direction="west">
+         <panel layout="border">
+            <button x="0" id="OkButton" text="{$OK}" on-button-pressed="ok"/>
+            <button x="1" id="Cancel" text="{$Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
+
+   </panel>
+
+</form>

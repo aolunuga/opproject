@@ -1,0 +1,6 @@
+<prototype name="OpSubject" instance-class="onepoint.project.modules.user.OpSubject">
+   <field name="Name" type="String" mandatory="true" unique="true"/>
+   <field name="DisplayName" type="String"/>
+   <field name="Description" type="Text"/>
+   <relationship name="OwnedPermissions" type="OpPermission" collection-type="Set" back-relationship="Subject" inverse="true" cascade="delete"/>
+</prototype>

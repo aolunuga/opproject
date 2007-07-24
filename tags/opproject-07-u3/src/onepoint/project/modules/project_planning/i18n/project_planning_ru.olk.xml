@@ -1,0 +1,276 @@
+﻿<language-kit locale="ru">
+
+   <resource-map id="project_planning.module">
+        <resource id="PlanningTool">Планирование</resource>
+    </resource-map>
+
+   <resource-map id="project_planning.activities">
+      <resource id="EditPlan">Изменить</resource>
+      <resource id="Save">Сохранить</resource>
+      <resource id="CheckIn">Вернуть в базу</resource>
+      <resource id="ImportProject">Импорт</resource>
+      <resource id="ExportProject">Экспорт</resource>
+      <resource id="Revert">Откат версии</resource>
+      <resource id="Print">Печать</resource>
+	   
+      <resource id="Cut">Вырезать</resource>
+      <resource id="Copy">Копировать</resource>
+      <resource id="Paste">Вставить</resource>
+      <resource id="AddBefore">Вставить задачу (до)</resource>
+      <resource id="AddAfter">Вставить задачу (после)</resource>
+      <resource id="Delete">Удалить задачи</resource>
+      <resource id="Edit">Изменить задачу</resource>
+      <resource id="Validate">Пересчитать план</resource>
+      <resource id="SaveCSV">Сохранить как таблицу...</resource>
+      <resource id="SaveImage">Сохранить как изображение...</resource>
+
+      <resource id="Cancel">Отмена</resource>
+      <resource id="Tasklist">Список задач</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="PercentageFinished">% выполнения</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Duration">Длительность</resource>
+      <resource id="Effort">Объём работ</resource>
+      <resource id="Predecessor">Предок</resource>
+      <resource id="Successor">Потомки</resource>
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Priority">Приоритет</resource>
+      <resource id="Mode">Mode</resource>
+
+      <resource id="GanttDiagram">Диаграмма</resource>
+      <resource id="ChangeTimeUnit">Ед. времени</resource>
+      <resource id="Days">Дни</resource>
+      <resource id="Weeks">Недели</resource>
+      <resource id="Months">Месяцы</resource>
+
+      <resource id="CostsProjection">Базовые затраты</resource>
+      <resource id="Activity">Activity</resource>
+      <resource id="Personnel">Pers. (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Misc. (€)</resource>
+      <resource id="Costs">Costs (€)</resource>
+
+      <resource id="EditTooltip">Изменить план проекта</resource>
+      <resource id="SaveTooltip">Сохранить изменения в рабочей версии</resource>
+      <resource id="CheckInTooltip">Вернуть рабочую версию в базу (опубликовать)</resource>
+      <resource id="ImportProjectTooltip">Импорт плана проекта</resource>
+      <resource id="ExportProjectTooltip">Экспорт плана проекта</resource>
+      <resource id="RevertTooltip">Откатить все изменения плана к последней опубликованной версии</resource>
+      <resource id="PrintTooltip">Печать данной области</resource>
+
+      <resource id="DefaultCursorTooltip">Инструмент указатель</resource>
+      <resource id="ActivityTooltip">Нарисовать задачу</resource>
+      <resource id="MilestoneTooltip">Нарисовать веху</resource>
+      <resource id="TaskTooltip">Draw tasks</resource>
+      <resource id="LinkTooltip">Нарисовать связь</resource>
+      <resource id="AddActivityToolTip">Добавить задачу</resource>
+      <resource id="RemoveActivityToolTip">Удалить задачу</resource>
+      <resource id="MoveUpToolTip">Переместить задачу выше</resource>
+      <resource id="MoveDownToolTip">Переместить задачу ниже</resource>
+      <resource id="MoveOut">Переместить задачу влево</resource>
+      <resource id="MoveIn">Переместить задачу вправо</resource>
+      <resource id="EditActivity">Изменить свойства задачи</resource>
+      <resource id="CutActivities">Вырезать задачу</resource>
+      <resource id="CopyActivities">Копировать задачу в буфер</resource>
+      <resource id="PasteActivities">Вставить задачу из буфера</resource>
+      <resource id="Undo">Отменить</resource>
+      <resource id="Redo">Повторить</resource>      
+
+      <resource id="LoopErrorMessage">Это действие вызовет замыкание плана в цикл</resource>
+      <resource id="ResourcesErrorMessage">Наименование ресурса не найдено в пуле ресурсов данного проекта</resource>
+      <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
+      <resource id="RangeErrorMessage">Index is out of range</resource>
+      <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
+      <resource id="MilestoneCollectionErrorMessage">Веха не может содержать подчиненных задач</resource>
+      <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
+      <resource id="WorkRecordsExistErrorMessage">По данной задаче уже внесен табель</resource>
+      <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>      
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
+
+      <resource id="ImportProjectTitle">Импорт плана проекта</resource>
+      <resource id="ExportProjectTitle">Экспорт плана проекта</resource>
+      <resource id="FileWriteError">File Write Errort</resource>      
+   </resource-map>
+
+   <resource-map id="project_planning.RevertProjectPlan">
+      <resource id="ConfirmRevert">Откат версии</resource>
+      <resource id="ConfirmRevertProjectPlan">Вы уверены, что хотите откатить все изменения плана к последней опубликованной версии?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.ImportProjectPlan">
+      <resource id="ConfirmImport">Импорт плана проекта</resource>
+      <resource id="ConfirmImportProjectPlan">Importing will replace all current activities. Are you sure you want to import an external project plan?</resource>
+      <resource id="FileReadError">The file could not be read</resource>
+      <resource id="ValidationError">The project plan contains inconsistent data</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.EditActivity">
+      <resource id="EditStandardActivity">Изменить задачу</resource>
+      <resource id="EditCollectionActivity">Изменить этап</resource>
+      <resource id="EditMilestoneActivity">Изменить веху</resource>
+      <resource id="EditTaskActivity">Edit Task</resource>
+      <resource id="EditCollectionTaskActivity">Edit Collection Task</resource>
+      <resource id="EditScheduledTaskTitle">Edit Scheduled Task</resource>
+      <resource id="InfoStandardActivity">Свойства задачи</resource>
+      <resource id="InfoCollectionActivity">Свойства этапа</resource>
+      <resource id="InfoMilestoneActivity">Свойства вехи</resource>
+      <resource id="InfoTaskActivity">Task Details</resource>
+      <resource id="InfoCollectionTaskActivity">Collection Task Details</resource>
+      <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+
+      <resource id="General">Основные</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Effort">Объем работ (ч)</resource>
+      <resource id="Duration">Длительность (д)</resource>
+      <resource id="PercentageFinished">% выполнения</resource>
+      <resource id="Category">Category</resource>
+      <resource id="Priority">Приоритет</resource>
+      <resource id="Mandatory">Mandatory</resource>
+      <resource id="ResponsibleResource">Responsible Resource</resource>
+
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="PercentageAssigned">% назначения</resource>
+      <resource id="HoursAssigned">Часов назначено</resource>
+
+      <resource id="Predecessor">Предки</resource>
+
+      <resource id="Costs">Costs</resource>
+      <resource id="Personnel">Personnel (€)</resource>
+      <resource id="Travel">Travel (€)</resource>
+      <resource id="Material">Material (€)</resource>
+      <resource id="External">External (€)</resource>
+      <resource id="Misc">Miscellaneous (€)</resource>
+
+      <resource id="Attachments">Attachments</resource>
+	  <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+	  <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+	  <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+	  <resource id="ViewAttachmentTooltip">View attachment</resource>
+
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+
+      <resource id="Comments">Комментарии</resource>
+      <resource id="AddCommentTooltip">Добавить новый комментарий</resource>
+      <resource id="RemoveCommentsTooltip">Удалить указанные комментарии</resource>
+      <resource id="By">Создан пользователем</resource>
+      <resource id="On">дата</resource>
+      <resource id="At">в</resource>
+      <resource id="CommentSoFar">комментарий</resource>
+      <resource id="CommentsSoFar">комментариев</resource>
+      <resource id="NoCommentsPossible">Комментариев нет и не будет, пока задача не сохранена в базе</resource>
+
+      <resource id="LoopErrorMessage">Это действие вызовет замыкание плана в цикл</resource>
+      <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
+      <resource id="RangeErrorMessage">Index is out of range</resource>
+      <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
+      <resource id="WorkRecordsExistErrorMessage">По данному ресурсу уже внесен табель</resource>
+      <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
+
+      <resource id="NoCategory">(None)</resource>
+      <resource id="NoResource">(None)</resource>
+      
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddComment">
+      <resource id="AddComment">Добавить комментарий</resource>
+
+      <resource id="Subject">Тема</resource>
+      <resource id="Text">Текст</resource>
+	   
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddPredecessor">
+      <resource id="AddPredecessor">Добавить предка</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddResource">
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AddResource">Добавить ресурс</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="PercentageAssigned">% назначения</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddURL">
+      <resource id="ProtocolErrorMessage">The entered protocol is not valid</resource>
+      <resource id="AddURL">Add Link</resource>
+      <resource id="Name">Title</resource>
+      <resource id="Location">Address</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.AddDocument">
+      <resource id="EmptyFileErrorMessage">Please select a document</resource>
+      <resource id="AddDocument">Add Document</resource>
+      <resource id="Name">Title</resource>
+      <resource id="Location">Document</resource>
+      <resource id="Select">Select</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+      <resource id="ChooseDocument">Select a document</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.activity_details">
+      <resource id="Name">Наименование</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="Finish">Окончание</resource>
+      <resource id="Duration">Длительность (д)</resource>
+      <resource id="PercentComplete">% выполнения</resource>
+      <resource id="Effort">Объем работ (ч)</resource>
+      <resource id="Costs">Costs (€)</resource>
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Category">Category</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.Navigator">
+      <resource id="ProjectNavigator">PROJECT NAVIGATOR</resource>
+   </resource-map>
+
+   <resource-map id="project_planning.error">
+      <resource id="CommentNameMissing">The subject was not specified</resource>
+      <resource id="CommentNotFound">The comment was not found</resource>
+      <resource id="AdministratorAccessDenied">Для данной операции необходим уровень доступа администратора</resource>
+      <resource id="HourlyRatesModifiedWarning">Personnel costs have been recalculated, because hourly rates of resources used in this project plan were modified</resource>
+      <resource id="AvailabilityModifiedWarning">Personnel costs have been recalculated, because the availability of resources used in this project plan were modified</resource>
+      <resource id="AvailabilityAndRatesModifiedWarning">Personnel costs have been recalculated, because the availability and hourly rates of resources used in this project plan were modified</resource>
+      <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
+      <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
+      <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+
+      <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
+      <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>
+      <resource id="ProjectCheckInError">An error occured during the project check in operation</resource>
+      <resource id="ProjectRevertError">An error occured during the project revert operation</resource>
+      <resource id="ProjectSaveError">An error occured during the project save operation</resource>
+
+      <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
+   </resource-map>
+
+</language-kit>

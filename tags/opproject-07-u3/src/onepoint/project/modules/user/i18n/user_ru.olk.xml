@@ -1,0 +1,149 @@
+<language-kit locale="ru">
+   <resource-map id="user.module">
+      <resource id="UserTool">Пользователи</resource>
+   </resource-map>
+   <resource-map id="user.add_group">
+      <resource id="AddGroup">Добавить группу</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+   <resource-map id="user.edit_group">
+      <resource id="EditGroup">Изменить группу</resource>
+      <resource id="General">Основные</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="GroupAffiliation">Входит в группу</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+   <resource-map id="user.edit_user">
+      <resource id="EditUser">Изменить пользователя</resource>
+      <resource id="General">Основные</resource>
+      <resource id="Firstname">Имя</resource>
+      <resource id="Lastname">Фамилия</resource>
+      <resource id="Login">Логин</resource>
+      <resource id="Password">Пароль</resource>
+      <resource id="PasswordRetyped">Повтор пароля</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="UserLanguage">Язык</resource>
+      
+      <resource id="Contact">Contact</resource>
+      <resource id="EMail">Email</resource>
+      <resource id="Phone">Phone</resource>
+      <resource id="Mobile">Mobile</resource>
+      <resource id="Fax">Fax</resource>
+      
+      <resource id="Groups">Группы</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+
+      <resource id="UserLevel">Уровень доступа</resource>
+      <resource id="ManagerLevel">Manager</resource>
+      <resource id="StandardLevel">Standard</resource>      
+   </resource-map>
+   <resource-map id="user.delete">
+      <resource id="ConfirmDelete">Удалить пользователей или группы</resource>
+      <resource id="NoSelectionMessage">Пожалуйста, укажите одного или нескольких пользователей или групп, которые вы хотите удалить</resource>
+      <resource id="ConfirmDeleteOneMessage">Вы действительно хотите удалить данного пользователя или группу?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Вы действительно хотите удалить данных пользователей или группы?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+   <resource-map id="user.new_group">
+      <resource id="NewGroup">Новая группа</resource>
+      <resource id="General">Основные</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="GroupAffiliation">Super Groups</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+  <resource-map id="user.Info">
+      <resource id="InfoUser">Свойства пользователя</resource>
+      <resource id="InfoGroup">Свойства группы</resource>
+  </resource-map>  
+   <resource-map id="user.new_user">
+      <resource id="NewUser">Новый пользователь</resource>
+      <resource id="General">Основные</resource>
+      <resource id="Firstname">Имя</resource>
+      <resource id="Lastname">Фамилия</resource>
+      <resource id="Login">Логин</resource>
+      <resource id="Password">Пароль</resource>
+      <resource id="PasswordRetyped">Повтор пароля</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Contact">Contact</resource>
+      <resource id="EMail">Email</resource>
+      <resource id="Phone">Phone</resource>
+      <resource id="Mobile">Mobile</resource>
+      <resource id="Fax">Fax</resource>
+      <resource id="UserLanguage">Язык</resource>
+
+      <resource id="GroupAffiliation">Группы</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+
+      <resource id="UserLevel">Уровень доступа</resource>
+      <resource id="ManagerLevel">Manager</resource>
+      <resource id="StandardLevel">Standard</resource>
+   </resource-map>
+   <resource-map id="user.users">
+      <resource id="NewGroup">Добавить группу</resource>
+      <resource id="NewUser">Новый пользователь</resource>
+      <resource id="Properties">Свойства</resource>
+		<resource id="Edit">Изменить</resource>
+      <resource id="Delete">Удалить</resource>
+      <resource id="AssignToGroup">Добавить в группу</resource>
+      <resource id="Search">Поиск</resource>
+      <resource id="Name">Имя</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Login">Логин</resource>
+
+      <resource id="NewGroupTooltip">Создать новую группу пользователей</resource>
+      <resource id="NewUserTooltip">Создать нового пользователя</resource>
+      <resource id="InfoTooltip">Показать мета-данные для указанного пользователя или группы</resource>
+      <resource id="EditTooltip">Изменить мета-данные для указанного пользователя или группы</resource>
+      <resource id="DeleteTooltip">Удалить указанного пользователя или группу</resource>
+      <resource id="AssignToGroupTooltip">Добавить указанного пользователя или группу в другую группу</resource>
+				
+   </resource-map>
+   <resource-map id="user.SubjectChooser">
+      <resource id="SelectSubject">Укажите пользователя или группу</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+   <resource-map id="user.permissions_tab">
+      <resource id="Administrators">Администраторы</resource>
+      <resource id="Managers">Менеджеры</resource>
+      <resource id="Contributors">Работники</resource>
+      <resource id="Observers">Наблюдатели</resource>
+   </resource-map>
+   <resource-map id="user.objects">
+      <resource id="AdministratorDisplayName">Администратор</resource>
+      <resource id="AdministratorDescription">Администратор обладает всеми правами</resource>
+      <resource id="EveryoneDisplayName">Все</resource>
+      <resource id="EveryoneDescription">Каждый пользователь, как правило, входит в данную группу</resource>
+   </resource-map>
+   <resource-map id="user.error">
+      <resource id="PasswordMismatch">Пароль не введен или не верный</resource>
+      <resource id="UserUnknown">Неизвестное имя пользователя</resource>
+      <resource id="FirstNameMissing">Не указано Имя</resource>
+      <resource id="LastNameMissing">Не указана Фамилия</resource>
+      <resource id="LoginNameMissing">Не указан Логин</resource>
+      <resource id="PasswordMissing">Не указан Пароль</resource>
+      <resource id="LoginAlreadyUsed">Даный Логин занят другим пользователем</resource>
+      <resource id="GroupNameMissing">Пожалуйста, укажите наименование группы</resource>
+      <resource id="GroupNameAlreadyUsed">Данное наименование группы уже существует</resource>
+      <resource id="UserNotFound">Пользователь не существует</resource>
+      <resource id="GroupNotFound">Группа не существует</resource>
+      <resource id="GroupNotEmpty">Группа содержит пользователей. Вы действительно хотите её удалить?</resource>
+      <resource id="EmailIncorrect">The e-mail address you entered is not valid</resource>
+      <resource id="InsufficientPrivileges">У вас нет достаточных прав для данной операции</resource>
+      <resource id="SessionUser">Нельзя удалить запись о пользователе, под которой вы находитесь в системе</resource>
+      <resource id="EveryoneGroup">Группа «Все» является системной и не может быть удалена</resource>
+      <resource id="LoopAssignment">Данное назначение может вызвать замыкание в цикл</resource>
+      <resource id="InvalidUserLevel">Неверный уровень доступа</resource>
+      <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
+      <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
+      <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
+   </resource-map>
+</language-kit>

@@ -1,0 +1,47 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2006. All Rights Reserved.
+ */
+
+// Controller script for add_comment.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/project_planning/scripts/comments.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+import onepoint.express.XValidator;
+
+function ok(event) {
+
+   form = XDisplay.getActiveForm();
+   comment_data.activity_id = form.findComponent("ActivityIDField").getStringValue();
+   comment_data.Name = form.findComponent("SubjectField").getStringValue();
+   comment_data.Text = form.findComponent("TextBox").getStringValue();
+
+   request = new XMessage;
+   request.setAction("PlanningService.insertComment");
+   request.setArgument("comment_data", comment_data);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      form = XDisplay.getActiveForm();
+      comments_panel = form.findComponent("CommentsPanel");
+      if (comments_panel != null) {
+         comments_label = form.findComponent("CommentsLabel");
+         comments_label.setText(response.getArgument("CommentsLabelText"));
+         comments_panel.addChild(response.getArgument("ActivityCommentPanel"));
+         has_comments_field = form.findComponent("HasCommentsField");
+         has_comments_field.setBooleanValue(true);
+         comments_tab = form.findComponent("CommentsTab");
+         comments_tab.doLayout();
+         comments_tab.repaint();
+      }
+      updateComments(true, form);      
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
