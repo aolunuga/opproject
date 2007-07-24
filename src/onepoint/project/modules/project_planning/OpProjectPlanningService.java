@@ -527,11 +527,6 @@ public class OpProjectPlanningService extends OpProjectService {
                OpActivityVersion version = (OpActivityVersion) broker.getObject(locator);
                activity = version.getActivity();
             }
-            if (activity != null) {
-               if (activity.getActualEffort() > OpGanttValidator.getBaseEffort(row)) {
-                  throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR));
-               }
-            }
          }
       }
    }

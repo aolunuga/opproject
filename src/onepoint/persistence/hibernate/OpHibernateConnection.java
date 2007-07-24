@@ -170,29 +170,44 @@ public class OpHibernateConnection extends OpConnection {
       try {
          logger.info("Starting HSQLDB initialization...");
 
-         String url = source.getURL();
-         String dbPath = url.replaceAll(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, "");
-
-         Class hsqldbDBManagerClass = Class.forName("org.hsqldb.DatabaseManager");
-         Class hsqlPropertiesClass = Class.forName("org.hsqldb.persist.HsqlProperties");
-         Method newSessionMethod = hsqldbDBManagerClass.getMethod("newSession", new Class[] {String.class, String.class,
-            String.class, String.class, hsqlPropertiesClass});
-
-         Class hsqlSessionClass = Class.forName("org.hsqldb.Session");
-         Method hsqlExecuteMethod = hsqlSessionClass.getMethod("sqlExecuteDirectNoPreChecks", new Class[] {String.class});
-         Method commitMethod = hsqlSessionClass.getMethod("commit", null);
-         Method closeMethod = hsqlSessionClass.getMethod("close", null);
-
-         Object hsqlDbSession = newSessionMethod.invoke(null, new Object[] {OpHibernateSource.HSQLDB_TYPE, dbPath, source.getLogin(), source.getPassword(), null});
-         hsqlExecuteMethod.invoke(hsqlDbSession, new Object[]{"SET WRITE_DELAY FALSE"});
-         commitMethod.invoke(hsqlDbSession, null);
-         closeMethod.invoke(hsqlDbSession, null);
+         String dbPath = getCleanDBURL(source);
+         org.hsqldb.persist.HsqlProperties prop = cleanupHSQLDBDefaultTableType (source);
+         org.hsqldb.DatabaseManager dbmgr = new org.hsqldb.DatabaseManager();
+         org.hsqldb.Session localSess = dbmgr.newSession(OpHibernateSource.HSQLDB_TYPE, dbPath, source.getLogin(), source.getPassword(), prop);
+         localSess.sqlExecuteDirectNoPreChecks("SET WRITE_DELAY FALSE");
+         localSess.commit();
+         localSess.close();
 
          logger.info("HSQLDB initialization finished");
       }
       catch (Exception e) {
          logger.error("Cannot initialize HSQLDB connection because: " + e.getMessage(), e);
       }
+   }
+   
+   protected static String getCleanDBURL(OpHibernateSource source) {
+       String url = source.getURL();
+       String dbPath = url.replaceAll(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, "");
+       //we have to cut off the URL-Parameters
+       int paramPos = dbPath.indexOf(';');
+       if(paramPos != -1)
+      	 dbPath = dbPath.substring(0, paramPos);
+       return dbPath;
+   }
+   
+   protected static org.hsqldb.persist.HsqlProperties cleanupHSQLDBDefaultTableType (OpHibernateSource source) {
+	   try{
+	       String dbPath = getCleanDBURL(source);
+	       org.hsqldb.persist.HsqlProperties prop = new org.hsqldb.persist.HsqlProperties(dbPath);
+	       prop.load();
+	       prop.setProperty("hsqldb.default_table_type", "cached");
+	       prop.save();
+	       return prop;
+	   }
+       catch (Exception e) {
+          logger.error("Cannot initialize HSQLDB connection because: " + e.getMessage(), e);
+       }
+       return new org.hsqldb.persist.HsqlProperties();
    }
 
    public void updateSchema() {
