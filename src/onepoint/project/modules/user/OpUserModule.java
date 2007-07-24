@@ -68,7 +68,7 @@ public class OpUserModule extends OpModule {
     */
    private void updateSubjectsSourceFlag(OpBroker broker) {
       OpQuery allSubjectsQuery = broker.newQuery("from OpSubject");
-      Iterator<OpSubject> subjectsIterator = broker.list(allSubjectsQuery).iterator();
+      Iterator<OpSubject> subjectsIterator = broker.iterate(allSubjectsQuery);
       while (subjectsIterator.hasNext()) {
          OpSubject subject = subjectsIterator.next();
          subject.setSource(OpSubject.INTERNAL);

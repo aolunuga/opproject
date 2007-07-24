@@ -563,7 +563,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       query.setInteger(0, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
       query.setLong(1, resourceId);
 
-      return broker.list(query).iterator();
+      return broker.iterate(query);
    }
 
    /**
@@ -782,7 +782,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       query = broker.newQuery("select assignment.ProjectNode.ID from OpProjectNodeAssignment as assignment where assignment.Resource.ID = ?");
       query.setLong(0, resource.getID());
 
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       HashSet storedAssignedIds = new HashSet();
       while (result.hasNext()) {
          storedAssignedIds.add(result.next());
@@ -815,7 +815,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          query = broker.newQuery("select assignment from OpProjectNodeAssignment as assignment where assignment.Resource.ID = :resourceId and assignment.ProjectNode.ID in (:projectNodeIds)");
          query.setLong("resourceId", resource.getID());
          query.setCollection("projectNodeIds", storedAssignedIds);
-         result = broker.list(query).iterator();
+         result = broker.iterate(query);
          while (result.hasNext()) {
             OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) result.next();
             OpProjectPlan projectPlan = assignment.getProjectNode().getPlan();
@@ -884,7 +884,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // get all project node assignment ids for the resource
          query = broker.newQuery("select assignment.ProjectNode.ID from OpProjectNodeAssignment as assignment where assignment.Resource.ID = ?");
          query.setLong(0, resource.getID());
-         Iterator result = broker.list(query).iterator();
+         Iterator result = broker.iterate(query);
          Set assignedProjectIds = new HashSet();
          while (result.hasNext()) {
             assignedProjectIds.add(result.next());
@@ -1430,7 +1430,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    public static OpResourcePool findPool(OpBroker broker, String name) {
       OpQuery query = broker.newQuery("select pool from OpResourcePool as pool where pool.Name = ?");
       query.setString(0, name);
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
       if (result.hasNext()) {
          return (OpResourcePool) result.next();
       }
@@ -1579,7 +1579,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       query.setLong("userId", user.getID());
       query.setCollection("projectNodeIds", projectNodeIds);
       query.setBoolean("systemManaged", true);
-      Iterator permissionsToDelete = broker.list(query).iterator();
+      Iterator permissionsToDelete = broker.iterate(query);
 
       //list of resource ids for which the user is responsible
       query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");

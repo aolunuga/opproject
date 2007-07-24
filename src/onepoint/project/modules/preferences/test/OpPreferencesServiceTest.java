@@ -49,7 +49,7 @@ public class OpPreferencesServiceTest extends OpBaseOpenTestCase {
 
       clean();
 
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
       userData.put(OpUserService.LANGUAGE, ENGLISH_LANGUAGE);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);

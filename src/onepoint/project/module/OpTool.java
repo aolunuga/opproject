@@ -16,6 +16,7 @@ public class OpTool {
    private OpModule module;
    private Boolean multiUserOnly;
    private boolean selected;
+   private Byte level;
 
    final public void setName(String name) {
       this.name = name;
@@ -96,5 +97,13 @@ public class OpTool {
 
    public void setSelected(boolean selected) {
       this.selected = selected;
+   }
+
+   final public void setLevel(Byte level) {
+      this.level = level;
+   }
+
+   public final Byte getLevel() {
+      return level;
    }
 }

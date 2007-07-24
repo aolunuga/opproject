@@ -12,6 +12,7 @@ import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -28,10 +29,12 @@ public class OpProjectsFormProvider implements XFormProvider {
    private static final String INFO_BUTTON = "InfoButton";
    private static final String MOVE_BUTTON = "MoveButton";
    private static final String DELETE_BUTTON = "DeleteButton";
+   private static final String COSTS_TAB = "ProjectCostsTab";
+   private static final String COSTS_COLUMN = "CostsColumn";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
 
       //set the value of the manager permission
       form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);
@@ -39,7 +42,6 @@ public class OpProjectsFormProvider implements XFormProvider {
       //set the permission for the root portfolio
       OpProjectNode rootPortfolio = OpProjectAdministrationService.findRootPortfolio(broker);
       byte rootPortfolioPermission = session.effectiveAccessLevel(broker, rootPortfolio.getID());
-      broker.close();
       form.findComponent("RootPortfolioPermission").setByteValue(rootPortfolioPermission);
 
       //see whether newXXX buttons should be enabled or disabled
@@ -54,6 +56,14 @@ public class OpProjectsFormProvider implements XFormProvider {
       //retrieve project data set
       XComponent dataSet = form.findComponent(PROJECT_DATA_SET);
       OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, OpProjectDataSetFactory.ALL_TYPES, true, null);
+
+      //hide costs tab and costs column for users that have only the customer level
+      OpUser user = session.user(broker);
+      if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
+         form.findComponent(COSTS_TAB).setHidden(true);
+         form.findComponent(COSTS_COLUMN).setHidden(true);
+      }
+      broker.close();
    }
 
    /**

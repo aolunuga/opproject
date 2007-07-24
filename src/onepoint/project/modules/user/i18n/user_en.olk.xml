@@ -39,7 +39,9 @@
 
       <resource id="UserLevel">User Level</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
+      <resource id="ContributorLevel">Contributor</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Delete Users or Groups</resource>
@@ -84,7 +86,9 @@
 
       <resource id="UserLevel">User Level</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
+      <resource id="ContributorLevel">Contributor</resource>
    </resource-map>
    <resource-map id="user.users">
       <resource id="NewGroup">New Group</resource>

@@ -298,7 +298,7 @@ public final class OpResourceUtilizationDataSetFactory {
          query.setCollection("resourceIds", resourceIds);
       }
       query.setByte("activityType", OpActivity.STANDARD);
-      result = broker.list(query).iterator();
+      result = broker.iterate(query);
 
 
       resourceId = null;

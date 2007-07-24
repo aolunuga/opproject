@@ -38,8 +38,10 @@
       <resource id="OK">OK</resource>
 
       <resource id="UserLevel">Benutzerebene</resource>
+      <resource id="ContributorLevel">Contributor</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Benutzer oder Gruppen löschen</resource>
@@ -84,8 +86,10 @@
       <resource id="OK">OK</resource>
 
       <resource id="UserLevel">Benutzerebene</resource>
+      <resource id="ContributorLevel">Contributor</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>
+      <resource id="ObserverCustomerLevel">Observer (Customer)</resource>
+      <resource id="ObserverLevel">Observer</resource>
    </resource-map>
    <resource-map id="user.users">
       <resource id="NewGroup">Neue Gruppe</resource>

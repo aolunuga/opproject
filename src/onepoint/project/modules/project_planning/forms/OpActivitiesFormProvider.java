@@ -95,6 +95,8 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static int ACTIVITY_TABLE_COLUMNS = 11;
    private final static int COST_TABLE_COLUMNS = 8;
 
+   private final static String COSTS_TAB = "CostsProjectionTab";
+
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
       logger.info("OpActivitiesFormProvider.prepareForm()");
@@ -267,6 +269,11 @@ public class OpActivitiesFormProvider implements XFormProvider {
          enableComponentsForNoOpenProject(form);
       }
 
+      //hide costs tab and costs column for users that have only the customer level
+      OpUser user = session.user(broker);
+      if(user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL){
+         form.findComponent(COSTS_TAB).setHidden(true);
+      }
       broker.close();
 
       OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();

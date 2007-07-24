@@ -517,7 +517,7 @@
            description="Generates basic linux distribution">
       <copy file="${src.dir}/onepoint/project/onepoint.sh"
             tofile="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}"/>
-      <tar destfile="${dist.dir}/${basic.name}-linux.tgz">
+      <tar destfile="${dist.dir}/${basic.name}-linux.tar">
          <tarfileset dir="${dist.basic.dir}">
             <exclude name="**/${opproject.linux.launcher}"/>
          </tarfileset>
@@ -525,6 +525,8 @@
             <include name="**/${opproject.linux.launcher}"/>
          </tarfileset>
       </tar>
+      <gzip src="${dist.dir}/${basic.name}-linux.tar" destfile="${dist.dir}/${basic.name}-linux.tgz"/>
+      <delete file="${dist.dir}/${basic.name}-linux.tar"/>
    </target>
 
    <!--Generates Windows executable file using Java Application Wrapper- Launch4j-->
@@ -533,11 +535,13 @@
            description="Generates Windows executable file">
 
       <property name="executable.file" value="${opproject.launchername}.exe"/>
+      <property name="executable.file.tmp" value="opproject.exe"/>
+
       <!--Launch4j task definition-->
       <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.path}"/>
       <launch4j>
          <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
-                 outfile="${dist.basic.dir}/${executable.file}" customProcName="false"
+                 outfile="${dist.basic.dir}/${executable.file.tmp}" customProcName="false"
                  dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
             <jre minVersion="1.4.0"/>
             <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
@@ -546,7 +550,7 @@
                          internalName="onepoint" originalFilename="${executable.file}"/>
          </config>
       </launch4j>
-      <move file="${dist.basic.dir}/${executable.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+      <move file="${dist.basic.dir}/${executable.file.tmp}" tofile="${dist.basic.dir}/${dist.main.folder}/${executable.file}"/>
       <zip basedir="${dist.basic.dir}" zipfile="${dist.dir}/${basic.name}-win.zip"/>
    </target>
 

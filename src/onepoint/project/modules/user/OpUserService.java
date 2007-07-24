@@ -149,7 +149,7 @@ public class OpUserService extends OpProjectService {
       }
       //get user level
       String userLevel = (String) user_data.get(USER_LEVEL);
-      Byte userLevelId = OpUser.STANDARD_USER_LEVEL;
+      Byte userLevelId = OpUser.DEFAULT_USER_LEVEL;
       try {
          userLevelId = Byte.parseByte(userLevel);
       }

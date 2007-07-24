@@ -581,7 +581,7 @@ public class OpWorkSlipDataSetFactory {
       List resourceIds = new ArrayList();
       OpQuery query = broker.newQuery("select resource from OpResource as resource where resource.User.ID = ?");
       query.setLong(0, session.getUserID());
-      Iterator result = broker.list(query).iterator();
+      Iterator result = broker.iterate(query);
 
       //fill the list of resource ids
       while (result.hasNext()) {

@@ -35,8 +35,8 @@ public class OpContent extends OpObject {
     * Default constructor
     */
    @Deprecated
-   OpContent() {
-      // requiered by Hibernate
+   public OpContent() {
+      // requiered by Hibernate and back-up
    }
 
    /**
@@ -118,6 +118,18 @@ public class OpContent extends OpObject {
          stream.setSize(size); // if stream doesn't have the size set (retrieved from database), set it using the persisted size
       }
       return stream;
+   }
+
+   /**
+    * Sets the input stream to be written into the database. This method will overwrite the value of the <code>size</code> code.
+    * Should not be used. Present only for back-up compatibility.
+    *
+    * @param stream an <code>XSizeInputStream</code> instance. Ignored if null.
+    * @see OpContent#setStream(onepoint.service.XSizeInputStream)
+    */
+   @Deprecated
+   public void setBytes(XSizeInputStream stream) {
+     setStream(stream);
    }
 
    //

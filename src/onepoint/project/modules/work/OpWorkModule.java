@@ -53,7 +53,7 @@ public class OpWorkModule extends OpModule {
    private void upgradeActivityRemainingCosts(OpBroker broker) {
       String activitiesQuery = "select activity from OpActivity activity where activity.Deleted=false";
       OpQuery activityQuery = broker.newQuery(activitiesQuery);
-      Iterator activitiesIt = broker.list(activityQuery).iterator();
+      Iterator activitiesIt = broker.iterate(activityQuery);
       while (activitiesIt.hasNext()) {
          OpActivity activity = (OpActivity) activitiesIt.next();
          activity.setRemainingExternalCosts(activity.getBaseExternalCosts() - activity.getActualExternalCosts());
@@ -74,7 +74,7 @@ public class OpWorkModule extends OpModule {
            "inner join workRecord.Assignment assignment inner join assignment.Activity activity" +
            " where activity.Deleted=false";
       OpQuery query = broker.newQuery(workRecordQuery);
-      Iterator workRecordsIt = broker.list(query).iterator();
+      Iterator workRecordsIt = broker.iterate(query);
       while (workRecordsIt.hasNext()) {
          OpWorkRecord workRecord = (OpWorkRecord) workRecordsIt.next();
          this.updateTravelCosts(workRecord, broker);
@@ -192,7 +192,7 @@ public class OpWorkModule extends OpModule {
    private void upgradeWorkSlipTotalActualEffort(OpBroker broker) {
       String queryString = "select workSlip from OpWorkSlip workSlip";
       OpQuery query = broker.newQuery(queryString);
-      Iterator workSlipIt = broker.list(query).iterator();
+      Iterator workSlipIt = broker.iterate(query);
       while (workSlipIt.hasNext()) {
          OpWorkSlip workSlip = (OpWorkSlip) workSlipIt.next();
          workSlip.updateTotalActualEffort();

@@ -31,7 +31,9 @@ public class OpEditUserFormProvider implements XFormProvider {
    public final static String USER_LEVEL_DATA_SET = "UserLevelDataSet";
    public final static String USER_LEVEL_FIELD = "UserLevel";
    public final static String MANAGER_LEVEL_CAPTION = "${ManagerLevel}";
-   public final static String STANDARD_LEVEL_CAPTION = "${StandardLevel}";
+   public final static String CONTRIBUTOR_LEVEL_CAPTION = "${ContributorLevel}";
+   public final static String OBSERVER_CUSTOMER_LEVEL_CAPTION = "${ObserverCustomerLevel}";
+   public final static String OBSERVER_LEVEL_CAPTION = "${ObserverLevel}";
    public final static String RESOURCE_MAP = "user.edit_user";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -91,17 +93,32 @@ public class OpEditUserFormProvider implements XFormProvider {
       dataRow.setValue(XValidator.choice(String.valueOf(OpUser.MANAGER_USER_LEVEL), caption));
       levelDataSet.addChild(dataRow);
       dataRow = new XComponent(XComponent.DATA_ROW);
-      caption = localizer.localize(STANDARD_LEVEL_CAPTION);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.STANDARD_USER_LEVEL), caption));
+      caption = localizer.localize(CONTRIBUTOR_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.CONTRIBUTOR_USER_LEVEL), caption));
+      levelDataSet.addChild(dataRow);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      caption = localizer.localize(OBSERVER_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.OBSERVER_USER_LEVEL), caption));
+      levelDataSet.addChild(dataRow);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      caption = localizer.localize(OBSERVER_CUSTOMER_LEVEL_CAPTION);
+      dataRow.setValue(XValidator.choice(String.valueOf(OpUser.OBSERVER_CUSTOMER_USER_LEVEL), caption));
       levelDataSet.addChild(dataRow);
       byte level = user.getLevel().byteValue();
-      if (level == OpUser.MANAGER_USER_LEVEL) {
-         levelField.setSelectedIndex(new Integer(0));
+      switch (level) {
+         case OpUser.MANAGER_USER_LEVEL:
+            levelField.setSelectedIndex(new Integer(0));
+            break;
+         case OpUser.CONTRIBUTOR_USER_LEVEL:
+            levelField.setSelectedIndex(new Integer(1));
+            break;
+         case OpUser.OBSERVER_CUSTOMER_USER_LEVEL:
+            levelField.setSelectedIndex(new Integer(2));
+            break;
+         case OpUser.OBSERVER_USER_LEVEL:
+            levelField.setSelectedIndex(new Integer(3));
+            break;
       }
-      else {
-         levelField.setSelectedIndex(new Integer(1));
-      }
-
 
       if (!edit_mode.booleanValue()) {
          firstName.setEnabled(false);

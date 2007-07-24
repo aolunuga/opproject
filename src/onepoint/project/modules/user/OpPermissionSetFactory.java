@@ -259,7 +259,8 @@ public class OpPermissionSetFactory {
             OpLocator locator = OpLocator.parseLocator(subjectLocator);
             if (locator.getPrototype().getInstanceClass() == OpUser.class) {
                user = (OpUser) broker.getObject(subjectLocator);
-               if (accessLevel >= OpPermission.MANAGER && user.getLevel().byteValue() != OpUser.MANAGER_USER_LEVEL) {
+               Byte highestPermission = OpUser.LEVEL_PERMISSION_MAP.get(user.getLevel());
+               if (accessLevel > highestPermission) {
                   permissionsOk = false;
                }
             }
@@ -268,7 +269,8 @@ public class OpPermissionSetFactory {
                for (Iterator iterator = group.getUserAssignments().iterator(); iterator.hasNext();) {
                   OpUserAssignment assignment = (OpUserAssignment) iterator.next();
                   user = assignment.getUser();
-                  if (accessLevel >= OpPermission.MANAGER && user.getLevel().byteValue() != OpUser.MANAGER_USER_LEVEL) {
+                  Byte highestPermission = OpUser.LEVEL_PERMISSION_MAP.get(user.getLevel());
+                  if (accessLevel > highestPermission) {
                      permissionsOk = false;
                   }
                }
@@ -277,7 +279,6 @@ public class OpPermissionSetFactory {
       }
       return permissionsOk;
    }
-
 
    /**
     * Persists the <code>permissionSet</code> for the given <code>object</code>

@@ -183,7 +183,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
 
    public void testPermission()
         throws Exception {
-      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.STANDARD_USER_LEVEL);
+      Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
       userData.put(OpUserService.LANGUAGE, "en");
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);

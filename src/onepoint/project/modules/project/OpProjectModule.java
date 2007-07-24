@@ -75,7 +75,7 @@ public class OpProjectModule extends OpModule {
       OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
       allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
       OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectNode> projectsIt = broker.list(allProjectsQuery).iterator();
+      Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
       while (projectsIt.hasNext()) {
          OpProjectNode project = projectsIt.next();
          project.setArchived(OpProjectNode.DEFAULT_ARCHIVED);

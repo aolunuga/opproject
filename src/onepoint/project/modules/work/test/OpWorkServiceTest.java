@@ -190,7 +190,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
 
       t.commit();
       OpQuery query = broker.newQuery("from OpAssignment");
-      assignment = (OpAssignment) broker.list(query).get(0);
+      assignment = (OpAssignment) broker.iterate(query).next();
       broker.close();
 
       XMessage request = OpWorkTestDataFactory.createInsertWorkSlipRequest(assignment, "", new Date(System.currentTimeMillis()),
@@ -220,7 +220,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
 
       t.commit();
       OpQuery query = broker.newQuery("from OpAssignment");
-      assignment = (OpAssignment) broker.list(query).get(0);
+      assignment = (OpAssignment) broker.iterate(query).next();
       broker.close();
 
       Date wd_date = new Date(System.currentTimeMillis());

@@ -7,14 +7,9 @@ package onepoint.project.modules.project_resources;
 import onepoint.express.XComponent;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * DataSet Factory for resource controlling.
@@ -43,53 +38,106 @@ public final class OpProjectResourceDataSetFactory {
     */
    public static void fillEffortDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set) {
 
-      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? and activity.Deleted = false order by activity.Sequence");
+      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
       query.setID(0, project.getID());
-      Iterator activities = broker.iterate(query);
-      OpActivity activity;
+      List<OpActivity> activities = broker.list(query);
+
       double predicted;
       Iterator assignments;
-      OpAssignment assignment;
       OpActivity previous_visible_activity = null;
-      HashMap resource_summaries = new HashMap();
+      HashMap<Long, OpProjectResourceSummary> resource_summaries = new HashMap<Long, OpProjectResourceSummary>();
       OpProjectResourceSummary resource_summary;
       long resource_id;
-      while (activities.hasNext()) {
-         activity = (OpActivity) (activities.next());
-         // Filter out milestones
-         if (activity.getType() == OpActivity.MILESTONE) {
-            continue;
+
+      boolean useBaseline = false;
+      if (project.getPlan().getBaselineVersion() != null) {
+         useBaseline = true;
+         for (OpActivity activity : activities) {
+            activity.setIsUsingBaselineValues(true);
          }
-         if (activity.getOutlineLevel() <= max_outline_level) {
-            // Add previous visible activity with summarized values and reset both
-            if (previous_visible_activity != null) {
-               addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
+      }
+
+      Set<Long> baselineResource = new HashSet<Long>();
+      for (OpActivity activity : activities) {
+
+         if (useBaseline) {
+            // Filter out milestones
+            if (activity.getBaselineVersion().getType() == OpActivity.MILESTONE && activity.getType() == OpActivity.MILESTONE) {
+               continue;
             }
-            resource_summaries.clear();
-            previous_visible_activity = activity;
+            if (activity.getOutlineLevel() > max_outline_level) {
+               continue;
+            }
          }
+         else {
+            // Filter out milestones
+            if (activity.getType() == OpActivity.MILESTONE) {
+               continue;
+            }
+            if (activity.getOutlineLevel() > max_outline_level) {
+               continue;
+            }
+         }
+
+         // Add previous visible activity with summarized values and reset both
+         if (previous_visible_activity != null) {
+            addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
+         }
+         resource_summaries.clear();
+         previous_visible_activity = activity;
+
+
+         baselineResource = new HashSet<Long>();
+         if (useBaseline) {
+            //add version assignments
+            OpActivityVersion version = activity.getBaselineVersion();
+            Set<OpAssignmentVersion> assignmentVersions = version.getAssignmentVersions();
+            for (OpAssignmentVersion assignmentVersion : assignmentVersions) {
+               resource_id = assignmentVersion.getResource().getID();
+               resource_summary = resource_summaries.get(new Long(resource_id));
+               if (resource_summary == null) {
+                  resource_summary = new OpProjectResourceSummary(resource_id, assignmentVersion.getResource().getName());
+                  resource_summaries.put(resource_id, resource_summary);
+               }
+               resource_summary.addBaseEffort(assignmentVersion.getBaseEffort());
+               baselineResource.add(resource_id);
+            }
+         }
+
          // Add values of assignments to resource summaries of previous visible row
          assignments = activity.getAssignments().iterator();
-         while (assignments.hasNext()) {
+         for (OpAssignment assignment : activity.getAssignments()) {
             assignment = (OpAssignment) (assignments.next());
             resource_id = assignment.getResource().getID();
-            resource_summary = (OpProjectResourceSummary) (resource_summaries.get(new Long(resource_id)));
+            resource_summary = resource_summaries.get(new Long(resource_id));
             if (resource_summary == null) {
                resource_summary = new OpProjectResourceSummary(resource_id, assignment.getResource().getName());
                resource_summaries.put(resource_id, resource_summary);
             }
-            // TODO: Update algorithm to work w/OpAssignment.EFFORT_TO_COMPLETE (via tracking tool)
+
+            if (!baselineResource.contains(resource_id)) {
+               resource_summary.addBaseEffort(assignment.getBaseEffort());
+            }
+
             predicted = assignment.getActualEffort() + assignment.getRemainingEffort();
-            resource_summary.addBaseEffort(assignment.getBaseEffort());
             resource_summary.addActualEffort(assignment.getActualEffort());
             resource_summary.addEffortToComplete(assignment.getRemainingEffort());
             resource_summary.addPredictedEffort(predicted);
          }
       }
+
       // Add last visible activity
       if (previous_visible_activity != null) {
          addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
       }
+
+      if (useBaseline) {
+         for (OpActivity activity : activities) {
+            activity.setIsUsingBaselineValues(false);
+         }
+      }
+
+
    }
 
    /**
@@ -179,7 +227,7 @@ public final class OpProjectResourceDataSetFactory {
          data_cell.setDoubleValue(resourceActual);// 2 resource actual
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setDoubleValue(resourceRemaining);// 3 resoruce remaining
+         data_cell.setDoubleValue(resourceRemaining);// 3 resource remaining
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setDoubleValue(resourcePredicted);// 4 resource predicted
@@ -192,8 +240,8 @@ public final class OpProjectResourceDataSetFactory {
          data_cell.setDoubleValue(percentDeviation);// 6 resource deviation
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL);
-         data_cell.setByteValue((byte)0);// 7 type/style
-         data_row.addChild(data_cell);         
+         data_cell.setByteValue((byte) 0);// 7 type/style
+         data_row.addChild(data_cell);
          data_set.addChild(data_row);
       }
    }

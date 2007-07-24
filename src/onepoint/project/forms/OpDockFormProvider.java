@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.module.OpTool;
 import onepoint.project.module.OpToolGroup;
 import onepoint.project.module.OpToolManager;
@@ -15,11 +16,9 @@ import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
+import onepoint.persistence.OpBroker;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Form provider class for the application's navigation dock.
@@ -56,11 +55,31 @@ public class OpDockFormProvider implements XFormProvider {
     * @param navigationGroupMap a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
    private void addTools(OpProjectSession session, Map navigationGroupMap) {
-      Iterator toolLists = OpToolManager.getToolLists();
-      while (toolLists.hasNext()) {
-         List toolList = (List) toolLists.next();
-         for (int i = 0; i < toolList.size(); i++) {
-            OpTool tool = (OpTool) toolList.get(i);
+      OpBroker broker = session.newBroker();
+      OpUser user = session.user(broker);
+      Byte userLevel = user.getLevel();
+
+      /**
+       * Remove the tools for which the user does not have the appropriate level.
+       * This should have been done in OpToolManager when the tool was registered
+       *    but at that time there was no session.
+       */
+      Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
+      List<List<OpTool>> toolLists = new ArrayList<List<OpTool>>();
+      while (toolListsIterator.hasNext()) {
+         List<OpTool> toolList = toolListsIterator.next();
+         toolLists.add(toolList);
+         Iterator<OpTool> toolListIt = toolList.iterator();
+         while(toolListIt.hasNext()){
+            OpTool tool = toolListIt.next();
+            if(tool.getLevel() != null && tool.getLevel() > userLevel) {
+               toolListIt.remove();
+            }
+         }
+      }
+
+      for (List<OpTool> toolList : toolLists) {
+         for (OpTool tool : toolList) {
             //link the tools
             if (tool.getGroupRef() != null) {
                XComponent navigationGroup = (XComponent) navigationGroupMap.get(tool.getGroupRef());

@@ -43,7 +43,7 @@
               <table-column text="${End}" width="60" value-type="Date" data-column-index="15" sortable="true"/>
               <table-column text="${Complete}" width="80" sortable="true" data-column-index="2"  value-type="PercentageBar"/>
               <table-column text="${Resources}" width="80" sortable="true" data-column-index="16"  value-type="PercentageBar"/>
-              <table-column text="${Costs}" width="80" sortable="true" data-column-index="17"  value-type="PercentageBar"/>
+              <table-column text="${Costs}" id="CostsColumn" width="80" sortable="true" data-column-index="17"  value-type="PercentageBar"/>
 
            </table-box>
         </tab>
