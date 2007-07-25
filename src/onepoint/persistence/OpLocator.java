@@ -13,7 +13,7 @@ public final class OpLocator {
    private long id;
 
    public OpLocator(OpObject object) {
-      prototype = object.getPrototype();
+      prototype = OpTypeManager.getPrototypeForObject(object);
       id = object.getID();
    }
 
@@ -42,12 +42,8 @@ public final class OpLocator {
 
    public static String locatorString(OpObject object) {
       StringBuffer buffer = new StringBuffer();
-      //TODO this currently is a hack, but saves us from instantiation of OpContent objects (should apply to all lazy-loaded objects).
-      //is somehow related to the .opt.xml files...
-      if(object.getClass().getName().indexOf("onepoint.project.modules.documents.OpContent") != -1)
-    	  buffer.append("OpContent");
-      else
-    	  buffer.append(object.getPrototype().getName());
+      OpPrototype prototype = OpTypeManager.getPrototypeForObject(object);
+      buffer.append(prototype.getName());
       buffer.append(LOCATOR_SEPARATOR);
       buffer.append(object.getID());
       buffer.append(LOCATOR_SEPARATOR);

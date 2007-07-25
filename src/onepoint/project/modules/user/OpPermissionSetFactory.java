@@ -6,11 +6,7 @@ package onepoint.project.modules.user;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpQuery;
-import onepoint.project.OpInitializer;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -204,7 +200,7 @@ public class OpPermissionSetFactory {
                   OpGroup everyone = session.everyone(broker);
                   permissionRow.setStringValue(XValidator.choice(everyone.locator(), objectLocalizer.localize(everyone
                        .getDisplayName()), GROUP_ICON_INDEX));
-                  permissionRow.addChild(imutableFlag);                  
+                  permissionRow.addChild(imutableFlag);
                   permissionSet.addChild(permissionRow);
                   break;
             }
@@ -220,7 +216,7 @@ public class OpPermissionSetFactory {
                permissionRow.setOutlineLevel(1);
                subject = permission.getSubject();
                //don't use s[ubject instance of OpGroup] becouse of Hibernate's "proxy problem" when using polymorphic collections
-               if (subject.getPrototype().getName().equals(OpGroup.GROUP)) {
+               if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
                   iconIndex = GROUP_ICON_INDEX;
                }
                else {
@@ -259,7 +255,7 @@ public class OpPermissionSetFactory {
             OpLocator locator = OpLocator.parseLocator(subjectLocator);
             if (locator.getPrototype().getInstanceClass() == OpUser.class) {
                user = (OpUser) broker.getObject(subjectLocator);
-               Byte highestPermission = OpUser.LEVEL_PERMISSION_MAP.get(user.getLevel());
+               Byte highestPermission = OpUser.getHighestPermission(user.getLevel());
                if (accessLevel > highestPermission) {
                   permissionsOk = false;
                }
@@ -269,7 +265,7 @@ public class OpPermissionSetFactory {
                for (Iterator iterator = group.getUserAssignments().iterator(); iterator.hasNext();) {
                   OpUserAssignment assignment = (OpUserAssignment) iterator.next();
                   user = assignment.getUser();
-                  Byte highestPermission = OpUser.LEVEL_PERMISSION_MAP.get(user.getLevel());
+                  Byte highestPermission = OpUser.getHighestPermission(user.getLevel());
                   if (accessLevel > highestPermission) {
                      permissionsOk = false;
                   }
@@ -284,7 +280,7 @@ public class OpPermissionSetFactory {
     * Persists the <code>permissionSet</code> for the given <code>object</code>
     *
     * @param broker        a <code>OpBroker</code>
-    * @param session a <code>OpProjectSession</code> representing the server session.
+    * @param session       a <code>OpProjectSession</code> representing the server session.
     * @param object        a <code>XProject</code> or a <code>XProjectPorfolio</code> instance
     * @param permissionSet a <code>XComponent.DATA_SET</code> of permissions
     * @return a <code>XError</code> object if an error occured, or <code>null</code> if the operation was successfull.

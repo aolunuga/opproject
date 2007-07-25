@@ -4,6 +4,24 @@
 
 package onepoint.project.modules.backup;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpField;
+import onepoint.persistence.OpMember;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpRelationship;
+import onepoint.persistence.OpType;
+import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.hibernate.OpHibernateSource;
+import onepoint.project.OpProjectSession;
+import onepoint.service.XSizeInputStream;
+import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
+import onepoint.xml.XDocumentWriter;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -24,24 +42,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpField;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpRelationship;
-import onepoint.persistence.OpType;
-import onepoint.persistence.OpTypeManager;
-import onepoint.persistence.hibernate.OpHibernateSource;
-import onepoint.project.OpProjectSession;
-import onepoint.service.XSizeInputStream;
-import onepoint.util.XEnvironmentManager;
-import onepoint.util.XIOHelper;
-import onepoint.xml.XDocumentWriter;
 
 /**
  * Class that backs-up and restores the application repository.
@@ -385,10 +385,12 @@ public class OpBackupManager {
                   writer.writeContent(NULL);
                }
                else {
-            	  if(value instanceof XSizeInputStream)
-            		  writer.writeContent(writeBinaryFile(object.getID(), member.name, (XSizeInputStream) value));
-            	  else
-            		  writer.writeContent(writeBinaryFile(object.getID(), member.name, (byte[]) value));
+                  if (value instanceof XSizeInputStream) {
+                     writer.writeContent(writeBinaryFile(object.getID(), member.name, (XSizeInputStream) value));
+                  }
+                  else {
+                     writer.writeContent(writeBinaryFile(object.getID(), member.name, (byte[]) value));
+                  }
                }
                break;
             case OpType.BYTE:
@@ -401,8 +403,8 @@ public class OpBackupManager {
                writer.writeContent(TIMESTAMP_FORMAT.format((Timestamp) value));
                break;
             default:
-               logger.error("ERROR: Unsupported type ID " + member.typeId + " for " + object.getPrototype().getName()
-                    + "." + member.name);
+               logger.error("ERROR: Unsupported type ID " + member.typeId + " for " +
+                    OpTypeManager.getPrototypeForObject(object).getName() + "." + member.name);
          }
       }
       writer.writeEndElement(P);
@@ -828,6 +830,7 @@ public class OpBackupManager {
       }
       return SLASH_STRING + this.binaryDirName + fileName;
    }
+
    /**
     * Writes a binary file under the given path, in a special directory.
     *
@@ -854,7 +857,7 @@ public class OpBackupManager {
       }
       return SLASH_STRING + this.binaryDirName + fileName;
    }
-	
+
 
    /**
     * Reads the contents of a binary file from the given path.

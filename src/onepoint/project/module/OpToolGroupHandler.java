@@ -37,8 +37,10 @@ public class OpToolGroupHandler implements XNodeHandler {
          group.setAdministratorOnly(Boolean.valueOf((String) value).booleanValue());
       }
       value = attributes.get(LEVEL);
-      if ((value != null) && (value instanceof String)) {
-         group.setLevel((String) value);
+      if((value != null) && (value instanceof String)) {
+         if(OpToolHandler.getLevelType((String) value) != null){
+            group.setLevel(OpToolHandler.getLevelType((String) value));
+         }
       }
       return group;
    }

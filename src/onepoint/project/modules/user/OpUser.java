@@ -26,12 +26,12 @@ public class OpUser extends OpSubject {
    public static final byte MANAGER_USER_LEVEL = OpProjectConstants.MANAGER_USER_LEVEL;
    public static final byte DEFAULT_USER_LEVEL = CONTRIBUTOR_USER_LEVEL;
 
-    /**
+   /**
      * The mapping between the user levels and the highest permission possible for each level.
      * The structure of the map is: Key - user level
      *                              Value - the highest permission for the level.
      */
-    public static Map<Byte, Byte> LEVEL_PERMISSION_MAP;
+    private static Map<Byte, Byte> LEVEL_PERMISSION_MAP;
 
     static {
         LEVEL_PERMISSION_MAP = new HashMap<Byte, Byte>();
@@ -147,6 +147,10 @@ public class OpUser extends OpSubject {
       this.workSlips = workSlips;
    }
 
+   public static Byte getHighestPermission(Byte userLevel) {
+      return LEVEL_PERMISSION_MAP.get(userLevel);
+   }
+   
    /**
     * get all existing work slips of the current user.
     *

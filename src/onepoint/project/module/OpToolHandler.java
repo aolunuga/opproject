@@ -4,9 +4,9 @@
 
 package onepoint.project.module;
 
+import onepoint.project.util.OpProjectConstants;
 import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
-import onepoint.project.util.OpProjectConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +39,10 @@ public class OpToolHandler implements XNodeHandler {
       LEVEL_NAME_TYPE_MAP.put("Contributor", OpProjectConstants.CONTRIBUTOR_USER_LEVEL);
       LEVEL_NAME_TYPE_MAP.put("Manager", OpProjectConstants.MANAGER_USER_LEVEL);
    }
+
+   protected static Byte getLevelType(String levelName) {
+      return LEVEL_NAME_TYPE_MAP.get(levelName);
+   }  
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       OpTool tool = new OpTool();

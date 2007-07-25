@@ -112,10 +112,10 @@ public class OpEditUserFormProvider implements XFormProvider {
          case OpUser.CONTRIBUTOR_USER_LEVEL:
             levelField.setSelectedIndex(new Integer(1));
             break;
-         case OpUser.OBSERVER_CUSTOMER_USER_LEVEL:
+         case OpUser.OBSERVER_USER_LEVEL:
             levelField.setSelectedIndex(new Integer(2));
             break;
-         case OpUser.OBSERVER_USER_LEVEL:
+         case OpUser.OBSERVER_CUSTOMER_USER_LEVEL:
             levelField.setSelectedIndex(new Integer(3));
             break;
       }

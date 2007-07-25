@@ -16,7 +16,6 @@ public class OpObject {
    public final static String MODIFIED = "Modified";
    public final static String ID = "ID";
 
-   private OpPrototype prototype;
    private Timestamp created;
    private Timestamp modified;
    private Set permissions;
@@ -24,16 +23,11 @@ public class OpObject {
    private long id = 0;
    private Set dynamicResources = new HashSet();
    private String siteId;
-   
+
    // The following field is intentionally transient and dynamic
    private byte effectiveAccessLevel;
 
    public OpObject() {
-      prototype = OpTypeManager.getPrototypeByClassName(getClass().getName());
-   }
-
-   public OpPrototype getPrototype() {
-      return prototype;
    }
 
    private void setID(long id) {
@@ -107,7 +101,7 @@ public class OpObject {
    @Override
    public boolean equals(Object object) {
       return (object.getClass() == getClass()) && (((OpObject) object).id == id) && (((OpObject) object).id != 0)
-               && (id != 0);
+           && (id != 0);
    }
 
    @Override

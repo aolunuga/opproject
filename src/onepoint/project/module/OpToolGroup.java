@@ -11,7 +11,7 @@ public class OpToolGroup {
    private String caption;
    private OpModule module;
    private boolean administratorOnly = false;
-   private String level;
+   private Byte level;
 
    final public void setName(String name) {
       this.name = name;
@@ -53,11 +53,11 @@ public class OpToolGroup {
       this.administratorOnly = administratorOnly;
    }
 
-   final public void setLevel(String level) {
+   final public void setLevel(Byte level) {
       this.level = level;
    }
 
-   public final String getLevel() {
+   public final Byte getLevel() {
       return level;
    }
 }

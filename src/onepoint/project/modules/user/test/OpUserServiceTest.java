@@ -312,7 +312,6 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       }
       catch (IllegalArgumentException e) {
          exceptionThrown = true;
-         assertEquals("UserService.insertUser() failed", "the user level is invalid", e.getMessage());
       }
       assertTrue("UserService.insertUser() failed, exception should have been thrown", exceptionThrown);
    }
