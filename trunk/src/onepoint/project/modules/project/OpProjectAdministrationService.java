@@ -7,7 +7,12 @@ package onepoint.project.modules.project;
 import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpEntityException;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.components.OpGanttValidator;
@@ -26,7 +31,15 @@ import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 
 public class OpProjectAdministrationService extends OpProjectService {
@@ -887,7 +900,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          OpPermission permission = (OpPermission) o;
          //remove permission if there are no project node assignments for resources with the same responsible user
          OpSubject subject = permission.getSubject();
-         if (subject.getPrototype().getName().equals(OpUser.USER)) {
+         if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpUser.USER)) {
             //list of resource ids for which the user is responsible
             query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");
             query.setLong("userId", subject.getID());

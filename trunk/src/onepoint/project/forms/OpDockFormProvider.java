@@ -55,28 +55,7 @@ public class OpDockFormProvider implements XFormProvider {
     * @param navigationGroupMap a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
    private void addTools(OpProjectSession session, Map navigationGroupMap) {
-      OpBroker broker = session.newBroker();
-      OpUser user = session.user(broker);
-      Byte userLevel = user.getLevel();
-
-      /**
-       * Remove the tools for which the user does not have the appropriate level.
-       * This should have been done in OpToolManager when the tool was registered
-       *    but at that time there was no session.
-       */
-      Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
-      List<List<OpTool>> toolLists = new ArrayList<List<OpTool>>();
-      while (toolListsIterator.hasNext()) {
-         List<OpTool> toolList = toolListsIterator.next();
-         toolLists.add(toolList);
-         Iterator<OpTool> toolListIt = toolList.iterator();
-         while(toolListIt.hasNext()){
-            OpTool tool = toolListIt.next();
-            if(tool.getLevel() != null && tool.getLevel() > userLevel) {
-               toolListIt.remove();
-            }
-         }
-      }
+      List<List<OpTool>> toolLists = removeToolsWithHigherLevels(session);
 
       for (List<OpTool> toolList : toolLists) {
          for (OpTool tool : toolList) {
@@ -95,6 +74,49 @@ public class OpDockFormProvider implements XFormProvider {
          }
       }
    }
+
+   //<FIXME author="Haizea Florin" description="Maybe the removal of the tools for which the user doesn't have
+   //    the appropriate level could be done sooner...">
+   /**
+    * Remove the tools for which the user does not have the appropriate level.
+    *
+    * @param session - the <code>OpProjectSession</code> needed to get the user's level
+    * @return the list of <code>OpTool</code> objects for which the user has the appropriate level.
+    */
+   private List<List<OpTool>> removeToolsWithHigherLevels(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpUser user = session.user(broker);
+      Byte userLevel = user.getLevel();
+
+      Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
+      List<List<OpTool>> toolLists = new ArrayList<List<OpTool>>();
+      while (toolListsIterator.hasNext()) {
+         List<OpTool> toolList = toolListsIterator.next();
+         //make a copy of the tool list so that the users that will log in after the current user
+         //have the full list of tools at the log in moment
+         List<OpTool> tempList = new ArrayList<OpTool>();
+         for(OpTool tool : toolList){
+            tempList.add(tool);
+         }
+         toolLists.add(tempList);
+         Iterator<OpTool> toolListIt = tempList.iterator();
+         while (toolListIt.hasNext()) {
+            OpTool tool = toolListIt.next();
+            if (tool.getLevel() != null && tool.getLevel() > userLevel) {
+               toolListIt.remove();
+            }
+            else{
+               OpToolGroup group = tool.getGroup();
+               if(group != null && tool.getGroup().getLevel() != null && tool.getGroup().getLevel() > userLevel){
+                  toolListIt.remove();
+               }
+            }
+         }
+      }
+
+      return toolLists;
+   }
+   //<FIXME>
 
    /**
     * Creates a navigation item component, from the given tool.
@@ -128,13 +150,11 @@ public class OpDockFormProvider implements XFormProvider {
     * @return a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
    private Map addToolGroups(OpProjectSession session, XComponent navigationBox) {
-      Iterator groupLists = OpToolManager.getGroupLists();
       Map navigationGroupMap = new HashMap();
+      List<List<OpToolGroup>> groupLists = removeToolGroupsWithHigherLevels(session);
 
-      while (groupLists.hasNext()) {
-         List groupList = (List) groupLists.next();
-         for (int i = 0; i < groupList.size(); i++) {
-            OpToolGroup group = (OpToolGroup) groupList.get(i);
+       for (List<OpToolGroup> groupList : groupLists) {
+         for (OpToolGroup group : groupList) {
             if (group.isAdministratorOnly() && !session.userIsAdministrator()) {
                continue;
             }
@@ -145,6 +165,43 @@ public class OpDockFormProvider implements XFormProvider {
       }
       return navigationGroupMap;
    }
+
+   //<FIXME author="Haizea Florin" description="Maybe the removal of the toolGroups for which the user doesn't have
+   //    the appropriate level could be done sooner...">
+   /**
+    * Remove the tool groups for which the user does not have the appropriate level.
+    *
+    * @param session - the <code>OpProjectSession</code> needed to get the user's level
+    * @return the list of <code>OpToolGroup</code> objects for which the user has the appropriate level.
+    */
+   private List<List<OpToolGroup>> removeToolGroupsWithHigherLevels(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpUser user = session.user(broker);
+      Byte userLevel = user.getLevel();
+
+      Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();
+      List<List<OpToolGroup>> groupLists = new ArrayList<List<OpToolGroup>>();
+      while (groupListsIterator.hasNext()) {
+         List<OpToolGroup> groupList = groupListsIterator.next();
+         //make a copy of the tool group list so that the users that will log in after the current user
+         //have the full list of tool groups at the log in moment
+         List<OpToolGroup> tempGroupList = new ArrayList<OpToolGroup>();
+         for(OpToolGroup group : groupList){
+            tempGroupList.add(group);
+         }
+         groupLists.add(tempGroupList);
+         Iterator<OpToolGroup> groupListIt = tempGroupList.iterator();
+         while (groupListIt.hasNext()) {
+            OpToolGroup group = groupListIt.next();
+            if (group.getLevel() != null && group.getLevel() > userLevel) {
+               groupListIt.remove();
+            }
+         }
+      }
+
+      return groupLists;
+   }
+   //<FIXME>
 
    /**
     * Creates a new navigation group component, containing the data from the given tool group.

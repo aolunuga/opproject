@@ -10,6 +10,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
@@ -232,10 +233,10 @@ public final class OpSubjectDataSetFactory {
     * @return a <code>String</code> representing the descriptor of the subject or null if none can be found.
     */
    private static String getSubjectDescriptor(OpSubject subject) {
-      if (subject.getPrototype().getInstanceClass().equals(OpUser.class)) {
+      if (OpTypeManager.getPrototypeForObject(subject).getInstanceClass().equals(OpUser.class)) {
          return USER_DESCRIPTOR;
       }
-      if (subject.getPrototype().getInstanceClass().equals(OpGroup.class)) {
+      if (OpTypeManager.getPrototypeForObject(subject).getInstanceClass().equals(OpGroup.class)) {
          return GROUP_DESCRIPTOR;
       }
       return null;
@@ -248,10 +249,10 @@ public final class OpSubjectDataSetFactory {
     * @return a <code>String</code> representing the icon index of the subject, or -1 if none can be found.
     */
    private static int getSubjectIconIndex(OpSubject subject) {
-      if (subject.getPrototype().getInstanceClass().equals(OpUser.class)) {
+      if (OpTypeManager.getPrototypeForObject(subject).getInstanceClass().equals(OpUser.class)) {
          return USER_ICON_INDEX;
       }
-      if (subject.getPrototype().getInstanceClass().equals(OpGroup.class)) {
+      if (OpTypeManager.getPrototypeForObject(subject).getInstanceClass().equals(OpGroup.class)) {
          return GROUP_ICON_INDEX;
       }
       return -1;

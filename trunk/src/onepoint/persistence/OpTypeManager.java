@@ -7,12 +7,17 @@ package onepoint.persistence;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class OpTypeManager {
    // Class logger.
    private static final XLog logger = XLogFactory.getServerLogger(OpTypeManager.class);
 
+   private static final String CGLIB_ENHANCER_PREFIX = "$$";
+   
    private static Map<String, OpType> types;
    private static Map<String, OpPrototype> prototypes;
    private static Map<Integer, OpPrototype> prototypeIds;
@@ -195,8 +200,18 @@ public class OpTypeManager {
       return (OpPrototype) (prototypeIds.get(new Integer(id)));
    }
 
-   public static OpPrototype getPrototypeByClassName(String class_name) {
-      return (OpPrototype) (classNames.get(class_name));
+   public static OpPrototype getPrototypeByClassName(String className) {
+      // check if we have an enhanced class (Proxy) or not.
+      int index = className.indexOf(CGLIB_ENHANCER_PREFIX);
+      if (index != -1) {
+         className = className.substring(0, index);
+      }
+
+      return (OpPrototype) classNames.get(className);
+   }
+
+   public static OpPrototype getPrototypeForObject(Object object) {
+      return getPrototypeByClassName(object.getClass().getName());
    }
 
    public static int getMaxLength(int type) {

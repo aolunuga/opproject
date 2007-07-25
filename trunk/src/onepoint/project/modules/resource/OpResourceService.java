@@ -7,11 +7,29 @@ package onepoint.project.modules.resource;
 import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityVersion;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAssignmentVersion;
+import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanValidator;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.modules.user.*;
+import onepoint.project.modules.user.OpContact;
+import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpSubject;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
@@ -20,7 +38,13 @@ import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class OpResourceService extends onepoint.project.OpProjectService {
 
@@ -1244,7 +1268,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    }
 
    private void collectResources(OpObject object, Set<Long> resourceIds) {
-      if (object.getPrototype().getName().equals(OpResourcePool.RESOURCE_POOL)) {
+      if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpResourcePool.RESOURCE_POOL)) {
          //add all its sub-resources
          OpResourcePool pool = (OpResourcePool) object;
          Set resources = pool.getResources();
@@ -1681,5 +1705,5 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       xMessage.setArgument(INTERNAL_RATE, ratesList.get(OpResource.INTERNAL_RATE_INDEX));
       xMessage.setArgument(EXTERNAL_RATE, ratesList.get(OpResource.EXTERNAL_RATE_INDEX));
       return xMessage;
-   }  
+   }
 }
