@@ -9,6 +9,7 @@ import onepoint.express.server.XExpressSession;
 import onepoint.persistence.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
+import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.documents.OpContentManager;
@@ -22,6 +23,7 @@ import onepoint.service.XSizeInputStream;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -202,13 +204,20 @@ public class OpProjectSession extends XExpressSession {
          return 0;
       }
       // Check for locks and respective lock owners
-      query = broker.newQuery("select count(lock.ID) from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
+      
+      query = broker.newQuery("select lock from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
       query.setLong(0, objectId);
       query.setLong(1, getUserID());
       result = broker.iterate(query);
       // If someone beside the current user has a lock: Downgrade the user access level accordingly
-      int locks = ((Number) result.next()).intValue();
-      if ((locks > 0) && (userAccessLevel > OpPermission.CONTRIBUTOR)) {
+      OpLock lock;
+      boolean otherLockersExist = false;
+      while ((result.hasNext() && (!otherLockersExist))) {
+         lock = (OpLock)result.next();
+         otherLockersExist = !lock.lockedByMe(this, broker);
+      }
+      
+      if (otherLockersExist && (userAccessLevel > OpPermission.CONTRIBUTOR)) {
          userAccessLevel = OpPermission.CONTRIBUTOR;
       }
       return userAccessLevel;
@@ -297,7 +306,9 @@ public class OpProjectSession extends XExpressSession {
          queryString.append(sortQuery);
          OpQuery query = broker.newQuery(queryString.toString());
          query.setCollection("objectIds", objectIds);
-         Iterator result = broker.iterate(query);
+         // <FIXME author="Lucian Furtos" description="This is memory ineficient. Using broker.iterate(qeury) fails to load one-to-one relations for project nodes.">
+         Iterator result = broker.list(query).iterator();
+         // </FIXME>
          OpObject object;
          while (result.hasNext()) {
             object = (OpObject) result.next();

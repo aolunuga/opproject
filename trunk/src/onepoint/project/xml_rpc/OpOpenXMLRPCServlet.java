@@ -135,10 +135,26 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 
       //perform the initialization
       // FIXME how to init right edition? - should't that be read from license      
-      OpInitializerFactory factory = OpInitializerFactory.getInstance();
-      factory.setInitializer(OpInitializer.class);
 
-      OpInitializer initializer = factory.getInitializer();
+      // NOTE: strange code but works that way!
+      // if no initializer was set before - 
+      // which means we are the first initializer, no servlet is running -
+      // an RuntimeException is thrown. We catch it and set the initializer.
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      OpInitializer initializer;
+      try {
+         initializer = factory.getInitializer();
+         if (initializer == null) {
+            factory.setInitializer(OpInitializer.class);
+            initializer = factory.getInitializer();
+         }
+      }
+      catch (RuntimeException exc) {
+         factory.setInitializer(OpInitializer.class);
+         initializer = factory.getInitializer();
+      }
+
+      // NOTE: does no initialization if we are already initialized
       initializer.init(this.getProductCode());
 
       // initialize the handlers

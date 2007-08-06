@@ -137,7 +137,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
             startPoints = new ArrayList();
             startPoints.add(data_row);
 
-            ArrayList removed_successors = setSuccessorsValue(value, data_row);
+            List removed_successors = setSuccessorsValue(value, data_row);
 
             for (int index = 0; index < removed_successors.size(); index++) {
                XComponent successor = (XComponent) (data_set._getChild(((Integer) (removed_successors.get(index))).intValue()));
@@ -148,7 +148,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
 
          case VISUAL_RESOURCES_COLUMN_INDEX:
 
-            ArrayList resources = (ArrayList) value;
+            List resources = (ArrayList) value;
 
             //tasks, milestones keep only the resource name
             if (getType(data_row) == TASK || getType(data_row) == MILESTONE) {
@@ -234,7 +234,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
       startPoints = new ArrayList();
       for (int i = 0; i < data_rows.size(); i++) {
          XComponent row = (XComponent) data_rows.get(i);
-         ArrayList successorsIndexes = OpGanttValidator.getSuccessors(row);
+         List successorsIndexes = OpGanttValidator.getSuccessors(row);
          List successors = new ArrayList();
          for (Iterator iterator = successorsIndexes.iterator(); iterator.hasNext();) {
             Integer index = (Integer) iterator.next();
@@ -341,7 +341,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
     * @throws onepoint.express.XValidationException
     *          if a cycle was detected and the outline level can't be changed.
     */
-   public void changeOutlineLevels(ArrayList data_rows, int offset)
+   public void changeOutlineLevels(List data_rows, int offset)
         throws XValidationException {
 
       initStartPoints();

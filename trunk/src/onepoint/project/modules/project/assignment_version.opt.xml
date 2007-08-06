@@ -7,4 +7,5 @@
    <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="AssignmentVersions"/>
    <relationship name="Resource" type="OpResource" back-relationship="AssignmentVersions"/>
    <relationship name="ActivityVersion" type="OpActivityVersion" back-relationship="AssignmentVersions"/>
+   <relationship name="WorkMonthVersions" type="OpWorkMonthVersion" collection-type="Set" back-relationship="AssignmentVersion" inverse="true" cascade="delete"/>
 </prototype>

@@ -30,15 +30,7 @@ public class OpWorkSlipDataSetFactory {
    public static final int TIME_RECORD_SET_INDEX = 1;
    public static final int COST_RECORD_SET_INDEX = 2;
 
-   public final static long ALL_PROJECTS_ID = -1;
-
-   //indexes used in the choice maps
-   public final static int PROJECT_MAP_RESOURCE_SET_INDEX = 0;
-   public final static int PROJECT_MAP_ACTIVITY_SET_INDEX = 1;
-   public final static int RESOURCE_MAP_PROJECT_SET_INDEX = 0;
-   public final static int RESOURCE_MAP_ACTIVITY_SET_INDEX = 1;
-   public final static int ACTIVITY_MAP_PROJECT_SET_INDEX = 0;
-   public final static int ACTIVITY_MAP_RESOURCE_SET_INDEX = 1;
+   public final static long ALL_PROJECTS_ID = -1;   
 
    /**
     * Utility class.
@@ -262,6 +254,7 @@ public class OpWorkSlipDataSetFactory {
             costRecords.addAll(costRecordSet);
             workRecord.setCostRecords(costRecords);
             workRecords.add(workRecord);
+            emptyWorkRecords.add(workRecord);
          }
       }
 

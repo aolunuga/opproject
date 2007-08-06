@@ -481,7 +481,15 @@ public class OpPermissionSetFactory {
     * @param from   an <code>OpObject</code> representing the source object (where to copy the permissions from)
     * @param to     an <code>OpObject</code> representing the destination object (where to copy the permissions to)
     */
-   public static void copyPermissions(OpBroker broker, OpObject from, OpObject to) {
+   public static void updatePermissions(OpBroker broker, OpObject from, OpObject to) {
+      //delete previous permissions of the destination object
+      if (to.getPermissions() != null && !to.getPermissions().isEmpty()) {
+         for (Iterator it = to.getPermissions().iterator(); it.hasNext();) {
+            OpPermission permission = (OpPermission) it.next();
+            broker.deleteObject(permission);
+         }
+      }
+
       Set fromPermissions = from.getPermissions();
       if (fromPermissions == null || fromPermissions.isEmpty()) {
          return;

@@ -19,6 +19,8 @@
       <prototype-file file-name="/modules/project/to_do.opt.xml"/>
       <prototype-file file-name="/modules/project/activity_category.opt.xml"/>
       <prototype-file file-name="/modules/project/project_status.opt.xml"/>
+      <prototype-file file-name="/modules/project/work_month.opt.xml"/>
+      <prototype-file file-name="/modules/project/work_month_version.opt.xml"/>
    </prototype-files>
    <service-files>
       <service-file file-name="/modules/project/project_service.osd.xml"/>

@@ -29,8 +29,8 @@
       <resource id="NewPool">New Pool</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
-      <resource id="HourlyRate">Hourly rate</resource>
-      <resource id="ExternalRate">External rate</resource>      
+      <resource id="HourlyRate">Internal hourly rate</resource>
+      <resource id="ExternalRate">External hourly rate</resource>      
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
@@ -40,14 +40,14 @@
       <resource id="Permissions">Permissions</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
-      <resource id="HourlyRate">Hourly rate</resource>
-      <resource id="ExternalRate">External rate</resource>
+      <resource id="HourlyRate">Internal hourly rate</resource>
+      <resource id="ExternalRate">External hourly rate</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
    <resource-map id="resource.Info">
-      <resource id="InfoPool">Pool Info</resource>
-      <resource id="InfoResource">Resource Info</resource>
+      <resource id="InfoPool">Pool Properties</resource>
+      <resource id="InfoResource">Resource Properties</resource>
    </resource-map>
    <resource-map id="resource.NewResource">
       <resource id="NewResource">New Resource</resource>
@@ -55,14 +55,14 @@
       <resource id="Projects">Projects</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Name">Name</resource>
-      <resource id="Description">Descriptions</resource>
+      <resource id="Description">Description</resource>
       <resource id="Available">Available (%)</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Responsible user</resource>
       <resource id="SelectUser">Choose</resource>
       <resource id="Pool">Pool</resource>
-      <resource id="HourlyRate">Hourly Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
+      <resource id="HourlyRate">Internal hourly rate</resource>
+      <resource id="ExternalRate">External hourly rate</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
@@ -74,7 +74,7 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
       <resource id="Available">Available (%)</resource>
-      <resource id="HourlyRate">Hourly rate</resource>
+      <resource id="HourlyRate">Internal hourly rate</resource>
       <resource id="ExternalRate">External hourly rate</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="ResponsibleUser">Responsible user</resource>
@@ -89,7 +89,7 @@
       <resource id="Projects">Projects</resource>
       <resource id="NameFormat">Name format</resource>
       <resource id="Available">Available (%)</resource>
-      <resource id="HourlyRate">Hourly rate</resource>
+      <resource id="HourlyRate">Internal rate</resource>
       <resource id="ExternalRate">External Rate</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
       <resource id="Pool">Pool</resource>
@@ -120,8 +120,8 @@
       <resource id="PoolNameNotUnique">The pool name is already used</resource>
       <resource id="PoolNameNotSpecified">The pool name was not specified</resource>
       <resource id="AvailabilityNotValid">The entered availability is not valid</resource>
-      <resource id="HourlyRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
+      <resource id="HourlyRateNotValid">The entered internal hourly rate is not valid</resource>
+      <resource id="ExternalRateNotValid">The entered external hourly rate is not valid</resource>
       <resource id="NameFormatNotSpecified">The name format was not specified</resource>
       <resource id="NameFormatNotValid">The entered name format is not valid</resource>
       <resource id="ResourceNotFound">The resource was not found</resource>
@@ -135,8 +135,8 @@
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
       <resource id="ActivityAssignmentVersionsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's versions activities</resource>
-      <resource id="ResponsibleActivitiesExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project</resource>
-      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project's versions</resource>
+      <resource id="ResponsibleActivitiesExistError">The resource cannot be removed from the project because it is still responsible for some of the activities in the project plan</resource>
+      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities in the project's versions</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Delete Resources or Pools</resource>
@@ -148,10 +148,10 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Modify Resource</resource>
-      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of this resource might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
+      <resource id="ConfirmChangeHR">Editing the internal and/or external hourly rate of this resource might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
       <resource id="ConfirmChangeAvailable">Editing the availability of this resource might result in the revalidation of its associated project plans.</resource>
       <resource id="ConfirmPoolChange">Modify Pool</resource>
-      <resource id="ConfirmPoolChangeHR">Editing the hourly rate and/or external rate of this resource pool might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
+      <resource id="ConfirmPoolChangeHR">Editing the internal and/or external hourly rate of this resource pool might result in the recalculation of personnel costs and proceeds in various project plans.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>

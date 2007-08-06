@@ -16,8 +16,8 @@
       <resource id="Description">Beschreibung</resource>
       <resource id="Color">Farbe</resource>
 
-      <resource id="NewProjectStatusTooltip">Neuen Projektstatus anlegen</resource>
-      <resource id="InfoTooltip">Meta-Information des ausgewählten Projektstatus einsehen</resource>
+      <resource id="NewProjectStatusTooltip">Neuen Projektstatus erstellen</resource>
+      <resource id="InfoTooltip">Metainformation für ausgewählten Projektstatus anzeigen</resource>
       <resource id="DeleteTooltip">Ausgewählte Projektstatusobjekte löschen</resource>
       <resource id="UpTooltip">Ausgewählte Projektstatusobjekte nach oben verschieben</resource>
       <resource id="DownTooltip">Ausgewählte Projektstatusobjekte nach unten verschieben</resource>
@@ -43,20 +43,20 @@
    </resource-map>
 
    <resource-map id="project_status.Info">
-      <resource id="InfoProjectStatus">Projekstatus-Info</resource>
+      <resource id="InfoProjectStatus">Projekstatuseigenschaften</resource>
    </resource-map>
 
    <resource-map id="project_status.delete">
-      <resource id="ConfirmDelete">Projektstatus löschen</resource>
-      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Projektstatusobjekte aus, die gelöscht werden sollen</resource>
+      <resource id="ConfirmDelete">Projektstatusobjekte löschen</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie ein oder mehrere Projektstatusobjekte zum Löschen aus</resource>
       <resource id="ConfirmDeleteOneMessage">Möchten Sie den ausgewählten Projektstatus wirklich löschen?</resource>
-      <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgwählten Projektstatusobjekte wirklich löschen?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Projektstatusobjekte wirklich löschen?</resource>
       <resource id="OK">OK</resource>
-      <resource id="Cancel">Cancel</resource>
+      <resource id="Cancel">Abbrechen</resource>
    </resource-map>
 
    <resource-map id="project_status.error">
-      <resource id="StatusNameNotSpecified">Es wurde kein Projektstatusname vergeben</resource>
+      <resource id="StatusNameNotSpecified">Bitte Projektstatusname eingeben</resource>
       <resource id="StatusNameNotUnique">Der Projektstatusname wird bereits verwendet</resource>
       <resource id="StatusNotFound">Der Projektstatus konnte nicht gefunden werden</resource>
       <resource id="InsufficientPrivileges">Nur der Administrator darf Projektstatusobjekte verwalten</resource>

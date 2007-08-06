@@ -20,7 +20,7 @@
    </resource-map>
    <resource-map id="repository.restore_file_list">
       <resource id="RestoreFile">Select file to restore</resource>
-      <resource id="RestoreConfirmationSuccessfull">The restore operation was successfull. Press OK to restart the session.</resource>
+      <resource id="RestoreConfirmationSuccessfull">The restore operation was successful. Press OK to restart the session.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
@@ -35,7 +35,7 @@
    </resource-map>
    <resource-map id="repository.reset_confirmation">
       <resource id="ResetConfirmation">Confirm Reset</resource>
-      <resource id="ResetConfirmationSuccessfull">Resetting the database was successfull. Press OK to restart all user session.</resource>
+      <resource id="ResetConfirmationSuccessfull">Resetting the database was successful. Press OK to restart all user session.</resource>
       <resource id="AdminPasswordRequest">Please enter the administrator password: </resource>
       <resource id="SimpleConfirmMessage">Are you sure you want to reset the database?</resource>
       <resource id="Cancel">Cancel</resource>
@@ -53,7 +53,7 @@
       <resource id="RestoreError">An error occurred during restore. Please check the log file for details</resource>
       <resource id="ResetError">An error occurred during reset. Please check the log file for details</resource>
       <resource id="BackupDirectoryError">Cannot create or access the backup directory</resource>
-      <resource id="InsuficientPermissions">You don not have sufficient permissions to perform this operation</resource>
+      <resource id="InsuficientPermissions">You do not have sufficient permissions to perform this operation</resource>
       <resource id="InvalidAdminPassword">The password you entered is invalid</resource>
    </resource-map>
 </language-kit>

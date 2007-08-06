@@ -5,6 +5,7 @@
 // Helper script for new/edit project
 
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/project_planning/scripts/attachments.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.service.XMessage;
@@ -139,4 +140,31 @@ function addGoal(event) {
    data_cell.setEnabled(true);
    data_row.addChild(data_cell);
    XDisplay.getActiveForm().findComponent("GoalsTableBox").update();
+}
+
+//put the list of attachments into a XComponent so that the file objects can be replaced with their path
+function addAttachmentListToDataSet(attachmentList) {
+   attachmentListDataSet = XDisplay.getActiveForm().findComponent("AttachmentListDataSet");
+   dataRow = attachmentListDataSet.newDataRow();
+   attachmentListDataSet.addChild(dataRow);
+   dataCell = XComponent.newDataCell();
+   dataCell.setValue(attachmentList);
+   dataRow.addChild(dataCell);
+   return attachmentListDataSet;
+}
+
+function addURLAttachment(event) {
+  addURL(event);
+}
+
+function addDocumentAttachment(event) {
+   addDocument(event);
+}
+
+function removeAttachments(event) {
+   remove(event);
+}
+
+function viewAttachment(event) {
+   view(event);
 }

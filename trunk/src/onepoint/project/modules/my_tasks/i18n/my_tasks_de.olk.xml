@@ -10,7 +10,7 @@
       <resource id="Info">Eigenschaften</resource>
       <resource id="Print">Drucken</resource>
 
-      <resource id="NewAdhocTooltip">Neue Ad-Hoc-Aufgabe anlegen</resource>
+      <resource id="NewAdhocTooltip">Neue Ad-Hoc-Aufgabe erstellen</resource>
       <resource id="DeleteAdhocTooltip">Ausgewählte Ad-Hoc-Aufgaben löschen</resource>
       <resource id="NewCommentTooltip">Neuen Kommentar erstellen</resource>
       <resource id="InfoTooltip">Vorgangseigenschaften einsehen</resource>
@@ -37,17 +37,17 @@
       <resource id="Project">Projekt</resource>
       <resource id="NextWeek">Nächste Woche</resource>
       <resource id="Next2Weeks">Nächste 2 Wochen</resource>
-      <resource id="NextMonth">Nächstes Monat</resource>
+      <resource id="NextMonth">Nächster Monat</resource>
       <resource id="Next2Months">Nächste 2 Monate</resource>
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Responsible">Verantwortlich</resource>
-      <resource id="Managed">Managed</resource>
+      <resource id="Managed">Projektleiter</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>
 
-      <resource id="NoResourcesForUser">There are no assigned resources for this user</resource>      
+      <resource id="NoResourcesForUser">Diesem Benutzer sind keine Ressourcen zugeordnet</resource>    
    </resource-map>
 
    <resource-map id="my_tasks.adhoc_tasks">
@@ -87,20 +87,20 @@
 
    <resource-map id="my_tasks.delete">
       <resource id="ConfirmDelete">Ad-Hoc-Aufgaben löschen</resource>
-      <resource id="NoSelectionMessage">Bitte wählen Sie ein oder mehrere Ad-Hoc-Aufgaben zum Löschen aus</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Ad-Hoc-Aufgaben zum Löschen aus</resource>
       <resource id="ConfirmDeleteOneMessage">Möchten Sie die ausgewählte Ad-Hoc-Aufgabe wirklich löschen?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Ad-Hoc-Aufgaben wirklich löschen?</resource>
       <resource id="OK">OK</resource>
-      <resource id="Cancel">Cancel</resource>
+      <resource id="Cancel">Abbrechen</resource>
    </resource-map>
 
    <resource-map id="my_tasks.error">
-      <resource id="EmptyName">Der Aufgabenname wurde nicht angegeben</resource>
+      <resource id="EmptyName">Bitte Aufgabenname eingeben</resource>
       <resource id="InvalidDueDate">Das eingegebene Fälligkeitsdatum ist ungültig</resource>
       <resource id="NoProjectError">Es wurde kein Projekt ausgewählt</resource>
       <resource id="NoResourceError">Es wurde keine Ressource zugewiesen</resource>
-      <resource id="ExistingWorkSlipError">Die ausgewählten Ad-Hoc-Augaben können nicht gelöscht werden, da Arbeitszettel auf sie verweiseen</resource>
-      <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte um diese Aktion auszuführen</resource>
+      <resource id="ExistingWorkSlipError">Die ausgewählten Ad-Hoc-Aufgaben können nicht gelöscht werden, da Arbeitszettel auf sie verweisen</resource>
+      <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte, um diese Aktion auszuführen</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
       <resource id="InvalidTypeError">Der Typ der Aufgabe ist ungültig.</resource>
       <resource id="TaskNotFoundError">Aufgabe konnte nicht gefunden werden.</resource>

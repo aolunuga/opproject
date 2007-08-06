@@ -4,6 +4,8 @@
 
 package onepoint.project.configuration;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.xml.XContext;
@@ -13,8 +15,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OpConfigurationValuesHandler implements XNodeHandler {
+   // Class logger
+   private static final XLog logger = XLogFactory.getServerLogger(OpConfigurationValuesHandler.class);
 
    public final static String CONFIGURATION = "configuration";
+   public final static String DATABASE = "database";
    public final static String DATABASE_TYPE = "database-type";
    public final static String DATABASE_DRIVER = "database-driver";
    public final static String DATABASE_URL = "database-url";
@@ -52,6 +57,8 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
     * Db password encrypted attribute.
     */
    final static String ENCRYPTED_ATTRIBUTE = "encrypted";
+   public final static String NAME_ATTRIBUTE = "name";
+   private static final String DATA_BASE_CONFIGURATION = "DataBaseConfig";
 
    static {
       DATABASE_TYPES_MAP = new HashMap<String, Integer>();
@@ -65,8 +72,17 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    }
 
    public Object newNode(XContext context, String name, HashMap attributes) {
+      if (DATABASE.equals(name)) {
+         String dbConfigName = (String) attributes.get(NAME_ATTRIBUTE);
+         dbConfigName = dbConfigName != null ? dbConfigName : OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME;
+
+         OpDatabaseConfiguration cfg = new OpDatabaseConfiguration();
+         cfg.setName(dbConfigName);
+         context.setVariable(DATA_BASE_CONFIGURATION, cfg);
+      }
+
       //see whether we have an encrypted password
-      if (name.equals(DATABASE_PASSWORD)) {
+      if (DATABASE_PASSWORD.equals(name)) {
          for (Object o : attributes.keySet()) {
             String attributeName = (String) o;
             String attributeValue = (String) attributes.get(attributeName);
@@ -75,6 +91,7 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
             }
          }
       }
+
       return new StringBuffer();
    }
 
@@ -86,21 +103,30 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    }
 
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
-      if (DATABASE_TYPE.equals(name)) {
+      if (DATABASE.equals(name)) {
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         if (configuration != null) {
+            ((OpConfiguration) parent).getDatabaseConfigurations().add(configuration);
+         }
+         context.setVariable(DATA_BASE_CONFIGURATION, null);
+      }
+      else if (DATABASE_TYPE.equals(name)) {
          String value = node.toString().trim();
          Integer dbType = DATABASE_TYPES_MAP.get(value);
          if (dbType != null) {
-            ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseType(dbType);
+            OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+            configuration.setDatabaseType(dbType);
          }
          else {
-            System.err.println("WARNING: Unknown database type specified in configuration: " + value);
+            logger.warn("Unknown database type specified in configuration: " + value);
          }
       }
       else if (DATABASE_DRIVER.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseDriver(node.toString());
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         configuration.setDatabaseDriver(node.toString());
       }
       else if (DATABASE_URL.equals(name)) {
-         OpConfiguration.DatabaseConfiguration configuration = ((OpConfiguration) parent).getDatabaseConfiguration();
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
          String databaseUrl = node.toString();
          if (configuration.getDatabaseType() == OpHibernateSource.HSQLDB) {
             databaseUrl = databaseUrl.replaceAll("[\\\\]", "/");
@@ -123,31 +149,35 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
          configuration.setDatabaseUrl(databaseUrl);
       }
       else if (DATABASE_LOGIN.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabaseLogin(node.toString());
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         configuration.setDatabaseLogin(node.toString());
       }
       else if (DATABASE_PATH.equals(name)) {
-         ((OpConfiguration) parent).getDatabaseConfiguration().setDatabasePath(node.toString());
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         configuration.setDatabasePath(node.toString());
       }
       else if (DATABASE_PASSWORD.equals(name)) {
          String encryptedValue = (String) context.getVariable(ENCRYPTED_ATTRIBUTE);
          String databasePassword = node.toString();
-         OpConfiguration.DatabaseConfiguration databaseConfiguration = ((OpConfiguration) parent).getDatabaseConfiguration();
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
          if (encryptedValue == null || !Boolean.valueOf(encryptedValue)) {
-            databaseConfiguration.setNeedsPasswordEncryption(true);
-            databaseConfiguration.setDatabasePassword(databasePassword);
+            configuration.setNeedsPasswordEncryption(true);
+            configuration.setDatabasePassword(databasePassword);
          }
          else {
-            databaseConfiguration.setNeedsPasswordEncryption(false);
-            databaseConfiguration.setDatabasePassword(onepoint.project.configuration.OpConfiguration.getUnEncryptedDbPassword(databasePassword));
+            configuration.setNeedsPasswordEncryption(false);
+            configuration.setDatabasePassword(onepoint.project.configuration.OpConfiguration.getUnEncryptedDbPassword(databasePassword));
          }
       }
       else if (CONNECTION_POOL_MINSIZE.equals(name)) {
          String value = node.toString();
-         ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMinSize(value);
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         configuration.setConnectionPoolMinSize(value);
       }
       else if (CONNECTION_POOL_MAXSIZE.equals(name)) {
          String value = node.toString();
-         ((OpConfiguration) parent).getDatabaseConfiguration().setConnectionPoolMaxSize(value);
+         OpDatabaseConfiguration configuration = (OpDatabaseConfiguration) context.getVariable(DATA_BASE_CONFIGURATION);
+         configuration.setConnectionPoolMaxSize(value);
       }
       else if (CACHE_SIZE.equals(name)) {
          String value = node.toString();

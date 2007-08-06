@@ -298,8 +298,9 @@ public final class OpResourceUtilizationDataSetFactory {
          query.setCollection("resourceIds", resourceIds);
       }
       query.setByte("activityType", OpActivity.STANDARD);
-      result = broker.iterate(query);
-
+      //<FIXME author="Horia Chiorean" description="Changed to broker.iterate when this works">
+      result = broker.list(query).iterator();
+      //<FIXME>
 
       resourceId = null;
       Utilization utilization = null;

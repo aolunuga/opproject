@@ -6,15 +6,7 @@ package onepoint.project.modules.backup;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpField;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpRelationship;
-import onepoint.persistence.OpType;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.service.XSizeInputStream;
@@ -22,26 +14,13 @@ import onepoint.util.XEnvironmentManager;
 import onepoint.util.XIOHelper;
 import onepoint.xml.XDocumentWriter;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Class that backs-up and restores the application repository.
@@ -202,7 +181,7 @@ public class OpBackupManager {
          logger.info("Query:" + queryString);
 
          OpQuery query = broker.newQuery(queryString);
-         Iterator it = broker.iterate(query);
+         Iterator it = broker.forceIterate(query);
          if (!it.hasNext()) {
             logger.error("System object id not found after query:" + queryString);
             continue;
@@ -280,13 +259,9 @@ public class OpBackupManager {
          while (members.hasNext()) {
             OpMember member = (OpMember) members.next();
 
-            // Cache accessor method (Note that we assume that persistent member names start with an upper-case letter)
-            Method accessor = null;
-            try {
-               accessor = prototype.getInstanceClass().getMethod("get" + member.getName());
-            }
-            catch (NoSuchMethodException e) {
-               logger.error("No accessor method for " + prototype.getName() + "." + member.getName());
+            Method accessor = this.getAccessorForMember(prototype, member);
+            if (accessor == null) {
+               logger.error("No accessor found for member: " + member.getName() + "  of prototype:" + prototype.getName());
                continue;
             }
 
@@ -583,7 +558,7 @@ public class OpBackupManager {
       query.setFirstResult(startIndex);
       query.setMaxResults(count);
 
-      return broker.iterate(query);
+      return broker.forceIterate(query);
    }
 
    /**
@@ -609,7 +584,7 @@ public class OpBackupManager {
       logger.debug("***QUERY: " + queryBuffer);
       OpQuery query = broker.newQuery(queryBuffer.toString());
 
-      return ((Number) broker.iterate(query).next()).intValue();
+      return ((Number) broker.forceIterate(query).next()).intValue();
    }
 
    /**
@@ -858,6 +833,36 @@ public class OpBackupManager {
       return SLASH_STRING + this.binaryDirName + fileName;
    }
 
+   /**
+    * Returns the accessor method for a member of a prototype.
+    *
+    * @param prototype a <code>OpPrototype</code> the prototype to be exported.
+    * @param member    a <code>OpMember</code> the field or relationship of the prototype to export.
+    * @return a <code>Method</code> to access the member or <code>null</code> if there is no such method.
+    */
+   private Method getAccessorForMember(OpPrototype prototype, OpMember member) {
+      try {
+         return prototype.getInstanceClass().getMethod("get" + member.getName());
+      }
+      catch (NoSuchMethodException e) {
+         logger.warn(e.getMessage());
+      }
+
+      try {
+         return prototype.getInstanceClass().getMethod("is" + member.getName());
+      }
+      catch (NoSuchMethodException e) {
+         logger.warn(e.getMessage());
+      }
+
+      try {
+         return prototype.getInstanceClass().getMethod("has" + member.getName());
+      }
+      catch (NoSuchMethodException e) {
+         logger.warn(e.getMessage());
+      }
+      return null;
+   }
 
    /**
     * Reads the contents of a binary file from the given path.

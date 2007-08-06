@@ -195,7 +195,11 @@ public final class OpProjectCostsDataSetFactory {
 
          //calculate predicted based on the children activities
          predicted = childrenSumPredictedCosts(activity, type);
-         activityPredicted += predicted;
+
+         //do not add the proceeds to the expected costs
+         if(type != PROCEEDS_COST_INDEX){
+            activityPredicted += predicted;
+         }
 
          deviation = predicted - base;
 
@@ -225,7 +229,14 @@ public final class OpProjectCostsDataSetFactory {
          data_cell.setDoubleValue(percentDeviation); //6 - percent deviation
          data_row.addChild(data_cell);
          data_cell = new XComponent(XComponent.DATA_CELL); //7 - type
-         data_cell.setByteValue((byte) 0);
+         //in the case of cost rows the type cell looses it's meaning of "activity type" and it is used only
+         //to determine the style used to draw the row
+         if(type != PROCEEDS_COST_INDEX){
+            data_cell.setByteValue((byte) 0);
+         }
+         else{
+            data_cell.setByteValue((byte) 3);
+         }
          data_row.addChild(data_cell);
 
          data_set.addChild(data_row);

@@ -91,7 +91,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       // use an invalid Content ID - null
       List attachmentElement = generateAttachElements(null);
 
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
+      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
       t.commit();
       broker.close();
 
@@ -123,7 +123,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       OpTransaction t = broker.newTransaction();
       OpActivity activity = createActivity(plan, broker);
       List attachmentElement = generateAttachElements(contentId);
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
+      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
       t.commit();
       broker.close();
 
@@ -167,7 +167,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
       List attachmentElement = generateAttachElements(contentId);
 
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
+      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
       t.commit();
       broker.close();
 
@@ -186,7 +186,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       attachmentElement = generateAttachElements(contentId);
       List<OpAttachment> reuselist = new ArrayList<OpAttachment>();
       reuselist.add(attachment);
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, reuselist);
+      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, reuselist, null);
       t.commit();
       broker.close();
 

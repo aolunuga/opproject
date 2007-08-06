@@ -28,7 +28,7 @@
       <resource id="UserLanguage">Language</resource>
 
       <resource id="Contact">Contact</resource>
-      <resource id="EMail">Email</resource>
+      <resource id="EMail">E-mail</resource>
       <resource id="Phone">Phone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
@@ -61,8 +61,8 @@
       <resource id="Cancel">Cancel</resource>
    </resource-map>
    <resource-map id="user.Info">
-      <resource id="InfoUser">User Info</resource>
-      <resource id="InfoGroup">Group Info</resource>
+      <resource id="InfoUser">User Properties</resource>
+      <resource id="InfoGroup">Group Properties</resource>
    </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">New User</resource>
@@ -74,7 +74,7 @@
       <resource id="PasswordRetyped">Retype password</resource>
       <resource id="Description">Description</resource>
       <resource id="Contact">Contact</resource>
-      <resource id="EMail">Email</resource>
+      <resource id="EMail">E-mail</resource>
       <resource id="Phone">Phone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
@@ -133,14 +133,14 @@
       <resource id="LoginNameMissing">The login name is not specified</resource>
       <resource id="PasswordMissing">The password is not specified</resource>
       <resource id="LoginAlreadyUsed">The login name is already used by another user</resource>
-      <resource id="GroupNameMissing">Please enter a name for this group</resource>
+      <resource id="GroupNameMissing">The group name is not specified</resource>
       <resource id="GroupNameAlreadyUsed">The group name is already used</resource>
       <resource id="UserNotFound">The user name does not exist</resource>
       <resource id="GroupNotFound">The group name does not exist</resource>
       <resource id="GroupNotEmpty">The group still contains users. Are you sure that you want to delete it?</resource>
       <resource id="EmailIncorrect">The e-mail address you entered is not valid</resource>
       <resource id="InsufficientPrivileges">You do not have sufficient privileges to perform this operation</resource>
-      <resource id="SessionUser">You cannot delete the user you are currently signed on as</resource>
+      <resource id="SessionUser">You cannot delete the user you are currently using for sign-on</resource>
       <resource id="EveryoneGroup">The group "Everyone" is a system-managed object and cannot be deleted</resource>
       <resource id="LoopAssignment">This assignment would cause a loop</resource>
       <resource id="InvalidUserLevel">Invalid user level</resource>

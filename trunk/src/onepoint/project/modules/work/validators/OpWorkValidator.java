@@ -93,7 +93,7 @@ public abstract class OpWorkValidator extends XValidator {
    /**
     * Removes an array of data rows from the underlying data set.
     *
-    * @param dataRows a <code>XArray</code> of <code>XComponent</code> representing data rows.
+    * @param dataRows a <code>List</code> of <code>XComponent</code> representing data rows.
     * @return <code>true</code> or <code>false</code> whether the removal was sucessfull.
     */
    public boolean removeDataRows(List dataRows) {
@@ -242,6 +242,10 @@ public abstract class OpWorkValidator extends XValidator {
             filterDataSet(getActivitySet(), activityList);
          }
       }
+
+      //add any advanced filtering that is necessary at this point
+      advancedFilteringForActivity(resourceChoice);
+
       if (getActivity(dataRow) != null && !getActivitySet().contains(-1, getActivity(dataRow))) {
          resetRow(dataRow, getActivity(dataRow), getResource(dataRow));
          setActivity(dataRow, null);
@@ -291,6 +295,9 @@ public abstract class OpWorkValidator extends XValidator {
             filterDataSet(getResourceSet(), resourceList);
          }
       }
+
+      //add any advanced filtering that is necessary at this point
+      advancedFilteringForResource(activityChoice);
 
       if (getResource(dataRow) != null && !getResourceSet().contains(-1, getResource(dataRow))) {
          setResource(dataRow, null);
@@ -404,11 +411,11 @@ public abstract class OpWorkValidator extends XValidator {
       XComponent projectRow;
       List activityChoiceList;
 
-      for(int i = 0; i < getProjectSet().getChildCount(); i++){
+      for (int i = 0; i < getProjectSet().getChildCount(); i++) {
          projectRow = (XComponent) getProjectSet().getChild(i);
          activityChoiceList = ((XComponent) projectRow.getChild(0)).getListValue();
-         for(int j = 0; j < activityChoiceList.size(); j++){
-            if(activityChoiceList.get(j).equals(activityChoice)) {
+         for (int j = 0; j < activityChoiceList.size(); j++) {
+            if (activityChoiceList.get(j).equals(activityChoice)) {
                return projectRow.getStringValue();
             }
          }
@@ -416,4 +423,14 @@ public abstract class OpWorkValidator extends XValidator {
 
       return projectChoice;
    }
+
+   /**
+    * Overriden in OpWorkEffortValidator
+    */
+   protected void advancedFilteringForResource(String activityChoice) {}
+
+   /**
+    * Overriden in OpWorkEffortValidator
+    */
+   protected void advancedFilteringForActivity(String resourceChoice) {}
 }

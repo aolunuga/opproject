@@ -52,12 +52,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
    private final double DOUBLE_ERROR_MARGIN = Math.pow(10, -4);
 
    private OpProjectPlanningService service;
-   private OpProjectPlanningTestDataFactory dataFactory;
    private OpProjectTestDataFactory projectDataFactory;
    private OpResourceTestDataFactory resourceDataFactory;
    private OpActivityTestDataFactory activityFactory;
-   private OpUserTestDataFactory userDataFactory;
-
 
    private String resId;
    private String projId;
@@ -74,10 +71,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       super.setUp();
 
       service = OpTestDataFactory.getProjectPlanningService();
-      dataFactory = new OpProjectPlanningTestDataFactory(session);
       projectDataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
-      userDataFactory = new OpUserTestDataFactory(session);
+      OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
       activityFactory = new OpActivityTestDataFactory(session);
 
       clean();
@@ -412,7 +408,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       ((XComponent) dataRow.getChild(28)).setValue(XValidator.choice(project.locator(), project.getName()));
       //29 - payment
       OpGanttValidator.setPayment(dataRow, activity.getPayment());
-      //30 - proceeds costs
+      //30 - proceeds
       OpGanttValidator.setBaseProceeds(dataRow, 80d);
 
       request = new XMessage();
@@ -426,6 +422,390 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       activity = activityFactory.getActivityById(taskId);
       assertEquals("Activity completion was not correctly calculated", 25d, activity.getComplete(), DOUBLE_ERROR_MARGIN);
    }
+
+
+   public void testCreateSimpleWorkMonths() {
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      XMessage request = new XMessage();
+      OpProjectNode project = (OpProjectNode) broker.getObject(projId);
+      String projectId = XValidator.choice(project.locator(), project.getName());
+      OpProjectNodeAssignment projectNodeAssignment = new OpProjectNodeAssignment();
+      OpResource resource = (OpResource) broker.getObject(resId);
+      projectNodeAssignment.setResource(resource);
+      projectNodeAssignment.setProjectNode(project);
+      broker.makePersistent(projectNodeAssignment);
+      t.commit();
+      broker.close();
+
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      XMessage response = service.editActivities(session, request);
+      assertNoError(response);
+
+      broker = session.newBroker();
+
+      project = (OpProjectNode) broker.getObject(projId);
+      resource = (OpResource) broker.getObject(resId);
+
+      XComponent dataRow;
+      XComponent activityDataSet = new XComponent(XComponent.DATA_SET);
+      activityDataSet.setValidatorClass(OpGanttValidator.class.getName());
+      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
+
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(resource.locator());
+      Map rates = new TreeMap();
+      List<Double> ratesList = new ArrayList<Double>();
+      ratesList.add((double) 2);
+      ratesList.add((double) 1);
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 4, 1).getTimeInMillis()), ratesList);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+      validator.setHourlyRatesDataSet(hourlyRates);
+      validator.setProgressTracked(true);
+      validator.setProjectTemplate(false);
+      validator.setProjectStart(project.getStart());
+      validator.setCalculationMode(OpGanttValidator.EFFORT_BASED);
+      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(resource.locator());
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(50);
+      dataRow.addChild(dataCell);
+      assignmentSet.addChild(dataRow);
+      validator.setAssignmentSet(assignmentSet);
+
+
+      dataRow = validator.newDataRow();
+      activityDataSet.addChild(dataRow);
+      dataRow.setStringValue(null);
+      String activityName = "Test Activity";
+      OpGanttValidator.setName(dataRow, activityName);
+      OpGanttValidator.setType(dataRow, OpActivity.STANDARD);
+      OpGanttValidator.setResources(dataRow, new ArrayList());
+      OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), resource.getName()));
+      ArrayList visualResources = new ArrayList();
+      visualResources.add(XValidator.choice(resource.locator(), resource.getName()));
+      OpGanttValidator.setVisualResources(dataRow, visualResources);
+      OpGanttValidator.setStart(dataRow, new Date(getCalendarWithExactDaySet(2007, 5, 1).getTimeInMillis()));
+      validator.updateFinish(dataRow, new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      OpGanttValidator.setPredecessors(dataRow, new ArrayList());
+      OpGanttValidator.setSuccessors(dataRow, new ArrayList());
+      ((XComponent) dataRow.getChild(28)).setValue(XValidator.choice(project.locator(), project.getName()));
+
+
+      projectId = XValidator.choice(project.locator(), project.getName());
+      request = new XMessage();
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      request.setArgument(OpProjectPlanningService.ACTIVITY_SET, activityDataSet);
+      request.setArgument(OpProjectPlanningService.WORKING_PLAN_VERSION_ID, null);
+      response = service.checkInActivities(session, request);
+      assertNull(response);
+
+
+      OpActivity activity = activityFactory.getActivityByName(activityName);
+      String locator = activity.locator();
+      broker = session.newBroker();
+      activity = (OpActivity) broker.getObject(locator);
+      assertEquals("Wrong number of assignments ", 1, activity.getAssignments().size());
+      for (OpAssignment assignment : activity.getAssignments()) {
+         assertEquals("Wrong number of work month entities created", 1, assignment.getWorkMonths().size());
+         for (OpWorkMonth month : assignment.getWorkMonths()) {
+            assertEquals("Wrong Month ", 5, month.getMonth());
+            assertEquals("Wrong Year", 2007, month.getYear());
+            assertEquals(false, month.isBaselineOnly());
+
+            assertEquals("Wrong Base assignment ", 50.0, month.getBaseAssigned());
+            assertEquals("Wrong Base effort ", 84.0, month.getBaseEffort());
+            assertEquals("Wrong Base proceeds ", 84.0, month.getBaseProceeds());
+            assertEquals("Wrong Base personnel costs ", 2 * 84.0, month.getBasePersonnelCosts());
+
+            assertEquals("Wrong Latest assignment ", 50.0, month.getLatestAssigned());
+            assertEquals("Wrong Latest effort ", 84.0, month.getLatestEffort());
+            assertEquals("Wrong Latest proceeds ", 84.0, month.getLatestProceeds());
+            assertEquals("Wrong Latest personnel costs ", 2 * 84.0, month.getLatestPersonnelCosts());
+         }
+      }
+      broker.close();
+   }
+
+
+   public void testCreateSimpleWorkMonthVersions() {
+
+      XComponent activityDataSet;
+      activityDataSet = new XComponent(XComponent.DATA_SET);
+
+      String activityName = doubleCheckIn(activityDataSet);
+      OpActivity activity;
+      OpBroker broker;
+
+      activity = activityFactory.getActivityByName(activityName);
+      String locator = activity.locator();
+
+      broker = session.newBroker();
+      activity = (OpActivity) broker.getObject(locator);
+      assertEquals("Wrong number of assignments ", 1, activity.getAssignments().size());
+      Iterator<OpAssignment> assignmentIterator = activity.getAssignments().iterator();
+      OpAssignment assignment = assignmentIterator.next();
+      assertEquals("Wrong number of work month entities created", 1, assignment.getWorkMonths().size());
+
+      Iterator<OpWorkMonth> iterator = assignment.getWorkMonths().iterator();
+      OpWorkMonth month = iterator.next();
+      assertEquals("Wrong Month ", 6, month.getMonth());
+      assertEquals("Wrong Year", 2007, month.getYear());
+      assertEquals(false, month.isBaselineOnly());
+
+      assertEquals("Wrong Base assignment ", 50.0, month.getBaseAssigned());
+      assertEquals("Wrong Base effort ", 88.0, month.getBaseEffort());
+      assertEquals("Wrong Base proceeds ", 88.0, month.getBaseProceeds());
+      assertEquals("Wrong Base personnel costs ", 2 * 88.0, month.getBasePersonnelCosts());
+
+      assertEquals("Wrong Base assignment ", 50.0, month.getLatestAssigned());
+      assertEquals("Wrong Base effort ", 88.0, month.getLatestEffort());
+      assertEquals("Wrong Base proceeds ", 88.0, month.getLatestProceeds());
+      assertEquals("Wrong Base personnel costs ", 2 * 88.0, month.getLatestPersonnelCosts());
+
+      OpActivityVersion activityVersion = assignment.getActivity().getVersions().iterator().next();
+      OpAssignmentVersion assignmentVersion = activityVersion.getAssignmentVersions().iterator().next();
+      OpWorkMonthVersion workVersion = assignmentVersion.getWorkMonthVersions().iterator().next();
+
+      assertEquals("Wrong Month ", 5, workVersion.getMonth());
+      assertEquals("Wrong Year", 2007, workVersion.getYear());
+
+      assertEquals("Wrong Base assignment ", 50.0, workVersion.getBaseAssigned());
+      assertEquals("Wrong Base effort ", 84.0, workVersion.getBaseEffort());
+      assertEquals("Wrong Base proceeds ", 84.0, workVersion.getBaseProceeds());
+      assertEquals("Wrong Base personnel costs ", 2 * 84.0, workVersion.getBasePersonnelCosts());
+
+      broker.close();
+   }
+
+   private String doubleCheckIn(XComponent activityDataSet) {
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      XMessage request = new XMessage();
+      OpProjectNode project = (OpProjectNode) broker.getObject(projId);
+      String projectId = XValidator.choice(project.locator(), project.getName());
+      OpProjectNodeAssignment projectNodeAssignment = new OpProjectNodeAssignment();
+      OpResource resource = (OpResource) broker.getObject(resId);
+      projectNodeAssignment.setResource(resource);
+      projectNodeAssignment.setProjectNode(project);
+      broker.makePersistent(projectNodeAssignment);
+      t.commit();
+      broker.close();
+
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      XMessage response = service.editActivities(session, request);
+      assertNoError(response);
+
+      broker = session.newBroker();
+
+      project = (OpProjectNode) broker.getObject(projId);
+      resource = (OpResource) broker.getObject(resId);
+
+      XComponent dataRow;
+      activityDataSet.setValidatorClass(OpGanttValidator.class.getName());
+      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
+
+      XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(resource.locator());
+      Map rates = new TreeMap();
+      List<Double> ratesList = new ArrayList<Double>();
+      ratesList.add((double) 2);
+      ratesList.add((double) 1);
+      rates.put(new Date(getCalendarWithExactDaySet(2007, 4, 1).getTimeInMillis()), ratesList);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(rates);
+      dataRow.addChild(dataCell);
+      hourlyRates.addChild(dataRow);
+      validator.setHourlyRatesDataSet(hourlyRates);
+      validator.setProgressTracked(true);
+      validator.setProjectTemplate(false);
+      validator.setProjectStart(project.getStart());
+      validator.setCalculationMode(OpGanttValidator.EFFORT_BASED);
+      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
+      dataRow = new XComponent(XComponent.DATA_ROW);
+      dataRow.setStringValue(resource.locator());
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(50);
+      dataRow.addChild(dataCell);
+      assignmentSet.addChild(dataRow);
+      validator.setAssignmentSet(assignmentSet);
+
+
+      dataRow = validator.newDataRow();
+      activityDataSet.addChild(dataRow);
+      dataRow.setStringValue(null);
+      String activityName = "Test Activity";
+      OpGanttValidator.setName(dataRow, activityName);
+      OpGanttValidator.setType(dataRow, OpActivity.STANDARD);
+      OpGanttValidator.setResources(dataRow, new ArrayList());
+      OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), resource.getName()));
+      ArrayList visualResources = new ArrayList();
+      visualResources.add(XValidator.choice(resource.locator(), resource.getName()));
+      OpGanttValidator.setVisualResources(dataRow, visualResources);
+      OpGanttValidator.setStart(dataRow, new Date(getCalendarWithExactDaySet(2007, 5, 1).getTimeInMillis()));
+      validator.updateFinish(dataRow, new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      OpGanttValidator.setPredecessors(dataRow, new ArrayList());
+      OpGanttValidator.setSuccessors(dataRow, new ArrayList());
+      ((XComponent) dataRow.getChild(28)).setValue(XValidator.choice(project.locator(), project.getName()));
+
+
+      projectId = XValidator.choice(project.locator(), project.getName());
+      request = new XMessage();
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      request.setArgument(OpProjectPlanningService.ACTIVITY_SET, activityDataSet);
+      request.setArgument(OpProjectPlanningService.WORKING_PLAN_VERSION_ID, null);
+      response = service.checkInActivities(session, request);
+      assertNull(response);
+
+      //second check in
+      OpActivity activity = activityFactory.getActivityByName(activityName);
+
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      response = service.editActivities(session, request);
+      assertNoError(response);
+
+      activityDataSet.removeAllChildren();
+
+      dataRow = validator.newDataRow();
+      activityDataSet.addChild(dataRow);
+      dataRow.setStringValue(activity.locator());
+      OpGanttValidator.setName(dataRow, activityName);
+      OpGanttValidator.setType(dataRow, OpActivity.STANDARD);
+      OpGanttValidator.setResources(dataRow, new ArrayList());
+      OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), resource.getName()));
+      visualResources = new ArrayList();
+      visualResources.add(XValidator.choice(resource.locator(), resource.getName()));
+      OpGanttValidator.setVisualResources(dataRow, visualResources);
+      OpGanttValidator.setStart(dataRow, new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis()));
+      validator.updateFinish(dataRow, new Date(getCalendarWithExactDaySet(2007, 6, 31).getTimeInMillis()));
+      OpGanttValidator.setPredecessors(dataRow, new ArrayList());
+      OpGanttValidator.setSuccessors(dataRow, new ArrayList());
+      ((XComponent) dataRow.getChild(28)).setValue(XValidator.choice(project.locator(), project.getName()));
+
+      projectId = XValidator.choice(project.locator(), project.getName());
+      request = new XMessage();
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      request.setArgument(OpProjectPlanningService.ACTIVITY_SET, activityDataSet);
+      request.setArgument(OpProjectPlanningService.WORKING_PLAN_VERSION_ID, null);
+      response = service.checkInActivities(session, request);
+      assertNull(response);
+      return activityName;
+   }
+
+
+   public void testCreateSimpleWorkMonthsWithBaseline() {
+
+      XComponent activityDataSet;
+      activityDataSet = new XComponent(XComponent.DATA_SET);
+      String activityName = doubleCheckIn(activityDataSet);
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+      OpProjectNode project = (OpProjectNode) broker.getObject(projId);
+      OpResource resource = (OpResource) broker.getObject(resId);
+      int maxVersion = -1;
+      OpProjectPlanVersion lastVersion = null;
+      for (OpProjectPlanVersion planVersion : project.getPlan().getVersions()) {
+         int version = planVersion.getVersionNumber();
+         if (version > maxVersion) {
+            lastVersion = planVersion;
+            maxVersion = version;
+         }
+      }
+      assertNotNull(lastVersion);
+      lastVersion.setBaseline(true);
+      broker.updateObject(lastVersion);
+      transaction.commit();
+      broker.close();
+
+      OpActivity activity = activityFactory.getActivityByName(activityName);
+
+      XMessage request = new XMessage();
+      String projectId = XValidator.choice(project.locator(), project.getName());
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      XMessage response = service.editActivities(session, request);
+      assertNoError(response);
+
+      //project has baseline version...make a new check in and check the workmonths
+      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
+      XComponent dataRow = validator.newDataRow();
+      activityDataSet.removeAllChildren();
+      activityDataSet.addChild(dataRow);
+      dataRow.setStringValue(activity.locator());
+      OpGanttValidator.setName(dataRow, activityName);
+      OpGanttValidator.setType(dataRow, OpActivity.STANDARD);
+      OpGanttValidator.setResources(dataRow, new ArrayList());
+      OpGanttValidator.addResource(dataRow, XValidator.choice(resource.locator(), resource.getName()));
+      List visualResources = new ArrayList();
+      visualResources.add(XValidator.choice(resource.locator(), resource.getName()));
+      OpGanttValidator.setVisualResources(dataRow, visualResources);
+      OpGanttValidator.setStart(dataRow, new Date(getCalendarWithExactDaySet(2007, 8, 1).getTimeInMillis()));
+      validator.updateFinish(dataRow, new Date(getCalendarWithExactDaySet(2007, 8, 30).getTimeInMillis()));
+      OpGanttValidator.setPredecessors(dataRow, new ArrayList());
+      OpGanttValidator.setSuccessors(dataRow, new ArrayList());
+      ((XComponent) dataRow.getChild(28)).setValue(XValidator.choice(project.locator(), project.getName()));
+
+      request = new XMessage();
+      request.setArgument(OpProjectPlanningService.PROJECT_ID, projectId);
+      request.setArgument(OpProjectPlanningService.ACTIVITY_SET, activityDataSet);
+      request.setArgument(OpProjectPlanningService.WORKING_PLAN_VERSION_ID, null);
+      response = service.checkInActivities(session, request);
+      assertNull(response);
+
+
+      broker = session.newBroker();
+      activity = (OpActivity) broker.getObject(activity.locator());
+      assertEquals("Wrong number of assignments ", 1, activity.getAssignments().size());
+      Iterator<OpAssignment> assignmentIterator = activity.getAssignments().iterator();
+      OpAssignment assignment = assignmentIterator.next();
+      assertEquals("Wrong number of work month entities created", 2, assignment.getWorkMonths().size());
+
+      for (OpWorkMonth month : assignment.getWorkMonths()) {
+
+         if (month.getMonth() == 5) {
+            assertEquals("Wrong Year", 2007, month.getYear());
+            assertEquals(true, month.isBaselineOnly());
+
+            assertEquals("Wrong Base assignment ", 50.0, month.getBaseAssigned());
+            assertEquals("Wrong Base effort ", 84.0, month.getBaseEffort());
+            assertEquals("Wrong Base proceeds ", 84.0, month.getBaseProceeds());
+            assertEquals("Wrong Base personnel costs ", 2 * 84.0, month.getBasePersonnelCosts());
+
+            assertEquals("Wrong Latest assignment ", 50.0, month.getLatestAssigned());
+            assertEquals("Wrong Latest effort ", 0.0, month.getLatestEffort());
+            assertEquals("Wrong Latest proceeds ", 0.0, month.getLatestProceeds());
+            assertEquals("Wrong Latest personnel costs ", 0.0, month.getLatestPersonnelCosts());
+         }
+         else if (month.getMonth() == 8) {
+            assertEquals("Wrong Year", 2007, month.getYear());
+            assertEquals(false, month.isBaselineOnly());
+
+            assertEquals("Wrong Base assignment ", 50.0, month.getBaseAssigned());
+            assertEquals("Wrong Base effort ", 0.0, month.getBaseEffort());
+            assertEquals("Wrong Base proceeds ", 0.0, month.getBaseProceeds());
+            assertEquals("Wrong Base personnel costs ", 0.0, month.getBasePersonnelCosts());
+
+            assertEquals("Wrong Latest assignment ", 50.0, month.getLatestAssigned());
+            assertEquals("Wrong Latest effort ", 80.0, month.getLatestEffort());
+            assertEquals("Wrong Latest proceeds ", 80.0, month.getLatestProceeds());
+            assertEquals("Wrong Latest personnel costs ", 2 * 80.0, month.getLatestPersonnelCosts());
+
+         }
+         else {
+            fail("Invalid month in the work month set");
+         }
+      }
+
+      broker.close();
+   }
+
 
    public void testRevertVersion()
         throws Exception {

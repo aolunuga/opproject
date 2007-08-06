@@ -212,7 +212,7 @@ public class OpMyTasksService extends OpProjectService {
          if (row.getChildCount() > 4) {
             attachmentElement.add(((XComponent) row.getChild(4)).getValue()); //content
          }
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
+         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
       }
    }
 

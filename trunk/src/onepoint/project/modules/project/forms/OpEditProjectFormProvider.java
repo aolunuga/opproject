@@ -32,6 +32,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
    protected final static String ASSIGNED_RESOURCE_DATA_SET = "AssignedResourceDataSet";
    protected final static String ORIGINAL_RESOURCE_DATA_SET = "OriginalResourceDataSet";
 
+   protected final static String ADJUST_RATES_COLUMN = "AdjustRatesColumn";
+   protected final static String INTERNAL_RATES_COLUMN = "InternalRatesColumn";
+   protected final static String EXTENAL_RATES_COLUMN = "ExternalRatesColumn";
+   protected final static String BASELINE_COLUMN = "BaselineColumn";
+
    private final static String PROJECT_EDIT_PROJECT = "project.EditProject";
    private final static String PROJECT_ID = "ProjectID";
    private final static String EDIT_MODE = "EditMode";
@@ -39,6 +44,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String GOALS_SET = "GoalsSet";
    private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
+   private final static String ATTACHMENTS_SET = "AttachmentSet";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
    private final static String PROJECT_INFO = "project.Info";
@@ -52,9 +58,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
    private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
-   private final static String ADJUST_RATES_COLUMN = "AdjustRatesColumn";
-   private final static String INTERNAL_RATES_COLUMN = "InternalRatesColumn";
-   private final static String EXTENAL_RATES_COLUMN = "ExternalRatesColumn";
    private final static String GOALS_TOOLS_PANEL = "GoalsToolPanel";
    private final static String CANCEL = "Cancel";
    private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
@@ -64,6 +67,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
+
+   private final static String ADD_DOCUMENT_BUTTON = "AddDocumentButton";
+   private final static String ADD_URL_BUTTON = "AddURLButton";
+   private final static String REMOVE_ATTACHMENT_BUTTON = "RemoveAttachmentButton";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -179,6 +186,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       //fill permissions
       this.fillPermissions(session, broker, form, project, editMode);
+
+      //fill attachments
+      this.fillAttachments(form, project, editMode);
    }
 
    /**
@@ -206,6 +216,43 @@ public class OpEditProjectFormProvider implements XFormProvider {
    }
 
    /**
+    * Fills the goals for the edited project.
+    *
+    * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
+    * @param project  a <code>OpProjectNode</code> representing the project being edited.
+    * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
+    */
+   private void fillGoals(XComponent form, OpProjectNode project, boolean editMode) {
+
+      XComponent dataSet = form.findComponent(GOALS_SET);
+      XComponent dataRow;
+      XComponent dataCell;
+      for (OpGoal goal : project.getGoals()) {
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(goal.locator());
+         dataSet.addChild(dataRow);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(goal.getCompleted());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(goal.getName());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setIntValue(goal.getPriority());
+         dataCell.setEnabled(true);
+         dataRow.addChild(dataCell);
+      }
+      //sort goals data set based on goal's name (data cell with index 1)
+      dataSet.sort(1);
+
+      form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
+      form.findComponent(GOALS_TABLE_BOX).setEnabled(editMode);
+      form.findComponent(GOALS_TOOLS_PANEL).setVisible(editMode);
+   }
+
+   /**
     * Fills the edit form with projec versions.
     *
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
@@ -216,9 +263,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private void fillProjectPlanVersions(XComponent form, boolean editMode, OpProjectNode project, OpProjectSession session) {
       boolean isButtonVisible = editMode && (project.getPlan() != null) && (project.getPlan().getVersions().size() > 0);
       if (project.getPlan() != null) {
-         XLocalizer userObjectsLocalizer = new XLocalizer();
-         userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
-         this.fillVersionsDataSet(form, project.getPlan(), userObjectsLocalizer, session);
+         this.fillVersionsDataSet(form, editMode, project.getPlan(), session);
       }
       form.findComponent(REMOVE_VERSION_BUTTON).setVisible(isButtonVisible);
    }
@@ -295,6 +340,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       form.findComponent(ADJUST_RATES_COLUMN).setHidden(true);
       form.findComponent(INTERNAL_RATES_COLUMN).setHidden(true);
       form.findComponent(EXTENAL_RATES_COLUMN).setHidden(true);
+      form.findComponent(BASELINE_COLUMN).setHidden(true);
 
       //disable templates related stuff
       form.findComponent(TEMPLATE_FIELD).setEnabled(false);
@@ -308,11 +354,14 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * Fills a data-set with all the versions of a project.
     *
     * @param form                 a <code>XComponent(FORM)</code> representing the current form.
+    * @param editMode           a <code>boolean</code> representing the edit mode of the form.
     * @param projectPlan          a <code>OpProjectPlan</code> representing a project's plan.
-    * @param userObjectsLocalizer a <code>XLocalizer</code> representing a localizer that is used to get the i18n display names.
+
     * @param session              a <code>OpProjectSession</code> the project session
     */
-   private void fillVersionsDataSet(XComponent form, OpProjectPlan projectPlan, XLocalizer userObjectsLocalizer, OpProjectSession session) {
+   private void fillVersionsDataSet(XComponent form, boolean editMode, OpProjectPlan projectPlan, OpProjectSession session) {
+      XLocalizer userObjectsLocalizer = new XLocalizer();
+      userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
       form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectAdministrationService.WORKING_VERSION_NUMBER));
 
@@ -320,63 +369,15 @@ public class OpEditProjectFormProvider implements XFormProvider {
       Map<Integer, XComponent> rowsMap = new TreeMap<Integer, XComponent>();
 
       //add the version nrs in ascending order
-      Set planVersions = projectPlan.getVersions();
-      Iterator it = planVersions.iterator();
       XComponent workingDataRow = new XComponent(XComponent.DATA_ROW);
 
-      OpProjectPlanVersion baselineVersion = projectPlan.getBaselineVersion();
-
+      Set planVersions = projectPlan.getVersions();
+      Iterator it = planVersions.iterator();
       while (it.hasNext()) {
          OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
-
-         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-
-         //version id - 0
-         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            dataCell.setStringValue(String.valueOf(version.getVersionNumber()));
-         }
-         else {
-            dataCell.setStringValue(OpLocator.locatorString(version));
-         }
-         dataRow.addChild(dataCell);
-
-         //version number - 1
          int versionNr = version.getVersionNumber();
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
-         }
-         else {
-            dataCell.setStringValue(String.valueOf(versionNr));
-         }
-         dataRow.addChild(dataCell);
-
-         //created by - 2
-         OpUser creator = version.getCreator();
-         String createdBy = userObjectsLocalizer.localize(creator.getDisplayName());
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(createdBy);
-         dataRow.addChild(dataCell);
-
-         //created on - 3
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(version.getCreated());
-         dataRow.addChild(dataCell);
-
-         //is base line version - 4
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         if (version.getVersionNumber() != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
-            dataCell.setEnabled(true);
-         }
-         if (baselineVersion != null && baselineVersion.getID() == version.getID()) {
-            dataCell.setBooleanValue(true);
-         }
-         else {
-            dataCell.setBooleanValue(false);
-         }
-         dataRow.addChild(dataCell);
-
+         XComponent dataRow = this.createProjectVersionDataRow(session, version,
+              userObjectsLocalizer, editMode);
          if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
             workingDataRow = dataRow;
          }
@@ -397,40 +398,75 @@ public class OpEditProjectFormProvider implements XFormProvider {
    }
 
    /**
-    * Fills the goals for the edited project.
+    * Creates a data row containing the information for a project plan version.
+    * @param session a <code>OpProjectSession</code> representing the server session.
+    * @param version a <code>OpProjectPlanVersion</code> the version for which to create the data-row.
+    * @param editMode a <code>boolean</code> indicating whether we are viewing or editing the project.
+    * @param userObjectsLocalizer a <code>XLocalizer</code> representing a localizer that is used to get the i18n display names.
+    * @return a <code>XComponent(DATA_ROW)</code> the data-row for the plan version.
+    */
+   protected XComponent  createProjectVersionDataRow(OpProjectSession session,  OpProjectPlanVersion version,
+        XLocalizer userObjectsLocalizer, boolean editMode) {
+      int versionNr = version.getVersionNumber();
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+
+      //version id - 0
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+         dataCell.setStringValue(String.valueOf(version.getVersionNumber()));
+      }
+      else {
+         dataCell.setStringValue(OpLocator.locatorString(version));
+      }
+      dataRow.addChild(dataCell);
+
+      //version number - 1
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+         dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
+      }
+      else {
+         dataCell.setStringValue(String.valueOf(versionNr));
+      }
+      dataRow.addChild(dataCell);
+
+      //created by - 2
+      OpUser creator = version.getCreator();
+      String createdBy = userObjectsLocalizer.localize(creator.getDisplayName());
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(createdBy);
+      dataRow.addChild(dataCell);
+
+      //created on - 3
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDateValue(version.getCreated());
+      dataRow.addChild(dataCell);
+
+      //empty row - 4 (will be overridden in team edition)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRow.addChild(dataCell);
+
+      return dataRow;
+   }
+
+   /**
+    * Fills the attachments for the edited project.
     *
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
     * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
     */
-   private void fillGoals(XComponent form, OpProjectNode project, boolean editMode) {
+   private void fillAttachments(XComponent form, OpProjectNode project, boolean editMode) {
 
-      XComponent dataSet = form.findComponent(GOALS_SET);
-      XComponent dataRow;
-      XComponent dataCell;
-      for (OpGoal goal : project.getGoals()) {
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(goal.locator());
-         dataSet.addChild(dataRow);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setBooleanValue(goal.getCompleted());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(goal.getName());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setIntValue(goal.getPriority());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-      }
-      //sort goals data set based on goal's name (data cell with index 1)
-      dataSet.sort(1);
+      List<List> attachmentList = new ArrayList<List>();
+      OpActivityDataSetFactory.retrieveAttachments(project.getAttachments(), attachmentList);
 
-      form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
-      form.findComponent(GOALS_TABLE_BOX).setEnabled(editMode);
-      form.findComponent(GOALS_TOOLS_PANEL).setVisible(editMode);
+      XComponent attachmentSet = form.findComponent(ATTACHMENTS_SET);
+      OpAttachmentDataSetFactory.fillAttachmentsDataSet(attachmentList, attachmentSet);
+
+      form.findComponent(ADD_DOCUMENT_BUTTON).setEnabled(editMode);
+      form.findComponent(ADD_URL_BUTTON).setEnabled(editMode);
+      form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(editMode);
    }
 
    /**

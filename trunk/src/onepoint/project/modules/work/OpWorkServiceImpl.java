@@ -11,6 +11,8 @@ import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpAttachmentDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
@@ -100,7 +102,7 @@ public class OpWorkServiceImpl implements OpService {
       work_slip.setNumber(max + 1);
       work_slip.setCreator(user);
 
-       // make work slip persistent
+      // make work slip persistent
       broker.makePersistent(work_slip);
 
       // Inserts work-records into database and add to progress calculator
@@ -149,6 +151,13 @@ public class OpWorkServiceImpl implements OpService {
 
       // Use progress calculator to update progress information in associated project plan
       OpProgressCalculator.removeWorkRecords(broker, work_slip.getRecords().iterator());
+
+      //manage the contentes of all the attachments that belong (idirectly) to the work slip
+      for (OpWorkRecord workRecord : work_slip.getRecords()) {
+         for (OpCostRecord costRecord : workRecord.getCostRecords()) {
+            OpAttachmentDataSetFactory.removeContents(broker, costRecord.getAttachments());
+         }
+      }
       broker.deleteObject(work_slip);
    }
 
@@ -224,6 +233,9 @@ public class OpWorkServiceImpl implements OpService {
 
       // Use progress calculator to update progress information in associated project plan
       OpProgressCalculator.addWorkRecord(broker, work_record);
+
+      //update cost values on work months
+      OpActivityDataSetFactory.updateRemainingValues(session.getCalendar(), work_record.getAssignment());
 
       broker.makePersistent(work_record);
    }

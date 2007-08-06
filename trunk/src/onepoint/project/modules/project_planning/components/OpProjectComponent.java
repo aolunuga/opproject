@@ -657,7 +657,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public final void setOnActivitySelect(String onActivitySelectHandler) {
-      this.setProperty(ON_ACTIVITY_SELECT,  onActivitySelectHandler);
+      this.setProperty(ON_ACTIVITY_SELECT, onActivitySelectHandler);
    }
 
    public final OpProjectComponent getGanttBoxComponent() {
@@ -1108,16 +1108,16 @@ public class OpProjectComponent extends XComponent {
 
          if (history != null) {
             XComponent historyRow;
-            ArrayList startHistoryArray;
-            ArrayList endHistoryArray;
+            List startHistoryArray;
+            List endHistoryArray;
             Date historyStartDate;
             Date historyEndDate;
 
             for (int historyRowIndex = 0; historyRowIndex < history.getChildCount(); historyRowIndex++) {
                historyRow = (XComponent) (history._getChild(historyRowIndex));
-               /* start history array for this history row */
+               // start history array for this history row
                startHistoryArray = ((XComponent) (historyRow._getChild(START_HISTORY_COLUMN_INDEX))).getListValue();
-               /* end history array for this history row */
+               // end history array for this history row
                endHistoryArray = ((XComponent) (historyRow._getChild(END_HISTORY_COLUMN_INDEX))).getListValue();
 
                for (int index = 0; index < startHistoryArray.size(); index++) {
@@ -1798,7 +1798,7 @@ public class OpProjectComponent extends XComponent {
       }
       int activity_count = data_set.getChildCount();
       OpProjectComponent connector_component = null;
-      ArrayList successors = null;
+      List successors = null;
       int j = 0;
       int successor_index = 0;
       OpProjectComponent successor_component = null;
@@ -2159,7 +2159,7 @@ public class OpProjectComponent extends XComponent {
          return new Double(baseCost);
       }
       else if (id.equals(DETAILS_RESOURCE_NAMES)) {
-         ArrayList resources = OpGanttValidator.getVisualResources(dataRow);
+         List resources = OpGanttValidator.getVisualResources(dataRow);
          String names = "";
          if (resources.size() != 0) {
             for (int i = 0; i < resources.size(); i++) {
@@ -2317,8 +2317,8 @@ public class OpProjectComponent extends XComponent {
       XComponent history_row = null;
       XComponent history_cell = null;
       OpProjectComponent component = null;
-      ArrayList start_history = null;
-      ArrayList end_history = null;
+      List start_history = null;
+      List end_history = null;
       Date historyStartDate = null;
       Date historyEndDate = null;
 
@@ -3498,8 +3498,8 @@ public class OpProjectComponent extends XComponent {
       }
 
       Integer sourceIndex = new Integer(sourceRow.getIndex());
-      ArrayList oldPred = OpGanttValidator.getPredecessors(targetRow);
-      ArrayList pred = new ArrayList();
+      List oldPred = OpGanttValidator.getPredecessors(targetRow);
+      List pred = new ArrayList();
       pred.add(sourceIndex);
       if (oldPred != null) {
          pred.addAll(oldPred);
@@ -4275,7 +4275,7 @@ public class OpProjectComponent extends XComponent {
       if (offset != 0) {
          ArrayList rows = new ArrayList();
          rows.add(sourceDataRow);
-         ArrayList children = validator.getChildren(sourceDataRow);
+         List children = validator.getChildren(sourceDataRow);
          if (children.size() > 0) {
             rows.addAll(children);
             if (newIndexInDataSet > oldIndexInDataSet) {
@@ -4317,7 +4317,7 @@ public class OpProjectComponent extends XComponent {
          else {
             if (targetDataRow != null) {
                if (OpGanttValidator.getType(targetDataRow) == OpGanttValidator.SCHEDULED_TASK) {
-                  ArrayList taskChildren = validator.getChildren(targetDataRow);
+                  List taskChildren = validator.getChildren(targetDataRow);
                   //drop activity bellow the scheduled task and all its task children
                   offset += taskChildren.size();
                }
@@ -5418,7 +5418,8 @@ public class OpProjectComponent extends XComponent {
    }
 
    /**
-    *  Sends an activity selected event, with the given activity.
+    * Sends an activity selected event, with the given activity.
+    *
     * @param activity a <code>XComponent(DATA_ROW)</code> representing an activity.
     */
    private void sendActivitySelectEvent(XComponent activity) {

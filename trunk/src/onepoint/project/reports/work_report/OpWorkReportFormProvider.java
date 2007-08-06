@@ -80,7 +80,7 @@ public class OpWorkReportFormProvider implements XFormProvider {
 
 
             // Execute query
-            StringBuffer queryBuffer = new StringBuffer("select resource.Name, sum(workRecord.ActualEffort), sum(workRecord.ActualEffort) * max(resource.HourlyRate)");
+            StringBuffer queryBuffer = new StringBuffer("select resource.Name, sum(workRecord.ActualEffort), sum(workRecord.PersonnelCosts)");
             queryBuffer.append(", sum(workRecord.TravelCosts), sum(workRecord.MaterialCosts), sum(workRecord.ExternalCosts), sum(workRecord.MiscellaneousCosts)");
             queryBuffer.append(" from OpWorkSlip workSlip inner join workSlip.Creator creator inner join creator.Resources res");
             queryBuffer.append(" inner join workSlip.Records workRecord inner join workRecord.Assignment assignment inner join assignment.Resource resource inner join assignment.Activity activity inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");

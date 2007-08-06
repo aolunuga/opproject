@@ -31,24 +31,15 @@ public final class OpLocator {
    }
 
    public final String toString() {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append(prototype.getName());
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(id);
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(LOCATOR_POSTFIX);
-      return buffer.toString();
+      return locatorString(prototype, id);
    }
 
    public static String locatorString(OpObject object) {
-      StringBuffer buffer = new StringBuffer();
-      OpPrototype prototype = OpTypeManager.getPrototypeForObject(object);
-      buffer.append(prototype.getName());
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(object.getID());
-      buffer.append(LOCATOR_SEPARATOR);
-      buffer.append(LOCATOR_POSTFIX);
-      return buffer.toString();
+      return locatorString(OpTypeManager.getPrototypeForObject(object), object.getID());
+   }
+
+   public static String locatorString(OpPrototype prototype, long id) {
+      return locatorString(prototype.getName(), id);
    }
 
    public static String locatorString(String prototypeName, long id) {
@@ -58,6 +49,7 @@ public final class OpLocator {
       buffer.append(id);
       buffer.append(LOCATOR_SEPARATOR);
       buffer.append(LOCATOR_POSTFIX);
+
       return buffer.toString();
    }
 

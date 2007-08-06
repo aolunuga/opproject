@@ -68,7 +68,6 @@ public class OpGanttValidator extends XValidator {
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
-   private final static int HOURLY_RATE_COLUMN_INDEX = 1;
 
    //Hourly rates indexes
    public final static int INTERNAL_HOURLY_RATE_INDEX = 0;
@@ -229,8 +228,8 @@ public class OpGanttValidator extends XValidator {
       ((XComponent) (data_row.getChild(RESPONSIBLE_RESOURCE_COLUMN_INDEX))).setValue(newValue);
    }
 
-   public static void setPayment(XComponent data_row, double complete) {
-      ((XComponent) (data_row.getChild(PAYMENT_COLUMN_INDEX))).setDoubleValue(complete);
+   public static void setPayment(XComponent data_row, double payment) {
+      ((XComponent) (data_row.getChild(PAYMENT_COLUMN_INDEX))).setDoubleValue(payment);
    }
 
    public static double getPayment(XComponent data_row) {
@@ -351,7 +350,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row     the data row
     * @param predecessors an <code>XArray <Integer> </code> of predecessors
     */
-   public static void setPredecessors(XComponent data_row, ArrayList predecessors) {
+   public static void setPredecessors(XComponent data_row, List predecessors) {
       ((XComponent) (data_row.getChild(PREDECESSORS_COLUMN_INDEX))).setListValue(predecessors);
    }
 
@@ -361,7 +360,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row the data row
     * @return an <code>XArray <Integer> </code> of predecessors
     */
-   public static ArrayList getPredecessors(XComponent data_row) {
+   public static List getPredecessors(XComponent data_row) {
       return ((XComponent) (data_row.getChild(PREDECESSORS_COLUMN_INDEX))).getListValue();
    }
 
@@ -371,7 +370,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row   the data row
     * @param successors an <code>XArray <Integer> </code> of succesors
     */
-   public static void setSuccessors(XComponent data_row, ArrayList successors) {
+   public static void setSuccessors(XComponent data_row, List successors) {
       ((XComponent) (data_row.getChild(SUCCESSORS_COLUMN_INDEX))).setListValue(successors);
    }
 
@@ -381,7 +380,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row the data row
     * @return a <code>List</code> of succesor indexes (<code>Integer</code>)from data set
     */
-   public static ArrayList getSuccessors(XComponent data_row) {
+   public static List getSuccessors(XComponent data_row) {
       return ((XComponent) (data_row.getChild(SUCCESSORS_COLUMN_INDEX))).getListValue();
    }
 
@@ -391,7 +390,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row  the activity data row
     * @param resources an <code>XArray<String> </code>
     */
-   public static void setResources(XComponent data_row, ArrayList resources) {
+   public static void setResources(XComponent data_row, List resources) {
       ((XComponent) (data_row.getChild(RESOURCES_COLUMN_INDEX))).setListValue(resources);
    }
 
@@ -401,7 +400,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row the activity data row
     * @return an <code>XArray<String> </code> of resources
     */
-   public static ArrayList getResources(XComponent data_row) {
+   public static List getResources(XComponent data_row) {
       return ((XComponent) (data_row.getChild(RESOURCES_COLUMN_INDEX))).getListValue();
    }
 
@@ -411,7 +410,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row  the activity data row
     * @param resources an <code>XArray<String> </code>
     */
-   public static void setVisualResources(XComponent data_row, ArrayList resources) {
+   public static void setVisualResources(XComponent data_row, List resources) {
       ((XComponent) (data_row.getChild(VISUAL_RESOURCES_COLUMN_INDEX))).setListValue(resources);
    }
 
@@ -421,7 +420,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row the activity data row
     * @return an <code>XArray<String> </code> of resources
     */
-   public static ArrayList getVisualResources(XComponent data_row) {
+   public static List getVisualResources(XComponent data_row) {
       return ((XComponent) (data_row.getChild(VISUAL_RESOURCES_COLUMN_INDEX))).getListValue();
    }
 
@@ -431,7 +430,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row    the activity data row
     * @param attachments and <code> XArray </code>
     */
-   public static void setAttachments(XComponent data_row, ArrayList attachments) {
+   public static void setAttachments(XComponent data_row, List attachments) {
       ((XComponent) (data_row.getChild(ATTACHMENTS_COLUMN_INDEX))).setListValue(attachments);
    }
 
@@ -441,7 +440,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row the activity data row
     * @return an <code> XArray </code> of attachements
     */
-   public static ArrayList getAttachments(XComponent data_row) {
+   public static List getAttachments(XComponent data_row) {
       return ((XComponent) (data_row.getChild(ATTACHMENTS_COLUMN_INDEX))).getListValue();
    }
 
@@ -452,7 +451,7 @@ public class OpGanttValidator extends XValidator {
     * @param successor_index the succesor index
     */
    public static void addSuccessor(XComponent data_row, int successor_index) {
-      ArrayList successors = getSuccessors(data_row);
+      List successors = getSuccessors(data_row);
       if (successors == null) {
          successors = new ArrayList();
          setSuccessors(data_row, successors);
@@ -467,7 +466,7 @@ public class OpGanttValidator extends XValidator {
     * @param successor_index the succesor index
     */
    public static void removeSuccessor(XComponent data_row, int successor_index) {
-      ArrayList successors = getSuccessors(data_row);
+      List successors = getSuccessors(data_row);
       if (successors != null) {
          for (int i = 0; i < successors.size(); i++) {
             if (((Integer) (successors.get(i))).intValue() == successor_index) {
@@ -499,7 +498,7 @@ public class OpGanttValidator extends XValidator {
     * @param predecessor_index the predecesor index
     */
    public static void addPredecessor(XComponent data_row, int predecessor_index) {
-      ArrayList predecessors = getPredecessors(data_row);
+      List predecessors = getPredecessors(data_row);
       if (predecessors == null) {
          predecessors = new ArrayList();
          setPredecessors(data_row, predecessors);
@@ -514,7 +513,7 @@ public class OpGanttValidator extends XValidator {
     * @param predecessor_index the succesor index
     */
    public static void removePredecessor(XComponent data_row, int predecessor_index) {
-      ArrayList predecessors = getPredecessors(data_row);
+      List predecessors = getPredecessors(data_row);
       if (predecessors != null) {
          for (int i = 0; i < predecessors.size(); i++) {
             if (((Integer) (predecessors.get(i))).intValue() == predecessor_index) {
@@ -530,10 +529,10 @@ public class OpGanttValidator extends XValidator {
     *
     * @param data_row the data row
     * @param resource the resource that should be added
-    * @see OpGanttValidator#setResources(onepoint.express.XComponent,ArrayList)
+    * @see OpGanttValidator#setResources(onepoint.express.XComponent,List)
     */
    public static void addResource(XComponent data_row, String resource) {
-      ArrayList resources = getResources(data_row);
+      List resources = getResources(data_row);
       if (resources == null) {
          resources = new ArrayList();
          setResources(data_row, resources);
@@ -548,7 +547,7 @@ public class OpGanttValidator extends XValidator {
     * @param resource the resource that should be removed
     */
    public static void removeResource(XComponent data_row, String resource) {
-      ArrayList predecessors = getPredecessors(data_row);
+      List predecessors = getPredecessors(data_row);
       if (predecessors != null) {
          for (int i = 0; i < predecessors.size(); i++) {
             if (((String) (predecessors.get(i))).equals(resource)) {
@@ -623,32 +622,32 @@ public class OpGanttValidator extends XValidator {
       return (getAttributes(data_row) & attribute) == attribute;
    }
 
-   public static void setWorkPhaseStarts(XComponent data_row, ArrayList resources) {
+   public static void setWorkPhaseStarts(XComponent data_row, List resources) {
       ((XComponent) (data_row.getChild(WORK_PHASE_STARTS_COLUMN_INDEX))).setListValue(resources);
    }
 
-   public static ArrayList getWorkPhaseStarts(XComponent data_row) {
+   public static List getWorkPhaseStarts(XComponent data_row) {
       return ((XComponent) (data_row.getChild(WORK_PHASE_STARTS_COLUMN_INDEX))).getListValue();
    }
 
-   public static void setWorkPhaseFinishes(XComponent data_row, ArrayList resources) {
+   public static void setWorkPhaseFinishes(XComponent data_row, List resources) {
       ((XComponent) (data_row.getChild(WORK_PHASE_FINISHES_COLUMN_INDEX))).setListValue(resources);
    }
 
-   public static ArrayList getWorkPhaseFinishes(XComponent data_row) {
+   public static List getWorkPhaseFinishes(XComponent data_row) {
       return ((XComponent) (data_row.getChild(WORK_PHASE_FINISHES_COLUMN_INDEX))).getListValue();
    }
 
-   public static void setWorkPhaseBaseEfforts(XComponent data_row, ArrayList resources) {
+   public static void setWorkPhaseBaseEfforts(XComponent data_row, List resources) {
       ((XComponent) (data_row.getChild(WORK_PHASE_BASE_EFFORTS_COLUMN_INDEX))).setListValue(resources);
    }
 
-   public static ArrayList getWorkPhaseBaseEfforts(XComponent data_row) {
+   public static List getWorkPhaseBaseEfforts(XComponent data_row) {
       return ((XComponent) (data_row.getChild(WORK_PHASE_BASE_EFFORTS_COLUMN_INDEX))).getListValue();
    }
 
    public static void addWorkPhaseStart(XComponent data_row, Date workPhaseStart) {
-      ArrayList workPhaseStarts = getWorkPhaseStarts(data_row);
+      List workPhaseStarts = getWorkPhaseStarts(data_row);
       if (workPhaseStarts == null) {
          workPhaseStarts = new ArrayList();
          setWorkPhaseStarts(data_row, workPhaseStarts);
@@ -657,7 +656,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static void removeWorkPhaseStart(XComponent data_row, Date workPhaseStart) {
-      ArrayList workPhaseStarts = getWorkPhaseStarts(data_row);
+      List workPhaseStarts = getWorkPhaseStarts(data_row);
       if (workPhaseStarts != null) {
          for (int i = 0; i < workPhaseStarts.size(); i++) {
             if (workPhaseStarts.get(i).equals(workPhaseStart)) {
@@ -669,7 +668,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static void addWorkPhaseFinish(XComponent data_row, Date workBreakEnd) {
-      ArrayList workPhaseFinishes = getWorkPhaseFinishes(data_row);
+      List workPhaseFinishes = getWorkPhaseFinishes(data_row);
       if (workPhaseFinishes == null) {
          workPhaseFinishes = new ArrayList();
          setWorkPhaseFinishes(data_row, workPhaseFinishes);
@@ -678,7 +677,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static void removeWorkPhaseFinish(XComponent data_row, Date workBreakEnd) {
-      ArrayList workPhaseFinishes = getWorkPhaseFinishes(data_row);
+      List workPhaseFinishes = getWorkPhaseFinishes(data_row);
       if (workPhaseFinishes != null) {
          for (int i = 0; i < workPhaseFinishes.size(); i++) {
             if (workPhaseFinishes.get(i).equals(workBreakEnd)) {
@@ -690,7 +689,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static void addWorkPhaseBaseEffort(XComponent data_row, double baseEffort) {
-      ArrayList workPhaseBaseEfforts = getWorkPhaseBaseEfforts(data_row);
+      List workPhaseBaseEfforts = getWorkPhaseBaseEfforts(data_row);
       if (workPhaseBaseEfforts == null) {
          workPhaseBaseEfforts = new ArrayList();
          setWorkPhaseBaseEfforts(data_row, workPhaseBaseEfforts);
@@ -699,7 +698,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static void removeWorkPhaseBaseEffort(XComponent data_row, double baseEffort) {
-      ArrayList workPhaseBaseEfforts = getWorkPhaseBaseEfforts(data_row);
+      List workPhaseBaseEfforts = getWorkPhaseBaseEfforts(data_row);
       if (workPhaseBaseEfforts != null) {
          workPhaseBaseEfforts.remove(new Double(baseEffort));
       }
@@ -712,11 +711,11 @@ public class OpGanttValidator extends XValidator {
     * @param data_row         activity to add the efforts to
     * @param resourcesEfforts XArray with values of the added efforts
     */
-   public static void setResourceBaseEfforts(XComponent data_row, ArrayList resourcesEfforts) {
+   public static void setResourceBaseEfforts(XComponent data_row, List resourcesEfforts) {
       ((XComponent) (data_row.getChild(RESOURCE_BASE_EFFORTS_COLUMN_INDEX))).setListValue(resourcesEfforts);
    }
 
-   public static ArrayList getResourceBaseEfforts(XComponent data_row) {
+   public static List getResourceBaseEfforts(XComponent data_row) {
       return ((XComponent) (data_row.getChild(RESOURCE_BASE_EFFORTS_COLUMN_INDEX))).getListValue();
    }
 
@@ -728,7 +727,7 @@ public class OpGanttValidator extends XValidator {
     * @param ressourceEffort value of the added effort
     */
    public static void addResourceBaseEffort(XComponent data_row, double ressourceEffort) {
-      ArrayList resourceBaseEfforts;
+      List resourceBaseEfforts;
       if (data_row.getChild(RESOURCE_BASE_EFFORTS_COLUMN_INDEX) == null) {
          resourceBaseEfforts = new ArrayList();
          setWorkPhaseBaseEfforts(data_row, resourceBaseEfforts);
@@ -744,10 +743,6 @@ public class OpGanttValidator extends XValidator {
 
    public static double getAvailable(XComponent data_row) {
       return ((XComponent) (data_row.getChild(AVAILABLE_COLUMN_INDEX))).getDoubleValue();
-   }
-
-   public static double getHourlyRate(XComponent data_row) {
-      return ((XComponent) (data_row.getChild(HOURLY_RATE_COLUMN_INDEX))).getDoubleValue();
    }
 
    public Date dateFieldValue(String fieldId) {
@@ -1015,7 +1010,7 @@ public class OpGanttValidator extends XValidator {
                XComponent dataRow = null;
                XComponent dataCell = null;
                String resourceLocator = null;
-               ArrayList absentDays = null;
+               List absentDays = null;
                for (int i = 0; i < absencesSet.getChildCount(); i++) {
                   dataRow = (XComponent) absencesSet.getChild(i);
                   // Column 0: Resource-locator
@@ -1061,8 +1056,8 @@ public class OpGanttValidator extends XValidator {
     * @param activity the collection activity
     * @return an XArray<Integer> of subactivities
     */
-   public ArrayList subActivities(XComponent activity) {
-      ArrayList sub_activities = new ArrayList();
+   public List subActivities(XComponent activity) {
+      List sub_activities = new ArrayList();
       int sub_outline_level = activity.getOutlineLevel() + 1;
       int index = activity.getIndex() + 1;
       XComponent next = null;
@@ -1087,8 +1082,8 @@ public class OpGanttValidator extends XValidator {
     * @param activity
     * @return the sub tasks of the given activity (outline level +1 )
     */
-   public ArrayList subTasks(XComponent activity) {
-      ArrayList sub_activities = new ArrayList();
+   public List subTasks(XComponent activity) {
+      List sub_activities = new ArrayList();
       int sub_outline_level = activity.getOutlineLevel() + 1;
       int index = activity.getIndex() + 1;
       XComponent next = null;
@@ -1137,7 +1132,7 @@ public class OpGanttValidator extends XValidator {
     */
    public boolean isIndependentActivity(XComponent activity) {
       // Returns true if there are no direct or indirec predecessors
-      ArrayList predecessors = getPredecessors(activity);
+      List predecessors = getPredecessors(activity);
       if ((predecessors == null) || (predecessors.size() == 0)) {
          XComponent super_activity = superActivity(activity);
          if (super_activity == null) {
@@ -1241,7 +1236,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    private boolean isScheduledTask(XComponent activity) {
-      ArrayList subTasks = subTasks(activity);
+      List subTasks = subTasks(activity);
       return subTasks.size() != 0 && subActivities(activity).size() == 0;
    }
 
@@ -1354,7 +1349,7 @@ public class OpGanttValidator extends XValidator {
                setComplete(activity, 0);
             }
             List efforts = getResourceBaseEfforts(activity);
-            for (int i=0; i<efforts.size(); i++) {
+            for (int i = 0; i < efforts.size(); i++) {
                efforts.set(i, new Double(0));
             }
             break;
@@ -1452,7 +1447,7 @@ public class OpGanttValidator extends XValidator {
             setWorkPhaseFinishes(activity, new ArrayList());
             setWorkPhaseBaseEfforts(activity, new ArrayList());
             ArrayList newResources = new ArrayList();
-            ArrayList resourcesEfforts = new ArrayList();
+            List resourcesEfforts = new ArrayList();
             if (getResources(activity) != null && getResources(activity).size() > 0) {
                newResources.add(getResources(activity).get(0));
                resourcesEfforts.add(new Double(getBaseEffort(activity)));
@@ -1528,7 +1523,7 @@ public class OpGanttValidator extends XValidator {
       double miscCost = 0;
 
       //get all the children (including tasks and collection tasks) directly below
-      ArrayList subActivities = subActivities(collection);
+      List subActivities = subActivities(collection);
       subActivities.addAll(subTasks(collection));
       for (int i = 0; i < subActivities.size(); i++) {
          XComponent activity = (XComponent) subActivities.get(i);
@@ -1688,7 +1683,7 @@ public class OpGanttValidator extends XValidator {
       int index = 0;
 
       XComponent sub_activity = null;
-      ArrayList sub_activities = subActivities(activity);
+      List sub_activities = subActivities(activity);
 
       // if activity is a collection
       if (sub_activities.size() > 0 && child) {
@@ -1753,7 +1748,7 @@ public class OpGanttValidator extends XValidator {
       // Validate successors
       // *** This is a hack (next day): Have to use standard work-time here
       Date successor_start = end; // calendar.nextWorkDay(end);
-      ArrayList successors = getSuccessors(activity);
+      List successors = getSuccessors(activity);
       if (successors != null) {
          XComponent successor = null;
          for (index = 0; index < successors.size(); index++) {
@@ -2106,8 +2101,10 @@ public class OpGanttValidator extends XValidator {
    /**
     * @see XValidator#addDataRow(int,onepoint.express.XComponent)
     */
-   public void addDataRow(int index, XComponent data_row) {
+   public void addDataRow(int index, XComponent data_row)
+        throws XValidationException {
       addToUndo();
+
       // Insert data-row at index position
       // *** TODO -- important: Do index link management
       // ==> Update all references to all rows "behind" this new row
@@ -2115,6 +2112,16 @@ public class OpGanttValidator extends XValidator {
       if (index > data_set.getChildCount()) {
          index = data_set.getChildCount();
       }
+
+      //If the row that will be added is the first child of it's predecessor
+      //check if the predecessor activity has any workslips
+      if (index > 0) {
+         XComponent parent = (XComponent) data_set.getChild(index - 1);
+         if (parent.getOutlineLevel() + 1 == data_row.getOutlineLevel()) {
+            checkDeletedAssignmentsForWorkslips(parent, new ArrayList());
+         }
+      }
+
       XComponent updated_data_row;
       for (int i = 0; i < data_set.getChildCount(); i++) {
          updated_data_row = (XComponent) (data_set._getChild(i));
@@ -2245,7 +2252,7 @@ public class OpGanttValidator extends XValidator {
                String newCategoryId = (value != null) ? choiceID((String) value) : NO_CATEGORY_ID;
                String existentCategory = getCategory(data_row);
                if ((existentCategory == null && !NO_CATEGORY_ID.equalsIgnoreCase(newCategoryId))
-                   || (existentCategory != null && !existentCategory.equalsIgnoreCase((String) value))) {
+                    || (existentCategory != null && !existentCategory.equalsIgnoreCase((String) value))) {
                   throw new XValidationException(MANDATORY_EXCEPTION);
                }
             }
@@ -2376,7 +2383,7 @@ public class OpGanttValidator extends XValidator {
             break;
 
          case VISUAL_RESOURCES_COLUMN_INDEX:
-            ArrayList visualResources = (ArrayList) value;
+            List visualResources = (ArrayList) value;
 
             //tasks, milestones keep only the resource name
             if (getType(data_row) == TASK || getType(data_row) == MILESTONE) {
@@ -2389,7 +2396,7 @@ public class OpGanttValidator extends XValidator {
                }
 
                addToUndo();
-               ArrayList resources = visualResources;
+               List resources = visualResources;
 
                boolean taskWarning = false;
                //for tasks only one resource
@@ -2400,7 +2407,7 @@ public class OpGanttValidator extends XValidator {
                }
                checkDeletedAssignmentsForWorkslips(data_row, resources);
                convertResourcesToNameOnly(data_row, resources);
-               ArrayList effList = new ArrayList();
+               List effList = new ArrayList();
                for (int i = 0; i < resources.size(); i++) {
                   if (getType(data_row) == TASK) {
                      //tasks should only have 1 resource
@@ -2423,7 +2430,7 @@ public class OpGanttValidator extends XValidator {
             else {
                //standard activity
                //make sure from here onwards, we have all the assignment values in independent format.
-               ArrayList resources = deLocalizeVisualResources(visualResources);
+               List resources = deLocalizeVisualResources(visualResources);
 
                resources = prepareResources(data_row, resources);
 
@@ -2483,7 +2490,7 @@ public class OpGanttValidator extends XValidator {
             break;
 
          case ATTACHMENTS_COLUMN_INDEX:
-            ArrayList attachments = (ArrayList) value;
+            List attachments = (ArrayList) value;
             setAttachments(data_row, attachments);
             updateAttachmentAttribute(data_row);
             break;
@@ -2529,7 +2536,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row row on which the update is made.
     */
    public static void updateAttachmentAttribute(XComponent data_row) {
-      ArrayList attachments = getAttachments(data_row);
+      List attachments = getAttachments(data_row);
       if (attachments.size() != 0) {
          setAttribute(data_row, HAS_ATTACHMENTS, true);
       }
@@ -2665,7 +2672,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row
     * @param resources list of resources to be processed
     */
-   protected ArrayList prepareResources(XComponent data_row, ArrayList resources) {
+   protected List prepareResources(XComponent data_row, List resources) {
       double baseEffort = getBaseEffort(data_row);
       for (int i = 0; i < resources.size(); i++) {
          String resource = (String) resources.get(i);
@@ -2755,7 +2762,7 @@ public class OpGanttValidator extends XValidator {
     * @param data_row row to set the predecessors on
     */
    protected void setPredecessorsValue(Object value, XComponent data_row) {
-      ArrayList predecessors = (ArrayList) value;
+      List predecessors = (ArrayList) value;
 
       // Range check
       checkIndexList(predecessors);
@@ -2765,13 +2772,13 @@ public class OpGanttValidator extends XValidator {
       // loop detection
       linksLoop(predecessors, new Integer(data_row.getIndex()), PREDECESSORS_COLUMN_INDEX);
 
-      ArrayList current_predecessors = getPredecessors(data_row);
-      ArrayList added_predecessors = new ArrayList();
-      ArrayList removed_predecessors = new ArrayList();
+      List current_predecessors = getPredecessors(data_row);
+      List added_predecessors = new ArrayList();
+      List removed_predecessors = new ArrayList();
       compareIndexLists(current_predecessors, predecessors, added_predecessors, removed_predecessors);
 
       XComponent predecessor;
-      ArrayList successors;
+      List successors;
       int index;
 
       for (index = 0; index < removed_predecessors.size(); index++) {
@@ -2788,7 +2795,7 @@ public class OpGanttValidator extends XValidator {
       setPredecessors(data_row, predecessors);
    }
 
-   private ArrayList removeTaskIndexes(ArrayList predecessors) {
+   private List removeTaskIndexes(List predecessors) {
       for (Iterator iterator = predecessors.iterator(); iterator.hasNext();) {
          Integer index = (Integer) iterator.next();
          byte type = getType((XComponent) data_set.getChild(index.intValue()));
@@ -2806,10 +2813,10 @@ public class OpGanttValidator extends XValidator {
     * @param data_row row to have the successors value set
     * @return newly added succesors (the diff to old ones)  - index
     */
-   protected ArrayList setSuccessorsValue(Object value, XComponent data_row) {
-      ArrayList successors;
+   protected List setSuccessorsValue(Object value, XComponent data_row) {
+      List successors;
       int index;
-      ArrayList predecessors;
+      List predecessors;
       successors = (ArrayList) value;
       // Range check
       checkIndexList(successors);
@@ -2821,9 +2828,9 @@ public class OpGanttValidator extends XValidator {
       linksLoop(successors, new Integer(data_row.getIndex()), SUCCESSORS_COLUMN_INDEX);
 
 
-      ArrayList current_successors = getSuccessors(data_row);
-      ArrayList added_successors = new ArrayList();
-      ArrayList removed_successors = new ArrayList();
+      List current_successors = getSuccessors(data_row);
+      List added_successors = new ArrayList();
+      List removed_successors = new ArrayList();
       compareIndexLists(current_successors, successors, added_successors, removed_successors);
 
       XComponent successor;
@@ -2851,7 +2858,7 @@ public class OpGanttValidator extends XValidator {
     */
    protected static List removeDuplicates(List list) {
       // check for duplicates and remove them
-      ArrayList newList = new ArrayList();
+      List newList = new ArrayList();
       for (int i = 0; i < list.size(); i++) {
          Object element = list.get(i);
          if (!newList.contains(element)) {
@@ -2987,11 +2994,11 @@ public class OpGanttValidator extends XValidator {
     * @param linkType   the type of link it is checked (PREDECESSORS_COLUMN_INDEX / SUCCESSORS_COLUMN_INDEX)
     * @throws XValidationException if a loop was detected
     */
-   public void linksLoop(ArrayList links, Integer startIndex, int linkType) {
+   public void linksLoop(List links, Integer startIndex, int linkType) {
       XComponent dataSet = getDataSet();
       XComponent dataRow = (XComponent) (dataSet.getChild(startIndex.intValue()));
-      ArrayList linksNow = ((XComponent) (dataRow.getChild(linkType))).getListValue();
-      ArrayList linksBefore = new ArrayList();
+      List linksNow = ((XComponent) (dataRow.getChild(linkType))).getListValue();
+      List linksBefore = new ArrayList();
       linksBefore.addAll(linksNow);
 
       // set the "to check" links
@@ -3027,7 +3034,7 @@ public class OpGanttValidator extends XValidator {
     * @param xArray
     * @return a <code>List<code> view.
     */
-   public static List toList(ArrayList xArray) {
+   public static List toList(List xArray) {
       List result = new ArrayList();
       for (int i = 0; i < xArray.size(); i++) {
          result.add(xArray.get(i));
@@ -3077,8 +3084,8 @@ public class OpGanttValidator extends XValidator {
     * @return an <code>XArray <XComponent> </code> representing the children of the collection.
     */
 
-   protected ArrayList getInnerActivitiesOfCollection(XComponent collectionActivity) {
-      ArrayList innerActivities = new ArrayList();
+   protected List getInnerActivitiesOfCollection(XComponent collectionActivity) {
+      List innerActivities = new ArrayList();
       int fromPosition = collectionActivity.getIndex();
       int collectionOulineLevel = collectionActivity.getOutlineLevel();
       // skip next
@@ -3298,7 +3305,7 @@ public class OpGanttValidator extends XValidator {
       }
       else {
          if (getChildren(row).size() != 0) {
-            ArrayList children = getChildren(row);
+            List children = getChildren(row);
             offset = children.size() + 1;
          }
          else {
@@ -3350,7 +3357,7 @@ public class OpGanttValidator extends XValidator {
       if (sourceDataRow.getOutlineLevel() == targetDataRow.getOutlineLevel()) {
          // the source must be moved after the target
          if (moveAfterTarget) {
-            ArrayList targetChildren = getChildren(targetDataRow);
+            List targetChildren = getChildren(targetDataRow);
             offset = offset + 1 + targetChildren.size();
          }
       }
@@ -3367,9 +3374,9 @@ public class OpGanttValidator extends XValidator {
     * @param collectionActivity the <code>COLLECTION_ACTIVITY</code> component
     * @return a <code>XArray</code> of children
     */
-   public ArrayList getChildren(XComponent collectionActivity) {
+   public List getChildren(XComponent collectionActivity) {
       // children array
-      ArrayList children = new ArrayList();
+      List children = new ArrayList();
       int rowIndex = collectionActivity.getIndex();
       // navigate from rowIndex + 1
       for (int index = rowIndex + 1; index < data_set.getChildCount(); index++) {
@@ -3394,11 +3401,11 @@ public class OpGanttValidator extends XValidator {
     * @param activity a <code> XComponent </code> representing the activity for which the collection array is returned
     * @return a <code>XArray</code> of <code>COLLECTION</code> activities
     */
-   public ArrayList getCollectionsForActivity(XComponent activity) {
-      ArrayList collectionArray = new ArrayList();
+   public List getCollectionsForActivity(XComponent activity) {
+      List collectionArray = new ArrayList();
       int activityIndex = activity.getIndex();
       XComponent row;
-      ArrayList rowChildren;
+      List rowChildren;
       // the data set
       XComponent dataSet = getDataSet();
 
@@ -3428,7 +3435,7 @@ public class OpGanttValidator extends XValidator {
          // get a row
          XComponent row = (XComponent) movedDataRows.get(index);
          // find it's activity parents
-         ArrayList collectionParents = getCollectionsForActivity(row);
+         List collectionParents = getCollectionsForActivity(row);
          for (int i = 0; i < collectionParents.size(); i++) {
             XComponent collectionActivity = (XComponent) collectionParents.get(i);
             collectionActivity.expanded(true, false);
@@ -3493,11 +3500,11 @@ public class OpGanttValidator extends XValidator {
          // ref to the data row
          savedValues.add(child);
          // successors
-         ArrayList successors = new ArrayList();
+         List successors = new ArrayList();
          successors.addAll(getSuccessors(child));
          savedValues.add(successors);
          // predecessors
-         ArrayList predecessors = new ArrayList();
+         List predecessors = new ArrayList();
          predecessors.addAll(getPredecessors(child));
          savedValues.add(predecessors);
          // save values
@@ -3514,8 +3521,8 @@ public class OpGanttValidator extends XValidator {
       //check if the move was ok  (mandatory task with children != tasks/collection tasks)
       for (int i = 0; i < data_set.getChildCount(); i++) {
          XComponent row = (XComponent) data_set.getChild(i);
-         ArrayList subActivities = subActivities(row);
-         ArrayList subTasks = subTasks(row);
+         List subActivities = subActivities(row);
+         List subTasks = subTasks(row);
          if ((getType(row) == TASK || getType(row) == COLLECTION_TASK) &&
               isProjectMandatory(row) && subActivities.size() != 0) {
             rollbackMove(initalValues);
@@ -3594,8 +3601,8 @@ public class OpGanttValidator extends XValidator {
       for (int i = 0; i < initalValues.size(); i++) {
          List values = (List) initalValues.get(i);
          XComponent child = (XComponent) values.get(0);
-         ArrayList successors = (ArrayList) values.get(1);
-         ArrayList predecessors = (ArrayList) values.get(2);
+         List successors = (ArrayList) values.get(1);
+         List predecessors = (ArrayList) values.get(2);
          setSuccessors(child, successors);
          setPredecessors(child, predecessors);
          data_set.addChild(child);
@@ -3706,7 +3713,7 @@ public class OpGanttValidator extends XValidator {
     * @param offset    the offset (positive or negative value)
     * @throws XValidationException if a cycle was detected and the outline level can't be changed.
     */
-   public void changeOutlineLevels(ArrayList data_rows, int offset)
+   public void changeOutlineLevels(List data_rows, int offset)
         throws XValidationException {
 
       if (offset == 0) {
@@ -3765,8 +3772,8 @@ public class OpGanttValidator extends XValidator {
             //scheduled tasks can have only sub tasks
             XComponent parent = superActivity(row);
             if (parent != null) {
-               ArrayList parentTasks = subTasks(parent);
-               ArrayList parentActivities = subActivities(parent);
+               List parentTasks = subTasks(parent);
+               List parentActivities = subActivities(parent);
                if (parentTasks.size() != 0 && parentActivities.size() != 0) {
                   rollback = true;
                   scheduledMixed = true;
@@ -3785,8 +3792,8 @@ public class OpGanttValidator extends XValidator {
                }
             }
 
-            ArrayList subRows = subTasks(row);
-            ArrayList subActivities = subActivities(row);
+            List subRows = subTasks(row);
+            List subActivities = subActivities(row);
             if (subRows.size() != 0 && subActivities.size() != 0) {
                rollback = true;
                scheduledMixed = true;
@@ -3842,7 +3849,7 @@ public class OpGanttValidator extends XValidator {
     * @param offset          increment for the current offset
     * @return true if the outline level can be changed / false otherwise
     */
-   private boolean canChangeOutline(ArrayList dataRows, int indexInSelected, int offset) {
+   private boolean canChangeOutline(List dataRows, int indexInSelected, int offset) {
 
       XComponent changedDataRow = (XComponent) dataRows.get(indexInSelected);
       int indexInDataSet = changedDataRow.getIndex();
@@ -3957,14 +3964,14 @@ public class OpGanttValidator extends XValidator {
          return;
       }
       /* current row succesors */
-      ArrayList successors = new ArrayList();
+      List successors = new ArrayList();
       /* current row index */
       Integer currentRowIndex = new Integer(currentRow.getIndex());
 
       for (int index = currentRow.getIndex() + 1; index < dataSet.getChildCount(); index++) {
          XComponent row = (XComponent) dataSet.getChild(index);
-         /* predecesors of the index row */
-         ArrayList predecesors = getPredecessors(row);
+         // predecesors of the index row
+         List predecesors = getPredecessors(row);
 
          if (predecesors.contains(currentRowIndex)) {
             successors.add(new Integer(row.getIndex()));
@@ -3980,7 +3987,7 @@ public class OpGanttValidator extends XValidator {
     * @param children the children <code> XArray </code> of the collection
     * @return the minimum start date of the children
     */
-   protected Date getStartDateForCollection(ArrayList children) {
+   protected Date getStartDateForCollection(List children) {
       /* the first child start date */
       Date startDate = getStart((XComponent) children.get(0));
 
@@ -4000,7 +4007,7 @@ public class OpGanttValidator extends XValidator {
     * @param children the children <code> XArray </code> of the collection
     * @return the minimum start date of the children
     */
-   protected Date getEndDateForCollection(ArrayList children) {
+   protected Date getEndDateForCollection(List children) {
       /* the first child end date */
       Date endDate = getEnd((XComponent) children.get(0));
 
@@ -4043,7 +4050,7 @@ public class OpGanttValidator extends XValidator {
     * @param copy_rows the a flag indication if the operation is <code>cut</code> or <code>copy</code>
     * @see onepoint.express.XComponent#copyData()
     */
-   protected final void _copyToClipboard(ArrayList dataRows, boolean copy_rows) {
+   protected final void _copyToClipboard(List dataRows, boolean copy_rows) {
       // Copy data-rows to static clipboard; adjust index references ("inside" only)
       // Create index-map and add data-rows to clipboard
       XComponent clipboard = XDisplay.getClipboard();
@@ -4057,7 +4064,7 @@ public class OpGanttValidator extends XValidator {
       List clonedDataRows = copyRows(dataRows, copy_rows);
 
       /* array of original indexes of the data rows */
-      ArrayList originalIndexes = new ArrayList();
+      List originalIndexes = new ArrayList();
       for (int i = 0; i < clonedDataRows.size(); i++) {
          row = ((XComponent) clonedDataRows.get(i));
          OpGanttValidator.setWorkRecords(row, new HashMap());
@@ -4083,7 +4090,7 @@ public class OpGanttValidator extends XValidator {
    private List copyRows(List dataRows, boolean resetRowValue) {
       XComponent row;
       /* make a copy of the dataRows and use the elements for clipboard placing */
-      ArrayList clonedDataRows = new ArrayList();
+      List clonedDataRows = new ArrayList();
       for (int index = 0; index < dataRows.size(); index++) {
          row = ((XComponent) dataRows.get(index)).copyData();
          //copy rows business case clears the activity row value
@@ -4093,13 +4100,13 @@ public class OpGanttValidator extends XValidator {
          clonedDataRows.add(row);
       }
       /* array of succesors */
-      ArrayList succesors;
+      List succesors;
       /* array of predecessors */
-      ArrayList predecessors;
+      List predecessors;
       /* array of resources */
-      ArrayList resources;
+      List resources;
       /* array of resources base efforts*/
-      ArrayList resourceEfforts;
+      List resourceEfforts;
       for (int i = 0; i < clonedDataRows.size(); i++) {
          row = ((XComponent) clonedDataRows.get(i));
          /* set up the succesors of the row */
@@ -4126,17 +4133,17 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
-    * @see XValidator#copyToClipboard(ArrayList)
+    * @see XValidator#copyToClipboard(List)
     */
-   public void copyToClipboard(ArrayList selected_rows) {
+   public void copyToClipboard(List selected_rows) {
       _copyToClipboard(selected_rows, true);
       cleanClipboard = false;
    }
 
    /**
-    * @see XValidator#cutToClipboard(ArrayList)
+    * @see XValidator#cutToClipboard(List)
     */
-   public void cutToClipboard(ArrayList selected_rows) {
+   public void cutToClipboard(List selected_rows) {
       // copy the selected rows to clipboard
       _copyToClipboard(selected_rows, false);
       // remove the selected rows from data set first
@@ -4159,8 +4166,8 @@ public class OpGanttValidator extends XValidator {
     * @param selectedRows a <code>XArray</code> representing the target of the paste operation.
     * @return a <code>XArray</code> after filtering the <code>selectedRows</code>
     */
-   public ArrayList filterSelectedRowsForPasteOperation(ArrayList selectedRows) {
-      ArrayList filterRows = new ArrayList();
+   public List filterSelectedRowsForPasteOperation(List selectedRows) {
+      List filterRows = new ArrayList();
       for (int index = 0; index < selectedRows.size(); index++) {
          // get a row
          XComponent row = (XComponent) selectedRows.get(index);
@@ -4320,7 +4327,7 @@ public class OpGanttValidator extends XValidator {
     * @param array a <code>XArray</code> of <code>Integer</code> representing indexes.
     * @return <code>true</code> if the index list is valid, <code>false</code> otherwise.
     */
-   public boolean checkIndexList(ArrayList array) {
+   public boolean checkIndexList(List array) {
       // Check index list range
       int max_value = data_set.getChildCount() - 1;
       int value = 0;
@@ -4333,7 +4340,7 @@ public class OpGanttValidator extends XValidator {
       return true;
    }
 
-   public final void removeIndexListValue(ArrayList array, int value) {
+   public final void removeIndexListValue(List array, int value) {
       Integer element = null;
       for (int index = 0; index < array.size(); index++) {
          element = (Integer) (array.get(index));
@@ -4344,7 +4351,7 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   public final boolean containsIndexListValue(ArrayList array, int value) {
+   public final boolean containsIndexListValue(List array, int value) {
       for (int index = 0; index < array.size(); index++) {
          if (((Integer) (array.get(index))).intValue() == value) {
             return true;
@@ -4353,8 +4360,8 @@ public class OpGanttValidator extends XValidator {
       return false;
    }
 
-   public void compareIndexLists(ArrayList array1, ArrayList array2, ArrayList added_elements,
-        ArrayList removed_elements) {
+   public void compareIndexLists(List array1, List array2, List added_elements,
+        List removed_elements) {
       // *** Optimization idea: XArray could "track" changes (change-log
       // w/savepoints)
       int value = 0;
@@ -4383,7 +4390,7 @@ public class OpGanttValidator extends XValidator {
     * @param end    the end index, value of the last index that has to be updated
     * @param offset the offset, amount for the update of indexes
     */
-   private static void updateIndexListAfterAdd(ArrayList array, int start, int end, int offset) {
+   private static void updateIndexListAfterAdd(List array, int start, int end, int offset) {
       // Update index list values: Add offset if value is index
       // TODO: Check where this one is used -- next one might be more efficient
       int value = 0;
@@ -4407,7 +4414,7 @@ public class OpGanttValidator extends XValidator {
     * @param end    the end index, value of the last index that has to be updated
     * @param offset the offset, amount for the update of indexes
     */
-   private static void updateIndexListAfterRemove(ArrayList array, int start, int end, int offset) {
+   private static void updateIndexListAfterRemove(List array, int start, int end, int offset) {
       // Update index list values: Add offset if value is index
       int value = 0;
       for (int i = 0; i < array.size(); i++) {
@@ -4432,7 +4439,7 @@ public class OpGanttValidator extends XValidator {
     * @param array     the <code>XArray</code>
     * @param index_map the Hashtable
     */
-   public void updateIndexList(ArrayList array, Hashtable index_map) {
+   public void updateIndexList(List array, Hashtable index_map) {
       Integer new_index = null;
       for (int i = 0; i < array.size(); i++) {
          new_index = (Integer) (index_map.get(array.get(i)));
@@ -4451,7 +4458,7 @@ public class OpGanttValidator extends XValidator {
     *                  <code>key</code> represents the original index of the a copy/cut activity
     *                  <code>value</code> represents the updated index of the activity.
     */
-   public void updateClipboardIndexList(ArrayList array, Hashtable index_map) {
+   public void updateClipboardIndexList(List array, Hashtable index_map) {
       Integer new_index = null;
       for (int i = 0; i < array.size(); i++) {
          new_index = (Integer) (index_map.get(array.get(i)));
@@ -4472,7 +4479,7 @@ public class OpGanttValidator extends XValidator {
     * @param start_index the start index value
     * @param end_index   the end index value
     */
-   public void filterIndexList(ArrayList array, int start_index, int end_index) {
+   public void filterIndexList(List array, int start_index, int end_index) {
 
       for (int index = 0; index < array.size(); index++) {
          int element = ((Integer) array.get(index)).intValue();
@@ -4489,9 +4496,9 @@ public class OpGanttValidator extends XValidator {
     * @param array     the <code>XArray</code> of <code>Integer</code> values
     * @param index_map a <code>Hashtable</code> of indexes
     */
-   public void filterIndexList(ArrayList array, Hashtable index_map) {
+   public void filterIndexList(List array, Hashtable index_map) {
 
-      ArrayList forRemove = new ArrayList();
+      List forRemove = new ArrayList();
       for (int index = 0; index < array.size(); index++) {
          Integer element = (Integer) array.get(index);
          if (!index_map.containsKey(element)) {
@@ -4515,12 +4522,12 @@ public class OpGanttValidator extends XValidator {
     *                 3 - effort
     *                 4 - assignments
     */
-   public void updateDataCells(XComponent data_row, ArrayList array) {
+   public void updateDataCells(XComponent data_row, List array) {
 
       Date start, end;
       Double duration;
       Double effort;
-      ArrayList assignments;
+      List assignments;
 
       start = (Date) array.get(0);
       end = (Date) array.get(1);
@@ -4564,7 +4571,7 @@ public class OpGanttValidator extends XValidator {
       boolean assignments_changed = false;
       assignments = (ArrayList) array.get(4);
       if (assignments != null) {
-         ArrayList old_assignments = getResources(data_row);
+         List old_assignments = getResources(data_row);
          if (assignments.size() != old_assignments.size()) {
             assignments_changed = true;
          }
@@ -4584,7 +4591,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    private boolean containsAssignment(XComponent data_row, String assignment) {
-      ArrayList assignments = getResources(data_row);
+      List assignments = getResources(data_row);
       for (int i = 0; i < assignments.size(); i++) {
          String s = (String) assignments.get(i);
          if (s.equals(assignment)) {
@@ -4827,9 +4834,9 @@ public class OpGanttValidator extends XValidator {
     * @param individualAbsences      individual absences for resources array to be filled
     * @return personnel Cost for this activity
     */
-   public List individualValues(XComponent activityRow, XCalendar calendar, ArrayList assignments,
+   public List individualValues(XComponent activityRow, XCalendar calendar, List assignments,
         HashMap absences, double effort, double[] individualEfforts,
-        double[] individualEffortsPerDay, ArrayList[] individualAbsences) {
+        double[] individualEffortsPerDay, List[] individualAbsences) {
 
       // Calculates important individual values per resource and returns personnel costs in the process
       List costs = new ArrayList();
@@ -4947,7 +4954,7 @@ public class OpGanttValidator extends XValidator {
       if (getType(data_row) == TASK) {
          //update the base effort for the resource (if any)
          if (getResources(data_row).size() > 0) {
-            ArrayList resourceEffort = new ArrayList();
+            List resourceEffort = new ArrayList();
             resourceEffort.add(new Double(effort));
             setResourceBaseEfforts(data_row, resourceEffort);
          }
@@ -4995,19 +5002,19 @@ public class OpGanttValidator extends XValidator {
       }
 
       if (!isEffortBasedProject()) {
-         ArrayList resources = getResources(data_row);
+         List resources = getResources(data_row);
          resources = planUnNamedResource(data_row, resources);
          setResources(data_row, resources);
       }
 
-      ArrayList assignments = getResources(data_row);
+      List assignments = getResources(data_row);
       if (assignments == null) {
          assignments = new ArrayList();
       }
 
       double[] individualEfforts = new double[assignments.size()];
       double[] individualEffortsPerDay = new double[individualEfforts.length];
-      ArrayList[] individualAbsences = new ArrayList[individualEfforts.length];
+      List[] individualAbsences = new ArrayList[individualEfforts.length];
 
       List personnelCosts = individualValues(data_row, calendar, assignments, absences, effort,
            individualEfforts, individualEffortsPerDay, individualAbsences);
@@ -5017,9 +5024,9 @@ public class OpGanttValidator extends XValidator {
       boolean workingDay;
       double workPhaseEffort = 0;
 
-      ArrayList workPhaseStarts = new ArrayList();
-      ArrayList workPhaseFinishes = new ArrayList();
-      ArrayList workPhaseEfforts = new ArrayList();
+      List workPhaseStarts = new ArrayList();
+      List workPhaseFinishes = new ArrayList();
+      List workPhaseEfforts = new ArrayList();
       int i = 0;
       boolean effortBased = isEffortBasedProject();
       //the calculations have to be done using BigDecimals to avoid rounding errors.
@@ -5104,7 +5111,7 @@ public class OpGanttValidator extends XValidator {
       }
       else {
          //recompute the workpase efforts, if any workphases
-         ArrayList efforts = getWorkPhaseBaseEfforts(data_row);
+         List efforts = getWorkPhaseBaseEfforts(data_row);
          if (efforts != null) {
             for (int j = 0; j < efforts.size(); j++) {
                double workEffort = ((Double) efforts.get(j)).doubleValue();
@@ -5159,7 +5166,7 @@ public class OpGanttValidator extends XValidator {
       if (!isEffortBasedProject() && getType(data_row) == STANDARD) {
          try {
             updatePercentage(data_row, previousDuration / duration);
-            ArrayList resources = getResources(data_row);
+            List resources = getResources(data_row);
             resources = planUnNamedResource(data_row, resources);
             setResources(data_row, resources);
          }
@@ -5184,12 +5191,12 @@ public class OpGanttValidator extends XValidator {
          nextHoliday = (Date) relevantHolidays.next();
       }
 
-      ArrayList assignments = getResources(data_row);
+      List assignments = getResources(data_row);
       if (assignments == null) {
          assignments = new ArrayList();
       }
       double[] individualEffortsPerDay = new double[assignments.size()];
-      ArrayList[] individualAbsences = new ArrayList[individualEffortsPerDay.length];
+      List[] individualAbsences = new ArrayList[individualEffortsPerDay.length];
       double[] assigneds = new double[individualEffortsPerDay.length];
 
       BigDecimal effort = new BigDecimal(0.0);
@@ -5198,9 +5205,9 @@ public class OpGanttValidator extends XValidator {
       double workPhaseEffort = 0;
       boolean workingDay;
 
-      ArrayList workPhaseStarts = new ArrayList();
-      ArrayList workPhaseFinishes = new ArrayList();
-      ArrayList workPhaseEfforts = new ArrayList();
+      List workPhaseStarts = new ArrayList();
+      List workPhaseFinishes = new ArrayList();
+      List workPhaseEfforts = new ArrayList();
       int i;
       double sumAssigned;
 
@@ -5336,7 +5343,7 @@ public class OpGanttValidator extends XValidator {
       return true;
    }
 
-   private void recomputeWorkPhaseEffort(ArrayList workPhaseEfforts, double effort, double previousEffort) {
+   private void recomputeWorkPhaseEffort(List workPhaseEfforts, double effort, double previousEffort) {
       double workPhaseEffort;
       //if not effort linked - recompute worphase efforts - workPhaseEfforts
       for (int j = 0; j < workPhaseEfforts.size(); j++) {
@@ -5414,8 +5421,8 @@ public class OpGanttValidator extends XValidator {
     * @param workPhaseEfforts
     * @return the state of workPhase. (true/false)
     */
-   private boolean updateWorkPhases(boolean workPhase, boolean workingDay, long time, ArrayList workPhaseStarts,
-        ArrayList workPhaseFinishes, XComponent data_row, double workPhaseEffort, ArrayList workPhaseEfforts) {
+   private boolean updateWorkPhases(boolean workPhase, boolean workingDay, long time, List workPhaseStarts,
+        List workPhaseFinishes, XComponent data_row, double workPhaseEffort, List workPhaseEfforts) {
 
       if (workingDay && !workPhase) {
          // start a new workPhase
@@ -5465,8 +5472,8 @@ public class OpGanttValidator extends XValidator {
     * @param calendar                the calendar used
     * @return sum of assigneds
     */
-   private double initAssigned(ArrayList assignments, double[] individualEffortsPerDay, double[] assigneds,
-        HashMap absences, ArrayList[] individualAbsences, XCalendar calendar) {
+   private double initAssigned(List assignments, double[] individualEffortsPerDay, double[] assigneds,
+        HashMap absences, List[] individualAbsences, XCalendar calendar) {
       int i;
       double sumAssigned = 0;
       if (assignments.size() > 0) {
@@ -5498,7 +5505,7 @@ public class OpGanttValidator extends XValidator {
     * @return personnel cost
     */
    private List calculateCosts(XComponent activityRow, double[] individualEffortsPerDay, double effort,
-        double[] assigneds, double sumAssigned, ArrayList assignments) {
+        double[] assigneds, double sumAssigned, List assignments) {
       int i;
       double individualEffort;
       String resource_locator;
@@ -5580,7 +5587,7 @@ public class OpGanttValidator extends XValidator {
     * @param targetDataRow      future parent activity
     * @param targetOutlineLevel collection outline level
     */
-   public void moveInCollection(ArrayList rows, int offset, XComponent targetDataRow, int targetOutlineLevel) {
+   public void moveInCollection(List rows, int offset, XComponent targetDataRow, int targetOutlineLevel) {
       if (getType(targetDataRow) != MILESTONE) {
          XComponent sourceDataRow = (XComponent) rows.get(0);
          targetOutlineLevel++;
@@ -5620,7 +5627,7 @@ public class OpGanttValidator extends XValidator {
     * @param offset             offset for move action
     * @param targetOutlineLevel outline level of the target position
     */
-   public void moveOverActivities(ArrayList rows, int offset, int targetOutlineLevel) {
+   public void moveOverActivities(List rows, int offset, int targetOutlineLevel) {
 
       if (offset == 0) {
          return;
@@ -5788,13 +5795,13 @@ public class OpGanttValidator extends XValidator {
     * @param resourceAvailability
     */
    public static void updateVisualResources(XComponent data_row, boolean hourBasedView, Map resourceAvailability) {
-      ArrayList visualResources;
+      List visualResources;
 
       //resources given by getResources method will always be in % view.
       List resources = getResources(data_row);
 
       if (hourBasedView) {
-         ArrayList converted = new ArrayList();
+         List converted = new ArrayList();
          for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
             String resource = (String) iterator.next();
             String caption = XValidator.choiceCaption(resource);
@@ -5843,7 +5850,7 @@ public class OpGanttValidator extends XValidator {
       setVisualResources(data_row, visualResources);
    }
 
-   protected void convertResourcesToNameOnly(XComponent data_row, ArrayList resources) {
+   protected void convertResourcesToNameOnly(XComponent data_row, List resources) {
       List addedResources = new ArrayList();
       for (int i = 0; i < resources.size(); i++) {
          String resource = (String) resources.get(i);
@@ -5876,8 +5883,8 @@ public class OpGanttValidator extends XValidator {
     * @param resources Resources in hour view
     * @return Resources in % view
     */
-   private ArrayList convertResourcesToPercent(XComponent dataRow, ArrayList resources) {
-      ArrayList converted = new ArrayList();
+   private List convertResourcesToPercent(XComponent dataRow, List resources) {
+      List converted = new ArrayList();
       double percent;
       boolean onlyName = false;
       double baseEffort = getBaseEffort(dataRow);
@@ -5968,7 +5975,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    private void updatePercentage(XComponent data_row, double changeFactor) {
-      ArrayList resources = getResources(data_row);
+      List resources = getResources(data_row);
 
       for (int j = 0; j < resources.size(); j++) {
          String resource = (String) resources.get(j);
@@ -6009,7 +6016,7 @@ public class OpGanttValidator extends XValidator {
    }
 
 
-   private ArrayList distributeBaseEffort(XComponent dataRow, ArrayList resources) {
+   private List distributeBaseEffort(XComponent dataRow, List resources) {
       boolean hourBasedResourceView = this.isHourBasedResourceView();
       double baseEffort = getBaseEffort(dataRow);
       List distributionIndexes = new ArrayList();
@@ -6107,10 +6114,10 @@ public class OpGanttValidator extends XValidator {
     * Converts the assignments (hours or %) from a localized form (entered by the user) to an internal form.
     *
     * @param visualResources a <code>List</code> of <code>String</code> representing a list of visual resource.
-    * @return an <code>ArrayList</code> of the same resources, but with the assignments strings locale independent.
+    * @return an <code>List</code> of the same resources, but with the assignments strings locale independent.
     */
-   private ArrayList deLocalizeVisualResources(List visualResources) {
-      ArrayList result = new ArrayList();
+   private List deLocalizeVisualResources(List visualResources) {
+      List result = new ArrayList();
       for (Iterator it = visualResources.iterator(); it.hasNext();) {
          String visualResource = (String) it.next();
          String id = choiceID(visualResource);
@@ -6181,16 +6188,16 @@ public class OpGanttValidator extends XValidator {
     * Precondition: all the resource assignments need to be specified in %.
     *
     * @param dataRow   a <code>XComponent(DATA_ROW)</code> representing an activity.
-    * @param resources an <code>ArrayList</code> of <code>String</code> representing resource assignments.
-    * @return a <code>ArrayList</code> of <code>String</code> representing an updated list of assignemts (with or without the unnamed resource).
+    * @param resources an <code>List</code> of <code>String</code> representing resource assignments.
+    * @return a <code>List</code> of <code>String</code> representing an updated list of assignemts (with or without the unnamed resource).
     */
-   private ArrayList planUnNamedResource(XComponent dataRow, ArrayList resources) {
+   private List planUnNamedResource(XComponent dataRow, List resources) {
       //unnamed resource doesn't exist if there are no assignments
       if (resources.size() == 0) {
          return resources;
       }
 
-      ArrayList result = new ArrayList();
+      List result = new ArrayList();
       double duration = getDuration(dataRow);
       double baseEffort = getBaseEffort(dataRow);
 

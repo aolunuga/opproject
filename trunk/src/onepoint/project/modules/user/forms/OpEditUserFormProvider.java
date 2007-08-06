@@ -11,6 +11,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.*;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
@@ -185,10 +186,20 @@ public class OpEditUserFormProvider implements XFormProvider {
       XComponent languageDataSet = form.findComponent("UserLanguageDataSet");
       OpUser currentUser = session.user(broker);
       OpUserLanguageManager.fillLanguageDataSet(languageDataSet, languageField, currentUser);
+
+      //get the user preferences. If the user has no preference, get the preference from system setings.
+      String preference;
+      if(user.getPreference(OpPreference.LOCALE) != null){
+         preference = user.getPreference(OpPreference.LOCALE).getValue();
+      }
+      else{
+         preference = OpSettings.get(OpSettings.USER_LOCALE);
+      }
+      
       for (int i =0 ; i  < languageDataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) languageDataSet.getChild(i);
          String localeChoice = dataRow.getStringValue();
-         if (XValidator.choiceID(localeChoice).equalsIgnoreCase(user.getPreference(OpPreference.LOCALE).getValue())) {
+         if (XValidator.choiceID(localeChoice).equalsIgnoreCase(preference)) {
             dataRow.setSelected(true);
             languageField.setSelectedIndex(i);
          }
@@ -198,5 +209,4 @@ public class OpEditUserFormProvider implements XFormProvider {
       }
       return languageField;
    }
-
 }

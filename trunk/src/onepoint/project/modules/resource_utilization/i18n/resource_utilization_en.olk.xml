@@ -23,7 +23,7 @@
    <resource-map id="resource_utilization.details">
       <resource id="ProjectName">Project</resource>
       <resource id="ActivityName">Activity</resource>
-      <resource id="ActivitySequence">Nr.</resource>
+      <resource id="ActivitySequence">No.</resource>
       <resource id="Start">Start</resource>
       <resource id="Finish">Finish</resource>
       <resource id="Assigned">% Assigned</resource>

@@ -1,4 +1,5 @@
 <prototype name="OpLock" instance-class="onepoint.project.modules.user.OpLock" super-type="OpObject">
+   <field name="LockerID" type="Long"/>
    <relationship name="Owner" type="OpUser" back-relationship="OwnedLocks"/>
    <relationship name="Target" type="OpObject" back-relationship="Locks"/>
 </prototype>

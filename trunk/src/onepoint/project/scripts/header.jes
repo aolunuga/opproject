@@ -12,6 +12,8 @@ import
 onepoint.express.XComponent;
 
 function signOff(event) {
+   //must be done first, to allow any form unload event handler to be processed before the session is cleared
+   XDisplay.getDefaultDisplay().removeAllLayers();
    request = new XMessage;
    request.setAction("UserService.signOff");
    request.setArgument("ClearCookies", true);

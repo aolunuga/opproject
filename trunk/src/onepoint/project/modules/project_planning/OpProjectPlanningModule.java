@@ -15,11 +15,11 @@ import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.work.OpWorkRecord;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.sql.Date;
 
 /**
  * Project planning module class.
@@ -47,7 +47,8 @@ public class OpProjectPlanningModule extends OpModule {
    }
 
    /**
-    *  Upgrades this module to version #5 (via reflection).
+    * Upgrades this module to version #5 (via reflection).
+    *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
    public void upgradeToVersion5(OpProjectSession session) {
@@ -55,23 +56,25 @@ public class OpProjectPlanningModule extends OpModule {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
       query.setByte(0, OpProjectNode.PROJECT);
-      Iterator iterator = broker.iterate(query);
+      //<FIXME author="Horia Chiorean" description="Use broker.iterate when it works">
+      Iterator iterator = broker.list(query).iterator();
+      //<FIXME>
       while (iterator.hasNext()) {
          OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
-         //due to a previous bug, we must make sure the start/end of the project plans are ok
-         updateActualProceeds(projectPlan, broker);
+         //due to a previous bug, we must make sure the start/end of the project plans are ok - 1st thing that most be done !
          fixProjectPlanDates(projectPlan, broker);
+         updateActualProceeds(projectPlan, broker);
          projectPlanIds.add(projectPlan.getID());
       }
       broker.close();
       revalidateProjectPlans(session, projectPlanIds);
-    }
+   }
 
    /**
     * Fixes the problem with invalid project plan dates (weren't correct).
-    * 
+    *
     * @param projectPlan a <code>OpProjectPlan</code> representing a project plan.
-    * @param broker a <code>OpBroker</code> used for db operations.
+    * @param broker      a <code>OpBroker</code> used for db operations.
     */
    private void fixProjectPlanDates(OpProjectPlan projectPlan, OpBroker broker) {
       OpTransaction tx = broker.newTransaction();
@@ -154,7 +157,8 @@ public class OpProjectPlanningModule extends OpModule {
 
    /**
     * Performs a validation on the given list of project plan ids.
-    * @param session a <code>OpProjectSession</code> representing a server session.
+    *
+    * @param session        a <code>OpProjectSession</code> representing a server session.
     * @param projectPlanIds a <code>List(Long)</code> representing a list of project plan ids.
     */
    private void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {

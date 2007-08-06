@@ -7,7 +7,7 @@
        <resource id="Connect">Verbinden</resource>
    </resource-map>
    <resource-map id="standalone_configuration_wizard.main">
-      <resource id="DatabaseLocation">Data Folder</resource>
+      <resource id="DatabaseLocation">Dateiverzeichnis</resource>
       <resource id="SelectFolder">Datenbankdatei auswählen</resource>
       <resource id="Select">Ändern</resource>
       <resource id="OK">OK</resource>
@@ -20,6 +20,6 @@
       <resource id="InvalidConnectionString">Der Connect-String ist ungültig</resource>
       <resource id="GeneralConnectionError">Keine Verbindung zur Datenbank</resource>
       <resource id="JDBCDriverError">Der JDBC-Treiber für die ausgewählte Datenbank kann nicht geladen werden</resource>
-      <resource id="InvalidMySqlEngine">Sie verwenden eine nicht-transaktionelle Datenbank was zu Dateninkonsistenzen führen kann. Bitte nehmen Sie zwecks Datenbank-Upgrade-Instruktionen das README-Datei zur Hand</resource>
+      <resource id="InvalidMySqlEngine">Sie verwenden eine nicht-transaktionelle Datenbank, was zu Dateninkonsistenzen führen kann. Für Instruktionen zu einem Datenbank-Upgrade lesen Sie bitte die README-Datei</resource>
    </resource-map>
 </language-kit>

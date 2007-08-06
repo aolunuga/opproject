@@ -114,14 +114,20 @@ public class OpPrototype extends OpType {
                OpRelationship relationship = (OpRelationship) member;
                if (!relationship.getInverse() && !relationship.getRecursive()) {
                   OpPrototype dependentType = OpTypeManager.getPrototype(relationship.getTypeName());
-                  if (!dependentType.getBackupDependencies().contains(this)) {
-                     backupDependencies.add(dependentType);
+                  if (dependentType.getBackupDependencies().contains(this)) {
+                     StringBuffer exceptionMessage = new StringBuffer("Detected circular dependency caused by relationships between ");
+                     exceptionMessage.append(this.getName());
+                     exceptionMessage.append("<");
+                     exceptionMessage.append(relationship.getName());
+                     exceptionMessage.append("> and ");
+                     exceptionMessage.append(dependentType.getName());
+                     throw new IllegalStateException(exceptionMessage.toString());
                   }
+                  backupDependencies.add(dependentType);
                }
             }
          }
       }
-
       return backupDependencies;
    }
 

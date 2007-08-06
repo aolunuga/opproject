@@ -61,11 +61,11 @@ public final class OpProjectResourceDataSetFactory {
       for (OpActivity activity : activities) {
 
          if (useBaseline) {
-            // Filter out milestones
-            if (activity.getBaselineVersion().getType() == OpActivity.MILESTONE && activity.getType() == OpActivity.MILESTONE) {
+            if (!activity.isInBaselineVersion()) {
                continue;
             }
-            if (activity.getOutlineLevel() > max_outline_level) {
+            // Filter out milestones
+            if (activity.getBaselineVersion().getType() == OpActivity.MILESTONE && activity.getType() == OpActivity.MILESTONE) {
                continue;
             }
          }
@@ -74,18 +74,16 @@ public final class OpProjectResourceDataSetFactory {
             if (activity.getType() == OpActivity.MILESTONE) {
                continue;
             }
-            if (activity.getOutlineLevel() > max_outline_level) {
-               continue;
+         }
+
+         if (activity.getOutlineLevel() <= max_outline_level) {
+            // Add previous visible activity with summarized values and reset both
+            if (previous_visible_activity != null) {
+               addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
             }
+            resource_summaries.clear();
+            previous_visible_activity = activity;
          }
-
-         // Add previous visible activity with summarized values and reset both
-         if (previous_visible_activity != null) {
-            addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
-         }
-         resource_summaries.clear();
-         previous_visible_activity = activity;
-
 
          baselineResource = new HashSet<Long>();
          if (useBaseline) {

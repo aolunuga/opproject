@@ -38,7 +38,7 @@ public class OpCostRecordDataSetFactory {
     * data set will represent an <code>OpCostRecord</code> entity from the work record's cost recods set.
     *
     * @param workRecord - the <code>OpWorkRecord</code> entity whose cost records will be in the data set
-    * @param session - the <code>OpProjectSession</code> needed to get the internationalized cost types
+    * @param session    - the <code>OpProjectSession</code> needed to get the internationalized cost types
     * @return a <code>XComponent</code> data set created from the <code>OpWorkRecord</code> entity. Each row in the
     *         data set will represent an <code>OpCostRecord</code> entity from the work record's cost recods set.
     */
@@ -58,15 +58,15 @@ public class OpCostRecordDataSetFactory {
     * data set.
     *
     * @param costDataSet - the <code>XComponent</code> data set whose rows will form the list of cost periods
-    * @param broker - the <code>OpBroker</code> needed to persist the attachments and contents
+    * @param broker      - the <code>OpBroker</code> needed to persist the attachments and contents
     * @return a <code>List</code> of <code>OpCostRecord</code> entities, each entity corresponding to a row in the
-    * data set.
+    *         data set.
     */
    public static Set<OpCostRecord> createCostRecords(OpBroker broker, XComponent costDataSet) {
       Set<OpCostRecord> costRecords = new HashSet<OpCostRecord>();
       OpCostRecord costRecord;
 
-      for(int i = 0; i < costDataSet.getChildCount(); i++)  {
+      for (int i = 0; i < costDataSet.getChildCount(); i++) {
          costRecord = createCostEntity(broker, (XComponent) costDataSet.getChild(i));
          costRecords.add(costRecord);
       }
@@ -77,7 +77,7 @@ public class OpCostRecordDataSetFactory {
    /**
     * Fills an <code>XComponent</code> data set with the internationalized costs type names.
     *
-    * @param session - the <code>OpProjectSession</code> needed to get the locale settings
+    * @param session          - the <code>OpProjectSession</code> needed to get the locale settings
     * @param costTypesDataSet - the <code>XComponent</code> data set that will be filled with the costs type names.
     */
    public static void fillCostTypesDataSet(OpProjectSession session, XComponent costTypesDataSet) {
@@ -229,7 +229,7 @@ public class OpCostRecordDataSetFactory {
     * Creates an <code>OpCostRecord</code> entity from the data row's cell's values
     *
     * @param dataRow - the <code>XComponent</code> data row whose cell's values will be set on the entity
-    * @param broker - the <code>OpBroker</code> needed to persist the attachments and contents
+    * @param broker  - the <code>OpBroker</code> needed to persist the attachments and contents
     * @return an <code>OpCostRecord</code> entity created from the data row's cell's values
     */
    private static OpCostRecord createCostEntity(OpBroker broker, XComponent dataRow) {
@@ -237,12 +237,12 @@ public class OpCostRecordDataSetFactory {
 
       //the work record will not be set on the costRecord
       //set the cost type
-      String costTypeCaption = ((XComponent)dataRow.getChild(OpWorkCostValidator.COST_TYPE_INDEX)).getStringValue();
+      String costTypeCaption = ((XComponent) dataRow.getChild(OpWorkCostValidator.COST_TYPE_INDEX)).getStringValue();
       String type = XValidator.choiceID(costTypeCaption);
       costRecord.setType(Byte.valueOf(type));
       //base costs are not set at this level
       //set the actual costs
-      costRecord.setActualCosts(((XComponent)dataRow.getChild(OpWorkCostValidator.ACTUAL_COST_INDEX)).getDoubleValue());
+      costRecord.setActualCosts(((XComponent) dataRow.getChild(OpWorkCostValidator.ACTUAL_COST_INDEX)).getDoubleValue());
 
       //set the remaining cost
       double remainingCost;
@@ -255,14 +255,14 @@ public class OpCostRecordDataSetFactory {
       }
       costRecord.setRemainingCosts(remainingCost);
       //set comments
-      costRecord.setComment(((XComponent)dataRow.getChild(OpWorkCostValidator.COMMENTS_COST_INDEX)).getStringValue());
+      costRecord.setComment(((XComponent) dataRow.getChild(OpWorkCostValidator.COMMENTS_COST_INDEX)).getStringValue());
       //set the attachments
-      ArrayList<List> attachmentList = ((XComponent)dataRow.getChild(OpWorkCostValidator.ATTACHMENT_INDEX)).getListValue();
+      List<List> attachmentList = ((XComponent) dataRow.getChild(OpWorkCostValidator.ATTACHMENT_INDEX)).getListValue();
       if (attachmentList != null && !attachmentList.isEmpty()) {
          Set<OpAttachment> attachments = new HashSet<OpAttachment>();
          for (List attachmentElement : attachmentList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null);
-            if(attachment != null){
+            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null, null);
+            if (attachment != null) {
                attachments.add(attachment);
             }
          }
@@ -276,19 +276,19 @@ public class OpCostRecordDataSetFactory {
     * assignmentList. Each row in the data sets will have it's value set to the choice of the entity.
     * The activity choice set rows will contain a data cell with the type of activity and a data cell with
     * the list of costs for that activity.
-    *
+    * <p/>
     * Filter out activities that are milestones.
     *
-    * @param choiceProjectSet    - the <code>XComponent</code> choice project set
-    * @param choiceActivitySet   - the <code>XComponent</code> choice activity set
-    * @param choiceResourceSet   - the <code>XComponent</code> choice resource set
-    * @param assignmentList - the <code>List</code> of assignments.
+    * @param choiceProjectSet  - the <code>XComponent</code> choice project set
+    * @param choiceActivitySet - the <code>XComponent</code> choice activity set
+    * @param choiceResourceSet - the <code>XComponent</code> choice resource set
+    * @param assignmentList    - the <code>List</code> of assignments.
     */
    public static void fillChoiceDataSets(XComponent choiceProjectSet, XComponent choiceActivitySet, XComponent choiceResourceSet,
         List<OpAssignment> assignmentList) {
       OpActivity activity;
 
-      for(OpAssignment assignment : assignmentList) {
+      for (OpAssignment assignment : assignmentList) {
          activity = assignment.getActivity();
 
          //filter out milestones

@@ -43,6 +43,7 @@ public class OpAssignment extends OpObject {
    private OpResource resource;
    private OpActivity activity;
    private Set<OpWorkRecord> workRecords;
+   private Set<OpWorkMonth> workMonths;
 
    public void setAssigned(double assigned) {
       this.assigned = assigned;
@@ -82,14 +83,16 @@ public class OpAssignment extends OpObject {
     *
     * @return baseline assignment version.
     */
-   private OpAssignmentVersion getBaselineVersion() {
+   public OpAssignmentVersion getBaselineVersion() {
       OpAssignmentVersion assignmentVersion = null;
       OpActivityVersion baselineVersion = getActivity().getBaselineVersion();
-      for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
-         if (version.getResource().getID() == this.getResource().getID()) {
-            //assignment version found
-            assignmentVersion = version;
-            break;
+      if (baselineVersion != null) {
+         for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
+            if (version.getResource().getID() == this.getResource().getID()) {
+               //assignment version found
+               assignmentVersion = version;
+               break;
+            }
          }
       }
       return assignmentVersion;
@@ -200,4 +203,40 @@ public class OpAssignment extends OpObject {
    public Set<OpWorkRecord> getWorkRecords() {
       return workRecords;
    }
+
+   public Set<OpWorkMonth> getWorkMonths() {
+      return workMonths;
+   }
+
+   public void setWorkMonths(Set<OpWorkMonth> workMonths) {
+      this.workMonths = workMonths;
+   }
+
+   public OpWorkMonth getWorkMonth(int year, byte month) {
+      Set<OpWorkMonth> workMonths = getWorkMonths();
+      for (OpWorkMonth workMonth : workMonths) {
+         if (workMonth.getYear() == year && workMonth.getMonth() == month) {
+            return workMonth;
+         }
+      }
+      return null;
+   }
+
+   /**
+    * Gets the project node assignment for this assignment's resource.
+    *
+    * @return project nod assignment
+    */
+   public OpProjectNodeAssignment getProjectNodeAssignment() {
+      OpActivity activity = this.getActivity();
+      OpResource resource = this.getResource();
+      OpProjectNode project = activity.getProjectPlan().getProjectNode();
+      for (OpProjectNodeAssignment nodeAssignment : resource.getProjectNodeAssignments()) {
+         if (nodeAssignment.getProjectNode().getID() == project.getID()) {
+            return nodeAssignment;
+         }
+      }
+      return null;
+   }
+
 }

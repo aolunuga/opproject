@@ -26,6 +26,7 @@ public class OpAttachment extends OpObject {
    private OpProjectPlan projectPlan;
    private OpActivity activity;
    private OpCostRecord costRecord;
+   private OpProjectNode projectNode;
 
    public void setName(String name) {
       this.name = name;
@@ -81,5 +82,13 @@ public class OpAttachment extends OpObject {
 
    public void setCostRecord(OpCostRecord costRecord) {
       this.costRecord = costRecord;
+   }
+
+    public OpProjectNode getProjectNode() {
+      return projectNode;
+   }
+
+   public void setProjectNode(OpProjectNode projectNode) {
+      this.projectNode = projectNode;
    }
 }

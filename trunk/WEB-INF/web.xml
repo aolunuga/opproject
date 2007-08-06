@@ -31,6 +31,10 @@
          <param-name>applet_archive</param-name>
          <param-value>express4j-client-07.1.jar,opproject-client-07.1.jar,jcookie-0.8b.jar</param-value>
       </init-param>
+      <init-param>
+         <param-name>context_path</param-name>
+         <param-value>opproject</param-value>
+      </init-param>
    </servlet>
    <servlet-mapping>
       <servlet-name>OpProjectServlet</servlet-name>
@@ -38,22 +42,24 @@
    </servlet-mapping>
 
    <!--  XML-RPC section start -->
-	<servlet>
-		<description>
-		</description>
-		<display-name>
-		OpOpenXMLRPCServlet</display-name>
-		<servlet-name>OpOpenXMLRPCServlet</servlet-name>
-		<servlet-class>
-		onepoint.project.xml_rpc.OpOpenXMLRPCServlet</servlet-class>
-	</servlet>
-  <servlet-mapping>
-   	<servlet-name>OpOpenXMLRPCServlet</servlet-name>
-   	<url-pattern>/xml-rpc</url-pattern>
+   <servlet>
+      <description>
+      </description>
+      <display-name>
+         OpOpenXMLRPCServlet
+      </display-name>
+      <servlet-name>OpOpenXMLRPCServlet</servlet-name>
+      <servlet-class>
+         onepoint.project.xml_rpc.OpOpenXMLRPCServlet
+      </servlet-class>
+   </servlet>
+   <servlet-mapping>
+      <servlet-name>OpOpenXMLRPCServlet</servlet-name>
+      <url-pattern>/xml-rpc</url-pattern>
    </servlet-mapping>
-	 <!--  XML-RPC section end -->
+   <!--  XML-RPC section end -->
 
-	 
+
    <!-- Session time-out is 30 minutes -->
    <session-config>
       <session-timeout>30</session-timeout>

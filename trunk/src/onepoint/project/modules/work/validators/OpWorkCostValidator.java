@@ -67,7 +67,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
             throw new XValidationException(ACTUAL_COST_EXCEPTION);
          }
          if ((getValue(row, REMAINING_COST_INDEX) == null || ((Double) getValue(row, REMAINING_COST_INDEX)).doubleValue() < 0)
-              && ((Byte)getValue(row, ACTIVITY_TYPE_INDEX)).byteValue() != OpGanttValidator.ADHOC_TASK) {
+              && ((Byte) getValue(row, ACTIVITY_TYPE_INDEX)).byteValue() != OpGanttValidator.ADHOC_TASK) {
             throw new XValidationException(REMAINING_COST_EXCEPTION);
          }
       }
@@ -117,10 +117,10 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    protected Byte getCostType(XComponent dataRow) {
       String costTypeString = (String) getValue(dataRow, COST_TYPE_INDEX);
-      if(costTypeString != null){
+      if (costTypeString != null) {
          return new Byte(XValidator.choiceID(costTypeString));
       }
-      else{
+      else {
          return null;
       }
    }
@@ -255,6 +255,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
                   //check if the cost type cell is filled
                   if (getCostType(dataRow) != null) {
                      setValue(dataRow, BASE_COST_INDEX, new Double(0));
+                     setValue(dataRow, ACTUAL_COST_INDEX, new Double(0));
                      setValue(dataRow, REMAINING_COST_INDEX, new Double(0));
                      dataRow.getChild(REMAINING_COST_INDEX).setEnabled(true);
                      //set the base cost cell value & the original remaining cost cell value
@@ -262,7 +263,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
                   }
                }
                //if the activity is an adhoc task set base cost and remaining cost to null and disable them
-               else{
+               else {
                   setValue(dataRow, BASE_COST_INDEX, null);
                   setValue(dataRow, REMAINING_COST_INDEX, null);
                   dataRow.getChild(REMAINING_COST_INDEX).setEnabled(false);
@@ -284,6 +285,10 @@ public class OpWorkCostValidator extends OpWorkValidator {
                //get the type of the activity
                activityType = getActivityType(cell);
                if (activityChoice != null && activityType != OpGanttValidator.ADHOC_TASK) {
+                  setValue(dataRow, BASE_COST_INDEX, new Double(0));
+                  setValue(dataRow, ACTUAL_COST_INDEX, new Double(0));
+                  setValue(dataRow, REMAINING_COST_INDEX, new Double(0));
+                  dataRow.getChild(REMAINING_COST_INDEX).setEnabled(true);
                   //set the base cost cell value & the original remaining cost cell value
                   updateCostCells(activityChoice, dataRow);
                }
@@ -306,14 +311,10 @@ public class OpWorkCostValidator extends OpWorkValidator {
                   byte costType = getCostType(dataRow).byteValue();
                   if (!getRemainingCostModifiedByUser(activityChoice, costType)) {
                      //update the remaining cost for all rows with the same activity and the same cost type
-                     XComponent originalRemEffortCell = (XComponent) dataRow.getChild(ORIGINAL_REMAINING_COST_INDEX);
-                     double oldCellValue = 0d;
-                     if(cell.getValue() != null){
-                        oldCellValue = cell.getDoubleValue();
-                     }
-                     double sumOfActualCosts = sumOfActualCosts(activityChoice, costType) - oldCellValue + actualCost;
-                     if (originalRemEffortCell.getDoubleValue() - sumOfActualCosts > 0) {
-                        updateRemainingCostCells(activityChoice, costType, originalRemEffortCell.getDoubleValue() - sumOfActualCosts);
+                     XComponent remainingEffortCell = (XComponent) dataRow.getChild(REMAINING_COST_INDEX);
+                     double oldCellValue = cell.getDoubleValue();
+                     if (remainingEffortCell.getDoubleValue() + oldCellValue - actualCost > 0) {
+                        updateRemainingCostCells(activityChoice, costType, remainingEffortCell.getDoubleValue() + oldCellValue - actualCost);
                      }
                      else {
                         updateRemainingCostCells(activityChoice, costType, 0d);
@@ -338,7 +339,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
                   byte costType = getCostType(dataRow).byteValue();
                   setRemainingCostModifiedByUser(activityChoice, costType, true);
                   //update the remaining cost for all cells with the same activity - cost type combination
-                  updateRemainingCostCells(activityChoice, costType, ((Double)value).doubleValue());
+                  updateRemainingCostCells(activityChoice, costType, ((Double) value).doubleValue());
                }
                break;
 
@@ -364,7 +365,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
    /**
     * Removes an array of data rows from the underlying data set.
     *
-    * @param dataRows a <code>XArray</code> of <code>XComponent</code> representing data rows.
+    * @param dataRows a <code>List</code> of <code>XComponent</code> representing data rows.
     * @return <code>true</code> or <code>false</code> whether the removal was sucessfull.
     */
    public boolean removeDataRows(List dataRows) {
@@ -373,21 +374,23 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
          String activityChoice = getActivity(dataRow);
          Byte costType = getCostType(dataRow);
-         //get the type of the activity
-         byte activityType = ((Byte)getValue(dataRow, ACTIVITY_TYPE_INDEX)).byteValue();
-         if (activityChoice != null && costType != null && activityType != OpGanttValidator.ADHOC_TASK) {
-            //check if the current row is the last one with the activity - cost type combination
-            if (countRowsWithSameActivityCostType(activityChoice, costType.byteValue()) == 1) {
-               setRemainingCostModifiedByUser(activityChoice, costType.byteValue(), false);
-            }
-            /* if the current row is not the last one with the activity - cost type combination
-            and the user did not modify the remaining cost by hand, add the actual effort of the
-            deleted row to the remaining of the other similar rows */
-            else {
-               if (!getRemainingCostModifiedByUser(activityChoice, costType.byteValue())){
-                  double newRemaining = ((Double)getValue(dataRow, REMAINING_COST_INDEX)).doubleValue() +
-                       ((Double)getValue(dataRow, ACTUAL_COST_INDEX)).doubleValue();
-                  updateRemainingCostCells(activityChoice, costType.byteValue(), newRemaining);
+         if (getValue(dataRow, ACTIVITY_TYPE_INDEX) != null) {
+            //get the type of the activity
+            byte activityType = ((Byte) getValue(dataRow, ACTIVITY_TYPE_INDEX)).byteValue();
+            if (activityChoice != null && costType != null && activityType != OpGanttValidator.ADHOC_TASK) {
+               //check if the current row is the last one with the activity - cost type combination
+               if (countRowsWithSameActivityCostType(activityChoice, costType.byteValue()) == 1) {
+                  setRemainingCostModifiedByUser(activityChoice, costType.byteValue(), false);
+               }
+               /* if the current row is not the last one with the activity - cost type combination
+                  and the user did not modify the remaining cost by hand, add the actual effort of the
+                  deleted row to the remaining of the other similar rows */
+               else {
+                  if (!getRemainingCostModifiedByUser(activityChoice, costType.byteValue())) {
+                     double newRemaining = ((Double) getValue(dataRow, REMAINING_COST_INDEX)).doubleValue() +
+                          ((Double) getValue(dataRow, ACTUAL_COST_INDEX)).doubleValue();
+                     updateRemainingCostCells(activityChoice, costType.byteValue(), newRemaining);
+                  }
                }
             }
          }
@@ -410,7 +413,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
    /**
     * Resets the values on the row
     *
-    * @param dataRow - the <code>XComponent</code> data row that will be reset
+    * @param dataRow          - the <code>XComponent</code> data row that will be reset
     * @param oldActivityValue - the value that was set on the activity cell before the reset
     * @param oldResourceValue - the value that was set on the resource cell before the reset
     */
@@ -453,7 +456,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
     * Sets the base cost cell value and the original remaining cost cell value.
     *
     * @param activityChoice - the choice of the activity for which the costs are set
-    * @param dataRow - the data row that is being updated.
+    * @param dataRow        - the data row that is being updated.
     */
    private void updateCostCells(String activityChoice, XComponent dataRow) {
       List costsList;
@@ -476,8 +479,18 @@ public class OpWorkCostValidator extends OpWorkValidator {
          //if the remaining cost was not manually modified by the user
          if (dataRow.getChild(REMAINING_COST_INDEX).getEnabled()) {
             if (!getRemainingCostModifiedByUser(activityChoice, costType)) {
-               //set the remaining cost cell value to the original remaining - sum of actual costs with the same pair activity - cost type
-               double remainingCost = ((Double) costsList.get(1)).doubleValue() - sumOfActualCosts;
+               double remainingCost = 0d;
+               //if this is the first cost with the activity choice - cost type combination
+               if (countRowsWithSameActivityCostType(activityChoice, costType) == 1) {
+                  //set the remaining cost cell value to the original remaining - sum of actual costs with the same pair activity - cost type
+                  remainingCost = ((Double) costsList.get(1)).doubleValue() - sumOfActualCosts;
+               }
+               else {
+                  //set the remaining cost cell value to one of the remaining costs of a similar cost (a cost with the same
+                  //    activity choice - cost type combination)
+                  remainingCost = getRemainingCostFromSimilarRows(activityChoice, costType, dataRow.getIndex());
+               }
+
                if (remainingCost < 0) {
                   remainingCost = 0d;
                }
@@ -485,7 +498,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
             }
             //set the remaining cost from a row with the same activity - cost type combination
             else {
-               setValue(dataRow, REMAINING_COST_INDEX, new Double(getRemainingCostFromSimilarRows(activityChoice, costType)));
+               setValue(dataRow, REMAINING_COST_INDEX, new Double(getRemainingCostFromSimilarRows(activityChoice, costType, dataRow.getIndex())));
             }
          }
       }
@@ -493,13 +506,13 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    /**
     * Returns a <code>boolean</code> value which is <code>true</code> if the remaining cost for the
-    *    activity specified by the activityChoice and for the type specified by costType was manually
-    *    modified by the user and <code>false</code> otherwise.
+    * activity specified by the activityChoice and for the type specified by costType was manually
+    * modified by the user and <code>false</code> otherwise.
     *
     * @param activityChoice - the choice of the activity for which the remaining cost modification is interrogated
-    * @param costType - the cost type for which the remaining cost modification is interrogated
+    * @param costType       - the cost type for which the remaining cost modification is interrogated
     * @return <code>true</code> if the remaining cost for the activity specified by the activityChoice and
-    *    for the type specified by costType was manually modified by the user and <code>false</code> otherwise.
+    *         for the type specified by costType was manually modified by the user and <code>false</code> otherwise.
     */
    private boolean getRemainingCostModifiedByUser(String activityChoice, byte costType) {
       List costsList;
@@ -514,12 +527,12 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    /**
     * Sets a flag with the given value indicating that the remaining cost for the
-    *    activity specified by the activityChoice and for the type specified by costType was manually
-    *    modified by the user.
+    * activity specified by the activityChoice and for the type specified by costType was manually
+    * modified by the user.
     *
     * @param activityChoice - the choice of the activity for which the remaining cost modification is updated
-    * @param costType - the cost type for which the remaining cost modification is updated
-    * @param value - the <code>boolean</code> value which will be set on the flag
+    * @param costType       - the cost type for which the remaining cost modification is updated
+    * @param value          - the <code>boolean</code> value which will be set on the flag
     */
    private void setRemainingCostModifiedByUser(String activityChoice, byte costType, boolean value) {
       List costsList;
@@ -533,11 +546,12 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    /**
     * Returns the map of costs for the activity which has the choice passed as parameter
+    *
     * @param activityChoice - the activity choice for which the choice map is returned
     * @return the map of costs for the activity which has the choice passed as parameter.
     */
    private Map getCostsMap(String activityChoice) {
-      Map costsMap= new HashMap();
+      Map costsMap = new HashMap();
       XComponent choiceActivityRow;
 
       XComponent activityChoiceDataSet = this.data_set.getForm().findComponent(ACTIVITY_SET);
@@ -557,7 +571,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
     * and cost type set on them
     *
     * @param activityChoice - the choice of the activity for which the sum will be calculated
-    * @param costType -  the cost type cof which the sum will be calculated
+    * @param costType       -  the cost type cof which the sum will be calculated
     * @return the sum of the actual cost for all the rows in the cost data set which have the specified activity choice
     *         and cost type set on them.
     */
@@ -582,11 +596,11 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    /**
     * Updates all the remaining cost cells for all the rows in the cost data set which have the specified activity
-    *    choice and cost type set on them to the newRemaining value
+    * choice and cost type set on them to the newRemaining value
     *
     * @param activityChoice - the choice of the activity for which the remaining cost will be updated
-    * @param costType -  the cost type for which the remaining cost will be updated
-    * @param newRemaining - the new remaining cost value
+    * @param costType       -  the cost type for which the remaining cost will be updated
+    * @param newRemaining   - the new remaining cost value
     */
    private void updateRemainingCostCells(String activityChoice, byte costType, double newRemaining) {
       XComponent costRow;
@@ -607,7 +621,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
     * Conts all the rows in the cost data set which have the specified activity choice and cost type set on them
     *
     * @param activityChoice - the choice of the activity for which the rows will be counted
-    * @param costType -  the cost type cof which the rows will be counted
+    * @param costType       -  the cost type cof which the rows will be counted
     * @return the number of rows in the cost data set which have the specified activity choice and cost type set on them
     */
    private int countRowsWithSameActivityCostType(String activityChoice, byte costType) {
@@ -631,7 +645,8 @@ public class OpWorkCostValidator extends OpWorkValidator {
 
    /**
     * Updates the remaining costs for the data rows which have the same activity - cost type combination as the
-    *    deleted row.
+    * deleted row.
+    *
     * @param dataRow - the <code>XComponent</code> deleted row.
     */
    private void updateRemainingCostsAtDeletion(XComponent dataRow) {
@@ -660,9 +675,11 @@ public class OpWorkCostValidator extends OpWorkValidator {
     *
     * @param activityChoice - the choice of the activity for which the remaining cost will be returned
     * @param costType -  the cost type for which the remaining cost will be returned
-    * @return the remaining cost cell value from a data row which has the activityChoice- costType combination set on it.
+    * @param dataRowIndex - the index of the data row that is being edited
+    * @return the remaining cost cell value from a data row which has the activityChoice - costType combination set on it.
+    *    If no other row with the same activityChoice - costType combination is found the method returns -1.
     */
-   private double getRemainingCostFromSimilarRows(String activityChoice, byte costType){
+   private double getRemainingCostFromSimilarRows(String activityChoice, byte costType, int dataRowIndex){
       double remainingCost = -1;
       XComponent costRow;
 
@@ -674,7 +691,11 @@ public class OpWorkCostValidator extends OpWorkValidator {
          if (costRowActivityChoice != null && costRowCostType != null) {
             //we have found a row for the given activity and the given cost type
             if (activityChoice.equals(costRowActivityChoice) && costType == costRowCostType.byteValue()) {
-               return ((XComponent) costRow.getChild(REMAINING_COST_INDEX)).getDoubleValue();
+               //be sure not to return the remaining cost of the row that's being edited
+               remainingCost = ((XComponent) costRow.getChild(REMAINING_COST_INDEX)).getDoubleValue();
+               if (costRow.getIndex() != dataRowIndex) {
+                  return remainingCost;
+               }
             }
          }
       }
@@ -691,7 +712,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
       XComponent activityChoiceDataSet = getActivitySet();
       for (int i = 0; i < activityChoiceDataSet.getChildCount(); i++) {
          XComponent choiceActivityRow = (XComponent) activityChoiceDataSet.getChild(i);
-         String activityName = ((XComponent)cell.getParent().getChild(ACTIVITY_NAME_INDEX)).getStringValue();
+         String activityName = ((XComponent) cell.getParent().getChild(ACTIVITY_NAME_INDEX)).getStringValue();
          if (choiceActivityRow.getStringValue().equals(activityName)) {
             //get the activity type
             return ((XComponent) choiceActivityRow.getChild(ACTIVITY_CHOICE_SET_ACTIVITY_TYPE_INDEX)).getByteValue();

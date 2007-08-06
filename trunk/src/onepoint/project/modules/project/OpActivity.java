@@ -122,8 +122,6 @@ public class OpActivity extends OpObject {
    private Set<OpAttachment> attachments;
    private Set<OpActivityVersion> versions;
    private Set<OpActivityComment> comments;
-
-
    private boolean usesBaseline;
 
    public OpActivity() {
@@ -596,7 +594,7 @@ public class OpActivity extends OpObject {
    /**
     * Calculates the actual total costs of this activity.
     *
-    * @return Total actual cost (Personnel + Travel + Material + External + Misc + Proceeds)
+    * @return Total actual cost (Personnel + Travel + Material + External + Misc)
     */
    public double calculateActualCost() {
       double actual = this.getActualPersonnelCosts();
@@ -604,7 +602,6 @@ public class OpActivity extends OpObject {
       actual += this.getActualMaterialCosts();
       actual += this.getActualExternalCosts();
       actual += this.getActualMiscellaneousCosts();
-      actual += this.getActualProceeds();
       return actual;
    }
 

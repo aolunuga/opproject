@@ -16,7 +16,10 @@ function ok(event) {
    request.setAction("PlanningService.revertActivities");
    request.setArgument("project_id", projectId);
    response = XDisplay.getClient().invokeMethod(request);
-   XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+   parameters.ProjectId = projectId;
+   array = new ArrayList;
+   array.add(parameters);
+   XDisplay.findFrame("ProjectContentFrame").currentForm().invokeFunction("refreshForms", array);
 }
 
 function cancel(event) {

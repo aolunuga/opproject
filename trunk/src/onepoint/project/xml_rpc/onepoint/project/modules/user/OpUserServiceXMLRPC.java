@@ -114,17 +114,57 @@ public class OpUserServiceXMLRPC {
    public static Map<String, Object> getUserData(OpUser user) {
       OpContact contact = user.getContact();
       Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpSubject.NAME, user.getName());
-      ret.put(OpSubject.DISPLAY_NAME, user.getDisplayName());
-      ret.put(OpSubject.DESCRIPTION, user.getDescription());
-      ret.put("level", new Integer(user.getLevel()));
-      ret.put(OpContact.FIRST_NAME, contact.getFirstName());
-      ret.put(OpContact.LAST_NAME, contact.getLastName());
-      ret.put(OpContact.EMAIL, contact.getEMail());
-      ret.put(OpContact.FAX, contact.getFax());
+      String value = user.getName();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpSubject.NAME, value);
+      value = user.getDisplayName();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpSubject.DISPLAY_NAME, value);
+      value = user.getDescription();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpSubject.DESCRIPTION, value);
+      Byte level = user.getLevel();
+      if (level == null) {
+         level = new Byte((byte)0);
+      }
+      ret.put("level", new Integer(level));
+      value = contact.getFirstName();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.FIRST_NAME, value);
+      value = contact.getLastName();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.LAST_NAME, value);
+      value = contact.getEMail();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.EMAIL, value);
+      value = contact.getFax();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.FAX, value);
 //      ret.put(OpSubject.ID, user.getID());
-      ret.put(OpContact.MOBILE, contact.getMobile());
-      ret.put(OpContact.PHONE, contact.getPhone());
+      value = contact.getMobile();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.MOBILE, value);
+      value = contact.getPhone();
+      if (value == null) {
+         value = "";
+      }
+      ret.put(OpContact.PHONE, value);
 
       return ret;
    }

@@ -250,7 +250,7 @@ public class OpMappingsGenerator {
       // Exception for some databases when using a BLOB
       if ((field.getTypeID() == OpType.CONTENT)) {
          if (databaseType == OpHibernateSource.MYSQL_INNODB) {
-            buffer.append(" sql-type=\"mediumblob\"");  // this is limited to 16MB. For larger blobs, use: sql-type="longblob"
+            buffer.append(" sql-type=\"longblob\"");
          }
          if (databaseType == OpHibernateSource.POSTGRESQL) {
             buffer.append(" sql-type=\"bytea\"");       // default generated type is wrong

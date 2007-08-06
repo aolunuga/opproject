@@ -4,12 +4,13 @@
 
 package onepoint.project.modules.project;
 
-import onepoint.persistence.OpObject;
 import onepoint.persistence.OpEntityException;
+import onepoint.persistence.OpObject;
 
 import java.sql.Date;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class OpProjectNode extends OpObject {
 
@@ -68,6 +69,7 @@ public class OpProjectNode extends OpObject {
    private Set<OpGoal> goals;
    private Set<OpToDo> toDos;
    private OpProjectStatus status;
+   private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
 
    public void setName(String name) {
       this.name = name;
@@ -189,6 +191,16 @@ public class OpProjectNode extends OpObject {
       return status;
    }
 
+   public void setAttachments(Set<OpAttachment> attachments) {
+      this.attachments = attachments;
+      for (OpAttachment attachment : attachments) {
+         attachment.setProjectNode(this);
+      }
+   }
+
+   public Set<OpAttachment> getAttachments() {
+      return attachments;
+   }
 
    /**
     * Gets the project's probability (%)

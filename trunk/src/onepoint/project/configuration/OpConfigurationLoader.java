@@ -11,12 +11,16 @@ import onepoint.xml.XLoader;
 import onepoint.xml.XSchema;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -24,6 +28,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 public class OpConfigurationLoader extends XLoader {
 
@@ -43,66 +52,181 @@ public class OpConfigurationLoader extends XLoader {
       setUseResourceLoader(false);
    }
 
-   public OpConfiguration loadConfiguration(String filename) {
-      OpConfiguration configuration =  (OpConfiguration) (loadObject(filename, null));
-      if (configuration != null) {
-         if (checkDatabaseConfiguration(configuration)){
-            return null; // database should be configured using db configuration wizard
+   /**
+    * Load configuration settings from the given file.
+    *
+    * @param fileName file to load.
+    * @return loaded configuration
+    * @throws OpInvalidDataBaseConfigurationException
+    *          In case that any of loaded database configurations is invalid.
+    */
+   public OpConfiguration loadConfiguration(String fileName)
+        throws OpInvalidDataBaseConfigurationException {
+      try {
+         //check configuration file structure/passwords and update it if necessary
+         updateConfigurationFile(fileName);
+
+         OpConfiguration configuration = (OpConfiguration) (loadObject(fileName, null));
+         if (configuration != null) {
+            checkDatabaseConfigurations(configuration.getDatabaseConfigurations());
          }
-         try {
-            InputStream is = new FileInputStream(filename);
-            checkDbPasswordEncrytion(configuration.getDatabaseConfiguration(), is, filename);
-         }
-         catch (FileNotFoundException e) {
-            logger.error("Cannot check for db password encryption", e);
+
+         return configuration;
+      }
+      catch (FileNotFoundException e) {
+         logger.error("Cannot load configuration file: " + fileName, e);
+         throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
+      }
+   }
+
+   /**
+    * Checks whether the databases were configured or it should be configured by using the configuration wizard.
+    *
+    * @param configurations a <code>Set</code> of <code>OpConfiguration.DatabaseConfiguration</code> isntances to check.
+    * @throws OpInvalidDataBaseConfigurationException
+    *          In case any of the provided configurations is invalid.
+    */
+   private void checkDatabaseConfigurations(Set<OpDatabaseConfiguration> configurations)
+        throws OpInvalidDataBaseConfigurationException {
+      for (OpDatabaseConfiguration dbConfig : configurations) {
+         if (dbConfig.getDatabaseType() == -1 || dbConfig.getDatabaseDriver() == null
+              || dbConfig.getDatabaseLogin() == null || dbConfig.getDatabasePassword() == null
+              || dbConfig.getDatabaseUrl() == null) {
+            throw new OpInvalidDataBaseConfigurationException(dbConfig.getName());
          }
       }
-      return configuration;
    }
 
    /**
-    * Checks whether the database was configured or it should be configured by using the configuration wizard.
-    * @param configuration a <code>OpConfiguration</code> object.
-    * @return <code>boolean</code> flag indicating that the database is properly configured or not
+    * Check if the configuration file has the new structure (with support for multiple databases) and if not change it.
+    *
+    * @param fileName configuration file to check.
+    * @throws FileNotFoundException If provided file does not exist.
     */
-   private boolean checkDatabaseConfiguration(OpConfiguration configuration) {
-      OpConfiguration.DatabaseConfiguration dbConfig = configuration.getDatabaseConfiguration();
-      return (dbConfig.getDatabaseType() == -1) || (dbConfig.getDatabaseDriver() == null) || (dbConfig.getDatabaseLogin() == null)
-           || (dbConfig.getDatabasePassword() == null) || (dbConfig.getDatabaseUrl() == null);
-   }
-
-   /**
-    * Checks where the db password needs encryption or not. If it needs encryption, it will encrypt it using a base 64 alg.
-    * @param dbConfig  a <code>OpConfiguration.DatabaseConfiguration</code> object representing the db configuration.
-    * @param is a <code>InputStream</code> to the configuration file.
-    * @param  fileName a <code>String</code> file where the resulted configuration file will be written (if necessary)
-    */
-   private void checkDbPasswordEncrytion(OpConfiguration.DatabaseConfiguration dbConfig, InputStream is, String fileName) {
-      if (fileName != null && dbConfig.needsPasswordEncryption()) {
+   private void updateConfigurationFile(String fileName)
+        throws FileNotFoundException {
+      if (fileName != null) {
+         InputStream is = new FileInputStream(fileName);
          try {
             DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
             documentFactory.setValidating(false);
             DocumentBuilder builder = documentFactory.newDocumentBuilder();
-            Document configurationDocument = builder.parse(is);
-            NodeList list = configurationDocument.getElementsByTagName(OpConfigurationValuesHandler.DATABASE_PASSWORD);
-            if (list.getLength() > 0) {
-               Element passwordElement = (Element) list.item(0);
-               NodeList values = passwordElement.getChildNodes();
-               for (int i = 0; i < values.getLength(); i++) {
-                  passwordElement.removeChild(values.item(i));
-               }
-               String encryptedPassword = onepoint.project.configuration.OpConfiguration.getEncryptedDbPassword(dbConfig.getDatabasePassword());
-               passwordElement.setAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE, "true");
-               Text value = configurationDocument.createTextNode(encryptedPassword);
-               passwordElement.appendChild(value);
+            Document configurationDocument = builder.parse(new InputSource(new InputStreamReader(is)));
 
-               //write the result back to the file
-               Transformer t = TransformerFactory.newInstance().newTransformer();
-               t.transform(new DOMSource(configurationDocument), new StreamResult(new FileOutputStream(fileName)));
-            }
+            updateConfigurationFileStructure(configurationDocument);
+            updateDbPasswordEncryption(configurationDocument);
+
+            //write the result back to the file
+            writeConfigurationFile(configurationDocument, fileName);
          }
          catch (Exception e) {
-            logger.error("Cannot encrypt db password in configuration", e);
+            logger.error("Cannot update configuration file.", e);
+         }
+      }
+   }
+
+   /**
+    * Writes configuration into file.
+    *
+    * @param document configuration DOM element.
+    * @param fileName file name where to write configuration
+    * @throws TransformerException  If configuration can not be transformed.
+    * @throws FileNotFoundException If configuration file can not be found
+    */
+   public static void writeConfigurationFile(Document document, String fileName)
+        throws TransformerException, FileNotFoundException {
+      //write the result back to the file
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+      transformerFactory.setAttribute("indent-number", 2);
+      Transformer t = transformerFactory.newTransformer();
+      t.setOutputProperty(OutputKeys.METHOD, "xml");
+      t.setOutputProperty(OutputKeys.INDENT, "yes");
+      StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(fileName)));
+
+      // normalize document before writing
+      document.normalizeDocument();
+      t.transform(new DOMSource(document), result);
+   }
+
+   /**
+    * Check if the configuration file has the new structure (with support for multiple databases) and if not change it.
+    *
+    * @param configurationDocument configuration document to check.
+    * @throws FileNotFoundException If provided file does not exist.
+    */
+   private void updateConfigurationFileStructure(Document configurationDocument)
+        throws FileNotFoundException {
+
+      NodeList list = configurationDocument.getElementsByTagName(OpConfigurationValuesHandler.DATABASE_URL);
+      if (list.getLength() > 0) {
+         Element urlElement = (Element) list.item(0);
+         Node parentNode = urlElement.getParentNode();
+
+         // check if database tags are defined as children of <configuration>
+         if (OpConfigurationValuesHandler.CONFIGURATION.equals(parentNode.getNodeName())) {
+            Element databaseElem = configurationDocument.createElement(OpConfigurationValuesHandler.DATABASE);
+            databaseElem.setAttribute(OpConfigurationValuesHandler.NAME_ATTRIBUTE,
+                 OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
+            parentNode.appendChild(databaseElem);
+
+            // Now move all database related tags from <configuration> to <database>
+            List<String> databaseTags = Arrays.asList(
+                 OpConfigurationValuesHandler.CONNECTION_POOL_MAXSIZE,
+                 OpConfigurationValuesHandler.CONNECTION_POOL_MINSIZE,
+                 OpConfigurationValuesHandler.DATABASE_DRIVER,
+                 OpConfigurationValuesHandler.DATABASE_LOGIN,
+                 OpConfigurationValuesHandler.DATABASE_PASSWORD,
+                 OpConfigurationValuesHandler.DATABASE_PATH,
+                 OpConfigurationValuesHandler.DATABASE_TYPE,
+                 OpConfigurationValuesHandler.DATABASE_URL);
+
+            NodeList children = parentNode.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+               Node child = children.item(i);
+
+               if (child.getNodeType() == 3 && child.getNodeValue().trim().length() == 0) {
+                  child.setNodeValue("");
+               }
+               // check if the current child is Database related.
+               if (databaseTags.contains(child.getNodeName())) {
+                  parentNode.removeChild(child);
+                  databaseElem.appendChild(child);
+               }
+            }
+         }
+      }
+   }
+
+   /**
+    * Checks where the db password needs encryption or not. If it needs encryption, it will encrypt it using a base 64 alg.
+    *
+    * @param configurationDocument to be processed
+    * @throws FileNotFoundException If the provided file does not exists.
+    */
+   private void updateDbPasswordEncryption(Document configurationDocument)
+        throws FileNotFoundException {
+
+      // process all Database password elements
+      NodeList list = configurationDocument.getElementsByTagName(OpConfigurationValuesHandler.DATABASE_PASSWORD);
+      if (list != null && list.getLength() > 0) {
+         for (int counter = 0; counter < list.getLength(); counter++) {
+            Element passwordElement = (Element) list.item(counter);
+
+            // check if the password must be updated/encripted or not.
+            boolean isPassEncrypted = Boolean.parseBoolean(passwordElement.getAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE));
+            if (!isPassEncrypted) {
+               NodeList values = passwordElement.getChildNodes();
+               String password = "";
+               for (int i = 0; i < values.getLength(); i++) {
+                  Node value = values.item(i);
+                  password = value.getNodeValue();
+                  passwordElement.removeChild(value);
+               }
+               String encryptedPassword = onepoint.project.configuration.OpConfiguration.getEncryptedDbPassword(password);
+               passwordElement.setAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE, Boolean.TRUE.toString());
+               Text value = configurationDocument.createTextNode(encryptedPassword);
+               passwordElement.appendChild(value);
+            }
          }
       }
    }

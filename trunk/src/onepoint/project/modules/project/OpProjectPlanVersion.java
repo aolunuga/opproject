@@ -31,6 +31,7 @@ public class OpProjectPlanVersion extends OpObject {
    private Date start;
    private Date finish;
    private boolean template;
+   private Boolean baseline = false;
    private OpProjectPlan projectPlan;
    private OpUser creator;
    private Set<OpActivityVersion> activityVersions;
@@ -135,4 +136,11 @@ public class OpProjectPlanVersion extends OpObject {
       return dependencyVersions;
    }
 
+   public Boolean isBaseline() {
+      return baseline;
+   }
+
+   public void setBaseline(Boolean baseline) {
+      this.baseline = (baseline != null) ? baseline : Boolean.FALSE;
+   }
 }

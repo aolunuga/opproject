@@ -5,6 +5,7 @@ import onepoint.express.XValidationException;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.util.XCalendar;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,10 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    private static final String ACTUAL_EFFORT_EXCEPTION = "ActualEffortException";
    private static final String REMAINING_EFFORT_EXCEPTION = "RemainingEffortException";
    private static final String DUPLICATE_EFFORT_EXCEPTION = "DuplicateEffortException";
+
+   //indexes used for the list of completed assignments
+   private static final int LIST_ACTIVITY_INDEX = 0;
+   private static final int LIST_RESOURCE_INDEX = 1;
 
    /**
     * Validates the data set.
@@ -243,8 +248,6 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                if (getResource(dataRow) != null) {
                   //set the base effort, remaining & original remaining effort cell values
                   updateEffortCells(cell.getStringValue(), getResource(dataRow), dataRow);
-                  //set the project name cell value
-                  setValue(dataRow, PROJECT_NAME_INDEX, getProjectChoiceByActivity(activityChoice));
                }
                break;
 
@@ -283,6 +286,9 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                   actualEffort = (double) minutes / XCalendar.MINUTES_PER_HOUR;
                }
 
+               //make a copy of the old cell value before changing it
+               double oldCellValue = cell.getDoubleValue();
+
                cell.setDoubleValue(actualEffort);
 
                activityChoice = getActivity(dataRow);
@@ -294,8 +300,8 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                   XComponent remainingEffortCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_INDEX);
                   XComponent originalRemEffortCell = (XComponent) dataRow.getChild(ORIGINAL_REMAINING_INDEX);
                   if (remainingEffortCell.getEnabled()) {
-                     if (originalRemEffortCell.getDoubleValue() - ((Double) value).doubleValue() > 0) {
-                        remainingEffortCell.setDoubleValue(originalRemEffortCell.getDoubleValue() - ((Double) value).doubleValue());
+                     if (originalRemEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue() > 0) {
+                        remainingEffortCell.setDoubleValue(originalRemEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue());
                         setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
                      }
                      else {
@@ -415,10 +421,14 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       setValue(dataRow, RESOURCE_NAME_INDEX, choice);
    }
 
+   public Byte getActivityType(XComponent row) {
+      return (Byte) getValue(row, ACTIVITY_TYPE_INDEX);
+   }
+
    /**
     * Removes an array of data rows from the underlying data set.
     *
-    * @param dataRows a <code>XArray</code> of <code>XComponent</code> representing data rows.
+    * @param dataRows a <code>List</code> of <code>XComponent</code> representing data rows.
     * @return <code>true</code> or <code>false</code> whether the removal was sucessfull.
     */
    public boolean removeDataRows(List dataRows) {
@@ -524,7 +534,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       List assignmentDataList = (List) assignmentMap.get(activityChoice + "-" + resourceChoice);
 
       //get the base effort for this assignment & set it on the base effort cell
-      if (((XComponent)dataRow.getChild(PLANNED_EFFORT_INDEX)).getValue() != null) {
+      if (((XComponent) dataRow.getChild(PLANNED_EFFORT_INDEX)).getValue() != null) {
          Double baseEffort = (Double) assignmentDataList.get(ASSIGNMENT_BASE_EFFORT_INDEX);
          setValue(dataRow, PLANNED_EFFORT_INDEX, baseEffort);
       }
@@ -578,7 +588,190 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       }
    }
 
-   public Byte getActivityType(XComponent row) {
-      return (Byte) getValue(row, ACTIVITY_TYPE_INDEX);
+   /**
+    * Returns a list which contains an activity -> resource map and an resource -> activity map.
+    * First map: Key - the locator of the activity which has completed assignments
+    *            Value - a list of resources, one resource for each completed assignment
+    * Second map: Key - the locator of the resource which has completed assignments
+    *             Value - a list of activities, one activity for each completed assignment
+    *
+    * @return - the list of maps.
+    */
+   private List getAllCompletedAssignments() {
+      List assignmentMaps = new ArrayList();
+      Map activityResourceMap = new HashMap();
+      Map resourceActivityMap = new HashMap();
+
+      for (int j = 0; j < data_set.getChildCount(); j++) {
+         XComponent row = (XComponent) data_set.getChild(j);
+         boolean completed = false;
+         if(((XComponent) row.getChild(COMPLETED_INDEX)).getValue() != null){
+            completed = ((XComponent) row.getChild(COMPLETED_INDEX)).getBooleanValue();
+         }
+         if(completed){
+            //add the row's resource to the list of resources that belong to the row's activity
+            List resourceList;
+            if(!activityResourceMap.keySet().contains(getActivity(row))){
+               resourceList = new ArrayList();
+               resourceList.add(getResource(row));
+               activityResourceMap.put(getActivity(row), resourceList);
+            }
+            else{
+               resourceList = (ArrayList) activityResourceMap.get(getActivity(row));
+               resourceList.add(getResource(row));
+            }
+
+            //add the row's activity to the list of activities that belong to the row's resource
+            List activityList;
+            if(!resourceActivityMap.keySet().contains(getResource(row))){
+               activityList = new ArrayList();
+               activityList.add(getActivity(row));
+               resourceActivityMap.put(getResource(row), activityList);
+            }
+            else{
+               activityList = (ArrayList) resourceActivityMap.get(getResource(row));
+               activityList.add(getActivity(row));
+            }
+         }
+      }
+
+      assignmentMaps.add(LIST_ACTIVITY_INDEX, activityResourceMap);
+      assignmentMaps.add(LIST_RESOURCE_INDEX, resourceActivityMap);
+
+      return assignmentMaps;
+   }
+
+   /**
+    * Checks if all the assignments of the activity specified by the activityChoice parameter are completed.
+    *
+    * @param activityChoice - the choice of the activity whose assignments are being checked.
+    * @param activityResouceMap - the map which contains all the resources from the completed assignments
+    *                         for each activity in the activity set.
+    *
+    * @return  -  <code>true</code> if the activity has no uncompleted assignments or <code>false</code> otherwise.
+    */
+   private boolean areAllActivityAssignmentsCompleted(String activityChoice, Map activityResouceMap) {
+      //get the list of resources (one for each assignment) for the activity
+      List resourceList = new ArrayList();
+      for(int i = 0; i < getActivitySet().getChildCount(); i++) {
+         XComponent activityRow = (XComponent) getActivitySet().getChild(i);
+         if(activityRow.getStringValue().equals(activityChoice)){
+            resourceList = ((XComponent) activityRow.getChild(ACTIVITY_CHOICE_SET_RESOURCE_INDEX)).getListValue();
+         }
+      }
+
+      //get the list of resources from the completed assignments for the activity
+      List assignmentResourceList = new ArrayList();
+      if(activityResouceMap.keySet().contains(activityChoice)) {
+         assignmentResourceList = (List) activityResouceMap.get(activityChoice);
+      }
+
+      if(assignmentResourceList.isEmpty() || assignmentResourceList.size() != resourceList.size()){
+         return false;
+      }
+
+      for(int i = 0; i < resourceList.size(); i++) {
+         if(!assignmentResourceList.contains(resourceList.get(i))){
+            return false;
+         }
+      }
+      return true;
+   }
+
+   /**
+    * Checks if all the assignments of the resource specified by the resourceChoice parameter are completed.
+    *
+    * @param resourceChoice      - the choice of the resource whose assignments are being checked.
+    * @param resourceActivityMap - the map which contains all the activities from the completed assignments
+    *                            for each resource in the resource set.
+    *
+    * @return -  <code>true</code> if the resource has no uncompleted assignments or <code>false</code> otherwise.
+    */
+   private boolean areAllResourceAssignmentsCompleted(String resourceChoice, Map resourceActivityMap) {
+      //get the list of activities (one for each assignment) for the resource
+      List activityList = new ArrayList();
+      for(int i = 0; i < getResourceSet().getChildCount(); i++) {
+         XComponent resourceRow = (XComponent) getResourceSet().getChild(i);
+         if(resourceRow.getStringValue().equals(resourceChoice)){
+            activityList = ((XComponent) resourceRow.getChild(RESOURCE_CHOICE_SET_ACTIVITY_INDEX)).getListValue();
+         }
+      }
+      
+      //get the list of activities from the completed assignments for the resource
+      List assignmentActivityList = new ArrayList();
+      if (resourceActivityMap.keySet().contains(resourceChoice)) {
+         assignmentActivityList = (List) resourceActivityMap.get(resourceChoice);
+      }
+
+      if (assignmentActivityList.isEmpty() || assignmentActivityList.size() != activityList.size()) {
+         return false;
+      }
+
+      for (int i = 0; i < activityList.size(); i++) {
+         if (!assignmentActivityList.contains(activityList.get(i))) {
+            return false;
+         }
+      }
+      return true;
+   }
+
+   /**
+    * Filters out the activities that have all their assignments completed.
+    *
+    * @param resourceChoice - the locator of the resource ()
+    */
+   protected void advancedFilteringForActivity(String resourceChoice) {
+      List completedAssignmentMaps = getAllCompletedAssignments();
+      Map activityResourceMap = (Map) completedAssignmentMaps.get(LIST_ACTIVITY_INDEX);
+
+      XComponent row;
+      for(int i = 0; i < getActivitySet().getChildCount(); i++) {
+         row = (XComponent) getActivitySet().getChild(i);
+         if((!row.getFiltered() && areAllActivityAssignmentsCompleted(row.getStringValue(), activityResourceMap))
+              || (!row.getFiltered() && isCompletedAssignment(resourceChoice, row.getStringValue()))){
+            row.setFiltered(true);
+         }
+      }
+   }
+
+   /**
+    * Filters out the resources that have all their assignments completed.
+    */
+   protected void advancedFilteringForResource(String activityChoice) {
+      List completedAssignmentMaps = getAllCompletedAssignments();
+      Map resourceActivityMap = (Map) completedAssignmentMaps.get(LIST_RESOURCE_INDEX);
+
+      XComponent row;
+      for(int i = 0; i < getResourceSet().getChildCount(); i++) {
+         row = (XComponent) getResourceSet().getChild(i);
+         if((!row.getFiltered() && areAllResourceAssignmentsCompleted(row.getStringValue(), resourceActivityMap))
+              || (!row.getFiltered() && isCompletedAssignment(row.getStringValue(), activityChoice))){
+            row.setFiltered(true);
+         }       
+      }
+   }
+
+   /**
+    * Checks if the assignment determined by the activity choice and resource choice passed as parameters is completed
+    *    in the current work slip or not.
+    *
+    * @param resourceChoice - the choice of the resource for which the assignment is being checked.
+    * @param activityChoice - the choice of the activity for which the assignment is being checked.
+    * @return <code>true</code> if the assignment formed by the resource choice and activity choice passed as parameters
+    *    is completed in the current work slip or <code>false</code> otherwise.
+    */
+   private boolean isCompletedAssignment(String resourceChoice, String activityChoice) {
+      if (resourceChoice != null && activityChoice != null) {
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent row = (XComponent) data_set.getChild(i);
+            if (((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getValue() != null &&
+                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getValue() != null &&
+                 ((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getStringValue().equals(activityChoice) &&
+                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getStringValue().equals(resourceChoice)) {
+               return ((XComponent) row.getChild(COMPLETED_INDEX)).getBooleanValue();
+            }
+         }
+      }
+      return false;
    }
 }
