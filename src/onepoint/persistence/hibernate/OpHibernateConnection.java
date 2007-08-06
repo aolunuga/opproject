@@ -393,7 +393,9 @@ public class OpHibernateConnection extends OpConnection {
 
    public void close() {
       try {
-         session.close();
+         if (session != null) {
+            session.close();
+         }
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.close(): Could not close session: " + e);

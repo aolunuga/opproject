@@ -25,27 +25,27 @@
       <resource id="Pulsing">Pulsing (minutes)</resource>
       <resource id="Currency">Currency</resource>
       <!-- Currencies -->
-      <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
-      <resource id="CAD">Canada Dollars (CAD, CAD)</resource>
+      <resource id="AUD">Australia Dollars (AUD, $)</resource>
+      <resource id="CAD">Canada Dollars (CAD, $)</resource>
       <resource id="CHF">Switzerland Francs (CHF, CHF)</resource>
-      <resource id="CNY">China Yuan Renminbi (CNY, CNY)</resource>
-      <resource id="DKK">DKK Denmark Kroner (DKK, DKK)</resource>
+      <resource id="CNY">China Yuan Renminbi (CNY, 元)</resource>
+      <resource id="DKK">DKK Denmark Kroner (DKK, kr)</resource>
       <resource id="EUR">Euro (EUR, €)</resource>
       <resource id="GBP">United Kingdom Pounds (GBP, ₤)</resource>
-      <resource id="HKD">Hong Kong Dollars (HKD, HKD)</resource>
-      <resource id="HUF">Hungary Forint (HUF, HUF)</resource>
-      <resource id="INR">India Rupees (INR, INR)</resource>
-      <resource id="JPY">Japan Yen (JPY, JPY)</resource>
-      <resource id="MXN">Mexico Pesos (MXN, MXN)</resource>
-      <resource id="MYR">Malaysia Ringgits (MYR, MYR)</resource>
-      <resource id="NOK">Norway Kroner (NOK, NOK)</resource>
-      <resource id="NZD">New Zealand Dollars (NZD, NZD)</resource>
-      <resource id="RUB">Russia Rubles (RUB, RUB)</resource>
-      <resource id="SEK">Sweden Kronor (SEK, SEK)</resource>
-      <resource id="SGD">Singapore Dollars (SGD, SGD)</resource>
-      <resource id="THB">Thailand Baht (THB, THB)</resource>
+      <resource id="HKD">Hong Kong Dollars (HKD, HK$)</resource>
+      <resource id="HUF">Hungary Forint (HUF, Ft)</resource>
+      <resource id="INR">India Rupees (INR, ₨)</resource>
+      <resource id="JPY">Japan Yen (JPY, ¥)</resource>
+      <resource id="MXN">Mexico Pesos (MXN, $)</resource>
+      <resource id="MYR">Malaysia Ringgits (MYR, RM)</resource>
+      <resource id="NOK">Norway Kroner (NOK, kr)</resource>
+      <resource id="NZD">New Zealand Dollars (NZD, $)</resource>
+      <resource id="RUB">Russia Rubles (RUB, руб)</resource>
+      <resource id="SEK">Sweden Kronor (SEK, kr)</resource>
+      <resource id="SGD">Singapore Dollars (SGD, $)</resource>
+      <resource id="THB">Thailand Baht (THB, ฿)</resource>
       <resource id="USD">United States Dollars (USD, $)</resource>
-      <resource id="ZAR">South Africa Rand (ZAR, ZAR)</resource>
+      <resource id="ZAR">South Africa Rand (ZAR, R)</resource>
    </resource-map>
 
    <resource-map id="settings.weekdays">

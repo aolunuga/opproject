@@ -5,6 +5,7 @@ package onepoint.project.modules.configuration_wizard.test;
 
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.configuration.OpDatabaseConfiguration;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardManager;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
 import onepoint.project.test.OpBaseOpenTestCase;
@@ -39,7 +40,7 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
 
       // read testing configuration.
       OpConfiguration configuration = OpTestDataFactory.getTestingConfiguration();
-      OpConfiguration.DatabaseConfiguration dataBaseConfiguration = configuration.getDatabaseConfiguration();
+      OpDatabaseConfiguration dataBaseConfiguration = configuration.getDatabaseConfigurations().iterator().next();
 
       dbURL = dataBaseConfiguration.getDatabaseUrl();
       dbPassword = dataBaseConfiguration.getDatabasePassword();

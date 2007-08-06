@@ -43,12 +43,12 @@
    </resource-map>
 
    <resource-map id="project_status.Info">
-      <resource id="InfoProjectStatus">Project Status Info</resource>
+      <resource id="InfoProjectStatus">Project Status Properties</resource>
    </resource-map>
 
    <resource-map id="project_status.delete">
-      <resource id="ConfirmDelete">Delete Project Status Items</resource>
-      <resource id="NoSelectionMessage">Please select one or more project status items which should be deleted</resource>
+      <resource id="ConfirmDelete">Delete Project Status Objects</resource>
+      <resource id="NoSelectionMessage">Please select one or more project status objects which should be deleted</resource>
       <resource id="ConfirmDeleteOneMessage">Do you really want to delete the selected project status?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Do you really want to delete the selected project status objects?</resource>
       <resource id="OK">OK</resource>
@@ -59,7 +59,7 @@
       <resource id="StatusNameNotSpecified">The project status name was not specified</resource>
       <resource id="StatusNameNotUnique">The project status name is already used</resource>
       <resource id="StatusNotFound">The project status could not be found</resource>
-      <resource id="InsufficientPrivileges">Only Administrator is allowed to manage project objects</resource>
+      <resource id="InsufficientPrivileges">Only Administrator is allowed to manage project status objects</resource>
    </resource-map>
 
 </language-kit>

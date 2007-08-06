@@ -5,6 +5,7 @@
 	<data-set id="ResultSet"/>
 	<data-field id="ProjectLocatorField"/>
   <data-field id="PrintTitle" string-value="${PrintTitle}"/>
+  <data-field id="ProjectsWithBaseline"/>
 
   <pop-up-menu id="ResultTablePopupMenu">
       <pop-up-item text="${SaveCSV}" on-item-selected="saveTableCSV"/>

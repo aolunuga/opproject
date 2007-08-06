@@ -9,12 +9,8 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityVersion;
-import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.test.OpTestDataFactory;
-import onepoint.service.XMessage;
 
-import java.sql.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -148,59 +144,5 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
          return OpLocator.locatorString(OpActivityVersion.ACTIVITY_VERSION, Long.parseLong(activityId.toString()));
       }
       return null;
-   }
-
-   /**
-    * A request to create an activity.
-    *
-    * @param name
-    * @param description
-    * @param start
-    * @param finish
-    * @param projectPlan
-    * @return
-    */
-   public XMessage createActivityMsg(String name, String description, Date start, Date finish, OpProjectPlan projectPlan) {
-      HashMap args = new HashMap();
-      args.put(OpActivity.NAME, name);
-      args.put(OpActivity.DESCRIPTION, description);
-      args.put(OpActivity.START, start);
-      args.put(OpActivity.FINISH, finish);
-      args.put(OpActivity.PROJECT_PLAN, projectPlan);
-
-      XMessage request = new XMessage();
-      request.setArgument(ACTIVITY_DATA, args);
-      return request;
-   }
-
-   /**
-    * Inserts an activity with name, description, start/finish dates and a project assignment
-    *
-    * @param session
-    * @param request
-    * @return - an empty <code>XMessage</code> if the insert operation succeeded
-    */
-   public XMessage insertActivity(OpProjectSession session, XMessage request) {
-
-      XMessage reply = new XMessage();
-
-      String name = (String) (request.getArgument(OpActivity.NAME));
-      String description = (String) (request.getArgument(OpActivity.DESCRIPTION));
-      Date start = (Date) (request.getArgument(OpActivity.START));
-      Date finish = (Date) (request.getArgument(OpActivity.FINISH));
-      OpProjectPlan projectPlan = (OpProjectPlan) (request.getArgument(OpActivity.PROJECT_PLAN));
-
-      OpActivity activity = new OpActivity();
-      activity.setName(name);
-      activity.setDescription(description);
-      activity.setStart(start);
-      activity.setFinish(finish);
-      activity.setProjectPlan(projectPlan);
-
-      OpBroker broker = session.newBroker();
-      broker.makePersistent(activity);
-      broker.close();
-
-      return reply;
    }
 }

@@ -112,16 +112,7 @@ public class OpWorkService extends OpProjectService {
       for (OpWorkRecord workRecord : workRecordList) {
          assignment = workRecord.getAssignment();
 
-         //get the project node assignment for this assignment's resource
-         OpProjectNodeAssignment projectNodeAssignment = null;
-         for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
-            for (OpProjectNodeAssignment projectAssignment : assignment.getProjectPlan().getProjectNode().getAssignments()) {
-               if (resourceAssignment.getID() == projectAssignment.getID()) {
-                  projectNodeAssignment = projectAssignment;
-                  break;
-               }
-            }
-         }
+         OpProjectNodeAssignment projectNodeAssignment = assignment.getProjectNodeAssignment();
 
          //Set the personnel costs for the work record
          if (projectNodeAssignment != null) {
@@ -146,7 +137,7 @@ public class OpWorkService extends OpProjectService {
          OpActivity activity = assignment.getActivity();
          workRecord.setRemTravelCostsChange(workRecord.getRemTravelCosts() - activity.getRemainingTravelCosts());
          workRecord.setRemMaterialCostsChange(workRecord.getRemMaterialCosts() - activity.getRemainingMaterialCosts());
-         workRecord.setRemExternalCostsChange(workRecord.getRemExternalCosts()- activity.getRemainingExternalCosts());
+         workRecord.setRemExternalCostsChange(workRecord.getRemExternalCosts() - activity.getRemainingExternalCosts());
          workRecord.setRemMiscCostsChange(workRecord.getRemMiscCosts() - activity.getRemainingMiscellaneousCosts());
 
          try {
@@ -158,7 +149,7 @@ public class OpWorkService extends OpProjectService {
                errorCode = e.getErrorCode();
             }
             logger.error("Invalid work record found " + e.getMessage());
-            logger.debug("Invalid work record found ",e);
+            logger.debug("Invalid work record found ", e);
          }
 
          workRecords.add(workRecord);
@@ -199,7 +190,7 @@ public class OpWorkService extends OpProjectService {
             for (OpCostRecord costRecord : workRecord.getCostRecords()) {
                for (OpAttachment attachment : costRecord.getAttachments()) {
                   if (!attachment.getLinked()) {
-                     OpContentManager.updateContent(attachment.getContent(), broker, false, attachment);
+                     OpContentManager.updateContent(attachment.getContent(), broker, false, false);
                      attachment.setContent(null);
                   }
                }
@@ -222,6 +213,9 @@ public class OpWorkService extends OpProjectService {
          workSlip.updateTotalActualEffort();
          serviceImpl.insertWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 
+         //delete all contents with reference count = 0
+         OpContentManager.deleteZeroRefContents(broker);
+
          //validate work record set
          try {
             workSlip.validate();
@@ -241,8 +235,8 @@ public class OpWorkService extends OpProjectService {
          XMessage reply = new XMessage();
          return exc.append(reply);
       }
-      finally{
-        finalizeSession(t, broker);
+      finally {
+         finalizeSession(t, broker);
       }
    }
 
@@ -260,6 +254,7 @@ public class OpWorkService extends OpProjectService {
       }
 
       try {
+
          serviceImpl.deleteMyWorkSlips(session, broker, to_delete.iterator());
          t.commit();
       }

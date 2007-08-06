@@ -682,7 +682,7 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setListValue(new ArrayList());
       dataRow.addChild(dataCell);
       if (activity.getAttachments().size() > 0) {
-         ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
+         List attachmentList = OpGanttValidator.getAttachments(dataRow);
          retrieveAttachments(activity.getAttachments(), attachmentList);
       }
 
@@ -908,15 +908,15 @@ public abstract class OpActivityDataSetFactory {
       if (plan.getActivityAssignments() != null) {
          reusableAssignments = updateOrDeleteAssignments(broker, dataSet, plan.getActivityAssignments().iterator());
       }
-      ArrayList reusableWorkPeriods = null;
+      List reusableWorkPeriods = null;
       if (plan.getWorkPeriods() != null) {
          reusableWorkPeriods = updateOrDeleteWorkPeriods(broker, dataSet, plan.getWorkPeriods().iterator());
       }
-      ArrayList reusableAttachments = null;
+      List reusableAttachments = null;
       if (plan.getActivityAttachments() != null) {
          reusableAttachments = updateOrDeleteAttachments(broker, dataSet, plan.getActivityAttachments().iterator());
       }
-      ArrayList reusableDependencys = null;
+      List reusableDependencys = null;
       if (plan.getDependencies() != null) {
          reusableDependencys = updateOrDeleteDependencies(broker, dataSet, plan.getDependencies().iterator());
       }
@@ -1378,16 +1378,16 @@ public abstract class OpActivityDataSetFactory {
    }
 
    private static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {
-      OpAssignment assignment = null;
-      XComponent dataRow = null;
-      ArrayList resourceList = null;
-      String resourceChoice = null;
-      ArrayList resourceBaseEffortList = null;
-      double baseEffort = 0.0d;
-      double baseCosts = 0.0d;
-      double assigned = 0;
-      int i = 0;
-      int activitySequence = 0;
+
+      OpAssignment assignment;
+      XComponent dataRow;
+      List resourceList;
+      String resourceChoice;
+      List resourceBaseEffortList;
+      double baseEffort;
+      double assigned;
+      int i;
+      int activitySequence;
 
       ArrayList reusableAssignments = new ArrayList();
       while (assignments.hasNext()) {
@@ -1451,10 +1451,13 @@ public abstract class OpActivityDataSetFactory {
                   }
 
                   XCalendar calendar = XCalendar.getDefaultCalendar();
-                  update = updateAssignmentCosts(assignment, calendar);
-                  
+                  if (updateAssignmentCosts(assignment, calendar)) {
+                     update = true;
+                  }
+
                   if (update) {
                      broker.updateObject(assignment);
+                     updateWorkMonths(broker, assignment, calendar);
                   }
                   break;
                }
@@ -1486,9 +1489,9 @@ public abstract class OpActivityDataSetFactory {
 
    private static void insertActivityAssignments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
         OpActivity activity, ArrayList reusableAssignments, HashMap resources) {
-      ArrayList resourceList = OpGanttValidator.getResources(dataRow);
+      List resourceList = OpGanttValidator.getResources(dataRow);
       String resourceChoice = null;
-      ArrayList resourceBaseEffortList = OpGanttValidator.getResourceBaseEfforts(dataRow);
+      List resourceBaseEffortList = OpGanttValidator.getResourceBaseEfforts(dataRow);
       double baseEffort = 0.0d;
       OpAssignment assignment = null;
       OpResource resource = null;
@@ -1544,6 +1547,7 @@ public abstract class OpActivityDataSetFactory {
          else {
             broker.updateObject(assignment);
          }
+         updateWorkMonths(broker, assignment, calendar);
       }
    }
 
@@ -1600,7 +1604,7 @@ public abstract class OpActivityDataSetFactory {
    }
 
    private static void insertActivityWorkPeriods(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
-        OpActivity activity, ArrayList reusableWorkPeriods) {
+        OpActivity activity, List reusableWorkPeriods) {
 
       Map workPeriods = getWorkPeriods(dataRow);
       OpWorkPeriod workPeriod = null;
@@ -1756,7 +1760,7 @@ public abstract class OpActivityDataSetFactory {
          boolean reusable = false;
          if (!deletedActivity(activity, dataSet)) { // activity was not deleted on client
             XComponent dataRow = (XComponent) dataSet.getChild(activity.getSequence());
-            ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
+            List attachmentList = OpGanttValidator.getAttachments(dataRow);
             for (i = attachmentList.size() - 1; i >= 0; i--) {
                // Note: We assume that attachments can only be added and removed on the client (no expicit updates)
                ArrayList attachmentElement = (ArrayList) attachmentList.get(i);
@@ -1790,14 +1794,14 @@ public abstract class OpActivityDataSetFactory {
    }
 
    private static void insertActivityAttachments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
-        OpActivity activity, ArrayList reusableAttachments) {
-      ArrayList attachmentList = OpGanttValidator.getAttachments(dataRow);
+        OpActivity activity, List reusableAttachments) {
+      List attachmentList = OpGanttValidator.getAttachments(dataRow);
       ArrayList attachmentElement = null;
       OpAttachment attachment = null;
       for (int i = 0; i < attachmentList.size(); i++) {
          // Insert new attachment version
          attachmentElement = (ArrayList) attachmentList.get(i);
-         createAttachment(broker, activity, plan, attachmentElement, reusableAttachments);
+         createAttachment(broker, activity, plan, attachmentElement, reusableAttachments, null);
       }
    }
 
@@ -1806,12 +1810,16 @@ public abstract class OpActivityDataSetFactory {
     *
     * @param broker
     * @param activity            - the <code>OpActivity</code> entity for which the attachments is created
+    *                            (in this case the projectNode parameter is null)
     * @param plan                - the <code>OpProjectPlan</code> entity to which the activity belongs
     * @param attachmentElement   - the <code>List</code> of attachment attributes
     * @param reusableAttachments - the list of already created attachments that need to be updated
+    * @param projectNode         - the <code>OpProjectNode</code> entity for which the attachment is created
+    *                            (in this case the activity parameter is null)
     * @return - the newly created/updated <code>OpAttachment</code> entity , could be <code>null</code> if the content id is not valid
     */
-   public static OpAttachment createAttachment(OpBroker broker, OpActivity activity, OpProjectPlan plan, List attachmentElement, List reusableAttachments) {
+   public static OpAttachment createAttachment(OpBroker broker, OpActivity activity, OpProjectPlan plan, List attachmentElement,
+        List reusableAttachments, OpProjectNode projectNode) {
       OpAttachment attachment;
       if ((reusableAttachments != null) && (reusableAttachments.size() > 0)) {
          attachment = (OpAttachment) reusableAttachments.remove(reusableAttachments.size() - 1);
@@ -1825,7 +1833,12 @@ public abstract class OpActivityDataSetFactory {
       attachment.setName((String) attachmentElement.get(2));
       attachment.setLocation((String) attachmentElement.get(3));
       if (plan != null) {
-         OpPermissionSetFactory.copyPermissions(broker, plan.getProjectNode(), attachment);
+         OpPermissionSetFactory.updatePermissions(broker, plan.getProjectNode(), attachment);
+      }
+      else {
+         if (projectNode != null) {
+            OpPermissionSetFactory.updatePermissions(broker, projectNode, attachment);
+         }
       }
 
       if (!attachment.getLinked()) {
@@ -1834,8 +1847,9 @@ public abstract class OpActivityDataSetFactory {
             OpContent content = (OpContent) broker.getObject(contentId);
             OpContentManager.updateContent(content, broker, true, attachment);
             attachment.setContent(content);
-         } else {
-            logger.warn("The attachment " + attachment.getName() + " was not persisted because the content was null");            
+         }
+         else {
+            logger.warn("The attachment " + attachment.getName() + " was not persisted because the content was null");
             return null; // the content is not persisted due to some IO errors
          }
       }
@@ -1849,13 +1863,13 @@ public abstract class OpActivityDataSetFactory {
       return attachment;
    }
 
-   private static ArrayList updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
+   private static List updateOrDeleteDependencies(OpBroker broker, XComponent dataSet, Iterator dependencies) {
       OpDependency dependency = null;
       XComponent predecessorDataRow = null;
       XComponent successorDataRow = null;
-      ArrayList predecessorIndexes = null;
-      ArrayList successorIndexes = null;
-      ArrayList reusableDependencys = new ArrayList();
+      List predecessorIndexes = null;
+      List successorIndexes = null;
+      List reusableDependencys = new ArrayList();
 
       int maxActivitySequence = dataSet.getChildCount();
       int successorActivitySequence = 0;
@@ -1896,10 +1910,10 @@ public abstract class OpActivityDataSetFactory {
    }
 
    private static void insertActivityDependencies(OpBroker broker, OpProjectPlan plan, XComponent dataSet,
-        XComponent dataRow, OpActivity activity, ArrayList activityList, ArrayList reusableDependencys) {
+        XComponent dataRow, OpActivity activity, List activityList, List reusableDependencys) {
       // Note: We only check for new predecessor indexes
       // (Successors are just the other side of the bi-directional association)
-      ArrayList predecessorIndexes = OpGanttValidator.getPredecessors(dataRow);
+      List predecessorIndexes = OpGanttValidator.getPredecessors(dataRow);
       OpDependency dependency = null;
       XComponent predecessorDataRow = null;
       OpActivity predecessor = null;
@@ -2166,4 +2180,268 @@ public abstract class OpActivityDataSetFactory {
 
       return modified;
    }
+
+   /**
+    * Updates the work monts for the given assignment.
+    *
+    * @param broker     Broker access object.
+    * @param assignment Assignment to update the work months for.
+    * @param xCalendar  Session calendar.
+    */
+   public static void updateWorkMonths(OpBroker broker, OpAssignment assignment, XCalendar xCalendar) {
+
+      OpActivity activity = assignment.getActivity();
+      OpProjectNodeAssignment projectAssignment = assignment.getProjectNodeAssignment();
+
+      List<OpWorkMonth> reusableWorkMonths = new ArrayList<OpWorkMonth>();
+      Set<OpWorkMonth> opWorkMonths = assignment.getWorkMonths();
+      if (opWorkMonths != null) {
+         reusableWorkMonths.addAll(opWorkMonths);
+      }
+
+      double workHoursPerDay = xCalendar.getWorkHoursPerDay();
+
+      //update latest values
+      OpWorkMonth workMonth;
+      if (!reusableWorkMonths.isEmpty()) {
+         workMonth = reusableWorkMonths.remove(reusableWorkMonths.size() - 1);
+      }
+      else {
+         workMonth = new OpWorkMonth();
+      }
+
+      Calendar calendar = xCalendar.getCalendar();
+      Date start = activity.getStart();
+      Date finish = activity.getFinish();
+      Date date = new Date(start.getTime());
+      calendar.setTime(date);
+      int month = calendar.get(Calendar.MONTH);
+      int year = calendar.get(Calendar.YEAR);
+      double internalSum = 0;
+      double externalSum = 0;
+      byte workingDays = 0;
+      List<OpWorkMonth> newWorkMonths = new ArrayList<OpWorkMonth>();
+
+      while (!date.after(finish)) {
+         if (xCalendar.isWorkDay(date)) {
+            List<Double> rates = projectAssignment.getRatesForDay(date, true);
+            double internalRate = rates.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
+            double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
+            internalSum += internalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            externalSum += externalRate * workHoursPerDay * assignment.getAssigned() / 100;
+            workingDays++;
+         }
+         date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+
+         calendar.setTime(date);
+         if ((month != calendar.get(Calendar.MONTH) || year != calendar.get(Calendar.YEAR)) || date.after(finish)) {
+            //new workmonth entity... set the values on the previous one.
+            double latestEffort = workingDays * workHoursPerDay * assignment.getAssigned() / 100;
+
+            workMonth.setAssignment(assignment);
+            workMonth.setMonth((byte) month);
+            workMonth.setYear(year);
+            workMonth.setLatestAssigned(assignment.getAssigned());
+            workMonth.setLatestEffort(latestEffort);
+            workMonth.setLatestPersonnelCosts(internalSum);
+            workMonth.setLatestProceeds(externalSum);
+
+            workMonth.setBaseAssigned(0);
+            workMonth.setBaseEffort(0);
+            workMonth.setBasePersonnelCosts(0);
+            workMonth.setBaseProceeds(0);
+
+            workMonth.setWorkingDays(workingDays);
+
+            newWorkMonths.add(workMonth);
+
+            //reset counters
+            workingDays = 0;
+            internalSum = 0;
+            externalSum = 0;
+            month = calendar.get(Calendar.MONTH);
+            year = calendar.get(Calendar.YEAR);
+            if (!reusableWorkMonths.isEmpty()) {
+               workMonth = reusableWorkMonths.remove(reusableWorkMonths.size() - 1);
+            }
+            else {
+               workMonth = new OpWorkMonth();
+            }
+         }
+      }
+
+      updateWorkMonthBaseValues(assignment, newWorkMonths, reusableWorkMonths);
+
+      //persist the new work months
+      for (OpWorkMonth newWorkMont : newWorkMonths) {
+         if (newWorkMont.getID() == 0) {
+            broker.makePersistent(newWorkMont);
+         }
+         else {
+            broker.updateObject(newWorkMont);
+         }
+      }
+
+      //removed unused entities
+      for (OpWorkMonth opWorkMonth : reusableWorkMonths) {
+         broker.deleteObject(opWorkMonth);
+      }
+
+      assignment.setWorkMonths(new HashSet<OpWorkMonth>(newWorkMonths));
+      updateRemainingValues(xCalendar, assignment);
+   }
+
+   /**
+    * Updates the baseline values of the given workmonth entities.
+    *
+    * @param assignment         Current assignment
+    * @param newWorkMonths      Newly created work months. This list will be updated with baseline values workmonths.
+    * @param reusableWorkMonths WorkMonths that can be reused.
+    */
+   public static void updateWorkMonthBaseValues(OpAssignment assignment, List<OpWorkMonth> newWorkMonths, List<OpWorkMonth> reusableWorkMonths) {
+
+      boolean hasBaselineVersion = false;
+      if (assignment.getActivity().getProjectPlan().getBaselineVersion() != null) {
+         hasBaselineVersion = true;
+      }
+
+      if (hasBaselineVersion) {
+
+         Set<OpWorkMonthVersion> baselineMonthVersions = new HashSet<OpWorkMonthVersion>();
+         OpAssignmentVersion assignmentBaselineVersion = assignment.getBaselineVersion();
+         if (assignmentBaselineVersion != null) {
+            baselineMonthVersions = new HashSet<OpWorkMonthVersion>(assignmentBaselineVersion.getWorkMonthVersions());
+         }
+
+         //update the newly created workmonths with the values from the baseline
+         OpWorkMonth workMonth;
+         for (OpWorkMonth newWorkMonth : newWorkMonths) {
+            boolean found = false;
+            for (Iterator it = baselineMonthVersions.iterator(); it.hasNext();) {
+               OpWorkMonthVersion monthVersion = (OpWorkMonthVersion) it.next();
+               if (monthVersion.getYear() == newWorkMonth.getYear() && monthVersion.getMonth() == newWorkMonth.getMonth()) {
+                  //found the coresponding work month version
+                  newWorkMonth.setBaseAssigned(monthVersion.getBaseAssigned());
+                  newWorkMonth.setBaseEffort(monthVersion.getBaseEffort());
+                  newWorkMonth.setBasePersonnelCosts(monthVersion.getBasePersonnelCosts());
+                  newWorkMonth.setBaseProceeds(monthVersion.getBaseProceeds());
+                  it.remove();
+                  found = true;
+               }
+            }
+            if (!found) {
+               OpAssignmentVersion version = assignment.getBaselineVersion();
+               if (version != null) {
+                  newWorkMonth.setBaseAssigned(version.getAssigned());
+               }
+            }
+         }
+
+         //fill up remaining work months from versions
+         for (OpWorkMonthVersion baselineMonthVersion : baselineMonthVersions) {
+            if (!reusableWorkMonths.isEmpty()) {
+               workMonth = reusableWorkMonths.remove(reusableWorkMonths.size() - 1);
+            }
+            else {
+               workMonth = new OpWorkMonth();
+            }
+
+            workMonth.setAssignment(assignment);
+            workMonth.setLatestAssigned(assignment.getAssigned());
+            workMonth.setLatestEffort(0);
+            workMonth.setLatestPersonnelCosts(0);
+            workMonth.setLatestProceeds(0);
+
+            workMonth.setYear(baselineMonthVersion.getYear());
+            workMonth.setMonth(baselineMonthVersion.getMonth());
+            workMonth.setBaseAssigned(baselineMonthVersion.getBaseAssigned());
+            workMonth.setBaseEffort(baselineMonthVersion.getBaseEffort());
+            workMonth.setBasePersonnelCosts(baselineMonthVersion.getBasePersonnelCosts());
+            workMonth.setBaseProceeds(baselineMonthVersion.getBaseProceeds());
+            newWorkMonths.add(workMonth);
+         }
+
+      }
+      else {
+         for (OpWorkMonth workMonth : newWorkMonths) {
+            workMonth.setBaseAssigned(assignment.getAssigned());
+            workMonth.setBaseEffort(workMonth.getLatestEffort());
+            workMonth.setBasePersonnelCosts(workMonth.getLatestPersonnelCosts());
+            workMonth.setBaseProceeds(workMonth.getLatestProceeds());
+         }
+      }
+   }
+
+   /**
+    * Updates the remaining personnel cost/proceeds for the given assignment on its workmonths.
+    *
+    * @param xCalendar  Session calendar.
+    * @param assignment Assignment to make the update for.
+    */
+   public static void updateRemainingValues(XCalendar xCalendar, OpAssignment assignment) {
+
+      OpProjectNodeAssignment projectAssignment = assignment.getProjectNodeAssignment();
+      double actualEffort = assignment.getRemainingEffort();
+
+      //TODO author="Mihai Costin" description="If assignment is 0, remaining = base."
+      double remainingEffort = assignment.getActualEffort();
+      Set<OpWorkMonth> workMonths = assignment.getWorkMonths();
+      OpActivity activity = assignment.getActivity();
+      Calendar calendar = xCalendar.getCalendar();
+      Date start = activity.getStart();
+      Date finish = activity.getFinish();
+      Date date = new Date(start.getTime());
+      calendar.setTime(date);
+
+      //reset the remaining values and calculate the total nr of days
+      double workingDays = 0;
+      for (OpWorkMonth workMonth : workMonths) {
+         workMonth.setRemainingPersonnel(0d);
+         workMonth.setRemainingProceeds(0d);
+         workingDays += workMonth.getWorkingDays();
+      }
+
+      if (assignment.getBaseEffort() > actualEffort) {
+         double workHoursPerDay = xCalendar.getWorkHoursPerDay();
+         //find the new start date to distribute the remaining effort
+         while (actualEffort > 0) {
+            if (xCalendar.isWorkDay(date)) {
+               actualEffort -= workHoursPerDay;
+               workingDays--;
+            }
+            date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+         }
+      }
+
+      //distribute the remaining effort starting from date...
+      double remainingEffortPerDay = remainingEffort / workingDays;
+      calendar.setTime(date);
+      OpWorkMonth workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
+      double internalSum = 0;
+      double externalSum = 0;
+      while (!date.after(finish)) {
+
+         if (xCalendar.isWorkDay(date)) {
+            List<Double> rates = projectAssignment.getRatesForDay(date, true);
+            double internalRate = rates.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
+            double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
+            internalSum = internalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+            externalSum = externalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+         }
+
+         date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+         calendar.setTime(date);
+         if (workMonth.getMonth() != calendar.get(Calendar.MONTH) ||
+              workMonth.getYear() != calendar.get(Calendar.YEAR) || date.after(finish)) {
+
+            workMonth.setRemainingPersonnel(internalSum);
+            workMonth.setRemainingProceeds(externalSum);
+
+            internalSum = 0;
+            externalSum = 0;
+            workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
+         }
+      }
+   }
+
 }

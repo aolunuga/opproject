@@ -84,8 +84,9 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Loads a test data set from the given file.
+    *
     * @param testDataFile a <code>xml</code> file containing a data set that will be used
-    * for testing.
+    *                     for testing.
     * @return a <code>XComponent(DATA_SET)</code> containing test data for the validator.
     */
    private XComponent getTestDataSet(String testDataFile) {
@@ -115,6 +116,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Creates a data-set containing hourly rates values.
+    *
     * @return a <code>XComponent(DATA_SET)</code>.
     */
    private XComponent createHourlyRates() {
@@ -142,6 +144,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Creates a data-set simulating user assignements, to be used by the validator.
+    *
     * @return a <code>XComponent(DATA_SET)</code> representing an assignment set.
     */
    private XComponent createAssignmentSet() {
@@ -171,8 +174,9 @@ public class OpGanttValidatorTest extends OpTestCase {
    /**
     * Creates a client structure resembling project settings, that is to be used by the
     * validator.
-    * @return  a <code>XComponent(DATA_SET)</code> containing the same data
-    * as the project settings.
+    *
+    * @return a <code>XComponent(DATA_SET)</code> containing the same data
+    *         as the project settings.
     */
    private XComponent createProjectSettings() {
       //project settings
@@ -902,11 +906,11 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Tests the updating of personnel cost when adding a resource to an activity
-    * 
+    *
     * @throws Exception
     */
    public void testUpdatePersonnelCostAddResource()
-      throws Exception {
+        throws Exception {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
       double effort = OpGanttValidator.getBaseEffort(firstActivity);
@@ -938,7 +942,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.setProjectStart(start);
       validator.validateDataSet();
       validator.setProjectFinish(null);
-      validator.setProjectPlanFinish(finish);      
+      validator.setProjectPlanFinish(finish);
 
       //set the resource of the second activity to WORKER1
       validator.setDataCellValue(secondActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
@@ -954,10 +958,10 @@ public class OpGanttValidatorTest extends OpTestCase {
            validator.getProjectPlanFinish()).size();
       int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
            new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
-      double hoursPerDay = 80d/ (double) (workDaysWithDefaultRate + workDaysWithOtherRate);
-      
-     //reassign the first resource to the task activity
-     validator.setDataCellValue(secondActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
+      double hoursPerDay = 80d / (double) (workDaysWithDefaultRate + workDaysWithOtherRate);
+
+      //reassign the first resource to the task activity
+      validator.setDataCellValue(secondActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
       assertEquals("The base personnel cost was not set correctly ", hoursPerDay * (workDaysWithDefaultRate * 10d + workDaysWithOtherRate * 3d),
            OpGanttValidator.getBasePersonnelCosts(secondActivity), DOUBLE_ERROR_MARGIN);
       assertEquals("The base proceed cost was not set correctly ", hoursPerDay * (workDaysWithDefaultRate * 20d + workDaysWithOtherRate * 4d),
@@ -970,11 +974,11 @@ public class OpGanttValidatorTest extends OpTestCase {
     * @throws Exception
     */
    public void testUpdatePersonnelCostAddTwoResources()
-      throws Exception {
+        throws Exception {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
 
-       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
       Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
       Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
       validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
@@ -1009,10 +1013,10 @@ public class OpGanttValidatorTest extends OpTestCase {
       //change the availability of the first resource to 40% and the availability of the second resource to 60%
       changeAvailabilityForResources(40d, 60d);
 
-      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
-      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
-      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
-      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40 / 100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
+      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40 / 100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
+      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60 / 100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60 / 100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
 
       validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
       assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1 + baseCostForWorker2, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
@@ -1028,7 +1032,7 @@ public class OpGanttValidatorTest extends OpTestCase {
         throws Exception {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
-      
+
       //add the first resource one to the first activity
       ArrayList resources = new ArrayList();
       resources.add(WORKER1);
@@ -1068,10 +1072,10 @@ public class OpGanttValidatorTest extends OpTestCase {
       //change the availability of the first resource to 40% and the availability of the second resource to 60%
       changeAvailabilityForResources(40d, 60d);
 
-      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
-      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40/100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
-      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
-      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60/100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double baseCostForWorker1 = calendar.getWorkHoursPerDay() * 40 / 100 * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
+      double proceedCostForWorker1 = calendar.getWorkHoursPerDay() * 40 / 100 * (workDaysWithDefaultRate * 20 + workDaysWithOtherRate * 4);
+      double baseCostForWorker2 = calendar.getWorkHoursPerDay() * 60 / 100 * 10 * (workDaysWithDefaultRate + workDaysWithOtherRate);
+      double proceedCostForWorker2 = calendar.getWorkHoursPerDay() * 60 / 100 * 20 * (workDaysWithDefaultRate + workDaysWithOtherRate);
 
       validator.setDataCellValue(firstActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
       assertEquals("The base personnel cost was not set correctly ", baseCostForWorker1 + baseCostForWorker2, OpGanttValidator.getBasePersonnelCosts(firstActivity), DOUBLE_ERROR_MARGIN);
@@ -1108,7 +1112,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
 
-       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
+      //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
       Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
       Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
       validator.setDataCellValue(firstActivity, OpGanttValidator.START_COLUMN_INDEX, start);
@@ -1131,10 +1135,10 @@ public class OpGanttValidatorTest extends OpTestCase {
       int workDaysWithOtherRate = calendar.getWorkingDaysFromInterval(new Date(getCalendarWithExactDaySet(2007, 6, 12).getTimeInMillis()),
            new Date(getCalendarWithExactDaySet(2007, 6, 16).getTimeInMillis())).size();
 
-       //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resources are not 100% assigned
+      //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resources are not 100% assigned
       double standardEffort = (workDaysWithDefaultRate + workDaysWithOtherRate) * calendar.getWorkHoursPerDay();
       validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, standardEffort);
-      
+
       double hoursPerDay = calendar.getWorkHoursPerDay() * 40 / 100;
       double newNumberOfDays = Math.ceil(OpGanttValidator.getBaseEffort(firstActivity) / hoursPerDay);
 
@@ -1148,7 +1152,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       //reassign the first resource to 100%
       //change the availability of the first resource to 100% and the availability of the second resource to 100%
       changeAvailabilityForResources(100d, 100d);
-       //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resource is 100% assigned
+      //set the effort of the activity to the normal effort between 6/10/2007 and 6/20/2007 because the resource is 100% assigned
       validator.setDataCellValue(firstActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, standardEffort);
 
       baseCostForWorker1 = calendar.getWorkHoursPerDay() * (workDaysWithDefaultRate * 10 + workDaysWithOtherRate * 3);
@@ -1161,9 +1165,10 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Tests the update of base costs for a collection
+    *
     * @throws Exception
     */
-   public void testUpdatePersonnelCostModifyCollection ()
+   public void testUpdatePersonnelCostModifyCollection()
         throws Exception {
 
       XCalendar xCalendar = XCalendar.getDefaultCalendar();
@@ -1232,7 +1237,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       //change the effort of activity 3 to 88h
       validator.setDataCellValue(thirdActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, 88d);
       Date minDate = validator.getProjectPlanFinish();
-      if(OpGanttValidator.getEnd(thirdActivity).before(minDate)){
+      if (OpGanttValidator.getEnd(thirdActivity).before(minDate)) {
          minDate = OpGanttValidator.getEnd(thirdActivity);
       }
 
@@ -1304,7 +1309,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.setDataCellValue(milestone, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
       assertEquals("The base personnel cost was not set correctly ", 0d, OpGanttValidator.getBasePersonnelCosts(milestone), DOUBLE_ERROR_MARGIN);
       assertEquals("The base proceed cost was not set correctly ", 0d, OpGanttValidator.getBaseProceeds(milestone), DOUBLE_ERROR_MARGIN);
-    }
+   }
 
    /**
     * Tests the update of base costs when modifying the duration of the activity
@@ -1437,7 +1442,7 @@ public class OpGanttValidatorTest extends OpTestCase {
          if (validator.getCalendar().isWorkDay(expectedEndDate)) {
             index++;
          }
-         if(index < WORKING_DAYS_IN_A_WEEK){
+         if (index < WORKING_DAYS_IN_A_WEEK) {
             expectedEndDate = new Date(expectedEndDate.getTime() + DAY_MILLIS);
          }
       }
@@ -1704,14 +1709,14 @@ public class OpGanttValidatorTest extends OpTestCase {
       ArrayList newPredecessor = new ArrayList();
       newPredecessor.add(new Integer(0));
       validator.setDataCellValue(activity2, OpGanttValidator.PREDECESSORS_COLUMN_INDEX, newPredecessor);
-      ArrayList activity1Successors = OpGanttValidator.getSuccessors(activity1);
+      List activity1Successors = OpGanttValidator.getSuccessors(activity1);
       assertEquals("There should be no successors for activity 1", 0, activity1Successors.size());
-      ArrayList activity0Successors = OpGanttValidator.getSuccessors(activity0);
+      List activity0Successors = OpGanttValidator.getSuccessors(activity0);
       assertEquals("There should be 2 successors for activity 0", 2, activity0Successors.size());
 
       //set the successor list of activity1 only to activity2
-      ArrayList originalSucessors = OpGanttValidator.getSuccessors(activity0);
-      ArrayList successors = new ArrayList();
+      List originalSucessors = OpGanttValidator.getSuccessors(activity0);
+      List successors = new ArrayList();
       successors.add(new Integer(validator.getDataSet().getChildCount()));
       try {
          validator.setDataCellValue(activity0, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, successors);
@@ -1767,20 +1772,20 @@ public class OpGanttValidatorTest extends OpTestCase {
     */
    private void assertActivitiesDependency() {
       XComponent activity1 = (XComponent) validator.getDataSet().getChild(0);
-      ArrayList activity1Successors = OpGanttValidator.getSuccessors(activity1);
+      List activity1Successors = OpGanttValidator.getSuccessors(activity1);
       assertEquals("Activity1 should have 1 sucessor ", 1, activity1Successors.size());
       assertEquals("Activity1 has the wrong sucessor ", 1, ((Integer) activity1Successors.get(0)).intValue());
 
       XComponent activity2 = (XComponent) validator.getDataSet().getChild(1);
-      ArrayList activity2Predecessors = OpGanttValidator.getPredecessors(activity2);
+      List activity2Predecessors = OpGanttValidator.getPredecessors(activity2);
       assertEquals("The second activity should have 1 predecessor ", 1, activity2Predecessors.size());
       assertEquals("The second activity has the wrong predecessor ", 0, ((Integer) activity2Predecessors.get(0)).intValue());
-      ArrayList activity2Successors = OpGanttValidator.getSuccessors(activity2);
+      List activity2Successors = OpGanttValidator.getSuccessors(activity2);
       assertEquals("The second activity should have 1 sucessor ", 1, activity2Successors.size());
       assertEquals("The second activity has the wrong sucessor ", 2, ((Integer) activity2Successors.get(0)).intValue());
 
       XComponent activity3 = (XComponent) validator.getDataSet().getChild(2);
-      ArrayList activity3Predecessors = OpGanttValidator.getPredecessors(activity3);
+      List activity3Predecessors = OpGanttValidator.getPredecessors(activity3);
       assertEquals("Activity3 should have 1 predecessor ", 1, activity3Predecessors.size());
       assertEquals("Activity3 has the wrong predecessor ", 1, ((Integer) activity3Predecessors.get(0)).intValue());
    }
@@ -1819,9 +1824,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, -1);
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(1));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(2));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
       assertTrue("The list of successors has not been updated ", successors.contains(new Integer(4)));
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(3)));
 
    }
@@ -1848,9 +1853,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, -1));
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(5));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(6));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
       assertEquals("The list of successors has not been updated ", successors, new ArrayList());
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(8)));
       predecessors = OpGanttValidator.getPredecessors((XComponent) secondRow);
       assertTrue("The list of predecessors has been modified", predecessors.contains(new Integer(3)));
@@ -1893,9 +1898,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, -1));
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(4));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(5));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
       assertEquals("The list of successors has not been updated ", successors, new ArrayList());
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(6)));
    }
 
@@ -1933,9 +1938,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, -1);
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(1));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(3));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
       assertTrue("The list of successors has not been updated ", successors.contains(new Integer(5)));
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) secondRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) secondRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(2)));
    }
 
@@ -1960,9 +1965,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, 1));
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(3));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(4));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) secondRow);
       assertTrue("The list of successors has not been updated ", successors.contains(new Integer(2)));
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(1)));
 
    }
@@ -1989,9 +1994,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.moveDataRows(rowsToMove, validator.getMovingOffset((XComponent) firstRow, (XComponent) secondRow, 1));
       assertEquals("The first row has not been moved up ", firstRow, validator.getDataSet().getChild(7));
       assertEquals("The second row has not been moved up ", secondRow, validator.getDataSet().getChild(8));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
       assertEquals("The list of successors has not been updated ", successors, new ArrayList());
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(4)));
 
    }
@@ -2026,9 +2031,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       int newFirstRowIndex = firstRowIndex + 1;
       assertEquals("The first row has not been moved down ", firstRow,
            validator.getDataSet().getChild(newFirstRowIndex));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
       assertTrue("The list of successors has not been updated ", successors.contains(new Integer(firstRowIndex)));
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) firstRow);
       assertTrue("The list of predecessors has been modified", predecessors.isEmpty());
    }
 
@@ -2071,9 +2076,9 @@ public class OpGanttValidatorTest extends OpTestCase {
       int newSecondRowIndex = secondRowIndex + offset;
       assertEquals("The second row has not been moved up ", secondRow,
            validator.getDataSet().getChild(newSecondRowIndex));
-      ArrayList successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
+      List successors = OpGanttValidator.getSuccessors((XComponent) firstRow);
       assertTrue("The list of successors has not been updated ", successors.contains(new Integer(newSecondRowIndex)));
-      ArrayList predecessors = OpGanttValidator.getPredecessors((XComponent) secondRow);
+      List predecessors = OpGanttValidator.getPredecessors((XComponent) secondRow);
       assertTrue("The list of predecessors has not been updated ", predecessors.contains(new Integer(newFirstRowIndex)));
    }
 
@@ -2103,7 +2108,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       /*checks if the activity is a collection*/
       String activityName = assertTestActivityIsCollection(activity);
       /*get the activity children*/
-      ArrayList childrenList = validator.getChildren(activity);
+      List childrenList = validator.getChildren(activity);
       /*the expected children List*/
       List expectedList = new ArrayList();
       expectedList.add(validator.getDataSet().getChild(dataSetSize - 1));
@@ -2596,11 +2601,11 @@ public class OpGanttValidatorTest extends OpTestCase {
       //working hours/day -> 8
       validator.updateBaseEffort(testedActivity, 20 * 8);
 
-      ArrayList starts;
+      List starts;
       starts = OpGanttValidator.getWorkPhaseStarts(testedActivity);
-      ArrayList ends;
+      List ends;
       ends = OpGanttValidator.getWorkPhaseFinishes(testedActivity);
-      ArrayList efforts;
+      List efforts;
       efforts = OpGanttValidator.getWorkPhaseBaseEfforts(testedActivity);
 
       //4 work phases
@@ -2658,11 +2663,11 @@ public class OpGanttValidatorTest extends OpTestCase {
       validator.updateDuration(testedActivity, 20 * 8);
       validator.updateBaseEffort(testedActivity, 20 * 8);
 
-      ArrayList starts;
+      List starts;
       starts = OpGanttValidator.getWorkPhaseStarts(testedActivity);
-      ArrayList ends;
+      List ends;
       ends = OpGanttValidator.getWorkPhaseFinishes(testedActivity);
-      ArrayList efforts;
+      List efforts;
       efforts = OpGanttValidator.getWorkPhaseBaseEfforts(testedActivity);
 
       //4 work phases
@@ -2728,11 +2733,11 @@ public class OpGanttValidatorTest extends OpTestCase {
       //a week (5 days) (res1 - eff 40), (res2 - eff 20)
       validator.setDataCellValue(testedActivity, OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, new Double(60.0));
 
-      ArrayList efforts = OpGanttValidator.getResourceBaseEfforts(testedActivity);
+      List efforts = OpGanttValidator.getResourceBaseEfforts(testedActivity);
       assertEquals("Effort for resource 1 is not correct", 40,
-           ((Double)efforts.get(0)).doubleValue(), DOUBLE_ERROR_MARGIN);
+           ((Double) efforts.get(0)).doubleValue(), DOUBLE_ERROR_MARGIN);
       assertEquals("Effort for resource 2 is not correct", 20,
-           ((Double)efforts.get(1)).doubleValue(), DOUBLE_ERROR_MARGIN);
+           ((Double) efforts.get(1)).doubleValue(), DOUBLE_ERROR_MARGIN);
    }
 
 
@@ -2804,10 +2809,11 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Add an hourly rate period for resource 1 from start to end
-    * @param start - the start of the hourly rates period
+    *
+    * @param start  - the start of the hourly rates period
     * @param finish - the end of hourly rates period
     */
-   private void addRatesToWorker1(Date start, Date finish){
+   private void addRatesToWorker1(Date start, Date finish) {
       XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(WORKER1_ID);
@@ -2847,6 +2853,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Change the availability of the two resources to the values specified by the parameters
+    *
     * @param availabilityWorker1 - the new availability for WORKER1 (in %)
     * @param availabilityWorker2 - the new availability for WORKER2 (in %)
     */
@@ -2884,10 +2891,11 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Validation test created from issue OPP-18 (http://issues.onepoint.at/jira/browse/OPP-18).
+    *
     * @throws Exception if anything unexpected fails.
     */
    public void testValidation1()
-         throws Exception {
+        throws Exception {
       XComponent validationDataSet = getTestDataSet("validation1TestData.xml");
       validator.setDataSet(validationDataSet);
       XComponent newActivity = this.createNewDataRow();
@@ -2909,7 +2917,7 @@ public class OpGanttValidatorTest extends OpTestCase {
            80.0, OpGanttValidator.getDuration(activity));
       assertEquals("The activity " + name + " has the wrong effort:",
            80.0, OpGanttValidator.getBaseEffort(activity));
-      assertEquals("The activity " + name + " has the wrong successors list:",  1,
+      assertEquals("The activity " + name + " has the wrong successors list:", 1,
            OpGanttValidator.getSuccessors(activity).size());
       assertEquals("The activity " + name + " has the wrong successor:",
            3, ((Integer) OpGanttValidator.getSuccessors(activity).get(0)).intValue());
@@ -2928,7 +2936,7 @@ public class OpGanttValidatorTest extends OpTestCase {
            40.0, OpGanttValidator.getDuration(activity));
       assertEquals("The activity " + name + " has the wrong effort:",
            40.0, OpGanttValidator.getBaseEffort(activity));
-      assertEquals("The activity " + name + " has the wrong successors list:",  1, OpGanttValidator.getSuccessors(activity).size());
+      assertEquals("The activity " + name + " has the wrong successors list:", 1, OpGanttValidator.getSuccessors(activity).size());
       assertEquals("The activity " + name + " has the wrong successor:",
            2, ((Integer) OpGanttValidator.getSuccessors(activity).get(0)).intValue());
 
@@ -2946,7 +2954,7 @@ public class OpGanttValidatorTest extends OpTestCase {
            40.0, OpGanttValidator.getDuration(activity));
       assertEquals("The activity " + name + " has the wrong effort:",
            40.0, OpGanttValidator.getBaseEffort(activity));
-      assertEquals("The activity " + name + " has the wrong predecessor list:",  1,
+      assertEquals("The activity " + name + " has the wrong predecessor list:", 1,
            OpGanttValidator.getPredecessors(activity).size());
       assertEquals("The activity " + name + " has the wrong predecessor:",
            1, ((Integer) OpGanttValidator.getPredecessors(activity).get(0)).intValue());
@@ -2965,7 +2973,7 @@ public class OpGanttValidatorTest extends OpTestCase {
            0.0, OpGanttValidator.getDuration(activity));
       assertEquals("The activity " + name + " has the wrong effort:",
            0.0, OpGanttValidator.getBaseEffort(activity));
-      assertEquals("The activity " + name + " has the wrong predecessor list:",  1,
+      assertEquals("The activity " + name + " has the wrong predecessor list:", 1,
            OpGanttValidator.getPredecessors(activity).size());
       assertEquals("The activity " + name + " has the wrong predecessor:",
            0, ((Integer) OpGanttValidator.getPredecessors(activity).get(0)).intValue());
@@ -2974,10 +2982,11 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    /**
     * Returns a GMT date from the given values for day, month and year.
-    * @param day a <code>byte</code> representing the day of a month.
+    *
+    * @param day   a <code>byte</code> representing the day of a month.
     * @param month a <code>byte</code> representing the month of a year.
-    * @param year a <code>byte</code> representing the year.
-    * @return  a <code>Date</code> value.
+    * @param year  a <code>byte</code> representing the year.
+    * @return a <code>Date</code> value.
     */
    private Date getGMTDate(int day, int month, int year) {
       Calendar gmtCalendar = Calendar.getInstance(XCalendar.GMT_TIMEZONE);

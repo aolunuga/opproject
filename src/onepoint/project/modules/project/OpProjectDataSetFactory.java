@@ -221,7 +221,7 @@ public final class OpProjectDataSetFactory {
             if (projectNode.getLocks().size() > 0) {
                iconIndex = PROJECT_LOCKED_ICON_INDEX;
                for (OpLock lock : projectNode.getLocks()) {
-                  if (lock.getOwner().getID() == session.user(broker).getID()) {
+                  if (lock.lockedByMe(session, broker)) {
                      iconIndex = PROJECT_EDITED_ICON_INDEX;
                      break;
                   }
@@ -240,7 +240,7 @@ public final class OpProjectDataSetFactory {
             if (projectNode.getLocks().size() > 0) {
                iconIndex = TEMPLATE_LOCKED_ICON_INDEX;
                for (OpLock lock : projectNode.getLocks()) {
-                  if (lock.getOwner().getID() == session.user(broker).getID()) {
+                  if (lock.lockedByMe(session, broker)) {
                      iconIndex = TEMPLATE_EDITED_ICON_INDEX;
                      break;
                   }
@@ -1082,4 +1082,26 @@ public final class OpProjectDataSetFactory {
       dataCell.setDoubleValue(OpActivityDataSetFactory.calculatePercentDeviation(baseCost, deviationCost));
       dataRow.addChild(dataCell);
    }
+
+   /**
+    * Returns a map with the project locators and the ids of the baselines for those projects
+    * which have a baseline set.
+    * @param session a <code>OpProjectSession</code> a server session.
+    * @return a <code>Map(String, Long)</code> with (projectLocator, baselineID) pairs.
+    */
+   public static Map<String, Long> getProjectsWithBaseline(OpProjectSession session) {
+      Map<String, Long> result = new HashMap<String, Long>();
+      OpBroker broker = session.newBroker();
+      String projectsQueryString = "select planVersion from OpProjectNode project inner join  project.Plan plan inner join plan.Versions planVersion where planVersion.Baseline=true";
+      OpQuery query = broker.newQuery(projectsQueryString);
+      Iterator<OpProjectPlanVersion> it = broker.iterate(query);
+      while (it.hasNext()) {
+         OpProjectPlanVersion baseline = it.next();
+         OpProjectNode project = baseline.getProjectPlan().getProjectNode();
+         result.put(project.locator(), baseline.getID());
+      }
+      broker.close();
+      return result;
+   }
+
 }

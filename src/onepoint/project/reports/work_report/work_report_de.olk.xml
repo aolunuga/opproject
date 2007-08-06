@@ -6,10 +6,10 @@
       <resource id="Start">Anfang</resource>
       <resource id="Finish">Ende</resource>
       <resource id="Date">Datum</resource>
-      <resource id="Resource">Resource</resource>
+      <resource id="Resource">Ressource</resource>
       <resource id="Hours">Aufwand (h)</resource>
       <resource id="Costs">Personal ({CurrencySymbol})</resource>
-      <resource id="Travel">Reisen ({CurrencySymbol})</resource>
+      <resource id="Travel">Reise ({CurrencySymbol})</resource>
       <resource id="Material">Material ({CurrencySymbol})</resource>
       <resource id="External">Externe ({CurrencySymbol})</resource>
       <resource id="Miscellaneous">Sonstige ({CurrencySymbol})</resource>
@@ -19,8 +19,8 @@
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>
 
-      <resource id="InvalidStart">The entered start date is not valid</resource>
-      <resource id="InvalidFinish">The entered finish date is not valid</resource>
-      <resource id="InvalidUser">Please select an user</resource>
+      <resource id="InvalidStart">Das eingegebene Startdatum ist nicht korrekt</resource>
+      <resource id="InvalidFinish">Das eingegebene Enddatum ist nicht korrekt</resource>
+      <resource id="InvalidUser">Bitte einen Benutzer auswählen</resource>
    </resource-map>
 </language-kit>

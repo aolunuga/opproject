@@ -37,7 +37,7 @@
 	</parameter>
 	<queryString><![CDATA[select wr.*, ws.op_date AS ws_date, s.op_name AS s_name, s.op_displayname AS s_displayname,
 rs.op_name AS rs_sub_name, rs.op_description AS rs_sub_description,
-rs.op_name AS rs_name, rs.op_description AS rs_description, rs.op_hourlyrate AS rs_rate,
+rs.op_name AS rs_name, rs.op_description AS rs_description, 
 ac.op_name AS ac_name, ac.op_description AS ac_description,
 pn.op_name AS pn_name, pn.op_description AS pn_description
 
@@ -56,6 +56,7 @@ and s.op_id = $P{UserId}
 order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 
 	<field name="op_actualeffort" class="java.lang.Double"/>
+	<field name="op_personnelcosts" class="java.lang.Double"/>
 	<field name="op_travelcosts" class="java.lang.Double"/>
 	<field name="op_materialcosts" class="java.lang.Double"/>
 	<field name="op_externalcosts" class="java.lang.Double"/>
@@ -63,7 +64,6 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 	<field name="ws_date" class="java.util.Date"/>
 	<field name="rs_name" class="java.lang.String"/>
 	<field name="rs_description" class="java.lang.String"/>
-	<field name="rs_rate" class="java.lang.Double"/>
 	<field name="pn_name" class="java.lang.String"/>
 	<field name="ac_name" class="java.lang.String"/>
 
@@ -112,17 +112,14 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 	<variable name="totMisc" class="java.lang.Double" resetType="Report" calculation="Sum">
 		<variableExpression><![CDATA[$F{op_miscellaneouscosts}]]></variableExpression>
 	</variable>
-	<variable name="slipCost" class="java.lang.Double" resetType="None" calculation="Nothing">
-		<variableExpression><![CDATA[new Double($F{op_actualeffort}.doubleValue() * $F{rs_rate}.doubleValue())]]></variableExpression>
-	</variable>
 	<variable name="projectCost" class="java.lang.Double" resetType="Group" resetGroup="Project" calculation="Sum">
-		<variableExpression><![CDATA[$V{slipCost}]]></variableExpression>
+		<variableExpression><![CDATA[$F{op_personnelcosts}]]></variableExpression>
 	</variable>
 	<variable name="totCost" class="java.lang.Double" resetType="Report" calculation="Sum">
-		<variableExpression><![CDATA[$V{slipCost}]]></variableExpression>
+		<variableExpression><![CDATA[$F{op_personnelcosts}]]></variableExpression>
 	</variable>
 	<variable name="resCost" class="java.lang.Double" resetType="Group" resetGroup="Resource" calculation="Sum">
-		<variableExpression><![CDATA[$V{slipCost}]]></variableExpression>
+		<variableExpression><![CDATA[$F{op_personnelcosts}]]></variableExpression>
 	</variable>
 	<variable name="resourceDescription" class="java.lang.String" resetType="None" calculation="Nothing">
 		<variableExpression><![CDATA[$F{rs_description} != null ? "(" + $F{rs_description} + ")" : ""]]></variableExpression>
@@ -157,7 +154,7 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 						mode="Transparent"
 						x="105"
 						y="5"
-						width="140"
+						width="149"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -171,9 +168,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="273"
+						x="299"
 						y="5"
-						width="54"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -187,9 +184,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="327"
+						x="345"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -203,9 +200,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="377"
+						x="391"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -219,9 +216,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="427"
+						x="437"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -235,9 +232,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="477"
+						x="483"
 						y="5"
-						width="51"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -251,9 +248,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="245"
+						x="254"
 						y="5"
-						width="28"
+						width="45"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -298,9 +295,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="245"
+						x="254"
 						y="2"
-						width="28"
+						width="45"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -314,9 +311,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="273"
+						x="299"
 						y="2"
-						width="54"
+						width="45"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -330,9 +327,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="327"
+						x="345"
 						y="2"
-						width="50"
+						width="46"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -346,9 +343,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="377"
+						x="392"
 						y="2"
-						width="50"
+						width="45"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -362,9 +359,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="427"
+						x="438"
 						y="2"
-						width="50"
+						width="45"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -378,9 +375,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="477"
+						x="483"
 						y="2"
-						width="51"
+						width="45"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -394,9 +391,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Opaque"
-						x="195"
+						x="194"
 						y="2"
-						width="50"
+						width="59"
 						height="19"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -459,7 +456,7 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 						mode="Transparent"
 						x="105"
 						y="5"
-						width="140"
+						width="149"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -473,9 +470,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="273"
+						x="299"
 						y="5"
-						width="54"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -489,9 +486,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="327"
+						x="345"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -505,9 +502,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="377"
+						x="391"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -521,9 +518,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="427"
+						x="437"
 						y="5"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -537,9 +534,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="477"
+						x="483"
 						y="5"
-						width="51"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -553,9 +550,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="245"
+						x="254"
 						y="5"
-						width="28"
+						width="45"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -690,9 +687,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="245"
+						x="254"
 						y="3"
-						width="28"
+						width="45"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -706,9 +703,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="327"
+						x="345"
 						y="3"
-						width="50"
+						width="46"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -722,9 +719,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="377"
+						x="391"
 						y="3"
-						width="50"
+						width="46"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -738,9 +735,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="273"
+						x="299"
 						y="3"
-						width="54"
+						width="46"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -749,14 +746,14 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="9" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.Double"><![CDATA[$V{slipCost}==null?new Double(0):$V{slipCost}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.Double"><![CDATA[$F{op_personnelcosts}==null?new Double(0):$F{op_personnelcosts}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="427"
+						x="437"
 						y="3"
-						width="50"
+						width="46"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -772,7 +769,7 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 						mode="Transparent"
 						x="195"
 						y="3"
-						width="50"
+						width="59"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -786,9 +783,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="477"
+						x="483"
 						y="3"
-						width="51"
+						width="46"
 						height="11"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
@@ -880,7 +877,7 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 						mode="Transparent"
 						x="105"
 						y="7"
-						width="140"
+						width="149"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -894,9 +891,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="273"
+						x="299"
 						y="7"
-						width="54"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -910,9 +907,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="327"
+						x="345"
 						y="7"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -926,9 +923,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="377"
+						x="391"
 						y="7"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -942,9 +939,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="427"
+						x="437"
 						y="7"
-						width="50"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -958,9 +955,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="477"
+						x="483"
 						y="7"
-						width="51"
+						width="46"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"
@@ -974,9 +971,9 @@ order by rs.op_name, pn.op_name, ws.op_date]]></queryString>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
-						x="245"
+						x="254"
 						y="7"
-						width="28"
+						width="45"
 						height="13"
 						forecolor="#5E728B"
 						backcolor="#FFFFFF"

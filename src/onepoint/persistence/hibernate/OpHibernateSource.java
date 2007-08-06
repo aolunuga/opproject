@@ -52,7 +52,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 14;
+   public static final int SCHEMA_VERSION = 22;
 
    /**
     * Db schema related constants
@@ -239,7 +239,7 @@ public class OpHibernateSource extends OpSource {
     * @return a <code>List(Interceptor)</code>.
     */
    protected List<Interceptor> getInterceptors() {
-      List<Interceptor> interceptors =  new ArrayList<Interceptor>();
+      List<Interceptor> interceptors = new ArrayList<Interceptor>();
       interceptors.add(new OpTimestampInterceptor());
       return interceptors;
    }
@@ -410,20 +410,20 @@ public class OpHibernateSource extends OpSource {
       sessionFactory.close();
       configuration.getProperties().clear();
       if (this.databaseType == HSQLDB) {
-    	  //somewhat dirty, but at least is shuts down properly...
-    	  org.hsqldb.persist.HsqlProperties prop = OpHibernateConnection.cleanupHSQLDBDefaultTableType (this);
-    	  org.hsqldb.DatabaseManager dbmgr = new org.hsqldb.DatabaseManager();
-    	  try {
-	          org.hsqldb.Session localSess = dbmgr.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
-	          localSess.sqlExecuteDirectNoPreChecks("SHUTDOWN");
-	          localSess.commit();
-	          localSess.close();
-	    	  OpHibernateConnection.cleanupHSQLDBDefaultTableType (this); //somehow the shutdown overwrites with the loaded values...
-    	  }
-          catch (Exception e) {
-              logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
-              dbmgr.closeDatabases(1);
-          }
+         //somewhat dirty, but at least is shuts down properly...
+         org.hsqldb.persist.HsqlProperties prop = OpHibernateConnection.cleanupHSQLDBDefaultTableType(this);
+         org.hsqldb.DatabaseManager dbmgr = new org.hsqldb.DatabaseManager();
+         try {
+            org.hsqldb.Session localSess = dbmgr.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
+            localSess.sqlExecuteDirectNoPreChecks("SHUTDOWN");
+            localSess.commit();
+            localSess.close();
+            OpHibernateConnection.cleanupHSQLDBDefaultTableType(this); //somehow the shutdown overwrites with the loaded values...
+         }
+         catch (Exception e) {
+            logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
+            dbmgr.closeDatabases(1);
+         }
       }
    }
 

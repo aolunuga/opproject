@@ -15,6 +15,7 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
+import onepoint.project.xml_rpc.OpXMLRPCUtil;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
@@ -74,8 +75,11 @@ public class OpMyTasksServiceXMLRPC {
       try {
          List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getRootTasks(session, broker);
+         Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
-            ret.add(getActivityData(rootTaskIter.next()));
+            map = getActivityData(rootTaskIter.next());
+            OpXMLRPCUtil.deleteMapNullValues(map);
+            ret.add(map);
          }
          return ret;
       } catch (XServiceException exc) {
@@ -93,8 +97,11 @@ public class OpMyTasksServiceXMLRPC {
       try {
          List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getMyTasks(session, broker);
+         Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
-            ret.add(getActivityData(rootTaskIter.next()));
+            map = getActivityData(rootTaskIter.next());
+            OpXMLRPCUtil.deleteMapNullValues(map);
+            ret.add(map);
          }
          return ret;
       } catch (XServiceException exc) {
@@ -112,8 +119,11 @@ public class OpMyTasksServiceXMLRPC {
       try {
          List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getMyTasks(session, broker, types);
+         Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
-            ret.add(getActivityData(rootTaskIter.next()));
+            map = getActivityData(rootTaskIter.next());
+            OpXMLRPCUtil.deleteMapNullValues(map);
+            ret.add(map);
          }
          return ret;
       } catch (XServiceException exc) {
@@ -133,7 +143,9 @@ public class OpMyTasksServiceXMLRPC {
          if (parent == null) {
             return(new HashMap<String, Object>());
          }
-         return getActivityData(parent);
+         Map<String, Object> map = getActivityData(parent);
+         OpXMLRPCUtil.deleteMapNullValues(map);
+         return map;
       } catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
@@ -149,8 +161,11 @@ public class OpMyTasksServiceXMLRPC {
          List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(parentId));
          Iterator<OpActivity> childTaskIter = impl.getChildTasks(session, broker, activity);
+         Map<String, Object> map;
          while (childTaskIter.hasNext()) {
-            ret.add(getActivityData(childTaskIter.next()));
+            map = getActivityData(childTaskIter.next());
+            OpXMLRPCUtil.deleteMapNullValues(map);
+            ret.add(map);
          }
          return ret;
       } catch (XServiceException exc) {
@@ -168,8 +183,11 @@ public class OpMyTasksServiceXMLRPC {
          List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(parentId));
          Iterator<OpActivity> childTaskIter = impl.getChildTasks(session, broker, activity, types);
+         Map<String, Object> map;
          while (childTaskIter.hasNext()) {
-            ret.add(getActivityData(childTaskIter.next()));
+            map = getActivityData(childTaskIter.next());
+            OpXMLRPCUtil.deleteMapNullValues(map);
+            ret.add(map);
          }
          return ret;
       } catch (XServiceException exc) {
@@ -185,7 +203,9 @@ public class OpMyTasksServiceXMLRPC {
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(id));
-         return getActivityData(activity);
+         Map<String, Object> map = getActivityData(activity);
+         OpXMLRPCUtil.deleteMapNullValues(map);
+         return map;
       } catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
@@ -200,7 +220,9 @@ public class OpMyTasksServiceXMLRPC {
       try {
          OpActivity activity = getActivity(session, broker, activityData);
          impl.insertAdhocTask(session, broker, activity);
-         return getActivityData(activity);
+         Map<String, Object> map = getActivityData(activity);
+         OpXMLRPCUtil.deleteMapNullValues(map);
+         return map;
       } catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
@@ -231,14 +253,15 @@ public class OpMyTasksServiceXMLRPC {
       try {
          OpActivity activity = getActivity(session, broker, activityData);
          impl.updateAdhocTask(session, broker, activity);
-         return getActivityData(activity);
+         Map<String, Object> map = getActivityData(activity);
+         OpXMLRPCUtil.deleteMapNullValues(map);
+         return map;
       } catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }
-     
+      }     
    }
 
    /**

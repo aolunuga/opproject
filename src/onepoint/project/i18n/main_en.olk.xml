@@ -8,7 +8,7 @@
    <resource-map id="main.levels">
       <resource id="runLevel0">Could not load configuration file</resource>
       <resource id="runLevel1">Could not load registered modules</resource>
-      <resource id="runLevel2">Cannont configure persistence support to access the database</resource>
+      <resource id="runLevel2">Cannot configure persistence support to access the database</resource>
       <resource id="runLevel3">Repository structure could not be set up</resource>
       <resource id="runLevel4">Could not update database schema</resource>
       <resource id="runLevel5">Could not start registered modules</resource>

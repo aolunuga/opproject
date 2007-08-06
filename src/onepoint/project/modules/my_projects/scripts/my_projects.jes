@@ -2,12 +2,12 @@
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
 
+require "onepoint/project/modules/project/scripts/projects.jes";
+
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-
-
 
 function print(event) {
    tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
@@ -20,17 +20,6 @@ function print(event) {
       activity_table.print(title);
    }
 }
-
-
-function saveProjectTableCSV(event){
-   XDisplay.getActiveForm().findComponent("ProjectsTable").saveAsCSV("Save My Projects");
-}
-
-function saveProjectTableImage(event) {
-   XDisplay.getActiveForm().findComponent("ProjectsTable").saveAsImage("Save My Projects");
-}
-
-
 
 function filterChanged(event){
    form = XDisplay.getActiveForm();

@@ -223,7 +223,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
    /**
     * Removes an array of data rows from the underlying data set.
     *
-    * @param dataRows a <code>XArray</code> of <code>XComponent</code> representing data rows.
+    * @param dataRows a <code>List</code> of <code>XComponent</code> representing data rows.
     * @return <code>true</code> or <code>false</code> whether the removal was sucessfull.
     */
    public boolean removeDataRows(List dataRows) {
@@ -466,14 +466,14 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             Integer effort = (Integer) entry.getValue();
             XComponent hourRow = hoursValidator.newDataRow();
             hourRow.setValue(entry.getKey());
-            
+
             hoursValidator.setProject(hourRow, this.getProject(timeRow));
             hoursValidator.setResource(hourRow, this.getResource(timeRow));
             hoursValidator.setActivity(hourRow, this.getActivity(timeRow));
             Double actualEffort = new Double(effort.doubleValue() / XCalendar.MINUTES_PER_HOUR);
             hoursValidator.setActualEffort(hourRow, actualEffort);
             hoursValidator.updateEffortCells(this.getActivity(timeRow), this.getResource(timeRow), hourRow);
-            Double originalRemaining = (Double) ((XComponent)hourRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX)).getValue();
+            Double originalRemaining = (Double) ((XComponent) hourRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX)).getValue();
             double remainingValue = originalRemaining.doubleValue() - actualEffort.doubleValue();
             if (remainingValue < 0) {
                remainingValue = 0;

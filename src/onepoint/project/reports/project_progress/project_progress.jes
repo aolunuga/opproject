@@ -95,20 +95,51 @@ function saveTableImage(event) {
  */
 function getReportQuery() {
    form = XDisplay.findFrame("QueryFrame").currentForm();
-   choice = form.findComponent("ProjectLocatorField").getStringValue();
+   projectLocator = form.findComponent("ProjectLocatorField").getStringValue();
    project = form.findComponent("ProjectNameField").getStringValue();
-   if (choice != null && project != null) {
-
-      selectClause = "select a.Name, a.OutlineLevel, a.Start, a.Finish, a.Duration, a.Complete, a.BaseEffort, a.BasePersonnelCosts, a.ActualEffort, a.ActualPersonnelCosts, a.Type, current_timestamp()";
-      fromClause = " from OpActivity a inner join a.ProjectPlan p inner join p.ProjectNode node";
-      whereClause = " where node.Archived=false and node.ID = ? and a.Deleted = false and a.Type != 3 and a.Type != 4 and a.Type != 6 order by a.Sequence";
-
-      queryString = selectClause + fromClause + whereClause;
-      Console.println("Project progress query:" + queryString);
-
-      query.queryString = queryString;
-      query.queryParams[0] = XValidator.choiceID(choice);
+   projectsWithBaseline = form.findComponent("ProjectsWithBaseline").getValue();
+   if (projectLocator != null && project != null) {
+      projectId = XValidator.choiceID(projectLocator);
+      baselineId = projectsWithBaseline.get(projectLocator);
+      if (baselineId != null) {
+         return getReportQueryWithBaseline(projectId, baselineId);
+      }
+      else {
+         return getReportQueryWithoutBaseline(projectId);
+      }
    }
+   return null;
+}
+
+/**
+ * Returns the report query when the selected project doesn't have a baseline.
+ */
+function getReportQueryWithoutBaseline(projectId) {
+   selectClause = "select a.Name, a.OutlineLevel, a.Start, a.Finish, a.Duration, a.Complete, a.BaseEffort, a.BasePersonnelCosts, a.ActualEffort, a.ActualPersonnelCosts, a.Type, current_timestamp()";
+   fromClause = " from OpActivity a inner join a.ProjectPlan p inner join p.ProjectNode node";
+   whereClause = " where node.Archived=false and node.ID = ? and a.Deleted = false and a.Type != 3 and a.Type != 4 and a.Type != 6 order by a.Sequence";
+
+   queryString = selectClause + fromClause + whereClause;
+   Console.println("Project progress query (without baseline) :" + queryString);
+   query.queryString = queryString;
+   query.queryParams[0] = projectId;
+
+   return query;
+}
+
+/**
+ * Returns the report query when the selected project doesn't have a baseline.
+ */
+function getReportQueryWithBaseline(projectId, baselineId) {
+   selectClause = "select a.Name, a.OutlineLevel, a.Start, a.Finish, a.Duration, a.Complete, av.BaseEffort, av.BasePersonnelCosts, a.ActualEffort, a.ActualPersonnelCosts, a.Type, current_timestamp()";
+   fromClause = " from OpActivity a inner join a.ProjectPlan p inner join p.ProjectNode node inner join a.Versions av inner join av.PlanVersion planVersion";
+   whereClause = " where node.Archived=false and node.ID = ? and planVersion.ID = ? and a.Deleted = false and a.Type != 3 and a.Type != 4 and a.Type != 6 order by a.Sequence";
+
+   queryString = selectClause + fromClause + whereClause;
+   Console.println("Project progress query (with baseline) :" + queryString);
+   query.queryString = queryString;
+   query.queryParams[0] = projectId;
+   query.queryParams[1] = baselineId;
 
    return query;
 }

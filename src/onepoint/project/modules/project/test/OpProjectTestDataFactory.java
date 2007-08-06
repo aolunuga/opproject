@@ -18,10 +18,7 @@ import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class contains helper methods for managing projects data
@@ -349,53 +346,68 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         return createProjectMsg(name, date, budget, status, portfolio, null, null, null, null, null);
     }
 
-    public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio) {
-        if (date == null) {
-            date = new Date(System.currentTimeMillis());
-        }
-        if (portfolio == null) {
-            portfolio = OpLocator.locatorString(OpProjectNode.PROJECT_NODE, 0);
-        }
-        return createProjectMsg(name, date, finishDate, budget, status, portfolio, null, null, null, null, null, new XComponent(XComponent.DATA_SET));
-    }
+   public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio) {
+      if (date == null) {
+         date = new Date(System.currentTimeMillis());
+      }
+      if (portfolio == null) {
+         portfolio = OpLocator.locatorString(OpProjectNode.PROJECT_NODE, 0);
+      }
+      return createProjectMsg(name, date, finishDate, budget, status, portfolio, null, null, null, null, null, new XComponent(XComponent.DATA_SET));
+   }
 
-    public static XMessage createProjectMsg(String name, Date date, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos) {
-        return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, new XComponent(XComponent.DATA_SET));
-    }
+   public static XMessage createProjectMsg(String name, Date date, double budget, String status, String portfolio,
+        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos) {
+      return createProjectMsg(name, date, null, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, new XComponent(XComponent.DATA_SET));
+   }
 
     public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio,
                                             Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos, XComponent dataSet) {
-        HashMap args = new HashMap();
-        args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
-        args.put(OpProjectNode.NAME, name);
-        args.put(OpProjectNode.START, date);
-        args.put(OpProjectNode.FINISH, finishDate);
-        args.put(OpProjectNode.BUDGET, budget);
-        args.put(OpProjectNode.STATUS, status);
-        args.put(OpProjectNode.PRIORITY, OpProjectNode.DEFAULT_PRIORITY);
-        args.put(OpProjectNode.PROBABILITY, OpProjectNode.DEFAULT_PROBABILITY);
-        args.put(OpProjectNode.ARCHIVED, OpProjectNode.DEFAULT_ARCHIVED);
-        args.put("PortfolioID", portfolio);
-        args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
-        args.put(OpProjectPlan.PROGRESS_TRACKED, prgTrk);
-        args.put(OpPermissionSetFactory.PERMISSION_SET, dataSet);
 
-        XMessage request = new XMessage();
-        request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
-        request.setArgument(OpProjectAdministrationService.GOALS_SET, createDataSet(goals));
-        request.setArgument(OpProjectAdministrationService.TO_DOS_SET, createDataSet(todos));
-        request.setArgument(OpProjectAdministrationService.RESOURCE_SET, resources);
-        return request;
+        XComponent attachmentSet = createEmptyAttachmentDataSet();
+        return createProjectMsg(name, date, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, dataSet, attachmentSet);
     }
 
-    public static XMessage updateProjectMsg(String id, String name, Date date, double budget, String status, String portfolio,
+   public static XMessage createProjectMsg(String name, Date date, Date finishDate, double budget, String status, String portfolio,
+        Boolean calcMode, Boolean prgTrk, XComponent resources, Object[][] goals, Object[][] todos, XComponent dataSet,
+        XComponent attachmentSet) {
+      HashMap args = new HashMap();
+      args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
+      args.put(OpProjectNode.NAME, name);
+      args.put(OpProjectNode.START, date);
+      args.put(OpProjectNode.FINISH, finishDate);
+      args.put(OpProjectNode.BUDGET, budget);
+      args.put(OpProjectNode.STATUS, status);
+      args.put(OpProjectNode.PRIORITY, OpProjectNode.DEFAULT_PRIORITY);
+      args.put(OpProjectNode.PROBABILITY, OpProjectNode.DEFAULT_PROBABILITY);
+      args.put(OpProjectNode.ARCHIVED, OpProjectNode.DEFAULT_ARCHIVED);
+      args.put("PortfolioID", portfolio);
+      args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
+      args.put(OpProjectPlan.PROGRESS_TRACKED, prgTrk);
+      args.put(OpPermissionSetFactory.PERMISSION_SET, dataSet);
+
+      XMessage request = new XMessage();
+      request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
+      request.setArgument(OpProjectAdministrationService.GOALS_SET, createDataSet(goals));
+      request.setArgument(OpProjectAdministrationService.TO_DOS_SET, createDataSet(todos));
+      request.setArgument(OpProjectAdministrationService.RESOURCE_SET, resources);
+      request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmentSet);
+      return request;
+   }
+
+   public static XMessage updateProjectMsg(String id, String name, Date date, double budget, String status, String portfolio,
                                             Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos) {
         return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos));
     }
 
-    public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
+   public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
                                             Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos) {
+      XComponent attachmentSet = createEmptyAttachmentDataSet();
+      return updateProjectMsg(id, name, startDate, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, attachmentSet);
+   }
+
+    public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
+                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, XComponent attachmetSet) {
         HashMap args = new HashMap();
         args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
         args.put(OpProjectNode.NAME, name);
@@ -416,6 +428,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
         request.setArgument(OpProjectAdministrationService.GOALS_SET, goals);
         request.setArgument(OpProjectAdministrationService.TO_DOS_SET, todos);
+        request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmetSet);
         request.setArgument("resource_set", resources);
         request.setArgument("versions_set", new XComponent(XComponent.DATA_SET));
         return request;
@@ -492,4 +505,23 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         }
         return currentTotal;
     }
+
+   /**
+    * Creates a <code>XComponent</code> data set with one row and one cell in that row. The cell's value will
+    *    be set to an empty <code>List</code>.
+    *
+    * @return the newly created data set.
+    */
+   public static XComponent createEmptyAttachmentDataSet() {
+
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      List<List> attachmentsList = new ArrayList<List>();
+      dataCell.setValue(attachmentsList);
+      dataRow.addChild(dataCell);
+      dataSet.addChild(dataRow);
+
+      return dataSet;
+   }
 }

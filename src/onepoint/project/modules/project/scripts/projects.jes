@@ -1,23 +1,15 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
  */
-require
-"onepoint/project/modules/project/scripts/open_project_chooser.jes";
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/scripts/lazyLoad.jes";
+require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/scripts/lazyLoad.jes";
 
-import
-onepoint.service.XMessage;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.express.XExtendedComponent;
-import
-onepoint.express.XValidator;
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 
 function newPortfolio(event) {
    // Check if portfolio is selected
@@ -383,3 +375,40 @@ function retrieveChildren(event) {
    expandNode(dataRow, 23, request);
 }
 
+function tabChanged(event) {
+   //project form
+   form = XDisplay.getActiveForm();
+   //toolbar
+   toolbar = form.findComponent("ProjectToolbar");
+
+   //toolbar buttons
+   newProjectButton = form.findComponent("NewProjectButton");
+   newProjectButton.setEnabled(true);
+   newPortfolioButton = form.findComponent("NewPortfolioButton");
+   newPortfolioButton.setEnabled(true);
+   infoButton = form.findComponent("InfoButton");
+   infoButton.setEnabled(false);
+   moveButton = form.findComponent("MoveButton");
+   moveButton.setEnabled(false);
+   deleteButton = form.findComponent("DeleteButton");
+   deleteButton.setEnabled(false);
+
+   toolbar.doLayout();
+   toolbar.repaint();
+}
+
+function getActiveTableComponent(){
+   tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
+   cur_tab = tabBox.getIntValue();
+   tab = tabBox.getChild(cur_tab + 1);
+   return tab.getChild(0);
+}
+
+function saveTableCSV(event){
+   getActiveTableComponent().saveAsCSV("Save My Projects");
+}
+
+function saveTableImage(event) {
+   getActiveTableComponent().saveAsImage("Save My Projects");
+}
+ 

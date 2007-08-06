@@ -1,0 +1,16 @@
+<prototype name="OpWorkMonth" instance-class="onepoint.project.modules.project.OpWorkMonth" super-type="OpObject">
+   <field name="Year" type="Integer"/>
+   <field name="Month" type="Byte"/>
+   <field name="BaseAssigned" type="Double"/>
+   <field name="LatestAssigned" type="Double"/>
+   <field name="BaseEffort" type="Double"/>
+   <field name="LatestEffort" type="Double"/>
+   <field name="BasePersonnelCosts" type="Double"/>
+   <field name="LatestPersonnelCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
+   <field name="LatestProceeds" type="Double"/>
+   <field name="RemainingProceeds" type="Double"/>
+   <field name="RemainingPersonnel" type="Double"/>
+   <field name="WorkingDays" type="Byte"/>
+   <relationship name="Assignment" type="OpAssignment" back-relationship="WorkMonths"/>
+</prototype>

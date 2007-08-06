@@ -16,6 +16,6 @@
 
    <resource-map id="preferences.error">
       <resource id="EmptyPassword">Please enter a password</resource>
-      <resource id="PasswordMissmatch">Password incorrect</resource> 
+      <resource id="PasswordMissmatch">Password incorrect</resource>
    </resource-map>
 </language-kit>

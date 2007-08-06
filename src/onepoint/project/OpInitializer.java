@@ -11,6 +11,8 @@ import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
+import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
+import onepoint.project.configuration.OpDatabaseConfiguration;
 import onepoint.project.module.OpLanguageKitPath;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
@@ -114,20 +116,21 @@ public class OpInitializer {
             // Read configuration file
             OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
             String projectPath = OpEnvironmentManager.getOnePointHome();
-            OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
 
             preInit();
 
-            if (configuration == null) {
+            try {
+               this.configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+            }
+            catch (OpInvalidDataBaseConfigurationException e) {
                logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
                //prepare the db wizard
                logger.info("Initializing db configuration wizard module...");
                OpConfigurationWizardManager.loadConfigurationWizardModule();
+
                return initParams; //show db configuration wizard frame
             }
-            else {
-               this.configuration = configuration;
-            }
+
 
             // initialize logging facility
             String logFile = configuration.getLogFile();
@@ -137,7 +140,7 @@ public class OpInitializer {
             XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
 
             //get the db connection parameters
-            OpConfiguration.DatabaseConfiguration dbConfig = configuration.getDatabaseConfiguration();
+            OpDatabaseConfiguration dbConfig = configuration.getDatabaseConfigurations().iterator().next();
             String databaseUrl = dbConfig.getDatabaseUrl();
             String databaseDriver = dbConfig.getDatabaseDriver();
             String databasePassword = dbConfig.getDatabasePassword();

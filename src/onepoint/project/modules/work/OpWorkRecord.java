@@ -359,24 +359,41 @@ public class OpWorkRecord extends OpObject {
     */
    public double calculateRemainingCostsOfType(byte type) {
       double sum = 0;
+      boolean remainingWasCalculated = false;
       Set<OpCostRecord> costRecords = this.getCostRecordByType(type);
-      for (OpCostRecord costRecord : costRecords) {
-         sum += costRecord.getRemainingCosts();
+      if (!costRecords.isEmpty()) {
+         for (OpCostRecord costRecord : costRecords) {
+            sum = costRecord.getRemainingCosts();
+            break;
+         }
+         remainingWasCalculated = true;
       }
       switch (type) {
          case OpCostRecord.MATERIAL_COST: {
+            if(!remainingWasCalculated){
+               sum = this.getAssignment().getActivity().getRemainingMaterialCosts();
+            }
             this.remMaterialCosts = sum;
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
+            if(!remainingWasCalculated){
+               sum = this.getAssignment().getActivity().getRemainingExternalCosts();
+            }
             this.remExternalCosts = sum;
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
+            if(!remainingWasCalculated){
+               sum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
+            }
             this.remMiscCosts = sum;
             break;
          }
          case OpCostRecord.TRAVEL_COST: {
+            if(!remainingWasCalculated){
+               sum = this.getAssignment().getActivity().getRemainingTravelCosts();
+            }
             this.remTravelCosts = sum;
             break;
          }

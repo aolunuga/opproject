@@ -94,7 +94,7 @@ function getReportQuery() {
    choice = form.findComponent("UserNameField").getStringValue();
    if (choice != null) {
 
-      selectClause1 = "select resource.Name, resource.Description, resource.HourlyRate, projectNode.Name, activity.Name, workslip.Date";
+      selectClause1 = "select resource.Name, resource.Description,  projectNode.Name, activity.Name, workslip.Date, workRecord.PersonnelCosts";
       selectClause2 = " , workRecord.ActualEffort, workRecord.TravelCosts, workRecord.MaterialCosts, workRecord.ExternalCosts, workRecord.MiscellaneousCosts";
       fromClause1 = " from OpWorkSlip workslip inner join workslip.Records workRecord inner join workRecord.Assignment asgn inner join asgn.Activity activity inner join activity.ProjectPlan plan";
       fromClause2 = " inner join plan.ProjectNode projectNode inner join asgn.Resource resource inner join resource.User user";
@@ -121,10 +121,10 @@ function getReportQuery() {
 function getReportFields() {
    result.rs_name = 0;
    result.rs_description = 1;
-   result.rs_rate = 2;
-   result.pn_name = 3;
-   result.ac_name = 4;
-   result.ws_date = 5;
+   result.pn_name = 2;
+   result.ac_name = 3;
+   result.ws_date = 4;
+   result.op_personnelcosts = 5;
    result.op_actualeffort = 6;
    result.op_travelcosts = 7;
    result.op_materialcosts = 8;

@@ -76,7 +76,7 @@
       <resource id="StartValueException">Start value is invalid</resource>
       <resource id="FinishValueException">Finish value is invalid</resource>
       <resource id="DurationValueException">Duration value incorrect</resource>
-      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlapped for same assignment</resource>
       <resource id="ActualEffortException">Actual effort is invalid</resource>
       <resource id="RemainingEffortException">Remaining effort is invalid</resource>
       <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
@@ -131,7 +131,7 @@
       <resource id="StartValueException">Start value is invalid</resource>
       <resource id="FinishValueException">Finish value is invalid</resource>
       <resource id="DurationValueException">Duration value incorrect</resource>
-      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
+      <resource id="IntervalsOverlapException">Duration intervals are overlapped for same assignment</resource>
       <resource id="ActualEffortException">Actual effort is invalid</resource>
       <resource id="RemainingEffortException">Remaining effort is invalid</resource>
       <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
@@ -141,7 +141,7 @@
    </resource-map>
 
    <resource-map id="work.Info">
-      <resource id="WorkInfo">Work Slip Info</resource>
+      <resource id="WorkInfo">Work Slip Properties</resource>
    </resource-map>
 
    <resource-map id="work.manage_attachments">
@@ -159,7 +159,7 @@
    <resource-map id="work.error">
       <resource id="DateMissing">The work slip date was not specified</resource>
       <resource id="CreatorMissing">The work slip creator was not specified</resource>
-      <resource id="WorkRecordsMissing">The work slip has no valid work records</resource>
+      <resource id="WorkRecordsMissing">The work slip has no valid work or cost records</resource>
       <resource id="DuplicateDate">A work slip for the specified date exists already</resource>
       <resource id="IncorrectActualEffort">Incorrect Actual Effort</resource>
       <resource id="IncorrectRemainingEffort">Incorrect Remaining Effort</resource>

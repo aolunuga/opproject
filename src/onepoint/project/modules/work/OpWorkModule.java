@@ -121,7 +121,7 @@ public class OpWorkModule extends OpModule {
       double actualMaterialCosts = workRecord.getMaterialCosts();
       double remainingMaterialCosts = baseMaterialCosts - actualMaterialCosts;
       workRecord.setRemMaterialCosts(remainingMaterialCosts);
-      workRecord.setRemMaterialCosts(remainingMaterialCosts);
+      workRecord.setRemMaterialCostsChange(remainingMaterialCosts);
       broker.updateObject(workRecord);
 
       if (actualMaterialCosts > 0) {

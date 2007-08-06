@@ -29,6 +29,7 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServer;
 import onepoint.util.XCalendar;
 import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
@@ -38,6 +39,7 @@ import javax.mail.internet.AddressException;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -164,6 +166,7 @@ public class OpProjectPlanningService extends OpProjectService {
       OpTransaction t = broker.newTransaction();
       OpLock lock = new OpLock();
       lock.setOwner(session.user(broker));
+      lock.setLockerID(new Long(session.getID()));
       lock.setTarget(project);
       broker.makePersistent(lock);
       // *** TODO: Use session.getCalendar().now() for setCreated()
@@ -386,12 +389,7 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
          OpLock lock = project.getLocks().iterator().next();
-         if (lock.getOwner().getID() != session.getUserID()) {
-            logger.error("Project is locked by another user");
-            broker.close();
-            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
-         }
-
+         checkLock(session, broker, lock);
          t = broker.newTransaction();
 
          // Check if project plan already exists (create if not)
@@ -442,6 +440,21 @@ public class OpProjectPlanningService extends OpProjectService {
    }
 
    /**
+    * @param session
+    * @param broker 
+    * @param lock
+    * @pre
+    * @post
+    */
+   private void checkLock(OpProjectSession session, OpBroker broker, OpLock lock) throws OpProjectPlanningException {
+      if (!lock.lockedByMe(session, broker)) {
+         logger.error("Project is locked by another user");
+         broker.close();
+         throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
+      }
+   }
+
+   /**
     * Checks in the project plan
     *
     * @param session Current project session
@@ -481,11 +494,7 @@ public class OpProjectPlanningService extends OpProjectService {
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
          OpLock lock = project.getLocks().iterator().next();
-         if (lock.getOwner().getID() != session.getUserID()) {
-            logger.error("Project is locked by another user");
-            broker.close();
-            throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
-         }
+         checkLock(session, broker, lock);
 
          checkActivitiesBaseEffort(dataSet, broker, session);
 
@@ -594,9 +603,9 @@ public class OpProjectPlanningService extends OpProjectService {
             return null;
          }
          OpLock lock = project.getLocks().iterator().next();
-         if (lock.getOwner().getID() != session.getUserID()) {
-            logger.error("Project is locked by another user");
-            broker.close();
+         try {
+            checkLock(session, broker, lock);
+         } catch (OpProjectPlanningException exc) {
             // TODO: Error handling
             return null;
          }

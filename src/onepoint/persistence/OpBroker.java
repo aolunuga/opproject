@@ -71,6 +71,19 @@ public class OpBroker {
    }
 
    public Iterator iterate(OpQuery query) {
+      //<FIXME author="Mihai Costin" description="Use iterate when iterate related issues have been solved">
+      // Find object in sources specified in query (default is default source)
+//      if (defaultConnection != null) {
+//         return defnaultConnection.iterate(query);
+//      }
+//      else {
+//         return null;
+//      }
+      //</FIXME>
+      return list(query).iterator();
+   }
+
+   public Iterator forceIterate(OpQuery query) {
       // Find object in sources specified in query (default is default source)
       if (defaultConnection != null) {
          return defaultConnection.iterate(query);
@@ -79,6 +92,7 @@ public class OpBroker {
          return null;
       }
    }
+
 
    public int execute(OpQuery query) {
       if (defaultConnection != null) {

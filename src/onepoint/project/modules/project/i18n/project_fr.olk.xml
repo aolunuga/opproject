@@ -58,13 +58,17 @@
       <resource id="InfoTooltip">Regardez les informations pour le projet ou le portfolio choisi</resource>
       <resource id="DeleteTooltip">Effacer les projets et portfolios choisi</resource>
 
+      <resource id="SaveCSV">Sauvegarder en tableau...</resource>
+      <resource id="SaveImage">Sauvegarder en image...</resource>
    </resource-map>
+
    <resource-map id="project.ProjectChooser">
       <resource id="SelectProject">Choisissez le projet ou le portfolio</resource>
       <resource id="SelectPortfolio">Choisissez le Portfolio</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
+   
    <resource-map id="project.NewPortfolio">
       <resource id="NewPortfolio">Nouveau Portfolio</resource>
 
@@ -109,7 +113,15 @@
       <resource id="ProgressTracked">Suivre l'avancement</resource>
       <resource id="Status">Statut du Projet</resource>
       <resource id="NoStatus">(Rien)</resource>
-      
+
+      <resource id="Attachments">piéce jointe</resource>
+      <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
+      <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="Title">Titre</resource>
+      <resource id="Location">Lieu</resource>
+
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -154,6 +166,14 @@
       <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Statut du Projet</resource>
       <resource id="NoStatus">(Sans Statut)</resource>
+
+      <resource id="Attachments">piéce jointe</resource>
+      <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
+      <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="Title">Titre</resource>
+      <resource id="Location">Lieu</resource>
 
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>

@@ -85,20 +85,20 @@
       <resource id="LoopErrorMessage">This action would cause a loop in the project plan</resource>
       <resource id="ResourcesErrorMessage">The resource name could not be found in the project's resource pool</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
-      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability of the resource</resource>
       <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
       <resource id="RangeErrorMessage">Index is out of range</resource>
       <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
       <resource id="MilestoneCollectionErrorMessage">Milestones must not contain sub-activities</resource>
       <resource id="ScheduledMixedErrorMessage">It is not allowed to have tasks and activities in the same collection structure</resource>
-      <resource id="WorkRecordsExistErrorMessage">There exist work slips referencing this activity</resource>
+      <resource id="WorkRecordsExistErrorMessage">There are work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
       <resource id="ExportProjectTitle">Export Project Plan</resource>
-      <resource id="FileWriteError">File Write Errort</resource>
+      <resource id="FileWriteError">The file could not be written</resource>
    </resource-map>
 
    <resource-map id="project_planning.RevertProjectPlan">
@@ -130,7 +130,7 @@
       <resource id="InfoTaskActivity">Task Details</resource>
       <resource id="InfoCollectionTaskActivity">Collection Task Details</resource>
       <resource id="InfoScheduledTaskTitle">Scheduled Task Details</resource>
-      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability of the resource</resource>
 
       <resource id="General">General</resource>
       <resource id="Name">Name</resource>
@@ -184,9 +184,9 @@
       <resource id="MandatoryErrorMessage">Mandatory activities must not be changed</resource>
       <resource id="RangeErrorMessage">Index is out of range</resource>
       <resource id="InvalidCostErrorMessage">Entered cost value is not valid</resource>
-      <resource id="WorkRecordsExistErrorMessage">There exist work slips for this resource assignment</resource>
+      <resource id="WorkRecordsExistErrorMessage">There are work slips for this resource assignment</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
-      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
       <resource id="InvalidBaseEffortErrorMessage">The entered base effort is lower than the actual effort of the activity</resource>
       
       <resource id="NoCategory">(None)</resource>
@@ -213,7 +213,7 @@
    </resource-map>
 
    <resource-map id="project_planning.AddResource">
-      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability</resource>
+      <resource id="AssignmentErrorMessage">The entered assignment is not valid compared to availability of the resource</resource>
       <resource id="AddResource">Add Resource</resource>
       <resource id="Resource">Resource</resource>
       <resource id="PercentageAssigned">% Assigned</resource>
@@ -246,7 +246,7 @@
       <resource id="Start">Start</resource>
       <resource id="Finish">Finish</resource>
       <resource id="Duration">Duration (d)</resource>
-      <resource id="PercentComplete">% Complete</resource>
+      <resource id="PercentComplete">% Completed</resource>
       <resource id="Effort">Effort (h)</resource>
       <resource id="Costs">Costs ({CurrencySymbol})</resource>
       <resource id="Resources">Resources</resource>
@@ -267,12 +267,12 @@
       <resource id="CommentNotFound">The comment was not found</resource>
       <resource id="AdministratorAccessDenied">You need administrator privileges for this operation</resource>
       <resource id="HourlyRatesModifiedWarning">Personnel costs have been recalculated, because hourly rates of resources used in this project plan were modified</resource>
-      <resource id="AvailabilityModifiedWarning">Personnel costs have been recalculated, because the availability of resources used in this project plan were modified</resource>
+      <resource id="AvailabilityModifiedWarning">Personnel costs have been recalculated, because the availability of resources used in this project plan was modified</resource>
       <resource id="AvailabilityAndRatesModifiedWarning">Personnel costs have been recalculated, because the availability and hourly rates of resources used in this project plan were modified</resource>
       <resource id="MsProjectFileReadError">Microsoft Project file could not be read</resource>
       <resource id="MsProjectFileWriteError">Project plan could not be exported to Microsoft Project format</resource>
       <resource id="InsuficientAttachmentPermissions">You do not have sufficient privileges to view this attachment</resource>
-      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the old activities contains work slips</resource>
+      <resource id="ImportErrorWorkRecordsExist">You cannot import new activities because the existent activities contain work slips</resource>
 
       <resource id="ProjectCheckedInError">The project plan cannot be edited, because it is currently checked in</resource>
       <resource id="ProjectCheckOutError">An error occured during the project check out operation</resource>

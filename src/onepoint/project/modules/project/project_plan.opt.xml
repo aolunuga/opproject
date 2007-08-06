@@ -11,5 +11,4 @@
    <relationship name="WorkPeriods" type="OpWorkPeriod" collection-type="Set" back-relationship="ProjectPlan" inverse="true"/>
    <relationship name="Dependencies" type="OpDependency" collection-type="Set" back-relationship="ProjectPlan" inverse="true"/>
    <relationship name="Versions" type="OpProjectPlanVersion" collection-type="Set" back-relationship="ProjectPlan" inverse="true" cascade="delete"/>
-   <relationship name="BaselineVersion" type="OpProjectPlanVersion"/>
 </prototype>

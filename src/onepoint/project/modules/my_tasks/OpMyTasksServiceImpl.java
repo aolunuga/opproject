@@ -202,6 +202,9 @@ public class OpMyTasksServiceImpl implements OpService {
       final Iterator iter = broker.iterate(query);
       return new Iterator<OpActivity>() {
          public boolean hasNext() {
+            if (iter == null) {
+               return false;
+            }
             return iter.hasNext();
          }
 

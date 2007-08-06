@@ -10,7 +10,10 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Set;
 
 public class OpProjectNodeAssignment extends OpObject {
 
@@ -74,13 +77,14 @@ public class OpProjectNodeAssignment extends OpObject {
    /**
     * Returns a List containing the internal and external rates of a resource for a given day.
     * When looking for the internal rate the priority is:
-    *    -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
-    *    -  the assignment's hourly/external rate
-    *    - the assignment's resource rates periods set
-    *    - the assignment's resource hourly/external rate 
+    * -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
+    * -  the assignment's hourly/external rate
+    * - the assignment's resource rates periods set
+    * - the assignment's resource hourly/external rate
     *
     * @param aDay - the day for which the internal rate will be returned
-    * @return - the <code>List</code> containing the internal and external rates of a project assignment for the given day
+    * @return - the <code>List</code> containing the internal and external rates of a project assignment for the given day.
+    *         Use <code>INTERNAL_RATE_INDEX</code> and <code>EXTERNAL_RATE_INDEX</code> to retrieve the values.
     */
    public List<Double> getRatesForDay(Date aDay, boolean searchPeriodsSet) {
       List<Double> result = new ArrayList<Double>();
@@ -105,14 +109,14 @@ public class OpProjectNodeAssignment extends OpObject {
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)) {
          internalRate = hourlyRate;
          //if the internal rate is null return the assignment's resource rate
-         if(internalRate == null){
+         if (internalRate == null) {
             internalRate = resource.getRatesForDay(aDay).get(OpResource.INTERNAL_RATE_INDEX);
          }
       }
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)) {
          externalRate = this.externalRate;
          //if the external rate is null return the assignment's resource rate
-         if(externalRate == null){
+         if (externalRate == null) {
             externalRate = resource.getRatesForDay(aDay).get(OpResource.EXTERNAL_RATE_INDEX);
          }
       }
@@ -126,15 +130,15 @@ public class OpProjectNodeAssignment extends OpObject {
     * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
     * for a project assignment for a given interval. When looking for the internal rate the
     * priority is:
-    *    -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
-    *    -  the assignment's hourly/external rate
-    *    - the assignment's resource rates periods set
-    *    - the assignment's resource hourly/external rate
+    * -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
+    * -  the assignment's hourly/external rate
+    * - the assignment's resource rates periods set
+    * - the assignment's resource hourly/external rate
     *
-    * @param start - the begining of the interval
-    * @param end   - the end of the interval
+    * @param start            - the begining of the interval
+    * @param end              - the end of the interval
     * @param searchPeriodsSet - parameter which indicates if the search for the rates should look in the
-    * assignment's hourly rates periods set
+    *                         assignment's hourly rates periods set
     * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
     *         for the given interval
     */
@@ -168,10 +172,10 @@ public class OpProjectNodeAssignment extends OpObject {
     * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
     * for a resource assigned on a project for a given list of days. When looking for the internal/external
     * rate the priority is:
-    *    -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
-    *    -  the assignment's hourly/external rate
-    *    - the assignment's resource rates periods set
-    *    - the assignment's resource hourly/external rate
+    * -  the assignments rates periods set (if the searchPeriodsSet parameter is true)
+    * -  the assignment's hourly/external rate
+    * - the assignment's resource rates periods set
+    * - the assignment's resource hourly/external rate
     *
     * @param daysList - the list of days for which the rates will be returned
     * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
@@ -203,23 +207,23 @@ public class OpProjectNodeAssignment extends OpObject {
     * @return <code>true</code> if all period intervals are distinct
     *         <code>false</code> if at least two period intervals ovelap
     */
-   public boolean checkPeriodDoNotOverlap(){
+   public boolean checkPeriodDoNotOverlap() {
 
       ArrayList<OpHourlyRatesPeriod> periodList = new ArrayList<OpHourlyRatesPeriod>();
       for (OpHourlyRatesPeriod opHourlyRatesPeriod : getHourlyRatesPeriods()) {
          periodList.add(opHourlyRatesPeriod);
       }
 
-      for(int i = 0; i < periodList.size(); i++){
+      for (int i = 0; i < periodList.size(); i++) {
          OpHourlyRatesPeriod currentPeriod = periodList.get(i);
          java.util.Date currentStart = currentPeriod.getStart();
          java.util.Date currentEnd = currentPeriod.getFinish();
 
-         for(int j = i + 1; j < periodList.size(); j++){
+         for (int j = i + 1; j < periodList.size(); j++) {
             OpHourlyRatesPeriod secondPeriod = periodList.get(j);
             java.util.Date secondStart = secondPeriod.getStart();
             java.util.Date secondEnd = secondPeriod.getFinish();
-            if(!((currentEnd.before(secondStart)) || (secondEnd.before(currentStart)))){
+            if (!((currentEnd.before(secondStart)) || (secondEnd.before(currentStart)))) {
                return false;
             }
          }

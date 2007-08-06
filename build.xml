@@ -273,7 +273,7 @@
 
    <!-- Creates the client-side jar files with the client libraries -->
    <target name="build.client.jars" depends="build" description="Create the opproject client jars">
-      <jar manifest="${manifest.file}" destfile="${jars.dir}/${project.client.jarname}">
+      <jar destfile="${jars.dir}/${project.client.jarname}">
          <fileset dir="${client.classes.dir}">
             <patternset refid="project.client.pathid"/>
          </fileset>
@@ -561,9 +561,9 @@
       <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
                classpath="${op.jarbundler.classpath}"/>
       <jarbundler dir="${dist.basic.dir}/${dist.main.folder}" verbose="true" infostring="Onepoint Project, copyright Onepoint Software GmbH 2007"
-                  name="${opproject.launchername.mac}"
+                  name="${opproject.launchername}"
                   icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
-                  shortname="${opproject.launchername.mac}"
+                  shortname="${opproject.launchername}"
                   version="${version}"
                   jvmversion="1.5+"
                   vmoptions="-Xmx192m"

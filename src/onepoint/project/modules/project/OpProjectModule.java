@@ -5,8 +5,8 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpTransaction;
 import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.backup.OpBackupManager;
@@ -84,6 +84,44 @@ public class OpProjectModule extends OpModule {
          broker.updateObject(project);
       }
       tx.commit();
+      broker.close();
+   }
+
+
+   public void upgradeToVersion17(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
+      allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
+      while (projectsIt.hasNext()) {
+         OpProjectNode project = projectsIt.next();
+         for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
+            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
+         }
+      }
+      tx.commit();
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #21 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion21(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlanVersion planVersion");
+      Iterator it = broker.iterate(query);
+      OpTransaction transaction = broker.newTransaction();
+      while (it.hasNext()) {
+         OpProjectPlanVersion planVersion = (OpProjectPlanVersion) it.next();
+         if (planVersion.isBaseline() == null) {
+            planVersion.setBaseline(Boolean.FALSE);
+            broker.updateObject(planVersion);
+         }
+      }
+      transaction.commit();
       broker.close();
    }
 

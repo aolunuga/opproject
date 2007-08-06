@@ -6,4 +6,5 @@
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="ActivityAttachments"/>
    <relationship name="Activity" type="OpActivity" back-relationship="Attachments"/>
    <relationship name="CostRecord" type="OpCostRecord" back-relationship="Attachments"/>
+   <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Attachments"/>
 </prototype>

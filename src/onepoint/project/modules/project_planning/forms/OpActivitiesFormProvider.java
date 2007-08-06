@@ -176,7 +176,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
             logger.debug("   *** project is locked");
             // Currently only a single lock is allowed to exist
             OpLock lock = (OpLock) locks.iterator().next();
-            if (lock.getOwner().getID() == session.getUserID()) {
+            if (lock.lockedByMe(session, broker)) {
                edit_mode = true;
                registerEventHandlersForButtons(form, activityDataSet);
                enableComponentsWhenUserOwner(form);

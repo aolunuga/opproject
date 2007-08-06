@@ -8,6 +8,7 @@ import onepoint.express.XValidator;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
+import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.preferences.OpPreferencesService;
@@ -131,10 +132,12 @@ public abstract class OpTestDataFactory {
    public static OpConfiguration getTestingConfiguration() {
       OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
       String projectPath = OpEnvironmentManager.getOnePointHome();
-      OpConfiguration configuration = configurationLoader.loadConfiguration(projectPath
-           + File.separator + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-
-      if (configuration == null) {
+      OpConfiguration configuration = null;
+      try {
+         configuration = configurationLoader.loadConfiguration(projectPath
+              + File.separator + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+      }
+      catch (OpInvalidDataBaseConfigurationException e) {
          throw new RuntimeException("Could not load configuration file.");
       }
 

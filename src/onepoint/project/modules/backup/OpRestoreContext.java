@@ -10,8 +10,8 @@ import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.xml.XContext;
 
-import java.util.*;
 import java.sql.SQLException;
+import java.util.*;
 
 public class OpRestoreContext extends XContext {
 
@@ -112,7 +112,8 @@ public class OpRestoreContext extends XContext {
    }
 
    /**
-    * Writes the schema version table with the value of the schema from the backup file. 
+    * Writes the schema version table with the value of the schema from the backup file.
+    *
     * @param schemaVersionNr a <code>String</code> representing the value of the schema version.
     */
    void writeSchemaVersion(String schemaVersionNr) {
@@ -153,7 +154,7 @@ public class OpRestoreContext extends XContext {
          String queryString = OpBackupManager.getSystemObjectIDQuery(activeSystem);
          logger.debug("QUERY: " + queryString);
          OpQuery query = broker.newQuery(queryString);
-         Iterator iterator = broker.iterate(query);
+         Iterator iterator = broker.forceIterate(query);
          if (iterator.hasNext()) {
             //if a system object already exists in the db, make sure you mark the active object as existent.
             long id = ((Long) iterator.next()).longValue();
@@ -201,7 +202,7 @@ public class OpRestoreContext extends XContext {
          activePrototype = OpTypeManager.getPrototype(prototypeName);
          activeBackupMembers = (List) backupMembersMap.get(prototypeName);
          if (activePrototype == null || activeBackupMembers == null) {
-        	//we should be somewhat graceful. It may happen, that entities vanish...
+            //we should be somewhat graceful. It may happen, that entities vanish...
             logger.error("Cannot activate prototype with name:" + prototypeName);
             //throw new OpBackupException("Cannot activate prototype with name:" + prototypeName);
          }

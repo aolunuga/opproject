@@ -14,23 +14,20 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpConfigurationValuesHandler;
+import onepoint.project.configuration.OpDatabaseConfiguration;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -141,7 +138,7 @@ public class OpConfigurationWizardService extends OpProjectService {
 
       //the configuration file name
       String configurationFileName = OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME;
-      writeConfigurationFile(configurationFileName, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
+      writeConfigurationFile(configurationFileName, null, databaseType, databaseDriver, databaseURL, databaseLogin, databasePassword);
 
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
@@ -196,7 +193,7 @@ public class OpConfigurationWizardService extends OpProjectService {
     * @param databaseLogin         a <code>String</code> representing the user name in the db config.
     * @param databasePassword      a <code>String</code> representing the user password in the db.
     */
-   private void writeConfigurationFile(String configurationFileName, String databaseType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
+   private void writeConfigurationFile(String configurationFileName, String dataBaseConfigName, String databaseType, String databaseDriver, String databaseURL, String databaseLogin, String databasePassword) {
       try {
          DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
          documentFactory.setValidating(false);
@@ -205,6 +202,9 @@ public class OpConfigurationWizardService extends OpProjectService {
          Document document;
          //the root element
          Node rootElement;
+
+         // in case that no name was provided for DB configuration use the default one.
+         dataBaseConfigName = dataBaseConfigName != null ? dataBaseConfigName : OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME;
 
          File configurationFile = new File(configurationFileName);
          if (configurationFile.exists()) {
@@ -219,31 +219,50 @@ public class OpConfigurationWizardService extends OpProjectService {
             document.appendChild(rootElement);
          }
 
+         // Now try to identify/create node for the specified database configuration.
+         Element dataBaseConfig = null;
+         NodeList children = rootElement.getChildNodes();
+         for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+
+            NamedNodeMap attributes = child.getAttributes();
+            Node attr = attributes.getNamedItem(OpConfigurationValuesHandler.NAME_ATTRIBUTE);
+            String attributeValue = attr.getNodeValue();
+
+            if (OpConfigurationValuesHandler.DATABASE.equals(child.getNodeName()) && dataBaseConfigName.equals(attributeValue)) {
+               dataBaseConfig = (Element) child; // found correct  
+            }
+         }
+         if (dataBaseConfig == null) {
+            // database configuration not found; creates a new one.
+            dataBaseConfig = document.createElement(OpConfigurationValuesHandler.DATABASE);
+            dataBaseConfig.setAttribute(OpConfigurationValuesHandler.NAME_ATTRIBUTE, dataBaseConfigName);
+
+            rootElement.appendChild(dataBaseConfig);
+         }
+
          //create the <database-type> node
          Node dbTypeElement = createTagElement(document, OpConfigurationValuesHandler.DATABASE_TYPE, databaseType);
-         appendOrReplaceElement(dbTypeElement, rootElement, document);
+         appendOrReplaceElement(dbTypeElement, dataBaseConfig, document);
 
          //create the <database-driver> node
          Node dbDriverElement = createTagElement(document, OpConfigurationValuesHandler.DATABASE_DRIVER, databaseDriver);
-         appendOrReplaceElement(dbDriverElement, rootElement, document);
+         appendOrReplaceElement(dbDriverElement, dataBaseConfig, document);
 
          //create the <database-url> node
          Node dbURLElement = createTagElement(document, OpConfigurationValuesHandler.DATABASE_URL, databaseURL);
-         appendOrReplaceElement(dbURLElement, rootElement, document);
+         appendOrReplaceElement(dbURLElement, dataBaseConfig, document);
 
          //create the <database-login> node
          Node dbLoginElement = createTagElement(document, OpConfigurationValuesHandler.DATABASE_LOGIN, databaseLogin);
-         appendOrReplaceElement(dbLoginElement, rootElement, document);
+         appendOrReplaceElement(dbLoginElement, dataBaseConfig, document);
 
          //create the <database-password> node
          Node dbPasswordElement = createTagElement(document, OpConfigurationValuesHandler.DATABASE_PASSWORD, databasePassword);
-         appendOrReplaceElement(dbPasswordElement, rootElement, document);
+         appendOrReplaceElement(dbPasswordElement, dataBaseConfig, document);
 
          //write result to the configuration file
-         Transformer t = TransformerFactory.newInstance().newTransformer();
-         t.setOutputProperty(OutputKeys.INDENT, "yes");
-         t.transform(new DOMSource(document), new StreamResult(new FileOutputStream(configurationFileName)));
-
+         OpConfigurationLoader.writeConfigurationFile(document, configurationFileName);
       }
       catch (Exception e) {
          logger.error("Error occured while writing configuration file", e);

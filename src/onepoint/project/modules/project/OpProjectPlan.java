@@ -44,7 +44,6 @@ public class OpProjectPlan extends OpObject {
    private Set<OpWorkPeriod> workPeriods;
    private Set<OpDependency> dependencies;
    private Set<OpProjectPlanVersion> versions;
-   private OpProjectPlanVersion baselineVersion;
 
    public void setStart(Date start) {
       this.start = start;
@@ -155,11 +154,16 @@ public class OpProjectPlan extends OpObject {
       }
    }
 
+   /**
+    * Returns the baseline version for this project plan, or <code>null</code> if there isn't one.
+    * @return a <code>OpProjectPlanVersion</code> object or <code>null</code>.
+    */
    public OpProjectPlanVersion getBaselineVersion() {
-      return baselineVersion;
-   }
-
-   public void setBaselineVersion(OpProjectPlanVersion baselineVersion) {
-      this.baselineVersion = baselineVersion;
+      for (OpProjectPlanVersion planVersion : versions) {
+         if (planVersion.isBaseline()) {
+            return planVersion;
+         }
+      }
+      return null;
    }
 }

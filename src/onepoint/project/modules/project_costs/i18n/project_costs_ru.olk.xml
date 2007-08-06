@@ -18,7 +18,7 @@
       <resource id="Material">Material</resource>
       <resource id="External">External</resource>
       <resource id="Miscellaneous">Miscellaneous</resource>
-      <resource id="Proceeds">Proceeds</resource>
+      <resource id="Proceeds">(Proceeds)</resource>
       <resource id="SaveCSV">Сохранить как таблицу...</resource>
       <resource id="SaveImage">Сохранить как изображение...</resource>
       <resource id="Total">Total</resource>

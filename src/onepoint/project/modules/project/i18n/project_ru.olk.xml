@@ -58,13 +58,17 @@
       <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>      
       <resource id="DeleteTooltip">Удалить указанный проект или портфель</resource>
 
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
    </resource-map>
+
    <resource-map id="project.ProjectChooser">
       <resource id="SelectProject">Укажите проект или портфель</resource>
       <resource id="SelectPortfolio">Укажите портфель</resource>
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
    </resource-map>
+   
    <resource-map id="project.NewPortfolio">
       <resource id="NewPortfolio">Новый портфель</resource>
 
@@ -110,6 +114,14 @@
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(None)</resource>
 
+      <resource id="Attachments">Attachments</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -154,6 +166,14 @@
       <resource id="ExternalRate">External Rate</resource>
       <resource id="Status">Project Status</resource>
       <resource id="NoStatus">(No Status)</resource>
+
+      <resource id="Attachments">Attachments</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
 
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>

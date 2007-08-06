@@ -7,6 +7,9 @@ package onepoint.project.modules.project;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.resource.OpResource;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class OpAssignmentVersion extends OpObject {
 
    public final static String ASSIGNMENT_VERSION = "OpAssignmentVersion";
@@ -28,6 +31,7 @@ public class OpAssignmentVersion extends OpObject {
    private OpProjectPlanVersion planVersion;
    private OpResource resource;
    private OpActivityVersion activityVersion;
+   private Set<OpWorkMonthVersion> workMonthVersions = new HashSet<OpWorkMonthVersion>();
 
    public void setAssigned(double assigned) {
       this.assigned = assigned;
@@ -93,4 +97,11 @@ public class OpAssignmentVersion extends OpObject {
       return activityVersion;
    }
 
+   public Set<OpWorkMonthVersion> getWorkMonthVersions() {
+      return workMonthVersions;
+   }
+
+   public void setWorkMonthVersions(Set<OpWorkMonthVersion> workMonthVersions) {
+      this.workMonthVersions = workMonthVersions;
+   }
 }

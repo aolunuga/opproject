@@ -17,8 +17,8 @@
       <resource id="NewResourceTooltip">Neue Ressource erstellen</resource>
       <resource id="InfoTooltip">Metainformation für ausgewählte Ressource oder Pool anzeigen</resource>
       <resource id="MoveTooltip">Ausgewählte Ressource oder Pool in einen anderen Pool verschieben</resource>
-      <resource id="DeleteTooltip">Ausgewählte Ressourcen oder Pools löschen</resource>
-      <resource id="AssignToProjectTooltip">Ausgewählte Ressourcen zu Projekt zuweisen</resource>
+      <resource id="DeleteTooltip">Ausgewählte Ressourcen und Pools löschen</resource>
+      <resource id="AssignToProjectTooltip">Ausgewählte Ressourcen zu einem Projekt zuweisen</resource>
       <resource id="ImportUsersTooltip">Benutzer als Ressourcen importieren</resource>
 
    </resource-map>
@@ -29,8 +29,8 @@
       <resource id="NewPool">Neuer Pool</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
-      <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="ExternalRate">Außerlich stundensatz</resource>
+      <resource id="HourlyRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -40,8 +40,8 @@
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
-      <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="ExternalRate">Außerlich stundensatz</resource>
+      <resource id="HourlyRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
@@ -57,9 +57,9 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
-      <resource id="HourlyRate">Inner stundensatz</resource>
-      <resource id="ExternalRate">Außerlich stundensatz</resource>
-      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
+      <resource id="HourlyRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
+      <resource id="InheritPoolRate">Stundensätze des Pools nicht berücksichtigen</resource>
       <resource id="ResponsibleUser">Verantwortlich</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
@@ -74,9 +74,9 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="Available">Verfügbar (%)</resource>
-      <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="ExternalRate">Außerlich stundensatz</resource>
-      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
+      <resource id="HourlyRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
+      <resource id="InheritPoolRate">Stundensätze des Pools nicht berücksichtigen</resource>
       <resource id="ResponsibleUser">Verantwortlich</resource>
       <resource id="SelectUser">Auswählen</resource>
       <resource id="Pool">Pool</resource>
@@ -87,9 +87,9 @@
       <resource id="ImportUser">Benutzer importieren</resource>
       <resource id="NameFormat">Namensformat</resource>
       <resource id="Available">Verfügbar (%)</resource>
-      <resource id="HourlyRate">Stundensatz</resource>
-      <resource id="ExternalRate">Außerlich stundensatz</resource>
-      <resource id="InheritPoolRate">Override hourly rates of pool</resource>
+      <resource id="HourlyRate">Interner Stundensatz</resource>
+      <resource id="ExternalRate">Externer Stundensatz</resource>
+      <resource id="InheritPoolRate">Stundensätze des Pools nicht berücksichtigen</resource>
       <resource id="Pool">Pool</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
@@ -113,12 +113,12 @@
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>
    <resource-map id="resource.error">
-      <resource id="ResourceNameNotSpecified">Es wurde kein Ressourcename vergegeben</resource>
-      <resource id="ResourceNameNotUnique">Der Resourcenname wird bereits verwendet</resource>
-      <resource id="ResourceNameNotValid">Der Resourcenname is ungültig</resource>
+      <resource id="ResourceNameNotSpecified">Bitte Ressourcenname eingeben</resource>
+      <resource id="ResourceNameNotUnique">Der Ressourcenname wird bereits verwendet</resource>
+      <resource id="ResourceNameNotValid">Der Ressourcenname ist ungültig</resource>
       <resource id="UserIDNotSpecified">Es wurde kein Benutzer ausgewählt</resource>
       <resource id="PoolNameNotUnique">Der Poolname wird bereits verwendet</resource>
-      <resource id="PoolNameNotSpecified">Es wurde kein Poolname vergegeben</resource>
+      <resource id="PoolNameNotSpecified">Bitte Poolnamen eingeben</resource>
       <resource id="AvailabilityNotValid">Dir eingegebene Verfügbarkeit ist nicht erlaubt</resource>
       <resource id="HourlyRateNotValid">Der angegebene interne Stundensatz ist ungültig</resource>
       <resource id="ExternalRateNotValid">Der angegebene externe Stundensatz ist ungültig</resource>
@@ -126,21 +126,21 @@
       <resource id="NameFormatNotValid">Das Namensformat ist nicht gültig</resource>
       <resource id="ResourceNotFound">Die Ressource wurde nicht gefunden</resource>
       <resource id="PoolNotFound">Der Pool wurde nicht gefunden</resource>
-      <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte um die Ressource oder den Pool zu bearbeiten</resource>
-      <resource id="AssignAccessDenied">You do not have sufficient privileges to assign resources to project</resource>
-      <resource id="ResourceAssignmentWarning">Could not assign all the selected resources to project</resource>
+      <resource id="UpdateAccessDenied">Sie haben nicht die notwendigen Rechte, um die Ressource oder den Pool zu bearbeiten</resource>
+      <resource id="AssignAccessDenied">Sie haben nicht die notwendigen Rechte, um Ressourcen Projekte zuzuweisen</resource>
+      <resource id="ResourceAssignmentWarning">Nicht alle ausgewählte Ressourcen konnten dem Projetk zugeordnet werden</resource>
       <resource id="ManagerAccessDenied">Sie benötigen Managerrechte für diese Funktion</resource>
       <resource id="DeleteResourceAssignmentsDenied">Die Ressource konnte nicht gelöscht werden, da sie noch in Projektplänen verwendet wird</resource>
       <resource id="DeletePoolResourceAssignmentsDenied">Die Ressourcenpool konnte nicht gelöscht werden, da seine Ressourcen noch in Projektplänen verwendet wird</resource>
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
-      <resource id="LoopAssignment">Diese Zuweisung würde einen Kreis erzeugen</resource>
-      <resource id="ActivityAssignmentVersionsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's versions activities</resource>
-      <resource id="ResponsibleActivitiesExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project</resource>
-      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project's versions</resource>      
+      <resource id="LoopAssignment">Diese Zuweisung würde eine Schleife erzeugen</resource>
+      <resource id="ActivityAssignmentVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch in einem oder mehreren Vorgängen in Versionen des Projektplans verwendet wird</resource>
+      <resource id="ResponsibleActivitiesExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge im Projektplan verantwortlich ist</resource>
+      <resource id="ResponsibleActivityVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge in Versionen des Projektplans verantwortlich ist</resource>      
    </resource-map>
    <resource-map id="resource.delete">
-      <resource id="ConfirmDelete">Löschen von Ressouren und Pools</resource>
-      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Ressourcen oder Pools aus, die gelöscht werden sollen.</resource>
+      <resource id="ConfirmDelete">Ressourcen oder Pools löschen</resource>
+      <resource id="NoSelectionMessage">Bitte wählen Sie eine oder mehrere Ressourcen oder Pools zuzm Löschen aus</resource>
       <resource id="ConfirmDeleteOneMessage">Möchten Sie die ausgewählte Ressource oder den Pool wirklich löschen?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Ressourcen und Pools wirklich löschen?</resource>
       <resource id="OK">OK</resource>
@@ -148,10 +148,10 @@
    </resource-map>
    <resource-map id="resource.change">
       <resource id="ConfirmChange">Ressource verändern</resource>
-      <resource id="ConfirmChangeHR">Wenn Sie den Stundensatz und/oder den äußerlich stundensatz dieser Ressource verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="ConfirmChangeHR">Veränderungen des internen und/oder externen Stundensatzes dieser Ressource kann eine Neuberechnung der Personalkosten und Erlöse in diversen Projektplänen erwirken.</resource>
       <resource id="ConfirmChangeAvailable">Wenn Sie die Verfügbarkeit dieser Ressource verändern, dann werden die verknüpften Projektpläne neu validiert.</resource>
       <resource id="ConfirmPoolChange">Ressourcenpool verändern</resource>
-      <resource id="ConfirmPoolChangeHR">Wenn Sie Nden Stundensatz und/oder den äußerlich stundensatz dieses Ressourcenpools verändern, dann werden die Personalkosten in diversion Projektplänen neu berechnet.</resource>
+      <resource id="ConfirmPoolChangeHR">Veränderungen des internen und/oder externen Stundensatzes dieses Ressourcenpools kann eine Neuberechnung der Personalkosten und Erlöse in diversen Projektplänen erwirken.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Abbrechen</resource>
    </resource-map>

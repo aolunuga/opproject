@@ -13,7 +13,7 @@
       <resource id="SaveImage">Als Bild speichern...</resource>
       <resource id="PrintTitle">Ressourcenauslastung</resource>
 
-      <resource id="HighlyUnderused">Sehr unterlastet (&lt; 0,5)</resource>
+      <resource id="HighlyUnderused">Sehr unausgelastet (&lt; 0,5)</resource>
       <resource id="Underused">Nicht ausgelastet (&lt; 0,8)</resource>
       <resource id="Normalused">Gute Auslastung (0,8 - 1,0)</resource>
       <resource id="Overused">Überlastet (&gt; 1,0)</resource>
@@ -32,7 +32,7 @@
    </resource-map>
 
    <resource-map id="pool_utilization.details">
-      <resource id="ResourceName">Resource</resource>
+      <resource id="ResourceName">Ressource</resource>
       <resource id="Assigned">% Zugewiesen</resource>
       <resource id="Effort">Aufwand (h)</resource>
       <resource id="Total">SUMME</resource>

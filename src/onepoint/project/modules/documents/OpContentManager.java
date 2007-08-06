@@ -7,11 +7,15 @@ package onepoint.project.modules.documents;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpQuery;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpAttachmentVersion;
 import onepoint.service.XSizeInputStream;
 
 import javax.activation.FileTypeMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Utility class, responsible for performing content-related operations.
@@ -24,6 +28,7 @@ public final class OpContentManager {
     * This class's logger.
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpContentManager.class);
+   private static final String SELECT_ALL_CONTENTS_QUERY_STRING = "select content from OpContent as content";
 
    /**
     * This is private class.
@@ -178,14 +183,49 @@ public final class OpContentManager {
     *                     false, it will be decreased.
     */
    private static void updateContent(OpContent content, OpBroker broker, boolean addReference) {
-      int refCount = content.getRefCount();
+      updateContent(content, broker, addReference, true);
+   }
+
+   /**
+    * Updates a content by either increasing of decreasing its references.
+    *
+    * @param content      a <code>OpContent</code> entity representing the content to be updated.
+    * @param broker       a <code>OpBroker</code> object used for performing business operations.
+    * @param addReference a <code>boolean</code> indicating whether the reference to the content should be increased. If
+    *                     false, it will be decreased.
+    * @param enforceDeletion a <code>boolean</code> value indicating whether the <code>OpContent</code> entity should be marked
+    *                      for deletion if it's reference count is 0.
+    */
+   public static void updateContent(OpContent content, OpBroker broker, boolean addReference, boolean enforceDeletion) {
+       int refCount = content.getRefCount();
       refCount = addReference ? ++refCount : --refCount;
-      if (refCount == 0) {
+      if (refCount == 0 && enforceDeletion) {
          broker.deleteObject(content);
       }
       else {
          content.setRefCount(refCount);
          broker.updateObject(content);
+      }
+   }
+
+   /**
+    * Deletes all <code>OpContent</code> objects that have the reference count = 0.
+    *
+    * @param broker a <code>OpBroker</code> object used for performing business operations.
+    */
+   public static void deleteZeroRefContents(OpBroker broker) {
+      List<OpContent> zeroRefContents = new ArrayList<OpContent>();
+      OpQuery query = broker.newQuery(SELECT_ALL_CONTENTS_QUERY_STRING);
+      Iterator it = broker.iterate(query);
+      while (it.hasNext()) {
+         OpContent content = (OpContent) it.next();
+         if (content.getRefCount() == 0) {
+            zeroRefContents.add(content);
+         }
+      }
+
+      for (OpContent content : zeroRefContents) {
+         broker.deleteObject(content);
       }
    }
 
