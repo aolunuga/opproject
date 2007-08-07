@@ -7,16 +7,18 @@ package onepoint.project.forms;
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.module.OpTool;
 import onepoint.project.module.OpToolGroup;
 import onepoint.project.module.OpToolManager;
+import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
-import onepoint.persistence.OpBroker;
 
 import java.util.*;
 
@@ -34,6 +36,10 @@ public class OpDockFormProvider implements XFormProvider {
     * Suffix used for i18n the name of tool groups
     */
    private static final String GROUP_MAP_ID_SUFFIX = ".module";
+
+   private static final String PROJECT_COSTS_TOOL_NAME = "project_costs";
+   private static final String RESOURCES_TOOL_GROUP_NAME = "resources";
+   private static final String REPORTS_TOOL_GROUP_NAME = "reports";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
@@ -75,6 +81,32 @@ public class OpDockFormProvider implements XFormProvider {
       }
    }
 
+   /**
+    * Checks the setting that hides manager features and sets(if the setting is set to true)/removes(if the setting
+    *    is set to false) the manager level on the tools that need to be hidden/shown from non manager users.
+    */
+   private void modifyToolManagerLevel() {
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+
+      Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
+      while (toolListsIterator.hasNext()) {
+         List<OpTool> toolList = toolListsIterator.next();
+         Iterator<OpTool> toolListIt = toolList.iterator();
+         while (toolListIt.hasNext()) {
+            OpTool tool = toolListIt.next();
+            if (tool.getName().equals(PROJECT_COSTS_TOOL_NAME)) {
+               if(hideManagerFeatures) {
+                  tool.setLevel(OpUser.MANAGER_USER_LEVEL);
+               }
+               else{
+                  tool.setLevel(null);
+               }
+
+            }
+         }
+      }
+   }
+
    //<FIXME author="Haizea Florin" description="Maybe the removal of the tools for which the user doesn't have
    //    the appropriate level could be done sooner...">
    /**
@@ -87,6 +119,11 @@ public class OpDockFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       OpUser user = session.user(broker);
       Byte userLevel = user.getLevel();
+
+      //add multi user manager level rights
+      if (OpEnvironmentManager.isMultiUser()) {
+         modifyToolManagerLevel();
+      }
 
       Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
       List<List<OpTool>> toolLists = new ArrayList<List<OpTool>>();
@@ -166,6 +203,31 @@ public class OpDockFormProvider implements XFormProvider {
       return navigationGroupMap;
    }
 
+   /**
+    * Checks the setting that hides manager features and sets(if the setting is set to true)/removes(if the setting
+    *    is set to false) the manager level on the tool groups that need to be hidden/shown from non manager users.
+    */
+   private void modifyToolGroupManagerLevel() {
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+
+     Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();
+      while (groupListsIterator.hasNext()) {
+         List<OpToolGroup> groupList = groupListsIterator.next();
+         Iterator<OpToolGroup> groupListIt = groupList.iterator();
+         while (groupListIt.hasNext()) {
+            OpToolGroup group = groupListIt.next();
+            if (group.getName().equals(RESOURCES_TOOL_GROUP_NAME) || group.getName().equals(REPORTS_TOOL_GROUP_NAME)) {
+               if(hideManagerFeatures){
+                  group.setLevel(OpUser.MANAGER_USER_LEVEL);
+               }
+               else{
+                  group.setLevel(null);
+               }
+            }
+         }
+      }
+   }
+
    //<FIXME author="Haizea Florin" description="Maybe the removal of the toolGroups for which the user doesn't have
    //    the appropriate level could be done sooner...">
    /**
@@ -178,6 +240,11 @@ public class OpDockFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       OpUser user = session.user(broker);
       Byte userLevel = user.getLevel();
+
+      //add multi user manager level rights
+      if (OpEnvironmentManager.isMultiUser()) {
+         modifyToolGroupManagerLevel();
+      }
 
       Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();
       List<List<OpToolGroup>> groupLists = new ArrayList<List<OpToolGroup>>();

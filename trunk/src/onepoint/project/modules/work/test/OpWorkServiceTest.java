@@ -23,7 +23,6 @@ import onepoint.project.modules.work.*;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
-import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -180,6 +179,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       OpResource resource = (OpResource) broker.getObject(resId);
 
       OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity.setProjectPlan(plan);
       broker.makePersistent(activity);
 
       OpAssignment assignment = new OpAssignment();
@@ -210,6 +210,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       OpResource resource = (OpResource) broker.getObject(resId);
 
       OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity.setProjectPlan(plan);
       broker.makePersistent(activity);
 
       OpAssignment assignment = new OpAssignment();
@@ -247,13 +248,13 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       resources.addChild(dataRowRes1);
       resources.addChild(dataRowRes2);
 
-      XCalendar calendar = XCalendar.getDefaultCalendar();
       Date startDate = new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis());
 
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, startDate, 1000d, null, null,
            Boolean.FALSE, Boolean.TRUE, resources, null, null);
       XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
+
 
       OpProjectNode project = projectDataFactory.getProjectByName(PRJ_NAME);
       String id = projectDataFactory.getProjectId(PRJ_NAME);
@@ -266,6 +267,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       activity.setName(ACTIVITY1_NAME);
       activity.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 5).getTimeInMillis()));
       activity.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis()));
+      activity.setProjectPlan(project.getPlan());
       broker.makePersistent(activity);
 
       OpAssignment assignment1 = new OpAssignment();

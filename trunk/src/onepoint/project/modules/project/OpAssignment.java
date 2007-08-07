@@ -8,6 +8,7 @@ import onepoint.persistence.OpObject;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkRecord;
 
+import java.util.List;
 import java.util.Set;
 
 public class OpAssignment extends OpObject {
@@ -44,6 +45,8 @@ public class OpAssignment extends OpObject {
    private OpActivity activity;
    private Set<OpWorkRecord> workRecords;
    private Set<OpWorkMonth> workMonths;
+   private Double remainingProceeds;
+   private Double remainingPersonnelCosts;
 
    public void setAssigned(double assigned) {
       this.assigned = assigned;
@@ -239,4 +242,40 @@ public class OpAssignment extends OpObject {
       return null;
    }
 
+   public void updateRemainingProceeds() {
+      remainingProceeds = 0d;
+      for (OpWorkMonth workMonth : getWorkMonths()) {
+         remainingProceeds += workMonth.getRemainingProceeds();
+      }
+   }
+
+   public void setRemainingProceeds(Double remainingProceeds) {
+      this.remainingProceeds = remainingProceeds;
+   }
+
+   public double getRemainingProceeds() {
+      return remainingProceeds == null ? 0 : remainingProceeds;
+   }
+
+   public void updateRemainingPersonnelCosts() {
+      remainingPersonnelCosts = 0d;
+      for (OpWorkMonth workMonth : getWorkMonths()) {
+         remainingPersonnelCosts += workMonth.getRemainingPersonnel();
+      }
+   }
+
+   public void setRemainingPersonnelCosts(Double remainingPersonnelCosts) {
+      this.remainingPersonnelCosts = remainingPersonnelCosts;
+   }
+
+   public double getRemainingPersonnelCosts() {
+      return remainingPersonnelCosts == null ? 0 : remainingPersonnelCosts;
+   }
+
+   public void removeWorkMonths(List<OpWorkMonth> reusableWorkMonths) {
+      for (OpWorkMonth reusableWorkMonth : reusableWorkMonths) {
+         reusableWorkMonth.setAssignment(null);
+         workMonths.remove(reusableWorkMonth);
+      }
+   }
 }

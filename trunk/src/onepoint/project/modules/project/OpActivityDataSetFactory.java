@@ -2191,6 +2191,10 @@ public abstract class OpActivityDataSetFactory {
    public static void updateWorkMonths(OpBroker broker, OpAssignment assignment, XCalendar xCalendar) {
 
       OpActivity activity = assignment.getActivity();
+      if (activity.getType() == OpActivity.MILESTONE) {
+         return; // no workmonths form milestones
+      }
+
       OpProjectNodeAssignment projectAssignment = assignment.getProjectNodeAssignment();
 
       List<OpWorkMonth> reusableWorkMonths = new ArrayList<OpWorkMonth>();
@@ -2270,25 +2274,11 @@ public abstract class OpActivityDataSetFactory {
          }
       }
 
-      updateWorkMonthBaseValues(assignment, newWorkMonths, reusableWorkMonths);
+      updateWorkMonthBaseValues(broker, assignment, newWorkMonths, reusableWorkMonths);
 
-      //persist the new work months
-      for (OpWorkMonth newWorkMont : newWorkMonths) {
-         if (newWorkMont.getID() == 0) {
-            broker.makePersistent(newWorkMont);
-         }
-         else {
-            broker.updateObject(newWorkMont);
-         }
-      }
+      updateRemainingValues(broker, xCalendar, assignment);
 
-      //removed unused entities
-      for (OpWorkMonth opWorkMonth : reusableWorkMonths) {
-         broker.deleteObject(opWorkMonth);
-      }
-
-      assignment.setWorkMonths(new HashSet<OpWorkMonth>(newWorkMonths));
-      updateRemainingValues(xCalendar, assignment);
+      broker.updateObject(assignment);
    }
 
    /**
@@ -2298,10 +2288,14 @@ public abstract class OpActivityDataSetFactory {
     * @param newWorkMonths      Newly created work months. This list will be updated with baseline values workmonths.
     * @param reusableWorkMonths WorkMonths that can be reused.
     */
-   public static void updateWorkMonthBaseValues(OpAssignment assignment, List<OpWorkMonth> newWorkMonths, List<OpWorkMonth> reusableWorkMonths) {
+   public static void updateWorkMonthBaseValues(OpBroker broker, OpAssignment assignment, List<OpWorkMonth> newWorkMonths, List<OpWorkMonth> reusableWorkMonths) {
 
       boolean hasBaselineVersion = false;
-      if (assignment.getActivity().getProjectPlan().getBaselineVersion() != null) {
+      OpActivity activity = assignment.getActivity();
+      if (activity.getType() == OpActivity.MILESTONE) {
+         return; // no workmonths form milestones
+      }
+      if (activity.getProjectPlan().getBaselineVersion() != null) {
          hasBaselineVersion = true;
       }
 
@@ -2370,78 +2364,107 @@ public abstract class OpActivityDataSetFactory {
             workMonth.setBaseProceeds(workMonth.getLatestProceeds());
          }
       }
+
+      assignment.removeWorkMonths(reusableWorkMonths);
+      assignment.setWorkMonths(new HashSet<OpWorkMonth>(newWorkMonths));
+      broker.updateObject(assignment);
    }
 
    /**
     * Updates the remaining personnel cost/proceeds for the given assignment on its workmonths.
     *
+    * @param broker
     * @param xCalendar  Session calendar.
     * @param assignment Assignment to make the update for.
     */
-   public static void updateRemainingValues(XCalendar xCalendar, OpAssignment assignment) {
+   public static void updateRemainingValues(OpBroker broker, XCalendar xCalendar, OpAssignment assignment) {
 
       OpProjectNodeAssignment projectAssignment = assignment.getProjectNodeAssignment();
-      double actualEffort = assignment.getRemainingEffort();
 
-      //TODO author="Mihai Costin" description="If assignment is 0, remaining = base."
-      double remainingEffort = assignment.getActualEffort();
-      Set<OpWorkMonth> workMonths = assignment.getWorkMonths();
       OpActivity activity = assignment.getActivity();
-      Calendar calendar = xCalendar.getCalendar();
-      Date start = activity.getStart();
-      Date finish = activity.getFinish();
-      Date date = new Date(start.getTime());
-      calendar.setTime(date);
-
-      //reset the remaining values and calculate the total nr of days
-      double workingDays = 0;
-      for (OpWorkMonth workMonth : workMonths) {
-         workMonth.setRemainingPersonnel(0d);
-         workMonth.setRemainingProceeds(0d);
-         workingDays += workMonth.getWorkingDays();
+      if (activity.getType() == OpActivity.MILESTONE) {
+         return; // no workmonths form milestones
       }
 
-      if (assignment.getBaseEffort() > actualEffort) {
-         double workHoursPerDay = xCalendar.getWorkHoursPerDay();
-         //find the new start date to distribute the remaining effort
-         while (actualEffort > 0) {
-            if (xCalendar.isWorkDay(date)) {
-               actualEffort -= workHoursPerDay;
-               workingDays--;
-            }
-            date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+      double actualEffort = assignment.getActualEffort();
+      Set<OpWorkMonth> workMonths = assignment.getWorkMonths();
+
+      if (actualEffort == 0) {
+         for (OpWorkMonth workMonth : workMonths) {
+            workMonth.setRemainingPersonnel(workMonth.getLatestPersonnelCosts());
+            workMonth.setRemainingProceeds(workMonth.getLatestProceeds());
          }
       }
+      else {
+         double remainingEffort = assignment.getRemainingEffort();
 
-      //distribute the remaining effort starting from date...
-      double remainingEffortPerDay = remainingEffort / workingDays;
-      calendar.setTime(date);
-      OpWorkMonth workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
-      double internalSum = 0;
-      double externalSum = 0;
-      while (!date.after(finish)) {
-
-         if (xCalendar.isWorkDay(date)) {
-            List<Double> rates = projectAssignment.getRatesForDay(date, true);
-            double internalRate = rates.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
-            double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
-            internalSum = internalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
-            externalSum = externalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+         Calendar calendar = xCalendar.getCalendar();
+         Date start = activity.getStart();
+         Date finish = activity.getFinish();
+         if (start == null || finish == null) {
+            return;
          }
 
-         date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+         Date date = new Date(start.getTime());
          calendar.setTime(date);
-         if (workMonth.getMonth() != calendar.get(Calendar.MONTH) ||
-              workMonth.getYear() != calendar.get(Calendar.YEAR) || date.after(finish)) {
 
-            workMonth.setRemainingPersonnel(internalSum);
-            workMonth.setRemainingProceeds(externalSum);
+         //reset the remaining values and calculate the total nr of days
+         double workingDays = 0;
+         for (OpWorkMonth workMonth : workMonths) {
+            workMonth.setRemainingPersonnel(0d);
+            workMonth.setRemainingProceeds(0d);
+            workingDays += workMonth.getWorkingDays();
+         }
 
-            internalSum = 0;
-            externalSum = 0;
-            workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
+         if (assignment.getBaseEffort() > actualEffort) {
+            double workHoursPerDay = xCalendar.getWorkHoursPerDay();
+            //find the new start date to distribute the remaining effort
+            while (actualEffort > 0) {
+               if (xCalendar.isWorkDay(date)) {
+                  actualEffort -= workHoursPerDay;
+                  workingDays--;
+               }
+               date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+            }
+         }
+
+         //distribute the remaining effort starting from date...
+         double remainingEffortPerDay = remainingEffort / workingDays;
+         calendar.setTime(date);
+         OpWorkMonth workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
+         double internalSum = 0;
+         double externalSum = 0;
+         while (!date.after(finish)) {
+
+            if (xCalendar.isWorkDay(date)) {
+               List<Double> rates = projectAssignment.getRatesForDay(date, true);
+               double internalRate = rates.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
+               double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
+               internalSum += internalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+               externalSum += externalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+            }
+
+            date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
+            calendar.setTime(date);
+            if (workMonth == null) {
+               continue;
+            }
+            if (workMonth.getMonth() != calendar.get(Calendar.MONTH) ||
+                 workMonth.getYear() != calendar.get(Calendar.YEAR) || date.after(finish)) {
+
+               workMonth.setRemainingPersonnel(internalSum);
+               workMonth.setRemainingProceeds(externalSum);
+
+               internalSum = 0;
+               externalSum = 0;
+               workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
+            }
          }
       }
+      assignment.updateRemainingPersonnelCosts();
+      assignment.updateRemainingProceeds();
+
+      broker.updateObject(assignment);
    }
 
 }

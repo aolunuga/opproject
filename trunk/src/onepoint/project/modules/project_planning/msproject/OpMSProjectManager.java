@@ -50,7 +50,7 @@ public class OpMSProjectManager {
    public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
         throws IOException {
 
-      ProjectFile msProject;
+      ProjectFile msProject = null;
       //for mpp file format the first activity is the name of the project
       boolean removeFirstActivity = false;
       try {
@@ -58,6 +58,7 @@ public class OpMSProjectManager {
          removeFirstActivity = true;
       }
       catch (MPXJException e) {
+         // try set language
          try {
             sourceFile.reset();
             MPXReader reader = new MPXReader();
@@ -65,7 +66,23 @@ public class OpMSProjectManager {
             msProject = reader.read(sourceFile);
          }
          catch (MPXJException e1) {
-            throw new IOException("Unable to load the file " + sourceFile);
+            Locale[] all_locales = {Locale.ENGLISH, Locale.GERMAN, Locale.FRENCH, Locale.ITALIAN, 
+                                    new Locale("pt"), new Locale("sv") };
+            boolean read = false;
+            for (int count = 0; count < all_locales.length; count++) {
+               try {
+                  sourceFile.reset();
+                  MPXReader reader = new MPXReader();
+                  reader.setLocale(all_locales[count]);
+                  msProject = reader.read(sourceFile);
+                  read = true;
+                  break;
+               }
+               catch (MPXJException e2) {}
+            }
+            if (!read) {
+               throw new IOException("Unable to load the file " + sourceFile);
+            }  
          }
       }
 

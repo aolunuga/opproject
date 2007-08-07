@@ -110,6 +110,7 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
       activity.setBasePersonnelCosts(12);
       activity.setBaseTravelCosts(13);
       activity.setBaseProceeds(14d);
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       activity = new OpActivity();
@@ -117,6 +118,7 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
       activity.setStart(new Date(time + 1000));
       activity.setProjectPlan(plan);
       activity.setOutlineLevel((byte) 1);
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       activity = new OpActivity();
@@ -140,6 +142,7 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
       activity.setBasePersonnelCosts(12);
       activity.setBaseTravelCosts(13);
       activity.setBaseProceeds(14d);
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       activity = new OpActivity();
@@ -147,6 +150,7 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
       activity.setStart(new Date(time + 3000));
       activity.setProjectPlan(plan);
       activity.setOutlineLevel((byte) 11);
+      activity.setAssignments(new HashSet<OpAssignment>());
       broker.makePersistent(activity);
 
       t.commit();

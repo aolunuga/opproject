@@ -11,7 +11,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
@@ -20,6 +19,8 @@ import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -126,6 +127,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
       XComponent project_name_set = form.findComponent(PROJECT_NAME_SET);
       logger.debug("*** PIDS " + project_id_string);
       boolean edit_mode = false;
+      OpUser currentUser = session.user(broker);
       if (project_id_string != null) {
 
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
@@ -141,7 +143,6 @@ public class OpActivitiesFormProvider implements XFormProvider {
          }
 
          //set show resource hours
-         OpUser currentUser = session.user(broker);
          String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
          if (showHoursPref == null) {
             showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
@@ -269,11 +270,20 @@ public class OpActivitiesFormProvider implements XFormProvider {
          enableComponentsForNoOpenProject(form);
       }
 
+      XComponent costsTab = form.findComponent(COSTS_TAB);
       //hide costs tab and costs column for users that have only the customer level
-      OpUser user = session.user(broker);
-      if(user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL){
-         form.findComponent(COSTS_TAB).setHidden(true);
+      if(currentUser.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL){
+         costsTab.setHidden(true);
       }
+
+      //hide costs tab if the app. is multiuser and hide manager features is set to true and the user is not manager
+      if (OpEnvironmentManager.isMultiUser()) {
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         if(hideManagerFeatures && currentUser.getLevel() < OpUser.MANAGER_USER_LEVEL){
+            costsTab.setHidden(true);
+         }
+      }
+
       broker.close();
 
       OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();

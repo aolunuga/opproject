@@ -27,11 +27,11 @@
       <int-field x="2" y="6" width="3" id="Priority" lower-limit="1" upper-limit="9"/>
       <label x="0" y="7" width="2" text="${Probability}"/>
       <int-field x="2" y="7" width="3" id="Probability" lower-limit="0" upper-limit="100"/>
-      <check-box x="2" y="8" width="3" id="Archived" text="${Archived}"/>
-      <check-box x="2" y="9" width="3" id="CalculationMode" text="${CalculationMode}" boolean-value="true"/>
-      <check-box x="2" y="10" width="3" id="ProgressTracked" text="${ProgressTracked}" boolean-value="true"/>
-      <label x="0" y="11" width="2" text="${Status}" id="StatusLabel"/>
-      <choice-field x="2" y="11" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
+      <check-box x="2" y="8" width="3" id="CalculationMode" text="${CalculationMode}" boolean-value="true"/>
+      <check-box x="2" y="9" width="3" id="ProgressTracked" text="${ProgressTracked}" boolean-value="true"/>
+      <label x="0" y="10" width="2" text="${Status}" id="StatusLabel"/>
+      <choice-field x="2" y="10" width="3" data-set-ref="ProjectStatusDataSet" id="StatusChoice" selected-index="0"/>
+      <check-box x="2" y="11" width="3" id="Archived" text="${Archived}"/>      
    </tab>
 
    <tab text="${Goals}" layout="border" id="GoalsTab">
@@ -62,6 +62,28 @@
          <!-- maybe in addition: Up- and down-arrows -->
       </panel>
    </tab>
+
+      <tab text="${Attachments}" layout="border" id="AttachmentsTab">
+         <data-set id="AttachmentSet"/>
+         <data-set id="AttachmentIconSet">
+            <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>
+            <data-row icon="/modules/project_planning/icons/document_attachment_s.png"/>
+         </data-set>
+         <data-set id="AttachmentListDataSet"/>
+         <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
+                    flexible="true" on-double-click="viewAttachment">
+            <table-column id="AttachmentTitle" text="${Title}" width="200" data-column-index="1" value-type="Choice"
+                          index-based="true" caption-column-index="1"/>
+            <table-column id="AttachmentLocation" text="${Location}" width="200" data-column-index="2"
+                          value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
+         </table-box>
+         <panel y="1" layout="flow" direction="east">
+            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="addDocumentAttachment" id="AddDocumentButton" tooltip="${AddDocumentAttachmentTooltip}"/>
+            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png" on-button-pressed="addURLAttachment" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
+            <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>
+            <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="viewAttachment" id="ViewAttachmentButton" tooltip="${ViewAttachmentTooltip}"/>
+         </panel>
+      </tab>
 
    <tab text="${Resources}" layout="border" id="ResourcesTab">
       <data-set id="AssignedResourceDataSet"/>
@@ -110,28 +132,6 @@
          <icon-button icon-type="SouthArrow" on-button-pressed="moveSubjectDown"/>
       </panel>
    </tab>
-
-      <tab text="${Attachments}" layout="border" id="AttachmentsTab">
-         <data-set id="AttachmentSet"/>
-         <data-set id="AttachmentIconSet">
-            <data-row icon="/modules/project_planning/icons/link_attachment_s.png"/>
-            <data-row icon="/modules/project_planning/icons/document_attachment_s.png"/>
-         </data-set>
-         <data-set id="AttachmentListDataSet"/>
-         <table-box y="0" id="AttachmentList" data-set-ref="AttachmentSet" icon-set-ref="AttachmentIconSet"
-                    flexible="true" on-double-click="viewAttachment">
-            <table-column id="AttachmentTitle" text="${Title}" width="200" data-column-index="1" value-type="Choice"
-                          index-based="true" caption-column-index="1"/>
-            <table-column id="AttachmentLocation" text="${Location}" width="200" data-column-index="2"
-                          value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
-         </table-box>
-         <panel y="1" layout="flow" direction="east">
-            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="addDocumentAttachment" id="AddDocumentButton" tooltip="${AddDocumentAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png" on-button-pressed="addURLAttachment" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>
-            <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="viewAttachment" id="ViewAttachmentButton" tooltip="${ViewAttachmentTooltip}"/>
-         </panel>
-      </tab>
 
    </tab-box>
 
