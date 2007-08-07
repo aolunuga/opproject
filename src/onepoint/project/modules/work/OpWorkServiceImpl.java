@@ -235,7 +235,7 @@ public class OpWorkServiceImpl implements OpService {
       OpProgressCalculator.addWorkRecord(broker, work_record);
 
       //update cost values on work months
-      OpActivityDataSetFactory.updateRemainingValues(session.getCalendar(), work_record.getAssignment());
+      OpActivityDataSetFactory.updateRemainingValues(broker, session.getCalendar(), work_record.getAssignment());
 
       broker.makePersistent(work_record);
    }

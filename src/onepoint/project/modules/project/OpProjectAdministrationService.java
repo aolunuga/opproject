@@ -5,6 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.express.XComponent;
+import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
@@ -14,10 +15,7 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
-import onepoint.project.modules.user.OpSubject;
-import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
@@ -149,7 +147,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       //insert project attachments
       XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
-      List<List> attachmentsList = (List) ((XComponent)attachmentsListSet.getChild(0).getChild(0)).getValue();
+      List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
       insertAttachments(broker, project, attachmentsList);
 
       broker.makePersistent(project);
@@ -314,7 +312,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     * Inserts the attachments related to the project passed as a parameter.
     *
     * @param broker
-    * @param project      - the project for which the attachments are inserted
+    * @param project         - the project for which the attachments are inserted
     * @param attachmentsList - the <code>List</code> containing the information about the project attachments
     */
    private void insertAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
@@ -324,7 +322,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          Set<OpAttachment> attachments = new HashSet<OpAttachment>();
          for (List attachmentElement : attachmentsList) {
             OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null, project);
-            if(attachment != null){
+            if (attachment != null) {
                attachments.add(attachment);
             }
          }
@@ -538,7 +536,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          //Update attachments
          XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
-         List<List> attachmentsList = (List) ((XComponent)attachmentsListSet.getChild(0).getChild(0)).getValue();
+         List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
          updateAttachments(broker, project, attachmentsList);
 
          // update project plan versions (must be done before deleting the versions)
@@ -554,11 +552,17 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          // update permissions
          XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
-         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+         XError result = checkChangingPermissionForEditingUser(project.getLocks(), permission_set, session);
          if (result != null) {
             reply.setError(result);
             return reply;
          }
+         result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            return reply;
+         }
+
          //update permissions for the attachments belonging to this project
          for (OpAttachment attachment : project.getAttachments()) {
             result = OpPermissionSetFactory.storePermissionSet(broker, session, attachment, permission_set);
@@ -589,6 +593,43 @@ public class OpProjectAdministrationService extends OpProjectService {
          finalizeSession(transaction, broker);
       }
 
+      return null;
+   }
+
+   /**
+    * Checks if after an update, the permission for a user which is editing the project has
+    * been remvoed for that project.
+    *
+    * @param projectLocks  a <code>Set(OpLock)</code> the locks on a project.
+    * @param permissionSet a <code>XComponent(DATA_SET)</code> the client permissions
+    *                      set.
+    * @param session       a <code>OpProjectSession</code> the server session.
+    * @return a <code>XError</code> if the permissions for an editing user has been removed
+    *         or <code>null</code> otherwise.
+    */
+   private XError checkChangingPermissionForEditingUser(Set<OpLock> projectLocks, XComponent permissionSet,
+        OpProjectSession session) {
+      if (projectLocks.size() == 0) {
+         return null;
+      }
+      Map<String, Byte> permissionsMap = new HashMap<String, Byte>();
+      byte accessValue = -1;
+      for (int i = 0; i < permissionSet.getChildCount(); i++) {
+         XComponent permissionsRow = (XComponent) permissionSet.getChild(i);
+         if (permissionsRow.getOutlineLevel() == 0) {
+            accessValue = ((XComponent) permissionsRow.getChild(OpPermissionSetFactory.ACCESS_LEVEL_COLUMN_INDEX)).getByteValue();
+            continue;
+         }
+         String userLocator = XValidator.choiceID(permissionsRow.getStringValue());
+         permissionsMap.put(userLocator, accessValue);
+      }
+
+      for (OpLock lock : projectLocks) {
+         String lockOwner = lock.getOwner().locator();
+         if (permissionsMap.get(lockOwner) == null || permissionsMap.get(lockOwner) < OpPermission.MANAGER) {
+            return session.newError(ERROR_MAP, OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR);
+         }
+      }
       return null;
    }
 
@@ -772,15 +813,15 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Update the attachments that belong to this <code>OpProjectNode</code> entity.
     *
-    * @param broker - the <code>OpBroker</code> needed to persist the attachments and contents. 
-    * @param project - the <code>OpProjectNode</code> for which the attachments are updated.
+    * @param broker          - the <code>OpBroker</code> needed to persist the attachments and contents.
+    * @param project         - the <code>OpProjectNode</code> for which the attachments are updated.
     * @param attachmentsList - the <code>List</code> which contains the information about the attachments
-    *    received from the client.
+    *                        received from the client.
     */
    private void updateAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
       //delete all attachments and decrement their content reference number
       Iterator it = project.getAttachments().iterator();
-      while(it.hasNext()){
+      while (it.hasNext()) {
          OpAttachment attachment = (OpAttachment) it.next();
          if (!attachment.getLinked()) {
             OpContentManager.updateContent(attachment.getContent(), broker, false, false);
@@ -1027,18 +1068,19 @@ public class OpProjectAdministrationService extends OpProjectService {
 
    /**
     * Updates the map of existing project versions.
-    * @param projectPlan a <code>OpProjectPlan</code> the project plan.
-    * @param versionsDataSet a <code>XComponent(DATA_SET)</code> the client versions data-set.
+    *
+    * @param projectPlan        a <code>OpProjectPlan</code> the project plan.
+    * @param versionsDataSet    a <code>XComponent(DATA_SET)</code> the client versions data-set.
     * @param existingVersionMap a <code>Map(String, OpProjectPlanVersion)</code> the already existent project plan versions.
-    * @param broker a <code>OpBroker</code> used for persistence operations.
-    * @param session a <code>OpProjectSession</code> the server session.
+    * @param broker             a <code>OpBroker</code> used for persistence operations.
+    * @param session            a <code>OpProjectSession</code> the server session.
     */
    protected void updateExistingProjectVersionsMap(OpProjectPlan projectPlan, XComponent versionsDataSet, Map<String, OpProjectPlanVersion> existingVersionMap, OpBroker broker, OpProjectSession session) {
       // remove the existent ones from the map
       for (int i = 0; i < versionsDataSet.getChildCount(); i++) {
          XComponent row = (XComponent) versionsDataSet.getChild(i);
          String versionId = ((XComponent) row.getChild(0)).getStringValue();
-         if(versionId.equals(String.valueOf(WORKING_VERSION_NUMBER))){
+         if (versionId.equals(String.valueOf(WORKING_VERSION_NUMBER))) {
             continue;
          }
          existingVersionMap.remove(versionId);

@@ -192,6 +192,12 @@ public class OpSettingsService extends OpProjectService {
          newSettings.put(OpSettings.ENABLE_TIME_TRACKING, enableTimeTracking.toString());
       }
 
+      //Hide manager features
+      Boolean hideManagerFeatures = (Boolean) settings.get(OpSettings.HIDE_MANAGER_FEATURES);
+      if (hideManagerFeatures != null) {
+         newSettings.put(OpSettings.HIDE_MANAGER_FEATURES, hideManagerFeatures.toString());
+      }
+
       //currency symbol
       String currencySymbol = (String) settings.get(OpSettings.CURRENCY_SYMBOL);
       if (currencySymbol != null) {

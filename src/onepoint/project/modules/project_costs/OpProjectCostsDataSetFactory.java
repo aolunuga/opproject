@@ -197,7 +197,7 @@ public final class OpProjectCostsDataSetFactory {
          predicted = childrenSumPredictedCosts(activity, type);
 
          //do not add the proceeds to the expected costs
-         if(type != PROCEEDS_COST_INDEX){
+         if (type != PROCEEDS_COST_INDEX) {
             activityPredicted += predicted;
          }
 
@@ -231,10 +231,10 @@ public final class OpProjectCostsDataSetFactory {
          data_cell = new XComponent(XComponent.DATA_CELL); //7 - type
          //in the case of cost rows the type cell looses it's meaning of "activity type" and it is used only
          //to determine the style used to draw the row
-         if(type != PROCEEDS_COST_INDEX){
+         if (type != PROCEEDS_COST_INDEX) {
             data_cell.setByteValue((byte) 0);
          }
-         else{
+         else {
             data_cell.setByteValue((byte) 3);
          }
          data_row.addChild(data_cell);
@@ -335,7 +335,7 @@ public final class OpProjectCostsDataSetFactory {
       if (activities.isEmpty()) {
          switch (type) {
             case PERSONNEL_COST_INDEX:
-               predicted = calculatePredicted(activity.getComplete(), activity.getActualPersonnelCosts(), activity.getBasePersonnelCosts());
+               predicted = activity.getActualPersonnelCosts() + activity.getRemainingPersonnelCosts();
                break;
             case MATERIAL_COST_INDEX:
                predicted = activity.getActualMaterialCosts() + activity.getRemainingMaterialCosts();
@@ -350,7 +350,7 @@ public final class OpProjectCostsDataSetFactory {
                predicted = activity.getActualMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts();
                break;
             case PROCEEDS_COST_INDEX:
-               predicted = calculatePredicted(activity.getComplete(), activity.getActualProceeds(), activity.getBaseProceeds());
+               predicted = activity.getActualProceeds() + activity.getRemainingProceeds();
                break;
             default: {
                throw new IllegalArgumentException("Invalid cost type parameter");

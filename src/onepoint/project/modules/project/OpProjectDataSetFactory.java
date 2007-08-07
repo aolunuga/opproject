@@ -351,6 +351,27 @@ public final class OpProjectDataSetFactory {
    }
 
    /**
+    * Retrieves all projects from the db and fills the <code>XComponent</code> data set passed as paramenter with
+    *    the data belonging to these projects.
+    *
+    * @param session     a <code>OpProjectSession</code> representing the server session.
+    */
+   public static void retrieveAllProjects(OpProjectSession session, XComponent projectsDataSet) {
+      ArrayList<String> projectsLocators = retrieveArchivedProjects(session, false);
+      XLocalizer localizer = new XLocalizer();
+      localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
+      OpBroker broker = session.newBroker();
+
+      for(String locator : projectsLocators) {
+         OpProjectNode projectNode = (OpProjectNode) broker.getObject(locator);
+
+         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, true, 0);
+         projectsDataSet.addChild(dataRow);
+      }
+      broker.close();
+   }
+
+   /**
     * Returns a list with the locators of all the project which are or aren't archived.
     * @param session a <code>OpProjectSession</code> a server session.
     * @param archived a <code>boolean</code> indicating whether to search for archived or non-archived projects.

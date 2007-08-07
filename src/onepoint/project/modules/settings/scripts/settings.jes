@@ -33,6 +33,7 @@ function gatherData(){
        settings.Pulsing = form.findComponent("Pulsing").getIntValue();
    }
    settings.EnableTimeTracking = form.findComponent("EnableTimeTracking").getBooleanValue();
+   settings.HideManagerFeatures = form.findComponent("HideManagerFeatures").getBooleanValue();
 
    selectedCurrencyId =  XValidator.choiceID(form.findComponent("CurrencyChoice").getStringValue());
    currencyNameSymbolSeparator = form.findComponent("CurrencyNameSymbolSeparator").getStringValue();

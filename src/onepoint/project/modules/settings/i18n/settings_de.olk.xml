@@ -24,6 +24,7 @@
       <resource id="EnablePulsing">Enable pulsing</resource>
       <resource id="Pulsing">Pulsing (Minuten)</resource>
       <resource id="Currency">Währung</resource>
+      <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
 
       <!-- Currencies -->
       <resource id="AUD">Australischer Dollar (AUD, $)</resource>

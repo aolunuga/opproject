@@ -73,14 +73,16 @@ public class OpBroker {
    public Iterator iterate(OpQuery query) {
       //<FIXME author="Mihai Costin" description="Use iterate when iterate related issues have been solved">
       // Find object in sources specified in query (default is default source)
-//      if (defaultConnection != null) {
-//         return defnaultConnection.iterate(query);
-//      }
-//      else {
-//         return null;
-//      }
+      if (defaultConnection != null) {
+         Iterator it = defaultConnection.iterate(query);
+
+         // This check was introduced because sometime on MS-SQL list(query) returns NULL.
+         return it != null ? it : list(query).iterator();
+      }
+      else {
+         return null;
+      }
       //</FIXME>
-      return list(query).iterator();
    }
 
    public Iterator forceIterate(OpQuery query) {

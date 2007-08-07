@@ -687,4 +687,22 @@ public class OpActivity extends OpObject {
    public boolean isUsingBaselineValues() {
       return usesBaseline;
    }
+
+
+   public double getRemainingProceeds() {
+      double proceeds = 0;
+      for (OpAssignment assignment : getAssignments()) {
+         proceeds += assignment.getRemainingProceeds();
+      }
+      return proceeds;
+   }
+
+   public double getRemainingPersonnelCosts() {
+      double personnel = 0;
+      for (OpAssignment assignment : getAssignments()) {
+         personnel += assignment.getRemainingPersonnelCosts();
+      }
+      return personnel;
+   }
+
 }

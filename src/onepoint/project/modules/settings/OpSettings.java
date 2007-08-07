@@ -43,6 +43,7 @@ public class OpSettings {
    public static final String RESOURCE_MAX_AVAILABYLITY = "Resource_MaxAvailability";
    public static final String PULSING = "Pulsing";
    public static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
+   public static final String HIDE_MANAGER_FEATURES = "HideManagerFeatures";
    //schedule names
    public static final String REPORT_ARCHIVE_SCHEDULE_NAME = "ReportArchive_ScheduleName";
    public static final String CURRENCY_SYMBOL = "Currency_Symbol";
@@ -61,6 +62,7 @@ public class OpSettings {
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String MILESTONE_CONTROLLING_INTERVAL_DEFALUT = "2";
    public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
+   public static final String HIDE_MANAGER_FEATURES_DEFAULT = "false";
    public static final String CURRENCY_SYMBOL_DEFAULT = "€";
    public static final String CURRENCY_SHORT_NAME_DEFAULT = "EUR";
 
@@ -110,6 +112,7 @@ public class OpSettings {
       defaults.put(RESOURCE_MAX_AVAILABYLITY, RESOURCE_MAX_AVAILABYLITY_DEFAULT);
       defaults.put(MILESTONE_CONTROLLING_INTERVAL, MILESTONE_CONTROLLING_INTERVAL_DEFALUT);
       defaults.put(ENABLE_TIME_TRACKING, ENABLE_TIME_TRACKING_DEFAULT);
+      defaults.put(HIDE_MANAGER_FEATURES, HIDE_MANAGER_FEATURES_DEFAULT);
       defaults.put(CURRENCY_SYMBOL, CURRENCY_SYMBOL_DEFAULT);
       defaults.put(CURRENCY_SHORT_NAME, CURRENCY_SHORT_NAME_DEFAULT);
    }

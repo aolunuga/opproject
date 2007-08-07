@@ -55,6 +55,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    private static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
    private static final String PULSING = "Pulsing";
    private static final String ENABLE_PULSING = "EnablePulsing";
+   private static final String HIDE_MANAGER_FEATURES = "HideManagerFeatures";
    private static final String SAVE_BUTTON = "Save";
    private static final String SELECT_CALENDAR = "${SelectCalendar}";
    private static final String CURRENCY_CHOICE_ID = "CurrencyChoice";
@@ -149,6 +150,10 @@ public class OpSettingsFormProvider implements XFormProvider {
          pulsingField.setIntValue(Integer.valueOf(pulsingValue));
       }
 
+      //hide non manager features
+      XComponent hideManagerfeaturesField = form.findComponent(HIDE_MANAGER_FEATURES);
+      hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES)));
+
       //currency
       fillCurency(form);
 
@@ -157,6 +162,7 @@ public class OpSettingsFormProvider implements XFormProvider {
          mailMessageTextField.setVisible(false);
          form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
          emptyPasswordCheckBox.setVisible(false);
+    //     form.findComponent(HIDE_MANAGER_FEATURES).setVisible(false);
       }
 
       // only administrator can modifiy the settings

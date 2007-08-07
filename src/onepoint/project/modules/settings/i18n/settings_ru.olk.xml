@@ -24,6 +24,8 @@
       <resource id="EnablePulsing">Enable pulsing</resource>
       <resource id="Pulsing">Pulsing (minutes)</resource>
       <resource id="Currency">Currency</resource>
+      <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
+      
       <!-- Currencies -->
       <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
       <resource id="CAD">Canada Dollars (CAD, CAD)</resource>

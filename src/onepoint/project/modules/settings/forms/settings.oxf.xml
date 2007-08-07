@@ -70,10 +70,11 @@
                <check-box x="2" y="11" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
                <check-box x="2" y="12" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
                <check-box x="2" y="13" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
-               <label x="0" y="14" width="2" text="${Pulsing}"/>
-               <int-field x="2" y="14" width="3" id="Pulsing"/>
-               <label x="0" y="15" width="2" text="${Currency}"/>
-               <choice-field x="2" y="15" width="3" id="CurrencyChoice" data-set-ref="CurrencyDataSet"/>
+               <check-box x="2" y="14" width="3" id="HideManagerFeatures" text="${HideManagerFeatures}"/>
+               <label x="0" y="15" width="2" text="${Pulsing}"/>
+               <int-field x="2" y="15" width="3" id="Pulsing"/>
+               <label x="0" y="16" width="2" text="${Currency}"/>
+               <choice-field x="2" y="16" width="3" id="CurrencyChoice" data-set-ref="CurrencyDataSet"/>
             </panel>
          </panel>
       </scroll-box>
