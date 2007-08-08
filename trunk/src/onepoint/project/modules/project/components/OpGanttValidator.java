@@ -135,7 +135,6 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
-   public final static String INVALID_BASE_EFFORT_EXCEPTION = "InvalidBaseEffortException";
 
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -2585,11 +2584,6 @@ public class OpGanttValidator extends XValidator {
    }
 
    protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
-
-      if (getActualEffort(data_row) > base_effort) {
-         throw new XValidationException(INVALID_BASE_EFFORT_EXCEPTION);
-      }
-
       if (isProjectMandatory(data_row)) {
          if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
               (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
@@ -3757,12 +3751,25 @@ public class OpGanttValidator extends XValidator {
          // set up the row outline Level
          row.setOutlineLevel(outline_level);
 
+         //temporary set the outline level for the rest of the columns as well
+         for (int j = i + 1; j < data_rows.size(); j++) {
+            XComponent dataRow = (XComponent) data_rows.get(j);
+            dataRow.setOutlineLevel(dataRow.getOutlineLevel() + offset);
+         }
+
          // loop detection
          if (detectLoops()) {
             rollback = true;
             loops = true;
             break;
          }
+
+         //revert changes made only for loop detection
+         for (int j = i + 1; j < data_rows.size(); j++) {
+            XComponent dataRow = (XComponent) data_rows.get(j);
+            dataRow.setOutlineLevel(dataRow.getOutlineLevel() - offset);
+         }
+
       }
 
       //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-   <database name="Default">
-   	<database-type>MSSQL</database-type>
-   	<database-driver>net.sourceforge.jtds.jdbc.Driver</database-driver>
-   	<database-url>jdbc:jtds:sqlserver://localhost:1433/opproject_test</database-url>
-   	<database-login>sa</database-login>
-   	<database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>
+	<database name="Default">
+		<database-type>MySQLInnoDB</database-type>
+   		<database-driver>com.mysql.jdbc.Driver</database-driver>
+   		<database-url>jdbc:mysql://localhost:3307/opproject_test</database-url>
+   		<database-login>root</database-login>
+   		<database-password></database-password>
+   		<connection-pool-min-size>5</connection-pool-min-size>
+   		<connection-pool-max-size>20</connection-pool-max-size>
+   	</database>	
+   	<cache-size>500</cache-size>
    	<log-file>opproject.log</log-file>
-   </database>
 </configuration>

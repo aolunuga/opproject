@@ -16,7 +16,6 @@
    <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
    <data-field id="TaskExtraResourceException" text="${TaskExtraResourceErrorMessage}"/>
    <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
-   <data-field id="InvalidBaseEffortException" text="${InvalidBaseEffortErrorMessage}"/>
 
    <data-field id="ImportProjectTitle" text="${ImportProjectTitle}"/>
    <data-field id="ExportProjectTitle" text="${ExportProjectTitle}"/>

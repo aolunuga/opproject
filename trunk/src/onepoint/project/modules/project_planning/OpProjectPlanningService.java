@@ -29,7 +29,6 @@ import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
-import onepoint.service.server.XServer;
 import onepoint.util.XCalendar;
 import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
@@ -39,7 +38,6 @@ import javax.mail.internet.AddressException;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -342,7 +340,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       for (OpAssignment assignment : assignments) {
          if (OpActivityDataSetFactory.updateAssignmentCosts(assignment, calendar)) {
-            broker.updateObject(assignment);
+            OpActivityDataSetFactory.updateRemainingValues(broker, calendar, assignment);
          }
          internalActivitySum += assignment.getBaseCosts();
          externalActivitySum += assignment.getBaseProceeds();
@@ -356,7 +354,7 @@ public class OpProjectPlanningService extends OpProjectService {
       }
       return changed;
    }
-   
+
    /**
     * Saves the given activity set. Will serialize the activity set and set it as the plan for the working version.
     *
@@ -441,12 +439,13 @@ public class OpProjectPlanningService extends OpProjectService {
 
    /**
     * @param session
-    * @param broker 
+    * @param broker
     * @param lock
     * @pre
     * @post
     */
-   private void checkLock(OpProjectSession session, OpBroker broker, OpLock lock) throws OpProjectPlanningException {
+   private void checkLock(OpProjectSession session, OpBroker broker, OpLock lock)
+        throws OpProjectPlanningException {
       if (!lock.lockedByMe(session, broker)) {
          logger.error("Project is locked by another user");
          broker.close();
@@ -495,8 +494,6 @@ public class OpProjectPlanningService extends OpProjectService {
          }
          OpLock lock = project.getLocks().iterator().next();
          checkLock(session, broker, lock);
-
-         checkActivitiesBaseEffort(dataSet, broker, session);
 
          t = broker.newTransaction();
 
@@ -605,7 +602,8 @@ public class OpProjectPlanningService extends OpProjectService {
          OpLock lock = project.getLocks().iterator().next();
          try {
             checkLock(session, broker, lock);
-         } catch (OpProjectPlanningException exc) {
+         }
+         catch (OpProjectPlanningException exc) {
             // TODO: Error handling
             return null;
          }
@@ -1127,13 +1125,13 @@ public class OpProjectPlanningService extends OpProjectService {
     * Filters an activity based on a list of excluded activity types.
     *
     * @param checkedActivity - the <code>OpActivity</code> whose type is checked
-    * @param excludedTypes -  the <code>List</code> of exluded activity types
+    * @param excludedTypes   -  the <code>List</code> of exluded activity types
     * @return - <code>true</code> if the type of the activity passed as parameter does not belong to the list of excluded
-    *    types and false otherwise.
+    *         types and false otherwise.
     */
-   private boolean isActivityExcluded(OpActivity checkedActivity, List<Byte> excludedTypes){
-      for(Byte type : excludedTypes){
-         if(checkedActivity.getType() == type){
+   private boolean isActivityExcluded(OpActivity checkedActivity, List<Byte> excludedTypes) {
+      for (Byte type : excludedTypes) {
+         if (checkedActivity.getType() == type) {
             return true;
          }
       }

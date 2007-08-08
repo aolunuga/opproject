@@ -11,6 +11,7 @@
    <field name="LatestProceeds" type="Double"/>
    <field name="RemainingProceeds" type="Double"/>
    <field name="RemainingPersonnel" type="Double"/>
+   <field name="RemainingEffort" type="Double"/>
    <field name="WorkingDays" type="Byte"/>
    <relationship name="Assignment" type="OpAssignment" back-relationship="WorkMonths"/>
 </prototype>

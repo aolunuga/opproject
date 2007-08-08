@@ -18,6 +18,7 @@ import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XService;
@@ -609,7 +610,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     */
    private XError checkChangingPermissionForEditingUser(Set<OpLock> projectLocks, XComponent permissionSet,
         OpProjectSession session) {
-      if (projectLocks.size() == 0) {
+      if (!OpEnvironmentManager.isMultiUser() || projectLocks.size() == 0) {
          return null;
       }
       Map<String, Byte> permissionsMap = new HashMap<String, Byte>();

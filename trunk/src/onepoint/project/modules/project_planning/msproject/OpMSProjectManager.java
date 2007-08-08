@@ -225,7 +225,7 @@ public class OpMSProjectManager {
       }
 
       //successors - predecessors links.
-      for (int i = 1; i < msTasks.size(); i++) {
+      for (int i = 0; i < msTasks.size(); i++) {
          Task msTask = (Task) msTasks.get(i);
          XComponent activity = (XComponent) activityMap.get(msTask.getUniqueID());
          List successors = msTask.getSuccessors();
@@ -385,7 +385,11 @@ public class OpMSProjectManager {
             Integer succesorIndex = (Integer) iterator.next();
             XComponent successorActivity = (XComponent) dataSet.getChild(succesorIndex.intValue());
             Task succesorTask = (Task) activityMap.get(successorActivity);
-            msTask.addSuccessor(succesorTask);
+            Relation rel = succesorTask.addPredecessor(msTask);
+//            Relation rel = msTask.addSuccessor(succesorTask);
+            if (succesorTask.getMilestone()) {
+               rel.setType(RelationType.FINISH_START);
+            }
          }
       }
 
@@ -400,7 +404,7 @@ public class OpMSProjectManager {
     * @param projectFile   main ms project
     * @param activity      activity data row with activity information
     * @param superActivity the parent ms-task for this activity
-    * @param resourceMap   the resource map, key = locatorID, value = ms resource
+    * @param resourceMap   the resource map key = locatorID, value = ms resource
     * @return the newly created ms task
     */
    private static Task addMSProjectActivity(ProjectFile projectFile, XComponent activity, Task superActivity, Map resourceMap) {
@@ -427,6 +431,8 @@ public class OpMSProjectManager {
       //5) Start - Date
       Date start = OpGanttValidator.getStart(activity);
       task.setStart(start);
+//      task.setActualStart(start);
+
       //6) End - Date
       Date end = OpGanttValidator.getEnd(activity);
       task.setFinish(end);
