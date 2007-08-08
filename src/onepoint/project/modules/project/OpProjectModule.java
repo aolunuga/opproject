@@ -88,7 +88,7 @@ public class OpProjectModule extends OpModule {
    }
 
 
-   public void upgradeToVersion23(OpProjectSession session) {
+   public void upgradeToVersion24(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
       allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);

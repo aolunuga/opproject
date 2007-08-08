@@ -18,7 +18,6 @@
       <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
       <data-field id="NotEqualEffortsException" text="${NotEqualEffortsErrorMessage}"/>
       <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
-      <data-field id="InvalidBaseEffortException" text="${InvalidBaseEffortErrorMessage}"/>
       <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
       
       <label id ="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>

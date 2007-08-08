@@ -57,9 +57,10 @@ public class OpWorkMonth extends OpObject {
     */
    private double latestProceeds;
 
-   private Double remainingPersonnel;
-   private Double remainingProceeds;
-   private Byte workingDays;
+   private Double remainingPersonnel = 0d;
+   private Double remainingProceeds = 0d;
+   private Double remainingEffort = 0d;
+   private Byte workingDays = 0;
 
    public int getYear() {
       return year;
@@ -175,5 +176,13 @@ public class OpWorkMonth extends OpObject {
 
    public void setWorkingDays(Byte workingDays) {
       this.workingDays = workingDays;
+   }
+
+   public Double getRemainingEffort() {
+      return remainingEffort;
+   }
+
+   public void setRemainingEffort(Double remainingEffort) {
+      this.remainingEffort = remainingEffort;
    }
 }

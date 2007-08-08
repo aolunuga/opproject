@@ -55,10 +55,10 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 	<field name="po_description" class="java.lang.String"/>
 	<field name="pn_name" class="java.lang.String"/>
 	<field name="sac_name" class="java.lang.String"/>
-	<field name="rs_rate" class="java.lang.Double"/>
+	<field name="remaining_personnel_costs" class="java.lang.Double"/>
 
 	<variable name="remCost" class="java.lang.Double" resetType="None" calculation="Nothing">
-		<variableExpression><![CDATA[new Double($F{op_remainingeffort}.doubleValue() * $F{rs_rate}.doubleValue())]]></variableExpression>
+		<variableExpression><![CDATA[$F{remaining_personnel_costs}]]></variableExpression>
 	</variable>
 	<variable name="resEffort" class="java.lang.Double" resetType="Group" resetGroup="Resource" calculation="Sum">
 		<variableExpression><![CDATA[$F{op_remainingeffort}]]></variableExpression>

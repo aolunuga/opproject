@@ -20,6 +20,7 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
+import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
@@ -1276,6 +1277,7 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
          }
+
          if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
             update = true;
             activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
@@ -1436,7 +1438,12 @@ public abstract class OpActivityDataSetFactory {
                   }
 
                   if (assignment.getBaseEffort() != baseEffort) {
+                     double assignmentBaseEffortChange = assignment.getBaseEffort() - baseEffort;
                      assignment.setBaseEffort(baseEffort);
+                     //update the remaining effort change of the work records belonging to this assignment
+                     for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
+                        workRecord.setRemainingEffortChange(workRecord.getRemainingEffortChange() + assignmentBaseEffortChange);
+                     }
                      if (tracking && (baseEffort >= assignment.getActualEffort())) {
                         double remaining = baseEffort - assignment.getActualEffort();
                         assignment.setRemainingEffort(remaining);
@@ -2131,7 +2138,6 @@ public abstract class OpActivityDataSetFactory {
    public static boolean updateAssignmentCosts(OpAssignment assignment, XCalendar calendar) {
       boolean modified = false;
       OpActivity activity = assignment.getActivity();
-      OpProjectNode project = activity.getProjectPlan().getProjectNode();
       OpProjectNodeAssignment projectNodeAssignment = null;
       Double internalSum = 0d;
       Double externalSum = 0d;
@@ -2152,14 +2158,7 @@ public abstract class OpActivityDataSetFactory {
 
          if (startEndList != null) {
             //get the project node assignment for this assignment's resource
-            for (OpProjectNodeAssignment resourceAssignment : assignment.getResource().getProjectNodeAssignments()) {
-               for (OpProjectNodeAssignment projectAssignment : project.getAssignments()) {
-                  if (resourceAssignment.getID() == projectAssignment.getID()) {
-                     projectNodeAssignment = projectAssignment;
-                     break;
-                  }
-               }
-            }
+            projectNodeAssignment = assignment.getProjectNodeAssignment();
             List<List<Double>> ratesList = projectNodeAssignment.getRatesForListOfDays(workingDays);
             List<Double> internalRatesList = ratesList.get(OpProjectNodeAssignment.INTERNAL_RATE_LIST_INDEX);
             List<Double> externalRatesList = ratesList.get(OpProjectNodeAssignment.EXTERNAL_RATE_LIST_INDEX);
@@ -2393,6 +2392,7 @@ public abstract class OpActivityDataSetFactory {
          for (OpWorkMonth workMonth : workMonths) {
             workMonth.setRemainingPersonnel(workMonth.getLatestPersonnelCosts());
             workMonth.setRemainingProceeds(workMonth.getLatestProceeds());
+            workMonth.setRemainingEffort(workMonth.getLatestEffort());
          }
       }
       else {
@@ -2413,6 +2413,7 @@ public abstract class OpActivityDataSetFactory {
          for (OpWorkMonth workMonth : workMonths) {
             workMonth.setRemainingPersonnel(0d);
             workMonth.setRemainingProceeds(0d);
+            workMonth.setRemainingEffort(0d);
             workingDays += workMonth.getWorkingDays();
          }
 
@@ -2434,6 +2435,7 @@ public abstract class OpActivityDataSetFactory {
          OpWorkMonth workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
          double internalSum = 0;
          double externalSum = 0;
+         double workMonthRemainingEffort = 0;
          while (!date.after(finish)) {
 
             if (xCalendar.isWorkDay(date)) {
@@ -2442,21 +2444,21 @@ public abstract class OpActivityDataSetFactory {
                double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
                internalSum += internalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
                externalSum += externalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+               workMonthRemainingEffort += remainingEffortPerDay;
             }
 
             date = new Date(date.getTime() + XCalendar.MILLIS_PER_DAY);
             calendar.setTime(date);
-            if (workMonth == null) {
-               continue;
-            }
             if (workMonth.getMonth() != calendar.get(Calendar.MONTH) ||
                  workMonth.getYear() != calendar.get(Calendar.YEAR) || date.after(finish)) {
 
                workMonth.setRemainingPersonnel(internalSum);
                workMonth.setRemainingProceeds(externalSum);
+               workMonth.setRemainingEffort(workMonthRemainingEffort);
 
                internalSum = 0;
                externalSum = 0;
+               workMonthRemainingEffort = 0;
                workMonth = assignment.getWorkMonth(calendar.get(Calendar.YEAR), (byte) calendar.get(Calendar.MONTH));
             }
          }
@@ -2466,5 +2468,4 @@ public abstract class OpActivityDataSetFactory {
 
       broker.updateObject(assignment);
    }
-
 }

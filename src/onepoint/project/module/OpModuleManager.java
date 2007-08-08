@@ -14,6 +14,7 @@ import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -166,6 +167,11 @@ public final class OpModuleManager {
             }
             catch (NoSuchMethodException e) {
                logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
+            }
+            catch (InvocationTargetException e) {
+               logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+               //allow exceptions thrown by upgrade methods to be handled by someone else as well
+               throw new RuntimeException(e.getCause());
             }
             catch (Exception e) {
                logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);

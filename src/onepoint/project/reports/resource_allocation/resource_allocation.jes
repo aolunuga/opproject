@@ -4,11 +4,15 @@
 
 // Reporting script for resource_allocation.oxf.xml
 
-require "onepoint/project/modules/project/scripts/open_project_chooser.jes";
+require
+"onepoint/project/modules/project/scripts/open_project_chooser.jes";
 
-import onepoint.express.XDisplay;
-import onepoint.express.XValidator;
-import onepoint.service.XMessage;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XValidator;
+import
+onepoint.service.XMessage;
 
 function chooseProject(event) {
    openProjectChooser("QueryFrame", null, "ProjectLocatorField", "ProjectNameField", true, false, false, null, false);
@@ -74,7 +78,7 @@ function getReportQuery() {
 
    if (choice != null && project != null) {
 
-      selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, resource.HourlyRate, ";
+      selectClause1 = "select projectNode.Name, pool.Name, pool.Description, resource.Name, resource.Description, asgn.RemainingPersonnelCosts, ";
       selectClause2 = " superActivity.Name, activity.Name, activity.Start, activity.Finish, asgn.RemainingEffort";
       fromClause1 = " from OpAssignment asgn inner join asgn.Activity activity left outer join activity.SuperActivity superActivity inner join asgn.Resource resource inner join resource.Pool pool ";
       fromClause2 = " inner join activity.ProjectPlan plan inner join plan.ProjectNode projectNode";
@@ -99,7 +103,7 @@ function getReportFields() {
    result.po_description = 2;
    result.rs_name = 3;
    result.rs_description = 4;
-   result.rs_rate = 5;
+   result.remaining_personnel_costs = 5;
    result.sac_name = 6;
    result.op_name = 7;
    result.op_start = 8;
@@ -112,7 +116,7 @@ function getReportFields() {
 function getResourceMapId() {
    return "resource.objects";
 }
-function prepareForm(event){
+function prepareForm(event) {
    button = XDisplay.findFrame("QueryFrame").getForm().findComponent("PrintButton");
    button.setEnabled(false);
    button.update();

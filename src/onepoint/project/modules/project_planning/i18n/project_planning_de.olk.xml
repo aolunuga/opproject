@@ -93,7 +93,6 @@
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die auf diesen Vorgang verweisen</resource>
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
-      <resource id="InvalidBaseEffortErrorMessage">Der eingegebene Planaufwand ist geringer als der Ist-Aufwand des Vorgangs</resource>
 
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
@@ -186,7 +185,6 @@
       <resource id="InvalidCostErrorMessage">Der eingegebene Kostenwert ist ungültig</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die diese Ressourcenzuweisung referenzieren</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand des Vorgangs</resource>
-      <resource id="InvalidBaseEffortErrorMessage">Der eingegebene Planaufwand ist geringer als der Ist-Aufwand des Vorgangs</resource>
       
       <resource id="NoCategory">(Keine)</resource>
       <resource id="NoResource">(Keine)</resource>
