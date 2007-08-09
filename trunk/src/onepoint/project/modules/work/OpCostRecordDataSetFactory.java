@@ -219,6 +219,14 @@ public class OpCostRecordDataSetFactory {
       dataCell = (XComponent) dataRow.getChild(OpWorkCostValidator.ACTIVITY_TYPE_INDEX);
       dataCell.setByteValue(activity.getType());
 
+      //12 - set the actual + remaining sum
+      dataCell = (XComponent) dataRow.getChild(OpWorkCostValidator.ACTUAL_REMAINING_SUM_INDEX);
+      dataCell.setDoubleValue(costRecord.getActualCosts() + costRecord.getRemainingCosts());
+      if (activity.getType() == OpActivity.ADHOC_TASK) {
+         dataCell.setValue(null);
+         dataCell.setEnabled(false);
+      }
+
       //set the activity's assignment on the dataRow
       dataRow.setValue(costRecord.getWorkRecord().getAssignment().locator());
 

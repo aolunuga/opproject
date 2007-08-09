@@ -26,6 +26,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    public final static int ORIGINAL_REMAINING_INDEX = 8;
    public final static int ACTIVITY_TYPE_INDEX = 9;
    public final static int ACTIVITY_CREATED_INDEX = 10;
+   public final static int ACTUAL_REMAINING_SUM_INDEX = 11;
 
    public static final String PROJECT_SET = "EffortProjectSet";
    public static final String ACTIVITY_SET = "EffortActivitySet";
@@ -166,6 +167,12 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       dataCell.setBooleanValue(true);
       dataRow.addChild(dataCell);
 
+      //actual + remaining sum
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setEnabled(true);
+      dataCell.setDoubleValue(0d);
+      dataRow.addChild(dataCell);
+
       return dataRow;
    }
 
@@ -298,13 +305,17 @@ public class OpWorkEffortValidator extends OpWorkValidator {
 
                   //update remaining effort cell value
                   XComponent remainingEffortCell = (XComponent) dataRow.getChild(REMAINING_EFFORT_INDEX);
-                  XComponent originalRemEffortCell = (XComponent) dataRow.getChild(ORIGINAL_REMAINING_INDEX);
+                  XComponent actualRemainingSumCell = (XComponent) dataRow.getChild(ACTUAL_REMAINING_SUM_INDEX);
                   if (remainingEffortCell.getEnabled()) {
-                     if (originalRemEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue() > 0) {
-                        remainingEffortCell.setDoubleValue(originalRemEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue());
+                     if (oldCellValue > actualRemainingSumCell.getDoubleValue()) {
+                        oldCellValue = actualRemainingSumCell.getDoubleValue();
+                     }
+                     if (remainingEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue() > 0) {
+                        remainingEffortCell.setDoubleValue(remainingEffortCell.getDoubleValue() + oldCellValue - cell.getDoubleValue());
                         setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
                      }
                      else {
+                        actualRemainingSumCell.setDoubleValue(oldCellValue + remainingEffortCell.getDoubleValue());
                         remainingEffortCell.setDoubleValue(0d);
                         setValue(dataRow, COMPLETED_INDEX, new Boolean(true));
                      }
@@ -543,6 +554,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       //and on the remaining effort cell
       Double originalRemainingEffort = (Double) assignmentDataList.get(ASSIGNMENT_REMAINING_EFFORT_INDEX);
       setValue(dataRow, ORIGINAL_REMAINING_INDEX, originalRemainingEffort);
+      setValue(dataRow, ACTUAL_REMAINING_SUM_INDEX, originalRemainingEffort);
       if (dataRow.getChild(REMAINING_EFFORT_INDEX).getEnabled()) {
          setValue(dataRow, REMAINING_EFFORT_INDEX, originalRemainingEffort);
       }

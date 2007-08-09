@@ -104,6 +104,13 @@ public class OpWorkEffortDataSetFactory {
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ACTIVITY_CREATED_INDEX);
       dataCell.setBooleanValue(true);
 
+      //11 - set the actual + remaining sum
+      dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ACTUAL_REMAINING_SUM_INDEX);
+      dataCell.setDoubleValue(workRecord.getActualEffort() + workRecord.getRemainingEffort());
+      if (!progressTracked || activity.getType() == OpActivity.MILESTONE || activity.getType() == OpActivity.ADHOC_TASK) {
+         dataCell.setValue(null);
+      }      
+
       //set the activity's assignment on the dataRow
       dataRow.setValue(workRecord.getAssignment().locator());
 
@@ -143,10 +150,13 @@ public class OpWorkEffortDataSetFactory {
       else {
          remainingEffort = remainingValue;
       }
+
       //set the remaining effort
       workRecord.setRemainingEffort(remainingEffort);
+
       //set remaining effort change
       workRecord.setRemainingEffortChange(remainingEffort - assignment.getRemainingEffort());
+
       //set completed
       if (((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getValue() != null) {
          workRecord.setCompleted(((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getBooleanValue());
