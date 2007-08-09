@@ -247,7 +247,7 @@ public class OpReportManager implements XResourceInterceptor {
       if (!hasClassLoaderChanged.booleanValue() || !isClassLoaderTypeOk) {
          ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
          URL[] reportDirsUrls = getReportsWorkingDirsUrls();
-         URLClassLoader newClassLoader = new URLClassLoader(reportDirsUrls, currentClassLoader);
+         URLClassLoader newClassLoader = new OpReportCustomClassLoader(reportDirsUrls, currentClassLoader);
          try {
             Thread.currentThread().setContextClassLoader(newClassLoader);
          }

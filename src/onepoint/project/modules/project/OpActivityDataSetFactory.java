@@ -1215,7 +1215,12 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setBaseEffort(baseEffort);
             if (activity.getProjectPlan().getProgressTracked()) {
-               activity.setRemainingEffort(baseEffort - activity.getActualEffort());
+               if (baseEffort > activity.getActualEffort()) {
+                  activity.setRemainingEffort(baseEffort - activity.getActualEffort());
+               }
+               else {
+                  activity.setRemainingEffort(0);
+               }
                complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
                activity.setComplete(complete);
             }
@@ -1444,9 +1449,14 @@ public abstract class OpActivityDataSetFactory {
                      for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
                         workRecord.setRemainingEffortChange(workRecord.getRemainingEffortChange() + assignmentBaseEffortChange);
                      }
-                     if (tracking && (baseEffort >= assignment.getActualEffort())) {
+                     if (tracking) {
                         double remaining = baseEffort - assignment.getActualEffort();
-                        assignment.setRemainingEffort(remaining);
+                        if (baseEffort >= assignment.getActualEffort()) {
+                           assignment.setRemainingEffort(remaining);
+                        }
+                        else {
+                           assignment.setRemainingEffort(0);
+                        }
                         complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, remaining);
                         assignment.setComplete(complete);
                      }

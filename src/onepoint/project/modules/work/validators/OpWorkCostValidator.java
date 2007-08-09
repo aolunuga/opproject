@@ -29,6 +29,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
    public final static int ATTACHMENT_INDEX = 9; //List<List>
    public final static int ORIGINAL_REMAINING_COST_INDEX = 10; //double
    public final static int ACTIVITY_TYPE_INDEX = 11; //byte
+   public final static int ACTUAL_REMAINING_SUM_INDEX = 12; //double
 
    public static final String PROJECT_SET = "CostProjectSet";
    public static final String ACTIVITY_SET = "CostActivitySet";
@@ -219,6 +220,10 @@ public class OpWorkCostValidator extends OpWorkValidator {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataRow.addChild(dataCell); //activity type 11
 
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDoubleValue(0d);
+      dataRow.addChild(dataCell);//actual + remaining sum
+
       return dataRow;
    }
 
@@ -312,11 +317,16 @@ public class OpWorkCostValidator extends OpWorkValidator {
                   if (!getRemainingCostModifiedByUser(activityChoice, costType)) {
                      //update the remaining cost for all rows with the same activity and the same cost type
                      XComponent remainingEffortCell = (XComponent) dataRow.getChild(REMAINING_COST_INDEX);
+                     XComponent actualRemainingSumCell = (XComponent) dataRow.getChild(ACTUAL_REMAINING_SUM_INDEX);
                      double oldCellValue = cell.getDoubleValue();
+                     if (oldCellValue > actualRemainingSumCell.getDoubleValue()) {
+                        oldCellValue = actualRemainingSumCell.getDoubleValue();
+                     }
                      if (remainingEffortCell.getDoubleValue() + oldCellValue - actualCost > 0) {
                         updateRemainingCostCells(activityChoice, costType, remainingEffortCell.getDoubleValue() + oldCellValue - actualCost);
                      }
                      else {
+                        actualRemainingSumCell.setDoubleValue(oldCellValue + remainingEffortCell.getDoubleValue());
                         updateRemainingCostCells(activityChoice, costType, 0d);
                      }
                   }
@@ -474,6 +484,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
             setValue(dataRow, ACTUAL_COST_INDEX, new Double(0));
             //set the original remaining cost cell value
             setValue(dataRow, ORIGINAL_REMAINING_COST_INDEX, costsList.get(1));
+            setValue(dataRow, ACTUAL_REMAINING_SUM_INDEX, costsList.get(1));
          }
 
          //if the remaining cost was not manually modified by the user
