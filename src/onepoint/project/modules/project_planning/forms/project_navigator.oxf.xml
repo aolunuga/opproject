@@ -1,6 +1,6 @@
 <form id="ProjectNavigatorForm" layout="border" resource-map-ref="project_planning.Navigator"
       provider-class="onepoint.project.modules.project_planning.forms.OpProjectNavigatorFormProvider"
-      script="/modules/project_planning/scripts/project_navigator.jes">
+      script="/modules/project_planning/scripts/project_navigator.jes" on-show="showProjectNavigator">
 
    <data-set id="IconSet">
       <data-row icon="/modules/project/icons/portfolio.png"/>

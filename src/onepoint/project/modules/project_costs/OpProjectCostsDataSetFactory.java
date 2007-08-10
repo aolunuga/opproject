@@ -33,8 +33,8 @@ public final class OpProjectCostsDataSetFactory {
 
 
    public static final int PERSONNEL_COST_INDEX = 0;
-   public static final int MATERIAL_COST_INDEX = 1;
-   public static final int TRAVEL_COST_INDEX = 2;
+   public static final int TRAVEL_COST_INDEX = 1;
+   public static final int MATERIAL_COST_INDEX = 2;
    public static final int EXTERNAL_COST_INDEX = 3;
    public static final int MISC_COST_INDEX = 4;
    public static final int PROCEEDS_COST_INDEX = 5;

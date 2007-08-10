@@ -74,6 +74,9 @@ public final class OpProjectResourceDataSetFactory {
             if (activity.getType() == OpActivity.MILESTONE) {
                continue;
             }
+            if (activity.getDeleted()) {
+               continue;
+            }
          }
 
          if (activity.getOutlineLevel() <= max_outline_level) {

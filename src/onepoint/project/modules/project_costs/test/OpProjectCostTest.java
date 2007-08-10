@@ -173,10 +173,10 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
       //check the assignment of costs between the data set rows
       assertEquals(12d, ((XComponent) dataSet.getChild(1).getChild(1)).getValue());
       assertEquals(5d, ((XComponent) dataSet.getChild(1).getChild(2)).getValue());
-      assertEquals(11d, ((XComponent) dataSet.getChild(2).getChild(1)).getValue());
-      assertEquals(3d, ((XComponent) dataSet.getChild(2).getChild(2)).getValue());
-      assertEquals(13d, ((XComponent) dataSet.getChild(3).getChild(1)).getValue());
-      assertEquals(6d, ((XComponent) dataSet.getChild(3).getChild(2)).getValue());
+      assertEquals(13d, ((XComponent) dataSet.getChild(2).getChild(1)).getValue());
+      assertEquals(6d, ((XComponent) dataSet.getChild(2).getChild(2)).getValue());
+      assertEquals(11d, ((XComponent) dataSet.getChild(3).getChild(1)).getValue());
+      assertEquals(3d, ((XComponent) dataSet.getChild(3).getChild(2)).getValue());
       assertEquals(9d, ((XComponent) dataSet.getChild(4).getChild(1)).getValue());
       assertEquals(2d, ((XComponent) dataSet.getChild(4).getChild(2)).getValue());
       assertEquals(10d, ((XComponent) dataSet.getChild(5).getChild(1)).getValue());
@@ -186,10 +186,10 @@ public class OpProjectCostTest extends OpBaseOpenTestCase {
 
       assertEquals(12d, ((XComponent) dataSet.getChild(8).getChild(1)).getValue());
       assertEquals(5d, ((XComponent) dataSet.getChild(8).getChild(2)).getValue());
-      assertEquals(11d, ((XComponent) dataSet.getChild(9).getChild(1)).getValue());
-      assertEquals(3d, ((XComponent) dataSet.getChild(9).getChild(2)).getValue());
-      assertEquals(13d, ((XComponent) dataSet.getChild(10).getChild(1)).getValue());
-      assertEquals(6d, ((XComponent) dataSet.getChild(10).getChild(2)).getValue());
+      assertEquals(13d, ((XComponent) dataSet.getChild(9).getChild(1)).getValue());
+      assertEquals(6d, ((XComponent) dataSet.getChild(9).getChild(2)).getValue());
+      assertEquals(11d, ((XComponent) dataSet.getChild(10).getChild(1)).getValue());
+      assertEquals(3d, ((XComponent) dataSet.getChild(10).getChild(2)).getValue());
       assertEquals(9d, ((XComponent) dataSet.getChild(11).getChild(1)).getValue());
       assertEquals(2d, ((XComponent) dataSet.getChild(11).getChild(2)).getValue());
       assertEquals(10d, ((XComponent) dataSet.getChild(12).getChild(1)).getValue());

@@ -21,7 +21,7 @@ function print(event) {
    }
 }
 
-function filterChanged(event){
+function filterChanged(event) {
    form = XDisplay.getActiveForm();
 
    project_choice_field = form.findComponent("ProjectChooser");

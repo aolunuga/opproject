@@ -19,11 +19,7 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironmentManager;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -60,6 +56,7 @@ public class OpConfigurationWizardService extends OpProjectService {
    public static final String POSTGRE_DISPLAY = "PostgreSQL";
 
    private static final Map<String, String> DISPLAY_TO_DB_TYPE = new HashMap<String, String>();
+   public final static String DEMODATATA_FILE_PATH = "demodata/demodata.opx.xml";
 
    static {
       DISPLAY_TO_DB_TYPE.put(MYSQL_INNO_DB_DISPLAY, OpConfigurationValuesHandler.MYSQL_INNO_DB_TYPE);
@@ -144,6 +141,27 @@ public class OpConfigurationWizardService extends OpProjectService {
       Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
 
       response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
+
+      //check the load demodata checkbox
+      Boolean loadDemodata = (Boolean) parameters.get("load_demodata");
+      if (loadDemodata) {
+         String demodataFilePath = OpEnvironmentManager.getOnePointHome() + "/" + DEMODATATA_FILE_PATH;
+         File demodataFile = new File(demodataFilePath);
+         if (!demodataFile.exists()) {
+            response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.INVALID_DEMODATA_FILE));
+            return response;
+         }
+         else {            
+            try {
+               initializer.restoreSchemaFromFile(demodataFile.getCanonicalPath(), session);
+            }
+            catch (Exception e) {
+               logger.error("Cannot restore repository because:" + e.getMessage(), e);
+               response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.RESTORE_ERROR));
+               return response;
+            }
+         }
+      }
 
       //restore the locale to the system locale (issue OPP-19)
       session.resetLocaleToSystemDefault();

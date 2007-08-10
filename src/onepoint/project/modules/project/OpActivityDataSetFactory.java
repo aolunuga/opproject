@@ -20,7 +20,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
-import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
@@ -1443,12 +1442,7 @@ public abstract class OpActivityDataSetFactory {
                   }
 
                   if (assignment.getBaseEffort() != baseEffort) {
-                     double assignmentBaseEffortChange = assignment.getBaseEffort() - baseEffort;
                      assignment.setBaseEffort(baseEffort);
-                     //update the remaining effort change of the work records belonging to this assignment
-                     for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
-                        workRecord.setRemainingEffortChange(workRecord.getRemainingEffortChange() + assignmentBaseEffortChange);
-                     }
                      if (tracking) {
                         double remaining = baseEffort - assignment.getActualEffort();
                         if (baseEffort >= assignment.getActualEffort()) {
@@ -2226,6 +2220,11 @@ public abstract class OpActivityDataSetFactory {
       Calendar calendar = xCalendar.getCalendar();
       Date start = activity.getStart();
       Date finish = activity.getFinish();
+
+      if (start == null || finish == null) {
+         return;
+      }
+
       Date date = new Date(start.getTime());
       calendar.setTime(date);
       int month = calendar.get(Calendar.MONTH);

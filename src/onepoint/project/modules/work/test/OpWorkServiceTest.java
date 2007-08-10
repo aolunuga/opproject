@@ -23,6 +23,7 @@ import onepoint.project.modules.work.*;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -255,13 +256,16 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
 
-
-      OpProjectNode project = projectDataFactory.getProjectByName(PRJ_NAME);
-      String id = projectDataFactory.getProjectId(PRJ_NAME);
-      resource1 = resourceDataFactory.getResourceByName(resource1.getName());
+      String projectLocator = projectDataFactory.getProjectId(PRJ_NAME);
+      String resource1Locator = resourceDataFactory.getResourceId(resource1.getName());
+      String resource2Locator = resourceDataFactory.getResourceId(resource2.getName());
 
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
+
+      OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+      resource1 = (OpResource) broker.getObject(resource1Locator);
+      resource2 = (OpResource) broker.getObject(resource2Locator);
 
       OpActivity activity = new OpActivity();
       activity.setName(ACTIVITY1_NAME);
@@ -281,6 +285,10 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       assignment2.setResource(resource2);
       assignment2.setActivity(activity);
       broker.makePersistent(assignment2);
+
+
+      OpActivityDataSetFactory.updateWorkMonths(broker, assignment1, XCalendar.getDefaultCalendar());
+      OpActivityDataSetFactory.updateWorkMonths(broker, assignment2, XCalendar.getDefaultCalendar());
 
       t.commit();
       broker.close();

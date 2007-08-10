@@ -293,6 +293,11 @@ public abstract class OpWorkValidator extends XValidator {
          if (activityRow != null) {
             List resourceList = (List) ((XComponent) activityRow.getChild(ACTIVITY_CHOICE_SET_RESOURCE_INDEX)).getValue();
             filterDataSet(getResourceSet(), resourceList);
+
+            //if the activity has only one resource assigned to it and that resurce is not selected set it on the data row
+            if(resourceList.size() == 1){
+               setResource(dataRow, (String) resourceList.get(0));
+            }
          }
       }
 
