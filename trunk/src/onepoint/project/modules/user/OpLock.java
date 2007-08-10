@@ -84,7 +84,7 @@ public class OpLock extends OpObject {
                   }
                }
                // steel lock
-               logger.info("steeling log for object "+getTarget().getID()+
+               logger.info("steeling lock for object "+getTarget().getID()+
                      " from id "+getLockerID()+" to id "+session.getID());
                // have to be done as atomic call
                OpBroker lockBroker = session.newBroker();
@@ -98,7 +98,7 @@ public class OpLock extends OpObject {
          }
          else {
             // steel lock
-            logger.info("steeling log after restart for object "+getTarget().getID()+
+            logger.info("steeling lock after restart for object "+getTarget().getID()+
                   " from id "+getLockerID()+" to id "+session.getID());
             // have to be done as atomic call
             OpBroker lockBroker = session.newBroker();

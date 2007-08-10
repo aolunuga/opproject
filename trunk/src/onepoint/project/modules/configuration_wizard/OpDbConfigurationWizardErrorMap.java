@@ -25,5 +25,7 @@ public class OpDbConfigurationWizardErrorMap extends XErrorMap {
       registerErrorCode(OpDbConfigurationWizardError.JDBC_DRIVER_ERROR, OpDbConfigurationWizardError.JDBC_DRIVER_ERROR_NAME);
       registerErrorCode(OpDbConfigurationWizardError.DATABASE_PATH_MISSING, OpDbConfigurationWizardError.DATABASE_PATH_MISSING_NAME);
       registerErrorCode(OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE, OpDbConfigurationWizardError.INVALID_MYSQL_ENGINE_NAME);
+      registerErrorCode(OpDbConfigurationWizardError.INVALID_DEMODATA_FILE, OpDbConfigurationWizardError.INVALID_DEMODATA_FILE_NAME);
+      registerErrorCode(OpDbConfigurationWizardError.RESTORE_ERROR, OpDbConfigurationWizardError.RESTORE_ERROR_NAME);
    }
 }

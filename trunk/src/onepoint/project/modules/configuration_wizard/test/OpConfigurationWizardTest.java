@@ -59,6 +59,7 @@ public class OpConfigurationWizardTest extends OpBaseOpenTestCase {
       params.put("database_login", dbUserName);
       params.put("database_password", dbPassword);
       params.put("is_multi_user", Boolean.FALSE);
+      params.put("load_demodata", Boolean.FALSE);
 
       XMessage request = new XMessage();
       request.setArgument("parameters", params);

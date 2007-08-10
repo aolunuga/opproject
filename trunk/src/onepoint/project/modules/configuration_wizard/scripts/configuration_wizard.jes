@@ -24,6 +24,7 @@ function connect(event) {
    config.database_login = form.findComponent("DatabaseLoginTextField").getStringValue();
    config.database_password = form.findComponent("DatabasePasswordTextField").getStringValue();
    config.is_multi_user = true;
+   config.load_demodata = form.findComponent("LoadDemodata").getBooleanValue();
 
    //save configuration file
    request = new XMessage;

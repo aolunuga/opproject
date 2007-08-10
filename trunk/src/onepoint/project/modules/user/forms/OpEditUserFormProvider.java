@@ -144,6 +144,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          firstName.setEnabled(false);
          lastName.setEnabled(false);
          login.setEnabled(false);
+         levelField.setEnabled(false);
       }
 
       XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);

@@ -31,6 +31,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
    private static final String DB_TYPE_DATA_SET = "DBTypeDataSet";
    private static final String DB_TYPE_CHOICE_FIELD = "DatabaseTypeChoiceField";
    private static final String DB_URL_FIELD = "DatabaseUrlTextField";
+   private static final String LOAD_DEMODATA_CHECKBOX = "LoadDemodata";
    private static final String ERROR_LABEL_FIELD = "ErrorLabel";
 
    /**
@@ -48,6 +49,7 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
       form.findComponent(DB_URL_FIELD).setStringValue(XValidator.choiceID(defaultSelectedRow.getStringValue()));
       XComponent choiceField = form.findComponent(DB_TYPE_CHOICE_FIELD);
       choiceField.setSelectedIndex(selectedIndex);
+      form.findComponent(LOAD_DEMODATA_CHECKBOX).setBooleanValue(false);
 
       //check whether an error code should already be displayed
        OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();

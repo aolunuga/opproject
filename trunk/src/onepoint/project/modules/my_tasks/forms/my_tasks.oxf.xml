@@ -97,7 +97,7 @@
                           flexible="true" pop-up-menu-ref="ActivityTablePopupMenu" on-row-select="selectionChanged">
                   <!-- The list of columns to show could be editable and dynamic (form-provider) -->
                   <table-column text="" width="0" hidden="true" data-column-index="1"
-                                row-font-styles="plain;bold;bold+italic;italic;italic"/>
+                                row-font-styles="plain;bold;bold+italic;italic;italic;plain;italic"/>
                   <table-column text="" width="35" data-column-index="18" value-type="IndicatorList"
                                 icon-set-ref="IndicatorIconSet"/>
                   <table-column text="${Name}" sortable="true" width="200" data-column-index="0"/>
