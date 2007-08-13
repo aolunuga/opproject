@@ -15,6 +15,11 @@ import java.util.HashMap;
 public class OpBackupHandler implements XNodeHandler {
 
    /**
+    *   Constant used when the schema version is missing when reading the backup-file (4 - represents ver 07).
+    */
+   private String MISSING_SCHEMA_VERSION ="4";
+
+   /**
     * @see XNodeHandler#newNode(onepoint.xml.XContext,String,java.util.HashMap)
     */
    public Object newNode(XContext context, String name, HashMap attributes) {
@@ -24,7 +29,7 @@ public class OpBackupHandler implements XNodeHandler {
       }
       String schemaVersion = (String) attributes.get(OpBackupManager.SCHEMA_VERSION);
       //if no schema version present, set value to 0 to force update
-      schemaVersion = (schemaVersion != null) ? schemaVersion : "0";
+      schemaVersion = (schemaVersion != null) ? schemaVersion : MISSING_SCHEMA_VERSION;
       ((OpRestoreContext) context).writeSchemaVersion(schemaVersion);
       return null;
    }

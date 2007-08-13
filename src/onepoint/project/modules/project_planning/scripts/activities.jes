@@ -66,6 +66,8 @@ function editActivities(event) {
    warning = response.getArgument("warning");
    success = true;
 
+   resetWBSToolBarSelection();
+
    if (warning != null) {
       XDisplay.resetCursor();
       //this needs to be the last call (otherwise the window is closed)
@@ -700,4 +702,10 @@ function updateSums(event) {
  */
 function activatePlanningTable(event) {
 
+}
+
+/**
+ * @Overridden
+ */
+function resetWBSToolBarSelection() {
 }
