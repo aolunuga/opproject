@@ -86,19 +86,19 @@ public class OpCostRecordDataSetFactory {
       localizer.setResourceMap(resourceMap);
 
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.TRAVEL_COST), localizer.localize("${" + TRAVEL_COST_RESOURCE + "}")));
+      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.TRAVEL_COST), localizer.localize("${" + TRAVEL_COST_RESOURCE + "}", session.getLocalizerParameters())));
       costTypesDataSet.addChild(dataRow);
 
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.MATERIAL_COST), localizer.localize("${" + MATERIAL_COST_RESOURCE + "}")));
+      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.MATERIAL_COST), localizer.localize("${" + MATERIAL_COST_RESOURCE + "}", session.getLocalizerParameters())));
       costTypesDataSet.addChild(dataRow);
 
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.EXTERNAL_COST), localizer.localize("${" + EXTERNAL_COST_RESOURCE + "}")));
+      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.EXTERNAL_COST), localizer.localize("${" + EXTERNAL_COST_RESOURCE + "}", session.getLocalizerParameters())));
       costTypesDataSet.addChild(dataRow);
 
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.MISCELLANEOUS_COST), localizer.localize("${" + MISCELLANEOUS_COST_RESOURCE + "}")));
+      dataRow.setValue(XValidator.choice(String.valueOf(OpCostRecord.MISCELLANEOUS_COST), localizer.localize("${" + MISCELLANEOUS_COST_RESOURCE + "}", session.getLocalizerParameters())));
       costTypesDataSet.addChild(dataRow);
    }
 
@@ -147,19 +147,19 @@ public class OpCostRecordDataSetFactory {
       String text = "";
       switch (costRecord.getType()) {
          case OpCostRecord.TRAVEL_COST: {
-            text = localizer.localize("${" + TRAVEL_COST_RESOURCE + "}");
+            text = localizer.localize("${" + TRAVEL_COST_RESOURCE + "}", session.getLocalizerParameters());
             break;
          }
          case OpCostRecord.MATERIAL_COST: {
-            text = localizer.localize("${" + MATERIAL_COST_RESOURCE + "}");
+            text = localizer.localize("${" + MATERIAL_COST_RESOURCE + "}", session.getLocalizerParameters());
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
-            text = localizer.localize("${" + EXTERNAL_COST_RESOURCE + "}");
+            text = localizer.localize("${" + EXTERNAL_COST_RESOURCE + "}", session.getLocalizerParameters());
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
-            text = localizer.localize("${" + MISCELLANEOUS_COST_RESOURCE + "}");
+            text = localizer.localize("${" + MISCELLANEOUS_COST_RESOURCE + "}", session.getLocalizerParameters());
             break;
          }
       }

@@ -42,7 +42,7 @@
          </tool-bar>
       </panel>
       
-      <scroll-box flexible="true" style-ref="borderless-scroll-box">
+      <scroll-box id="ScrollBox" flexible="true" style-ref="borderless-scroll-box">
          <panel layout="border" style-ref="layout-panel-default">
             <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
             <panel id="settingsPanel" layout="table" style-ref="table-panel-default">

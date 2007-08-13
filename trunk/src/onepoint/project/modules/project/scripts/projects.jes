@@ -314,6 +314,11 @@ function selectionChanged(event) {
          deleteButton.setEnabled(false);
       }
 
+      //disable move and delete buttons in case of root project portofolio selection
+      if (XValidator.choiceCaption(dataRow.getChild(1).getStringValue()).equals("Root Project Portfolio")) {
+         moveButton.setEnabled(false);
+         deleteButton.setEnabled(false);
+      }
    }
    toolbar.doLayout();
    toolbar.repaint();
