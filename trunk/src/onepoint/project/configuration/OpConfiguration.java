@@ -45,12 +45,25 @@ public class OpConfiguration {
     */
    private static final String ENCRYPTION_TOKEN = "praeeminere";
 
-   //Misc. properties
+   /**
+    * The default maximum size for attachments, in MBs.
+    */
+   private static final String DEFAULT_MAX_ATTACHMENT_SIZE = "5";
+
+   /**
+    * Misc. properties.
+    */
    private String browserApplication;
    private String smtpServer;
    private String logFile;
    private String logLevel;
    private String secureService;
+
+   /**
+    * The maximum size allowed for attachments, in MBs.
+    */
+   private String maxAttachmentSize = DEFAULT_MAX_ATTACHMENT_SIZE;
+
    /**
     * Name of the default backup directory
     */
@@ -165,6 +178,28 @@ public class OpConfiguration {
     */
    public void setBackupPath(String backupPath) {
       this.backupPath = backupPath;
+   }
+
+   /**
+    * Gets the maximum size of attachments
+    * @return a <code>String</code> representing the maximum size of attachements.
+    */
+   public String getMaxAttachmentSize() {
+      return maxAttachmentSize;
+   }
+
+   /**
+    * Sets the maximum size for attachments.
+    * @param maxAttachmentSize a <code>String</code> the maximum attachment size.
+    */
+   public void setMaxAttachmentSize(String maxAttachmentSize) {
+      try {
+         Integer.parseInt(maxAttachmentSize);
+         this.maxAttachmentSize = maxAttachmentSize;
+      }
+      catch (NumberFormatException e) {
+         this.maxAttachmentSize = DEFAULT_MAX_ATTACHMENT_SIZE;
+      }
    }
 
    /**
