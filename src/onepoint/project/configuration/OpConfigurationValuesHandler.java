@@ -37,6 +37,8 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
    public final static String SECURE_SERVICE = "secure-service";
    public final static String RESOURCE_CACHE_SIZE = "resource-cache-size";
    public final static String BACKUP_PATH = "backup-path";
+   public final static String MAX_ATTACHMENT_SIZE = "max-attachment-size";
+
    /**
     * Database types
     */
@@ -209,6 +211,10 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
       else if (BACKUP_PATH.equals(name)) {
          String value = node.toString();
          ((OpConfiguration) parent).setBackupPath(value);
+      }
+      else if (MAX_ATTACHMENT_SIZE.equals(name)) {
+         String value = node.toString();
+         ((OpConfiguration) parent).setMaxAttachmentSize(value);
       }
    }
 

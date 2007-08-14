@@ -31,6 +31,7 @@ public class OpConfigurationSchema extends XSchema {
       registerNodeHandler(OpConfigurationValuesHandler.SECURE_SERVICE, new OpConfigurationValuesHandler());
       registerNodeHandler(OpConfigurationValuesHandler.RESOURCE_CACHE_SIZE, new OpConfigurationValuesHandler());
       registerNodeHandler(OpConfigurationValuesHandler.BACKUP_PATH, new OpConfigurationValuesHandler());
+      registerNodeHandler(OpConfigurationValuesHandler.MAX_ATTACHMENT_SIZE, new OpConfigurationValuesHandler());
    }
 
 }

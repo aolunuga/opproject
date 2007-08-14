@@ -14,6 +14,7 @@
          <xsd:element name="secure-service" type="xsd:string" minOccurs="0"/>
          <xsd:element name="resource-cache-size" type="xsd:string" minOccurs="0"/>
          <xsd:element name="backup-path" type="xsd:string" minOccurs="0"/>
+         <xsd:element name="max-attachment-size" type="xsd:string"  default="5" minOccurs="0"/>
          <xsd:element name="ldap" type="OpLdapConfig" minOccurs="0"/>
       </xsd:all>
    </xsd:complexType>
