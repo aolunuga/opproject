@@ -4,27 +4,27 @@
 
    <!--- Currency data-set -->
    <data-set id="CurrencyDataSet">
-      <data-row string-value="AUD;AUD['${AUD}']"/>
-      <data-row string-value="CAD;CAD['${CAD}']"/>
+      <data-row string-value="AUD;$['${AUD}']"/>
+      <data-row string-value="CAD;$['${CAD}']"/>
       <data-row string-value="CHF;CHF['${CHF}']"/>
-      <data-row string-value="CNY;CNY['${CNY}']"/>
-      <data-row string-value="DKK;DKK['${DKK}']"/>
+      <data-row string-value="CNY;元['${CNY}']"/>
+      <data-row string-value="DKK;kr['${DKK}']"/>
       <data-row string-value="EUR;€['${EUR}']"/>
       <data-row string-value="GBP;₤['${GBP}']"/>
-      <data-row string-value="HKD;HKD['${HKD}']"/>
-      <data-row string-value="HUF;HUF['${HUF}']"/>
-      <data-row string-value="INR;INR['${INR}']"/>
-      <data-row string-value="JPY;JPY['${JPY}']"/>
-      <data-row string-value="MXN;MXN['${MXN}']"/>
-      <data-row string-value="MYR;MYR['${MYR}']"/>
-      <data-row string-value="NOK;NOK['${NOK}']"/>
-      <data-row string-value="NZD;NZD['${NZD}']"/>
-      <data-row string-value="RUB;RUB['${RUB}']"/>
-      <data-row string-value="SEK;SEK['${SEK}']"/>
-      <data-row string-value="SGD;SGD['${SGD}']"/>
-      <data-row string-value="THB;THB['${THB}']"/>
+      <data-row string-value="HKD;HK$['${HKD}']"/>
+      <data-row string-value="HUF;Ft['${HUF}']"/>
+      <data-row string-value="INR;₨['${INR}']"/>
+      <data-row string-value="JPY;¥['${JPY}']"/>
+      <data-row string-value="MXN;$['${MXN}']"/>
+      <data-row string-value="MYR;RM['${MYR}']"/>
+      <data-row string-value="NOK;kr['${NOK}']"/>
+      <data-row string-value="NZD;$['${NZD}']"/>
+      <data-row string-value="RUB;руб['${RUB}']"/>
+      <data-row string-value="SEK;kr['${SEK}']"/>
+      <data-row string-value="SGD;$['${SGD}']"/>
+      <data-row string-value="THB;฿['${THB}']"/>
       <data-row string-value="USD;$['${USD}']"/>
-      <data-row string-value="ZAR;ZAR['${ZAR}']"/>
+      <data-row string-value="ZAR;R['${ZAR}']"/>
    </data-set>
    <data-field id="CurrencyNameSymbolSeparator" string-value=";"/>
 

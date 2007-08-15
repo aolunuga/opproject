@@ -136,7 +136,12 @@ public class OpMyTasksFormProvider implements XFormProvider {
       Boolean showHours = getShowHoursPreference(user);
       unsortedDataSet.setValue(showHours);
       OpActivityDataSetFactory.retrieveFilteredActivityDataSet(broker, activityFilter, orderCriteria, unsortedDataSet);
+      Map<Integer, String> indexIdMap = createIndexIdMap(unsortedDataSet);
       this.sortActivityDataSet(unsortedDataSet, dataSet);
+      Map<String, Integer> idIndexMap = createIdIndexMap(dataSet);
+
+      //rebuild the successors and predecessors indexes in the dataset
+      OpActivityDataSetFactory.rebuildPredecessorsSuccessorsIndexes(dataSet, indexIdMap, idIndexMap);
    }
 
    /**
@@ -576,4 +581,49 @@ public class OpMyTasksFormProvider implements XFormProvider {
       return (projectChoiceId != null) ? projectChoiceId : ALL ;
    }
 
+   /**
+    * Creates a <code>Map<Integer, String></code> where the keys are the indexes of the data rows in the
+    *    <code>XComponent</code> data set passed as parameter and the values are the <code>String</code>
+    *    values from those data rows.
+    *    Map structure: Key -  the index of each data row in the data set passed as parameter.
+    *                   Value - the String value on that row.
+    *
+    * @param dataSet - the <code>XComponent</code> data set on which the <code>Map</code> is created.
+    * @return a <code>Map<Integer, String></code> where the keys are the indexes of the data rows in the
+    *         <code>XComponent</code> data set passed as parameter and the values are the <code>String</code>
+    *         values from those data rows.
+    */
+   private Map<Integer, String> createIndexIdMap(XComponent dataSet) {
+      Map<Integer, String> indexIdMap = new HashMap<Integer, String>();
+      XComponent dataRow;
+
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         dataRow = (XComponent) dataSet.getChild(i);
+         indexIdMap.put(new Integer(dataRow.getIndex()), (String) dataRow.getValue());
+      }
+      return indexIdMap;
+   }
+
+   /**
+    * Creates a <code>Map<String, Integer></code> where the keys are the <code>String</code> values of
+    *    the data rows in the <code>XComponent</code> data set passed as parameter and the values are the
+    *    indexes of those data rows.
+    *    Map structure: Key -  the String value of each data row in the data set passed as parameter.
+    *                   Value - the index of that row.
+    *
+    * @param dataSet - the <code>XComponent</code> data set on which the <code>Map</code> is created.
+    * @return a <code>Map<String, Integer></code> where the keys are the <code>String</code> values of
+    *    the data rows in the <code>XComponent</code> data set passed as parameter and the values are the 
+    *    indexes of those data rows.
+    */
+   private Map<String, Integer> createIdIndexMap(XComponent dataSet) {
+      Map<String, Integer> indexIdMap = new HashMap<String, Integer>();
+      XComponent dataRow;
+
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         dataRow = (XComponent) dataSet.getChild(i);
+         indexIdMap.put((String) dataRow.getValue(), new Integer(dataRow.getIndex()));
+      }
+      return indexIdMap;
+   }
 }

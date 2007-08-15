@@ -4,15 +4,6 @@
 
 package onepoint.project.application;
 
-import java.awt.Frame;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.Toolkit;
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.XExitHandler;
@@ -32,6 +23,12 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XResourceCache;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
+
+import java.awt.*;
+import java.io.File;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpBasicApplication extends XExpressApplication implements XExitHandler{
 
@@ -112,7 +109,17 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
       //we want do do some cleanup...
       this.registerExitHandler(this);
 
+      postStart(initParams);
+
       showStartForm(initParams);
+   }
+
+   /**
+    * Advanced check, method is overriden.
+    *
+    * @param initParams - a <code>Map</code> of startup parameters.
+    */
+   protected void postStart(Map<String, String> initParams){
    }
 
    protected OpInitializer getInitializer() {
