@@ -6,28 +6,27 @@ package onepoint.project;
 
 import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.documents.OpContentManager;
-import onepoint.project.modules.documents.OpContent;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
-import onepoint.log.XLog;
-import onepoint.log.XLogFactory;
 
-import java.sql.Timestamp;
-import java.util.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.*;
 
 public class OpProjectSession extends XExpressSession {
 
@@ -184,6 +183,10 @@ public class OpProjectSession extends XExpressSession {
 
    public XError newError(XErrorMap errorMap, int errorCode) {
       return errorMap.newError(errorCode, getLocale());
+   }
+
+    public XError newError(XErrorMap errorMap, int errorCode, List args) {
+      return errorMap.newError(errorCode, getLocale(), args);
    }
 
    public byte effectiveAccessLevel(OpBroker broker, long objectId) {

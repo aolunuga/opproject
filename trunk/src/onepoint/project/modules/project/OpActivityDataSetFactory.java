@@ -2477,4 +2477,48 @@ public abstract class OpActivityDataSetFactory {
 
       broker.updateObject(assignment);
    }
+
+   /**
+    * Rebuilds the Predecessor and Successor cell value for each row in the <code>XComponent</code> data set
+    * passed as parameter.
+    *
+    * @param dataSet       - the <code>XComponent</code> data set whose rows are modified.
+    * @param oldIndexIdMap - a <code>Map<Integer, String></code> containing the old indexes as keys and the
+    *                      String values of the data rows at those indexes as values.
+    * @param newIdIndexMap - <code>Map<String, Integer></code> containing the data row's String values as keys
+    *                      and the indexes of those data rows as values.
+    */
+   public static void rebuildPredecessorsSuccessorsIndexes(XComponent dataSet, Map<Integer, String> oldIndexIdMap,
+        Map<String, Integer> newIdIndexMap) {
+      XComponent dataRow;
+      List<Integer> oldPredecessors;
+      List<Integer> newPredecessors;
+      List<Integer> oldSuccesssors;
+      List<Integer> newSuccesssors;
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         dataRow = (XComponent) dataSet.getChild(i);
+
+         //replace the predecessors old indexes with the new ones
+         oldPredecessors = OpGanttValidator.getPredecessors(dataRow);
+         if (!oldPredecessors.isEmpty()) {
+            newPredecessors = new ArrayList<Integer>();
+            for (Integer predecessor : oldPredecessors) {
+               String predecessorId = oldIndexIdMap.get(predecessor);
+               newPredecessors.add(newIdIndexMap.get(predecessorId));
+            }
+            OpGanttValidator.setPredecessors(dataRow, newPredecessors);
+         }
+
+         //replace the successors old indexes with the new ones
+         oldSuccesssors = OpGanttValidator.getSuccessors(dataRow);
+         if (!oldSuccesssors.isEmpty()) {
+            newSuccesssors = new ArrayList<Integer>();
+            for (Integer successor : oldSuccesssors) {
+               String successorId = oldIndexIdMap.get(successor);
+               newSuccesssors.add(newIdIndexMap.get(successorId));
+            }
+            OpGanttValidator.setSuccessors(dataRow, newSuccesssors);
+         }
+      }
+   }
 }

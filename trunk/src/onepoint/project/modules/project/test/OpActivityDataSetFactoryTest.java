@@ -3,12 +3,16 @@
  */
 package onepoint.project.modules.project.test;
 
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.express.server.XFormSchema;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
@@ -17,12 +21,15 @@ import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XLocale;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
+import onepoint.xml.XDocumentHandler;
+import onepoint.xml.XLoader;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * This class test project service methods.
@@ -39,6 +46,11 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    private OpResourceTestDataFactory resourceDataFactory;
 
    private OpProjectNode project;
+
+   /**
+    * The name of the xml file that contains the test data.
+    */
+   private static final String TEST_DATA_FILENAME = "activityDataSetTestData.xml";
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -72,6 +84,163 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
         throws Exception {
       clean();
       super.tearDown();
+   }
+
+   /**
+    * Loads a test data set from the given file.
+    *
+    * @param testDataFile a <code>xml</code> file containing a data set that will be used
+    *                     for testing.
+    * @return a <code>XComponent(DATA_SET)</code> containing test data.
+    */
+   private XComponent getTestDataSet(String testDataFile) {
+      XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
+      InputStream testDataInputStream = this.getClass().getResourceAsStream(testDataFile);
+      XComponent testForm = (XComponent) xmlLoader.loadObject(testDataInputStream, null);
+
+      //activity data set.
+      return (XComponent) testForm.getChild(0);
+   }
+
+   /**
+    * Tests the rebuilding of successors and predecessors indexes on an activity data set.
+    *
+    * @throws Exception if an error occured.
+    */
+   public void testRebuildPredecessorsSuccessorsIndexes()
+        throws Exception {
+
+      //init the default calendar
+      XDisplay display = new XDisplay(null);
+      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+      XComponent dataSet = getTestDataSet(TEST_DATA_FILENAME);
+      assertEquals(9, dataSet.getChildCount());
+
+      //the map of successors rows for each activity in the data set
+      Map<String, List<XComponent>> mapSuccessors = createSuccessorsMap(dataSet);
+      //the map of predecessors rows for each activity in the data set
+      Map<String, List<XComponent>> mapPredecessors = createPredecessorsMap(dataSet);
+
+      /* create the Map<Integer, String> which has indexes of rows as keys and the names of the activities from the
+         rows as values
+       */
+      Map<Integer, String> indexNameMap = new HashMap<Integer, String>();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         indexNameMap.put(dataRow.getIndex(), OpGanttValidator.getName(dataRow));
+      }
+
+      //sort the data set according to the activity type
+      dataSet.sort(OpGanttValidator.TYPE_COLUMN_INDEX);
+
+      //the map of successors rows for each activity in the data set after sorting
+      Map<String, List<XComponent>> mapSuccessorsPostSort = createSuccessorsMap(dataSet);
+      //the map of predecessors rows for each activity in the data set after sorting
+      Map<String, List<XComponent>> mapPredecessorsPostSort = createPredecessorsMap(dataSet);
+
+      /* create the Map<String, Integer> which has the names of the activities from the
+         rows as keys and the indexes of the data rows as values
+       */
+      Map<String, Integer> nameIndexMap = new HashMap<String, Integer>();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         nameIndexMap.put(OpGanttValidator.getName(dataRow), dataRow.getIndex());
+      }
+
+      //after the sort the successors indexes point to the wrong data rows
+      assertFalse(doRowsValuesMatch(mapSuccessors, mapSuccessorsPostSort));
+      //after the sort the predecessors indexes point to the wrong data rows
+      assertFalse(doRowsValuesMatch(mapPredecessors, mapPredecessorsPostSort));
+
+      //rebuild the original successors and predecessors
+      OpActivityDataSetFactory.rebuildPredecessorsSuccessorsIndexes(dataSet, indexNameMap, nameIndexMap);
+
+      //the map of successors rows for each activity in the data set after rebuilding
+      Map<String, List<XComponent>> mapSuccessorsPostRebuild = createSuccessorsMap(dataSet);
+      //the map of predecessors rows for each activity in the data set after rebuilding
+      Map<String, List<XComponent>> mapPredecessorsPostRebuild = createPredecessorsMap(dataSet);
+
+      //after the rebuild the successors indexes point to the right data rows
+      assertTrue(doRowsValuesMatch(mapSuccessors, mapSuccessorsPostRebuild));
+      //after the rebuild the predecessors indexes point to the right data rows
+      assertTrue(doRowsValuesMatch(mapPredecessors, mapPredecessorsPostRebuild));
+   }
+
+   /**
+    * Creates a <code>Map</code> with all the successors for all activities in the data set.
+      The structure of the map : Key - activity name
+                                  Value - of data rows representing the successors of the activity
+
+    * @param dataSet - the <code>XComponent</code> data set from which the successors are taken.
+    * @return a lists with all the successors for all activities in the data set.
+    */
+   private Map<String, List<XComponent>> createSuccessorsMap(XComponent dataSet) {
+      Map<String, List<XComponent>> successorsMap = new HashMap<String, List<XComponent>>();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         List<XComponent> successorRows = new ArrayList<XComponent>();
+         List<Integer> successors = OpGanttValidator.getSuccessors((XComponent) dataSet.getChild(i));
+         if (!successors.isEmpty()) {
+            for (Integer successorIndex : successors) {
+               XComponent newDataRow = ((XComponent) dataSet.getChild(successorIndex)).copyData();
+               successorRows.add(newDataRow);
+            }
+         }
+         successorsMap.put(OpGanttValidator.getName((XComponent) dataSet.getChild(i)), successorRows);
+      }
+      return successorsMap;
+   }
+
+   /**
+    * Creates a <code>Map</code> with all the predecessors for all activities in the data set.
+      The structure of the map : Key - activity name
+                                 Value - of data rows representing the predecessors of the activity
+    *
+    * @param dataSet - the <code>XComponent</code> data set from which the predecessors are taken.
+    * @return a lists with all the predecessors for all activities in the data set.
+    */
+   private Map<String, List<XComponent>> createPredecessorsMap(XComponent dataSet) {
+      Map<String, List<XComponent>> predecessorsMap = new HashMap<String, List<XComponent>>();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+
+         List<XComponent> predecessorRows = new ArrayList<XComponent>();
+         List<Integer> predecessors = OpGanttValidator.getPredecessors((XComponent) dataSet.getChild(i));
+         if (!predecessors.isEmpty()) {
+            for (Integer predecessorIndex : predecessors) {
+               XComponent newDataRow = ((XComponent) dataSet.getChild(predecessorIndex)).copyData();
+               predecessorRows.add(newDataRow);
+            }
+         }
+         predecessorsMap.put(OpGanttValidator.getName((XComponent) dataSet.getChild(i)), predecessorRows);
+      }
+      return predecessorsMap;
+   }
+
+   /**
+    * Checks the name values on the data rows in the maps passed al parameters and returns <code>true</code>
+    *    if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
+    *    if at leat one rows has a different name value than it's corresponding row in the other map.
+    *
+    * @param oldMap
+    * @param newMap
+    * @return <code>true</code>
+    *    if all the corresponding rows in both maps have the same name value set on them and <code>false</code>
+    *    if at leat one rows has a different name value than it's corresponding row in the other map.
+    */
+   private boolean doRowsValuesMatch(Map<String, List<XComponent>> oldMap, Map<String, List<XComponent>> newMap) {
+      Iterator it = oldMap.keySet().iterator();
+      while (it.hasNext()) {
+         String activityName = (String) it.next();
+         List<XComponent> oldSuccessors = oldMap.get(activityName);
+         List<XComponent> newSuccessors = newMap.get(activityName);
+         for (int i = 0; i < oldSuccessors.size(); i++) {
+            XComponent oldDataRow = oldSuccessors.get(i);
+            XComponent newDataRow = newSuccessors.get(i);
+            if (!OpGanttValidator.getName(oldDataRow).equals(OpGanttValidator.getName(newDataRow))) {
+               return false;
+            }
+         }
+      }
+      return true;
    }
 
    /**
