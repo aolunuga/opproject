@@ -14,12 +14,9 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
+import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.modules.user.OpLock;
-import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPreference;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.modules.user.*;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
 
@@ -43,6 +40,8 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String CALCULATION_MODE = OpGanttValidator.CALCULATION_MODE;
    private final static String PROGRESS_TRACKED = OpGanttValidator.PROGRESS_TRACKED;
    private final static String PROJECT_TEMPLATE = OpGanttValidator.PROJECT_TEMPLATE;
+
+   private final static String RESOURCE_AVAILABILITY = "ResourceAvailability";
 
    private final static String PROJECT_NAME_SET = "ProjectNameSet";
    private final static String PRINT_TITLE = "PrintTitle";
@@ -228,6 +227,11 @@ public class OpActivitiesFormProvider implements XFormProvider {
          OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, resourceDataSet);
          logger.debug("after-project-resources");
 
+         //fill the availability map
+         XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+         resourceAvailability.setValue(availabilityMap);
+
          // Check if there is already a project plan
          OpProjectPlan projectPlan = project.getPlan();
          if (projectPlan != null) {
@@ -276,12 +280,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
          costsTab.setHidden(true);
       }
 
-      //hide costs tab if the app. is multiuser and hide manager features is set to true and the user is not manager
-      if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
-         if(hideManagerFeatures && currentUser.getLevel() < OpUser.MANAGER_USER_LEVEL){
-            costsTab.setHidden(true);
-         }
+      //if the app. is multiuser and hide manager features is set to true and the user is not manager
+      if (OpSubjectDataSetFactory.shouldHideFromUser(currentUser)) {
+         //hide costs tab
+         costsTab.setHidden(true);
       }
 
       broker.close();

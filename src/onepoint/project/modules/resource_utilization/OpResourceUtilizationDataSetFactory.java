@@ -265,8 +265,8 @@ public final class OpResourceUtilizationDataSetFactory {
       Map<Long, Date> minStartDates = new HashMap<Long, Date>();
       Map<Long, Date> maxFinishDates = new HashMap<Long, Date>();
       StringBuffer queryBuffer = new StringBuffer("select assignment.Resource.ID, min(activity.Start), max(activity.Finish) ");
-      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity ");
-      queryBuffer.append("where activity.Deleted = false ");
+      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity  inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
+      queryBuffer.append("where activity.Deleted = false and projectNode.Archived=false ");
       if (resourceIds != null && !resourceIds.isEmpty()) {
          queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
       }
@@ -287,8 +287,8 @@ public final class OpResourceUtilizationDataSetFactory {
       }
 
       queryBuffer = new StringBuffer("select assignment.Resource.ID, assignment.Assigned, activity, workPeriod ");
-      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity inner join activity.WorkPeriods as workPeriod ");
-      queryBuffer.append("where activity.Deleted = false and activity.Type = :activityType and activity.Template = false ");
+      queryBuffer.append("from OpAssignment as assignment inner join assignment.Activity as activity inner join activity.WorkPeriods as workPeriod inner join activity.ProjectPlan projectPlan inner join projectPlan.ProjectNode projectNode ");
+      queryBuffer.append("where activity.Deleted = false and activity.Type = :activityType and activity.Template = false and projectNode.Archived=false ");
       if (resourceIds != null && !resourceIds.isEmpty()) {
          queryBuffer.append("and assignment.Resource.ID in (:resourceIds) ");
       }
@@ -364,12 +364,8 @@ public final class OpResourceUtilizationDataSetFactory {
     * the resource utilization chart.
     */
    private static double getUtilizationValueAccordingToProject(double assignmentValue, OpProjectNode projectNode) {
-      if (projectNode.getArchived()) {
-         return 0.0;
-      }
       int projectProbability = projectNode.getProbability();
-      double utilizationValue = (projectProbability * assignmentValue) / 100;
-      return utilizationValue;
+      return (projectProbability * assignmentValue) / 100;
    }
 
    /**

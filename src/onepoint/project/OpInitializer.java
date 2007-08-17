@@ -38,6 +38,11 @@ import java.util.Map;
 public class OpInitializer {
 
    /**
+    * The number of bytes in a MB.
+    */
+   private static final int MB_TO_BYTE_CONVERSION_UNIT = 1048576;
+
+   /**
     * This class's logger
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpInitializer.class);
@@ -131,7 +136,11 @@ public class OpInitializer {
                return initParams; //show db configuration wizard frame
             }
 
-
+            //check attachment size
+            if (this.configuration.getMaxAttachmentSize() > OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE) {
+               logger.info("Values higher than " +  OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
+            }
+            
             // initialize logging facility
             String logFile = configuration.getLogFile();
             if (logFile != null && !new File(logFile).isAbsolute()) {
@@ -233,7 +242,7 @@ public class OpInitializer {
     * @param databasePassword connection user password
     * @param databaseLogin    connection user
     * @param databaseType     database type.
-    * @return
+    * @return a <code>OpSource</code> instance.
     */
    protected OpSource createSource(String databaseUrl, String databaseDriver, String databasePassword,
         String databaseLogin, int databaseType) {
@@ -313,6 +322,14 @@ public class OpInitializer {
       return configuration;
    }
 
+   /**
+    * Returns the maximum size configured for attachments, in bytes.
+    * @return a <code>long</code> value representing a number of bytes.
+    */
+   public long getMaxAttachmentSizeBytes() {
+      return configuration.getMaxAttachmentSize() * MB_TO_BYTE_CONVERSION_UNIT;
+   }
+   
    /**
     * Resets the db schema by dropping the existent one and creating a new one.
     *

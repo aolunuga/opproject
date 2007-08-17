@@ -1,5 +1,10 @@
-<form layout="border" width="400" height="120" text="${AddDocument}" start-focus-ref="Name" resource-map-ref="project_planning.AddDocument" script="/modules/project_planning/scripts/add_document.jes">
+<form layout="border" width="400" height="120" text="${AddDocument}"
+      start-focus-ref="Name" resource-map-ref="project_planning.AddDocument" 
+      script="/modules/project_planning/scripts/add_document.jes"
+      provider-class="onepoint.project.modules.project_planning.forms.OpAddDocumentFormProvider">
 
+   <data-field id="MaxAttachmentSize" />
+   <data-field id="InvalidAttachmentSize" text="${InvalidAttachmentSize}"/>
    <panel layout="border">
       <data-field id="DocumentPathField"/>
       <data-field id="DialogTitle" text="${ChooseDocument}"/>

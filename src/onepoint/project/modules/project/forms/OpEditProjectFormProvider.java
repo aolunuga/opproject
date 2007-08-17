@@ -71,6 +71,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String ADD_DOCUMENT_BUTTON = "AddDocumentButton";
    private final static String ADD_URL_BUTTON = "AddURLButton";
    private final static String REMOVE_ATTACHMENT_BUTTON = "RemoveAttachmentButton";
+   private final static String ATTACHMENTS_TOOL_PANEL = "AttachmentsToolPanel";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -467,6 +468,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       form.findComponent(ADD_DOCUMENT_BUTTON).setEnabled(editMode);
       form.findComponent(ADD_URL_BUTTON).setEnabled(editMode);
       form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(editMode);
+      form.findComponent(ATTACHMENTS_TOOL_PANEL).setVisible(editMode);
    }
 
    /**

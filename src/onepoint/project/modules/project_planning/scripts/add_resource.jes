@@ -116,23 +116,26 @@ function ok(event) {
    }
 }
 
-/* Finds resource availability.Search is performed in project resource alocation data set */
-function getResourceAvailability(resource_id){
-   availability = 100;
-   projectContentFrame = XDisplay.findFrame("ProjectContentFrame");
-   if (projectContentFrame != null) {
-   resource_alocation_set = projectContentFrame.currentForm().findComponent("AssignmentSet");
-   // Added support for null data-set in order to be reusable from my-tasks view
-   i = 0;
-   while (i < resource_alocation_set.getChildCount()){
-      resourceRow = resource_alocation_set.getChild(i);
-      resourceId = XValidator.choiceID(resourceRow.getStringValue());
-      if (resource_id.equals(resourceId)){
-         availability = resourceRow.getChild(0).getDoubleValue();
-         return availability;
+/* Finds resource availability.Search is performed in project resource availability map */
+function getResourceAvailability(resource_id) {
+   availability = null;
+   resourceAvailability = XDisplay.getActiveForm().findComponent("ResourceAvailability");
+   if (resourceAvailability != null) {
+      // Added support for null data-set in order to be reusable from my-tasks view
+      availabilityMap = resourceAvailability.getValue();
+      keyList = availabilityMap.keyList();
+      i = 0;
+      while (i < keyList.size()) {
+         resourceId = keyList.get(i);
+         if (resource_id.equals(resourceId)) {
+            availability = availabilityMap.get(resourceId);
+            return availability;
+         }
+         i++;
       }
-      i++;
    }
+   if(availability == null) {
+      Console.println("Something went wrong with the resource availability ...");
    }
    return availability;
 }

@@ -21,6 +21,7 @@ function ok(event) {
       name = "document";
    }
    location = form.findComponent("Location").getStringValue();
+   maxAttachmentSizeBytes = form.findComponent("MaxAttachmentSize").getLongValue();
 
    //full document path
    data_row = attachment_data_set.newDataRow();
@@ -48,6 +49,14 @@ function ok(event) {
 
       //3 - content id (the File object in new documents)
       file = File.create(document_path);
+      if (file.getSize() > maxAttachmentSizeBytes) {
+         error_label = form.findComponent("ErrorLabel");
+         error_label.setText(form.findComponent("InvalidAttachmentSize").getText());
+         error_label.setVisible(true);
+         form.doLayout();
+         form.repaint();
+         return;
+      }
       data_cell = XComponent.newDataCell();
       data_cell.setValue(file);
       data_cell.setEnabled(false);

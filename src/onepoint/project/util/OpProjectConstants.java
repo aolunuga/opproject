@@ -86,5 +86,5 @@ public interface OpProjectConstants {
    /**
     * License service name
     */
-   public static final String LICENSE_SERVICE_NAME = "LicenseService";  
+   public static final String LICENSE_SERVICE_NAME = "LicenseService";
 }

@@ -386,11 +386,22 @@ function tabChanged(event) {
    //toolbar
    toolbar = form.findComponent("ProjectToolbar");
 
+   //permissions
+   rootPortfolioPermission = form.findComponent("RootPortfolioPermission").getByteValue();
+   managerPermission = form.findComponent("ManagerPermission").getByteValue();
+   
    //toolbar buttons
    newProjectButton = form.findComponent("NewProjectButton");
-   newProjectButton.setEnabled(true);
    newPortfolioButton = form.findComponent("NewPortfolioButton");
-   newPortfolioButton.setEnabled(true);
+
+   if(rootPortfolioPermission < managerPermission) {
+      newProjectButton.setEnabled(false);
+      newPortfolioButton.setEnabled(false);
+   }
+   else {
+      newProjectButton.setEnabled(true);
+      newPortfolioButton.setEnabled(true);
+   }
    infoButton = form.findComponent("InfoButton");
    infoButton.setEnabled(false);
    moveButton = form.findComponent("MoveButton");

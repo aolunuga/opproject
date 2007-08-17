@@ -77,7 +77,7 @@
             <table-column id="AttachmentLocation" text="${Location}" width="200" data-column-index="2"
                           value-type="String" index-based="true" caption-column-index="2" sortable="true"/>
          </table-box>
-         <panel y="1" layout="flow" direction="east">
+         <panel y="1" id="AttachmentsToolPanel" layout="flow" direction="east">
             <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="addDocumentAttachment" id="AddDocumentButton" tooltip="${AddDocumentAttachmentTooltip}"/>
             <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png" on-button-pressed="addURLAttachment" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
             <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>

@@ -4,6 +4,8 @@
 
 // Controller script for project_dates.oxf.xml
 
+require "onepoint/project/modules/project_planning/scripts/open_activity_details.jes" as openDetails;
+
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -78,4 +80,8 @@ function filterChanged(event){
    parameters.version_id = version_choice_id;
    parameters.resource_id = resource_choice_id;
    XDisplay.findFrame("ProjectContentFrame").refreshForm(parameters);
+}
+
+function editActivity(event) {
+   openDetails.editActivity(event);
 }

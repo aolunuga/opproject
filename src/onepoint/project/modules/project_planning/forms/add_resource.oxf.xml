@@ -1,6 +1,7 @@
 <form layout="border" width="400" height="120" text="${AddResource}" resource-map-ref="project_planning.AddResource" script="/modules/project_planning/scripts/add_resource.jes">
 
-   <data-set id="ResourceDataSet"/>
+   <data-field id="ResourceAvailability"/>
+   <data-set id="ResourceDataSet"/>   
 	
    <panel layout="border">
    <label y="-1" id="ErrorLabel" visible="false" text="${AssignmentErrorMessage}" style-ref="label-error-default"/>

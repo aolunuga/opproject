@@ -14,7 +14,6 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpActivityComment;
 import onepoint.project.modules.project.OpActivityVersion;
@@ -23,6 +22,9 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpSubjectDataSetFactory;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -58,6 +60,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private static final String NO_RESOURCE_TEXT = "NoResource";
    private static final String COMPLETE = "Complete";
    private static final String NO_CATEGORY_RESOURCE = "NoCategory";
+   private static final String COSTS_TAB = "CostsTab";
 
    protected int activityType = -1;
 
@@ -68,6 +71,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
 
       OpBroker broker = session.newBroker();
+      OpUser currentUser = session.user(broker);
 
       // Check for activity ID (get activity if activity is a version)
       String activityLocator = (String) parameters.get(OpProjectPlanningService.ACTIVITY_ID);
@@ -116,6 +120,12 @@ public class OpEditActivityFormProvider implements XFormProvider {
       responsibleSet.addChild(dataRow);
 
       showComments(form, activity, session, broker, resourceMap, true);
+
+      //if the app. is multiuser and hide manager features is set to true and the user is not manager
+      if (OpSubjectDataSetFactory.shouldHideFromUser(currentUser)) {
+         //hide costs tab 
+         form.findComponent(COSTS_TAB).setHidden(true);
+      }
 
       logger.info("/OpEditActivityFormProvider.prepareForm()");
       broker.close();

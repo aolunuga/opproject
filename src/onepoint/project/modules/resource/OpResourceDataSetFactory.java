@@ -401,4 +401,23 @@ public final class OpResourceDataSetFactory {
          }
       }
    }
+
+   /**
+    * Creates a <code>Map</code> with information regarding the availability of each resource in the database.
+    *    The structure of the map: Key - the locator (String) of the resource.
+    *                              Value - the availability (Double) of the resource.
+    *
+    * @param broker - broker to use for db access.
+    * @return a <code>Map</code> with information regarding the availability of each resource in the database.
+    */
+   public static Map<String, Double> createResourceAvailabilityMap(OpBroker broker) {
+      Map<String, Double> availabilityMap = new HashMap<String, Double>();
+      OpQuery query = broker.newQuery("select resource from OpResource as resource ");
+      List resources = broker.list(query);
+      for (int i = 0; i < resources.size(); i++) {
+         OpResource resource = (OpResource) resources.get(i);
+         availabilityMap.put(resource.locator(), resource.getAvailable());
+      }
+      return availabilityMap;
+   }
 }
