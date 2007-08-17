@@ -6,12 +6,10 @@ package onepoint.project.modules.user;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObjectOrderCriteria;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
 
@@ -336,5 +334,22 @@ public final class OpSubjectDataSetFactory {
       return result;
    }
 
+   /**
+    * Checks if the app. is multiuser and hide manager features is set to true and the user is not manager
+    * and returns <code>true</code> if this is the case or <code>false</code> otherwise.
+    *
+    * @param user - the current user.
+    * @return <code>true</code> if the app. is multiuser and hide manager features is set to true and the user is
+    *         not manager and <code>false</code> otherwise.
+    */
+   public static boolean shouldHideFromUser(OpUser user) {
+      if (OpEnvironmentManager.isMultiUser()) {
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         if (hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
+            return true;
 
+         }
+      }
+      return false;
+   }
 }

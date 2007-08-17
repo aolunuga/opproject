@@ -708,6 +708,7 @@ public class OpOpenServlet extends XExpressServlet {
       Map<String, String> references = (Map<String, String>) message.getArgument(XConstants.FILE_REF_ARGUMENT);
 
       if (sizes != null && !sizes.isEmpty()) {
+         this.checkAttachmentSizes(sizes.values());
          Map<String, String> contents = new HashMap<String, String>();
 
          // Get the session context ('true': create new session if necessary)
@@ -736,6 +737,25 @@ public class OpOpenServlet extends XExpressServlet {
          broker.close();
 
          message.insertObjectsIntoArguments(contents);
+      }
+   }
+
+   /**
+    * Checks if any attachments has a size larger than the configured application size, and
+    * throws an exception if it does.
+    * @param attachmentSizes a <code>Collection(Long)</code> the attachment sizes in bytes.
+    * @throws IOException if any of the attachment sizes is larget than the configured size.
+    */
+   private void checkAttachmentSizes(Collection<Long> attachmentSizes)
+         throws IOException {
+      OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+      long maxSizeBytes = initializer.getMaxAttachmentSizeBytes();
+      for (Long attachmentSize : attachmentSizes) {
+         if (attachmentSize > maxSizeBytes) {
+            String message = "Attachments larger than the configured size of " + maxSizeBytes + " are not allowed. Aborting transaction";
+            logger.error(message);
+            throw new IOException(message);
+         }
       }
    }
 

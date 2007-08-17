@@ -11,8 +11,10 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -57,9 +59,19 @@ public class OpProjectsFormProvider implements XFormProvider {
       XComponent dataSet = form.findComponent(PROJECT_DATA_SET);
       OpProjectDataSetFactory.retrieveProjectDataSetRootHierarchy(session, dataSet, OpProjectDataSetFactory.ALL_TYPES, true, null);
 
-      //hide costs tab and costs column for users that have only the customer level
+      boolean shouldHideFromUser = false;
       OpUser user = session.user(broker);
-      if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
+      //check if the app. is multiuser and hide manager features is set to true and the user is not manager
+      if (OpEnvironmentManager.isMultiUser()) {
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         if(hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL){
+            shouldHideFromUser = true;
+         }
+      }
+
+      //hide costs tab and costs column for users that have only the customer level or if the app. is
+      // multiuser and hide manager features is set to true and the user is not manager
+      if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL || shouldHideFromUser) {
          form.findComponent(COSTS_TAB).setHidden(true);
          form.findComponent(COSTS_COLUMN).setHidden(true);
       }

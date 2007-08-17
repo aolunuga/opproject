@@ -26,6 +26,11 @@ public class OpConfiguration {
     */
    public final static Map<String, String> DATABASE_DRIVERS = new HashMap<String, String>();
 
+   /**
+    * The default maximum size for attachments, in MBs.
+    */
+   public static final int DEFAULT_MAX_ATTACHMENT_SIZE = 5;
+
    static {
       initDatabaseDriversMap();
    }
@@ -46,11 +51,6 @@ public class OpConfiguration {
    private static final String ENCRYPTION_TOKEN = "praeeminere";
 
    /**
-    * The default maximum size for attachments, in MBs.
-    */
-   private static final String DEFAULT_MAX_ATTACHMENT_SIZE = "5";
-
-   /**
     * Misc. properties.
     */
    private String browserApplication;
@@ -62,7 +62,7 @@ public class OpConfiguration {
    /**
     * The maximum size allowed for attachments, in MBs.
     */
-   private String maxAttachmentSize = DEFAULT_MAX_ATTACHMENT_SIZE;
+   private String maxAttachmentSize = String.valueOf(DEFAULT_MAX_ATTACHMENT_SIZE);
 
    /**
     * Name of the default backup directory
@@ -184,8 +184,8 @@ public class OpConfiguration {
     * Gets the maximum size of attachments
     * @return a <code>String</code> representing the maximum size of attachements.
     */
-   public String getMaxAttachmentSize() {
-      return maxAttachmentSize;
+   public int getMaxAttachmentSize() {
+      return Integer.valueOf(maxAttachmentSize);
    }
 
    /**
@@ -198,7 +198,7 @@ public class OpConfiguration {
          this.maxAttachmentSize = maxAttachmentSize;
       }
       catch (NumberFormatException e) {
-         this.maxAttachmentSize = DEFAULT_MAX_ATTACHMENT_SIZE;
+         this.maxAttachmentSize = String.valueOf(DEFAULT_MAX_ATTACHMENT_SIZE);
       }
    }
 

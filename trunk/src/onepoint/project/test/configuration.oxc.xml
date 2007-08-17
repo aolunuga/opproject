@@ -6,6 +6,7 @@
    	<database-url>jdbc:jtds:sqlserver://localhost:1433/opproject_test</database-url>
    	<database-login>sa</database-login>
    	<database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>
-   	<log-file>opproject.log</log-file>
    </database>
+   <log-file>opproject.log</log-file>
+   <cache-size>500</cache-size>
 </configuration>

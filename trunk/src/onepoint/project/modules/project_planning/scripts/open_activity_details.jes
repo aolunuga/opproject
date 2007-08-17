@@ -173,17 +173,17 @@ function setButtonVisibleMode(editMode, button) {
 }
 
 function setDurationValue(duration_field, duration) {
-   durationColumn = XDisplay.getActiveForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
-   if (durationColumn.getID() == "Duration") {
-      durationUnit = durationColumn.getDisplayUnit();
-   }
-   else {
-      //default HOUR
-      durationUnit = Byte.parseByte("1");
+   //default HOUR
+   durationUnit = Byte.parseByte("1");
+
+   if (XDisplay.getActiveForm().findComponent("ActivityTable") != null) {
+      durationColumn = XDisplay.getActiveForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
+      if (durationColumn.getID() == "Duration") {
+         durationUnit = durationColumn.getDisplayUnit();
+      }
    }
    duration_field.setDoubleValue(XCalendar.convertDurationToUnit(duration, durationUnit));
 }
-
 
 function getEditDialogForm() {
    return "/modules/project_planning/forms/edit_activity.oxf.xml";
@@ -451,6 +451,11 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          remove_icon_button = dialog_form.findComponent("ResourceRemoveIcon");
          setButtonVisibleMode(showButtons, remove_icon_button);
       }
+
+      //fill the resource availability data set
+      resourceAvailabilityMap = XDisplay.getActiveForm().findComponent("ResourceAvailability");
+      dialogAvailabilityMap = dialog_form.findComponent("ResourceAvailability");
+      dialogAvailabilityMap.setValue(resourceAvailabilityMap.getValue());
 
       //predecessor tab
       if (!shouldHideTab("PredecessorTab", hiddenTabsIds, dialog_form)) {

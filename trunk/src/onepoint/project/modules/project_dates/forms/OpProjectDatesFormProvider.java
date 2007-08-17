@@ -14,6 +14,7 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
@@ -28,6 +29,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
    private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String HISTORY_SET = "HistorySet";
    private final static String ACTIVITY_SET = "ActivitySet";
+   private final static String RESOURCE_AVAILABILITY = "ResourceAvailability";
    private final static String CATEGORY_COLOR_DATA_SET = "CategoryColorDataSet";
    public final static String MILESTONE_SET = "MilestoneSet";
    public final static String MILESTONE_TABLE = "MilestoneTable";
@@ -122,6 +124,11 @@ public class OpProjectDatesFormProvider implements XFormProvider {
             XComponent categoryColorDataSet = form.findComponent(CATEGORY_COLOR_DATA_SET);
             OpActivityDataSetFactory.fillCategoryColorDataSet(broker, categoryColorDataSet);
          }
+
+         //fill the availability map
+         XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+         resourceAvailability.setValue(availabilityMap);
       }
       broker.close();
    }

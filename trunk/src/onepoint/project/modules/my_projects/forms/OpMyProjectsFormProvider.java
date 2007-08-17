@@ -13,6 +13,7 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.project_costs.OpProjectCostsDataSetFactory;
 import onepoint.project.modules.project_resources.OpProjectResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
@@ -87,9 +88,10 @@ public class OpMyProjectsFormProvider implements XFormProvider {
          form.findComponent(PRINT_BUTTON).setEnabled(true);
       }
 
-      //hide costs tab and costs column for users that have only the customer level
+      //hide costs tab and costs column for users that have only the customer level or
+      //if the app. is multiuser and hide manager features is set to true and the user is not manager
       OpUser user = session.user(broker);
-      if (user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
+      if (OpSubjectDataSetFactory.shouldHideFromUser(user) || user.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
          form.findComponent(COSTS_TAB).setHidden(true);
          form.findComponent(COSTS_COLUMN).setHidden(true);
 

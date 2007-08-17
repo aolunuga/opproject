@@ -15,6 +15,7 @@ import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
@@ -38,6 +39,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private final static String PROJECT_SET = "ProjectSet";
    private final static String RESOURCES_SET = "FilterResourcesSet";
    private final static String DELETE_PERMISSION_SET = "DeletePermissionSet";
+   private final static String RESOURCE_AVAILABILITY = "ResourceAvailability";
 
    // filters
    private final static String START_BEFORE_ID = "start_before_id";
@@ -108,6 +110,11 @@ public class OpMyTasksFormProvider implements XFormProvider {
       // fill delete permission data set
       XComponent deletePermissionSet = form.findComponent(DELETE_PERMISSION_SET);
       fillDeletePermissionDataSet((OpProjectSession) s, broker, dataSet, deletePermissionSet);
+
+      //fill the availability map
+      XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+      Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+      resourceAvailability.setValue(availabilityMap);
 
       broker.close();
    }

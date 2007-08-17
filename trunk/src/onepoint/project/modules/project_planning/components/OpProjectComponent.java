@@ -1137,14 +1137,22 @@ public class OpProjectComponent extends XComponent {
 
          // Special case: Empty chart
          if (chart_start_time == Long.MAX_VALUE) {
-            Date projectStart;
-            if (validator != null && validator.getProjectStart() != null) {
-               projectStart = validator.getProjectStart();
+            Date chart_start;
+            //if the project is not a template set the start date to tge start of the project
+            if (!validator.getProjectTemplate().booleanValue()) {
+               Date projectStart;
+               if (validator != null && validator.getProjectStart() != null) {
+                  projectStart = validator.getProjectStart();
+               }
+               else {
+                  projectStart = XCalendar.today();
+               }
+               chart_start = calendar.workWeekStart(projectStart);
             }
-            else {
-               projectStart = XCalendar.today();
+            //if the project is a template set the start date to 01/01/2001
+            else{
+               chart_start = OpGanttValidator.getDefaultTemplateStart();
             }
-            Date chart_start = calendar.workWeekStart(projectStart);
             chart_start_time = chart_start.getTime();
             chart_end_time = chart_start_time + XCalendar.MILLIS_PER_WEEK * 2;
             // *** Should project end at end-work-time?

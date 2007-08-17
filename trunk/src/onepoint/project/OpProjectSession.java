@@ -26,6 +26,7 @@ import onepoint.service.XSizeInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 public class OpProjectSession extends XExpressSession {
@@ -500,17 +501,28 @@ public class OpProjectSession extends XExpressSession {
     * Process the client request to persist the uploaded files. The request will be updated with the persisted files id
     *
     * @param message a <code>XMessage</code> instance
+    * @throws IOException if the size of any of the files is larger than the configured max size
     */
    @Override
-   public void processFiles(XMessage message) {
+   public void processFiles(XMessage message)
+         throws IOException {
       if (message != null) {
+
          Map<String, File> files = message.extractObjectsFromArguments(File.class);
          Map<String, String> contents = new HashMap<String, String>();
          Map<File, String> processed = new HashMap<File, String>();
+
+         long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
+         String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
+
          OpBroker broker = newBroker();
          for (Map.Entry<String, File> entry : files.entrySet()) {
             String id = entry.getKey();
             File file = entry.getValue();
+            if (file.length() > maxFileSize) {
+               logger.error(error);
+               throw new IOException(error);
+            }
             if (processed.keySet().contains(file)) {
                // this file was allready processed, reuse the content
                contents.put(id, processed.get(file));

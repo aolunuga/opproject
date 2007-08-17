@@ -61,18 +61,18 @@
                <label x="0" y="6" width="2" text="${EMailNotificationFromAddress}" id="EMailNotificationFromAddressLabel"/>
                <text-field x="2" y="6" width="3" id="EMailNotificationFromAddress"/>
                <label x="0" y="7" width="2" text="${ReportsRemoveTimePeriod}"/>
-               <int-field x="2" y="7" width="3" id="ReportsRemoveTimePeriod"/>
+               <int-field x="2" y="7" width="3" id="ReportsRemoveTimePeriod" lower-limit="1"/>
                <check-box x="2" y="8" width="3" id="ShowResourceHours" text="${ShowResourceHours}"/>
                <label x="0" y="9" width="2" text="${ResourceMaxAvailability}"/>
                <double-field x="2" y="9" width="3" id="ResourceMaxAvailability"/>
                <label x="0" y="10" width="2" text="${MilestoneControllingInterval}"/>
-               <int-field x="2" y="10" width="3" id="MilestoneControllingInterval"/>
+               <int-field x="2" y="10" width="3" id="MilestoneControllingInterval" lower-limit="1"/>
                <check-box x="2" y="11" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
                <check-box x="2" y="12" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
                <check-box x="2" y="13" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
                <check-box x="2" y="14" width="3" id="HideManagerFeatures" text="${HideManagerFeatures}"/>
                <label x="0" y="15" width="2" text="${Pulsing}"/>
-               <int-field x="2" y="15" width="3" id="Pulsing"/>
+               <int-field x="2" y="15" width="3" id="Pulsing" lower-limit="0"/>
                <label x="0" y="16" width="2" text="${Currency}"/>
                <choice-field x="2" y="16" width="3" id="CurrencyChoice" data-set-ref="CurrencyDataSet"/>
             </panel>

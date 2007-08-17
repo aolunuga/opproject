@@ -25,6 +25,7 @@
    <data-field id="PrintTitle"/>
    <data-field id="Total" text="${Total}"/>
    <data-field id="ShowResourceHours"/>
+   <data-field id="ResourceAvailability"/>
    <data-set id="ProjectNameSet"/>
    <data-set id="AssignmentSet" on-choice-editor-compare="compareChoiceResources"/>
    <data-set id="ProjectSettingsDataSet"/>

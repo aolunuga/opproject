@@ -8,7 +8,7 @@
    <data-field id="PrintTitle"/>
    <data-field id="DeletePermissionSet"/>
    <data-field id="NoResourcesForUser" text="${NoResourcesForUser}"/>
-
+   <data-field id="ResourceAvailability"/>
 
    <pop-up-menu id="ActivityTablePopupMenu">
       <pop-up-item text="${SaveCSV}" on-item-selected="saveActivityTableCSV"/>
@@ -108,8 +108,7 @@
                   <table-column text="${End}" width="65" sortable="true" data-column-index="5" value-type="Date"/>
                   <table-column text="${Effort}" width="65" sortable="true" data-column-index="7" value-type="Duration"
                                 display-unit="Hours"/>
-                  <table-column text="${Resources}" width="80" data-column-index="26" value-type="ChoiceList"
-                                data-set-ref="AssignmentSet"/>
+                  <table-column text="${Resources}" width="80" data-column-index="26" value-type="ChoiceList"/>
                   <table-column text="${Priority}" width="40" sortable="true" data-column-index="23"
                                 value-type="Byte"/>
 

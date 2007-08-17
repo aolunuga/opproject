@@ -6,6 +6,7 @@
 	    <data-set id="ResponsibleResourceSet"/>
       <data-set id="AssignmentSet"/>
 
+      <data-set id="ResourceAvailability"/>
       <data-field id="ActivityRowIndex"/>
       <data-field id="ActivityIDField"/>
       <data-field id="EditModeField"/>

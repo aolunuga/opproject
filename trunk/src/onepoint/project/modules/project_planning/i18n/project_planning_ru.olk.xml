@@ -237,6 +237,7 @@
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
       <resource id="ChooseDocument">Select a document</resource>
+      <resource id="InvalidAttachmentSize">The  attachment's size is above the maximum configured limit</resource>      
    </resource-map>
 
    <resource-map id="project_planning.activity_details">

@@ -36,6 +36,10 @@ function addAssignment(event) {
    dialog = XComponent.newDialog();
    form = dialog.loadForm("/modules/project_planning/forms/add_resource.oxf.xml");
    new_resource_set = form.findComponent("ResourceDataSet");
+   resourceAvailabilityMap = cur_form.findComponent("ResourceAvailability");
+   dialogAvailabilityMap = form.findComponent("ResourceAvailability");
+   dialogAvailabilityMap.setValue(resourceAvailabilityMap.getValue());
+   
    resource_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
 
    i = 0;
