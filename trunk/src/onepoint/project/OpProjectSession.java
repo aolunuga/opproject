@@ -8,7 +8,14 @@ import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpPersistenceManager;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
@@ -27,7 +34,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 
 public class OpProjectSession extends XExpressSession {
 
@@ -46,10 +61,46 @@ public class OpProjectSession extends XExpressSession {
    protected long userId = NO_ID;
    protected long administratorId = NO_ID; // Site administrator
    private long everyoneId = NO_ID; // Everyone inside the site
-   private ArrayList subjectIds = new ArrayList();
-   private List brokerList = new ArrayList();
+   private List<Long> subjectIds = new ArrayList<Long>();
+   private List<OpBroker> brokerList = new ArrayList<OpBroker>();
+   protected String sourceName;
 
+   /**
+    * Creates a new instance, but in order to REALLY use it you must call init method (with appropriate source
+    * name to use).
+    */
    public OpProjectSession() {
+      //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
+      //<FIXME author="Horia Chiorean" description="For the case when the configuration wizard appears, there are no sources !">
+      if (!OpSourceManager.getAllSources().isEmpty()) {
+         this.init(((OpHibernateSource) OpSourceManager.getAllSources().iterator().next()).getName());
+      }
+      else {
+         super.setLocale(XLocaleManager.getDefaultLocale());
+         super.setLocalizerParameters(OpSettings.getI18NParameters());
+      }
+      //<FIXME>
+   }
+
+   /**
+    * Creates a new instance, but in order to REALLY use it you must call init method (with appropriate source
+    * name to use).
+    *
+    * @param sourceName source name
+    */
+   public OpProjectSession(String sourceName) {
+      this.init(sourceName);
+   }
+
+   /**
+    * Defines the name of the source that will be used to create brokers.
+    * Attention: This method must be called imediatelly after intialization/constructor.
+    *
+    * @param sourceName source name
+    */
+   public void init(String sourceName) {
+      this.sourceName = sourceName;
+
       OpBroker broker = newBroker();
       if (broker.getConnection() != null && broker.getConnection().isValid()) {
          resetLocaleToSystemDefault();
@@ -93,7 +144,7 @@ public class OpProjectSession extends XExpressSession {
       return userId;
    }
 
-   public final ArrayList getSubjectIds() {
+   public final List getSubjectIds() {
       return subjectIds;
    }
 
@@ -102,8 +153,7 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpAdministratorID(OpBroker broker) {
-      OpQuery query = broker.newQuery("select user.ID from OpUser as user where user.Name = ?");
-      query.setString(0, OpUser.ADMINISTRATOR_NAME);
+      OpQuery query = broker.newQuery(OpUser.ADMINISTRATOR_ID_QUERY);
       Iterator result = broker.iterate(query);
       if (result.hasNext()) {
          administratorId = (Long) result.next();
@@ -125,8 +175,7 @@ public class OpProjectSession extends XExpressSession {
    }
 
    protected void lookUpEveryoneID(OpBroker broker) {
-      OpQuery query = broker.newQuery("select group.ID from OpGroup as group where group.Name = ?");
-      query.setString(0, OpGroup.EVERYONE_NAME);
+      OpQuery query = broker.newQuery(OpGroup.EVERYONE_ID_QUERY);
       Iterator result = broker.iterate(query);
       if (result.hasNext()) {
          everyoneId = (Long) result.next();
@@ -154,7 +203,7 @@ public class OpProjectSession extends XExpressSession {
            .newQuery("select assignment.Group.ID from OpUserAssignment as assignment where assignment.User.ID = ?");
       query.setLong(0, userId);
       Iterator i = broker.iterate(query);
-      ArrayList groups = new ArrayList();
+      List<Long> groups = new ArrayList<Long>();
       Long subjectId = null;
       while (i.hasNext()) {
          subjectId = (Long) i.next();
@@ -176,8 +225,17 @@ public class OpProjectSession extends XExpressSession {
       }
    }
 
+   /**
+    * Creates a new broker
+    *
+    * @return a new <code>Broker</code> instance.
+    */
    public OpBroker newBroker() {
-      OpBroker broker = OpPersistenceManager.newBroker();
+      if (sourceName == null) {
+         throw new NullPointerException("Count not instantiate broker without source name.");
+      }
+
+      OpBroker broker = OpPersistenceManager.newBroker(sourceName);
       brokerList.add(broker);
       return broker;
    }
@@ -186,7 +244,7 @@ public class OpProjectSession extends XExpressSession {
       return errorMap.newError(errorCode, getLocale());
    }
 
-    public XError newError(XErrorMap errorMap, int errorCode, List args) {
+   public XError newError(XErrorMap errorMap, int errorCode, List args) {
       return errorMap.newError(errorCode, getLocale(), args);
    }
 
@@ -208,7 +266,8 @@ public class OpProjectSession extends XExpressSession {
          return 0;
       }
       // Check for locks and respective lock owners
-      
+
+      // Check for locks and respective lock owners
       query = broker.newQuery("select lock from OpLock as lock where lock.Target.ID = ? and lock.Owner.ID != ?");
       query.setLong(0, objectId);
       query.setLong(1, getUserID());
@@ -217,10 +276,10 @@ public class OpProjectSession extends XExpressSession {
       OpLock lock;
       boolean otherLockersExist = false;
       while ((result.hasNext() && (!otherLockersExist))) {
-         lock = (OpLock)result.next();
+         lock = (OpLock) result.next();
          otherLockersExist = !lock.lockedByMe(this, broker);
       }
-      
+
       if (otherLockersExist && (userAccessLevel > OpPermission.CONTRIBUTOR)) {
          userAccessLevel = OpPermission.CONTRIBUTOR;
       }
@@ -244,7 +303,7 @@ public class OpProjectSession extends XExpressSession {
          return new HashSet();
       }
       // Administrator user has always administrative access level
-      Set accessibleIds = new HashSet();
+      Set<Object> accessibleIds = new HashSet<Object>();
       if (userId == administratorId) {
          for (Object objectId : objectIds) {
             accessibleIds.add(objectId);
@@ -263,7 +322,7 @@ public class OpProjectSession extends XExpressSession {
          // TODO: Probably return a special iterator (XAccessibleObjectsIterator) -- for scalability
          // (Note: Can be used to implement paging together w/a count argument)
          // ArrayList accessibleIds = new ArrayList();
-         accessibleIds = new HashSet();
+         accessibleIds = new HashSet<Object>();
          while (result.hasNext()) {
             accessibleIds.add(result.next());
          }
@@ -300,8 +359,8 @@ public class OpProjectSession extends XExpressSession {
       String sortQuery = order.toHibernateQueryString("accessibleObject");
 
       // Administrator user has always administrative access level
-      HashMap accessibleObjectMap = new HashMap();
-      ArrayList accessibleObjects = new ArrayList(); // Presume order from order-by statement
+      Map<Long, OpObject> accessibleObjectMap = new HashMap<Long, OpObject>();
+      List<OpObject> accessibleObjects = new ArrayList<OpObject>(); // Presume order from order-by statement
       if (userId == administratorId) {
          StringBuffer queryString = new StringBuffer();
          queryString.append("select accessibleObject from ");
@@ -501,55 +560,55 @@ public class OpProjectSession extends XExpressSession {
     * Process the client request to persist the uploaded files. The request will be updated with the persisted files id
     *
     * @param message a <code>XMessage</code> instance
-    * @throws IOException if the size of any of the files is larger than the configured max size
+    * @throws java.io.IOException if the size of any of the files is larger than the configured max size
     */
    @Override
    public void processFiles(XMessage message)
-         throws IOException {
+        throws IOException {
       if (message != null) {
 
          Map<String, File> files = message.extractObjectsFromArguments(File.class);
-         Map<String, String> contents = new HashMap<String, String>();
-         Map<File, String> processed = new HashMap<File, String>();
-
-         long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
-         String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
-
-         OpBroker broker = newBroker();
-         for (Map.Entry<String, File> entry : files.entrySet()) {
-            String id = entry.getKey();
-            File file = entry.getValue();
-            if (file.length() > maxFileSize) {
-               logger.error(error);
-               throw new IOException(error);
-            }
-            if (processed.keySet().contains(file)) {
-               // this file was allready processed, reuse the content
-               contents.put(id, processed.get(file));
-            }
-            else {
-               // process the file for the first time
-               try {
-                  XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
-                  String mimeType = OpContentManager.getFileMimeType(file.getName());
-                  OpContent content = OpContentManager.newContent(stream, mimeType, 0);
-
-                  OpTransaction t = broker.newTransaction();
-                  broker.makePersistent(content);
-                  t.commit();
-
-                  String contentId = content.locator();
-                  contents.put(id, contentId);
-                  processed.put(file, contentId);
-               }
-               catch (FileNotFoundException e) {
-                  logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
-                  contents.put(id, null);
-               }
-            }
+         if(!files.isEmpty()){ //only do it if we need...
+             Map<String, String> contents = new HashMap<String, String>();
+             Map<File, String> processed = new HashMap<File, String>();
+             long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
+             String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
+	         OpBroker broker = newBroker();
+	         for (Map.Entry<String, File> entry : files.entrySet()) {
+	            String id = entry.getKey();
+	            File file = entry.getValue();
+	            if (file.length() > maxFileSize) {
+	               logger.error(error);
+	               throw new IOException(error);
+	            }
+	            if (processed.keySet().contains(file)) {
+	               // this file was already processed, reuse the content
+	               contents.put(id, processed.get(file));
+	            }
+	            else {
+	               // process the file for the first time
+	               try {
+	                  XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
+	                  String mimeType = OpContentManager.getFileMimeType(file.getName());
+	                  OpContent content = OpContentManager.newContent(stream, mimeType, 0);
+	
+	                  OpTransaction t = broker.newTransaction();
+	                  broker.makePersistent(content);
+	                  t.commit();
+	
+	                  String contentId = content.locator();
+	                  contents.put(id, contentId);
+	                  processed.put(file, contentId);
+	               }
+	               catch (FileNotFoundException e) {
+	                  logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
+	                  contents.put(id, null);
+	               }
+	            }
+	         }
+	         broker.close();
+	         message.insertObjectsIntoArguments(contents);
          }
-         broker.close();
-         message.insertObjectsIntoArguments(contents);
       }
    }
 

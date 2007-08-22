@@ -125,12 +125,14 @@ function importActivities(event) {
    activity_set = XDisplay.getActiveForm().findComponent("ActivitySet");
    project_id_field = XDisplay.getActiveForm().findComponent("ProjectIDField");
    project_id = project_id_field.getStringValue();
+   project_name = XDisplay.getActiveForm().findComponent("ProjectName").getStringValue();
 
    activity_set.removeDummyRows();
    XDisplay.getActiveForm().findComponent("ActivityTable").update();
    XDisplay.getActiveForm().findComponent("CostTable").update();
 
    parameters.ProjectId = project_id;
+   parameters.ProjectName = project_name;
    parameters.EditMode = edit_mode;
    parameters.ActivitySet = activity_set;
    parameters.FileName = fileName;

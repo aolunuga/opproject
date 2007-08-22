@@ -15,13 +15,27 @@ public abstract class OpSource {
     * Inidicates whether this source should be embeded or not.
     */
    private boolean embeded = false;
+   /**
+    * Defines the name used to register default source
+    */
+   public static final String DEFAULT_SOURCE_NAME = "default_source";
+
+
+   /**
+    * Creates a new source
+    *
+    * @param name source name
+    */
+   protected OpSource(String name) {
+      setName(name);
+   }
 
    /**
     * Defines the name of the source
     *
     * @param name source name.
     */
-   public final void setName(String name) {
+   private final void setName(String name) {
       this.name = name;
    }
 

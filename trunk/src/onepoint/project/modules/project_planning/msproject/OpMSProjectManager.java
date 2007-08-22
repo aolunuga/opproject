@@ -18,6 +18,7 @@ import onepoint.project.modules.project.OpProjectNodeAssignment;
 import onepoint.project.modules.project.OpProjectPlan;
 import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.util.XCalendar;
@@ -92,7 +93,7 @@ public class OpMSProjectManager {
       Map projectResources = new HashMap();
       Map resourceAvailability = new HashMap();
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpGanttValidator validator = new OpGanttValidator();
+      OpGanttValidator validator = new OpIncrementalValidator();
       validator.setDataSet(dataSet);
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
       validator.setProgressTracked(Boolean.valueOf(progressTracked));

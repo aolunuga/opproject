@@ -5,7 +5,6 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
-import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
 import java.util.Set;
@@ -33,7 +32,7 @@ public class OpProjectPlanVersion extends OpObject {
    private boolean template;
    private Boolean baseline = false;
    private OpProjectPlan projectPlan;
-   private OpUser creator;
+   private String creator;
    private Set<OpActivityVersion> activityVersions;
    private Set attachmentVersions;
    private Set assignmentVersions;
@@ -88,11 +87,11 @@ public class OpProjectPlanVersion extends OpObject {
       return projectPlan;
    }
 
-   public OpUser getCreator() {
+   public String getCreator() {
       return creator;
    }
 
-   public void setCreator(OpUser creator) {
+   public void setCreator(String creator) {
       this.creator = creator;
    }
 

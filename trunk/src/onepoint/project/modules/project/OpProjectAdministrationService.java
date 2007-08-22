@@ -13,6 +13,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.*;
@@ -1561,7 +1562,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, false);
       // Initialize GANTT validator
-      OpGanttValidator validator = new OpGanttValidator();
+      OpGanttValidator validator = new OpIncrementalValidator();
       validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setDataSet(dataSet);
@@ -1571,12 +1572,13 @@ public class OpProjectAdministrationService extends OpProjectService {
          dataRow = (XComponent) dataSet.getChild(i);
          if ((OpGanttValidator.getType(dataRow) != OpGanttValidator.TASK) && (OpGanttValidator.getType(dataRow) != OpGanttValidator.COLLECTION_TASK)) {
             OpGanttValidator.setStart(dataRow, new Date(OpGanttValidator.getStart(dataRow).getTime() + newStartOffset));
-            OpGanttValidator.setEnd(dataRow, null);
+            //this is needed for the incremental validator to work
+            OpGanttValidator.setEnd(dataRow, new Date(OpGanttValidator.getEnd(dataRow).getTime() + newStartOffset));
             OpGanttValidator.setResources(dataRow, new ArrayList());
             OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
-            OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, null);
-            OpGanttValidator.setWorkPhaseStarts(dataRow, null);
-            OpGanttValidator.setWorkPhaseFinishes(dataRow, null);
+            OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
+            OpGanttValidator.setWorkPhaseStarts(dataRow, new ArrayList());
+            OpGanttValidator.setWorkPhaseFinishes(dataRow, new ArrayList());
          }
          OpGanttValidator.setComplete(dataRow, 0);
          OpGanttValidator.setActualEffort(dataRow, 0);

@@ -1111,6 +1111,10 @@ public class OpGanttValidatorTest extends OpTestCase {
         throws Exception {
       XCalendar calendar = XCalendar.getDefaultCalendar();
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
+      //remove the link between the first activity and the second activity
+      XComponent secondActivity = (XComponent) validator.getDataSet().getChild(1);
+      validator.setDataCellValue(firstActivity,OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
+      validator.setDataCellValue(secondActivity,OpGanttValidator.PREDECESSORS_COLUMN_INDEX, new ArrayList());
 
       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
       Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());

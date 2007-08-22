@@ -7,14 +7,10 @@ package onepoint.project.modules.backup;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpObject;
-import onepoint.persistence.OpType;
 import onepoint.xml.XContext;
 import onepoint.xml.XNodeHandler;
 
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.text.ParseException;
 import java.util.HashMap;
 
 /**
@@ -57,54 +53,8 @@ public class OpPropertyHandler implements XNodeHandler {
       String valueString = node.toString().trim();
       Object value = null;
       if (!valueString.equals(OpBackupManager.NULL)) {
-         switch (backupMember.typeId) {
-            case OpType.BOOLEAN:
-               value = Boolean.valueOf(valueString);
-               break;
-            case OpType.INTEGER:
-               value = Integer.valueOf(valueString);
-               break;
-            case OpType.LONG:
-               value = Long.valueOf(valueString);
-               break;
-            case OpType.STRING:
-               value = valueString;
-               break;
-            case OpType.TEXT:
-               value = valueString;
-               break;
-            case OpType.DATE:
-               try {
-                  value = new Date(OpBackupManager.DATE_FORMAT.parse(valueString).getTime());
-               }
-               catch (ParseException e) {
-                  logger.error("Could not parse date:" + valueString);
-               }
-               break;
-            case OpType.CONTENT:
-               if (valueString != null) {
-                  String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
-                  String contentPath = workingDirectory + valueString;
-                  value = OpBackupManager.readBinaryFile(contentPath);
-               }
-               break;
-            case OpType.BYTE:
-               value = Byte.valueOf(valueString);
-               break;
-            case OpType.DOUBLE:
-               value = Double.valueOf(valueString);
-               break;
-            case OpType.TIMESTAMP:
-               try {
-                  value = new Timestamp(OpBackupManager.TIMESTAMP_FORMAT.parse(valueString).getTime());
-               }
-               catch (ParseException e) {
-                  logger.error("Could not parse timestamp:" + valueString);
-                }
-               break;
-            default:
-               logger.error("Unsupported type ID " + backupMember.typeId);
-         }
+         String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
+         value = OpBackupTypeManager.convertParsedValue(backupMember.typeId, valueString, workingDirectory);
       }
       // Call accessor method in order to set value
       Object[] arguments = new Object[] {value};

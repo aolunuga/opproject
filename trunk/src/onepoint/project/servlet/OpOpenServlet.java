@@ -25,7 +25,11 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
 import onepoint.service.server.XSession;
-import onepoint.util.*;
+import onepoint.util.XBase64;
+import onepoint.util.XCookieManager;
+import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -33,10 +37,21 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 public class OpOpenServlet extends XExpressServlet {
 
@@ -86,6 +101,7 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    private String projectHome = null;
+   private static final String PATH_SEPARATOR = "/";
 
    /**
     * Initializes the path considered to be the home of the application.
@@ -117,10 +133,10 @@ public class OpOpenServlet extends XExpressServlet {
       // setup context path
       initContextPath();
 
-      appletCodebase = servletContextPath + "/" + getServletConfig().getInitParameter("applet_codebase") + "/";
-      appletArchive = getServletConfig().getInitParameter("applet_archive");
-      imagesPath = servletContextPath + "/" + getServletConfig().getInitParameter("webimages_path") + "/";
-      htmlTitle = getServletConfig().getInitParameter("html_title");
+      appletCodebase = servletContextPath + PATH_SEPARATOR + getInitParameter("applet_codebase") + PATH_SEPARATOR;
+      appletArchive = getInitParameter("applet_archive");
+      imagesPath = servletContextPath + PATH_SEPARATOR + getInitParameter("webimages_path") + PATH_SEPARATOR;
+      htmlTitle = getInitParameter("html_title");
 
       //perform the initialization
       OpInitializer initializer = getProductIntializer();
@@ -172,11 +188,11 @@ public class OpOpenServlet extends XExpressServlet {
         throws ServletException,
         IOException {
       //don't cache anything for more than 1 sec (posible security issue).
-      http_response.setHeader("Cache-Control", "max-age=1");
-
+      http_response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
+      http_response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+      http_response.setDateHeader("Expires", 0); //prevents caching at the proxy server
       // Get the session context ('true': create new session if necessary)
-      HttpSession http_session = http_request.getSession(true);
-      OpProjectSession session = (OpProjectSession) getSession(http_session);
+      OpProjectSession session = (OpProjectSession) getSession(http_request);
 
       //there must be a user on the session for a file request to succed.
       if (isFileRequest(http_request) && session.isEmpty()) {
@@ -296,7 +312,7 @@ public class OpOpenServlet extends XExpressServlet {
       Map<String, String> otherAppletParams = new HashMap<String, String>();
       otherAppletParams.put("host", request.getServerName());
       otherAppletParams.put("port", String.valueOf(request.getServerPort()));
-      otherAppletParams.put("path", "/" + servletContextPath + "/service");
+      otherAppletParams.put("path", PATH_SEPARATOR + servletContextPath + request.getServletPath());
       otherAppletParams.put("secure-service", secureService);
       otherAppletParams.put("session-timeout", sessionTimeoutSecs);
 
@@ -339,7 +355,7 @@ public class OpOpenServlet extends XExpressServlet {
     * @return a <code>String</code> representing the base url of the request.
     */
    private String urlBase(HttpServletRequest request) {
-      return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/";
+      return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + PATH_SEPARATOR;
    }
 
    /**
@@ -455,8 +471,8 @@ public class OpOpenServlet extends XExpressServlet {
       if (fileName == null || fileName.length() == 0) {
          fileName = "NewFile";
       }
-      if (fileName.indexOf("/") != -1) {
-         fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+      if (fileName.indexOf(PATH_SEPARATOR) != -1) {
+         fileName = fileName.substring(fileName.lastIndexOf(PATH_SEPARATOR) + 1);
       }
       fileName = fileName.replaceAll("[^-._a-zA-Z0-9]", "_");
 
@@ -712,8 +728,7 @@ public class OpOpenServlet extends XExpressServlet {
          Map<String, String> contents = new HashMap<String, String>();
 
          // Get the session context ('true': create new session if necessary)
-         HttpSession http_session = request.getSession(true);
-         OpProjectSession session = (OpProjectSession) getSession(http_session);
+         OpProjectSession session = (OpProjectSession) getSession(request);
          OpBroker broker = session.newBroker();
 
          for (Map.Entry<String, Long> entry : sizes.entrySet()) {

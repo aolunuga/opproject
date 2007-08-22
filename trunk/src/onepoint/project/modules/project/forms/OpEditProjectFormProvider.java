@@ -15,7 +15,6 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -432,8 +431,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
 
       //created by - 2
-      OpUser creator = version.getCreator();
-      String createdBy = userObjectsLocalizer.localize(creator.getDisplayName());
+      String creator = version.getCreator();
+      String createdBy = userObjectsLocalizer.localize(creator);
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setStringValue(createdBy);
       dataRow.addChild(dataCell);

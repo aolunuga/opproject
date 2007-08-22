@@ -69,7 +69,14 @@ public class OpLock extends OpObject {
     * @post
     */
    public boolean lockedByMe(OpProjectSession session, OpBroker broker) {
-      if (owner.getID() == session.user(broker).getID()) {
+      OpUser user = session.user(broker);
+      if (user == null) {
+         return false;
+      }
+      if (owner == null) {
+         return false;
+      }
+      if (owner.getID() == user.getID()) {
          Timestamp lockTS = getModified();
          if (lockTS == null) {
             lockTS = getCreated();

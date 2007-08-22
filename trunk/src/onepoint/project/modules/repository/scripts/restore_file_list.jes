@@ -12,21 +12,23 @@ function ok(event) {
 
    form = XDisplay.getActiveForm();
    selectedRows = form.findComponent("RestoreFileListSet").selectedRows();
-   selectedFile = XValidator.choiceID(selectedRows[0].getStringValue());
-   Console.println(selectedFile);
+   if (selectedRows.size() > 0) {
+      selectedFile = XValidator.choiceID(selectedRows[0].getStringValue());
+      Console.println(selectedFile);
 
-   request = new XMessage;
-   request.setAction("RepositoryService.restore");
-   request.setArgument("restoreFile", selectedFile);
-   response = XDisplay.getClient().invokeMethod(request);
+      request = new XMessage;
+      request.setAction("RepositoryService.restore");
+      request.setArgument("restoreFile", selectedFile);
+      response = XDisplay.getClient().invokeMethod(request);
 
-   XDisplay.resetCursor();
-   if (handleError(form, response, "ErrorLabel") == true) {
-      XDisplay.getActiveWindow().close();
-      successConfirmationText = form.findComponent("RestoreSuccessfullMessage").getValue();
-      dialog = XComponent.newDialog();
-      parameters.SuccessConfirmation = successConfirmationText;
-      dialog.open("/modules/repository/forms/success_confirmation.oxf.xml", parameters);
+      XDisplay.resetCursor();
+      if (handleError(form, response, "ErrorLabel") == true) {
+         XDisplay.getActiveWindow().close();
+         successConfirmationText = form.findComponent("RestoreSuccessfullMessage").getValue();
+         dialog = XComponent.newDialog();
+         parameters.SuccessConfirmation = successConfirmationText;
+         dialog.open("/modules/repository/forms/success_confirmation.oxf.xml", parameters);
+      }
    }
 }
 

@@ -5,9 +5,11 @@
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
@@ -20,11 +22,20 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 /**
  * Form provider for the about dialog.
@@ -57,6 +68,7 @@ public class OpAboutFormProvider implements XFormProvider {
    private static final String PRODUCT_NAME_LABEL = "ProductName";
    private static final String VERSION_LABEL = "Version";
    private static final String CURRENT_VERSION_LABEL = "CurrentVersion";
+   private static final String BUILD_LABEL = "Build";
 
    /**
     * XML elements and attribute names.
@@ -64,6 +76,7 @@ public class OpAboutFormProvider implements XFormProvider {
    private final static String VERSION = "version";
    private final static String CODE = "code";
    private final static String PRODUCT = "product";
+   private final static String BUILD = "build";
 
    /**
     * Initializer for the map of product codes.
@@ -103,7 +116,45 @@ public class OpAboutFormProvider implements XFormProvider {
       String productName = (String) PRODUCT_CODES_DESCRIPTION.get(productCode);
 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
-      form.findComponent(VERSION_LABEL).setText(OpProjectConstants.CODE_VERSION_NUMBER);
+      
+      String version = null;
+      Date build = null;
+      // try reading infos from manifest
+      try {
+         URL url = OpAboutFormProvider.class.getResource("");
+         JarURLConnection jconn = (JarURLConnection) url.openConnection();
+         Manifest mf = jconn.getManifest();
+         Attributes attr = mf.getAttributes("Implementation");
+         if (attr != null) {
+            version = attr.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+         }
+         attr = mf.getMainAttributes();
+         if (attr != null) {
+            String buildString = attr.getValue("Build-Date");
+            if (buildString != null) {
+               SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+               try {
+                  build = df.parse(buildString);
+               }
+               catch (ParseException exc) {
+               }
+            }
+         }
+      }
+      catch (IOException exc) {
+      }
+      catch (ClassCastException exc) {
+      }
+      if (version == null) {
+         version = OpProjectConstants.CODE_VERSION_NUMBER;
+      }
+      if (build == null) {
+         build = new Date();
+      }
+      form.findComponent(VERSION_LABEL).setText(version);
+      String dateText = ((OpProjectSession) session).getCalendar().localizedDateToString(
+            new java.sql.Date(build.getTime()));
+      form.findComponent(BUILD_LABEL).setText(dateText);
       form.findComponent(CURRENT_VERSION_LABEL).setText(currentVersion);
    }
 

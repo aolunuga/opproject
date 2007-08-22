@@ -3,6 +3,7 @@
  */
 package onepoint.persistence;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,11 +11,6 @@ import java.util.Map;
  * This class allow you to register and retrieve later OpSource instances.
  */
 public class OpSourceManager {
-
-   /**
-    * Defines the name used to register default source
-    */
-   private static final String DEFAULT_SOURCE_NAME = "default_source";
 
    /**
     * Mapping of source names to mounted object sources
@@ -27,7 +23,7 @@ public class OpSourceManager {
     * @param source     source to register
     * @param sourceName name registration name used for the provided source
     */
-   private static void registerSource(OpSource source, String sourceName) {
+   private static void registerSource(String sourceName, OpSource source) {
       // To do: Check for uniqueness of name
       if (sourceName != null) {
          sources.put(sourceName, source);
@@ -47,29 +43,11 @@ public class OpSourceManager {
     */
    public static void registerSource(OpSource source) {
       if (source != null) {
-         registerSource(source, source.getName());
+         registerSource(source.getName(), source);
       }
       else {
          throw new NullPointerException("Could not register a NULL source.");
       }
-   }
-
-   /**
-    * Register a default source.
-    *
-    * @param source default source to be registered.
-    */
-   public static void registerDefaultSource(OpSource source) {
-      registerSource(source, DEFAULT_SOURCE_NAME);
-   }
-
-   /**
-    * Retrieve registered default source
-    *
-    * @return default source
-    */
-   public static OpSource getDefaultSource() {
-      return getSource(DEFAULT_SOURCE_NAME);
    }
 
    /**
@@ -79,7 +57,13 @@ public class OpSourceManager {
     * @return found source or <code>Null</code> if none was found.
     */
    public static OpSource getSource(String sourceName) {
-      return (OpSource) (sources.get(sourceName));
+      OpSource source = sources.get(sourceName);
+      if (source == null) {
+         // TODO - here we should throw another exception, an appropriate one.
+         throw new NullPointerException("No source was registered with name: " + sourceName);
+      }
+
+      return source;
    }
 
    /**
@@ -88,22 +72,39 @@ public class OpSourceManager {
     * @param sourceName name of the source to be retrieved.
     */
    public static void closeSource(String sourceName) {
-       OpSource currSource = (OpSource)sources.get(sourceName);
-       if(currSource != null){
-    	   currSource.close();
-    	   sources.remove(sourceName);
-       }
-      
+      OpSource currSource = (OpSource) sources.get(sourceName);
+      if (currSource != null) {
+         currSource.close();
+         sources.remove(sourceName);
+      }
    }
 
    /**
     * Closes all registered Sources. Should be called before shutdown.
-    *
     */
    public static void closeAllSources() {
-	   for (String currKey : sources.keySet()) {
-    	   closeSource(currKey);
-       }
+      for (String currKey : sources.keySet()) {
+         closeSource(currKey);
+      }
+   }
+
+   /**
+    * Clear all registered Sources.
+    */
+   public static void clearAllSources() {
+      for (OpSource source : sources.values()) {
+         source.clear();
+      }
+   }
+
+
+   /**
+    * Returns all registered <code>OpSource</code>s
+    *
+    * @return all registered sources
+    */
+   public static Collection<OpSource> getAllSources() {
+      return sources.values();
    }
 
    // Where to mount data sources (in sessions or here, more globally)?

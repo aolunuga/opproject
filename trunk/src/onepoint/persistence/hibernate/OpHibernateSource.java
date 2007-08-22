@@ -6,15 +6,34 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpConnection;
+import onepoint.persistence.OpConnectionManager;
+import onepoint.persistence.OpPersistenceException;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.hibernate.cache.OpOSCache;
-import org.hibernate.*;
+import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
 
-import java.io.*;
-import java.sql.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,7 +71,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 24;
+   public static final int SCHEMA_VERSION = 25;
 
    /**
     * Db schema related constants
@@ -93,13 +112,16 @@ public class OpHibernateSource extends OpSource {
     * Creates a new instance with the provided information. In case that choosen database is HSQLDB, embeded mode will
     * be used.
     *
+    * @param name         datasource name
     * @param url          databse connection URL
     * @param driver       JDBC driver to be used
     * @param password     database user password
     * @param login        database username
     * @param databaseType database type
     */
-   public OpHibernateSource(String url, String driver, String password, String login, int databaseType) {
+   public OpHibernateSource(String name, String url, String driver, String login, String password, int databaseType) {
+      super(name);
+
       this.url = url;
       this.driverClassName = driver;
       this.password = password;
@@ -412,9 +434,8 @@ public class OpHibernateSource extends OpSource {
       if (this.databaseType == HSQLDB) {
          //somewhat dirty, but at least is shuts down properly...
          org.hsqldb.persist.HsqlProperties prop = OpHibernateConnection.cleanupHSQLDBDefaultTableType(this);
-         org.hsqldb.DatabaseManager dbmgr = new org.hsqldb.DatabaseManager();
          try {
-            org.hsqldb.Session localSess = dbmgr.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
+            org.hsqldb.Session localSess = org.hsqldb.DatabaseManager.newSession(OpHibernateSource.HSQLDB_TYPE, OpHibernateConnection.getCleanDBURL(this), getLogin(), getPassword(), prop);
             localSess.sqlExecuteDirectNoPreChecks("SHUTDOWN");
             localSess.commit();
             localSess.close();
@@ -422,7 +443,7 @@ public class OpHibernateSource extends OpSource {
          }
          catch (Exception e) {
             logger.error("Had problems shutting down HSQLDB connection because (will showdown all now): " + e.getMessage(), e);
-            dbmgr.closeDatabases(1);
+            org.hsqldb.DatabaseManager.closeDatabases(1);
          }
       }
    }

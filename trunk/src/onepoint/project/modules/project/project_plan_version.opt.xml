@@ -5,8 +5,8 @@
    <field name="Finish" type="Date" mandatory="true" indexed="true"/>
    <field name="Template" type="Boolean"/>
    <field name="Baseline" type="Boolean"/>
+   <field name="Creator" type="String"/>
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Versions"/>
-   <relationship name="Creator" type="OpUser"/>
    <relationship name="ActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
    <relationship name="AttachmentVersions" type="OpAttachmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>
    <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="PlanVersion" inverse="true" cascade="delete"/>

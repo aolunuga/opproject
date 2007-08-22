@@ -2124,8 +2124,8 @@ public class OpGanttValidator extends XValidator {
       XComponent updated_data_row;
       for (int i = 0; i < data_set.getChildCount(); i++) {
          updated_data_row = (XComponent) (data_set._getChild(i));
-         updateIndexListAfterAdd(getSuccessors(updated_data_row), index, Integer.MAX_VALUE, 1);
-         updateIndexListAfterAdd(getPredecessors(updated_data_row), index, Integer.MAX_VALUE, 1);
+         updateIndexListAfterAdd(getSuccessors(updated_data_row), index);
+         updateIndexListAfterAdd(getPredecessors(updated_data_row), index);
       }
       if (index < data_set.getChildCount()) {
          XComponent previousChild = (XComponent) data_set.getChild(index);
@@ -2187,7 +2187,6 @@ public class OpGanttValidator extends XValidator {
       //we cannot remove activities if we have assignments with workrecords.
       for (int i = 0; i < data_rows.size(); i++) {
          XComponent data_row = (XComponent) data_rows.get(i);
-         List resorces = getResources(data_row);
          checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
       }
    }
@@ -2211,8 +2210,8 @@ public class OpGanttValidator extends XValidator {
          XComponent updated_data_row = null;
          for (int i = 0; i < data_set.getChildCount(); i++) {
             updated_data_row = (XComponent) (data_set._getChild(i));
-            updateIndexListAfterRemove(getSuccessors(updated_data_row), index, Integer.MAX_VALUE, -1);
-            updateIndexListAfterRemove(getPredecessors(updated_data_row), index, Integer.MAX_VALUE, -1);
+            updateIndexListAfterRemove(getSuccessors(updated_data_row), index);
+            updateIndexListAfterRemove(getPredecessors(updated_data_row), index);
          }
       }
    }
@@ -4393,48 +4392,34 @@ public class OpGanttValidator extends XValidator {
     * incresead by <code>offset</code>
     *
     * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
-    * @param start  the start index, index of the modified row.
-    * @param end    the end index, value of the last index that has to be updated
-    * @param offset the offset, amount for the update of indexes
+    * @param elemToAddIndex a <code>int</code> the index where the new element will be added.
     */
-   private static void updateIndexListAfterAdd(List array, int start, int end, int offset) {
-      // Update index list values: Add offset if value is index
-      // TODO: Check where this one is used -- next one might be more efficient
-      int value = 0;
+   private static void updateIndexListAfterAdd(List array, int elemToAddIndex) {
       for (int i = 0; i < array.size(); i++) {
-         value = ((Integer) (array.get(i))).intValue();
-         if ((value >= start) && (value <= end)) {
-            value += offset;
-            array.set(i, new Integer(value));
-            logger.debug(" *** value " + value);
+         int index = ((Integer) (array.get(i))).intValue();
+         if (index >= elemToAddIndex) {
+            array.set(i, new Integer(index + 1));
          }
       }
    }
 
    /**
     * Updates the given array (Successors or Predecessors) after a remove was made in the data set. If one element from
-    * the <code>array</code> is greater then <code>start</code> but lower than <code>end</code> the value is
-    * incresead by <code>offset</code>. The start index will be removed from the given array.
+    * the <code>array</code> is greater then <code>removedElementIndex</code> but lower than <code>end</code> the value is
+    * incresead by <code>offset</code>. The removedElementIndex index will be removed from the given array.
     *
     * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
-    * @param start  the start index, index of the modified row.
-    * @param end    the end index, value of the last index that has to be updated
-    * @param offset the offset, amount for the update of indexes
+    * @param removedElementIndex the removedElementIndex index, index of the modified row.
     */
-   private static void updateIndexListAfterRemove(List array, int start, int end, int offset) {
-      // Update index list values: Add offset if value is index
-      int value = 0;
-      for (int i = 0; i < array.size(); i++) {
-         value = ((Integer) (array.get(i))).intValue();
-         // start is the index of the dataSet that was removed.
-         // It must be removed also from the successor/predecessor lists
-         if (value == start) {
-            array.remove(i);
+   private static void updateIndexListAfterRemove(List array, int removedElementIndex) {
+      for (Iterator it = array.iterator(); it.hasNext();) {
+         Integer indexElement = ((Integer) it.next());
+         int index = indexElement.intValue();
+         if (index == removedElementIndex) {
+            it.remove();
          }
-         if ((value > start) && (value <= end)) {
-            value += offset;
-            array.set(i, new Integer(value));
-            logger.debug(" *** value " + value);
+         else if (index > removedElementIndex) {
+            array.set(array.indexOf(indexElement), new Integer(index - 1));
          }
       }
    }

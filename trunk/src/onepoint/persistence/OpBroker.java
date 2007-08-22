@@ -20,9 +20,14 @@ public class OpBroker {
    // ATTENTION: First implementation ONLY uses default-source
    // ==> Future implementations must add opening of sources and mapping of names/IDs to connections
 
-   OpBroker() {
+   /**
+    * Creates a new broker.
+    *
+    * @param sourceName source name to use.
+    */
+   OpBroker(String sourceName) {
       // Constructor is only called by OpSourceManager
-      OpSource default_source = OpSourceManager.getDefaultSource();
+      OpSource default_source = OpSourceManager.getSource(sourceName);
       if (default_source != null) {
          defaultConnection = default_source.newConnection();
       }
