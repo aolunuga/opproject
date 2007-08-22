@@ -2,6 +2,7 @@
       provider-class="onepoint.project.modules.project_planning.forms.OpActivitiesFormProvider"
       error-label-ref="ValidationErrorLabel" script="/modules/project_planning/scripts/activities.jes">
    <data-field id="ProjectIDField"/>
+   <data-field id="ProjectName"/>
    <data-field id="WorkingPlanVersionIDField"/>
    <data-field id="EditModeField"/>
    <data-field id="LoopException" text="${LoopErrorMessage}"/>

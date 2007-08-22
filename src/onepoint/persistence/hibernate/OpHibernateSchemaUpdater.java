@@ -12,7 +12,7 @@ import onepoint.persistence.OpRelationship;
 import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.sql.OpSqlStatement;
 import onepoint.persistence.sql.OpSqlStatementFactory;
-import org.hibernate.type.PrimitiveType;
+import org.hibernate.type.NullableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
 
@@ -111,7 +111,7 @@ public final class OpHibernateSchemaUpdater {
          Iterator it = OpTypeManager.getPrototypes();
          while (it.hasNext()) {
             OpPrototype prototype = (OpPrototype) it.next();
-            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype));
+            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype, dbMetaData));
          }
 
          //drop old tables
@@ -229,6 +229,39 @@ public final class OpHibernateSchemaUpdater {
    }
 
    /**
+    * Generates a list of SQL statements for dropping the FK constraints of the given table for the given column.
+    *
+    * @param tableName  a <code>String</code> representing a table name.
+    * @param columnName a <code>String</code> representing the column name for which the statements are generated.
+    * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
+    * @return a <code>List</code> of <code>String</code> representing SQL statements.
+    */
+   private List<String> generateDropFKConstraints(String tableName, String columnName, DatabaseMetaData dbMetaData) {
+      if (statement != null) {
+         try {
+            List<String> dropFkConstraints = new ArrayList<String>();
+            ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
+            while (rs.next()) {
+               String fkName = rs.getString("FK_NAME");
+               String fkColumnName = rs.getString("FKCOLUMN_NAME");
+
+               if(fkColumnName.equals(columnName)){
+                  String dropStatement = statement.getDropFKConstraintStatement(tableName, fkName);
+                  logger.info("Adding drop constraint statement: " + dropStatement);
+                  dropFkConstraints.add(dropStatement);
+               }
+            }
+            rs.close();
+            return dropFkConstraints;
+         }
+         catch (SQLException e) {
+            logger.error("Cannot generate drop fk constraints for table:" + tableName, e);
+         }
+      }
+      return Collections.EMPTY_LIST;
+   }
+
+   /**
     * Creates the list of SQL instructions that drop old tables in order to match the current entity structure.
     *
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
@@ -292,9 +325,10 @@ public final class OpHibernateSchemaUpdater {
     * Generates a list of sql statements that update the column of the table that correspons to the given prototype.
     *
     * @param prototype a <code>OpPrototype</code> representing a prototype registered by the application.
+    * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
     * @return a <code>List</code> of <code>String</code> representing a list of SQL statements.
     */
-   private List generateUpdateTableColumnsScripts(OpPrototype prototype) {
+   private List generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData) {
       if (statement != null) {
          List<String> result = new ArrayList<String>();
          Iterator membersIt = prototype.getMembers();
@@ -312,10 +346,10 @@ public final class OpHibernateSchemaUpdater {
             }
             Type hibernateType = TypeFactory.basic(hibernateTypeName);
             //only upgrade for primitive types
-            if (!(hibernateType instanceof PrimitiveType)) {
+            if (!(hibernateType instanceof NullableType)) {
                continue;
             }
-            int hibernateSqlType = ((PrimitiveType) hibernateType).sqlType();
+            int hibernateSqlType = ((NullableType) hibernateType).sqlType();
 
             //now find out what we have in the db
             String tableName = OpMappingsGenerator.generateTableName(prototype.getName());
@@ -332,6 +366,13 @@ public final class OpHibernateSchemaUpdater {
             }
             if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
 
+               //drop al fk constraints for this column before changing it's type
+               List<String> dropFkConstraints = generateDropFKConstraints(tableName,  columnName, dbMetaData);
+               for(String fkConstraint : dropFkConstraints) {
+                  logger.info("Adding drop FK statement: " + fkConstraint);
+                  result.add(fkConstraint);
+               }
+               
                String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
                logger.info("Adding update statement: " + sqlStatement);
                result.add(sqlStatement);

@@ -8,14 +8,17 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -99,9 +102,8 @@ public final class OpModuleManager {
     */
    private static void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List lastPrototypesToRegister) {
       List dependencies = startPoint.getBackupDependencies();
-      Iterator it = dependencies.iterator();
-      while (it.hasNext()) {
-         OpPrototype dependency = (OpPrototype) it.next();
+      for (Object dependency1 : dependencies) {
+         OpPrototype dependency = (OpPrototype) dependency1;
          if (dependency.getID() == superPrototype.getID()) {
             lastPrototypesToRegister.add(startPoint);
          }
@@ -115,36 +117,45 @@ public final class OpModuleManager {
    }
 
    public static void setup() {
-      // Invoke setup callbacks (for setting up a new instance)
-      OpProjectSession setupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
-      while (modules.hasNext()) {
-         OpModule module = (OpModule) (modules.next());
-         module.setup(setupSession);
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         // Invoke setup callbacks (for setting up a new instance)
+         OpProjectSession setupSession = new OpProjectSession(source.getName());
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            module.setup(setupSession);
+         }
+         setupSession.close();
       }
-      setupSession.close();
    }
 
    public static void start() {
-      // Invoke start callbacks
-      OpProjectSession startupSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
-      while (modules.hasNext()) {
-         OpModule module = (OpModule) (modules.next());
-         module.start(startupSession);
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         // Invoke start callbacks
+         OpProjectSession startupSession = new OpProjectSession(source.getName());
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            module.start(startupSession);
+         }
+         startupSession.close();
       }
-      startupSession.close();
    }
 
    public static void stop() {
-      // *** Write module-registry?
-      OpProjectSession shutdownSession = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
-      while (modules.hasNext()) {
-         OpModule module = (OpModule) (modules.next());
-         module.stop(shutdownSession);
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         // *** Write module-registry?
+         OpProjectSession shutdownSession = new OpProjectSession(source.getName());
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            module.stop(shutdownSession);
+         }
+         shutdownSession.close();
       }
-      shutdownSession.close();
    }
 
    /**
@@ -154,31 +165,34 @@ public final class OpModuleManager {
     * @param latestVersion an <code>int</code> representing the latest version.
     */
    public static void upgrade(int dbVersion, int latestVersion) {
-      OpProjectSession session = new OpProjectSession();
-      Iterator modules = moduleRegistry.iterator();
-      while (modules.hasNext()) {
-         OpModule module = (OpModule) (modules.next());
-         for (int i = dbVersion + 1; i <= latestVersion; i++) {
-            String methodName = "upgradeToVersion" + i;
-            try {
-               Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
-               logger.info("Invoking " + methodName + " for module " + module.getName());
-               m.invoke(module, session);
-            }
-            catch (NoSuchMethodException e) {
-               logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
-            }
-            catch (InvocationTargetException e) {
-               logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
-               //allow exceptions thrown by upgrade methods to be handled by someone else as well
-               throw new RuntimeException(e.getCause());
-            }
-            catch (Exception e) {
-               logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         OpProjectSession session = new OpProjectSession(source.getName());
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            for (int i = dbVersion + 1; i <= latestVersion; i++) {
+               String methodName = "upgradeToVersion" + i;
+               try {
+                  Method m = module.getClass().getMethod(methodName, OpProjectSession.class);
+                  logger.info("Invoking " + methodName + " for module " + module.getName());
+                  m.invoke(module, session);
+               }
+               catch (NoSuchMethodException e) {
+                  logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
+               }
+               catch (InvocationTargetException e) {
+                  logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+                  //allow exceptions thrown by upgrade methods to be handled by someone else as well
+                  throw new RuntimeException(e.getCause());
+               }
+               catch (Exception e) {
+                  logger.error("Cannot invoke upgrade method " + methodName + " for module " + module.getName(), e);
+               }
             }
          }
+         session.close();
       }
-      session.close();
    }
 
 

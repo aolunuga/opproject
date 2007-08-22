@@ -87,7 +87,7 @@
    <!-- Pattern set for all the client jars -->
    <patternset id="client.jars">
       <include name="${express.client.jarname}"/>
-      <include name="${project.client.jarname}"/>
+      <include name="${opproject.client.open.jarname}"/>
    </patternset>
 
    <!-- Pattern set for all the resources of the application -->
@@ -125,7 +125,7 @@
       <exclude name="*opproject*.*"/>
       <exclude name="svn*.*"/>
       <exclude name="*express4j*.*"/>
-      <exclude name="*-client*.*"/>
+      <exclude name="*_client*.*"/>
    </patternset>
 
    <patternset id="standalone.lib.pathid">
@@ -161,9 +161,15 @@
    <patternset id="tests.compile.pathid">
       <include name="**/*Test*.java"/>
    </patternset>
-
+ 
    <!-- check if the express4j module is present -->
    <available file="${express4j.dir}" type="dir" property="express4j.present"/>
+
+   <tstamp>
+      <format property="build.date" pattern="yyyyMMdd"/>
+   </tstamp>
+ 
+   <property name="manifest" value="${build.dir}/manifest.mf"/>
 
    <!-- Removes the directory where the classes are generated -->
    <target name="clean" description="Cleans the output of the build process, dist and tests.">
@@ -256,15 +262,52 @@
    </target>
 
    <target name="build.basic.jar" depends="build" description="builds the basic app jar file">
-      <jar manifest="${manifest.file}" destfile="${jars.dir}/${project.basic.jarname}">
+      <path id="basic.lib.path">
+         <fileset dir="${lib.dir}">
+            <patternset refid="webapp.lib.pathid"/>
+            <exclude name="*_client*.jar"/>
+         </fileset> 
+      </path>
+      <pathconvert pathsep=" " dirsep="/" property="basic.lib.path.manifest">
+         <path refid="basic.lib.path"/>
+         <chainedmapper>
+            <flattenmapper/>
+            <globmapper from="*" to="lib/*"/>
+         </chainedmapper>
+      </pathconvert>
+      <jar destfile="${jars.dir}/${project.basic.jarname}">
          <fileset dir="${classes.dir}">
             <patternset refid="project.standalone.pathid"/>
-         </fileset>
+         </fileset> 
+         <manifest>
+            <attribute name="Built-By" value="Onepoint Software GmbH"/>
+            <attribute name="Build-Date" value = "${build.date}"/>
+            <attribute name="Main-Class" value="onepoint.project.application.OpBasicSplasher"/>
+            <attribute name="Class-Path" value="${basic.lib.path.manifest}" />
+    
+            <section name="Implementation">
+               <attribute name="Implementation-Title" value="${opproject.launchername} Basic Edition"/>
+               <attribute name="Implementation-Version" value="${version}"/>
+               <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+               <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+            </section>
+         </manifest>
       </jar>
    </target>
 
    <target name="build.open.jar" depends="build" description="builds the open app jar file">
-      <jar destfile="${jars.dir}/${project.jarname}">
+      <manifest file="${manifest}">
+         <attribute name="Built-By" value="Onepoint Software GmbH"/>
+         <attribute name="Build-Date" value = "${build.date}"/>
+         <section name="Implementation">
+            <attribute name="Implementation-Title" value="${opproject.launchername} Open"/>
+            <attribute name="Implementation-Version" value="${version}"/>
+            <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+            <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+         </section>
+      </manifest>
+
+      <jar destfile="${jars.dir}/${opproject.open.jarname}" manifest="${manifest}">
          <fileset dir="${classes.dir}">
             <patternset refid="project.remote.pathid"/>
          </fileset>
@@ -273,7 +316,7 @@
 
    <!-- Creates the client-side jar files with the client libraries -->
    <target name="build.client.jars" depends="build" description="Create the opproject client jars">
-      <jar destfile="${jars.dir}/${project.client.jarname}">
+      <jar destfile="${jars.dir}/${opproject.client.open.jarname}">
          <fileset dir="${client.classes.dir}">
             <patternset refid="project.client.pathid"/>
          </fileset>
@@ -440,8 +483,17 @@
             <patternset refid="client.jars"/>
          </fileset>
       </move>
-      <!--build war file-->
-      <war destfile="${build.dir}/${warname}" webxml="${webxml.file}">
+    
+      <!-- expand properties within web.xml file -->
+      <loadfile property="web.xml.content" srcFile="${webxml.file}">
+         <filterchain>
+            <expandproperties/>
+         </filterchain>
+      </loadfile>
+      <echo message="${web.xml.content}" file="${build.dir}/web.xml"/>
+   
+      <!--build war file-->    
+      <war destfile="${build.dir}/${warname}" webxml="${build.dir}/web.xml" manifest="${manifest}">
          <fileset dir="${build.dir}" includes="${applet}/**/*"/>
          <fileset dir="${build.dir}" includes="${webimages}/**/*"/>
          <fileset dir="${build.dir}" includes="${reportsjar}/*.jar"/>
@@ -449,12 +501,12 @@
          <fileset dir="${src.dir}/onepoint/project" includes="registry.oxr.xml"/>
          <lib dir="${lib.dir}">
             <patternset refid="webapp.lib.pathid"/>
-            <exclude name="*-client*.jar"/>
+            <exclude name="*_client*.jar"/>
          </lib>
          <!--include application jar-->
          <lib dir="${jars.dir}">
             <include name="*.jar"/>
-            <exclude name="*-client*.jar"/>
+            <exclude name="*_client*.jar"/>
             <exclude name="express4j*.jar"/>
             <exclude name="opproject*be.jar"/>
          </lib>
@@ -501,7 +553,7 @@
 
       <!--war release [for applet version] -->
       <copy file="${readme.open.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
-      <zip zipfile="${release.dir}/${release.root.filename}-open.zip">
+      <zip zipfile="${release.dir}/${release.root.filename}.zip">
          <zipfileset dir="${dist.open.dir}" prefix="${zip.root.dir}"/>
          <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
          <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}"/>
@@ -515,8 +567,14 @@
    <target name="generate.Linux.distribution.basic"
            depends="dist.standalone"
            description="Generates basic linux distribution">
-      <copy file="${src.dir}/onepoint/project/onepoint.sh"
-            tofile="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}"/>
+      <echo file="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}" append="false">#!/bin/bash
+JAR=${project.basic.jarname}
+if [ -e "$JAVA_HOME" ]; then
+ $JAVA_HOME/bin/java -jar $JAR
+else 
+ java -jar $JAR
+fi
+      </echo>
       <tar destfile="${dist.dir}/${basic.name}-linux.tar">
          <tarfileset dir="${dist.basic.dir}">
             <exclude name="**/${opproject.linux.launcher}"/>

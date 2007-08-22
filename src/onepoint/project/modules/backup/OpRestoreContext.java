@@ -6,12 +6,22 @@ package onepoint.project.modules.backup;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.xml.XContext;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class OpRestoreContext extends XContext {
 
@@ -38,17 +48,17 @@ public class OpRestoreContext extends XContext {
    /**
     * Map that holds [String, List] representing pairs of [PrototypeName, List<BackupMember>].
     */
-   private Map backupMembersMap = new HashMap();
+   private Map<String, List> backupMembersMap = new HashMap<String, List>();
 
    /**
     * A map of [Long, OpObject] containing the objects which have already been activated (and their ids from the backup file).
     */
-   private Map persistedObjectsMap = new HashMap();
+   private Map<Long, OpObject> persistedObjectsMap = new HashMap<Long, OpObject>();
 
    /**
     * List of objects which will be added to the db.
     */
-   private List objectsToAdd = new ArrayList();
+   private List<OpObject> objectsToAdd = new ArrayList<OpObject>();
 
    /**
     * The activated object's id.
@@ -117,7 +127,8 @@ public class OpRestoreContext extends XContext {
     * @param schemaVersionNr a <code>String</code> representing the value of the schema version.
     */
    void writeSchemaVersion(String schemaVersionNr) {
-      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
+      //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getAllSources().iterator().next();
       try {
          hibernateSource.createSchemaTable(Integer.valueOf(schemaVersionNr));
       }
@@ -241,9 +252,8 @@ public class OpRestoreContext extends XContext {
       if (objectsToAdd.size() > 0) {
          logger.info("Inserting objects into db...");
          OpTransaction t = broker.newTransaction();
-         Iterator it = objectsToAdd.iterator();
-         while (it.hasNext()) {
-            broker.makePersistent((OpObject) it.next());
+         for (OpObject anObjectsToAdd : objectsToAdd) {
+            broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
          logger.info("Objects persisted");

@@ -24,27 +24,27 @@ public class OpReferenceHandler implements XNodeHandler {
    private static final XLog logger = XLogFactory.getServerLogger(OpReferenceHandler.class);
 
    /**
-    * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)
+    * @see XNodeHandler#newNode(onepoint.xml.XContext,String,java.util.HashMap)
     */
    public Object newNode(XContext context, String name, HashMap attributes) {
       return new StringBuffer();
    }
 
    /**
-    * @see XNodeHandler#addChildNode(onepoint.xml.XContext, Object, String, Object)
+    * @see XNodeHandler#addChildNode(onepoint.xml.XContext,Object,String,Object)
     */
    public void addChildNode(XContext context, Object node, String child_name, Object child) {
    }
 
    /**
-    * @see XNodeHandler#addNodeContent(onepoint.xml.XContext, Object, String)
+    * @see XNodeHandler#addNodeContent(onepoint.xml.XContext,Object,String)
     */
    public void addNodeContent(XContext context, Object node, String content) {
       ((StringBuffer) node).append(content);
    }
 
    /**
-    * @see XNodeHandler#nodeFinished(onepoint.xml.XContext, String, Object, Object)
+    * @see XNodeHandler#nodeFinished(onepoint.xml.XContext,String,Object,Object)
     */
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
       // Members are always written in the same order as defined in the backup file header
@@ -55,12 +55,27 @@ public class OpReferenceHandler implements XNodeHandler {
 
       if (!valueString.equals(OpBackupManager.NULL)) {
          Long objectId = new Long(valueString);
-         OpObject activatedObject = restoreContext.getRelationshipOwner(objectId);
-         if (activatedObject == null) {
-            logger.error("Cannot restore relationship towards object with id:" + objectId.toString());
+         OpObject relationshipEnd = restoreContext.getRelationshipOwner(objectId);
+         Object value = null;
+         if (backupMember.relationship) {
+            if (relationshipEnd == null) {
+               logger.error("Cannot restore relationship towards object with id:" + objectId.toString());
+            }
+            else {
+               value = relationshipEnd;
+            }
+         }
+         else {
+            //there was a type change
+            String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
+            //<FIXME author="Horia Chiorean" description="For relationships changed to attributes, this might not work correctly">
+            value = OpBackupTypeManager.convertParsedValue(backupMember.typeId, valueString, workingDirectory);
+            //<FIXME>
          }
          try {
-            backupMember.accessor.invoke(object, new Object[] {activatedObject});
+            if (backupMember.accessor != null) {
+              backupMember.accessor.invoke(object, value);
+            }
          }
          catch (IllegalAccessException e) {
             logger.error("Cannot restore object relationship", e);

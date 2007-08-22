@@ -11,6 +11,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpUser;
 
 import java.util.Iterator;
 
@@ -99,6 +100,28 @@ public class OpProjectModule extends OpModule {
          for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
             OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
          }
+      }
+      tx.commit();
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #25 (via reflection - must be public).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion25(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpUser administrator = session.administrator(broker);
+      OpQuery allPlanVersions = broker.newQuery("from OpProjectPlanVersion projectVersion");
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpProjectPlanVersion> projectsIt = broker.iterate(allPlanVersions);
+      while (projectsIt.hasNext()) {
+         OpProjectPlanVersion planVersion = projectsIt.next();
+         OpUser user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+         String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
+         planVersion.setCreator(displayName);
+         broker.updateObject(planVersion);
       }
       tx.commit();
       broker.close();

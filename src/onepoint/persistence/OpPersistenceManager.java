@@ -4,15 +4,31 @@
 
 package onepoint.persistence;
 
+import onepoint.persistence.hibernate.OpHibernateSource;
+
 public final class OpPersistenceManager {
 
    /**
     * Creates a new broker instance.
     *
+    * @param sourceName source name to use.
     * @return a <code>OpBroker</code> object.
     */
-   public static OpBroker newBroker() {
-      return new OpBroker();
+   public static OpBroker newBroker(String sourceName) {
+      return new OpBroker(sourceName);
+   }
+
+   /**
+    * Returns a broker using the first datasource found. This should be used only for operations that not reguire
+    * operations dependent on data source.
+    *
+    * @return a <code>OpBroker</code> object.
+    */
+   private static OpBroker newBroker() {
+      //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
+      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getAllSources().iterator().next();
+
+      return newBroker(hibernateSource.getName());
    }
 
    /**

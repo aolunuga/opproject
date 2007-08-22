@@ -41,7 +41,7 @@ public class OpConfirmImportProjectFormProvider implements XFormProvider {
 
       //set confirm message
       XComponent label = form.findComponent(OpConfirmImportProjectFormProvider.CONFIRM_LABEL);
-      String text = session.getLocale().getResourceMap(OpConfirmImportProjectFormProvider.RESOURCE_MAP).getResource(OpConfirmImportProjectFormProvider.CONFIRM_IMPORT).getText();
+      String text = session.getLocale().getResourceMap(OpConfirmImportProjectFormProvider.RESOURCE_MAP).getResource(OpConfirmImportProjectFormProvider.CONFIRM_IMPORT).getText(parameters);
       label.setText(text);
 
    }

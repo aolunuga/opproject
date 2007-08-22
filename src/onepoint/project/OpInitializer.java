@@ -11,8 +11,8 @@ import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
-import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
 import onepoint.project.configuration.OpDatabaseConfiguration;
+import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
 import onepoint.project.module.OpLanguageKitPath;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
@@ -26,9 +26,7 @@ import onepoint.resource.*;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Service class responsible for performing application initialization steps
@@ -138,9 +136,9 @@ public class OpInitializer {
 
             //check attachment size
             if (this.configuration.getMaxAttachmentSize() > OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE) {
-               logger.info("Values higher than " +  OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
+               logger.info("Values higher than " + OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
             }
-            
+
             // initialize logging facility
             String logFile = configuration.getLogFile();
             if (logFile != null && !new File(logFile).isAbsolute()) {
@@ -174,9 +172,6 @@ public class OpInitializer {
             logger.info("Configuration loaded; Application is configured");
             runLevel = 1;
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
-
-            // Load modules and register prototypes
-
             OpModuleManager.load();
 
             logger.info("Registered modules loaded");
@@ -184,14 +179,7 @@ public class OpInitializer {
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
             // Load and register default source
-            OpSource defaultSource = OpSourceManager.getDefaultSource();
-            if (defaultSource != null) {
-               defaultSource.close();
-            }
-            defaultSource = createSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
-            OpSourceManager.registerDefaultSource(defaultSource);
-            defaultSource.open();
-
+            registerDataSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType);
             logger.info("Access to database is OK");
             runLevel = 3;
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
@@ -235,6 +223,27 @@ public class OpInitializer {
    }
 
    /**
+    * Register datasources.
+    *
+    * @param databaseUrl      databse URL
+    * @param databaseDriver   database driver class
+    * @param databaseLogin    database user
+    * @param databasePassword database user password
+    * @param databaseType     database type
+    */
+   private void registerDataSources(String databaseUrl, String databaseDriver,
+        String databaseLogin, String databasePassword, int databaseType) {
+
+      // close all existing data sources.
+      OpSourceManager.closeAllSources();
+
+      for (OpSource dataSource : createSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
+         OpSourceManager.registerSource(dataSource);
+         dataSource.open();
+      }
+   }
+
+   /**
     * Creates a new instance of <code>OpHibernateSource</code> with the given parameters.
     *
     * @param databaseUrl      connection databse URL
@@ -244,9 +253,13 @@ public class OpInitializer {
     * @param databaseType     database type.
     * @return a <code>OpSource</code> instance.
     */
-   protected OpSource createSource(String databaseUrl, String databaseDriver, String databasePassword,
-        String databaseLogin, int databaseType) {
-      return new OpHibernateSource(databaseUrl, databaseDriver, databasePassword, databaseLogin, databaseType);
+   protected Set<OpSource> createSources(String databaseUrl, String databaseDriver, String databaseLogin,
+        String databasePassword, int databaseType) {
+      Set<OpSource> sources = new HashSet<OpSource>(1);
+      sources.add(new OpHibernateSource(OpSource.DEFAULT_SOURCE_NAME, databaseUrl, databaseDriver,
+           databaseLogin, databasePassword, databaseType));
+
+      return sources;
    }
 
    /**
@@ -279,13 +292,18 @@ public class OpInitializer {
     * Updates the db schema if necessary.
     */
    private void updateDBSchema() {
-      OpHibernateSource defaultSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-      int existingVersionNr = defaultSource.getExistingSchemaVersionNumber();
-      if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
-         logger.info("Updating DB schema from version " + existingVersionNr + "...");
-         OpPersistenceManager.updateSchema();
-         defaultSource.updateSchemaVersionNumber();
-         OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+
+      for (OpSource source : allSources) {
+         OpHibernateSource hibernateSource = (OpHibernateSource) source;
+
+         int existingVersionNr = hibernateSource.getExistingSchemaVersionNumber();
+         if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
+            logger.info("Updating DB schema from version " + existingVersionNr + "...");
+            OpPersistenceManager.updateSchema();
+            hibernateSource.updateSchemaVersionNumber();
+            OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
+         }
       }
    }
 
@@ -302,10 +320,13 @@ public class OpInitializer {
     * Creates an empty db schema, if necessary.
     */
    private void createEmptySchema() {
-      OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getDefaultSource();
-      if (!hibernateSource.existsTable("op_object")) {
-         OpPersistenceManager.createSchema();
-         OpBroker broker = OpPersistenceManager.newBroker();
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         if (!source.existsTable("op_object")) {
+            OpPersistenceManager.createSchema();
+         }
+
+         OpBroker broker = OpPersistenceManager.newBroker(source.getName());
          // Create identification-related system objects (helpers supply their own transactions)
          OpUserService.createAdministrator(broker);
          OpUserService.createEveryone(broker);
@@ -324,12 +345,16 @@ public class OpInitializer {
 
    /**
     * Returns the maximum size configured for attachments, in bytes.
+    *
     * @return a <code>long</code> value representing a number of bytes.
     */
    public long getMaxAttachmentSizeBytes() {
+      if (configuration == null) {
+         return OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE * MB_TO_BYTE_CONVERSION_UNIT;
+      }
       return configuration.getMaxAttachmentSize() * MB_TO_BYTE_CONVERSION_UNIT;
    }
-   
+
    /**
     * Resets the db schema by dropping the existent one and creating a new one.
     *
@@ -342,12 +367,12 @@ public class OpInitializer {
 
       logger.info("Dropping schema...");
       OpPersistenceManager.dropSchema();
+      OpSourceManager.clearAllSources();
 
       logger.info("Creating schema...");
       createEmptySchema();
 
       logger.info("Starting modules");
-      OpSourceManager.getDefaultSource().clear();
       OpModuleManager.start();
 
       logger.info("Updating schema...");
@@ -371,7 +396,7 @@ public class OpInitializer {
       logger.info("Creating schema...");
       OpPersistenceManager.createSchema();
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
-      OpSourceManager.getDefaultSource().clear();
+      OpSourceManager.clearAllSources();
       updateDBSchema();
    }
 }

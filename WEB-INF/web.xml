@@ -29,7 +29,7 @@
       </init-param>
       <init-param>
          <param-name>applet_archive</param-name>
-         <param-value>express4j-client-07.1.jar,opproject-client-07.1.jar,jcookie-0.8b.jar</param-value>
+         <param-value>${war.applet_archive}</param-value>
       </init-param>
       <init-param>
          <param-name>context_path</param-name>

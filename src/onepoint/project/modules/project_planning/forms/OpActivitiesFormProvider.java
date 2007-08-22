@@ -56,6 +56,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String PROJECT_TYPE_FIELD= "ProjectType";
 
    private final static String PROJECT_ID_FIELD = "ProjectIDField";
+   private final static String PROJECT_NAME_FIELD = "ProjectName";
    private final static String WORKING_PLAN_VERSION_ID_FIELD = "WorkingPlanVersionIDField";
 
    private final static String GANTT_CHART_TOGGLE_BAR = "GanttToggleBar";
@@ -212,6 +213,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
          logger.debug("after-project-locked");
          XComponent project_id_field = form.findComponent(PROJECT_ID_FIELD);
          project_id_field.setStringValue(project.locator());
+
+         XComponent project_name_field = form.findComponent(PROJECT_NAME_FIELD);
+         project_name_field.setStringValue(project.getName());
+
          String info = project.getName();
          if (locks.size() > 0) {
             info += " (wird bearbeitet)";

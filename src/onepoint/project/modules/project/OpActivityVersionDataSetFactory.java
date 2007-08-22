@@ -1271,7 +1271,7 @@ public abstract class OpActivityVersionDataSetFactory {
 
       // Create plan version w/version numnber and simply "copy" activity rows to activity-version rows
       OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
-      planVersion.setCreator(creator);
+      planVersion.setCreator(creator.getDisplayName());
       planVersion.setProjectPlan(projectPlan);
       planVersion.setVersionNumber(versionNumber);
       planVersion.setStart(projectPlan.getStart());

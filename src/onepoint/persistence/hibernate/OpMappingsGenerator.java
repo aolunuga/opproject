@@ -5,9 +5,19 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpField;
+import onepoint.persistence.OpMember;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpRelationship;
+import onepoint.persistence.OpType;
+import onepoint.persistence.OpTypeManager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is responsible for generation of Hibernate mapping file for all loaded prototypes.
@@ -226,7 +236,7 @@ public class OpMappingsGenerator {
          buffer.append(" not-null=\"true\"");
       }
 
-      if (field.getUnique()) {
+      if (field.getUnique() && field.getUniqueKey() == null) {
          buffer.append(" unique=\"true\"");
       }
 
@@ -267,7 +277,7 @@ public class OpMappingsGenerator {
          buffer.append(" not-null=\"true\"");
       }
 
-      if (field.getUnique() && !(field.getTypeID() == OpType.TEXT)) {
+      if (field.getUnique() && field.getTypeID() != OpType.TEXT  && field.getUniqueKey() == null) {
          buffer.append(" unique=\"true\"");
       }
 
@@ -279,7 +289,7 @@ public class OpMappingsGenerator {
          buffer.append(" default=\"").append(field.getDefaultValue()).append("\"");
       }
 
-      if (field.getIndexed() && !(field.getTypeID() == OpType.TEXT)) {
+      if (field.getIndexed() && field.getTypeID() != OpType.TEXT) {
          buffer.append(" index=\"");
          buffer.append(generateIndexName(prototype.getName(), field.getName()));
          buffer.append('\"');

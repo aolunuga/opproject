@@ -52,7 +52,9 @@ public class OpBaseTestCase extends OpTestCase {
       TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 
       this.server = new XLocalServer();
-      this.session = new OpProjectSession();
+      this.server.setSessionClass(OpProjectSession.class);
+      this.session = (OpProjectSession) server.newSession();
+
       this.session.setServer(this.server);
 
       // Authenticate user to be sure that he has access.

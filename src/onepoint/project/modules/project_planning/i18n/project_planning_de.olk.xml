@@ -108,7 +108,7 @@
 
    <resource-map id="project_planning.ImportProjectPlan">
       <resource id="ConfirmImport">Projektplan importieren</resource>
-      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?</resource>
+      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge im Projekt <parameter name="ProjectName"/> ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?</resource>
       <resource id="FileReadError">Die Datei konnte nicht gelesen werden</resource>
       <resource id="ValidationError">Der Projektplan enthält inkonsistente Daten</resource>
       <resource id="OK">OK</resource>
@@ -257,6 +257,7 @@
       <resource id="CommentNameMissing">Bitte Betreff eingeben</resource>
       <resource id="CommentNotFound">Der Betreff wurde nicht gefunden</resource>
       <resource id="AdministratorAccessDenied">Sie benötigen Administratorrechte für diese Funktion</resource>
+      <resource id="HourlyRatesModifiedWarning">Die Personalkosten wurden neu berechnet, da Stundensätze von in diesem Projektplan verwendeten Ressourcen verändert wurden</resource>
       <resource id="AvailabilityModifiedWarning">Die Personalkosten wurden neu berechnet, da die Verfügbarkeit von in diesem Projektplan verwendeten Ressourcen verändert wurde</resource>
       <resource id="AvailabilityAndRatesModifiedWarning">Die Personalkosten wurden neu berechnet, da die Verfügbarkeit und die Stundensätze von in diesem Projektplan verwendeten Ressourcen verändert wurden</resource>
       <resource id="MsProjectFileReadError">Die Microsoft Project Datei kann nicht gelesen werden</resource>
