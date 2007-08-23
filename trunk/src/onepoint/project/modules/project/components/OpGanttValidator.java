@@ -142,6 +142,9 @@ public class OpGanttValidator extends XValidator {
    public final static double NO_RESOURCE_AVAILABILITY = Double.MAX_VALUE;
    public final static String NO_RESOURCE_NAME = "?";
 
+   private final static char HOURS_SYMBOL = 'h';
+   private final static char PERCENT_SYMBOL = '%';
+
    /**
     * An error margin used in the calculations of the validator.
     */
@@ -786,7 +789,6 @@ public class OpGanttValidator extends XValidator {
    public Date getWorkingProjectStart() {
 
       if (projectWorkingStart == null) {
-         XCalendar calendar = XCalendar.getDefaultCalendar();
 
          Date projectStart = getProjectStart();
          if (projectStart == null) {
@@ -1790,7 +1792,6 @@ public class OpGanttValidator extends XValidator {
    }
 
    protected void validateGanttChart() {
-      XCalendar calendar = XCalendar.getDefaultCalendar();
       if (XDisplay.getDefaultDisplay() != null) {
          calendar = XDisplay.getDefaultDisplay().getCalendar();
       }
@@ -1919,8 +1920,8 @@ public class OpGanttValidator extends XValidator {
       }
       else {
          start = XCalendar.today();
-         if (!XCalendar.getDefaultCalendar().isWorkDay(start)) {
-            start = XCalendar.getDefaultCalendar().nextWorkDay(start);
+         if (!calendar.isWorkDay(start)) {
+            start = calendar.nextWorkDay(start);
          }
          if (getWorkingProjectStart() != null && start.before(getWorkingProjectStart())) {
             start = getWorkingProjectStart();
@@ -4601,7 +4602,7 @@ public class OpGanttValidator extends XValidator {
     */
    public static double percentageAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == '%')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4628,7 +4629,7 @@ public class OpGanttValidator extends XValidator {
    public static boolean isPositivePercentageAssigned(String assignment) {
       boolean isPositive = false;
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == '%')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4654,7 +4655,7 @@ public class OpGanttValidator extends XValidator {
     */
    public static double localizedPercentageAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == '%')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4679,7 +4680,7 @@ public class OpGanttValidator extends XValidator {
     */
    public static double localizedHoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4704,7 +4705,7 @@ public class OpGanttValidator extends XValidator {
     */
    public static double hoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4730,7 +4731,7 @@ public class OpGanttValidator extends XValidator {
    public static String deleteEffortAssignment(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
       String result = assignment;
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             double hoursAssigned = Double.parseDouble(captionNumber);
@@ -4742,7 +4743,7 @@ public class OpGanttValidator extends XValidator {
             return result;
          }
       }
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == '%')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             double assignmentValue = Double.parseDouble(captionNumber);
@@ -4767,7 +4768,7 @@ public class OpGanttValidator extends XValidator {
    public static boolean isPositiveHoursAssigned(String assignment) {
       boolean isPositive = false;
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -5956,9 +5957,8 @@ public class OpGanttValidator extends XValidator {
          }
       }
       //remove rounding errors by using the same number format for parsing
-      XCalendar defaultCalendar = XCalendar.getDefaultCalendar();
       try {
-         effortSum = defaultCalendar.parseDouble(defaultCalendar.localizedDoubleToString(effortSum));
+         effortSum = calendar.parseDouble(calendar.localizedDoubleToString(effortSum));
       }
       catch (ParseException e) {
          logger.error("Cannot remove rounding errors for double value:" + effortSum);
@@ -6108,35 +6108,41 @@ public class OpGanttValidator extends XValidator {
     * @param visualResources a <code>List</code> of <code>String</code> representing a list of visual resource.
     * @return an <code>List</code> of the same resources, but with the assignments strings locale independent.
     */
-   private List deLocalizeVisualResources(List visualResources) {
+   protected List deLocalizeVisualResources(List visualResources) {
       List result = new ArrayList();
       for (Iterator it = visualResources.iterator(); it.hasNext();) {
          String visualResource = (String) it.next();
-         String id = choiceID(visualResource);
-         String caption = choiceCaption(visualResource);
-         String resourceName = getResourceName(caption, null);
-         String assignmentSymbol = null;
-         String hoursString = getResourceName(caption, "h");
-         if (hoursString.length() == resourceName.length()) {
-            assignmentSymbol = "h";
-         }
-         else {
-            assignmentSymbol = "%";
-         }
+         if (visualResource != null) {
+            String id = choiceID(visualResource);
+            String caption = choiceCaption(visualResource);
+            String resourceName = getResourceName(caption, null);
+            String assignmentSymbol = null;
+            String hoursString = getResourceName(caption, "h");
+            if (hoursString.length() == resourceName.length()) {
+               assignmentSymbol = "h";
+            }
+            else {
+               assignmentSymbol = "%";
+            }
 
-         double assignment = localizedHoursAssigned(visualResource);
-         if (assignment == INVALID_ASSIGNMENT) {
-            assignment = localizedPercentageAssigned(visualResource);
+            double assignment = localizedHoursAssigned(visualResource);
+            if (assignment == INVALID_ASSIGNMENT) {
+               assignment = localizedPercentageAssigned(visualResource);
+            }
+            String assignmentString = (assignment != INVALID_ASSIGNMENT) ? String.valueOf(assignment) : null;
+            String delocalizedResource = null;
+            if (assignmentString != null) {
+               delocalizedResource = XValidator.choice(id, resourceName + " " + assignmentString + assignmentSymbol);
+            }
+            else {
+               delocalizedResource = XValidator.choice(id, resourceName);
+            }
+            result.add(delocalizedResource);
          }
-         String assignmentString = (assignment != INVALID_ASSIGNMENT) ? String.valueOf(assignment) : null;
-         String delocalizedResource = null;
-         if (assignmentString != null) {
-            delocalizedResource = XValidator.choice(id, resourceName + " " + assignmentString + assignmentSymbol);
+         else{
+            //this null value will generate a resource name exception later on
+            result.add(visualResource);
          }
-         else {
-            delocalizedResource = XValidator.choice(id, resourceName);
-         }
-         result.add(delocalizedResource);
       }
       return result;
    }

@@ -552,9 +552,11 @@ function prepareResourceCaption(caption) {
       lastCaptionString = String.valueOf(caption.charAt(captionLen - 1));
       if (lastCaptionString.equals(percentString) || lastCaptionString.equals(hoursString)) {
          lastSpaceIndex = caption.lastIndexOf(" ");
-         number = caption.substring(lastSpaceIndex + 1, captionLen - 1);
-         if (XCalendar.isDouble(number)) {
-            captionToCompare = caption.substring(0, lastSpaceIndex);
+         if (lastSpaceIndex > -1) {
+            number = caption.substring(lastSpaceIndex + 1, captionLen - 1);
+            if (XCalendar.isDouble(number)) {
+               captionToCompare = caption.substring(0, lastSpaceIndex);
+            }
          }
       }
    }

@@ -195,6 +195,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
             }
             else {
                //standard activity
+               //make sure from here onwards, we have all the assignment values in independent format.
+               resources = deLocalizeVisualResources(resources);
+
+               //standard activity
                resources = prepareResources(data_row, resources);
                addToUndo();
                setResources(data_row, resources);
