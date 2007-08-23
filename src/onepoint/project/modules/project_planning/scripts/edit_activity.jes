@@ -281,8 +281,8 @@ function ok(event) {
                j++;
             }
 
-            available_s = XCalendar.doubleToString(available);
-            asigned_s = XCalendar.doubleToString(asigned);
+            available_s = XCalendar.localizedDoubleToString(available);
+            asigned_s = XCalendar.localizedDoubleToString(asigned);
             if (available_s != asigned_s) {
                caption = caption.concat(" ");
                caption = caption.concat(asigned_s);
