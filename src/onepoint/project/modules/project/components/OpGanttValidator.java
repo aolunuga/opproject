@@ -6112,37 +6112,37 @@ public class OpGanttValidator extends XValidator {
       List result = new ArrayList();
       for (Iterator it = visualResources.iterator(); it.hasNext();) {
          String visualResource = (String) it.next();
-         if (visualResource != null) {
-            String id = choiceID(visualResource);
-            String caption = choiceCaption(visualResource);
-            String resourceName = getResourceName(caption, null);
-            String assignmentSymbol = null;
-            String hoursString = getResourceName(caption, "h");
-            if (hoursString.length() == resourceName.length()) {
-               assignmentSymbol = "h";
-            }
-            else {
-               assignmentSymbol = "%";
-            }
-
-            double assignment = localizedHoursAssigned(visualResource);
-            if (assignment == INVALID_ASSIGNMENT) {
-               assignment = localizedPercentageAssigned(visualResource);
-            }
-            String assignmentString = (assignment != INVALID_ASSIGNMENT) ? String.valueOf(assignment) : null;
-            String delocalizedResource = null;
-            if (assignmentString != null) {
-               delocalizedResource = XValidator.choice(id, resourceName + " " + assignmentString + assignmentSymbol);
-            }
-            else {
-               delocalizedResource = XValidator.choice(id, resourceName);
-            }
-            result.add(delocalizedResource);
-         }
-         else{
+         if (visualResource == null) {
             //this null value will generate a resource name exception later on
             result.add(visualResource);
+            continue;
          }
+
+         String id = choiceID(visualResource);
+         String caption = choiceCaption(visualResource);
+         String resourceName = getResourceName(caption, null);
+         String assignmentSymbol = null;
+         String hoursString = getResourceName(caption, "h");
+         if (hoursString.length() == resourceName.length()) {
+            assignmentSymbol = "h";
+         }
+         else {
+            assignmentSymbol = "%";
+         }
+
+         double assignment = localizedHoursAssigned(visualResource);
+         if (assignment == INVALID_ASSIGNMENT) {
+            assignment = localizedPercentageAssigned(visualResource);
+         }
+         String assignmentString = (assignment != INVALID_ASSIGNMENT) ? String.valueOf(assignment) : null;
+         String delocalizedResource = null;
+         if (assignmentString != null) {
+            delocalizedResource = XValidator.choice(id, resourceName + " " + assignmentString + assignmentSymbol);
+         }
+         else {
+            delocalizedResource = XValidator.choice(id, resourceName);
+         }
+         result.add(delocalizedResource);
       }
       return result;
    }
