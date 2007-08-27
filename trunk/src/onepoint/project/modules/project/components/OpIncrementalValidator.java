@@ -383,27 +383,28 @@ public class OpIncrementalValidator extends OpGanttValidator {
          startPoints = getIndependentActivities();
       }
       if (!startPoints.isEmpty()) {
-            //update the types upwards from the start points
-            for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-               XComponent activity = (XComponent) iterator.next();
-               updateTreeType(activity);
-            }
-
-            //update collection
-            for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-               updateCollectionTreeValues((XComponent) iterator.next());
-            }
-
-            validateGanttChart();
+         //update the types upwards from the start points
+         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
+            XComponent activity = (XComponent) iterator.next();
+            updateTreeType(activity);
          }
-         startPoints = null;
-         return true;
+
+         //update collection
+         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
+            updateCollectionTreeValues((XComponent) iterator.next());
+         }
+
+         validateGanttChart();
       }
+      startPoints = null;
+      return true;
+   }
 
    /**
     * Returns a set with the independent activities from the underlying data-set.
+    *
     * @return a <code>Set(XComponent(DATA_ROW))</code> representing independent
-    * activities.
+    *         activities.
     */
    private Set getIndependentActivities() {
       Set result = new HashSet();
@@ -411,7 +412,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
          XComponent activity = (XComponent) data_set.getChild(i);
          if (isIndependentActivity(activity)) {
             result.add(activity);
-   }
+         }
       }
       return result;
    }
@@ -539,52 +540,55 @@ public class OpIncrementalValidator extends OpGanttValidator {
          preds = node.getPredecessors();
       }
 
-      //get the last end date from predecessors ( end = maxend(preds) )
-      for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
-         OpGraphNode pred = (OpGraphNode) iterator.next();
-         //just one component/node
-         XComponent predDataRow = (XComponent) pred.getComponents().get(0);
-         Date predEnd = OpGanttValidator.getEnd(predDataRow);
-         if (end == null) {
-            end = predEnd;
-         }
-         else {
-            end = end.before(predEnd) ? predEnd : end;
-         }
-      }
 
-      if (end != null) {
-         Date start = calendar.nextWorkDay(end);
-         Date oldStart = OpGanttValidator.getStart(dataRow);
-         if (!oldStart.equals(start)) {
-            //move the activity
-            OpGanttValidator.setStart(dataRow, start);
-         }
-         else {
-            //no change in the start date - stop validation (unless it is a start point)
-            if (!startPoints.contains(dataRow)) {
-               validateSuccessors = false;
+      if (!isCollectionType(dataRow)) {
+         //get the last end date from predecessors ( end = maxend(preds) )
+         for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
+            OpGraphNode pred = (OpGraphNode) iterator.next();
+            //just one component/node
+            XComponent predDataRow = (XComponent) pred.getComponents().get(0);
+            Date predEnd = OpGanttValidator.getEnd(predDataRow);
+            if (end == null) {
+               end = predEnd;
+            }
+            else {
+               end = end.before(predEnd) ? predEnd : end;
             }
          }
-      }
 
-      //check for the project start
-      Date start = OpGanttValidator.getStart(dataRow);
-      if (start != null) {
-         if (!calendar.isWorkDay(start)) {
-            start = calendar.nextWorkDay(start);
-            validateSuccessors = true;
-            OpGanttValidator.setStart(dataRow, start);
+         if (end != null) {
+            Date start = (getType(dataRow) == MILESTONE) ? end : calendar.nextWorkDay(end);
+            Date oldStart = OpGanttValidator.getStart(dataRow);
+            if (!oldStart.equals(start)) {
+               //move the activity
+               OpGanttValidator.setStart(dataRow, start);
+            }
+            else {
+               //no change in the start date - stop validation (unless it is a start point)
+               if (!startPoints.contains(dataRow)) {
+                  validateSuccessors = false;
+               }
+            }
          }
-         if (getWorkingProjectStart() != null) {
-            if (start.before(getWorkingProjectStart())) {
+
+         //check for the project start
+         Date start = OpGanttValidator.getStart(dataRow);
+         if (start != null) {
+            if (!calendar.isWorkDay(start)) {
+               start = calendar.nextWorkDay(start);
                validateSuccessors = true;
-               OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
+               OpGanttValidator.setStart(dataRow, start);
             }
+            if (getWorkingProjectStart() != null) {
+               if (start.before(getWorkingProjectStart())) {
+                  validateSuccessors = true;
+                  OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
+               }
+            }
+            updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
+            //update collection
+            updateCollectionTreeValues(dataRow);
          }
-         updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
-         //update collection
-         updateCollectionTreeValues(dataRow);
       }
 
       //try to change the start/end of parent with new values of start/end

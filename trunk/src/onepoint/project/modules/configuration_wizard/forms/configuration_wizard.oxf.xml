@@ -14,23 +14,22 @@
             <label x="0" y="1" width="2" text="${DatabaseType}" style-ref="label-emphasized-default"/>
             <choice-field x="2" y="1" width="3" id="DatabaseTypeChoiceField" data-set-ref="DBTypeDataSet" on-value-changed="dbTypeChanged"/>
 
-            <label x="0" y="3" width="2" text="${DatabaseUrl}" style-ref="label-emphasized-default"/>
-            <text-field x="2" y="3" width="3" id="DatabaseUrlTextField"/>
+            <label x="0" y="2" width="2" text="${DatabaseUrl}" style-ref="label-emphasized-default"/>
+            <text-field x="2" y="2" width="3" id="DatabaseUrlTextField"/>
 
-            <label x="0" y="4" width="2" text="${DatabaseLogin}" style-ref="label-emphasized-default"/>
-            <text-field x="2" y="4" width="3" id="DatabaseLoginTextField" value="opproject"/>
+            <label x="0" y="3" width="2" text="${DatabaseLogin}" style-ref="label-emphasized-default"/>
+            <text-field x="2" y="3" width="3" id="DatabaseLoginTextField" value="opproject"/>
 
-            <label x="0" y="5" width="2" text="${DatabasePassword}"/>
-            <text-field x="2" y="5" width="3" id="DatabasePasswordTextField" value="opproject" secret="true"/>
+            <label x="0" y="4" width="2" text="${DatabasePassword}"/>
+            <text-field x="2" y="4" width="3" id="DatabasePasswordTextField" value="opproject" secret="true"/>
 
-            <label x="0" y="6" width="2" text="${LoadDemodata}"/>
-            <check-box x="2" y="6" width="3" id="LoadDemodata" text=""/>
+            <check-box x="2" y="5" width="3" id="LoadDemodata" text="${LoadDemodata}"/>
 
-            <button x="2" y="8" width="2" id="okButton" text="${Connect}" on-button-pressed="connect"/>
-         
+            <button x="2" y="6" width="2" id="okButton" text="${Connect}" on-button-pressed="connect"/>
+
          </panel>
-		  
+
+      </panel>
    </panel>
-   </panel>
-	
+
 </form>
