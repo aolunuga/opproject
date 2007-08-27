@@ -1118,12 +1118,6 @@ public class OpGanttValidator extends XValidator {
       return false;
    }
 
-   // public void addSubActivity(XComponent activity, XComponent sub_activity)
-   // {}
-
-   // Actual validation code
-   // *** Try to provide incrmental validation in the future (scalability)
-
    /**
     * Method checks if a activity is a an independent one. If the super activity is independent and it is a collection
     * the method returns true;
@@ -1594,16 +1588,20 @@ public class OpGanttValidator extends XValidator {
     * @see OpGanttValidator#updateCollectionValues(onepoint.express.XComponent)
     */
    protected void updateCollectionTreeValues(XComponent activity) {
-      if (getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK) {
+      if (isCollectionType(activity)) {
          updateCollectionValues(activity);
       }
       XComponent superActivity = superActivity(activity);
       while (superActivity != null) {
-         if (getType(superActivity) == COLLECTION || getType(superActivity) == COLLECTION_TASK || getType(superActivity) == SCHEDULED_TASK) {
+         if (isCollectionType(superActivity)) {
             updateCollectionValues(superActivity);
          }
          superActivity = superActivity(superActivity);
       }
+   }
+
+   protected boolean isCollectionType(XComponent activity) {
+      return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK;
    }
 
    private void _validateActivity(XComponent activity, XCalendar calendar, Date not_before, boolean child,
@@ -4392,7 +4390,7 @@ public class OpGanttValidator extends XValidator {
     * the <code>array</code> is greater then <code>start</code> but lower than <code>end</code> the value is
     * incresead by <code>offset</code>
     *
-    * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
+    * @param array          <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
     * @param elemToAddIndex a <code>int</code> the index where the new element will be added.
     */
    private static void updateIndexListAfterAdd(List array, int elemToAddIndex) {
@@ -4409,7 +4407,7 @@ public class OpGanttValidator extends XValidator {
     * the <code>array</code> is greater then <code>removedElementIndex</code> but lower than <code>end</code> the value is
     * incresead by <code>offset</code>. The removedElementIndex index will be removed from the given array.
     *
-    * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
+    * @param array               <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
     * @param removedElementIndex the removedElementIndex index, index of the modified row.
     */
    private static void updateIndexListAfterRemove(List array, int removedElementIndex) {
@@ -4837,7 +4835,7 @@ public class OpGanttValidator extends XValidator {
       costs.add(EXTERNAL_HOURLY_RATE_INDEX, new Double(0));
       String assignment;
       double[] assigneds = new double[individualEfforts.length];
-      int sumAssigned = 0;
+      double sumAssigned = 0;
       int i;
       String resource_locator;
       for (i = 0; i < individualEfforts.length; i++) {
@@ -6462,7 +6460,7 @@ public class OpGanttValidator extends XValidator {
     * Sets the validator's hourly rate data set. Each row has the resource locator as value and a data cell containing
     * a Map of sorted dates as keys and hourly rates as values.
     * (10.01.07 -> [20, 30] ; 20.02.07 -> [25; 60] means that the resource has the internal HR 20/external HR 30 from
-    * 10.01.07 to 19.02.07 and inetrnal rate 25/external rate 60 from 20.02.07 on)
+    * 10.01.07 to 19.02.07 and internal rate 25/external rate 60 from 20.02.07 on)
     *
     * @param dataSet Data set containing the hourly rates
     */
