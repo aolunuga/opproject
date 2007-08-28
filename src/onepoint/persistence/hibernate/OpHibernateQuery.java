@@ -36,11 +36,11 @@ public class OpHibernateQuery implements OpQuery {
    public final void setBoolean(int index, boolean b) {
       query.setBoolean(index, b);
    }
-   
+
    public final void setBoolean(String name, boolean b) {
       query.setBoolean(name, b);
    }
-   
+
    public final void setInteger(int index, int i) {
       query.setInteger(index, i);
    }
@@ -60,7 +60,7 @@ public class OpHibernateQuery implements OpQuery {
    public final void setString(int index, String s) {
       query.setString(index, s);
    }
-   
+
    public final void setString(String name, String s) {
       query.setString(name, s);
    }
@@ -84,7 +84,7 @@ public class OpHibernateQuery implements OpQuery {
    public final void setDouble(int index, double d) {
       query.setDouble(index, d);
    }
-   
+
    public final void setDouble(String name, double d) {
       query.setDouble(name, d);
    }
@@ -112,5 +112,9 @@ public class OpHibernateQuery implements OpQuery {
 
    public void setMaxResults(int count) {
       query.setMaxResults(count);
+   }
+
+   public void setFetchSize(int size) {
+      query.setFetchSize(size);
    }
 }
