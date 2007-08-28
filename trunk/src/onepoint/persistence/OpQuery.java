@@ -57,4 +57,6 @@ public interface OpQuery {
    public void setFirstResult(int objectIndex);
 
    public void setMaxResults(int count);
+
+   public void setFetchSize(int size);
 }

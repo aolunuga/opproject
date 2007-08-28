@@ -426,18 +426,13 @@ public class OpBackupManager {
          logger.info("Backing up " + count + " " + prototypeName);
          if (count > pageSize) {
             while (startIndex < count) {
-               logger.info("Backing up objects between " + startIndex + " and " + (startIndex + BACKUP_PAGE_SIZE));
+               logger.info("Backing up objects between " + startIndex + " and " + (startIndex + pageSize));
                OpBroker pagingBroker = session.newBroker();
-               result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, BACKUP_PAGE_SIZE);
+               result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, pageSize);
                startIndex += pageSize;
-               if (startIndex >= count) {
-                  break;
-               }
-               if (startIndex + pageSize > count) {
-                  pageSize = count - startIndex;
-               }
+               pageSize = (startIndex + pageSize) < count ? pageSize : count - startIndex;
                //export each object
-               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker, prototypeName);
+               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy);
                if ((recursiveBy != null) && (childObjects.size() > 0)) {
                   exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
                }
@@ -451,7 +446,7 @@ public class OpBackupManager {
       }
 
       //export each object
-      List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy, broker, prototypeName);
+      List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy);
 
       // Check for next recursion
       if ((recursiveBy != null) && (childObjects.size() > 0)) {
@@ -461,7 +456,7 @@ public class OpBackupManager {
    }
 
    private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
-        String recursiveBy, OpBroker broker, String prototypeName)
+        String recursiveBy)
         throws IOException {
       List childObjects = (recursiveBy != null) ? new ArrayList() : null;
       try {
@@ -557,7 +552,7 @@ public class OpBackupManager {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setFirstResult(startIndex);
       query.setMaxResults(count);
-
+      query.setFetchSize(count);
       return broker.forceIterate(query);
    }
 
