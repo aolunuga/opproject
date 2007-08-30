@@ -2136,10 +2136,23 @@ public class OpGanttValidator extends XValidator {
             updateType(data_row, TASK);
          }
 
+         if (isCollectionType(previousChild)) {
+            clearCollectionActivity(previousChild);
+         }
+
          setCategory(data_row, getCategory(previousChild));
       }
       data_set.addChild(index, data_row);
       validateDataSet();
+   }
+
+   private void clearCollectionActivity(XComponent previousChild) {
+      setComplete(previousChild, 0);
+      setBaseExternalCosts(previousChild, 0);
+      setBaseMaterialCosts(previousChild, 0);
+      setBaseMiscellaneousCosts(previousChild, 0);
+      setBasePersonnelCosts(previousChild, 0);
+      setBaseTravelCosts(previousChild, 0);
    }
 
    /**
@@ -2381,17 +2394,10 @@ public class OpGanttValidator extends XValidator {
 
          case VISUAL_RESOURCES_COLUMN_INDEX:
             List visualResources = (ArrayList) value;
+            this.parseVisualResources(visualResources);
 
             //tasks, milestones keep only the resource name
             if (getType(data_row) == TASK || getType(data_row) == MILESTONE) {
-               for (int i = 0; i < visualResources.size(); i++) {
-                  String resource = (String) visualResources.get(i);
-                  //throw exception if resource name is invalid
-                  if (resource == null) {
-                     throw new XValidationException(RESOURCE_NAME_EXCEPTION);
-                  }
-               }
-
                addToUndo();
                List resources = visualResources;
 
@@ -2668,10 +2674,6 @@ public class OpGanttValidator extends XValidator {
       double baseEffort = getBaseEffort(data_row);
       for (int i = 0; i < resources.size(); i++) {
          String resource = (String) resources.get(i);
-         //throw exception if resource name is invalid
-         if (resource == null) {
-            throw new XValidationException(RESOURCE_NAME_EXCEPTION);
-         }
 
          //check if the resource has a negative effort assignment
          if (!(isPositiveHoursAssigned(resource) && isPositivePercentageAssigned(resource)) && baseEffort > 0) {
@@ -6101,6 +6103,54 @@ public class OpGanttValidator extends XValidator {
    }
 
    /**
+    * Checks if the assignment set used by the validator, contains a resource with the given name.
+    *
+    * @param resourceName a <code>String</code> representing the name of a resource.
+    * @return <code>true</code> if the assignment set contains a resource with the given
+    *         name, false otherwise.
+    */
+   private boolean containsResource(String resourceName) {
+      if (resourceName == null) {
+         return false;
+      }
+      XComponent assigmentSet = this.getAssignmentSet();
+      for (int i = 0; i < assigmentSet.getChildCount(); i++) {
+         XComponent assignmentRow = (XComponent) assigmentSet.getChild(i);
+         String assignedResourceName = choiceCaption(assignmentRow.getStringValue());
+         if (assignedResourceName.equalsIgnoreCase(resourceName)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Parses a list of resources coming from the "outside", removing the unplanned one and
+    * making sure that the remaining ones are found amongst the assigned resources.
+    *
+    * @param visualResources a <code>List(String)</code> resource choices.
+    * @throws XValidationException if a resource is not found in the assignment set.
+    */
+   protected void parseVisualResources(List visualResources) {
+      for (Iterator it = visualResources.iterator(); it.hasNext();) {
+         String resourceChoice = (String) it.next();
+         if (resourceChoice == null) {
+            throw new XValidationException(RESOURCE_NAME_EXCEPTION);
+         }
+         String resourceCaption = choiceCaption(resourceChoice);
+         String resourceName = resourceCaption != null ? getResourceName(resourceCaption, null) : getResourceName(resourceChoice, null);
+         //remove un-named resources
+         if (resourceName.equalsIgnoreCase(NO_RESOURCE_NAME)) {
+            it.remove();
+            continue;
+         }
+         if (!containsResource(resourceName)) {
+            throw new XValidationException(RESOURCE_NAME_EXCEPTION);
+         }
+      }
+   }
+
+   /**
     * Converts the assignments (hours or %) from a localized form (entered by the user) to an internal form.
     *
     * @param visualResources a <code>List</code> of <code>String</code> representing a list of visual resource.
@@ -6110,12 +6160,6 @@ public class OpGanttValidator extends XValidator {
       List result = new ArrayList();
       for (Iterator it = visualResources.iterator(); it.hasNext();) {
          String visualResource = (String) it.next();
-         if (visualResource == null) {
-            //this null value will generate a resource name exception later on
-            result.add(visualResource);
-            continue;
-         }
-
          String id = choiceID(visualResource);
          String caption = choiceCaption(visualResource);
          String resourceName = getResourceName(caption, null);

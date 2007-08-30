@@ -55,6 +55,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
    private String WORKER1_ID = "OpResource.16.xid";
    private final String WORKER1 = WORKER1_ID + "['Worker1']";
+   private final String WORKER1_REGEXP = WORKER1_ID + "['Worker1 #']";
    private String WORKER2_ID = "OpResource.18.xid";
    private final String WORKER2 = WORKER2_ID + "['Worker2']";
 
@@ -2731,7 +2732,7 @@ public class OpGanttValidatorTest extends OpTestCase {
 
       ArrayList resources = new ArrayList();
       resources.add(WORKER2);
-      resources.add(WORKER1_ID + "['Worker 1 50%']");
+      resources.add(WORKER1_REGEXP.replaceAll("#", "50%"));
       validator.setDataCellValue(testedActivity, OpGanttValidator.VISUAL_RESOURCES_COLUMN_INDEX, resources);
 
       //a week (5 days) (res1 - eff 40), (res2 - eff 20)

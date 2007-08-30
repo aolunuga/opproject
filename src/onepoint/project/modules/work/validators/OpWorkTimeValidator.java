@@ -435,7 +435,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             if (newEffort != null) {
                //update with the new activity
                Double actualEffort = new Double(newEffort.doubleValue() / XCalendar.MINUTES_PER_HOUR);
-               hoursValidator.setActualEffort(hourRow, actualEffort);
+               hoursValidator.setDataCellValue(hourRow, OpWorkEffortValidator.ACTUAL_EFFORT_INDEX, actualEffort);
                //remove entry from map
                efforts.remove(locator);
             }

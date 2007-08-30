@@ -109,8 +109,11 @@
 
    <resource-map id="project_planning.ImportProjectPlan">
       <resource id="ConfirmImport">Import Project Plan</resource>
-      <resource id="ConfirmImportProjectPlan">Importing will replace all activities within project <parameter name="ProjectName"/>.
-                                              Are you sure you want to import an external project plan?</resource>
+      <resource id="ConfirmImportProjectPlan">Importing will replace all activities within project
+         <parameter name="ProjectName"/>
+         .
+         Are you sure you want to import an external project plan?
+      </resource>
       <resource id="FileReadError">The file could not be read</resource>
       <resource id="ValidationError">The project plan contains inconsistent data</resource>
       <resource id="OK">OK</resource>
@@ -187,7 +190,7 @@
       <resource id="WorkRecordsExistErrorMessage">There are work slips for this resource assignment</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
-      
+
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>
 
@@ -216,6 +219,7 @@
       <resource id="AddResource">Add Resource</resource>
       <resource id="Resource">Resource</resource>
       <resource id="PercentageAssigned">% Assigned</resource>
+      <resource id="HoursAssigned">Hours Assigned</resource>
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -238,7 +242,7 @@
       <resource id="Cancel">Cancel</resource>
       <resource id="OK">OK</resource>
       <resource id="ChooseDocument">Select a document</resource>
-      <resource id="InvalidAttachmentSize">The  attachment's size is above the maximum configured limit</resource>
+      <resource id="InvalidAttachmentSize">The attachment's size is above the maximum configured limit</resource>
    </resource-map>
 
    <resource-map id="project_planning.activity_details">

@@ -144,7 +144,7 @@
       <resource id="Mandatory">Mandatory</resource>
       <resource id="ResponsibleResource">Responsible Resource</resource>
       <resource id="Payment">Payment</resource>
-      
+
       <resource id="Resources">Ресурсы</resource>
       <resource id="Resource">Ресурс</resource>
       <resource id="PercentageAssigned">% назначения</resource>
@@ -215,6 +215,7 @@
       <resource id="AddResource">Добавить ресурс</resource>
       <resource id="Resource">Ресурс</resource>
       <resource id="PercentageAssigned">% назначения</resource>
+      <resource id="HoursAssigned">Часов назначено</resource>
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -237,7 +238,7 @@
       <resource id="Cancel">Отмена</resource>
       <resource id="OK">OK</resource>
       <resource id="ChooseDocument">Select a document</resource>
-      <resource id="InvalidAttachmentSize">The  attachment's size is above the maximum configured limit</resource>      
+      <resource id="InvalidAttachmentSize">The attachment's size is above the maximum configured limit</resource>
    </resource-map>
 
    <resource-map id="project_planning.activity_details">
@@ -280,7 +281,7 @@
       <resource id="ProjectSaveError">An error occured during the project save operation</resource>
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
       <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
-      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>      
+      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>
    </resource-map>
 
 </language-kit>
