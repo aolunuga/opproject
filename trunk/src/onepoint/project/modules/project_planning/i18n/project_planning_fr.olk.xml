@@ -144,7 +144,7 @@
       <resource id="Mandatory">Obligatoire</resource>
       <resource id="ResponsibleResource">Responsable</resource>
       <resource id="Payment">Payment</resource>
-      
+
       <resource id="Resources">Ressources</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Affecté</resource>
@@ -186,7 +186,7 @@
       <resource id="WorkRecordsExistErrorMessage">There exist work slips for this resource assignment</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
-      
+
       <resource id="NoCategory">(Rien)</resource>
       <resource id="NoResource">(Rien)</resource>
 
@@ -215,6 +215,7 @@
       <resource id="AddResource">Ajouter une Ressource</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Affecté</resource>
+      <resource id="HoursAssigned">Heures Affectées</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -237,7 +238,7 @@
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
       <resource id="ChooseDocument">Select a document</resource>
-      <resource id="InvalidAttachmentSize">The  attachment's size is above the maximum configured limit</resource>      
+      <resource id="InvalidAttachmentSize">The attachment's size is above the maximum configured limit</resource>
    </resource-map>
 
    <resource-map id="project_planning.activity_details">
@@ -280,7 +281,7 @@
       <resource id="ProjectSaveError">Une erreur s'est produite pendant l'enregistrement du projet</resource>
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
       <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
-      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>      
+      <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>
    </resource-map>
 
 </language-kit>

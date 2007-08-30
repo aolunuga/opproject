@@ -147,16 +147,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
          case VISUAL_RESOURCES_COLUMN_INDEX:
 
             List resources = (ArrayList) value;
+            super.parseVisualResources(resources);
 
             //tasks, milestones keep only the resource name
             if (getType(data_row) == TASK || getType(data_row) == MILESTONE) {
-               for (int i = 0; i < resources.size(); i++) {
-                  String resource = (String) resources.get(i);
-                  //throw exception if resource name is invalid
-                  if (resource == null) {
-                     throw new XValidationException(RESOURCE_NAME_EXCEPTION);
-                  }
-               }
                addToUndo();
 
                //for tasks only one resource

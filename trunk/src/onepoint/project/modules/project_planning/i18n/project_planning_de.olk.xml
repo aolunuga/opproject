@@ -108,7 +108,10 @@
 
    <resource-map id="project_planning.ImportProjectPlan">
       <resource id="ConfirmImport">Projektplan importieren</resource>
-      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge im Projekt <parameter name="ProjectName"/> ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?</resource>
+      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge im Projekt
+         <parameter name="ProjectName"/>
+         ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?
+      </resource>
       <resource id="FileReadError">Die Datei konnte nicht gelesen werden</resource>
       <resource id="ValidationError">Der Projektplan enthält inkonsistente Daten</resource>
       <resource id="OK">OK</resource>
@@ -144,7 +147,7 @@
       <resource id="Mandatory">Verbindlich</resource>
       <resource id="ResponsibleResource">Verantwortliche Ressource</resource>
       <resource id="Payment">Zahlung</resource>
-      
+
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Zugewiesen</resource>
@@ -185,7 +188,7 @@
       <resource id="InvalidCostErrorMessage">Der eingegebene Kostenwert ist ungültig</resource>
       <resource id="WorkRecordsExistErrorMessage">Es existieren Arbeitszettel, die diese Ressourcenzuweisung referenzieren</resource>
       <resource id="NotEqualEffortsErrorMessage">Die Summe der Individualaufwände der zugewiesenen Ressourcen ist ungleich dem Gesamtaufwand des Vorgangs</resource>
-      
+
       <resource id="NoCategory">(Keine)</resource>
       <resource id="NoResource">(Keine)</resource>
 
@@ -213,6 +216,7 @@
       <resource id="AddResource">Ressource hinzufügen</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="PercentageAssigned">% Zugewiesen</resource>
+      <resource id="HoursAssigned">Stunden zugewiesen</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -233,7 +237,7 @@
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
       <resource id="ChooseDocument">Dokument auswählen</resource>
-      <resource id="InvalidAttachmentSize">The  attachment's size is above the maximum configured limit</resource>      
+      <resource id="InvalidAttachmentSize">The attachment's size is above the maximum configured limit</resource>
    </resource-map>
    <resource-map id="project_planning.activity_details">
       <resource id="Name">Name</resource>
@@ -272,6 +276,6 @@
       <resource id="ProjectSaveError">Es ist ein Fehler aufgetreten beim Speichern der Arbeitskopie</resource>
       <resource id="InvalidBaseEffortError">Der eingegebene Planaufwand ist geringer als der Ist-Aufwand des Vorgangs</resource>
       <resource id="InvalidProjectNodeTypeForImport">Nur für Projekte können Daten importiert werden</resource>
-      <resource id="InvalidProjectNodeTypeForExport">Nur bei Projekten können Daten exportiert werden</resource>      
+      <resource id="InvalidProjectNodeTypeForExport">Nur bei Projekten können Daten exportiert werden</resource>
    </resource-map>
 </language-kit>

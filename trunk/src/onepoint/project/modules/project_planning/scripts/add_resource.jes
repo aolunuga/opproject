@@ -4,11 +4,16 @@
 
 // Controller script for add_resource.oxf.xml
 
-import onepoint.express.XDisplay;
-import onepoint.express.XComponent;
-import onepoint.service.XMessage;
-import onepoint.express.XValidator;
-import onepoint.util.XCalendar;
+import
+onepoint.express.XDisplay;
+import
+onepoint.express.XComponent;
+import
+onepoint.service.XMessage;
+import
+onepoint.express.XValidator;
+import
+onepoint.util.XCalendar;
 
 function ok(event) {
    dialog = XDisplay.getActiveWindow();
@@ -42,7 +47,7 @@ function ok(event) {
    if (shouldCheckAvailability == null) {
       shouldCheckAvailability = false;
    }
-   
+
    form = XDisplay.getActiveForm();
    resource_data_set = form.findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();
@@ -73,7 +78,7 @@ function ok(event) {
             assignmentH = assignment * duration / 100.0;
          }
          else {
-            if (effort != 0){
+            if (effort != 0) {
                assignmentH = effort;
             }
             else {
@@ -134,7 +139,7 @@ function getResourceAvailability(resource_id) {
          i++;
       }
    }
-   if(availability == null) {
+   if (availability == null) {
       Console.println("Something went wrong with the resource availability ...");
    }
    return availability;
@@ -142,4 +147,44 @@ function getResourceAvailability(resource_id) {
 
 function cancel(event) {
    XDisplay.getActiveWindow().close();
+}
+
+
+function hoursChanged(event) {
+   form = XDisplay.getActiveForm();
+   hoursField = form.findComponent("Hours");
+   percentField = form.findComponent("Assigned");
+   hours = hoursField.getDoubleValue();
+
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   durationField = previous_dialog.getChild(1).findComponent("ActivityDuration");
+
+   if (durationField.getValue() != null) {
+      duration = durationField.getDoubleValue();
+      percent = hours * 100 / duration;
+      percentField.setValue(percent);
+      percentField.update();
+   }
+
+}
+
+function percentChanged(event) {
+
+   form = XDisplay.getActiveForm();
+   hoursField = form.findComponent("Hours");
+   percentField = form.findComponent("Assigned");
+   percent = percentField.getDoubleValue();
+
+   dialog = XDisplay.getActiveWindow();
+   previous_dialog = XDisplay.getDefaultDisplay().previousLayer(dialog);
+   durationField = previous_dialog.getChild(1).findComponent("ActivityDuration");
+
+   if (durationField.getValue() != null) {
+      duration = durationField.getDoubleValue();
+      hours = percent * duration / 100;
+      hoursField.setValue(hours);
+      hoursField.update();
+   }
+
 }
