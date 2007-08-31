@@ -96,6 +96,10 @@
       <resource id="Saturday">S</resource>
       <resource id="Sunday">S</resource>
    </resource-map>
-   <resource-map id="settings.currency">
+   <resource-map id="settings.calendar_change">
+      <resource id="ConfirmChange">Change Calendar</resource>
+      <resource id="ConfirmCalendarChange">Changhing the holiday calendar will result in the revalidation the project plans.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>      
    </resource-map>
 </language-kit>

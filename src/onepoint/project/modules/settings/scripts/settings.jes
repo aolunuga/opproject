@@ -46,8 +46,22 @@ function gatherData(){
 
 
 function save(event) {
+   // Gather resource-data
+   form = XDisplay.getActiveForm();
 
+   selectedCalendarChoice = form.findComponent("HolidaysChoice").getStringValue();
+   selectedCalendarId = XValidator.choiceID(selectedCalendarChoice);
+   originalCalendarId = form.findComponent("OriginalHolidayCalendar").getStringValue();
+   if (!originalCalendarId.equals(selectedCalendarId)) {
+      dialog = XComponent.newDialog();
+      dialog.open("/modules/settings/forms/confirm_calendar_change.oxf.xml", null);
+   }
+   else {
+      saveSettings(null);
+   }
+}
 
+function saveSettings(customRequest) {
    settings = gatherData();
 
    // Gather resource-data
@@ -63,6 +77,10 @@ function save(event) {
 
    if (handleError(form, response, "ErrorLabel") == true) {
       refresh = response.getArgument("refresh");
+       //invoke custom request
+      if (customRequest != null) {
+         XDisplay.getClient().invokeMethod(customRequest);
+      }
       if (refresh == true) {
          XDisplay.clearResourceCache();
          request = new XMessage;

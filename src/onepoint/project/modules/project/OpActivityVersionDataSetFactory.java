@@ -1277,6 +1277,7 @@ public abstract class OpActivityVersionDataSetFactory {
       planVersion.setStart(projectPlan.getStart());
       planVersion.setFinish(projectPlan.getFinish());
       planVersion.setTemplate(projectPlan.getTemplate());
+      planVersion.setHolidayCalendar(planVersion.getHolidayCalendar());
       broker.makePersistent(planVersion);
 
       // Copy activities (check for null activities is necessary for newly created project plans)

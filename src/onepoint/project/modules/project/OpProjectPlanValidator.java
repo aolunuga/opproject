@@ -70,8 +70,11 @@ public class OpProjectPlanValidator {
     * @param broker   a <code>OpBroker</code> used for persistence operations.
     * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
     *                 Can be <code>null</code>.
+    * @param startTransaction a <code>boolean</code> whether to start a transaction or not for
+    * the validation operation. 
     */
-   public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier) {
+   public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier, boolean startTransaction) {
+      OpTransaction tx = startTransaction ? broker.newTransaction() : null;
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
@@ -79,6 +82,10 @@ public class OpProjectPlanValidator {
       logger.info("Revalidating working version plan for " + projectNode.getName());
       OpGanttValidator validator = this.createValidator(broker, resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+
+      if (tx != null) {
+         tx.commit();
+      }
    }
 
    /**

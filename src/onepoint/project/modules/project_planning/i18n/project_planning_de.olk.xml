@@ -277,5 +277,6 @@
       <resource id="InvalidBaseEffortError">Der eingegebene Planaufwand ist geringer als der Ist-Aufwand des Vorgangs</resource>
       <resource id="InvalidProjectNodeTypeForImport">Nur für Projekte können Daten importiert werden</resource>
       <resource id="InvalidProjectNodeTypeForExport">Nur bei Projekten können Daten exportiert werden</resource>
+      <resource id="CalendarsModifiedWarning">Project plan has been revalidated because the holidays have changed</resource>
    </resource-map>
 </language-kit>

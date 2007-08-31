@@ -34,5 +34,6 @@ public class OpProjectPlanningErrorMap extends XErrorMap {
       registerErrorCode(OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR, OpProjectPlanningError.INVALID_BASE_EFFORT_ERROR_NAME);
       registerErrorCode(OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT_NAME);
       registerErrorCode(OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT_NAME);
+      registerErrorCode(OpProjectPlanningError.CALENDARS_MODIFIED_WARNING, OpProjectPlanningError.CALENDARS_MODIFIED_WARNING_NAME);
    }
 }

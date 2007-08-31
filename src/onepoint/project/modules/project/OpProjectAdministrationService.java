@@ -18,8 +18,8 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
-import onepoint.project.util.OpProjectConstants;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XService;
@@ -156,6 +156,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       // Insert project plan including settings
       OpProjectPlan projectPlan = new OpProjectPlan();
+      projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
       projectPlan.setProjectNode(project);
       projectPlan.copyDatesFromProject();
 
@@ -179,7 +180,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       broker.makePersistent(projectPlan);
 
       //allow a template to be set
-      this.applyTemplate(broker, project_data, project, projectPlan);
+      this.applyTemplate(broker, project_data, project, projectPlan, session.getCalendar());
 
       // Insert goals
       XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
@@ -421,8 +422,9 @@ public class OpProjectAdministrationService extends OpProjectService {
     * @param project_data a <code>HashMap</code> representing the parameters.
     * @param project      a <code>OpProjectNode</code> entity representing a project node.
     * @param projectPlan  a <code>OpProjectPlan</code> entity representing a project plan.
+    * @param calendar     Current calendar to be used for working days calculations
     */
-   protected void applyTemplate(OpBroker broker, HashMap project_data, OpProjectNode project, OpProjectPlan projectPlan) {
+   protected void applyTemplate(OpBroker broker, HashMap project_data, OpProjectNode project, OpProjectPlan projectPlan, XCalendar calendar) {
       //do nothing here
    }
 
@@ -1535,7 +1537,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return rootPortfolio;
    }
 
-   protected static void copyProjectPlan(OpBroker broker, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
+   protected static void copyProjectPlan(XCalendar calendar, OpBroker broker, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
       boolean asTemplate = newProjectPlan.getTemplate();
       // Get minimum activity start date from database (just to be sure)
       OpQuery query = broker
@@ -1547,33 +1549,50 @@ public class OpProjectAdministrationService extends OpProjectService {
          return;
       }
       Date start = (Date) result.next();
+
       // Check for empty project plan
       if (start == null) {
          return;
       }
-      // Force new start to be 0001-01-01 for template plans
-      // TODO: Use calendar of this template
+
       Date newStart = newProjectPlan.getStart();
       if (asTemplate) {
          newStart = OpGanttValidator.getDefaultTemplateStart();
       }
-      long newStartOffset = newStart.getTime() - start.getTime();
+
       // Retrieve project plan for copying
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, false);
+
+      List<Integer> gaps = new ArrayList<Integer>();
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         Date activityStart = OpGanttValidator.getStart(dataRow);
+         int gap = calendar.getWorkingDaysFromInterval(start, activityStart).size();
+         gaps.add(gap);
+      }
+
       // Initialize GANTT validator
       OpGanttValidator validator = new OpIncrementalValidator();
-      validator.setCalculationMode(new Byte(projectPlan.getCalculationMode()));
-      validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
+      validator.setCalculationMode(projectPlan.getCalculationMode());
+      validator.setProgressTracked(projectPlan.getProgressTracked());
       validator.setDataSet(dataSet);
-      // Apply new start offset, set finish values to null and remove resource assignments (for scheduled activities)
+
+      // Apply new start offset and remove resource assignments (for scheduled activities)
       XComponent dataRow;
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
          if ((OpGanttValidator.getType(dataRow) != OpGanttValidator.TASK) && (OpGanttValidator.getType(dataRow) != OpGanttValidator.COLLECTION_TASK)) {
-            OpGanttValidator.setStart(dataRow, new Date(OpGanttValidator.getStart(dataRow).getTime() + newStartOffset));
-            //this is needed for the incremental validator to work
-            OpGanttValidator.setEnd(dataRow, new Date(OpGanttValidator.getEnd(dataRow).getTime() + newStartOffset));
+
+            //keep the same working days gap
+            Date date = new Date(newStart.getTime());
+            int gap = gaps.get(i);
+            while (gap > 0) {
+               date = calendar.nextWorkDay(date);
+               gap--;
+            }
+            Date newActivityStart = new Date(date.getTime());
+            OpGanttValidator.setStart(dataRow, newActivityStart);
             OpGanttValidator.setResources(dataRow, new ArrayList());
             OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
@@ -1582,9 +1601,14 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
          OpGanttValidator.setComplete(dataRow, 0);
          OpGanttValidator.setActualEffort(dataRow, 0);
+
+         //duration must stay the same
+         validator.updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
       }
+
       // Validate copied and adjusted project plan
       validator.validateDataSet();
+
       // Store activity data-set helper updates plan start/finish values and activity template flags
       OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, new HashMap(), newProjectPlan, null);
    }

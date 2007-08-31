@@ -830,6 +830,7 @@ public abstract class OpActivityDataSetFactory {
       // If a working plan version is specified exchange activity IDs in the data-set with activity version IDs
       if (workingPlanVersion != null) {
          mapActivityVersionIDs(broker, dataSet, workingPlanVersion);
+         plan.setHolidayCalendar(workingPlanVersion.getHolidayCalendar());
       }
 
       System.err.println("*** WORKING-P-V " + workingPlanVersion);

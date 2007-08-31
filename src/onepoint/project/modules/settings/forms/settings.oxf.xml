@@ -27,6 +27,7 @@
       <data-row string-value="ZAR;R['${ZAR}']"/>
    </data-set>
    <data-field id="CurrencyNameSymbolSeparator" string-value=";"/>
+   <data-field id="OriginalHolidayCalendar" />
 
    <data-set id="UserLocaleDataSet"/>
    <data-set id="FirstWorkdayDataSet"/>
