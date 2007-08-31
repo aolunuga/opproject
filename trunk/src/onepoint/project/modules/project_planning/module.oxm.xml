@@ -1,4 +1,4 @@
-<module name="project_planning" caption="ProjektPlanning" version="0.1"  depends="resource"
+<module name="project_planning" caption="ProjektPlanning" version="0.1"  depends="resource, settings"
         class="onepoint.project.modules.project_planning.OpProjectPlanningModule">
    <service-files>
       <service-file file-name="/modules/project_planning/project_planning_service.osd.xml"/>

@@ -235,6 +235,7 @@ public class OpProjectPlanningService extends OpProjectService {
       XMessage result = new XMessage();
       boolean hasAvailabilityChanged = false;
       boolean haveRatesChanged = false;
+      boolean haveSettingsChanged = this.checkSettingsModifications(project, session);
 
       Set<OpActivity> activities = project.getPlan().getActivities();
       //form the list of exluded activity types (activities that do not need an udate of costs)
@@ -264,8 +265,25 @@ public class OpProjectPlanningService extends OpProjectService {
             result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING));
             return result;
          }
+         if (haveSettingsChanged) {
+            result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
+            result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.CALENDARS_MODIFIED_WARNING));
+            return result;
+         }
       }
       return result;
+   }
+
+   /**
+    * Checks if any system settings have changed, which cause the need for a revalidation.
+    * @param projectNode a <code>OpProjectNode</code>.
+    * @param session a <code>OpProjectSession</code> the server session
+    * @return a <code>boolean</code> whether the settings have been modified or not.
+    */
+   private boolean checkSettingsModifications(OpProjectNode projectNode, OpProjectSession session) {
+      String projectCalendarId = projectNode.getPlan().getHolidayCalendar();
+      String currentCalendarId = session.getCalendar().getHolidayCalendarId();
+      return (projectCalendarId != null) ? !projectCalendarId.equals(currentCalendarId) : (currentCalendarId != null);
    }
 
    /**
@@ -395,6 +413,7 @@ public class OpProjectPlanningService extends OpProjectService {
          OpProjectPlan projectPlan = project.getPlan();
          if (projectPlan == null) {
             projectPlan = new OpProjectPlan();
+            projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
             projectPlan.setProjectNode(project);
             projectPlan.copyDatesFromProject();
             projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
@@ -426,6 +445,10 @@ public class OpProjectPlanningService extends OpProjectService {
          HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
          OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlanVersion, resourceMap,
               fromProjectPlan);
+
+         //update the working version calendar
+         workingPlanVersion.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+         broker.updateObject(workingPlanVersion);
 
          t.commit();
          broker.close();
@@ -532,6 +555,9 @@ public class OpProjectPlanningService extends OpProjectService {
          }
          else {
             OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
+            //update holiday calendar id
+            projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+            broker.updateObject(projectPlan);
          }
 
          // Delete working version (note: There is not necessarily a working version)
@@ -1000,6 +1026,26 @@ public class OpProjectPlanningService extends OpProjectService {
       if (reply != null && reply.getError() != null) {
          return reply;
       }
+      return null;
+   }
+
+   /**
+    * Revalidates all the working project plan versions.
+    * 
+    * @param session a <code>OpProjectSession</code> the server session.
+    * @param request a <code>XMessage</code> the client request.
+    * @return a <code>XMessage</code> the response.
+    */
+   public XMessage revalidateWorkingVersions(OpProjectSession session, XMessage request) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlan  projectPlan");
+      Iterator it = broker.iterate(query);
+      while (it.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) it.next();
+         OpProjectPlanValidator planValidator = new OpProjectPlanValidator(projectPlan);
+         planValidator.validateProjectPlanWorkingVersion(broker, null, true);
+      }
+      broker.close();
       return null;
    }
 

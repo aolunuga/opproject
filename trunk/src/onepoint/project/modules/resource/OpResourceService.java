@@ -556,7 +556,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       //update the working versions for the project plans
       for (Object projectPlan : projectPlans) {
          OpProjectPlan plan = (OpProjectPlan) projectPlan;
-         new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null);
+         new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null, false);
       }
 
       XCalendar xCalendar = session.getCalendar();

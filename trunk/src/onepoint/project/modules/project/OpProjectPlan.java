@@ -37,6 +37,7 @@ public class OpProjectPlan extends OpObject {
    private byte calculationMode = EFFORT_BASED;
    private boolean progressTracked = true;
    private boolean template;
+   private String holidayCalendar = null;
    private OpProjectNode projectNode;
    private Set<OpActivity> activities;
    private Set<OpAttachment> activityAttachments;
@@ -83,6 +84,24 @@ public class OpProjectPlan extends OpObject {
 
    public boolean getTemplate() {
       return template;
+   }
+
+   /**
+    * Gets the id of the holiday calendar.
+    * @return  a <code>String</code> the id of the holiday calendar, or <code>null</code>
+    * if there isn't any.
+    */
+   public String getHolidayCalendar() {
+      return holidayCalendar;
+   }
+
+   /**
+    * Sets the id of the holiday calendar.
+    * @param holidayCalendar a <code>String</code> the id of the holiday calendar
+    * used when last modyfing/creating this project plan.
+    */
+   public void setHolidayCalendar(String holidayCalendar) {
+      this.holidayCalendar = holidayCalendar;
    }
 
    public void setProjectNode(OpProjectNode projectNode) {

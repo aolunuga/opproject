@@ -14,6 +14,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.work.OpWorkRecord;
+import onepoint.project.modules.settings.OpSettings;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -356,6 +357,31 @@ public class OpProjectPlanningModule extends OpModule {
          }
       }
       t.commit();
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #26 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion26(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlan");
+      Iterator result = broker.iterate(query);
+      String holidayCalendarId = OpSettings.getHolidayCalendarId();
+      OpTransaction tx = broker.newTransaction();
+      while (result.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+         projectPlan.setHolidayCalendar(holidayCalendarId);
+         for (OpProjectPlanVersion planVersion : projectPlan.getVersions()) {
+            planVersion.setHolidayCalendar(holidayCalendarId);
+            broker.updateObject(planVersion);
+         }
+         logger.info("Upgrade holiday calendar id to: " + holidayCalendarId);
+         broker.updateObject(projectPlan);
+      }
+      tx.commit();
       broker.close();
    }
 }

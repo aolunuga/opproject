@@ -30,6 +30,7 @@ public class OpProjectPlanningError {
    public final static int INVALID_BASE_EFFORT_ERROR = 16;
    public final static int INVALID_PROJECT_NODE_TYPE_FOR_IMPORT = 17;
    public final static int INVALID_PROJECT_NODE_TYPE_FOR_EXPORT = 18;
+   public final static int CALENDARS_MODIFIED_WARNING = 19;
 
    // Error names
    public final static String COMMENT_NAME_MISSING_NAME = "CommentNameMissing";
@@ -50,5 +51,5 @@ public class OpProjectPlanningError {
    public final static String INVALID_BASE_EFFORT_ERROR_NAME = "InvalidBaseEffortError";
    public final static String INVALID_PROJECT_NODE_TYPE_FOR_IMPORT_NAME = "InvalidProjectNodeTypeForImport";
    public final static String INVALID_PROJECT_NODE_TYPE_FOR_EXPORT_NAME = "InvalidProjectNodeTypeForExport";   
-
+   public final static String CALENDARS_MODIFIED_WARNING_NAME = "CalendarsModifiedWarning";
 }

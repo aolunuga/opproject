@@ -33,6 +33,7 @@ public class OpProjectPlanVersion extends OpObject {
    private Boolean baseline = false;
    private OpProjectPlan projectPlan;
    private String creator;
+   private String holidayCalendar = null;
    private Set<OpActivityVersion> activityVersions;
    private Set attachmentVersions;
    private Set assignmentVersions;
@@ -93,6 +94,24 @@ public class OpProjectPlanVersion extends OpObject {
 
    public void setCreator(String creator) {
       this.creator = creator;
+   }
+
+     /**
+    * Gets the id of the holiday calendar.
+    * @return  a <code>String</code> the id of the holiday calendar, or <code>null</code>
+    * if there isn't any.
+    */
+   public String getHolidayCalendar() {
+      return holidayCalendar;
+   }
+
+   /**
+    * Sets the id of the holiday calendar.
+    * @param holidayCalendar a <code>String</code> the id of the holiday calendar
+    * used when last modyfing/creating this project plan.
+    */
+   public void setHolidayCalendar(String holidayCalendar) {
+      this.holidayCalendar = holidayCalendar;
    }
 
    public void setActivityVersions(Set<OpActivityVersion> activityVersions) {

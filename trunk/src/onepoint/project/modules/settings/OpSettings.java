@@ -163,8 +163,9 @@ public class OpSettings {
             holidaysDates = new TreeSet(holidayManager.getHolidayDates());
          }
       }
+
       planningSettings = new XCalendar.PlanningSettings(firstWorkday.intValue(), lastWorkday.intValue(), dayWorkTime.doubleValue(),
-           weekWorkTime.doubleValue(), holidaysDates);
+           weekWorkTime.doubleValue(), holidaysDates, getHolidayCalendarId());
    }
 
    public static void loadSettings(OpProjectSession session) {
@@ -341,5 +342,14 @@ public class OpSettings {
       Map<String, String> result = new HashMap<String, String>();
       result.put(CURRENCY_SYMBOL_I18N_PARAMETER, get(CURRENCY_SYMBOL));
       return result;
+   }
+
+   /**
+    * Returns the id of the loaded holiday calendar.
+    * @return a <code>String</code> the id of the loaded holiday caledar, or null if there isn't any.
+    */
+   public static String getHolidayCalendarId() {
+      String id = get(CALENDAR_HOLIDAYS_LOCATION);
+      return !id.equalsIgnoreCase(CALENDAR_HOLIDAYS_LOCATION_DEFAULT) ? id : null;
    }
 }

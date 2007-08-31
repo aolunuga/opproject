@@ -61,6 +61,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    private static final String CURRENCY_CHOICE_ID = "CurrencyChoice";
    private static final String CURRENCY_DATASET_ID = "CurrencyDataSet";
    private static final String CURRENCY_NAME_SYMBOL_SEPARATOR_ID = "CurrencyNameSymbolSeparator";
+   private static final String ORIGINAL_HOLIDAY_CALENDAR = "OriginalHolidayCalendar";
 
    // Resource map names
    public static final String SETTINGS_SETTINGS = "settings.settings";
@@ -82,6 +83,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       String firstWorkday = OpSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY);
       String lastWorkday = OpSettings.get(OpSettings.CALENDAR_LAST_WORKDAY);
       String lastLocation = OpSettings.get(OpSettings.CALENDAR_HOLIDAYS_LOCATION);
+      form.findComponent(ORIGINAL_HOLIDAY_CALENDAR).setStringValue(lastLocation);
 
       //fill weekdays data set
       XLanguageResourceMap resourceMap = XLocaleManager.findResourceMap(session.getLocale().getID(), SETTINGS_WEEKDAYS);

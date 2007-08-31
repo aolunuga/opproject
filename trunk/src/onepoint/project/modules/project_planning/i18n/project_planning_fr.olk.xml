@@ -282,6 +282,7 @@
       <resource id="InvalidBaseEffortError">The entered base effort is lower than the actual effort of the activity</resource>
       <resource id="InvalidProjectNodeTypeForImport">Importing can only be performed for projects</resource>
       <resource id="InvalidProjectNodeTypeForExport">Exporting can only be performed for projects</resource>
+      <resource id="CalendarsModifiedWarning">Project plan has been revalidated because the holidays have changed</resource>
    </resource-map>
 
 </language-kit>
