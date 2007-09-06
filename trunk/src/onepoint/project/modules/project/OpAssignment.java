@@ -89,7 +89,7 @@ public class OpAssignment extends OpObject {
    public OpAssignmentVersion getBaselineVersion() {
       OpAssignmentVersion assignmentVersion = null;
       OpActivityVersion baselineVersion = getActivity().getBaselineVersion();
-      if (baselineVersion != null) {
+      if (baselineVersion != null && baselineVersion.getAssignmentVersions() != null && !baselineVersion.getAssignmentVersions().isEmpty()) {
          for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
             if (version.getResource().getID() == this.getResource().getID()) {
                //assignment version found

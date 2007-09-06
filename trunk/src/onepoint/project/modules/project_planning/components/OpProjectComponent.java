@@ -1138,20 +1138,25 @@ public class OpProjectComponent extends XComponent {
          // Special case: Empty chart
          if (chart_start_time == Long.MAX_VALUE) {
             Date chart_start;
-            //if the project is not a template set the start date to tge start of the project
-            if (!validator.getProjectTemplate().booleanValue()) {
-               Date projectStart;
-               if (validator != null && validator.getProjectStart() != null) {
-                  projectStart = validator.getProjectStart();
+            if (validator != null) {
+               if (validator.getProjectTemplate().booleanValue()) {
+                  //if the project is a template set the start date to default template start
+                  chart_start = OpGanttValidator.getDefaultTemplateStart();
                }
                else {
-                  projectStart = XCalendar.today();
+                  //if the project is not a template set the start date to the start of the project
+                  Date projectStart;
+                  if (validator.getProjectStart() != null) {
+                     projectStart = validator.getProjectStart();
+                  }
+                  else {
+                     projectStart = XCalendar.today();
+                  }
+                  chart_start = calendar.workWeekStart(projectStart);
                }
-               chart_start = calendar.workWeekStart(projectStart);
             }
-            //if the project is a template set the start date to 01/01/2001
-            else{
-               chart_start = OpGanttValidator.getDefaultTemplateStart();
+            else {
+               chart_start = calendar.workWeekStart(XCalendar.today());
             }
             chart_start_time = chart_start.getTime();
             chart_end_time = chart_start_time + XCalendar.MILLIS_PER_WEEK * 2;
@@ -3483,9 +3488,9 @@ public class OpProjectComponent extends XComponent {
     * the target for this link. The link must already have a source (e.g. may be created with createDependency) Closes
     * open dependency, or "re-closes" it (if it was already closed).
     *
-    * @param dependency -
-    *                   dependency to be processed.
-    * @return true if the link can be closed (e.g no loops caused by this link) / false otherwise
+    * @param dependency Dependency to be processed.
+    * @return true if the link can be closed (e.g no loops caused by this link) and there isn't already a dependency
+    *         with the same source & target/ false otherwise
     */
    protected boolean linkToDependency(OpProjectComponent dependency) {
 
@@ -3501,56 +3506,58 @@ public class OpProjectComponent extends XComponent {
       OpGanttValidator validator = (OpGanttValidator) (dataSet.validator());
 
       // avoid creating multiple dependencies between the same activities
+      boolean newDependency = true;
       if (OpGanttValidator.getSuccessors(sourceRow).contains(new Integer(targetRow.getIndex()))) {
-         return false;
-      }
-
-      Integer sourceIndex = new Integer(sourceRow.getIndex());
-      List oldPred = OpGanttValidator.getPredecessors(targetRow);
-      List pred = new ArrayList();
-      pred.add(sourceIndex);
-      if (oldPred != null) {
-         pred.addAll(oldPred);
-      }
-
-      // "Open" dependency first, i.e., remove existing target
-      // Remove existing target row from existing source row successors and vice-versa from predecessors
-      if (target != null) {
-         XComponent oldtargetRow = target.getDataRow();
-         validator.removeLink(sourceRow.getIndex(), oldtargetRow.getIndex());
+         newDependency = false;
       }
       else {
-         chart.getOpenDependencies().remove(dependency);
-      }
+         Integer sourceIndex = new Integer(sourceRow.getIndex());
+         List oldPred = OpGanttValidator.getPredecessors(targetRow);
+         List pred = new ArrayList();
+         pred.add(sourceIndex);
+         if (oldPred != null) {
+            pred.addAll(oldPred);
+         }
 
-      // set the new target for dependency
-      dependency.setTarget(this);
-
-      try {
-         validator.setDataCellValue(targetRow, OpGanttValidator.PREDECESSORS_COLUMN_INDEX, pred);
-      }
-      catch (XValidationException e) {
-         // rollback
+         // "Open" dependency first, i.e., remove existing target
+         // Remove existing target row from existing source row successors and vice-versa from predecessors
          if (target != null) {
             XComponent oldtargetRow = target.getDataRow();
-            OpGanttValidator.addSuccessor(sourceRow, oldtargetRow.getIndex());
-            OpGanttValidator.addPredecessor(oldtargetRow, sourceRow.getIndex());
+            validator.removeLink(sourceRow.getIndex(), oldtargetRow.getIndex());
          }
          else {
-            chart.getOpenDependencies().add(dependency);
+            chart.getOpenDependencies().remove(dependency);
          }
-         dependency.setTarget(target);
 
-         XComponent form = getForm();
-         form.showValidationException(e);
-         return false;
+         // set the new target for dependency
+         dependency.setTarget(this);
+
+         try {
+            validator.setDataCellValue(targetRow, OpGanttValidator.PREDECESSORS_COLUMN_INDEX, pred);
+         }
+         catch (XValidationException e) {
+            // rollback
+            if (target != null) {
+               XComponent oldtargetRow = target.getDataRow();
+               OpGanttValidator.addSuccessor(sourceRow, oldtargetRow.getIndex());
+               OpGanttValidator.addPredecessor(oldtargetRow, sourceRow.getIndex());
+            }
+            else {
+               chart.getOpenDependencies().add(dependency);
+            }
+            dependency.setTarget(target);
+
+            XComponent form = getForm();
+            form.showValidationException(e);
+            return false;
+         }
       }
 
       // layout
       box.resetCalendar();
       box.doLayout();
       box.repaint();
-      return true;
+      return newDependency;
    }
 
    protected void removeActivity(OpProjectComponent activity) {
@@ -3824,7 +3831,7 @@ public class OpProjectComponent extends XComponent {
             if (!toolID.equals(DEFAULT_CURSOR)) {
                if (toolID.equals(DEPENDENCY_DRAW_ITEM) && action == POINTER_DOWN) {
                   Line2D.Double trace = new Line2D.Double(x, y, x, y);
-                  getDisplay().setDragSource(getParent());
+                  getDisplay().setDragSource((XComponent) getParent());
                   parent.setDragPosition(new Point(getBounds().x + x, getBounds().y + y));
                   parent.setDrawingLine(trace);
                   parent.setDraggedComponent(this);

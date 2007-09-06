@@ -123,10 +123,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
       calculationModeComponent.setBooleanValue(project.getPlan().getCalculationMode() == OpProjectPlan.EFFORT_BASED);
       calculationModeComponent.setEnabled(editMode);
 
-      //progress tracked
+      //progress tracked - can't be changed at edit time (disabled)
       XComponent progressTrackedComponent = form.findComponent(OpProjectPlan.PROGRESS_TRACKED);
       progressTrackedComponent.setBooleanValue(project.getPlan().getProgressTracked());
-      progressTrackedComponent.setEnabled(editMode);
+      progressTrackedComponent.setEnabled(false);
 
       //name
       XComponent name = form.findComponent(OpProjectNode.NAME);
@@ -353,11 +353,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
    /**
     * Fills a data-set with all the versions of a project.
     *
-    * @param form                 a <code>XComponent(FORM)</code> representing the current form.
-    * @param editMode           a <code>boolean</code> representing the edit mode of the form.
-    * @param projectPlan          a <code>OpProjectPlan</code> representing a project's plan.
-
-    * @param session              a <code>OpProjectSession</code> the project session
+    * @param form        a <code>XComponent(FORM)</code> representing the current form.
+    * @param editMode    a <code>boolean</code> representing the edit mode of the form.
+    * @param projectPlan a <code>OpProjectPlan</code> representing a project's plan.
+    * @param session     a <code>OpProjectSession</code> the project session
     */
    private void fillVersionsDataSet(XComponent form, boolean editMode, OpProjectPlan projectPlan, OpProjectSession session) {
       XLocalizer userObjectsLocalizer = new XLocalizer();
@@ -399,13 +398,14 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
    /**
     * Creates a data row containing the information for a project plan version.
-    * @param session a <code>OpProjectSession</code> representing the server session.
-    * @param version a <code>OpProjectPlanVersion</code> the version for which to create the data-row.
-    * @param editMode a <code>boolean</code> indicating whether we are viewing or editing the project.
+    *
+    * @param session              a <code>OpProjectSession</code> representing the server session.
+    * @param version              a <code>OpProjectPlanVersion</code> the version for which to create the data-row.
+    * @param editMode             a <code>boolean</code> indicating whether we are viewing or editing the project.
     * @param userObjectsLocalizer a <code>XLocalizer</code> representing a localizer that is used to get the i18n display names.
     * @return a <code>XComponent(DATA_ROW)</code> the data-row for the plan version.
     */
-   protected XComponent  createProjectVersionDataRow(OpProjectSession session,  OpProjectPlanVersion version,
+   protected XComponent createProjectVersionDataRow(OpProjectSession session, OpProjectPlanVersion version,
         XLocalizer userObjectsLocalizer, boolean editMode) {
       int versionNr = version.getVersionNumber();
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);

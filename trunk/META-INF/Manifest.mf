@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Ant-Version: Apache Ant 1.6.5
 Created-By: 1.5.0_06-b05 (Sun Microsystems Inc.)
 Main-Class: onepoint.project.application.OpBasicSplasher
-Class-Path: lib/express4j-07.1.jar
+Class-Path: lib/express4j-7.1.jar
    lib/activation.jar lib/antlr-2.7.6rc1.jar
    lib/asm.jar lib/c3p0-0.9.0.jar lib/cglib-nodep-2.1_3.jar
    lib/commons-collections-2.1.1.jar lib/commons-logging-1.0.4.jar

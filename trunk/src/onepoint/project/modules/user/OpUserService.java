@@ -24,14 +24,7 @@ import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 public class OpUserService extends OpProjectService {
 
@@ -932,14 +925,11 @@ public class OpUserService extends OpProjectService {
       return resultSet;
    }
 
-   public static OpUser createAdministrator(OpBroker broker) {
+   public static void createAdministrator(OpBroker broker) {
       // first check if an Administrator already exists
       OpQuery query = broker.newQuery(OpUser.ADMINISTRATOR_ID_QUERY);
       Iterator result = broker.iterate(query);
-      if (result.hasNext()) {
-         return (OpUser) broker.getObject(OpUser.class, (Long) result.next());
-      }
-      else {
+      if (!result.hasNext()) {
          OpTransaction t = broker.newTransaction();
          OpUser administrator = new OpUser();
          administrator.setName(OpUser.ADMINISTRATOR_NAME);
@@ -952,18 +942,14 @@ public class OpUserService extends OpProjectService {
          contact.setUser(administrator);
          broker.makePersistent(contact);
          t.commit();
-         return administrator;
       }
    }
 
-   public static OpGroup createEveryone(OpBroker broker) {
+   public static void createEveryone(OpBroker broker) {
       // first check if Everybody group already exists
       OpQuery query = broker.newQuery(OpGroup.EVERYONE_ID_QUERY);
       Iterator result = broker.iterate(query);
-      if (result.hasNext()) {
-         return (OpGroup) broker.getObject(OpGroup.class, (Long) result.next());
-      }
-      else {
+      if (!result.hasNext()) {
          OpTransaction t = broker.newTransaction();
          OpGroup everyone = new OpGroup();
          everyone.setName(OpGroup.EVERYONE_NAME);
@@ -971,7 +957,6 @@ public class OpUserService extends OpProjectService {
          everyone.setDescription(OpGroup.EVERYONE_DESCRIPTION);
          broker.makePersistent(everyone);
          t.commit();
-         return everyone;
       }
    }
 

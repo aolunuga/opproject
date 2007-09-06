@@ -625,7 +625,9 @@ public class OpProjectAdministrationService extends OpProjectService {
             continue;
          }
          String userLocator = XValidator.choiceID(permissionsRow.getStringValue());
-         permissionsMap.put(userLocator, accessValue);
+         Byte previousAccessValue = permissionsMap.get(userLocator);
+         byte value = (byte) (previousAccessValue != null ? Math.max(previousAccessValue, accessValue) : accessValue);
+         permissionsMap.put(userLocator, value);
       }
 
       for (OpLock lock : projectLocks) {
