@@ -4602,7 +4602,7 @@ public class OpGanttValidator extends XValidator {
     */
    public static double percentageAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
+      if (percentCaption(caption)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4629,7 +4629,7 @@ public class OpGanttValidator extends XValidator {
    public static boolean isPositivePercentageAssigned(String assignment) {
       boolean isPositive = false;
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
+      if (percentCaption(caption)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
@@ -4655,14 +4655,14 @@ public class OpGanttValidator extends XValidator {
     */
    public static double localizedPercentageAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
+      if (percentCaption(caption)) {
          double assignmentValue;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             assignmentValue = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
          }
          catch (ParseException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return assignmentValue;
@@ -4680,14 +4680,14 @@ public class OpGanttValidator extends XValidator {
     */
    public static double localizedHoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
+      if (hoursCaption(caption)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
          }
          catch (ParseException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4705,14 +4705,14 @@ public class OpGanttValidator extends XValidator {
     */
    public static double hoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
+      if (hoursCaption(caption)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = Double.parseDouble(captionNumber);
          }
          catch (NumberFormatException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4720,6 +4720,20 @@ public class OpGanttValidator extends XValidator {
       else {
          return INVALID_ASSIGNMENT;
       }
+   }
+
+   /**
+    * Checks if the caption is of form '[name] [nr]h'
+    *
+    * @param caption
+    * @return true if it is an hours caption
+    */
+   private static boolean hoursCaption(String caption) {
+      return (caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL && caption.indexOf(' ') != -1);
+   }
+
+   private static boolean percentCaption(String caption) {
+      return (caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL);
    }
 
    /**
@@ -4731,7 +4745,7 @@ public class OpGanttValidator extends XValidator {
    public static String deleteEffortAssignment(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
       String result = assignment;
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
+      if (hoursCaption(caption)) {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             double hoursAssigned = Double.parseDouble(captionNumber);
@@ -4739,11 +4753,11 @@ public class OpGanttValidator extends XValidator {
             result = assignment.replace(caption, newCaption);
          }
          catch (NumberFormatException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return result;
          }
       }
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == PERCENT_SYMBOL)) {
+      if (percentCaption(caption)) {
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             double assignmentValue = Double.parseDouble(captionNumber);
@@ -4751,7 +4765,7 @@ public class OpGanttValidator extends XValidator {
             result = assignment.replace(caption, newCaption);
          }
          catch (NumberFormatException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return result;
          }
       }
@@ -4768,7 +4782,7 @@ public class OpGanttValidator extends XValidator {
    public static boolean isPositiveHoursAssigned(String assignment) {
       boolean isPositive = false;
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == HOURS_SYMBOL)) {
+      if (hoursCaption(caption)) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {

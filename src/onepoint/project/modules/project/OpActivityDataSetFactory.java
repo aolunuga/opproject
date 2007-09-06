@@ -1215,12 +1215,7 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setBaseEffort(baseEffort);
             if (activity.getProjectPlan().getProgressTracked()) {
-               if (baseEffort > activity.getActualEffort()) {
-                  activity.setRemainingEffort(baseEffort - activity.getActualEffort());
-               }
-               else {
-                  activity.setRemainingEffort(0);
-               }
+               activity.setRemainingEffort(activity.getBaseEffort());
                complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
                activity.setComplete(complete);
             }
@@ -1445,15 +1440,21 @@ public abstract class OpActivityDataSetFactory {
                   if (assignment.getBaseEffort() != baseEffort) {
                      assignment.setBaseEffort(baseEffort);
                      if (tracking) {
-                        double remaining = baseEffort - assignment.getActualEffort();
-                        if (baseEffort >= assignment.getActualEffort()) {
-                           assignment.setRemainingEffort(remaining);
+
+                        if (assignment.getActualEffort() == 0) {
+                           assignment.setRemainingEffort(baseEffort);
+                           assignment.setComplete(0);
                         }
                         else {
-                           assignment.setRemainingEffort(0);
+
+                           //assignment remaining effort isn't changed becasue we have actual/remaining effort provided by the user
+                           complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, assignment.getRemainingEffort());
+                           assignment.setComplete(complete);
+
+                           //update the remaining activity effort
+                           double effortToAdd = assignment.getRemainingEffort() - assignment.getBaseEffort();
+                           updateRemainingForActivities(broker, activity, effortToAdd);
                         }
-                        complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, remaining);
-                        assignment.setComplete(complete);
                      }
                      else {
                         double remaining = OpGanttValidator.calculateRemainingEffort(baseEffort, assignment.getActualEffort(), assignment.getComplete());
@@ -1497,6 +1498,19 @@ public abstract class OpActivityDataSetFactory {
          }
       }
       return reusableAssignments;
+   }
+
+   private static void updateRemainingForActivities(OpBroker broker, OpActivity activity, double effortToAdd) {
+      if (activity == null) {
+         return;
+      }
+
+      activity.setRemainingEffort(activity.getRemainingEffort() + effortToAdd);
+      double complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), activity.getBaseEffort(), activity.getRemainingEffort());
+      activity.setComplete(complete);
+      broker.updateObject(activity);
+
+      updateRemainingForActivities(broker, activity.getSuperActivity(), effortToAdd);
    }
 
    private static void insertActivityAssignments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
@@ -2299,15 +2313,12 @@ public abstract class OpActivityDataSetFactory {
     */
    public static void updateWorkMonthBaseValues(OpBroker broker, OpAssignment assignment, List<OpWorkMonth> newWorkMonths, List<OpWorkMonth> reusableWorkMonths) {
 
-      boolean hasBaselineVersion = false;
       OpActivity activity = assignment.getActivity();
       if (activity.getType() == OpActivity.MILESTONE) {
          return; // no workmonths form milestones
       }
-      if (activity.getProjectPlan().getBaselineVersion() != null) {
-         hasBaselineVersion = true;
-      }
 
+      boolean hasBaselineVersion = assignment.getBaselineVersion() != null;
       if (hasBaselineVersion) {
 
          Set<OpWorkMonthVersion> baselineMonthVersions = new HashSet<OpWorkMonthVersion>();

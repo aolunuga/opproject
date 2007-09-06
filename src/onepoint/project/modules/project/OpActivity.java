@@ -250,7 +250,7 @@ public class OpActivity extends OpObject {
 
    public OpActivityVersion getBaselineVersion() {
       OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
-      if (baselinePlanVersion != null) {
+      if (baselinePlanVersion != null && getVersions() != null && !getVersions().isEmpty()) {
          for (OpActivityVersion version : getVersions()) {
             if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
                return version;

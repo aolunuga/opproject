@@ -40,7 +40,7 @@ public interface OpProjectConstants {
    /**
     * The code version number.
     */
-   public static final String CODE_VERSION_NUMBER = "07";
+   public static final String CODE_VERSION_NUMBER = "71";
    public static final String CALENDAR = "calendar";
 
    /**
