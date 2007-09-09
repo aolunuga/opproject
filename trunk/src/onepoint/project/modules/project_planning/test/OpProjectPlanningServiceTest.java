@@ -273,8 +273,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       broker.updateObject(project);
       broker.updateObject(plan);
 
+      final String activityName = "Task_Activity";
       OpActivity activity = new OpActivity();
-      activity.setName("Task_Activity");
+      activity.setName(activityName);
       activity.setType(OpActivity.TASK);
       activity.setStart(project.getStart());
       activity.setBaseEffort(80d);
@@ -286,13 +287,18 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       assignment1.setActivity(activity);
       assignment1.setResource(resource);
       assignment1.setAssigned(50d);
+      assignment1.setBaseEffort(80.0);
+      assignment1.setActualEffort(40.0);
+      assignment1.setRemainingEffort(40.0);
+      assignment1.setComplete(50.0);
+      assignment1.setProjectPlan(plan);
 
       //calculate the base personnel cost and base proceeds cost for the activity
       List workingDays = calendar.getWorkingDaysFromInterval(project.getStart(), project.getFinish());
       double workHoursPerDay = activity.getBaseEffort() / (double) workingDays.size();
       double internalSum = 0;
       double externalSum = 0;
-      for (int i = 0; i < workingDays.size(); i++) {
+      for (Object workingDay : workingDays) {
          internalSum += 2d * workHoursPerDay * 50d / 100;
          externalSum += 1d * workHoursPerDay * 50d / 100;
       }
@@ -333,7 +339,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       XMessage response = service.editActivities(session, request);
       assertNoError(response);
 
-      String taskId = activityFactory.getActivityId("Task_Activity");
+      String taskId = activityFactory.getActivityId(activityName);
       activity = activityFactory.getActivityById(taskId);
 
       XComponent activityDataSet = new XComponent(XComponent.DATA_SET);
@@ -348,12 +354,12 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
 
       dataRow.setStringValue(activity.locator());
       //0 - name
-      OpGanttValidator.setName(dataRow, "Task_Activity");
+      OpGanttValidator.setName(dataRow, activityName);
       //1- type
       OpGanttValidator.setType(dataRow, OpActivity.TASK);
       //2 - category
       //3 - complete
-      OpGanttValidator.setComplete(dataRow, 50d);
+      //OpGanttValidator.setComplete(dataRow, 50d);
       //4 - start
       //5 - end
       //6 - duration
@@ -389,7 +395,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       //21 - work phase base efforts
       OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
       //22 - resource base efforts
-      OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
+      ArrayList resourceBase = new ArrayList();
+      resourceBase.add(160.0);
+      OpGanttValidator.setResourceBaseEfforts(dataRow, resourceBase);
       //23 - priority
       OpGanttValidator.setPriority(dataRow, (byte) 1);
       //24 - work records
@@ -418,9 +426,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       response = service.checkInActivities(session, request);
       assertNull(response);
 
-      taskId = activityFactory.getActivityId("Task_Activity");
+      taskId = activityFactory.getActivityId(activityName);
       activity = activityFactory.getActivityById(taskId);
-      assertEquals("Activity completion was not correctly calculated", 25d, activity.getComplete(), DOUBLE_ERROR_MARGIN);
+      assertEquals("Activity completion was not correctly calculated", 50d, activity.getComplete(), DOUBLE_ERROR_MARGIN);
    }
 
 

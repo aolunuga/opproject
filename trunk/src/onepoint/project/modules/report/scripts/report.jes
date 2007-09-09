@@ -33,6 +33,10 @@ function enableButtonsOnSelection() {
    button = XDisplay.getActiveForm().findComponent("CreateReportButton");
    button.setEnabled(true);
    button.update();
+   
+   button = XDisplay.getActiveForm().findComponent("SendReportButton");
+   button.setEnabled(true);
+   button.update();  
 }
 
 function runQuery(event) {
@@ -63,6 +67,26 @@ function createReport(event) {
 
       reportUrl = response.getArgument("GeneratedReportPath");
       XDisplay.showDocument(reportUrl, null);
+      XDisplay.resetCursor();
+   }
+}
+
+function sendReport(event) {
+   Console.println("REPORT.sendReport(e)");
+   queryFrame = XDisplay.findFrame("QueryFrame");
+   if (queryFrame.getChildCount() > 0) {
+      queryForm = queryFrame.getChild(0);
+
+      XDisplay.setWaitingCursor();
+      request = queryForm.invokeFunction("createRequest");
+      if (request == null) {
+         return;
+      }
+      //set the action name
+      request.setAction("ReportService.sendReport");
+ 
+      //invoke request
+      response = invokeReportRequest(request, queryForm);
       XDisplay.resetCursor();
    }
 }

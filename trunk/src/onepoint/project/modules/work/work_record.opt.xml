@@ -2,7 +2,6 @@
    <!-- note that all fields represent differences, i.e., changes to the assignment values -->
    <field name="ActualEffort" type="Double"/>
    <field name="RemainingEffort" type="Double"/>
-   <field name="RemainingEffortChange" type="Double"/>
 
    <field name="PersonnelCosts" type="Double"/>
 
@@ -28,6 +27,6 @@
 
    <relationship name="Assignment" type="OpAssignment" back-relationship="WorkRecords"/>
    <relationship name="WorkSlip" type="OpWorkSlip" back-relationship="Records"/>
-   <relationship name="CostRecords" type="OpCostRecord"  collection-type="Set"  back-relationship="WorkRecord" inverse="true" cascade="all"/>
-   <relationship name="TimeRecords" type="OpTimeRecord"  collection-type="Set"  back-relationship="WorkRecord" inverse="true" cascade="all"/>
+   <relationship name="CostRecords" type="OpCostRecord" collection-type="Set" back-relationship="WorkRecord" inverse="true" cascade="all"/>
+   <relationship name="TimeRecords" type="OpTimeRecord" collection-type="Set" back-relationship="WorkRecord" inverse="true" cascade="all"/>
 </prototype>

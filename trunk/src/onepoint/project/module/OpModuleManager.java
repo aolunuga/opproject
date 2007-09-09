@@ -15,6 +15,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -56,11 +57,11 @@ public final class OpModuleManager {
     * @param registryFileName name of the module registry file.
     */
    public static void load(String registryFileName) {
-      String path = OpEnvironmentManager.getOnePointHome() + "/" + registryFileName;
       if (opModuleRegistryLoader == null) {
          opModuleRegistryLoader = new OpModuleRegistryLoader();
       }
-      moduleRegistry = opModuleRegistryLoader.loadModuleRegistry(path);
+      File opHome = new File(OpEnvironmentManager.getOnePointHome());
+      moduleRegistry = opModuleRegistryLoader.loadModuleRegistry(opHome, registryFileName);
       if (moduleRegistry == null) {
          logger.error("The module registry wasn't initialized. No modules will be loaded.");
          return;

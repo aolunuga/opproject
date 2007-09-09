@@ -322,7 +322,7 @@ public class OpInitializer {
    private void createEmptySchema() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
-         if (!source.existsTable("op_object")) {
+         if (!source.existsTable(OpProjectConstants.OP_OBJECT_TABLE_NAME)) {
             OpPersistenceManager.createSchema();
          }
 
@@ -396,7 +396,18 @@ public class OpInitializer {
       logger.info("Creating schema...");
       OpPersistenceManager.createSchema();
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
+
+      //make sure all hi/lo generators are updated
+      for (OpSource source : OpSourceManager.getAllSources()) {
+         //<FIXME author="Horia Chiorean" description="OpSource SHOULD NOT EXIST ! AT ALL !">
+         if (source instanceof OpHibernateSource) {
+            ((OpHibernateSource) source).updateHiLoGeneratorValue();
+         }
+         //<FIXME>
+      }
+
       OpSourceManager.clearAllSources();
+
       updateDBSchema();
    }
 }

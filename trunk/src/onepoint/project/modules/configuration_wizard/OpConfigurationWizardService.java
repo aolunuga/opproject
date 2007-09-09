@@ -27,6 +27,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service class for the db configuration wizard.
@@ -130,7 +132,14 @@ public class OpConfigurationWizardService extends OpProjectService {
 
       int errorCode = testConnectionParameters(databaseDriver, databaseURL, databaseLogin, databasePassword, dbType);
       if (errorCode != OpConnectionManager.SUCCESS) {
-         response.setError(session.newError(ERROR_MAP, errorCode));
+         Map<String, String> param = new HashMap<String, String>();
+         Pattern p = Pattern.compile("^jdbc:(.*):/.*$");
+         Matcher m = p.matcher(databaseURL);
+         if (m.matches()) {
+            param.put("Protocol", m.group(1));
+         }
+         response.setError(session.newError(ERROR_MAP, errorCode, param));
+
          return response;
       }
 

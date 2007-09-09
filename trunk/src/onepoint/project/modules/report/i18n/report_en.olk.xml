@@ -6,6 +6,7 @@
       <resource id="ReportNavigator">REPORT NAVIGATOR</resource>
       <resource id="RunQuery">Quick Query</resource>
       <resource id="CreateReport">Create Report</resource>
+      <resource id="SendReport">Send Report</resource>
       <resource id="ResetQuery">Reset Query</resource>
       <resource id="Print">Print</resource>
       <resource id="ProjectEffort">Project Effort</resource>
@@ -20,6 +21,7 @@
       <resource id="CreateReportTooltip">Create and view selected report</resource>
       <resource id="ResetQueryTooltip">Reset query form</resource>
       <resource id="PrintTooltip">Print this view</resource>
+      <resource id="SendReportTooltip">Send selected Report via Web</resource>      
 
    </resource-map>
    <resource-map id="report.error">
@@ -30,5 +32,6 @@
       <resource id="InvalidReportFormat">Requested report format is not supported</resource>
       <resource id="CreateReportException">An error occured while trying to create the report</resource>
       <resource id="SaveReportException">An error occured while trying to save the report</resource>
+      <resource id="SendReportException">An error occured while trying to send the report</resource>
    </resource-map>
 </language-kit>

@@ -20,7 +20,6 @@ public class OpWorkRecord extends OpObject {
    // Attention: All fields in work record represent differences/changes to assignment values
    public final static String ACTUAL_EFFORT = "ActualEffort";
    public final static String REMAINING_EFFORT = "RemainingEffort";
-   public final static String REMAINING_EFFORT_CHANGE = "RemainingEffortChange";
 
    public final static String TRAVEL_COSTS = "TravelCosts";
    public final static String MATERIAL_COSTS = "MaterialCosts";
@@ -32,7 +31,6 @@ public class OpWorkRecord extends OpObject {
 
    private double actualEffort = 0; // Additional actual effort in hours
    private double remainingEffort = 0; // Estimated remaining effort in hours
-   private double remainingEffortChange = 0; // Change of remaining effort in hours
    private double personnelCosts = 0;
    private double travelCosts = 0;
    private double remTravelCosts = 0d;
@@ -68,14 +66,6 @@ public class OpWorkRecord extends OpObject {
 
    public double getRemainingEffort() {
       return this.remainingEffort;
-   }
-
-   public void setRemainingEffortChange(double remainingEffortChange) {
-      this.remainingEffortChange = remainingEffortChange;
-   }
-
-   public double getRemainingEffortChange() {
-      return this.remainingEffortChange;
    }
 
    public void setPersonnelCosts(double actualCosts) {
@@ -370,28 +360,28 @@ public class OpWorkRecord extends OpObject {
       }
       switch (type) {
          case OpCostRecord.MATERIAL_COST: {
-            if(!remainingWasCalculated){
+            if (!remainingWasCalculated) {
                sum = this.getAssignment().getActivity().getRemainingMaterialCosts();
             }
             this.remMaterialCosts = sum;
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
-            if(!remainingWasCalculated){
+            if (!remainingWasCalculated) {
                sum = this.getAssignment().getActivity().getRemainingExternalCosts();
             }
             this.remExternalCosts = sum;
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
-            if(!remainingWasCalculated){
+            if (!remainingWasCalculated) {
                sum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
             }
             this.remMiscCosts = sum;
             break;
          }
          case OpCostRecord.TRAVEL_COST: {
-            if(!remainingWasCalculated){
+            if (!remainingWasCalculated) {
                sum = this.getAssignment().getActivity().getRemainingTravelCosts();
             }
             this.remTravelCosts = sum;
@@ -418,8 +408,9 @@ public class OpWorkRecord extends OpObject {
    }
 
    /**
-    * Calculates the actual effort of the work record by summing up the duration of each of 
+    * Calculates the actual effort of the work record by summing up the duration of each of
     * the time records.
+    *
     * @return a <code>double</code> representing the actual effort in hours.
     */
    public double calculateEffortFromTimeRecords() {
@@ -427,7 +418,7 @@ public class OpWorkRecord extends OpObject {
       for (OpTimeRecord timeRecord : this.timeRecords) {
          minutesSum += timeRecord.getDuration();
       }
-      double effort =  minutesSum / XCalendar.MINUTES_PER_HOUR;
+      double effort = minutesSum / XCalendar.MINUTES_PER_HOUR;
       this.setActualEffort(effort);
       return effort;
    }
@@ -449,59 +440,59 @@ public class OpWorkRecord extends OpObject {
     * @throws onepoint.persistence.OpEntityException
     *          if some validation constraints are broken
     */
-    public void validate()
-         throws OpEntityException {
+   public void validate()
+        throws OpEntityException {
 
-       // Actual Efort
-       if (getActualEffort() < 0 || (!getCompleted() && getActualEffort() == 0 && getCostRecords().isEmpty())) {
-          throw new OpEntityException(OpWorkError.INCORRECT_ACTUAL_EFFORT);
-       }
-       // Material Costs
-       if (getMaterialCosts() < 0) {
-          throw new OpEntityException(OpWorkError.INCORRECT_MATERIAL_COSTS);
-       }
-       // Travel costs
-       if (getTravelCosts() < 0) {
-          throw new OpEntityException(OpWorkError.INCORRECT_TRAVEL_COSTS);
-       }
-       // External costs
-       if (getExternalCosts() < 0) {
-          throw new OpEntityException(OpWorkError.INCORRECT_EXTERNAL_COSTS);
-       }
-       // Miscellaneous Costs
-       if (getMiscellaneousCosts() < 0) {
-          throw new OpEntityException(OpWorkError.INCORRECT_MISCELLANEOUS_COSTS);
-       }
+      // Actual Efort
+      if (getActualEffort() < 0 || (!getCompleted() && getActualEffort() == 0 && getCostRecords().isEmpty())) {
+         throw new OpEntityException(OpWorkError.INCORRECT_ACTUAL_EFFORT);
+      }
+      // Material Costs
+      if (getMaterialCosts() < 0) {
+         throw new OpEntityException(OpWorkError.INCORRECT_MATERIAL_COSTS);
+      }
+      // Travel costs
+      if (getTravelCosts() < 0) {
+         throw new OpEntityException(OpWorkError.INCORRECT_TRAVEL_COSTS);
+      }
+      // External costs
+      if (getExternalCosts() < 0) {
+         throw new OpEntityException(OpWorkError.INCORRECT_EXTERNAL_COSTS);
+      }
+      // Miscellaneous Costs
+      if (getMiscellaneousCosts() < 0) {
+         throw new OpEntityException(OpWorkError.INCORRECT_MISCELLANEOUS_COSTS);
+      }
 
-       //Overlaping of time records
-       ArrayList<OpTimeRecord> timeRecordList = new ArrayList<OpTimeRecord>();
-       for (OpTimeRecord timeRecord : getTimeRecords()){
-          timeRecordList.add(timeRecord);
-       }
+      //Overlaping of time records
+      ArrayList<OpTimeRecord> timeRecordList = new ArrayList<OpTimeRecord>();
+      for (OpTimeRecord timeRecord : getTimeRecords()) {
+         timeRecordList.add(timeRecord);
+      }
 
-       for (int i = 0; i < timeRecordList.size(); i++) {
-          OpTimeRecord currentTimeRecord = timeRecordList.get(i);
-          int currentStart = currentTimeRecord.getStart();
-          int currentEnd = currentTimeRecord.getFinish();
+      for (int i = 0; i < timeRecordList.size(); i++) {
+         OpTimeRecord currentTimeRecord = timeRecordList.get(i);
+         int currentStart = currentTimeRecord.getStart();
+         int currentEnd = currentTimeRecord.getFinish();
 
-          for (int j = i + 1; j < timeRecordList.size(); j++) {
-             OpTimeRecord secondTimeRecord = timeRecordList.get(j);
-             int secondStart = secondTimeRecord.getStart();
-             int secondEnd = secondTimeRecord.getFinish();
-             if(!(currentEnd <= secondStart || secondEnd <= currentStart)){
+         for (int j = i + 1; j < timeRecordList.size(); j++) {
+            OpTimeRecord secondTimeRecord = timeRecordList.get(j);
+            int secondStart = secondTimeRecord.getStart();
+            int secondEnd = secondTimeRecord.getFinish();
+            if (!(currentEnd <= secondStart || secondEnd <= currentStart)) {
                throw new OpEntityException(OpWorkError.TIME_RECORDS_OVERLAP);
-             }
-          }
-       }
+            }
+         }
+      }
 
-       //validate linked entities
-       for (OpCostRecord costRecord: getCostRecords()) {
-          costRecord.validate();
-       }
+      //validate linked entities
+      for (OpCostRecord costRecord : getCostRecords()) {
+         costRecord.validate();
+      }
 
-       for (OpTimeRecord timRecord: getTimeRecords()) {
-          timRecord.validate();
-       }
+      for (OpTimeRecord timRecord : getTimeRecords()) {
+         timRecord.validate();
+      }
 
-    }
+   }
 }

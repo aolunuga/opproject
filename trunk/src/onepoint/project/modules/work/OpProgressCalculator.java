@@ -54,16 +54,17 @@ public class OpProgressCalculator {
          applyWorkRecord(broker, work_record, false);
       }
    }
-   
+
    /**
     * Removes one or more work records.
     *
-    * @param broker       a <code>OpBroker</code> used for performing business operations.
+    * @param broker      a <code>OpBroker</code> used for performing business operations.
     * @param work_record the {@link OpWorkRecord} to be removed.
     */
    public static void removeWorkRecord(OpBroker broker, OpWorkRecord work_record) {
-     applyWorkRecord(broker, work_record, false);
+      applyWorkRecord(broker, work_record, false);
    }
+
    /**
     * Updates the values for activities and assignments, based on a given work record.
     *
@@ -75,21 +76,52 @@ public class OpProgressCalculator {
       OpAssignment assignment = work_record.getAssignment();
       boolean progressTracked = assignment.getProjectPlan().getProgressTracked();
 
+      OpWorkSlip workSlip = work_record.getWorkSlip();
+
+      OpWorkRecord latestWorkRecord;
+      OpQuery query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord where workRecord.WorkSlip.Date > ? and workRecord.Assignment.ID = ?");
+      query.setDate(0, workSlip.getDate());
+      query.setLong(1, assignment.getID());
+      Iterator iterator = broker.iterate(query);
+      latestWorkRecord = work_record;
+      OpWorkRecord secondLatest = null;
+
+      if (iterator != null) {
+         while (iterator.hasNext()) {
+            long id = (Long) iterator.next();
+            OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, id);
+            if (latestWorkRecord.getWorkSlip().getDate().before(workRecord.getWorkSlip().getDate())) {
+               secondLatest = latestWorkRecord;
+               latestWorkRecord = workRecord;
+            }
+         }
+      }
+      double remainingEffortChange = 0;
+
       //update assignment
       if (insert_mode) {
          assignment.setActualEffort(assignment.getActualEffort() + work_record.getActualEffort());
          assignment.setActualCosts(assignment.getActualCosts() + work_record.getPersonnelCosts());
          assignment.setActualProceeds(assignment.getActualProceeds() + work_record.getActualProceeds());
          if (progressTracked) {
-            assignment.setRemainingEffort(assignment.getRemainingEffort() + work_record.getRemainingEffortChange());
+            remainingEffortChange = -assignment.getRemainingEffort() + latestWorkRecord.getRemainingEffort();
+            assignment.setRemainingEffort(latestWorkRecord.getRemainingEffort());
          }
       }
       else {
          assignment.setActualEffort(assignment.getActualEffort() - work_record.getActualEffort());
          assignment.setActualCosts(assignment.getActualCosts() - work_record.getPersonnelCosts());
          assignment.setActualProceeds(assignment.getActualProceeds() - work_record.getActualProceeds());
-         if (progressTracked) {
-            assignment.setRemainingEffort(assignment.getRemainingEffort() - work_record.getRemainingEffortChange());
+         if (progressTracked && latestWorkRecord == work_record) {
+            //remaining effort should be the "next" latest ?
+            remainingEffortChange = -assignment.getRemainingEffort();
+            if (secondLatest != null) {
+               assignment.setRemainingEffort(secondLatest.getRemainingEffort());
+            }
+            else {
+               assignment.setRemainingEffort(assignment.getBaseEffort());
+            }
+            remainingEffortChange += assignment.getRemainingEffort();
          }
       }
 
@@ -105,7 +137,7 @@ public class OpProgressCalculator {
          if (insert_mode) {
             activity.setActualEffort(activity.getActualEffort() + work_record.getActualEffort());
             if (progressTracked) {
-               activity.setRemainingEffort(activity.getRemainingEffort() + work_record.getRemainingEffortChange());
+               activity.setRemainingEffort(activity.getRemainingEffort() + remainingEffortChange);
             }
             activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() + work_record.getPersonnelCosts());
             activity.setActualProceeds(activity.getActualProceeds() + work_record.getActualProceeds());
@@ -122,7 +154,7 @@ public class OpProgressCalculator {
          else {
             activity.setActualEffort(activity.getActualEffort() - work_record.getActualEffort());
             if (progressTracked) {
-               activity.setRemainingEffort(activity.getRemainingEffort() - work_record.getRemainingEffortChange());
+               activity.setRemainingEffort(activity.getRemainingEffort() + remainingEffortChange);
             }
             activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() - work_record.getPersonnelCosts());
             activity.setActualProceeds(activity.getActualProceeds() - work_record.getActualProceeds());
@@ -225,7 +257,7 @@ public class OpProgressCalculator {
          }
          else if (activityType == OpActivity.TASK ||
               activityType == OpActivity.MILESTONE ||
-              activityType == OpActivity.ADHOC_TASK) {            
+              activityType == OpActivity.ADHOC_TASK) {
             assignment.setComplete(0);
          }
          else {

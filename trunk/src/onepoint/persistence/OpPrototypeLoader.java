@@ -17,7 +17,7 @@ public class OpPrototypeLoader extends XLoader {
    }
 
    public OpPrototype loadPrototype(String filename) {
-      return (OpPrototype) (loadObject(filename, null));
+      return (OpPrototype) (loadObject(null, filename, null));
    }
 
 }

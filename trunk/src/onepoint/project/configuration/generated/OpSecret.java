@@ -10,21 +10,21 @@ package onepoint.project.configuration.generated;
 
 
 /**
- * Java content class for OpConfigDatabasePassword complex type.
- * <p>The following schema fragment specifies the expected content contained within this java content object. (defined at file:/usr/users/dfreis/projects/opproject/src/onepoint/project/configuration/configuration.xsd line 38)
+ * Java content class for OpSecret complex type.
+ * <p>The following schema fragment specifies the expected content contained within this java content object. (defined at file:/usr/users/dfreis/projects/opproject/src/onepoint/project/configuration/configuration.xsd line 46)
  * <p>
  * <pre>
- * &lt;complexType name="OpConfigDatabasePassword">
+ * &lt;complexType name="OpSecret">
  *   &lt;simpleContent>
  *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
- *       &lt;attribute name="encrypted" type="{http://www.w3.org/2001/XMLSchema}boolean" default="true" />
+ *       &lt;attribute name="encoding" type="{http://www.w3.org/2001/XMLSchema}string" default="SHA" />
  *     &lt;/extension>
  *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
  * 
  */
-public interface OpConfigDatabasePassword {
+public interface OpSecret {
 
 
     /**
@@ -46,15 +46,21 @@ public interface OpConfigDatabasePassword {
     void setValue(java.lang.String value);
 
     /**
-     * Gets the value of the encrypted property.
+     * Gets the value of the encoding property.
      * 
+     * @return
+     *     possible object is
+     *     {@link java.lang.String}
      */
-    boolean isEncrypted();
+    java.lang.String getEncoding();
 
     /**
-     * Sets the value of the encrypted property.
+     * Sets the value of the encoding property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link java.lang.String}
      */
-    void setEncrypted(boolean value);
+    void setEncoding(java.lang.String value);
 
 }

@@ -236,6 +236,7 @@ public class OpHibernateConnection extends OpConnection {
    /**
     * Update database schema.
     */
+   @Override
    public void updateSchema() {
       String[] hibernateUpdateScripts = null;
       List customUpdateScripts = new ArrayList();
@@ -244,7 +245,7 @@ public class OpHibernateConnection extends OpConnection {
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
       Connection connection = session.connection();
-      OpHibernateSchemaUpdater customSchemaUpdater = new OpHibernateSchemaUpdater(source);
+      OpHibernateSchemaUpdater customSchemaUpdater = new OpHibernateSchemaUpdater(source.getDatabaseType());
 
       try {
          //first execute any custom drop statements (only for MySQL necessary at the moment)
@@ -258,6 +259,9 @@ public class OpHibernateConnection extends OpConnection {
          DatabaseMetadata meta = new DatabaseMetadata(connection, dialect);
          hibernateUpdateScripts = configuration.generateSchemaUpdateScript(dialect, meta);
          executeDDLScript(hibernateUpdateScripts);
+
+         //update the hi/lo generator
+         source.updateHiLoGeneratorValue();
 
          //finally perform the custom update
          customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData());
@@ -274,7 +278,7 @@ public class OpHibernateConnection extends OpConnection {
    public void dropSchema() {
       // Create drop schema script
       OpHibernateSource source = ((OpHibernateSource) getSource());
-      OpHibernateSchemaUpdater customUpdater = new OpHibernateSchemaUpdater(source);
+      OpHibernateSchemaUpdater customUpdater = new OpHibernateSchemaUpdater(source.getDatabaseType());
       Configuration configuration = source.getConfiguration();
       try {
          String[] hibernateDropScripts = configuration.generateDropSchemaScript(source.newHibernateDialect());

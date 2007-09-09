@@ -57,7 +57,7 @@ public class OpConfigurationLoader extends XLoader {
          //check configuration file structure/passwords and update it if necessary
          updateConfigurationFile(fileName);
 
-         OpConfiguration configuration = (OpConfiguration) (loadObject(fileName, null));
+         OpConfiguration configuration = (OpConfiguration) (loadObject(null, fileName, null));
          if (configuration != null) {
             checkDatabaseConfigurations(configuration.getDatabaseConfigurations());
          }

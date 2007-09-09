@@ -1,9 +1,9 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */ 
+ */
 
 /**
- * 
+ *
  */
 package onepoint.project.xml_rpc.onepoint.project.modules.my_tasks;
 
@@ -26,7 +26,7 @@ import java.util.*;
 
 /**
  * Xml-Rpc service implementation corresponding to the OpMyTasksServiceSMLRPC
- * 
+ *
  * @author dfreis
  */
 public class OpMyTasksServiceXMLRPC {
@@ -39,14 +39,14 @@ public class OpMyTasksServiceXMLRPC {
     * the underlaying OpProjectAdministrationServiceImpl
     */
    private OpProjectAdministrationServiceImpl projectAdminImpl;
-   
+
    /**
     * Default constructor setting up the underlying OpMyTaskService.
     */
    public OpMyTasksServiceXMLRPC() {
       XService xservice = XServiceManager.getService(OpMyTasksServiceImpl.SERVICE_NAME);
       if (xservice == null) {
-         throw new IllegalStateException("required service '"+OpMyTasksServiceImpl.SERVICE_NAME+"' not found");
+         throw new IllegalStateException("required service '" + OpMyTasksServiceImpl.SERVICE_NAME + "' not found");
       }
       impl = (OpMyTasksServiceImpl) xservice.getServiceImpl();
       if (impl == null) {
@@ -54,26 +54,27 @@ public class OpMyTasksServiceXMLRPC {
       }
       xservice = XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
       if (xservice == null) {
-         throw new IllegalStateException("required service '"+ OpProjectAdministrationService.SERVICE_NAME+"' not found");
+         throw new IllegalStateException("required service '" + OpProjectAdministrationService.SERVICE_NAME + "' not found");
       }
       projectAdminImpl = (OpProjectAdministrationServiceImpl) xservice.getServiceImpl();
       if (projectAdminImpl == null) {
-         throw new IllegalStateException("required service impl for '"+
-               OpProjectAdministrationService.SERVICE_NAME+"' not found");
+         throw new IllegalStateException("required service impl for '" +
+              OpProjectAdministrationService.SERVICE_NAME + "' not found");
       }
    }
 
    /**
-    * @return a list containing all root tasks that are visible for me 
+    * @return a list containing all root tasks that are visible for me
     * @throws XmlRpcException
     * @pre
     * @post
     */
-   public List<Map<String,Object>> getRootTasks() throws XmlRpcException {
+   public List<Map<String, Object>> getRootTasks()
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
-         List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
+         List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getRootTasks(session, broker);
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
@@ -82,20 +83,22 @@ public class OpMyTasksServiceXMLRPC {
             ret.add(map);
          }
          return ret;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
 
    }
 
-   public List<Map<String,Object>> getMyTasks() throws XmlRpcException {
+   public List<Map<String, Object>> getMyTasks()
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
-         List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
+         List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getMyTasks(session, broker);
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
@@ -104,20 +107,22 @@ public class OpMyTasksServiceXMLRPC {
             ret.add(map);
          }
          return ret;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
 
    }
 
-   public List<Map<String,Object>> getMyTasks(BitSet types) throws XmlRpcException {
+   public List<Map<String, Object>> getMyTasks(BitSet types)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
-         List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
+         List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
          Iterator<OpActivity> rootTaskIter = impl.getMyTasks(session, broker, types);
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
@@ -126,39 +131,43 @@ public class OpMyTasksServiceXMLRPC {
             ret.add(map);
          }
          return ret;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
    }
 
-   public Map<String,Object> getParentTask(String childId) throws XmlRpcException {
+   public Map<String, Object> getParentTask(String childId)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(childId));
          OpActivity parent = impl.getParentTask(session, broker, activity);
          if (parent == null) {
-            return(new HashMap<String, Object>());
+            return (new HashMap<String, Object>());
          }
          Map<String, Object> map = getActivityData(parent);
          OpXMLRPCUtil.deleteMapNullValues(map);
          return map;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
    }
 
-   public List<Map<String,Object>> getChildTasks(String parentId) throws XmlRpcException {
+   public List<Map<String, Object>> getChildTasks(String parentId)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
-         List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
+         List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(parentId));
          Iterator<OpActivity> childTaskIter = impl.getChildTasks(session, broker, activity);
          Map<String, Object> map;
@@ -168,19 +177,21 @@ public class OpMyTasksServiceXMLRPC {
             ret.add(map);
          }
          return ret;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
    }
 
-   public List<Map<String,Object>> getChildTasks(String parentId, BitSet types) throws XmlRpcException {
+   public List<Map<String, Object>> getChildTasks(String parentId, BitSet types)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
-         List<Map<String,Object>> ret = new LinkedList<Map<String,Object>>();
+         List<Map<String, Object>> ret = new LinkedList<Map<String, Object>>();
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(parentId));
          Iterator<OpActivity> childTaskIter = impl.getChildTasks(session, broker, activity, types);
          Map<String, Object> map;
@@ -190,15 +201,17 @@ public class OpMyTasksServiceXMLRPC {
             ret.add(map);
          }
          return ret;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
    }
 
-   public Map<String, Object> getTaskByIs(String id) throws XmlRpcException {
+   public Map<String, Object> getTaskByIs(String id)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
@@ -206,15 +219,17 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map = getActivityData(activity);
          OpXMLRPCUtil.deleteMapNullValues(map);
          return map;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
       }
    }
-   
-   public Map<String, Object> insertAdhocTask(Map<String, Object> activityData) throws XmlRpcException {
+
+   public Map<String, Object> insertAdhocTask(Map<String, Object> activityData)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
@@ -223,31 +238,35 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map = getActivityData(activity);
          OpXMLRPCUtil.deleteMapNullValues(map);
          return map;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
       }
-     
+
    }
-   
-   public boolean deleteAdhocTask(Map<String, Object> activityData) throws XmlRpcException {
+
+   public boolean deleteAdhocTask(Map<String, Object> activityData)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = getActivity(session, broker, activityData);
          impl.deleteAdhocTask(session, broker, activity);
          return true;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }  
+      }
    }
 
-   public Map<String, Object> updateAdhocTask(Map<String, Object> activityData) throws XmlRpcException {
+   public Map<String, Object> updateAdhocTask(Map<String, Object> activityData)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
       try {
@@ -256,23 +275,25 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map = getActivityData(activity);
          OpXMLRPCUtil.deleteMapNullValues(map);
          return map;
-      } catch (XServiceException exc) {
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }     
+      }
    }
 
    /**
     * Returns all information associated to the currently signed on user.
+    *
     * @return a map containing all user information.
     */
    private static Map<String, Object> getActivityData(OpActivity activity) {
       Map<String, Object> ret = new HashMap<String, Object>();
-      
+
       ret.put(OpActivity.ID, Long.toString(activity.getID())); // note: xml-rpc does not 
-                                                               // support Long
+      // support Long
       if (activity.getName() != null) {
          ret.put(OpActivity.NAME, activity.getName());
       }
@@ -306,16 +327,16 @@ public class OpMyTasksServiceXMLRPC {
 //      ret.put(OpActivity.PROJECT_PLAN = "ProjectPlan";
 //      ret.put(OpActivity.SUPER_ACTIVITY = "SuperActivity";
 //      ret.put(OpActivity.SUB_ACTIVITIES = "SubActivities";
-      ret.put(OpActivity.PROJECT_PLAN+"_ID", Long.toString(activity.getProjectPlan().getID()));
-      
+      ret.put(OpActivity.PROJECT_PLAN + "_ID", Long.toString(activity.getProjectPlan().getID()));
+
       // add assignments
-      LinkedList<Map<String,Object>> assignments = new LinkedList<Map<String,Object>>();  
+      LinkedList<Map<String, Object>> assignments = new LinkedList<Map<String, Object>>();
       for (OpAssignment assignment : activity.getAssignments()) {
          assignments.add(getAssignmentData(assignment));
       }
       ret.put(OpActivity.ASSIGNMENTS, assignments);
       // add work periods
-      LinkedList<Map<String,Object>> activities = new LinkedList<Map<String,Object>>();
+      LinkedList<Map<String, Object>> activities = new LinkedList<Map<String, Object>>();
       for (OpWorkPeriod period : activity.getWorkPeriods()) {
          activities.add(getWorkPeriodData(period));
       }
@@ -323,21 +344,21 @@ public class OpMyTasksServiceXMLRPC {
 //      ret.put(OpActivity.SUCCESSOR_DEPENDENCIES = "SuccessorDependencies";
 //      ret.put(OpActivity.PREDECESSOR_DEPENDENCIES = "PredecessorDependencies";
       // add attachments
-      LinkedList<Map<String,Object>> attachments = new LinkedList<Map<String,Object>>();
+      LinkedList<Map<String, Object>> attachments = new LinkedList<Map<String, Object>>();
       for (OpAttachment attachment : activity.getAttachments()) {
          attachments.add(getAttachmentData(attachment));
       }
       ret.put(OpActivity.ATTACHMENTS, attachments);
 
       // add versions
-      LinkedList<Map<String,Object>> versions = new LinkedList<Map<String,Object>>();
+      LinkedList<Map<String, Object>> versions = new LinkedList<Map<String, Object>>();
       for (OpActivityVersion version : activity.getVersions()) {
          versions.add(getVersionData(version));
       }
       ret.put(OpActivity.VERSIONS, versions);
 
       // add comments
-      LinkedList<Map<String,Object>> comments = new LinkedList<Map<String,Object>>();
+      LinkedList<Map<String, Object>> comments = new LinkedList<Map<String, Object>>();
       for (OpActivityComment comment : activity.getComments()) {
          comments.add(getCommentData(comment));
       }
@@ -347,10 +368,11 @@ public class OpMyTasksServiceXMLRPC {
 
    /**
     * Returns all information associated to the currently signed on user.
+    *
     * @return a map containing all user information.
     */
    private OpActivity getActivity(OpProjectSession session, OpBroker broker,
-                                         Map<String, Object> activity) {
+        Map<String, Object> activity) {
       OpActivity ret;
       String id = (String) activity.get(OpActivity.ID);
       if (id != null) {
@@ -364,96 +386,96 @@ public class OpMyTasksServiceXMLRPC {
          ret.setActualEffort(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.ACTUAL_EXTERNAL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setActualExternalCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.ACTUAL_MATERIAL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setActualMaterialCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.ACTUAL_MISCELLANEOUS_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setActualMiscellaneousCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.ACTUAL_PERSONNEL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setActualPersonnelCosts(doubleValue.doubleValue());
       }
       //ret.setActualProceeds(activity.get(OpActivity.));
       doubleValue = (Double) activity.get(OpActivity.ACTUAL_TRAVEL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setActualTravelCosts(doubleValue.doubleValue());
       }
 
-      LinkedList<Map<String,Object>> assignmentsData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.ASSIGNMENTS);  
+      LinkedList<Map<String, Object>> assignmentsData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.ASSIGNMENTS);
       Set<OpAssignment> assignments = new HashSet<OpAssignment>();
       if (assignmentsData != null) {
-         for (Map<String,Object> assignmentData : assignmentsData) {
+         for (Map<String, Object> assignmentData : assignmentsData) {
             assignments.add(getAssignment(assignmentData));
          }
       }
       ret.setAssignments(assignments);
 
-      LinkedList<Map<String,Object>> attachmentsData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.ATTACHMENTS);  
+      LinkedList<Map<String, Object>> attachmentsData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.ATTACHMENTS);
       Set<OpAttachment> attachments = new HashSet<OpAttachment>();
       if (attachmentsData != null) {
-         for (Map<String,Object> attachmentData : attachmentsData) {
+         for (Map<String, Object> attachmentData : attachmentsData) {
             attachments.add(getAttachment(attachmentData));
          }
       }
       ret.setAttachments(attachments);
-      
+
 //      ret.setAttributes(activity.get(OpActivity.ATTRIBUTES));
       doubleValue = (Double) activity.get(OpActivity.BASE_EFFORT);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setBaseEffort(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.BASE_EXTERNAL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setBaseExternalCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.BASE_MATERIAL_COSTS);
-      if (doubleValue != null) {      
-      ret.setBaseMaterialCosts(doubleValue.doubleValue());
+      if (doubleValue != null) {
+         ret.setBaseMaterialCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.BASE_MISCELLANEOUS_COSTS);
       if (doubleValue != null) {
          ret.setBaseMiscellaneousCosts(doubleValue.doubleValue());
       }
       doubleValue = (Double) activity.get(OpActivity.BASE_PERSONNEL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setBasePersonnelCosts(doubleValue.doubleValue());
-      //ret.setBaseProceeds(activity.get(OpActivity.));
+         //ret.setBaseProceeds(activity.get(OpActivity.));
       }
       doubleValue = (Double) activity.get(OpActivity.BASE_TRAVEL_COSTS);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setBaseTravelCosts(doubleValue.doubleValue());
       }
-      
-      OpActivityCategory category = getActivityCategory((Map<String,Object>) activity.get(OpActivity.CATEGORY));
+
+      OpActivityCategory category = getActivityCategory((Map<String, Object>) activity.get(OpActivity.CATEGORY));
       ret.setCategory(category);
 
-      LinkedList<Map<String,Object>> commentsData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.COMMENTS);  
+      LinkedList<Map<String, Object>> commentsData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.COMMENTS);
       Set<OpActivityComment> comments = new HashSet<OpActivityComment>();
       if (commentsData != null) {
-         for (Map<String,Object> commentData : commentsData) {
+         for (Map<String, Object> commentData : commentsData) {
             comments.add(getActivityComment(commentData));
          }
       }
       ret.setComments(comments);
       doubleValue = (Double) activity.get(OpActivity.COMPLETE);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setComplete(doubleValue.doubleValue());
       }
       Boolean boolValue = (Boolean) activity.get(OpActivity.DELETED);
       if (boolValue != null) {
          ret.setDeleted(boolValue.booleanValue());
       }
-      
+
       ret.setDescription((String) activity.get(OpActivity.DESCRIPTION));
 
       doubleValue = (Double) activity.get(OpActivity.DURATION);
-      if (doubleValue != null) {      
+      if (doubleValue != null) {
          ret.setDuration(doubleValue.doubleValue());
       }
       //ret.setDynamicResources(activity.get());
@@ -465,17 +487,17 @@ public class OpMyTasksServiceXMLRPC {
       ret.setFinish((Date) activity.get(OpActivity.FINISH));
       //ret.setLocks(activity.get(OpActivity.));
       //ret.setModified(activity.get());
-      ret.setName((String) activity.get(OpActivity.NAME));  
+      ret.setName((String) activity.get(OpActivity.NAME));
       Byte byteValue = (Byte) activity.get(OpActivity.OUTLINE_LEVEL);
       if (byteValue != null) {
          ret.setOutlineLevel(byteValue.byteValue());
       }
       //ret.setPermissions(activity.get(OpActivity.));
-      
-      LinkedList<Map<String,Object>> predecessorDependenciesData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.PREDECESSOR_DEPENDENCIES);  
+
+      LinkedList<Map<String, Object>> predecessorDependenciesData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.PREDECESSOR_DEPENDENCIES);
       Set<OpDependency> predecessorDependencies = new HashSet<OpDependency>();
       if (predecessorDependenciesData != null) {
-         for (Map<String,Object> predecessorDependencieData : predecessorDependenciesData) {
+         for (Map<String, Object> predecessorDependencieData : predecessorDependenciesData) {
             predecessorDependencies.add(getDependency(predecessorDependencieData));
          }
       }
@@ -484,26 +506,26 @@ public class OpMyTasksServiceXMLRPC {
       if (byteValue != null) {
          ret.setPriority(byteValue.byteValue());
       }
-      
-      
-      String stringValue = (String) activity.get(OpActivity.PROJECT_PLAN+"_ID");
+
+
+      String stringValue = (String) activity.get(OpActivity.PROJECT_PLAN + "_ID");
       OpProjectPlan projectPlan = null;
       if (stringValue != null) {
-         projectPlan = projectAdminImpl.getProjectPlanMyId(session, broker, 
-               Long.parseLong(stringValue));
+         projectPlan = projectAdminImpl.getProjectPlanMyId(session, broker,
+              Long.parseLong(stringValue));
          ret.setProjectPlan(projectPlan);
       }
-      
+
       doubleValue = (Double) activity.get(OpActivity.REMAINING_EFFORT);
       if (doubleValue != null) {
          ret.setRemainingEffort(doubleValue.doubleValue());
       }
 
-      stringValue = (String) activity.get(OpActivity.RESPONSIBLE_RESOURCE+"_ID");
+      stringValue = (String) activity.get(OpActivity.RESPONSIBLE_RESOURCE + "_ID");
       if (stringValue != null) {
-         ret.setResponsibleResource((OpResource) broker.getObject(OpResource.class, 
-                                                                  Long.parseLong(stringValue)));
-      }      
+         ret.setResponsibleResource((OpResource) broker.getObject(OpResource.class,
+              Long.parseLong(stringValue)));
+      }
       Integer intValue = (Integer) activity.get(OpActivity.SEQUENCE);
       if (intValue != null) {
          ret.setSequence(intValue.intValue());
@@ -511,15 +533,15 @@ public class OpMyTasksServiceXMLRPC {
       ret.setStart((Date) activity.get(OpActivity.START));
       //ret.setSubActivities(activity.get(OpActivity.SUB_ACTIVITIES));
 
-      LinkedList<Map<String,Object>> successorDependenciesData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);  
+      LinkedList<Map<String, Object>> successorDependenciesData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);
       Set<OpDependency> successorDependencies = new HashSet<OpDependency>();
       if (successorDependenciesData != null) {
-         for (Map<String,Object> successorDependencieData : successorDependenciesData) {
+         for (Map<String, Object> successorDependencieData : successorDependenciesData) {
             successorDependencies.add(getDependency(successorDependencieData));
          }
       }
       ret.setSuccessorDependencies(successorDependencies);
-      String superId = (String) activity.get(OpActivity.SUPER_ACTIVITY+"_ID");
+      String superId = (String) activity.get(OpActivity.SUPER_ACTIVITY + "_ID");
       if (superId != null) {
          ret.setSuperActivity(impl.getTaskById(session, broker, Long.parseLong(superId)));
       }
@@ -532,19 +554,19 @@ public class OpMyTasksServiceXMLRPC {
          ret.setType(byteValue);
       }
 
-      LinkedList<Map<String,Object>> versionsData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);  
+      LinkedList<Map<String, Object>> versionsData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);
       Set<OpActivityVersion> versions = new HashSet<OpActivityVersion>();
       if (versionsData != null) {
-         for (Map<String,Object> versionData : versionsData) {
+         for (Map<String, Object> versionData : versionsData) {
             versions.add(getActivityVersion(versionData));
          }
          ret.setVersions(versions);
       }
 
-      LinkedList<Map<String,Object>> workPeriodsData = (LinkedList<Map<String,Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);  
+      LinkedList<Map<String, Object>> workPeriodsData = (LinkedList<Map<String, Object>>) activity.get(OpActivity.SUCCESSOR_DEPENDENCIES);
       Set<OpWorkPeriod> workPeriods = new HashSet<OpWorkPeriod>();
       if (workPeriodsData != null) {
-         for (Map<String,Object> workPeriodData : workPeriodsData) {
+         for (Map<String, Object> workPeriodData : workPeriodsData) {
             workPeriods.add(getWorkPeriod(session, broker, workPeriodData, ret, projectPlan));
          }
          ret.setWorkPeriods(workPeriods);
@@ -554,15 +576,15 @@ public class OpMyTasksServiceXMLRPC {
 
    /**
     * @param workPeriodData
-    * @param activity 
-    * @param projectPlan 
+    * @param activity
+    * @param projectPlan
     * @return
     * @pre
     * @post
     */
-   private OpWorkPeriod getWorkPeriod(OpProjectSession session, OpBroker broker, 
-                                      Map<String, Object> workPeriodData, 
-                                      OpActivity activity, OpProjectPlan projectPlan) {
+   private OpWorkPeriod getWorkPeriod(OpProjectSession session, OpBroker broker,
+        Map<String, Object> workPeriodData,
+        OpActivity activity, OpProjectPlan projectPlan) {
       OpWorkPeriod ret;
       String id = (String) workPeriodData.get(OpWorkPeriod.ID);
       if (id != null) {
@@ -571,7 +593,7 @@ public class OpMyTasksServiceXMLRPC {
       else {
          ret = new OpWorkPeriod();
       }
-      
+
       ret.setActivity(activity);
       ret.setProjectPlan(projectPlan);
 
@@ -585,11 +607,11 @@ public class OpMyTasksServiceXMLRPC {
       }
 
       long workingDays = 0L;
-      Integer intValue = (Integer)workPeriodData.get(OpWorkPeriod.WORKING_DAYS+"_HI");
+      Integer intValue = (Integer) workPeriodData.get(OpWorkPeriod.WORKING_DAYS + "_HI");
       if (intValue != null) {
          workingDays = ((long) intValue.intValue()) << 32;
       }
-      intValue = (Integer)workPeriodData.get(OpWorkPeriod.WORKING_DAYS+"_LO");
+      intValue = (Integer) workPeriodData.get(OpWorkPeriod.WORKING_DAYS + "_LO");
       if (intValue != null) {
          workingDays |= (long) intValue.intValue();
          ret.setWorkingDays(workingDays);
@@ -598,7 +620,7 @@ public class OpMyTasksServiceXMLRPC {
    }
 
    /**
-    * @param versionsData
+    * @param versionData
     * @return
     * @pre
     * @post
@@ -678,7 +700,7 @@ public class OpMyTasksServiceXMLRPC {
       if (comment.getText() != null) {
          ret.put(OpActivityComment.TEXT, comment.getText());
       }
-      ret.put(OpActivityComment.CREATOR+"_ID", Long.toString(comment.getCreator().getID()));
+      ret.put(OpActivityComment.CREATOR + "_ID", Long.toString(comment.getCreator().getID()));
       return ret;
    }
 
@@ -727,8 +749,8 @@ public class OpMyTasksServiceXMLRPC {
          ret.put(OpContent.MEDIA_TYPE, content.getMediaType());
       }
       // Note: Xml-Rpc does not support long! 
-      ret.put(OpContent.SIZE+"_HI", (int)(content.getSize() >> 32));
-      ret.put(OpContent.SIZE+"_LO", (int) content.getSize());
+      ret.put(OpContent.SIZE + "_HI", (int) (content.getSize() >> 32));
+      ret.put(OpContent.SIZE + "_LO", (int) content.getSize());
       // add documents
 //      LinkedList<Map<String,Object>> documents = new LinkedList<Map<String,Object>>();  
 //      for (OpDocument document : content.getDocuments()) {
@@ -764,15 +786,15 @@ public class OpMyTasksServiceXMLRPC {
     * @post
     */
    private static Map<String, Object> getWorkPeriodData(OpWorkPeriod period) {
-    Map<String, Object> ret = new HashMap<String, Object>();
-    ret.put(OpWorkPeriod.ID, Long.toString(period.getID()));
-    ret.put(OpWorkPeriod.BASE_EFFORT, period.getBaseEffort());
-    if (period.getStart() != null) {
-       ret.put(OpWorkPeriod.START, period.getStart());
-    }
-    ret.put(OpWorkPeriod.WORKING_DAYS+"_HI", (int) (period.getWorkingDays() >> 32));
-    ret.put(OpWorkPeriod.WORKING_DAYS+"_LO", (int) (period.getWorkingDays()));
-    return ret;
+      Map<String, Object> ret = new HashMap<String, Object>();
+      ret.put(OpWorkPeriod.ID, Long.toString(period.getID()));
+      ret.put(OpWorkPeriod.BASE_EFFORT, period.getBaseEffort());
+      if (period.getStart() != null) {
+         ret.put(OpWorkPeriod.START, period.getStart());
+      }
+      ret.put(OpWorkPeriod.WORKING_DAYS + "_HI", (int) (period.getWorkingDays() >> 32));
+      ret.put(OpWorkPeriod.WORKING_DAYS + "_LO", (int) (period.getWorkingDays()));
+      return ret;
    }
 
    /**
@@ -793,17 +815,17 @@ public class OpMyTasksServiceXMLRPC {
       ret.put(OpAssignment.ASSIGNED, assignment.getAssigned());
       ret.put(OpAssignment.RESOURCE, getResourceData(assignment.getResource()));
       // add work records
-      LinkedList<Map<String,Object>> workRecords = new LinkedList<Map<String,Object>>();
+      LinkedList<Map<String, Object>> workRecords = new LinkedList<Map<String, Object>>();
       for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
          workRecords.add(getWorkRecordData(workRecord));
       }
       ret.put(OpAssignment.WORK_RECORDS, workRecords);
-      ret.put(OpAssignment.PROJECT_PLAN+"_ID", Long.toString(assignment.getProjectPlan().getID()));
+      ret.put(OpAssignment.PROJECT_PLAN + "_ID", Long.toString(assignment.getProjectPlan().getID()));
       return ret;
    }
 
    /**
-    * @param workRecords
+    * @param workRecord
     * @return
     * @pre
     * @post
@@ -818,8 +840,7 @@ public class OpMyTasksServiceXMLRPC {
       ret.put(OpWorkRecord.EXTERNAL_COSTS, workRecord.getExternalCosts());
       ret.put(OpWorkRecord.MATERIAL_COSTS, workRecord.getMaterialCosts());
       ret.put(OpWorkRecord.MISCELLANEOUS_COSTS, workRecord.getMiscellaneousCosts());
-      ret.put(OpWorkRecord.REMAINING_EFFORT, workRecord.getRemainingEffort());  
-      ret.put(OpWorkRecord.REMAINING_EFFORT_CHANGE, workRecord.getRemainingEffortChange());
+      ret.put(OpWorkRecord.REMAINING_EFFORT, workRecord.getRemainingEffort());
       ret.put(OpWorkRecord.TRAVEL_COSTS, workRecord.getTravelCosts());
       ret.put(OpWorkRecord.WORK_SLIP, getWorkSlipData(workRecord.getWorkSlip()));
       return ret;
@@ -838,7 +859,7 @@ public class OpMyTasksServiceXMLRPC {
          ret.put(OpWorkSlip.DATE, workSlip.getDate());
       }
       ret.put(OpWorkSlip.NUMBER, workSlip.getNumber());
-      ret.put(OpWorkSlip.CREATOR+"_ID", Long.toString(workSlip.getCreator().getID()));
+      ret.put(OpWorkSlip.CREATOR + "_ID", Long.toString(workSlip.getCreator().getID()));
       return ret;
    }
 
@@ -861,13 +882,13 @@ public class OpMyTasksServiceXMLRPC {
 //      }
 //      ret.put(OpResource.ABSENCES, resource.getAbsences()); 
 //      ret.put(OpResource.ACTIVITY_ASSIGNMENTS, resource.getActivityAssignments()); 
-      ret.put(OpResource.AVAILABLE, resource.getAvailable()); 
+      ret.put(OpResource.AVAILABLE, resource.getAvailable());
       if (resource.getDescription() != null) {
          ret.put(OpResource.DESCRIPTION, resource.getDescription());
       }
-      ret.put(OpResource.EXTERNAL_RATE, resource.getExternalRate()); 
-      ret.put(OpResource.HOURLY_RATE, resource.getHourlyRate()); 
-      ret.put(OpResource.INHERIT_POOL_RATE, resource.getInheritPoolRate()); 
+      ret.put(OpResource.EXTERNAL_RATE, resource.getExternalRate());
+      ret.put(OpResource.HOURLY_RATE, resource.getHourlyRate());
+      ret.put(OpResource.INHERIT_POOL_RATE, resource.getInheritPoolRate());
       return ret;
    }
 }

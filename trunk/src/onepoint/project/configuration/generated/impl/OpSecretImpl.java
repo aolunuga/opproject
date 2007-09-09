@@ -8,17 +8,16 @@
 
 package onepoint.project.configuration.generated.impl;
 
-public class OpConfigDatabasePasswordImpl implements onepoint.project.configuration.generated.OpConfigDatabasePassword, com.sun.xml.bind.JAXBObject, onepoint.project.configuration.generated.impl.runtime.UnmarshallableObject, onepoint.project.configuration.generated.impl.runtime.XMLSerializable, onepoint.project.configuration.generated.impl.runtime.ValidatableObject
+public class OpSecretImpl implements onepoint.project.configuration.generated.OpSecret, com.sun.xml.bind.JAXBObject, onepoint.project.configuration.generated.impl.runtime.UnmarshallableObject, onepoint.project.configuration.generated.impl.runtime.XMLSerializable, onepoint.project.configuration.generated.impl.runtime.ValidatableObject
 {
 
     protected java.lang.String _Value;
-    protected boolean has_Encrypted;
-    protected boolean _Encrypted;
+    protected java.lang.String _Encoding;
     public final static java.lang.Class version = (onepoint.project.configuration.generated.impl.JAXBVersion.class);
     private static com.sun.msv.grammar.Grammar schemaFragment;
 
     private final static java.lang.Class PRIMARY_INTERFACE_CLASS() {
-        return (onepoint.project.configuration.generated.OpConfigDatabasePassword.class);
+        return (onepoint.project.configuration.generated.OpSecret.class);
     }
 
     public java.lang.String getValue() {
@@ -29,21 +28,20 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
         _Value = value;
     }
 
-    public boolean isEncrypted() {
-        if (!has_Encrypted) {
-            return javax.xml.bind.DatatypeConverter.parseBoolean(com.sun.xml.bind.DatatypeConverterImpl.installHook("true"));
+    public java.lang.String getEncoding() {
+        if (_Encoding == null) {
+            return "SHA";
         } else {
-            return _Encrypted;
+            return _Encoding;
         }
     }
 
-    public void setEncrypted(boolean value) {
-        _Encrypted = value;
-        has_Encrypted = true;
+    public void setEncoding(java.lang.String value) {
+        _Encoding = value;
     }
 
     public onepoint.project.configuration.generated.impl.runtime.UnmarshallingEventHandler createUnmarshaller(onepoint.project.configuration.generated.impl.runtime.UnmarshallingContext context) {
-        return new onepoint.project.configuration.generated.impl.OpConfigDatabasePasswordImpl.Unmarshaller(context);
+        return new onepoint.project.configuration.generated.impl.OpSecretImpl.Unmarshaller(context);
     }
 
     public void serializeBody(onepoint.project.configuration.generated.impl.runtime.XMLSerializer context)
@@ -59,10 +57,10 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
     public void serializeAttributes(onepoint.project.configuration.generated.impl.runtime.XMLSerializer context)
         throws org.xml.sax.SAXException
     {
-        if (has_Encrypted) {
-            context.startAttribute("", "encrypted");
+        if (_Encoding!= null) {
+            context.startAttribute("", "encoding");
             try {
-                context.text(javax.xml.bind.DatatypeConverter.printBoolean(((boolean) _Encrypted)), "Encrypted");
+                context.text(((java.lang.String) _Encoding), "Encoding");
             } catch (java.lang.Exception e) {
                 onepoint.project.configuration.generated.impl.runtime.Util.handlePrintConversionException(this, e, context);
             }
@@ -76,7 +74,7 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
     }
 
     public java.lang.Class getPrimaryInterface() {
-        return (onepoint.project.configuration.generated.OpConfigDatabasePassword.class);
+        return (onepoint.project.configuration.generated.OpSecret.class);
     }
 
     public com.sun.msv.verifier.DocumentDeclaration createRawValidator() {
@@ -103,18 +101,15 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
 +"~\u0000\u0011sr\u0000\u001dcom.sun.msv.grammar.ChoiceExp\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000\u0001ppsr\u0000 c"
 +"om.sun.msv.grammar.AttributeExp\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0002L\u0000\u0003expq\u0000~\u0000\u0002L\u0000\tname"
 +"Classt\u0000\u001fLcom/sun/msv/grammar/NameClass;xq\u0000~\u0000\u0003sr\u0000\u0011java.lang.B"
-+"oolean\u00cd r\u0080\u00d5\u009c\u00fa\u00ee\u0002\u0000\u0001Z\u0000\u0005valuexp\u0000psq\u0000~\u0000\u0006ppsr\u0000$com.sun.msv.datatyp"
-+"e.xsd.BooleanType\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000\u000bq\u0000~\u0000\u0011t\u0000\u0007booleansr\u00005com.sun"
-+".msv.datatype.xsd.WhiteSpaceProcessor$Collapse\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000"
-+"~\u0000\u0014q\u0000~\u0000\u0017sq\u0000~\u0000\u0018q\u0000~\u0000$q\u0000~\u0000\u0011sr\u0000#com.sun.msv.grammar.SimpleNameCl"
-+"ass\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0002L\u0000\tlocalNameq\u0000~\u0000\u000eL\u0000\fnamespaceURIq\u0000~\u0000\u000exr\u0000\u001dcom.s"
-+"un.msv.grammar.NameClass\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xpt\u0000\tencryptedt\u0000\u0000sr\u00000com."
-+"sun.msv.grammar.Expression$EpsilonExpression\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000"
-+"\u0003sq\u0000~\u0000\u001f\u0001q\u0000~\u0000.sr\u0000\"com.sun.msv.grammar.ExpressionPool\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002"
-+"\u0000\u0001L\u0000\bexpTablet\u0000/Lcom/sun/msv/grammar/ExpressionPool$ClosedHa"
-+"sh;xpsr\u0000-com.sun.msv.grammar.ExpressionPool$ClosedHash\u00d7j\u00d0N\u00ef\u00e8"
-+"\u00ed\u001c\u0003\u0000\u0003I\u0000\u0005countB\u0000\rstreamVersionL\u0000\u0006parentt\u0000$Lcom/sun/msv/gramma"
-+"r/ExpressionPool;xp\u0000\u0000\u0000\u0002\u0001pq\u0000~\u0000\u001bq\u0000~\u0000\u0005x"));
++"oolean\u00cd r\u0080\u00d5\u009c\u00fa\u00ee\u0002\u0000\u0001Z\u0000\u0005valuexp\u0000pq\u0000~\u0000\tsr\u0000#com.sun.msv.grammar.Si"
++"mpleNameClass\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0002L\u0000\tlocalNameq\u0000~\u0000\u000eL\u0000\fnamespaceURIq\u0000~\u0000"
++"\u000exr\u0000\u001dcom.sun.msv.grammar.NameClass\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xpt\u0000\bencodingt\u0000"
++"\u0000sr\u00000com.sun.msv.grammar.Expression$EpsilonExpression\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
++"\u0001\u0002\u0000\u0000xq\u0000~\u0000\u0003sq\u0000~\u0000\u001f\u0001q\u0000~\u0000\'sr\u0000\"com.sun.msv.grammar.ExpressionPool"
++"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0001L\u0000\bexpTablet\u0000/Lcom/sun/msv/grammar/ExpressionPool"
++"$ClosedHash;xpsr\u0000-com.sun.msv.grammar.ExpressionPool$ClosedH"
++"ash\u00d7j\u00d0N\u00ef\u00e8\u00ed\u001c\u0003\u0000\u0003I\u0000\u0005countB\u0000\rstreamVersionL\u0000\u0006parentt\u0000$Lcom/sun/m"
++"sv/grammar/ExpressionPool;xp\u0000\u0000\u0000\u0002\u0001pq\u0000~\u0000\u001bq\u0000~\u0000\u0005x"));
         }
         return new com.sun.msv.verifier.regexp.REDocumentDeclaration(schemaFragment);
     }
@@ -134,7 +129,7 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
         }
 
         public java.lang.Object owner() {
-            return onepoint.project.configuration.generated.impl.OpConfigDatabasePasswordImpl.this;
+            return onepoint.project.configuration.generated.impl.OpSecretImpl.this;
         }
 
         public void enterElement(java.lang.String ___uri, java.lang.String ___local, java.lang.String ___qname, org.xml.sax.Attributes __atts)
@@ -144,8 +139,11 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             outer:
             while (true) {
                 switch (state) {
+                    case  4 :
+                        revertToParentFromEnterElement(___uri, ___local, ___qname, __atts);
+                        return ;
                     case  0 :
-                        attIdx = context.getAttribute("", "encrypted");
+                        attIdx = context.getAttribute("", "encoding");
                         if (attIdx >= 0) {
                             final java.lang.String v = context.eatAttribute(attIdx);
                             state = 3;
@@ -154,9 +152,6 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
                         }
                         state = 3;
                         continue outer;
-                    case  4 :
-                        revertToParentFromEnterElement(___uri, ___local, ___qname, __atts);
-                        return ;
                 }
                 super.enterElement(___uri, ___local, ___qname, __atts);
                 break;
@@ -167,8 +162,7 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             throws org.xml.sax.SAXException
         {
             try {
-                _Encrypted = javax.xml.bind.DatatypeConverter.parseBoolean(com.sun.xml.bind.WhiteSpaceProcessor.collapse(value));
-                has_Encrypted = true;
+                _Encoding = value;
             } catch (java.lang.Exception e) {
                 handleParseConversionException(e);
             }
@@ -181,8 +175,11 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             outer:
             while (true) {
                 switch (state) {
+                    case  4 :
+                        revertToParentFromLeaveElement(___uri, ___local, ___qname);
+                        return ;
                     case  0 :
-                        attIdx = context.getAttribute("", "encrypted");
+                        attIdx = context.getAttribute("", "encoding");
                         if (attIdx >= 0) {
                             final java.lang.String v = context.eatAttribute(attIdx);
                             state = 3;
@@ -191,9 +188,6 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
                         }
                         state = 3;
                         continue outer;
-                    case  4 :
-                        revertToParentFromLeaveElement(___uri, ___local, ___qname);
-                        return ;
                 }
                 super.leaveElement(___uri, ___local, ___qname);
                 break;
@@ -207,16 +201,16 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             outer:
             while (true) {
                 switch (state) {
+                    case  4 :
+                        revertToParentFromEnterAttribute(___uri, ___local, ___qname);
+                        return ;
                     case  0 :
-                        if (("encrypted" == ___local)&&("" == ___uri)) {
+                        if (("encoding" == ___local)&&("" == ___uri)) {
                             state = 1;
                             return ;
                         }
                         state = 3;
                         continue outer;
-                    case  4 :
-                        revertToParentFromEnterAttribute(___uri, ___local, ___qname);
-                        return ;
                 }
                 super.enterAttribute(___uri, ___local, ___qname);
                 break;
@@ -230,8 +224,17 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             outer:
             while (true) {
                 switch (state) {
+                    case  2 :
+                        if (("encoding" == ___local)&&("" == ___uri)) {
+                            state = 3;
+                            return ;
+                        }
+                        break;
+                    case  4 :
+                        revertToParentFromLeaveAttribute(___uri, ___local, ___qname);
+                        return ;
                     case  0 :
-                        attIdx = context.getAttribute("", "encrypted");
+                        attIdx = context.getAttribute("", "encoding");
                         if (attIdx >= 0) {
                             final java.lang.String v = context.eatAttribute(attIdx);
                             state = 3;
@@ -240,15 +243,6 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
                         }
                         state = 3;
                         continue outer;
-                    case  2 :
-                        if (("encrypted" == ___local)&&("" == ___uri)) {
-                            state = 3;
-                            return ;
-                        }
-                        break;
-                    case  4 :
-                        revertToParentFromLeaveAttribute(___uri, ___local, ___qname);
-                        return ;
                 }
                 super.leaveAttribute(___uri, ___local, ___qname);
                 break;
@@ -263,8 +257,15 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
             while (true) {
                 try {
                     switch (state) {
+                        case  4 :
+                            revertToParentFromText(value);
+                            return ;
+                        case  1 :
+                            state = 2;
+                            eatText1(value);
+                            return ;
                         case  0 :
-                            attIdx = context.getAttribute("", "encrypted");
+                            attIdx = context.getAttribute("", "encoding");
                             if (attIdx >= 0) {
                                 final java.lang.String v = context.eatAttribute(attIdx);
                                 state = 3;
@@ -273,13 +274,6 @@ public class OpConfigDatabasePasswordImpl implements onepoint.project.configurat
                             }
                             state = 3;
                             continue outer;
-                        case  4 :
-                            revertToParentFromText(value);
-                            return ;
-                        case  1 :
-                            state = 2;
-                            eatText1(value);
-                            return ;
                         case  3 :
                             state = 4;
                             eatText2(value);

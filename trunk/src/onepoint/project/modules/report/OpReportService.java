@@ -15,10 +15,15 @@ import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.configuration.OpNewConfigurationHandler;
+import onepoint.project.configuration.generated.OpReportWorkflow;
+import onepoint.project.configuration.generated.OpSecret;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.util.OpHashProvider;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocaleMap;
 import onepoint.resource.XLocalizer;
@@ -33,6 +38,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
 
 public class OpReportService extends OpProjectService {
 
@@ -76,6 +86,17 @@ public class OpReportService extends OpProjectService {
 
    private static final List SUPPORTED_FORMATS = Arrays.asList(REPORT_TYPE_PDF, REPORT_TYPE_HTML, REPORT_TYPE_XML, REPORT_TYPE_XLS, REPORT_TYPE_CSV);
 
+   private static final String UTC_TIME_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
+   private static final String TITLE = "Title";
+
+   private static final String CREATED = "Created";
+
+   private static final String CREATOR = "Creator";
+
+   private static final String SECURE = "Secure";
+
+   private static final String FILENAME = "Filename";
+   
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
       XMessage response;
@@ -150,6 +171,117 @@ public class OpReportService extends OpProjectService {
       }
       logger.debug("/OpReportService.createReport()");
       return response;
+   }
+
+   /**
+    * Saves the report content the database.
+    *
+    * @param session a <code>OpProjectSession</code> representing the current server session.
+    * @param request a <code>XMessage</code> representing the current request.
+    * @return a <code>XMessage</code> representing the response.
+    */
+   public XMessage sendReport(OpProjectSession session, XMessage request) {
+      XMessage response;
+      String name = (String) (request.getArgument(NAME));
+      String reportName = getReportName(name);
+      
+      // Read format of the report to be generated.
+      List formats = (List) (request.getArgument(FORMATS));
+      String format = REPORT_TYPE_PDF; // define default format to PDF
+      if (formats != null && formats.size() > 0) {
+         format = (String) formats.get(0);
+
+         // check if the export format is supported or not.
+         if (!SUPPORTED_FORMATS.contains(format.toUpperCase())) {
+            response = new XMessage();
+            XError error = session.newError(ERROR_MAP, OpReportError.INVALID_REPORT_FORMAT);
+            response.setError(error);
+            return response;
+         }
+      }
+      OpReportWorkflow rf = OpNewConfigurationHandler.getInstance().getOpConfiguration().getReportWorkflow();
+      OpSecret sharedSecret = OpNewConfigurationHandler.getInstance().getOpConfiguration().getSharedSecret();
+      if (rf == null || !rf.isEnabled()) {
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
+         response.setError(error);
+         return response;         
+      }
+
+      OpReportManager xrm = OpReportManager.getReportManager(session);
+
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+      String fileSuffix = "."+format.toLowerCase();
+
+      try {
+         //create the content
+         JasperPrint compiledReport = createJasperPrint(session, request);
+         // write report to byte array
+         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+         exportReport(session, compiledReport, format, byteOut);//new FileOutputStream(tmpFile));
+
+         // get all required params
+         SimpleDateFormat sdf = new SimpleDateFormat(UTC_TIME_FORMAT);
+         sdf.setTimeZone(TimeZone.getTimeZone("GMT:00"));  
+         String creationDate = sdf.format(new Date());
+         OpUser user = session.user(broker);
+         String creator = "";
+         if (user != null) {
+            creator = user.getDisplayName();
+         }
+         //get the resource map for the report         
+         String title = xrm.getLocalizedJasperFileName(name, session.getLocale().getID());
+         if (title == null) {
+            title = xrm.getLocalizedJasperFileName(name);
+         }
+         //(String)request.getArgument(TITLE);
+         PostMethod filePost = new PostMethod(rf.getWorkflowTargetUrl());
+         // add header fields: Title, Created, Creator, and Secure
+         filePost.addRequestHeader(TITLE, title);
+         filePost.addRequestHeader(CREATED, creationDate);
+         filePost.addRequestHeader(CREATOR, creator);
+         filePost.addRequestHeader(FILENAME, name);
+
+         //Title, Created, Creator, shared-secret
+         String encriptionData = title+"\n"+creationDate+"\n"+creator+"\n"+sharedSecret.getValue()+"\n";
+         String secureHash = new OpHashProvider().calculateHash(encriptionData, sharedSecret.getEncoding());
+         filePost.addRequestHeader(SECURE, secureHash);
+         
+         filePost.setRequestEntity(
+               new ByteArrayRequestEntity(byteOut.toByteArray(), "application/pdf")
+             );
+         HttpClient client = new HttpClient();
+         int status = client.executeMethod(filePost);
+         if (status != HttpStatus.SC_OK) {
+            logger.error("sendReport to url: "+rf.getWorkflowTargetUrl()+" returned status code: "+status);
+            response = new XMessage();
+            XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
+            response.setError(error);
+            return response;         
+        }
+         tx.commit();
+         response = new XMessage();
+         response.setArgument(REPORT_NAME, name);
+         return response;
+      }
+      catch (OpReportException e) {
+         logger.error("Cannot send report into db", e);
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
+         response.setError(error);
+         return response;         
+      }
+      catch (IOException exc) {
+         logger.error("Cannot send report into db", exc);
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
+         response.setError(error);
+         return response;         
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**

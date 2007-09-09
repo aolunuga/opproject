@@ -33,6 +33,7 @@ public class OpMappingsGenerator {
    public final static String COLUMN_NAME_PREFIX = "op_";
    public final static String COLUMN_NAME_POSTFIX = "";
    public final static String TABLE_NAME_PREFIX = "op_";
+
    private final static String TABLE_NAME_POSTFIX = "";
    private final static String JOIN_NAME_SEPARATOR = "_";
 
@@ -175,7 +176,10 @@ public class OpMappingsGenerator {
 
       // Add hard-coded primary key property "ID"
       appendLine(buffer, "<id name=\"ID\" column=\"op_id\" type=\"long\">", level + 1);
-      appendLine(buffer, "<generator class=\"hilo\"/>", level + 2);
+      appendLine(buffer, "<generator class=\"hilo\">", level + 2);
+      appendLine(buffer, "<param name=\"table\">" + OpHibernateSource.HILO_GENERATOR_TABLE_NAME + "</param>", level + 3);
+      appendLine(buffer, "<param name=\"column\">" + OpHibernateSource.HILO_GENERATOR_COLUMN_NAME + "</param>", level + 3);
+      appendLine(buffer, "</generator>", level + 2);
       appendLine(buffer, "</id>", level + 1);
 
       // Add members

@@ -35,7 +35,7 @@ public class OpClientLauncherLoader extends XLoader {
     * @return <code>OpClientLauncherConfiguration</code>
     */
    public OpClientLauncherConfiguration loadConfiguration(String fileName) {
-      return (OpClientLauncherConfiguration) (loadObject(fileName, new XContext()));
+      return (OpClientLauncherConfiguration) (loadObject(null, fileName, new XContext()));
    }
 }
 
