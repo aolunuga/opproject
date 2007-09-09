@@ -20,7 +20,7 @@
       <resource id="InvalidCredentials">User name or password are invalid</resource>
       <resource id="InvalidConnectionString">The connect string is invalid</resource>
       <resource id="GeneralConnectionError">Cannot connect to the database</resource>
-      <resource id="JDBCDriverError">Cannot load the JDBC driver for the given database type</resource>
+      <resource id="JDBCDriverError">Cannot load the <parameter name="Protocol"/> JDBC driver</resource>
       <resource id="InvalidMySqlEngine">You are using a non-transactional database which may cause severe data inconsistencies. Please refer to the README file for database upgrading instructions</resource>
       <resource id="InvalidDemodataFile">You are trying to load a file that does not exist</resource>
       <resource id="RestoreError">An error occurred during restore</resource>

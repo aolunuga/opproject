@@ -248,6 +248,10 @@ public class OpProjectSession extends XExpressSession {
       return errorMap.newError(errorCode, getLocale(), args);
    }
 
+   public XError newError(XErrorMap errorMap, int errorCode, Map<String, String> args) {
+      return errorMap.newError(errorCode, getLocale(), args);
+   }
+
    public byte effectiveAccessLevel(OpBroker broker, long objectId) {
       // Site administrator has always administrative access
       if (userId == administratorId) {

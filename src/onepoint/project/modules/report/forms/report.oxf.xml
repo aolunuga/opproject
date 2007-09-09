@@ -15,9 +15,12 @@
          <tool-bar id="ReportToolbar">
             <tool-button id="RunQueryButton" text="${RunQuery}" icon="/modules/report/icons/run_query.png"
                          on-button-pressed="runQuery" tooltip="${QuickQueryTooltip}"/>
-             <tool-button id="CreateReportButton" text="${CreateReport}"
+            <tool-button id="CreateReportButton" text="${CreateReport}"
                          icon="/modules/report/icons/create_report.png"
                          on-button-pressed="createReport" tooltip="${CreateReportTooltip}"/>
+            <tool-button id="SendReportButton" text="${SendReport}"
+                         icon="/modules/report/icons/send_report.png"
+                         on-button-pressed="sendReport" tooltip="${SendReportTooltip}"/>
             <tool-button id="ResetQueryButton" text="${ResetQuery}" icon="/modules/report/icons/reset_report.png"
                          on-button-pressed="resetQuery" tooltip="${ResetQueryTooltip}"/>
             <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png"

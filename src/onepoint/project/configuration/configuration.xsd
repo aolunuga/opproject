@@ -15,6 +15,8 @@
          <xsd:element name="resource-cache-size" type="xsd:string" minOccurs="0"/>
          <xsd:element name="backup-path" type="xsd:string" minOccurs="0"/>
          <xsd:element name="max-attachment-size" type="xsd:string"  default="5" minOccurs="0"/>
+         <xsd:element name="shared-secret" type="OpSecret" minOccurs="0"/>
+         <xsd:element name="report-workflow" type="OpReportWorkflow" minOccurs="0"/>
          <xsd:element name="ldap" type="OpLdapConfig" minOccurs="0"/>
       </xsd:all>
    </xsd:complexType>
@@ -41,6 +43,21 @@
       </xsd:simpleContent>
    </xsd:complexType>
 
+   <xsd:complexType name="OpSecret">
+      <xsd:simpleContent>
+         <xsd:extension base="xsd:string">
+            <xsd:attribute name="encoding" type="xsd:string" default="SHA" use="optional"/>
+         </xsd:extension>
+      </xsd:simpleContent>
+   </xsd:complexType>
+
+   <xsd:complexType name="OpReportWorkflow">
+      <xsd:sequence>
+         <xsd:element name="workflow-target-url" type="xsd:string" />
+      </xsd:sequence>
+      <xsd:attribute name="enabled" type="xsd:boolean" default="false" />
+   </xsd:complexType>
+   
    <xsd:complexType name="OpLdapConfig">
       <xsd:sequence minOccurs="0">
          <xsd:element name="connection" type="OpLdapConnectionConfig"/>

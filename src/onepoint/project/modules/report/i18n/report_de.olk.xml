@@ -6,6 +6,7 @@
       <resource id="ReportNavigator">BERICHTSNAVIGATOR</resource>
       <resource id="RunQuery">Schnellabfrage</resource>
       <resource id="CreateReport">Bericht erstellen</resource>
+      <resource id="SendReport">Bericht senden</resource>
       <resource id="ResetQuery">Abfrage zurücksetzen</resource>
       <resource id="Print">Drucken</resource>
       <resource id="ProjectEffort">Projektaufwand</resource>
@@ -20,6 +21,7 @@
       <resource id="CreateReportTooltip">Bericht erstellen und anzeigen</resource>
       <resource id="ResetQueryTooltip">Abfrageformular zurücksetzen</resource>
       <resource id="PrintTooltip">Diese Ansicht drucken</resource>
+      <resource id="SendReportTooltip">Report über das Web versenden</resource>      
 
    </resource-map>
    <resource-map id="report.error">
@@ -30,5 +32,6 @@
       <resource id="InvalidReportFormat">Angefordertes Berichtsformat wird nicht unterstützt</resource>
       <resource id="CreateReportException">Beim Erstellen des Berichts ist ein Fehler aufgetreten</resource>
       <resource id="SaveReportException">Beim Speichern des Berichts ist ein Fehler aufgetreten</resource>
+      <resource id="SendReportException">Beim Versenden des Berichtes ist ein Fehler aufgetreten</resource>
    </resource-map>
 </language-kit>

@@ -6,6 +6,7 @@ package onepoint.persistence;
 
 /**
  * This represents the superclass of any data source.
+ * <FIXME author="Horia Chiorean" description="This class shouldn't exist. We are only using hibernate...and this leads to confusion and *ugly* code">
  */
 public abstract class OpSource {
    // source name.

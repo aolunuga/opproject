@@ -8,55 +8,52 @@
 
 package onepoint.project.configuration.generated.impl;
 
-public class OpLdapReplaceImpl implements onepoint.project.configuration.generated.OpLdapReplace, com.sun.xml.bind.JAXBObject, onepoint.project.configuration.generated.impl.runtime.UnmarshallableObject, onepoint.project.configuration.generated.impl.runtime.XMLSerializable, onepoint.project.configuration.generated.impl.runtime.ValidatableObject
+public class OpReportWorkflowImpl implements onepoint.project.configuration.generated.OpReportWorkflow, com.sun.xml.bind.JAXBObject, onepoint.project.configuration.generated.impl.runtime.UnmarshallableObject, onepoint.project.configuration.generated.impl.runtime.XMLSerializable, onepoint.project.configuration.generated.impl.runtime.ValidatableObject
 {
 
-    protected java.lang.String _To;
-    protected java.lang.String _From;
+    protected boolean has_Enabled;
+    protected boolean _Enabled;
+    protected java.lang.String _WorkflowTargetUrl;
     public final static java.lang.Class version = (onepoint.project.configuration.generated.impl.JAXBVersion.class);
     private static com.sun.msv.grammar.Grammar schemaFragment;
 
     private final static java.lang.Class PRIMARY_INTERFACE_CLASS() {
-        return (onepoint.project.configuration.generated.OpLdapReplace.class);
+        return (onepoint.project.configuration.generated.OpReportWorkflow.class);
     }
 
-    public java.lang.String getTo() {
-        return _To;
+    public boolean isEnabled() {
+        if (!has_Enabled) {
+            return javax.xml.bind.DatatypeConverter.parseBoolean(com.sun.xml.bind.DatatypeConverterImpl.installHook("false"));
+        } else {
+            return _Enabled;
+        }
     }
 
-    public void setTo(java.lang.String value) {
-        _To = value;
+    public void setEnabled(boolean value) {
+        _Enabled = value;
+        has_Enabled = true;
     }
 
-    public java.lang.String getFrom() {
-        return _From;
+    public java.lang.String getWorkflowTargetUrl() {
+        return _WorkflowTargetUrl;
     }
 
-    public void setFrom(java.lang.String value) {
-        _From = value;
+    public void setWorkflowTargetUrl(java.lang.String value) {
+        _WorkflowTargetUrl = value;
     }
 
     public onepoint.project.configuration.generated.impl.runtime.UnmarshallingEventHandler createUnmarshaller(onepoint.project.configuration.generated.impl.runtime.UnmarshallingContext context) {
-        return new onepoint.project.configuration.generated.impl.OpLdapReplaceImpl.Unmarshaller(context);
+        return new onepoint.project.configuration.generated.impl.OpReportWorkflowImpl.Unmarshaller(context);
     }
 
     public void serializeBody(onepoint.project.configuration.generated.impl.runtime.XMLSerializer context)
         throws org.xml.sax.SAXException
     {
-        context.startElement("", "from");
+        context.startElement("", "workflow-target-url");
         context.endNamespaceDecls();
         context.endAttributes();
         try {
-            context.text(((java.lang.String) _From), "From");
-        } catch (java.lang.Exception e) {
-            onepoint.project.configuration.generated.impl.runtime.Util.handlePrintConversionException(this, e, context);
-        }
-        context.endElement();
-        context.startElement("", "to");
-        context.endNamespaceDecls();
-        context.endAttributes();
-        try {
-            context.text(((java.lang.String) _To), "To");
+            context.text(((java.lang.String) _WorkflowTargetUrl), "WorkflowTargetUrl");
         } catch (java.lang.Exception e) {
             onepoint.project.configuration.generated.impl.runtime.Util.handlePrintConversionException(this, e, context);
         }
@@ -66,6 +63,15 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
     public void serializeAttributes(onepoint.project.configuration.generated.impl.runtime.XMLSerializer context)
         throws org.xml.sax.SAXException
     {
+        if (has_Enabled) {
+            context.startAttribute("", "enabled");
+            try {
+                context.text(javax.xml.bind.DatatypeConverter.printBoolean(((boolean) _Enabled)), "Enabled");
+            } catch (java.lang.Exception e) {
+                onepoint.project.configuration.generated.impl.runtime.Util.handlePrintConversionException(this, e, context);
+            }
+            context.endAttribute();
+        }
     }
 
     public void serializeURIs(onepoint.project.configuration.generated.impl.runtime.XMLSerializer context)
@@ -74,7 +80,7 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
     }
 
     public java.lang.Class getPrimaryInterface() {
-        return (onepoint.project.configuration.generated.OpLdapReplace.class);
+        return (onepoint.project.configuration.generated.OpReportWorkflow.class);
     }
 
     public com.sun.msv.verifier.DocumentDeclaration createRawValidator() {
@@ -111,13 +117,15 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
 +"s\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0002L\u0000\tlocalNameq\u0000~\u0000\u0013L\u0000\fnamespaceURIq\u0000~\u0000\u0013xr\u0000\u001dcom.sun"
 +".msv.grammar.NameClass\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xpt\u0000\u0004typet\u0000)http://www.w3.o"
 +"rg/2001/XMLSchema-instancesr\u00000com.sun.msv.grammar.Expression"
-+"$EpsilonExpression\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000\u0003sq\u0000~\u0000#\u0001q\u0000~\u00002sq\u0000~\u0000,t\u0000\u0004from"
-+"t\u0000\u0000sq\u0000~\u0000\u0006pp\u0000sq\u0000~\u0000\u0000ppq\u0000~\u0000\u000esq\u0000~\u0000\u001fppsq\u0000~\u0000!q\u0000~\u0000$pq\u0000~\u0000%q\u0000~\u0000.q\u0000~\u00002"
-+"sq\u0000~\u0000,t\u0000\u0002toq\u0000~\u00006sr\u0000\"com.sun.msv.grammar.ExpressionPool\u0000\u0000\u0000\u0000\u0000\u0000"
-+"\u0000\u0001\u0002\u0000\u0001L\u0000\bexpTablet\u0000/Lcom/sun/msv/grammar/ExpressionPool$Close"
-+"dHash;xpsr\u0000-com.sun.msv.grammar.ExpressionPool$ClosedHash\u00d7j\u00d0"
-+"N\u00ef\u00e8\u00ed\u001c\u0003\u0000\u0003I\u0000\u0005countB\u0000\rstreamVersionL\u0000\u0006parentt\u0000$Lcom/sun/msv/gra"
-+"mmar/ExpressionPool;xp\u0000\u0000\u0000\u0005\u0001pq\u0000~\u0000\nq\u0000~\u00008q\u0000~\u0000\u0005q\u0000~\u0000 q\u0000~\u00009x"));
++"$EpsilonExpression\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000\u0003sq\u0000~\u0000#\u0001q\u0000~\u00002sq\u0000~\u0000,t\u0000\u0013work"
++"flow-target-urlt\u0000\u0000sq\u0000~\u0000\u001fppsq\u0000~\u0000!q\u0000~\u0000$psq\u0000~\u0000\u000bppsr\u0000$com.sun.ms"
++"v.datatype.xsd.BooleanType\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0000xq\u0000~\u0000\u0010q\u0000~\u0000\u0016t\u0000\u0007booleanq\u0000"
++"~\u0000*q\u0000~\u0000\u001csq\u0000~\u0000\u001dq\u0000~\u0000<q\u0000~\u0000\u0016sq\u0000~\u0000,t\u0000\u0007enabledq\u0000~\u00006q\u0000~\u00002sr\u0000\"com.su"
++"n.msv.grammar.ExpressionPool\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0002\u0000\u0001L\u0000\bexpTablet\u0000/Lcom/su"
++"n/msv/grammar/ExpressionPool$ClosedHash;xpsr\u0000-com.sun.msv.gr"
++"ammar.ExpressionPool$ClosedHash\u00d7j\u00d0N\u00ef\u00e8\u00ed\u001c\u0003\u0000\u0003I\u0000\u0005countB\u0000\rstreamV"
++"ersionL\u0000\u0006parentt\u0000$Lcom/sun/msv/grammar/ExpressionPool;xp\u0000\u0000\u0000\u0004"
++"\u0001pq\u0000~\u0000\u0005q\u0000~\u00007q\u0000~\u0000\nq\u0000~\u0000 x"));
         }
         return new com.sun.msv.verifier.regexp.REDocumentDeclaration(schemaFragment);
     }
@@ -137,7 +145,7 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
         }
 
         public java.lang.Object owner() {
-            return onepoint.project.configuration.generated.impl.OpLdapReplaceImpl.this;
+            return onepoint.project.configuration.generated.impl.OpReportWorkflowImpl.this;
         }
 
         public void enterElement(java.lang.String ___uri, java.lang.String ___local, java.lang.String ___qname, org.xml.sax.Attributes __atts)
@@ -148,25 +156,39 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             while (true) {
                 switch (state) {
                     case  3 :
-                        if (("to" == ___local)&&("" == ___uri)) {
+                        if (("workflow-target-url" == ___local)&&("" == ___uri)) {
                             context.pushAttributes(__atts, true);
                             state = 4;
                             return ;
                         }
                         break;
                     case  0 :
-                        if (("from" == ___local)&&("" == ___uri)) {
-                            context.pushAttributes(__atts, true);
-                            state = 1;
-                            return ;
+                        attIdx = context.getAttribute("", "enabled");
+                        if (attIdx >= 0) {
+                            final java.lang.String v = context.eatAttribute(attIdx);
+                            state = 3;
+                            eatText1(v);
+                            continue outer;
                         }
-                        break;
+                        state = 3;
+                        continue outer;
                     case  6 :
                         revertToParentFromEnterElement(___uri, ___local, ___qname, __atts);
                         return ;
                 }
                 super.enterElement(___uri, ___local, ___qname, __atts);
                 break;
+            }
+        }
+
+        private void eatText1(final java.lang.String value)
+            throws org.xml.sax.SAXException
+        {
+            try {
+                _Enabled = javax.xml.bind.DatatypeConverter.parseBoolean(com.sun.xml.bind.WhiteSpaceProcessor.collapse(value));
+                has_Enabled = true;
+            } catch (java.lang.Exception e) {
+                handleParseConversionException(e);
             }
         }
 
@@ -177,15 +199,18 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             outer:
             while (true) {
                 switch (state) {
-                    case  2 :
-                        if (("from" == ___local)&&("" == ___uri)) {
-                            context.popAttributes();
+                    case  0 :
+                        attIdx = context.getAttribute("", "enabled");
+                        if (attIdx >= 0) {
+                            final java.lang.String v = context.eatAttribute(attIdx);
                             state = 3;
-                            return ;
+                            eatText1(v);
+                            continue outer;
                         }
-                        break;
+                        state = 3;
+                        continue outer;
                     case  5 :
-                        if (("to" == ___local)&&("" == ___uri)) {
+                        if (("workflow-target-url" == ___local)&&("" == ___uri)) {
                             context.popAttributes();
                             state = 6;
                             return ;
@@ -207,6 +232,13 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             outer:
             while (true) {
                 switch (state) {
+                    case  0 :
+                        if (("enabled" == ___local)&&("" == ___uri)) {
+                            state = 1;
+                            return ;
+                        }
+                        state = 3;
+                        continue outer;
                     case  6 :
                         revertToParentFromEnterAttribute(___uri, ___local, ___qname);
                         return ;
@@ -223,6 +255,22 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             outer:
             while (true) {
                 switch (state) {
+                    case  0 :
+                        attIdx = context.getAttribute("", "enabled");
+                        if (attIdx >= 0) {
+                            final java.lang.String v = context.eatAttribute(attIdx);
+                            state = 3;
+                            eatText1(v);
+                            continue outer;
+                        }
+                        state = 3;
+                        continue outer;
+                    case  2 :
+                        if (("enabled" == ___local)&&("" == ___uri)) {
+                            state = 3;
+                            return ;
+                        }
+                        break;
                     case  6 :
                         revertToParentFromLeaveAttribute(___uri, ___local, ___qname);
                         return ;
@@ -240,16 +288,26 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             while (true) {
                 try {
                     switch (state) {
+                        case  0 :
+                            attIdx = context.getAttribute("", "enabled");
+                            if (attIdx >= 0) {
+                                final java.lang.String v = context.eatAttribute(attIdx);
+                                state = 3;
+                                eatText1(v);
+                                continue outer;
+                            }
+                            state = 3;
+                            continue outer;
                         case  4 :
                             state = 5;
-                            eatText1(value);
+                            eatText2(value);
                             return ;
                         case  6 :
                             revertToParentFromText(value);
                             return ;
                         case  1 :
                             state = 2;
-                            eatText2(value);
+                            eatText1(value);
                             return ;
                     }
                 } catch (java.lang.RuntimeException e) {
@@ -259,21 +317,11 @@ public class OpLdapReplaceImpl implements onepoint.project.configuration.generat
             }
         }
 
-        private void eatText1(final java.lang.String value)
-            throws org.xml.sax.SAXException
-        {
-            try {
-                _To = value;
-            } catch (java.lang.Exception e) {
-                handleParseConversionException(e);
-            }
-        }
-
         private void eatText2(final java.lang.String value)
             throws org.xml.sax.SAXException
         {
             try {
-                _From = value;
+                _WorkflowTargetUrl = value;
             } catch (java.lang.Exception e) {
                 handleParseConversionException(e);
             }

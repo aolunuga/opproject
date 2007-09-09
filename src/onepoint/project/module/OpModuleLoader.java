@@ -30,7 +30,7 @@ public class OpModuleLoader extends XLoader {
 
    public OpModule loadModule(String moduleFileName) {
       logger.info("Loading module: " + moduleFileName);
-      OpModule module = (OpModule) (loadObject(moduleFileName, null));
+      OpModule module = (OpModule) (loadObject(null, moduleFileName, null));
       module.loadParts();
       return module;
    }

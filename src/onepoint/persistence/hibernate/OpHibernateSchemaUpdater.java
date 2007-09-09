@@ -12,6 +12,7 @@ import onepoint.persistence.OpRelationship;
 import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.sql.OpSqlStatement;
 import onepoint.persistence.sql.OpSqlStatementFactory;
+import onepoint.project.util.OpProjectConstants;
 import org.hibernate.type.NullableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
@@ -38,7 +39,7 @@ public final class OpHibernateSchemaUpdater {
 
    static {
       TABLES_WITHOUT_PROTOTYPE.add(OpHibernateSource.SCHEMA_TABLE);
-      TABLES_WITHOUT_PROTOTYPE.add("op_object");
+      TABLES_WITHOUT_PROTOTYPE.add(OpProjectConstants.OP_OBJECT_TABLE_NAME);
    }
 
    /**
@@ -61,7 +62,7 @@ public final class OpHibernateSchemaUpdater {
    /**
     * List of predifined indexes
     */
-   private static final List EXCLUDE_INDEX_NAMES = Arrays.asList(new String[]{"PRIMARY"});
+   private static final List EXCLUDE_INDEX_NAMES = Arrays.asList("PRIMARY");
 
    /**
     * A map of table metadata.
@@ -87,10 +88,11 @@ public final class OpHibernateSchemaUpdater {
    /**
     * Creates a new updater instance.
     *
-    * @param source a <code>OpHibernateSource</code> that is used during the update process.
+    * @param databaseType a <code>Integer</code> a data-base type constant as defined by the hibernate source.
+    * @see onepoint.persistence.hibernate.OpHibernateSource
     */
-   public OpHibernateSchemaUpdater(OpHibernateSource source) {
-      Integer dbType = (Integer) DB_TYPES_MAP.get(new Integer(source.getDatabaseType()));
+   public OpHibernateSchemaUpdater(Integer databaseType) {
+      Integer dbType = (Integer) DB_TYPES_MAP.get(databaseType);
       if (dbType != null) {
          statement = OpSqlStatementFactory.createSqlStatement(dbType);
       }
@@ -103,11 +105,12 @@ public final class OpHibernateSchemaUpdater {
     * @return a <code>List</code> of <code>String</code> representing db information.
     */
    public List generateUpdateSchemaScripts(DatabaseMetaData dbMetaData) {
+      //add the hi/lo generator statement
+      List<String> updateStatements = new ArrayList<String>();
       try {
-
          //update column scripts
          this.populateTableMetaData(dbMetaData);
-         List updateStatements = new ArrayList();
+
          Iterator it = OpTypeManager.getPrototypes();
          while (it.hasNext()) {
             OpPrototype prototype = (OpPrototype) it.next();
@@ -116,13 +119,11 @@ public final class OpHibernateSchemaUpdater {
 
          //drop old tables
          updateStatements.addAll(generateDropTableScripts(dbMetaData));
-
-         return updateStatements;
       }
       catch (SQLException e) {
          logger.error("Cannot generate custom update scripts", e);
-         return Collections.EMPTY_LIST;
       }
+      return updateStatements;
    }
 
    /**
@@ -131,24 +132,23 @@ public final class OpHibernateSchemaUpdater {
     * @param dbMetaData a <code>DatabaseMetaData</code> object representing meta info about a db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
-   public List generateDropConstraintScripts(DatabaseMetaData dbMetaData) {
+   public List<String> generateDropConstraintScripts(DatabaseMetaData dbMetaData) {
+      List<String> dropConstraintScripts = new ArrayList<String>();
       try {
-         List dropConstraintScripts = new ArrayList();
          ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
          while (rs.next()) {
             String tableName = rs.getString(TABLE_NAME_COLUMN);
-            List tableFKConstraints = generateDropFKConstraints(tableName, dbMetaData);
+            List<String> tableFKConstraints = generateDropFKConstraints(tableName, dbMetaData);
             dropConstraintScripts.addAll(tableFKConstraints);
-            List tableIndexConstraints = generateDropIndexConstraints(tableName, dbMetaData);
+            List<String> tableIndexConstraints = generateDropIndexConstraints(tableName, dbMetaData);
             dropConstraintScripts.addAll(tableIndexConstraints);
          }
          rs.close();
-         return dropConstraintScripts;
       }
       catch (SQLException e) {
          logger.error("Cannot generate the drop constraints scripts", e);
-         return Collections.EMPTY_LIST;
       }
+      return dropConstraintScripts;
    }
 
    /**
@@ -173,10 +173,10 @@ public final class OpHibernateSchemaUpdater {
     * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
-   private List generateDropIndexConstraints(String tableName, DatabaseMetaData dbMetaData) {
+   private List<String> generateDropIndexConstraints(String tableName, DatabaseMetaData dbMetaData) {
+      List<String> dropIndexScripts = new ArrayList<String>();
       if (statement != null) {
          try {
-            List<String> dropIndexScripts = new ArrayList<String>();
             ResultSet rs = dbMetaData.getIndexInfo(null, null, tableName, false, false);
             while (rs.next()) {
                String indexName = rs.getString("INDEX_NAME");
@@ -190,13 +190,12 @@ public final class OpHibernateSchemaUpdater {
                dropIndexScripts.add(dropStatement);
             }
             rs.close();
-            return dropIndexScripts;
          }
          catch (SQLException e) {
             logger.error("Cannot get index constraints for table:" + tableName, e);
          }
       }
-      return Collections.EMPTY_LIST;
+      return dropIndexScripts;
    }
 
    /**
@@ -206,10 +205,10 @@ public final class OpHibernateSchemaUpdater {
     * @param dbMetaData a <code>DatabaseMetaData</code> containing information about the underlying db.
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
-   private List generateDropFKConstraints(String tableName, DatabaseMetaData dbMetaData) {
+   private List<String> generateDropFKConstraints(String tableName, DatabaseMetaData dbMetaData) {
+      List<String> dropFkConstraints = new ArrayList<String>();
       if (statement != null) {
          try {
-            List<String> dropFkConstraints = new ArrayList<String>();
             ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
             while (rs.next()) {
                String fkName = rs.getString("FK_NAME");
@@ -219,13 +218,12 @@ public final class OpHibernateSchemaUpdater {
                dropFkConstraints.add(dropStatement);
             }
             rs.close();
-            return dropFkConstraints;
          }
          catch (SQLException e) {
             logger.error("Cannot generate drop fk constraints for table:" + tableName, e);
          }
       }
-      return Collections.EMPTY_LIST;
+      return dropFkConstraints;
    }
 
    /**
@@ -237,28 +235,27 @@ public final class OpHibernateSchemaUpdater {
     * @return a <code>List</code> of <code>String</code> representing SQL statements.
     */
    private List<String> generateDropFKConstraints(String tableName, String columnName, DatabaseMetaData dbMetaData) {
+      List<String> dropFkConstraints = new ArrayList<String>();
       if (statement != null) {
          try {
-            List<String> dropFkConstraints = new ArrayList<String>();
             ResultSet rs = dbMetaData.getImportedKeys(null, null, tableName);
             while (rs.next()) {
                String fkName = rs.getString("FK_NAME");
                String fkColumnName = rs.getString("FKCOLUMN_NAME");
 
-               if(fkColumnName.equals(columnName)){
+               if (fkColumnName.equals(columnName)) {
                   String dropStatement = statement.getDropFKConstraintStatement(tableName, fkName);
                   logger.info("Adding drop constraint statement: " + dropStatement);
                   dropFkConstraints.add(dropStatement);
                }
             }
             rs.close();
-            return dropFkConstraints;
          }
          catch (SQLException e) {
             logger.error("Cannot generate drop fk constraints for table:" + tableName, e);
          }
       }
-      return Collections.EMPTY_LIST;
+      return dropFkConstraints;
    }
 
    /**
@@ -267,7 +264,8 @@ public final class OpHibernateSchemaUpdater {
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
     * @return a <code>List</code> of <code>String</code> representing drop scripts.
     */
-   private List generateDropTableScripts(DatabaseMetaData dbMetaData) {
+   private List<String> generateDropTableScripts(DatabaseMetaData dbMetaData) {
+      List<String> dropStatements = new ArrayList<String>();
       if (statement != null) {
          try {
             //get current tables
@@ -280,7 +278,6 @@ public final class OpHibernateSchemaUpdater {
             }
 
             ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
-            List<String> dropStatements = new ArrayList<String>();
             while (rs.next()) {
                String tableName = rs.getString(TABLE_NAME_COLUMN);
                if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
@@ -290,13 +287,12 @@ public final class OpHibernateSchemaUpdater {
                }
             }
             rs.close();
-            return dropStatements;
          }
          catch (SQLException e) {
             logger.error("Cannot generate custom update scripts", e);
          }
       }
-      return Collections.EMPTY_LIST;
+      return dropStatements;
    }
 
    /**
@@ -324,13 +320,14 @@ public final class OpHibernateSchemaUpdater {
    /**
     * Generates a list of sql statements that update the column of the table that correspons to the given prototype.
     *
-    * @param prototype a <code>OpPrototype</code> representing a prototype registered by the application.
+    * @param prototype  a <code>OpPrototype</code> representing a prototype registered by the application.
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
     * @return a <code>List</code> of <code>String</code> representing a list of SQL statements.
     */
-   private List generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData) {
+   private List<String> generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData) {
+      List<String> result = new ArrayList<String>();
       if (statement != null) {
-         List<String> result = new ArrayList<String>();
+
          Iterator membersIt = prototype.getMembers();
          while (membersIt.hasNext()) {
             OpMember member = (OpMember) membersIt.next();
@@ -367,20 +364,20 @@ public final class OpHibernateSchemaUpdater {
             if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
 
                //drop al fk constraints for this column before changing it's type
-               List<String> dropFkConstraints = generateDropFKConstraints(tableName,  columnName, dbMetaData);
-               for(String fkConstraint : dropFkConstraints) {
+               List<String> dropFkConstraints = generateDropFKConstraints(tableName, columnName, dbMetaData);
+               for (String fkConstraint : dropFkConstraints) {
                   logger.info("Adding drop FK statement: " + fkConstraint);
                   result.add(fkConstraint);
                }
-               
+
                String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
                logger.info("Adding update statement: " + sqlStatement);
                result.add(sqlStatement);
 
             }
          }
-         return result;
+
       }
-      return Collections.EMPTY_LIST;
+      return result;
    }
 }

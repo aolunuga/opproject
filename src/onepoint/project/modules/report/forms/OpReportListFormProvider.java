@@ -7,6 +7,8 @@ package onepoint.project.modules.report.forms;
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.project.OpProjectSession;
+import onepoint.project.configuration.OpNewConfigurationHandler;
+import onepoint.project.configuration.generated.OpReportWorkflow;
 import onepoint.project.modules.report.OpReportManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -36,6 +38,7 @@ public class OpReportListFormProvider implements XFormProvider {
     */
    private static final String CREATE_REPORT_BUTTON = "CreateReportButton";
    private static final String RUN_QUERY_BUTTON = "RunQueryButton";
+   private static final String SEND_REPORT_BUTTON = "SendReportButton";
    private static final String RESET_QUERY_BUTTON = "ResetQueryButton";
    private static final String PRINT_BUTTON = "PrintButton";
 
@@ -93,6 +96,14 @@ public class OpReportListFormProvider implements XFormProvider {
       form.findComponent(RUN_QUERY_BUTTON).setEnabled(false);
       form.findComponent(RESET_QUERY_BUTTON).setEnabled(false);
       form.findComponent(PRINT_BUTTON).setEnabled(false);
+      boolean sendReportEnabled = isSendReportEnabled();
+      if (sendReportEnabled) {
+         form.findComponent(SEND_REPORT_BUTTON).setVisible(true);
+         form.findComponent(SEND_REPORT_BUTTON).setEnabled(false);
+      } 
+      else {
+         form.findComponent(SEND_REPORT_BUTTON).setVisible(false);
+      }
    }
 
    /**
@@ -104,5 +115,22 @@ public class OpReportListFormProvider implements XFormProvider {
       XComponent previousQueryFrameField = form.findComponent(PREVIOUS_QUERY_FORM);
       previousQueryFrameField.setStringValue(queryFormName);
       form.findComponent(CREATE_REPORT_BUTTON).setEnabled(true);
+      boolean sendReportEnabled = isSendReportEnabled();
+      if (sendReportEnabled) {
+         form.findComponent(SEND_REPORT_BUTTON).setVisible(true);
+         form.findComponent(SEND_REPORT_BUTTON).setEnabled(true);
+      } 
+      else {
+         form.findComponent(SEND_REPORT_BUTTON).setVisible(false);
+      }
+   }
+   
+   /**
+    * Checks if report workflow is configured within configuration file.
+    * @return true if report workflow is enabled within configuration file, false otherwise.
+    */
+   private boolean isSendReportEnabled() {
+      OpReportWorkflow reportWorkflow = OpNewConfigurationHandler.getInstance().getOpConfiguration().getReportWorkflow();
+      return ((reportWorkflow != null) && (reportWorkflow.isEnabled()));
    }
 }

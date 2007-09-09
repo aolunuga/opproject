@@ -9,6 +9,11 @@
       <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>
       <parameter name="formats" instance-class="java.util.ArrayList" mode="input"/>
    </method>
+   <method name="sendReport">
+      <parameter name="name" instance-class="java.lang.String" mode="input"/>
+      <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>
+      <parameter name="formats" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
    <method name="setSessionReportQueryType">
       <parameter name="reportQueryType" instance-class="java.lang.String" mode="input"/>
    </method>
