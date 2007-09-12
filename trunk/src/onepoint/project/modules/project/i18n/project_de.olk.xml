@@ -41,13 +41,13 @@
       <resource id="BaseEffort">Plan (h)</resource>
       <resource id="ActualEffort">Ist (h)</resource>
       <resource id="RemainingEffort">Rest (h)</resource>
-      <resource id="ProjectedEffort">Erwarted (h)</resource>
+      <resource id="ProjectedEffort">Erwartet (h)</resource>
       <resource id="DeviationEffort">Abw. (h)</resource>
       <resource id="PercentageDeviationEffort">Abw. (%)</resource>
       <resource id="BaseCosts">Plan ({CurrencySymbol})</resource>
       <resource id="ActualCosts">Ist ({CurrencySymbol})</resource>
       <resource id="RemainingCosts">Rest ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Erwarted ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Erwartet ({CurrencySymbol})</resource>
       <resource id="DeviationCosts">Abw. ({CurrencySymbol})</resource>
       <resource id="PercentageDeviationCosts">Abw. (%)</resource>
 

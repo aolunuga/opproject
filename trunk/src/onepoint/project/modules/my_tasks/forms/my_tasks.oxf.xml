@@ -41,9 +41,9 @@
    </data-set>
 
    <data-set id="FilterResourcesSet">
-      <data-row string-value="all['${All}']"/>
-      <data-row string-value="man['${Managed}']"/>
       <data-row string-value="res['${Responsible}']"/>
+      <data-row string-value="man['${Managed}']"/>
+      <data-row string-value="all['${All}']"/>
    </data-set>
 
    <data-set id="ProjectSet">

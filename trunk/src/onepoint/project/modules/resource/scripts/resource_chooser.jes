@@ -47,6 +47,7 @@ function expandDataSet(event) {
    enableResources = form.findComponent("EnableResources").getValue();
    enablePools = form.findComponent("EnablePools").getValue();
    filterIds = form.findComponent("FilteredOutIds").getValue();
+   notSelectableIds = form.findComponent("NotSelectableIds").getValue();
 
    request = new XMessage;
    request.setAction("ResourceService.expandResourcePool");
@@ -55,6 +56,7 @@ function expandDataSet(event) {
    request.setArgument("EnableResources", enableResources);
    request.setArgument("EnablePools", enablePools);
    request.setArgument("FilteredOutIds", filterIds);
+   request.setArgument("NotSelectableIds", notSelectableIds);
 
    expandNode(sourcePool, 0, request);
 }

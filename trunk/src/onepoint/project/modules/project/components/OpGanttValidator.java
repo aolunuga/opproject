@@ -1332,6 +1332,7 @@ public class OpGanttValidator extends XValidator {
             setWorkPhaseBaseEfforts(activity, new ArrayList());
             //no costs for milestones
             setBasePersonnelCosts(activity, 0.0d);
+            setBaseProceeds(activity, 0.0d);
             setBaseExternalCosts(activity, 0.0d);
             setBaseMaterialCosts(activity, 0.0d);
             setBaseMiscellaneousCosts(activity, 0.0d);
@@ -3761,7 +3762,6 @@ public class OpGanttValidator extends XValidator {
          if (detectLoops()) {
             rollback = true;
             loops = true;
-            break;
          }
 
          //revert changes made only for loop detection
@@ -3770,6 +3770,9 @@ public class OpGanttValidator extends XValidator {
             dataRow.setOutlineLevel(dataRow.getOutlineLevel() - offset);
          }
 
+         if (loops) {
+            break;
+         }
       }
 
       //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"

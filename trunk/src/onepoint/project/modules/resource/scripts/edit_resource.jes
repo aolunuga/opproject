@@ -150,7 +150,7 @@ function addProject(event) {
       i++;
    }
 
-   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true);
+   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true, null);
 }
 
 

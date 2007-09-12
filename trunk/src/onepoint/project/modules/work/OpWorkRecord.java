@@ -34,16 +34,12 @@ public class OpWorkRecord extends OpObject {
    private double personnelCosts = 0;
    private double travelCosts = 0;
    private double remTravelCosts = 0d;
-   private double remTravelCostsChange = 0d;
    private double materialCosts = 0;
    private double remMaterialCosts = 0d;
-   private double remMaterialCostsChange = 0d;
    private double externalCosts = 0;
    private double remExternalCosts = 0d;
-   private double remExternalCostsChange = 0d;
    private double miscellaneousCosts = 0;
    private double remMiscCosts = 0d;
-   private double remMiscCostsChange = 0d;
    private double actualProceeds = 0;
    private boolean completed;
    private String comment;
@@ -188,38 +184,6 @@ public class OpWorkRecord extends OpObject {
 
    public void setRemMiscCosts(Double remMiscCosts) {
       this.remMiscCosts = remMiscCosts != null ? remMiscCosts : 0;
-   }
-
-   public double getRemTravelCostsChange() {
-      return remTravelCostsChange;
-   }
-
-   public void setRemTravelCostsChange(Double remTravelCostsChange) {
-      this.remTravelCostsChange = remTravelCostsChange != null ? remTravelCostsChange : 0;
-   }
-
-   public double getRemMaterialCostsChange() {
-      return remMaterialCostsChange;
-   }
-
-   public void setRemMaterialCostsChange(Double remMaterialCostsChange) {
-      this.remMaterialCostsChange = remMaterialCostsChange != null ? remMaterialCostsChange : 0;
-   }
-
-   public double getRemExternalCostsChange() {
-      return remExternalCostsChange;
-   }
-
-   public void setRemExternalCostsChange(Double remExternalCostsChange) {
-      this.remExternalCostsChange = remExternalCostsChange != null ? remExternalCostsChange : 0;
-   }
-
-   public double getRemMiscCostsChange() {
-      return remMiscCostsChange;
-   }
-
-   public void setRemMiscCostsChange(Double remMiscCostsChange) {
-      this.remMiscCostsChange = remMiscCostsChange != null ? remMiscCostsChange : 0;
    }
 
    public Set<OpCostRecord> getCostRecords() {
@@ -425,9 +389,9 @@ public class OpWorkRecord extends OpObject {
 
    /**
     * Checks if the <code>OpWorkRecord</code> entity is an "empty" work record (it was created only because
-    * it has work records)
+    * it has cost records)
     *
-    * @return - <code>true</code> if the work record has only cost record and no other meaningful information
+    * @return <code>true</code> if the work record has only cost records and no other meaningful information
     *         or <code>false</code> otherwise
     */
    public boolean isEmpty() {

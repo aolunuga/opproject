@@ -395,6 +395,18 @@ public class OpIncrementalValidator extends OpGanttValidator {
    }
 
    /**
+    *  Validates the entire data-set, by setting the start-points to all the activities in the data-set.
+    */
+   public void validateEntireDataSet() {
+      startPoints = new HashSet();
+      for (int i = 0; i < data_set.getChildCount(); i++) {
+         XComponent activityRow = (XComponent) data_set.getChild(i);
+         startPoints.add(activityRow);
+      }
+      this.validateDataSet();
+   }
+
+   /**
     * Returns a set with the independent activities from the underlying data-set.
     *
     * @return a <code>Set(XComponent(DATA_ROW))</code> representing independent

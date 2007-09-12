@@ -77,6 +77,7 @@ function retrieveChildren(event) {
    enablePortfolios = form.findComponent("EnablePortfolios").getBooleanValue();
    enableTemplates = form.findComponent("EnableTemplates").getBooleanValue();
    filteredOutIds = form.findComponent("FilteredOutIds").getListValue();
+   nonSelectableIds = form.findComponent("NotSelectableIds").getListValue();
 
    request = new XMessage;
    request.setAction("ProjectService.expandProjectChooserNode");
@@ -85,6 +86,7 @@ function retrieveChildren(event) {
    request.setArgument("EnablePortfolios", enablePortfolios);
    request.setArgument("EnableTemplates", enableTemplates);
    request.setArgument("FilteredOutIds", filteredOutIds);
+   request.setArgument("NotSelectableIds", nonSelectableIds);
 
    expandNode(dataRow, 1, request);   
 }

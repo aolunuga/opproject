@@ -21,10 +21,10 @@
       <resource id="SelectCalendar">(Kalender auswählen)</resource>      
       <resource id="MilestoneControllingInterval">Meilenstein-Controllingintervall (in Wochen)</resource>
       <resource id="EnableTimeTracking">Zeiterfassung aktivieren</resource>
-      <resource id="EnablePulsing">Enable pulsing</resource>
-      <resource id="Pulsing">Pulsing (Minuten)</resource>
+      <resource id="EnablePulsing">Taktung aktivieren</resource>
+      <resource id="Pulsing">Taktung (Minuten)</resource>
       <resource id="Currency">Währung</resource>
-      <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
+      <resource id="HideManagerFeatures">Kosten und Auslastungsinformationen vor Nicht-Manager Benutzern verbergen</resource>
 
       <!-- Currencies -->
       <resource id="AUD">Australischer Dollar (AUD, $)</resource>
@@ -69,7 +69,7 @@
       <resource id="ResourceMaxAvailabilityIncorrect">Die angegebene maximale Ressourcen-Verfügbarkeit ist nicht korrekt</resource>
       <resource id="MilestoneControlingIncorrect">Das angegebene Meilenstein-Controllingintervall ist nicht korrekt</resource>
       <resource id="FirstWorkDayIncorrect">Der angegebene erste Arbeitswochentag ist nicht korrekt</resource>
-      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
+      <resource id="InvalidPulseValue">Der angegebene Wert für die Taktung ist nicht korrekt</resource>      
    </resource-map>
 
    <resource-map id="settings.calendar">
@@ -98,7 +98,7 @@
    </resource-map>
    <resource-map id="settings.calendar_change">
       <resource id="ConfirmChange">Change Calendar</resource>
-      <resource id="ConfirmCalendarChange">Changhing the holiday calendar will result in the revalidation the project plans.</resource>
+      <resource id="ConfirmCalendarChange">Die Änderung der Kalendereinstellungen erfordert eine Neuberechnung des Projekts.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>      
    </resource-map>

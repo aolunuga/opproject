@@ -22,6 +22,7 @@ public class OpResourceChooserFormProvider implements XFormProvider {
    private final static String MULTIPLE_SELECTION = "MultipleSelection";
    private final static String ENABLE_RESOURCES = "EnableResources";
    private final static String ENABLE_POOLS = "EnablePools";
+   private static final String NOT_SELECTABLE_IDS = "NotSelectableIds";
 
    private final static String RESOURCE_LIST_BOX_ID = "ResourceList";
 
@@ -58,11 +59,13 @@ public class OpResourceChooserFormProvider implements XFormProvider {
       //disable pools/resources
       boolean showPools = ((Boolean) parameters.get(ENABLE_POOLS)).booleanValue();
       boolean showResources = ((Boolean) parameters.get(ENABLE_RESOURCES)).booleanValue();
+      List notSelectableIds = (List) parameters.get(NOT_SELECTABLE_IDS);
 
       form.findComponent(ENABLE_POOLS).setBooleanValue(showPools);
       form.findComponent(ENABLE_RESOURCES).setBooleanValue(showResources);
+      form.findComponent(NOT_SELECTABLE_IDS).setListValue(notSelectableIds);
 
-      OpResourceDataSetFactory.enableResourcesSet(dataSet, showResources, showPools);
+      OpResourceDataSetFactory.enableResourcesSet(dataSet, showResources, showPools, notSelectableIds);
 
    }
 

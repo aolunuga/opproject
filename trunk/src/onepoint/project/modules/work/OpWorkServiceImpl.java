@@ -11,12 +11,12 @@ import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
 import onepoint.project.modules.project.OpAttachmentDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
+import onepoint.util.XCalendar;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -150,7 +150,7 @@ public class OpWorkServiceImpl implements OpService {
       }
 
       // Use progress calculator to update progress information in associated project plan
-      OpProgressCalculator.removeWorkRecords(broker, work_slip.getRecords().iterator());
+      OpProgressCalculator.removeWorkRecords(broker, work_slip.getRecords().iterator(), session.getCalendar());
 
       //manage the contentes of all the attachments that belong (idirectly) to the work slip
       for (OpWorkRecord workRecord : work_slip.getRecords()) {
@@ -232,10 +232,7 @@ public class OpWorkServiceImpl implements OpService {
       }
 
       // Use progress calculator to update progress information in associated project plan
-      OpProgressCalculator.addWorkRecord(broker, work_record);
-
-      //update cost values on work months
-      OpActivityDataSetFactory.updateRemainingValues(broker, session.getCalendar(), work_record.getAssignment());
+      OpProgressCalculator.addWorkRecord(broker, work_record, session.getCalendar());
 
       broker.makePersistent(work_record);
    }
@@ -254,10 +251,10 @@ public class OpWorkServiceImpl implements OpService {
       }
    }
 
-   private void deleteMyWorkRecord(OpBroker broker, OpWorkRecord work_record)
+   private void deleteMyWorkRecord(OpBroker broker, OpWorkRecord work_record, XCalendar calendar)
         throws XServiceException {
       logger.info("deleteMyWorkRecord(" + work_record + ")");
-      OpProgressCalculator.removeWorkRecord(broker, work_record);
+      OpProgressCalculator.removeWorkRecord(broker, work_record, calendar);
       broker.deleteObject(work_record);
    }
 
@@ -269,12 +266,12 @@ public class OpWorkServiceImpl implements OpService {
       return SERVICE_NAME;
    }
 
-   public void deleteWorkRecords(OpBroker broker, OpWorkSlip workSlip) {
+   public void deleteWorkRecords(OpBroker broker, OpWorkSlip workSlip, XCalendar calendar) {
 
       for (Iterator<OpWorkRecord> iterator = workSlip.getRecords().iterator(); iterator.hasNext();) {
          OpWorkRecord opWorkRecord = iterator.next();
          iterator.remove();
-         deleteMyWorkRecord(broker, opWorkRecord);
+         deleteMyWorkRecord(broker, opWorkRecord, calendar);
       }
       broker.updateObject(workSlip);
    }

@@ -15,7 +15,7 @@
       <resource id="TemplatesCount">Projektvorlagen:</resource>
       <resource id="ProjectsCount">Projekte:</resource>
       <resource id="PoolsCount">Ressourcenpools:</resource>
-      <resource id="ResourcesCount">Ressouren:</resource>
+      <resource id="ResourcesCount">Ressourcen:</resource>
       <resource id="ReportsCount">Archivierte Berichte:</resource>      
    </resource-map>
    <resource-map id="repository.restore_file_list">

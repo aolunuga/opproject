@@ -51,7 +51,7 @@
       <resource id="Travel">Reise ({CurrencySymbol})</resource>
       <resource id="Material">Material ({CurrencySymbol})</resource>
       <resource id="External">Externe ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Erlös ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Erlöse ({CurrencySymbol})</resource>
       <resource id="Misc">Sonstige ({CurrencySymbol})</resource>
 
       <resource id="EditTooltip">Projektplan bearbeiten</resource>
@@ -161,7 +161,7 @@
       <resource id="Material">Material ({CurrencySymbol})</resource>
       <resource id="External">Externe ({CurrencySymbol})</resource>
       <resource id="Misc">Sonstige ({CurrencySymbol})</resource>
-      <resource id="Proceeds">Erlös ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Erlöse ({CurrencySymbol})</resource>
 
       <resource id="Attachments">Anlagen</resource>
       <resource id="AddDocumentAttachmentTooltip">Dokumentanlage hinzufügen</resource>
@@ -249,7 +249,7 @@
       <resource id="Costs">Kosten ({CurrencySymbol})</resource>
       <resource id="Resources">Ressourcen</resource>
       <resource id="Category">Kategorie</resource>
-      <resource id="Proceeds">Erlös ({CurrencySymbol})</resource>
+      <resource id="Proceeds">Erlöse ({CurrencySymbol})</resource>
    </resource-map>
    <resource-map id="project_planning.Navigator">
       <resource id="ProjectNavigator">PROJEKTNAVIGATOR</resource>
@@ -277,6 +277,6 @@
       <resource id="InvalidBaseEffortError">Der eingegebene Planaufwand ist geringer als der Ist-Aufwand des Vorgangs</resource>
       <resource id="InvalidProjectNodeTypeForImport">Nur für Projekte können Daten importiert werden</resource>
       <resource id="InvalidProjectNodeTypeForExport">Nur bei Projekten können Daten exportiert werden</resource>
-      <resource id="CalendarsModifiedWarning">Project plan has been revalidated because the holidays have changed</resource>
+      <resource id="CalendarsModifiedWarning">Die Projektplanung wurde aufgrund einer Änderung der Kalendereinstellungen neuberechnet</resource>
    </resource-map>
 </language-kit>

@@ -28,7 +28,7 @@
       <resource id="OK">OK</resource>
       <resource id="About">Über Onepoint Project</resource>
       <resource id="Version">Version:</resource>
-      <resource id="Build">Gebaut:</resource>
+      <resource id="Build">Build:</resource>
       <resource id="CurrentVersion">aktuellste Version:</resource>
    </resource-map>
 

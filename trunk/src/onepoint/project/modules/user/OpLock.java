@@ -86,7 +86,10 @@ public class OpLock extends OpObject {
             if (lockerId != null) {
                if (session.getID() != lockerId.intValue()) {
                   // check if lock is held by a still open session
-                  if (session.getServer().isOpen(lockerId.intValue())) {
+                  OpProjectSession lockerSession = (OpProjectSession) session.getServer().getSession(lockerId.intValue());
+                  // check if lockerSession is still valid and no logoff toke place
+                  if ((lockerSession != null) && (lockerSession.isValid()) &&
+                        (lockerSession.getUserID() == owner.getID())) {
                      return false;
                   }
                }

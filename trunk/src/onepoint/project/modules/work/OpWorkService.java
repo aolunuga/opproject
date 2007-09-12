@@ -13,7 +13,6 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContentManager;
-import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
@@ -123,22 +122,18 @@ public class OpWorkService extends OpProjectService {
             workRecord.setActualProceeds(externalResourceRate * workRecord.getActualEffort());
          }
 
-         //update remaining costs
+
          workRecord.calculateActualCostsOfType(OpCostRecord.TRAVEL_COST);
          workRecord.calculateActualCostsOfType(OpCostRecord.MATERIAL_COST);
          workRecord.calculateActualCostsOfType(OpCostRecord.EXTERNAL_COST);
          workRecord.calculateActualCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
 
+         //update remaining costs -- this will set on the work record the remaining costs provided by the user
+         // or the ones from the activity if none are provided           
          workRecord.calculateRemainingCostsOfType(OpCostRecord.TRAVEL_COST);
          workRecord.calculateRemainingCostsOfType(OpCostRecord.MATERIAL_COST);
          workRecord.calculateRemainingCostsOfType(OpCostRecord.EXTERNAL_COST);
          workRecord.calculateRemainingCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
-
-         OpActivity activity = assignment.getActivity();
-         workRecord.setRemTravelCostsChange(workRecord.getRemTravelCosts() - activity.getRemainingTravelCosts());
-         workRecord.setRemMaterialCostsChange(workRecord.getRemMaterialCosts() - activity.getRemainingMaterialCosts());
-         workRecord.setRemExternalCostsChange(workRecord.getRemExternalCosts() - activity.getRemainingExternalCosts());
-         workRecord.setRemMiscCostsChange(workRecord.getRemMiscCosts() - activity.getRemainingMiscellaneousCosts());
 
          try {
             workRecord.validate();
@@ -196,10 +191,11 @@ public class OpWorkService extends OpProjectService {
                }
             }
          }
-         //<FIXME>         //update the contents for all the attachments that belong to the work record
+         //<FIXME>
+         //update the contents for all the attachments that belong to the work record
 
          //remove all work records from the work slip
-         serviceImpl.deleteWorkRecords(broker, workSlip);
+         serviceImpl.deleteWorkRecords(broker, workSlip, session.getCalendar());
 
          //insert all the new work records
          int errorCode = createWorkRecords(broker, effortRecordSet, timeRecordSet, costsRecordSet, workRecordsToAdd, workSlip.getDate());

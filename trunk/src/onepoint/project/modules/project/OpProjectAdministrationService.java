@@ -2078,10 +2078,9 @@ public class OpProjectAdministrationService extends OpProjectService {
     * the interval start date as key and a list with internal and external rates as value.
     *
     * @param project            The current project.
-    * @param workingPlanVersion The working version of the project (null if no working version)
     * @param dataSet            Hourly rates data set.
     */
-   public void fillHourlyRatesDataSet(OpProjectNode project, OpProjectPlanVersion workingPlanVersion, XComponent dataSet) {
+   public void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
       Set<OpProjectNodeAssignment> assignments = project.getAssignments();
       for (OpProjectNodeAssignment assignment : assignments) {
          OpResource resource = assignment.getResource();

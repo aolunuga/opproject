@@ -11,7 +11,7 @@ import onepoint.express.XValidator;
 import onepoint.service.XMessage;
 
 function chooseProject(event) {
-   openProjectChooser("QueryFrame", null, "ProjectLocatorField", "ProjectNameField", true, false, false, null, false);
+   openProjectChooser("QueryFrame", null, "ProjectLocatorField", "ProjectNameField", true, false, false, null, false, null);
 }
 
 function runQuery() {

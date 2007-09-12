@@ -42,7 +42,8 @@ public class OpWorkEffortDataSetFactory {
 
       //1 - set the name of the activity
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX);
-      dataCell.setStringValue(XValidator.choice(activity.locator(), activity.getName()));
+      String activityName = OpWorkSlipDataSetFactory.generateActivityName(activity);
+      dataCell.setStringValue(XValidator.choice(activity.locator(), activityName));
 
       //2 - set the name of the resource
       dataCell = (XComponent) dataRow.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX);

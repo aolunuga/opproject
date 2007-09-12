@@ -86,7 +86,7 @@ function addProject(event) {
       filteredIds[i] = XValidator.choiceID(assignedDataRow.getStringValue());
       i++;
    }
-   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true);
+   openProjectChooser("MainFrame", "assignToProject_NewEdit", null, null, true, false, false, filteredIds, true, null);
 }
 
 function removeProject(event) {

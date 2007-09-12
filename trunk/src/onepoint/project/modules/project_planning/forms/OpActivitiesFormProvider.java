@@ -243,7 +243,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
             OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
                  project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, workingPlanVersion, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET));
+            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET));
 
             if (edit_mode) {
                // Show working plan version (if one exists already)
@@ -289,6 +289,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
       if (OpSubjectDataSetFactory.shouldHideFromUser(currentUser)) {
          //hide costs tab
          costsTab.setHidden(true);
+         ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
       }
 
       broker.close();

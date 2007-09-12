@@ -9,6 +9,8 @@
    <data-field id="EnablePortfolios"/>
    <data-field id="EnableTemplates"/>
    <data-field id="FilteredOutIds"/>
+   <data-field id="NotSelectableIds"/>
+   
    <data-set id="ProjectSet" on-expand="retrieveChildren"/>
 
    <data-set id="IconSet">

@@ -47,7 +47,7 @@
    </resource-map>
 
    <resource-map id="project_status.delete">
-      <resource id="ConfirmDelete">Projektstatusobjekte löschen</resource>
+      <resource id="ConfirmDelete">Projektstatus löschen</resource>
       <resource id="NoSelectionMessage">Bitte wählen Sie ein oder mehrere Projektstatusobjekte zum Löschen aus</resource>
       <resource id="ConfirmDeleteOneMessage">Möchten Sie den ausgewählten Projektstatus wirklich löschen?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Möchten Sie die ausgewählten Projektstatusobjekte wirklich löschen?</resource>

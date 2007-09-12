@@ -57,7 +57,7 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(broker, resources);
+      OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
       this.validatePlan(broker, validator, modifier, resources);
 
@@ -67,11 +67,11 @@ public class OpProjectPlanValidator {
    /**
     * Validates the working plan versions for the given project plan.
     *
-    * @param broker   a <code>OpBroker</code> used for persistence operations.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    *                 Can be <code>null</code>.
+    * @param broker           a <code>OpBroker</code> used for persistence operations.
+    * @param modifier         a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    *                         Can be <code>null</code>.
     * @param startTransaction a <code>boolean</code> whether to start a transaction or not for
-    * the validation operation. 
+    *                         the validation operation.
     */
    public void validateProjectPlanWorkingVersion(OpBroker broker, PlanModifier modifier, boolean startTransaction) {
       OpTransaction tx = startTransaction ? broker.newTransaction() : null;
@@ -80,7 +80,7 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating working version plan for " + projectNode.getName());
-      OpGanttValidator validator = this.createValidator(broker, resources);
+      OpGanttValidator validator = this.createValidator(resources);
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
 
       if (tx != null) {
@@ -133,11 +133,11 @@ public class OpProjectPlanValidator {
    /**
     * Creates a Gantt validation object that will update a project plan.
     *
-    * @param broker
-    * @param resources a <code>HashMap</code> of resources. @return a <code>OpGanttValidator</code> instance.
+    * @param resources a <code>HashMap</code> of resources.
+    * @return a <code>OpGanttValidator</code> instance.
     */
-   private OpGanttValidator createValidator(OpBroker broker, HashMap resources) {
-      OpGanttValidator validator = new OpIncrementalValidator();
+   public OpIncrementalValidator createValidator(HashMap resources) {
+      OpIncrementalValidator validator = new OpIncrementalValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
       Date finish = projectPlan.getProjectNode().getFinish();
       validator.setProjectFinish(finish);
@@ -151,9 +151,7 @@ public class OpProjectPlanValidator {
       OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
       validator.setAssignmentSet(resourceDataSet);
       XComponent hourlyRates = new XComponent(XComponent.DATA_SET);
-      OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-           projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-      OpActivityDataSetFactory.fillHourlyRatesDataSet(projectPlan.getProjectNode(), workingPlanVersion, hourlyRates);
+      OpActivityDataSetFactory.fillHourlyRatesDataSet(projectPlan.getProjectNode(), hourlyRates);
       validator.setHourlyRatesDataSet(hourlyRates);
       return validator;
    }
