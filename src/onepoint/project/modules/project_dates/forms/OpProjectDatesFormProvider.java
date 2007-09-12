@@ -18,6 +18,8 @@ import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpSubjectDataSetFactory;
+import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -39,6 +41,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
    private final static String RESOURCE_CHOICE_FIELD = "ResourceChooser";
    private final static String VERSION_CHOICE_FIELD = "VersionChooser";
    private final static String TIME_CHOICE_FIELD = "TimeUnitChooser";
+   private final static String ACTIVITY_GANTT_CHART = "ActivityGanttChart";
 
    protected final static String PROJECT_ID = "project_id";
    private final static String PRINT_TITLE = "PrintTitle";
@@ -85,6 +88,11 @@ public class OpProjectDatesFormProvider implements XFormProvider {
          form.findComponent(RESOURCE_CHOICE_FIELD).setEnabled(true);
          form.findComponent(VERSION_CHOICE_FIELD).setEnabled(true);
          form.findComponent(TIME_CHOICE_FIELD).setEnabled(true);
+
+         //check manager rights for costs view
+         if (OpSubjectDataSetFactory.shouldHideFromUser(session.user(broker))) {
+             ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+         }
 
          //fill resource set for selected project's assignments
          XComponent resourceDataSet = form.findComponent(RESOURCE_SET);

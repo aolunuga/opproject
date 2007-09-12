@@ -6,7 +6,7 @@
 
 import onepoint.express.XComponent;
 
-function openResourceChooser(callingFrameID, actionHandler, filteredOutIds, multipleSelection, enablePools, enableResources) {
+function openResourceChooser(callingFrameID, actionHandler, filteredOutIds, multipleSelection, enablePools, enableResources, notSelectableIds) {
    // Open resource chooser dialog w/calling frame and resource field as parameters
    dialog = XComponent.newDialog();
 
@@ -16,6 +16,7 @@ function openResourceChooser(callingFrameID, actionHandler, filteredOutIds, mult
    parameters.MultipleSelection = multipleSelection;
    parameters.EnablePools = enablePools;
    parameters.EnableResources = enableResources;
+   parameters.NotSelectableIds = notSelectableIds;
 
    dialog.open("/modules/resource/forms/resource_chooser.oxf.xml", parameters);
    

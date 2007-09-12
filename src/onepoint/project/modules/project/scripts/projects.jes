@@ -58,7 +58,15 @@ function move(event) {
    project_data_set = XDisplay.getActiveForm().findComponent("ProjectDataSet");
    selected_rows = project_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      openProjectChooser("MainFrame", "moveOk", null, null, false, true, false, null, false);
+      notSelectableIds = new ArrayList;
+      i = 0;
+      while (i < selected_rows.size()) {
+         row =  selected_rows[i];
+         id = XValidator.choiceID(row.getStringValue());
+         notSelectableIds.add(id);
+         i++;
+      }
+      openProjectChooser("MainFrame", "moveOk", null, null, false, true, false, null, false, notSelectableIds);
    }
 }
 

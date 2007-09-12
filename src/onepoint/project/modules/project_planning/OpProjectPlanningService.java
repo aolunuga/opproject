@@ -15,7 +15,6 @@ import onepoint.project.modules.mail.OpMailMessage;
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.project_planning.msproject.OpMSProjectManager;
 import onepoint.project.modules.resource.OpResource;
@@ -83,6 +82,7 @@ public class OpProjectPlanningService extends OpProjectService {
       OpBroker broker = session.newBroker();
       OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
       if (project.getType() != OpProjectNode.PROJECT) {
+         broker.close();
          reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT));
          return reply;
       }
@@ -96,9 +96,10 @@ public class OpProjectPlanningService extends OpProjectService {
       InputStream inFile = new ByteArrayInputStream(file);
       XComponent dataSet;
       try {
-         dataSet = OpMSProjectManager.importActivities(inFile, projectPlan, session.getLocale());
+         dataSet = OpMSProjectManager.importActivities(broker, inFile, projectPlan, session.getLocale());
       }
       catch (IOException e) {
+         broker.close();
          reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
          return reply;
       }
@@ -115,6 +116,7 @@ public class OpProjectPlanningService extends OpProjectService {
       request.setArgument(ACTIVITY_SET, dataSet);
       reply = saveActivities(session, request);
       if (reply != null && reply.getError() != null) {
+         broker.close();
          return reply;
       }
 
@@ -122,10 +124,11 @@ public class OpProjectPlanningService extends OpProjectService {
       if (!editMode) {
          reply = internalCheckInActivities(session, request);
          if (reply != null && reply.getError() != null) {
+            broker.close();
             return reply;
          }
       }
-
+      broker.close();
       return reply;
    }
 
@@ -276,8 +279,9 @@ public class OpProjectPlanningService extends OpProjectService {
 
    /**
     * Checks if any system settings have changed, which cause the need for a revalidation.
+    *
     * @param projectNode a <code>OpProjectNode</code>.
-    * @param session a <code>OpProjectSession</code> the server session
+    * @param session     a <code>OpProjectSession</code> the server session
     * @return a <code>boolean</code> whether the settings have been modified or not.
     */
    private boolean checkSettingsModifications(OpProjectNode projectNode, OpProjectSession session) {
@@ -982,14 +986,11 @@ public class OpProjectPlanningService extends OpProjectService {
     *         <FIXME author="Horia Chiorean" description="Possible problem: this method is not atomic">
     */
    public XMessage moveProjectPlanStartDate(OpProjectSession session, XMessage request) {
-
       OpProjectPlan projectPlan = (OpProjectPlan) request.getArgument("projectPlan");
-      Date newDate = (Date) request.getArgument("newDate");
-      //create and validate a working version
 
+      //create and validate a working version
       String projectIdArg = "project_id";
       String activitySetArg = "activity_set";
-      String workingPlanArg = "working_plan_version_id";
 
       //check out the current project plan
       String projectId = projectPlan.getProjectNode().locator();
@@ -998,40 +999,38 @@ public class OpProjectPlanningService extends OpProjectService {
 
       XMessage reply = this.internalEditActivities(session, editActivitiesRequest);
       if (reply != null && reply.getError() != null) {
-         return reply;
+         //we don't want to stop when warnings are issued
+         if (reply.getArgument(WARNING_ARGUMENT) != null) {
+            logger.warn(reply.getError().getMessage());
+            reply.setError(null);
+         }
+         else {
+            return reply;
+         }
       }
 
       OpBroker broker = session.newBroker();
       //attach the project plan with a new session
       projectPlan = (OpProjectPlan) broker.getObject(projectPlan.locator());
-      OpTransaction tx = broker.newTransaction();
+      long newDateMillis = ((Date) request.getArgument("newDate")).getTime();
+      long oldDateMillis = projectPlan.getProjectNode().getStart().getTime();
+      XComponent newDataSet = shiftAndValidateWorkingVersion(projectPlan, broker, newDateMillis - oldDateMillis);
 
-      OpProjectPlanVersion workingVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker),
-           OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
-      String workingPlanLocator = workingVersion.locator();
-
-      XComponent newDataSet = shiftAndValidateWorkingVersion(projectPlan, broker, newDate, workingVersion);
-
-      tx.commit();
       broker.close();
 
       //check-in the working version
       XMessage checkInRequest = new XMessage();
       checkInRequest.setArgument(activitySetArg, newDataSet);
       checkInRequest.setArgument(projectIdArg, projectId);
-      checkInRequest.setArgument(workingPlanArg, workingPlanLocator);
 
       reply = this.internalCheckInActivities(session, checkInRequest);
 
-      if (reply != null && reply.getError() != null) {
-         return reply;
-      }
-      return null;
+      return reply;
    }
 
    /**
     * Revalidates all the working project plan versions.
-    * 
+    *
     * @param session a <code>OpProjectSession</code> the server session.
     * @param request a <code>XMessage</code> the client request.
     * @return a <code>XMessage</code> the response.
@@ -1052,35 +1051,23 @@ public class OpProjectPlanningService extends OpProjectService {
    /**
     * Shifts the start dates and revalidates the working version of the given project plan.
     *
-    * @param projectPlan    a <code>OpProjecPlan</code> representing a project plan.
-    * @param broker         a <code>OpBroker</code> used for business operations.
-    * @param newDate        a <code>Date</code> which will be the new start date of the project plan.
-    * @param workingVersion a <code>OpProjectPlanVersion</code> representing the working version of the given project plan.
+    * @param projectPlan      a <code>OpProjecPlan</code> representing a project plan.
+    * @param broker           a <code>OpBroker</code> used for business operations.
+    * @param millisDifference a <code>long</code> which will be the difference in milliseconds between the new and the old start date.
     * @return a <code>XComponent(DATA_SET)</code> reperesenting the client-representation of the new working plan.
     */
-   private XComponent shiftAndValidateWorkingVersion(OpProjectPlan projectPlan, OpBroker broker, Date newDate, OpProjectPlanVersion workingVersion) {
+   private XComponent shiftAndValidateWorkingVersion(OpProjectPlan projectPlan, OpBroker broker, long millisDifference) {
       OpProjectNode projectNode = projectPlan.getProjectNode();
       logger.info("Revalidating working plan for " + projectNode.getName());
 
-      //create the validator
-      OpGanttValidator validator = new OpIncrementalValidator();
-      validator.setProjectStart(projectPlan.getProjectNode().getStart());
-      validator.setProgressTracked(projectPlan.getProgressTracked());
-      validator.setProjectTemplate(projectPlan.getTemplate());
-      validator.setCalculationMode(projectPlan.getCalculationMode());
-
-      XComponent resourceDataSet = new XComponent();
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
-      OpActivityDataSetFactory.retrieveResourceDataSet(resources, resourceDataSet);
-      validator.setAssignmentSet(resourceDataSet);
+      OpGanttValidator validator = new OpProjectPlanValidator(projectPlan).createValidator(resources);
 
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, false);
       validator.setDataSet(dataSet);
-      long millisDifference = newDate.getTime() - projectPlan.getProjectNode().getStart().getTime();
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent activityRow = (XComponent) dataSet.getChild(i);
-
          //update the start
          java.sql.Date originalStart = OpGanttValidator.getStart(activityRow);
          //start can be null for certain activities
@@ -1088,12 +1075,9 @@ public class OpProjectPlanningService extends OpProjectService {
             long newStartTime = originalStart.getTime() + millisDifference;
             OpGanttValidator.setStart(activityRow, new java.sql.Date(newStartTime));
          }
-         //set the end to null so that it's recalculated in the validation process
-         OpGanttValidator.setEnd(activityRow, null);
+         validator.updateDuration(activityRow, OpGanttValidator.getDuration(activityRow));
       }
-
       validator.validateDataSet();
-      OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingVersion, resources, false);
       return validator.getDataSet();
    }
 

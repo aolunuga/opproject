@@ -122,6 +122,11 @@ public class OpProjectComponent extends XComponent {
     */
    public static final Integer ON_ACTIVITY_SELECT = new Integer(309);
 
+   /**
+    *   Show costs property
+    */
+   public final static Integer SHOW_COSTS = new Integer(310);
+
    /*start and finish index in the details time interval list */
    private final static int INTERVAL_START_INDEX = 0;
    private final static int INTERVAL_FINISH_INDEX = 1;
@@ -195,16 +200,18 @@ public class OpProjectComponent extends XComponent {
    public final static XStyle DEFAULT_UTILIZATION_BOX_STYLE_ATTRIBUTES;
 
    // detail form attributes, also used for captions for a gantt activity
-   public static final String DETAILS_NAME = "ActivityName";
-   public static final String DETAILS_START = "Start";
-   public static final String DETAILS_FINISH = "Finish";
-   public static final String DETAILS_DURATION = "Duration";
-   public static final String DETAILS_COMPLETE = "Complete";
-   public static final String DETAILS_BASE_EFFORT = "BaseEffort";
-   public static final String DETAILS_COST = "BaseCosts";
-   public static final String DETAILS_RESOURCE_NAMES = "ResourceNames";
-   public static final String DETAILS_CATEGORY = "Category";
-   public static final String DETAILS_PROCEEDS = "ProceedsCosts";
+   private static final String DETAILS_NAME = "ActivityName";
+   private static final String DETAILS_START = "Start";
+   private static final String DETAILS_FINISH = "Finish";
+   private static final String DETAILS_DURATION = "Duration";
+   private static final String DETAILS_COMPLETE = "Complete";
+   private static final String DETAILS_BASE_EFFORT = "BaseEffort";
+   private static final String DETAILS_COST = "BaseCosts";
+   private static final String DETAILS_COST_LABEL = "BaseCostsLabel";
+   private static final String DETAILS_RESOURCE_NAMES = "ResourceNames";
+   private static final String DETAILS_CATEGORY = "Category";
+   private static final String DETAILS_PROCEEDS = "ProceedsCosts";
+   private static final String DETAILS_PROCEEDS_LABEL= "ProceedsCostsLabel";
 
    static {
       // Default Gantt chart style
@@ -300,7 +307,6 @@ public class OpProjectComponent extends XComponent {
     * Area for a project component [ Computed at layout time ]
     */
    private transient Polygon componentShape;
-
 
    /**
     * Gets the componentShape for a specific project component
@@ -4960,6 +4966,8 @@ public class OpProjectComponent extends XComponent {
     * @param form
     */
    private void fillUpDetails(XComponent form) {
+      boolean showCosts = ((OpProjectComponent) getContext()).showCosts() == null
+           || ((OpProjectComponent) getContext()).showCosts().booleanValue();
       XComponent dataRow = getDataRow();
       XComponent field;
 
@@ -4996,6 +5004,8 @@ public class OpProjectComponent extends XComponent {
       field = form.findComponent(DETAILS_COST);
       if (field != null) {
          field.setDoubleValue(((Double) getActivityProperty(dataRow, DETAILS_COST)).doubleValue());
+         field.setVisible(showCosts);
+         form.findComponent(DETAILS_COST_LABEL).setVisible(showCosts);
       }
 
       field = form.findComponent(DETAILS_RESOURCE_NAMES);
@@ -5016,6 +5026,8 @@ public class OpProjectComponent extends XComponent {
       field = form.findComponent(DETAILS_PROCEEDS);
       if (field != null) {
          field.setDoubleValue(((Double) getActivityProperty(dataRow, DETAILS_PROCEEDS)).doubleValue());
+         field.setVisible(showCosts);
+         form.findComponent(DETAILS_PROCEEDS_LABEL).setVisible(showCosts);
       }
    }
 
@@ -5429,4 +5441,11 @@ public class OpProjectComponent extends XComponent {
       invokeActionHandler(getOnActivitySelect(), event);
    }
 
+   public Boolean showCosts() {
+      return (Boolean) getProperty(SHOW_COSTS);
+   }
+
+   public void setShowCosts(boolean showCosts) {
+      this.setProperty(SHOW_COSTS,  Boolean.valueOf(showCosts));
+   }
 }

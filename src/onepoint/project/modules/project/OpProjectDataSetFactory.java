@@ -44,6 +44,7 @@ public final class OpProjectDataSetFactory {
    public final static String ENABLE_PORTFOLIOS = "EnablePortfolios";
    public final static String ENABLE_TEMPLATES = "EnableTemplates";
    public final static String FILTERED_OUT_IDS = "FilteredOutIds";
+   public final static String NOT_SELECTABLE_IDS = "NotSelectableIds";
 
    private final static String PROJECT_BY_PERMISSIONS_QUERY =
         "select project.ID from OpPermission as permission, OpProjectNode as project " +
@@ -795,8 +796,13 @@ public final class OpProjectDataSetFactory {
       boolean enablePortfolios = (Boolean) parameters.get(ENABLE_PORTFOLIOS);
       boolean enableTemplates = (Boolean) parameters.get(ENABLE_TEMPLATES);
       boolean enableProjects = (Boolean) parameters.get(ENABLE_PROJECTS);
+      List notSelectableIds = (List) parameters.get(NOT_SELECTABLE_IDS);
       for (Iterator it = dataRows.iterator(); it.hasNext();) {
          XComponent dataRow = (XComponent) it.next();
+         if (notSelectableIds != null && notSelectableIds.contains(XValidator.choiceID(dataRow.getStringValue()))) {
+            dataRow.setSelectable(false);
+            continue;
+         }
          if (dataRow.getStringValue().equals(OpProjectConstants.DUMMY_ROW_ID)) {
             continue;
          }

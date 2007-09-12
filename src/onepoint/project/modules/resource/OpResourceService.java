@@ -75,6 +75,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    private final static String FILTERED_OUT_IDS = "FilteredOutIds";
    private static final String ENABLE_POOLS = "EnablePools";
    private static final String ENABLE_RESOURCES = "EnableResources";
+   private static final String NOT_SELECTABLE_IDS = "NotSelectableIds";
 
    private static final String INTERNAL_RATE = "InternalRate";
    private static final String EXTERNAL_RATE = "ExternalRate";
@@ -1433,8 +1434,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       //disable pools/resources
       Boolean enablePools = (Boolean) request.getArgument(ENABLE_POOLS);
       Boolean enableResources = (Boolean) request.getArgument(ENABLE_RESOURCES);
+      List notSelectableIds = (List) request.getArgument(NOT_SELECTABLE_IDS);
       if (enablePools != null && enableResources != null) {
-         OpResourceDataSetFactory.enableResourcesSet(dataSet, enableResources, enablePools);
+         OpResourceDataSetFactory.enableResourcesSet(dataSet, enableResources, enablePools, notSelectableIds);
       }
    }
 

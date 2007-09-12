@@ -42,7 +42,7 @@
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Responsible">Verantwortlich</resource>
-      <resource id="Managed">Projektleiter</resource>
+      <resource id="Managed">Managed</resource>
 
       <resource id="SaveCSV">Als Tabelle speichern...</resource>
       <resource id="SaveImage">Als Bild speichern...</resource>

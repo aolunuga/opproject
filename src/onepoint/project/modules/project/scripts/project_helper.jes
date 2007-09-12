@@ -78,7 +78,7 @@ function addProjectAssignment(event){
       j++;
       index++;
    }
-   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true);
+   openResourceChooser("MainFrame", "addProjectResourceOk", resource_ids, true, false, true, null);
 }
 
 function removeToDos(event) {

@@ -14,8 +14,8 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpType;
 import onepoint.persistence.OpTypeManager;
-import onepoint.project.modules.project.OpProjectNodeAssignment;
-import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.persistence.OpBroker;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
@@ -48,98 +48,121 @@ public class OpMSProjectManager {
     *
     * @return a dataset with all the saved activities
     */
-   public static XComponent importActivities(InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
+   public static XComponent importActivities(OpBroker broker, InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
         throws IOException {
 
-      ProjectFile msProject = null;
-      //for mpp file format the first activity is the name of the project
-      boolean removeFirstActivity = false;
-      try {
-         msProject = new MPPReader().read(sourceFile);
-         removeFirstActivity = true;
-      }
-      catch (MPXJException e) {
-         // try set language
-         try {
-            sourceFile.reset();
-            MPXReader reader = new MPXReader();
-            reader.setLocale(new Locale(xlocale.getID()));
-            msProject = reader.read(sourceFile);
-         }
-         catch (MPXJException e1) {
-            Locale[] all_locales = {Locale.ENGLISH, Locale.GERMAN, Locale.FRENCH, Locale.ITALIAN, 
-                                    new Locale("pt"), new Locale("sv") };
-            boolean read = false;
-            for (int count = 0; count < all_locales.length; count++) {
-               try {
-                  sourceFile.reset();
-                  MPXReader reader = new MPXReader();
-                  reader.setLocale(all_locales[count]);
-                  msProject = reader.read(sourceFile);
-                  read = true;
-                  break;
-               }
-               catch (MPXJException e2) {}
-            }
-            if (!read) {
-               throw new IOException("Unable to load the file " + sourceFile);
-            }  
-         }
-      }
-
-      boolean progressTracked = projectPlan.getProgressTracked();
+      //read the tasks from the input stream
+      List<Task> msTasks = readMsTasks(sourceFile, xlocale);
 
       //map: <name>,<locator>
       Map projectResources = new HashMap();
       Map resourceAvailability = new HashMap();
-      XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpGanttValidator validator = new OpIncrementalValidator();
-      validator.setDataSet(dataSet);
-      validator.setProjectStart(projectPlan.getProjectNode().getStart());
-      validator.setProgressTracked(Boolean.valueOf(progressTracked));
-      validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
-
-      XComponent assignmentSet = new XComponent(XComponent.DATA_SET);
-      Iterator assignmentsIterator = projectPlan.getProjectNode().getAssignments().iterator();
-      while (assignmentsIterator.hasNext()) {
-         OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignmentsIterator.next();
+      for (OpProjectNodeAssignment assignment : projectPlan.getProjectNode().getAssignments()) {
          OpResource resource = assignment.getResource();
          String resourceName = resource.getName();
          String resourceLocator = XValidator.choice(resource.locator(), resourceName);
          resourceAvailability.put(resource.locator(), new Double(resource.getAvailable()));
          projectResources.put(resourceName, resourceLocator);
-         /*populate data set */
-         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(resourceLocator);
-         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(resource.getAvailable());
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDoubleValue(resource.getHourlyRate());
-         dataRow.addChild(dataCell);
-         assignmentSet.addChild(dataRow);
       }
-      validator.setAssignmentSet(assignmentSet);
 
-      //clean data set
-      dataSet.removeAllChildren();
+      //create validator for the data-set validation
+      XComponent dataSet = new XComponent(XComponent.DATA_SET);
+      OpProjectNode projectNode = projectPlan.getProjectNode();
+      HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
+      OpIncrementalValidator validator = new OpProjectPlanValidator(projectPlan).createValidator(resources);
+      validator.setDataSet(dataSet);
 
-      List msTasks = msProject.getAllTasks();
-      Map activityMap = new HashMap();
+      //populate the activity set
+      Map<Integer, XComponent> activityMap = populateActivitySet(msTasks, validator, projectResources, dataSet);
+      linkActivities(msTasks, activityMap);
+      setVisualResources(dataSet, resourceAvailability);
+
+      //validation after import
+      if (validator.detectLoops()) {
+         throw new OpActivityLoopException(OpGanttValidator.LOOP_EXCEPTION);
+      }
+      validator.validateEntireDataSet();
+      return dataSet;
+   }
+
+   /**
+    * Sets the visual resources for the imported data-set.
+    * @param dataSet a <code>XComponent(DATA_SET)</code> the newly imported data-set.
+    * @param resourceAvailability a <code>Map</code> which contains resource availabilities.
+    */
+   private static void setVisualResources(XComponent dataSet, Map resourceAvailability) {
+      //set also the visual resources
+      Boolean showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+      for (int i = 0; i < dataSet.getChildCount(); i++) {
+         XComponent dataRow = (XComponent) dataSet.getChild(i);
+         OpGanttValidator.updateVisualResources(dataRow, showHours.booleanValue(), resourceAvailability);
+      }
+   }
+
+   /**
+    * Creates the successor/predecessor links as found in the ms project plan.
+    * @param msTasks a <code>List(Task)</code>.
+    * @param activityMap a <code>Map(Integer, XComponent)</code>.
+    */
+   private static void linkActivities(List<Task> msTasks, Map<Integer, XComponent> activityMap) {
+      //successors - predecessors links.
+      for (Task msTask : msTasks) {
+         XComponent activity = (XComponent) activityMap.get(msTask.getUniqueID());
+         List successors = msTask.getSuccessors();
+         if (successors != null) {
+            for (Iterator iterator = successors.iterator(); iterator.hasNext();) {
+               Relation link = (Relation) iterator.next();
+               Integer id = link.getTaskUniqueID();
+               if (id == null) {
+                  id = link.getTaskID();
+               }
+               XComponent succActivity = (XComponent) activityMap.get(id);
+               OpGanttValidator.addSuccessor(activity, succActivity.getIndex());
+               OpGanttValidator.addPredecessor(succActivity, activity.getIndex());
+               logger.info("Created link between activity \"" + OpGanttValidator.getName(activity) +
+                    "\" and \"" + OpGanttValidator.getName(succActivity) + "\"");
+            }
+         }
+
+         List predecessors = msTask.getPredecessors();
+         if (predecessors != null) {
+            for (Iterator iterator = predecessors.iterator(); iterator.hasNext();) {
+               Relation link = (Relation) iterator.next();
+               Integer id = link.getTaskUniqueID();
+               if (id == null) {
+                  id = link.getTaskID();
+               }
+               XComponent predActivity = (XComponent) activityMap.get(id);
+               OpGanttValidator.addPredecessor(activity, predActivity.getIndex());
+               OpGanttValidator.addSuccessor(predActivity, activity.getIndex());
+               logger.info("Created link between activity \"" + OpGanttValidator.getName(predActivity) + "\" and \""
+                    + OpGanttValidator.getName(activity) + "\"");
+            }
+         }
+      }
+   }
+
+   /**
+    * Creates data rows with activities from the given list of tasks.
+    * @param msTasks a <code>List(Task)</code>.
+    * @param validator a <code>OpGanttValidator</code> used by the validation process.
+    * @param projectResources a <code>Map</code> of project resources.
+    * @param dataSet a <code>XComponent(DATA_SET)</code>.
+    * @return a <code>Map</code> of <code>(Integer, XComponent)</code> values.
+    */
+   private static Map<Integer, XComponent> populateActivitySet(List<Task> msTasks,
+        OpGanttValidator validator, Map projectResources, XComponent dataSet) {
+      Map<Integer, XComponent> activityMap = new HashMap<Integer, XComponent>();
       int index = 0;
       int firstOutlineLevel = 0;
-      int startIndex = 0;
-      if (removeFirstActivity) {
-         startIndex = 1;
-      }
-      for (int i = startIndex; i < msTasks.size(); i++) {
-         Task msTask = (Task) msTasks.get(i);
+
+      for (Task msTask : msTasks) {
          XComponent activityRow = validator.newDataRow();
 
          OpGanttValidator.setName(activityRow, msTask.getName());
          OpGanttValidator.setType(activityRow, OpGanttValidator.STANDARD);
          //category = null
-         if (!progressTracked) {
+         if (!validator.getProgressTracked()) {
             OpGanttValidator.setComplete(activityRow, msTask.getPercentageComplete().doubleValue());
          }
          else {
@@ -224,59 +247,62 @@ public class OpMSProjectManager {
          }
          index++;
       }
-
-      //successors - predecessors links.
-      for (int i = 0; i < msTasks.size(); i++) {
-         Task msTask = (Task) msTasks.get(i);
-         XComponent activity = (XComponent) activityMap.get(msTask.getUniqueID());
-         List successors = msTask.getSuccessors();
-         if (successors != null) {
-            for (Iterator iterator = successors.iterator(); iterator.hasNext();) {
-               Relation link = (Relation) iterator.next();
-               Integer id = link.getTaskUniqueID();
-               if (id == null) {
-                  id = link.getTaskID();
-               }
-               XComponent succActivity = (XComponent) activityMap.get(id);
-               OpGanttValidator.addSuccessor(activity, succActivity.getIndex());
-               OpGanttValidator.addPredecessor(succActivity, activity.getIndex());
-               logger.info("Created link between activity \"" + OpGanttValidator.getName(activity) +
-                    "\" and \"" + OpGanttValidator.getName(succActivity) + "\"");
-            }
-         }
-
-         List predecessors = msTask.getPredecessors();
-         if (predecessors != null) {
-            for (Iterator iterator = predecessors.iterator(); iterator.hasNext();) {
-               Relation link = (Relation) iterator.next();
-               Integer id = link.getTaskUniqueID();
-               if (id == null) {
-                  id = link.getTaskID();
-               }
-               XComponent predActivity = (XComponent) activityMap.get(id);
-               OpGanttValidator.addPredecessor(activity, predActivity.getIndex());
-               OpGanttValidator.addSuccessor(predActivity, activity.getIndex());
-               logger.info("Created link between activity \"" + OpGanttValidator.getName(predActivity) + "\" and \""
-                    + OpGanttValidator.getName(activity) + "\"");
-            }
-         }
-      }
-
-      //set also the visual resources 
-      Boolean showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         XComponent dataRow = (XComponent) dataSet.getChild(i);
-         OpGanttValidator.updateVisualResources(dataRow, showHours.booleanValue(), resourceAvailability);
-      }
-
-      //validation after import
-      if (validator.detectLoops()) {
-         throw new OpActivityLoopException(OpGanttValidator.LOOP_EXCEPTION);
-      }
-      validator.validateDataSet();
-      return dataSet;
+      return activityMap;
    }
 
+   /**
+    * Reads from the given input file the list of tasks as exported in the microsoft project file.
+    *
+    * @param sourceFile an <code>InputStream</code> for a MS Project file.
+    * @return a <code>List(Task)</code>.
+    */
+   private static List<Task> readMsTasks(InputStream sourceFile, XLocale applicationLocale)
+        throws IOException {
+      ProjectFile msProject = null;
+      //for mpp file format the first activity is the name of the project
+      boolean removeFirstActivity = false;
+      try {
+         msProject = new MPPReader().read(sourceFile);
+         removeFirstActivity = true;
+      }
+      catch (MPXJException e) {
+         // try set language
+         try {
+            sourceFile.reset();
+            MPXReader reader = new MPXReader();
+            reader.setLocale(new Locale(applicationLocale.getID()));
+            msProject = reader.read(sourceFile);
+         }
+         catch (MPXJException e1) {
+            Locale[] all_locales = {Locale.ENGLISH, Locale.GERMAN, Locale.FRENCH, Locale.ITALIAN,
+                 new Locale("pt"), new Locale("sv")};
+            boolean read = false;
+            for (int count = 0; count < all_locales.length; count++) {
+               try {
+                  sourceFile.reset();
+                  MPXReader reader = new MPXReader();
+                  reader.setLocale(all_locales[count]);
+                  msProject = reader.read(sourceFile);
+                  read = true;
+                  break;
+               }
+               catch (MPXJException e2) {
+               }
+            }
+            if (!read) {
+               throw new IOException("Unable to load the file " + sourceFile);
+            }
+         }
+      }
+      List<Task> msTasks = new ArrayList<Task>();
+      if (msProject != null) {
+         msTasks.addAll(msProject.getAllTasks());
+         if (removeFirstActivity) {
+            msTasks.remove(0);
+         }
+      }
+      return msTasks;
+   }
 
    public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet, XLocale xlocale)
         throws IOException {

@@ -151,6 +151,11 @@ public class OpConfigurationWizardService extends OpProjectService {
       Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
       response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
 
+      //<FIXME author="Horia Chiorean" description="Fix this for multi-site">
+      //set the source for the current session
+      session.init(OpSource.DEFAULT_SOURCE_NAME);
+      //<FIXME>
+
       //check the load demodata checkbox
       Boolean loadDemodata = (Boolean) parameters.get("load_demodata");
       if (loadDemodata != null && loadDemodata) {
@@ -160,7 +165,7 @@ public class OpConfigurationWizardService extends OpProjectService {
             response.setError(session.newError(ERROR_MAP, OpDbConfigurationWizardError.INVALID_DEMODATA_FILE));
             return response;
          }
-         else {            
+         else {
             try {
                initializer.restoreSchemaFromFile(demodataFile.getCanonicalPath(), session);
             }
@@ -171,11 +176,6 @@ public class OpConfigurationWizardService extends OpProjectService {
             }
          }
       }
-
-      //<FIXME author="Horia Chiorean" description="Fix this for multi-site">
-      //set the source for the current session
-      session.init(OpSource.DEFAULT_SOURCE_NAME);
-      //<FIXME>
 
       //restore the locale to the system locale (issue OPP-19)
       session.resetLocaleToSystemDefault();
@@ -219,7 +219,7 @@ public class OpConfigurationWizardService extends OpProjectService {
     * Writes the configuration file for the application, based on the information from the configuration wizard.
     *
     * @param configurationFileName a <code>String</code> representing the name of the application configuration file.
-    * @param dataBaseConfigName a <code>String</code> the name of the db config
+    * @param dataBaseConfigName    a <code>String</code> the name of the db config
     * @param databaseType          a <code>String</code> representing the db type.
     * @param databaseDriver        a <code>String</code> representing the path to the db driver.
     * @param databaseURL           a <code>String</code> representing the db connection string.

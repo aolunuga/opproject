@@ -52,13 +52,12 @@ public abstract class OpActivityDataSetFactory {
     * the interval start date as key and a list with internal and external rates as value.
     *
     * @param project            The current project.
-    * @param workingPlanVersion The working version of the project (null if no working version)
     * @param dataSet            Hourly rates data set.
     */
    //<FIXME author="Haizea Florin" description="This is not the proper way to use this method">
-   public static void fillHourlyRatesDataSet(OpProjectNode project, OpProjectPlanVersion workingPlanVersion, XComponent dataSet) {
+   public static void fillHourlyRatesDataSet(OpProjectNode project,  XComponent dataSet) {
       OpProjectAdministrationService service = (OpProjectAdministrationService) XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
-      service.fillHourlyRatesDataSet(project, workingPlanVersion, dataSet);
+      service.fillHourlyRatesDataSet(project, dataSet);
    }
    //<FIXME>
 

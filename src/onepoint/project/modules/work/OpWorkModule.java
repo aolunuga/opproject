@@ -32,7 +32,7 @@ public class OpWorkModule extends OpModule {
       broker.close();
    }
 
-    /**
+   /**
     * Upgrades the module to version 13 (internal schema version) via reflection.
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
@@ -96,7 +96,6 @@ public class OpWorkModule extends OpModule {
       double actualTravelCosts = workRecord.getTravelCosts();
       double remainingTravelCosts = baseTravelCosts - actualTravelCosts;
       workRecord.setRemTravelCosts(remainingTravelCosts);
-      workRecord.setRemTravelCostsChange(remainingTravelCosts);
       broker.updateObject(workRecord);
 
       if (actualTravelCosts > 0) {
@@ -121,7 +120,6 @@ public class OpWorkModule extends OpModule {
       double actualMaterialCosts = workRecord.getMaterialCosts();
       double remainingMaterialCosts = baseMaterialCosts - actualMaterialCosts;
       workRecord.setRemMaterialCosts(remainingMaterialCosts);
-      workRecord.setRemMaterialCostsChange(remainingMaterialCosts);
       broker.updateObject(workRecord);
 
       if (actualMaterialCosts > 0) {
@@ -146,7 +144,6 @@ public class OpWorkModule extends OpModule {
       double actualExternallCosts = workRecord.getExternalCosts();
       double remainingExternallCosts = baseExternallCosts - actualExternallCosts;
       workRecord.setRemExternalCosts(remainingExternallCosts);
-      workRecord.setRemExternalCostsChange(remainingExternallCosts);
       broker.updateObject(workRecord);
 
       if (actualExternallCosts > 0) {
@@ -171,7 +168,6 @@ public class OpWorkModule extends OpModule {
       double actualMiscCosts = workRecord.getMiscellaneousCosts();
       double remainingMiscCosts = baseMiscCosts - actualMiscCosts;
       workRecord.setRemMiscCosts(remainingMiscCosts);
-      workRecord.setRemMiscCostsChange(remainingMiscCosts);
       broker.updateObject(workRecord);
 
       if (actualMiscCosts > 0) {
@@ -184,7 +180,7 @@ public class OpWorkModule extends OpModule {
       }
    }
 
-    /**
+   /**
     * Updates the sum of actual efforts for workslips.
     *
     * @param broker a <code>OpBroker</code> used for persistence operations.

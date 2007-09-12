@@ -12,6 +12,7 @@ import onepoint.service.server.XSession;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class OpProjectChooserFormProvider implements XFormProvider {
 
@@ -65,6 +66,9 @@ public class OpProjectChooserFormProvider implements XFormProvider {
       Boolean enableTemplates = (Boolean) parameters.get(OpProjectDataSetFactory.ENABLE_TEMPLATES);
       form.findComponent(OpProjectDataSetFactory.ENABLE_TEMPLATES).setBooleanValue(enableTemplates.booleanValue());      
 
+      List nonSelectableIds = (List) parameters.get(OpProjectDataSetFactory.NOT_SELECTABLE_IDS);
+      form.findComponent(OpProjectDataSetFactory.NOT_SELECTABLE_IDS).setListValue(nonSelectableIds);
+      
       //filter out any nodes if necessary
       ArrayList filteredIds = (ArrayList) parameters.get(OpProjectDataSetFactory.FILTERED_OUT_IDS);
       ArrayList<String> archivedProjectLocators = OpProjectDataSetFactory.retrieveArchivedProjects(session, true);

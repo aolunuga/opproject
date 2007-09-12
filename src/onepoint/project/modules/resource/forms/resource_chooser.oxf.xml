@@ -8,6 +8,7 @@
    <data-field id="EnableResources"/>
    <data-field id="EnablePools"/>
    <data-field id="FilteredOutIds"/>
+   <data-field id="NotSelectableIds"/>
 
 
    <data-set id="IconSet">

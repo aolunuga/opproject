@@ -7,19 +7,15 @@
 
    <field name="TravelCosts" type="Double"/>
    <field name="RemTravelCosts" type="Double"/>
-   <field name="RemTravelCostsChange" type="Double"/>
 
    <field name="MaterialCosts" type="Double"/>
    <field name="RemMaterialCosts" type="Double"/>
-   <field name="RemMaterialCostsChange" type="Double"/>
 
    <field name="ExternalCosts" type="Double"/>
    <field name="RemExternalCosts" type="Double"/>
-   <field name="RemExternalCostsChange" type="Double"/>
 
    <field name="MiscellaneousCosts" type="Double"/>
    <field name="RemMiscCosts" type="Double"/>
-   <field name="RemMiscCostsChange" type="Double"/>
 
    <field name="ActualProceeds" type="Double"/>
    <field name="Comment" type="String"/>

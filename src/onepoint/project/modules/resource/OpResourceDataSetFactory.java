@@ -356,11 +356,15 @@ public final class OpResourceDataSetFactory {
     * @param showResources a <code>boolean</code> indicating whether to make resources selectable or not.
     * @param showPools     a <code>boolean</code> indicating whether to make pools selectable or not.
     */
-   public static void enableResourcesSet(XComponent dataSet, boolean showResources, boolean showPools) {
+   public static void enableResourcesSet(XComponent dataSet, boolean showResources, boolean showPools, List notSelectableIds) {
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
          if (!OpProjectConstants.DUMMY_ROW_ID.equals(dataRow.getStringValue())) {
             String id = XValidator.choiceID(dataRow.getStringValue());
+            if (notSelectableIds != null && notSelectableIds.contains(id)) {
+               dataRow.setSelectable(false);
+               continue;
+            }
             OpLocator locator = OpLocator.parseLocator(id);
             Class prototypeClass = locator.getPrototype().getInstanceClass();
             if (prototypeClass.equals(OpResource.class)) {

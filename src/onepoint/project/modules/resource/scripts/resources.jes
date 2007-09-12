@@ -61,7 +61,15 @@ function move(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false);
+      notSelectableIds = new ArrayList;
+      i = 0;
+      while (i < selected_rows.size()) {
+         row = selected_rows[i];
+         id = XValidator.choiceID(row.getStringValue());
+         notSelectableIds.add(id);
+         i++;
+      }
+      openResourceChooser("MainFrame", "moveResourceOK", null, false, true, false, notSelectableIds);
    }
 }
 
@@ -256,7 +264,7 @@ function assignToProject(event) {
    resource_data_set = XDisplay.getActiveForm().findComponent("ResourceDataSet");
    selected_rows = resource_data_set.selectedRows();
    if (selected_rows.size() > 0) {
-      openProjectChooser("MainFrame", "assignToProjectOK", null, null, true, false, false, null, true);
+      openProjectChooser("MainFrame", "assignToProjectOK", null, null, true, false, false, null, true, null);
    }
 }
 

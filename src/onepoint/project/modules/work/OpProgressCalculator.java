@@ -13,8 +13,11 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.util.XCalendar;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,9 +39,10 @@ public class OpProgressCalculator {
     *
     * @param broker      a <code>OpBroker</code> used for performing business operations.
     * @param work_record a <code>OpWorkRecord</code> representing the current work record.
+    * @param calendar    Calendar used for updating costs
     */
-   public static void addWorkRecord(OpBroker broker, OpWorkRecord work_record) {
-      applyWorkRecord(broker, work_record, true);
+   public static void addWorkRecord(OpBroker broker, OpWorkRecord work_record, XCalendar calendar) {
+      applyWorkRecord(broker, work_record, true, calendar);
    }
 
    /**
@@ -46,12 +50,13 @@ public class OpProgressCalculator {
     *
     * @param broker       a <code>OpBroker</code> used for performing business operations.
     * @param work_records an <code>Iterator</code> over a collection of <code>OpWorkRecord</code>.
+    * @param calendar     Calendar used for updating costs
     */
-   public static void removeWorkRecords(OpBroker broker, Iterator work_records) {
+   public static void removeWorkRecords(OpBroker broker, Iterator work_records, XCalendar calendar) {
       OpWorkRecord work_record = null;
       while (work_records.hasNext()) {
          work_record = (OpWorkRecord) (work_records.next());
-         applyWorkRecord(broker, work_record, false);
+         applyWorkRecord(broker, work_record, false, calendar);
       }
    }
 
@@ -59,10 +64,11 @@ public class OpProgressCalculator {
     * Removes one or more work records.
     *
     * @param broker      a <code>OpBroker</code> used for performing business operations.
-    * @param work_record the {@link OpWorkRecord} to be removed.
+    * @param work_record the {@link onepoint.project.modules.work.OpWorkRecord} to be removed.
+    * @param calendar    Calendar used for updating costs
     */
-   public static void removeWorkRecord(OpBroker broker, OpWorkRecord work_record) {
-      applyWorkRecord(broker, work_record, false);
+   public static void removeWorkRecord(OpBroker broker, OpWorkRecord work_record, XCalendar calendar) {
+      applyWorkRecord(broker, work_record, false, calendar);
    }
 
    /**
@@ -71,65 +77,40 @@ public class OpProgressCalculator {
     * @param broker      a <code>OpBroker</code> used for performing business operations.
     * @param work_record a <code>OpWorkRecord</code> representing a workrecord that should be applied.
     * @param insert_mode a <code>boolean</code> indicating whether an insert of delete operation should be performed.
+    * @param calendar    Calendar used for updating costs
     */
-   private static void applyWorkRecord(OpBroker broker, OpWorkRecord work_record, boolean insert_mode) {
-      OpAssignment assignment = work_record.getAssignment();
-      boolean progressTracked = assignment.getProjectPlan().getProgressTracked();
+   private static void applyWorkRecord(OpBroker broker, OpWorkRecord work_record, boolean insert_mode, XCalendar calendar) {
+      double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
+      updateActivity(broker, work_record, insert_mode, remainingEffortChange);
+      //update cost values on work months
+      OpActivityDataSetFactory.updateRemainingValues(broker, calendar, work_record.getAssignment());
+   }
 
-      OpWorkSlip workSlip = work_record.getWorkSlip();
+   /**
+    * Updates the values of this activity (and its super activities) based on the given workrecord : effort and costs.
+    *
+    * @param broker
+    * @param work_record
+    * @param insert_mode           true if work record was added, fals if it was removed
+    * @param remainingEffortChange amount of remaining effort that was changed by the last operation
+    */
+   private static void updateActivity(OpBroker broker, OpWorkRecord work_record, boolean insert_mode, double remainingEffortChange) {
+
+      //find the latest work record for this activity
+      OpAssignment assignment = work_record.getAssignment();
+
+      OpQuery query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord where workRecord.Assignment.Activity.ID = ? order by workRecord.WorkSlip.Date desc, workRecord.Modified desc");
+      query.setLong(0, assignment.getActivity().getID());
+
+      List<OpWorkRecord> workRecords = getWorkRecordsList(broker, query, true);
 
       OpWorkRecord latestWorkRecord;
-      OpQuery query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord where workRecord.WorkSlip.Date > ? and workRecord.Assignment.ID = ?");
-      query.setDate(0, workSlip.getDate());
-      query.setLong(1, assignment.getID());
-      Iterator iterator = broker.iterate(query);
       latestWorkRecord = work_record;
-      OpWorkRecord secondLatest = null;
-
-      if (iterator != null) {
-         while (iterator.hasNext()) {
-            long id = (Long) iterator.next();
-            OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, id);
-            if (latestWorkRecord.getWorkSlip().getDate().before(workRecord.getWorkSlip().getDate())) {
-               secondLatest = latestWorkRecord;
-               latestWorkRecord = workRecord;
-            }
-         }
-      }
-      double remainingEffortChange = 0;
-
-      //update assignment
-      if (insert_mode) {
-         assignment.setActualEffort(assignment.getActualEffort() + work_record.getActualEffort());
-         assignment.setActualCosts(assignment.getActualCosts() + work_record.getPersonnelCosts());
-         assignment.setActualProceeds(assignment.getActualProceeds() + work_record.getActualProceeds());
-         if (progressTracked) {
-            remainingEffortChange = -assignment.getRemainingEffort() + latestWorkRecord.getRemainingEffort();
-            assignment.setRemainingEffort(latestWorkRecord.getRemainingEffort());
-         }
-      }
-      else {
-         assignment.setActualEffort(assignment.getActualEffort() - work_record.getActualEffort());
-         assignment.setActualCosts(assignment.getActualCosts() - work_record.getPersonnelCosts());
-         assignment.setActualProceeds(assignment.getActualProceeds() - work_record.getActualProceeds());
-         if (progressTracked && latestWorkRecord == work_record) {
-            //remaining effort should be the "next" latest ?
-            remainingEffortChange = -assignment.getRemainingEffort();
-            if (secondLatest != null) {
-               assignment.setRemainingEffort(secondLatest.getRemainingEffort());
-            }
-            else {
-               assignment.setRemainingEffort(assignment.getBaseEffort());
-            }
-            remainingEffortChange += assignment.getRemainingEffort();
-         }
+      if (workRecords.size() > 0) {
+         latestWorkRecord = workRecords.get(0);
       }
 
-      boolean workRecordCompleted = insert_mode && work_record.getCompleted();
-      updateAssignmentBasedOnTracking(assignment, workRecordCompleted, progressTracked);
-      broker.updateObject(assignment);
-      updateAssignmentForWorkingVersion(assignment, broker);
-
+      boolean progressTracked = assignment.getProjectPlan().getProgressTracked();
       // Update activity path: Add new actual effort and remaining effort change to stored values, update complete
       OpActivity activity = assignment.getActivity();
       while (activity != null) {
@@ -141,15 +122,14 @@ public class OpProgressCalculator {
             }
             activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() + work_record.getPersonnelCosts());
             activity.setActualProceeds(activity.getActualProceeds() + work_record.getActualProceeds());
+
             // Add to manually managed costs
             activity.setActualMaterialCosts(activity.getActualMaterialCosts() + work_record.getMaterialCosts());
             activity.setActualTravelCosts(activity.getActualTravelCosts() + work_record.getTravelCosts());
             activity.setActualExternalCosts(activity.getActualExternalCosts() + work_record.getExternalCosts());
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() + work_record.getMiscellaneousCosts());
-            activity.setRemainingMaterialCosts(activity.getRemainingMaterialCosts() + work_record.getRemMaterialCostsChange());
-            activity.setRemainingTravelCosts(activity.getRemainingTravelCosts() + work_record.getRemTravelCostsChange());
-            activity.setRemainingExternalCosts(activity.getRemainingExternalCosts() + work_record.getRemExternalCostsChange());
-            activity.setRemainingMiscellaneousCosts(activity.getRemainingMiscellaneousCosts() + work_record.getRemMiscCostsChange());
+
+            setActivityRemainingCosts(activity, latestWorkRecord);
          }
          else {
             activity.setActualEffort(activity.getActualEffort() - work_record.getActualEffort());
@@ -158,15 +138,20 @@ public class OpProgressCalculator {
             }
             activity.setActualPersonnelCosts(activity.getActualPersonnelCosts() - work_record.getPersonnelCosts());
             activity.setActualProceeds(activity.getActualProceeds() - work_record.getActualProceeds());
+
             // Subtract from manually managed costs
             activity.setActualMaterialCosts(activity.getActualMaterialCosts() - work_record.getMaterialCosts());
             activity.setActualTravelCosts(activity.getActualTravelCosts() - work_record.getTravelCosts());
             activity.setActualExternalCosts(activity.getActualExternalCosts() - work_record.getExternalCosts());
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() - work_record.getMiscellaneousCosts());
-            activity.setRemainingMaterialCosts(activity.getRemainingMaterialCosts() - work_record.getRemMaterialCostsChange());
-            activity.setRemainingTravelCosts(activity.getRemainingTravelCosts() - work_record.getRemTravelCostsChange());
-            activity.setRemainingExternalCosts(activity.getRemainingExternalCosts() - work_record.getRemExternalCostsChange());
-            activity.setRemainingMiscellaneousCosts(activity.getRemainingMiscellaneousCosts() - work_record.getRemMiscCostsChange());
+
+            if (work_record == latestWorkRecord) {
+               OpWorkRecord secondLatest = null;
+               if (workRecords.size() > 1) {
+                  secondLatest = workRecords.get(1);
+               }
+               setActivityRemainingCosts(activity, secondLatest);
+            }
          }
 
          if (activity.getType() != OpActivity.ADHOC_TASK) {
@@ -185,6 +170,132 @@ public class OpProgressCalculator {
             updateActivityForWorkingVersion(activity, broker);
          }
          activity = activity.getSuperActivity();
+      }
+   }
+
+
+   /**
+    * Returns the first two results of the given query.
+    *
+    * @param broker
+    * @param query               Query over workRecord. Result must be work record ids.
+    * @param includeEmptyRecords true if cons-only records should be included or not in the result
+    * @return a list of work records (keeps the same order as the query result)
+    */
+   private static List<OpWorkRecord> getWorkRecordsList(OpBroker broker, OpQuery query, boolean includeEmptyRecords) {
+      List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
+      Iterator iterator = broker.iterate(query);
+      //the latest work record
+      while (iterator.hasNext()) {
+         long id = (Long) iterator.next();
+         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, id);
+         if (includeEmptyRecords) {
+            workRecords.add(workRecord);
+            break;
+         }
+         else {
+            if (!workRecord.isEmpty()) {
+               workRecords.add(workRecord);
+               break;
+            }
+         }
+      }
+
+      //the "second latest" work record
+      while (iterator.hasNext()) {
+         long id = (Long) iterator.next();
+         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, id);
+         if (includeEmptyRecords) {
+            workRecords.add(workRecord);
+            break;
+         }
+         else {
+            if (!workRecord.isEmpty()) {
+               workRecords.add(workRecord);
+               break;
+            }
+         }
+      }
+      return workRecords;
+
+   }
+
+   /**
+    * Updates the values of the workRecord's assignment.
+    *
+    * @param broker
+    * @param workRecord
+    * @param insert_mode insert or remove work record
+    * @return The remaining effort change amount.
+    */
+   private static double updateAssignment(OpBroker broker, OpWorkRecord workRecord, boolean insert_mode) {
+
+      double remainingEffortChange = 0;
+      //nothing to be done for an empty record (cost only)
+      if (workRecord.isEmpty()) {
+         return remainingEffortChange;
+      }
+
+      OpAssignment assignment = workRecord.getAssignment();
+
+      boolean progressTracked = assignment.getProjectPlan().getProgressTracked();
+
+      OpQuery query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord where workRecord.Assignment.ID = ? order by workRecord.WorkSlip.Date desc, workRecord.Modified desc");
+      query.setLong(0, assignment.getID());
+
+      List<OpWorkRecord> workRecords = getWorkRecordsList(broker, query, false);
+
+      OpWorkRecord latestWorkRecord = workRecord;
+      if (workRecords.size() > 0) {
+         latestWorkRecord = workRecords.get(0);
+      }
+
+      //update assignment
+      if (insert_mode) {
+         assignment.setActualEffort(assignment.getActualEffort() + workRecord.getActualEffort());
+         assignment.setActualCosts(assignment.getActualCosts() + workRecord.getPersonnelCosts());
+         assignment.setActualProceeds(assignment.getActualProceeds() + workRecord.getActualProceeds());
+         if (progressTracked) {
+            remainingEffortChange = -assignment.getRemainingEffort() + latestWorkRecord.getRemainingEffort();
+            assignment.setRemainingEffort(latestWorkRecord.getRemainingEffort());
+         }
+      }
+      else {
+         assignment.setActualEffort(assignment.getActualEffort() - workRecord.getActualEffort());
+         assignment.setActualCosts(assignment.getActualCosts() - workRecord.getPersonnelCosts());
+         assignment.setActualProceeds(assignment.getActualProceeds() - workRecord.getActualProceeds());
+         if (progressTracked && latestWorkRecord == workRecord) {
+            remainingEffortChange = -assignment.getRemainingEffort();
+            if (workRecords.size() > 1) {
+               OpWorkRecord newLatest = workRecords.get(1);
+               assignment.setRemainingEffort(newLatest.getRemainingEffort());
+            }
+            else {
+               assignment.setRemainingEffort(assignment.getBaseEffort());
+            }
+            remainingEffortChange += assignment.getRemainingEffort();
+         }
+      }
+
+      boolean workRecordCompleted = insert_mode && workRecord.getCompleted();
+      updateAssignmentBasedOnTracking(assignment, workRecordCompleted, progressTracked);
+      broker.updateObject(assignment);
+      updateAssignmentForWorkingVersion(assignment, broker);
+      return remainingEffortChange;
+   }
+
+   private static void setActivityRemainingCosts(OpActivity activity, OpWorkRecord work_record) {
+      if (work_record == null) {
+         activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
+         activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+         activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
+         activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+      }
+      else {
+         activity.setRemainingMaterialCosts(work_record.getRemMaterialCosts());
+         activity.setRemainingTravelCosts(work_record.getRemTravelCosts());
+         activity.setRemainingExternalCosts(work_record.getRemExternalCosts());
+         activity.setRemainingMiscellaneousCosts(work_record.getRemMiscCosts());
       }
    }
 

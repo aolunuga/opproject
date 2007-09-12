@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
    <database name="Default">
-   	<database-type>MSSQL</database-type>
-   	<database-driver>net.sourceforge.jtds.jdbc.Driver</database-driver>
-   	<database-url>jdbc:jtds:sqlserver://localhost:1433/opproject_test</database-url>
-   	<database-login>sa</database-login>
-   	<database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>
+      <database-type>MySQLInnoDB</database-type>
+      <database-driver>com.mysql.jdbc.Driver</database-driver>
+      <database-url>jdbc:mysql:///opproject_test</database-url>
+      <database-login>root</database-login>
+      <database-password></database-password>
+      <connection-pool-min-size>5</connection-pool-min-size>
+      <connection-pool-max-size>20</connection-pool-max-size>
    </database>
-   <log-file>opproject.log</log-file>
    <cache-size>500</cache-size>
+   <log-file>opproject.log</log-file>
+   <!-- Set a large value here, to allow tests to fail with Out Of Memory -->
+   <max-attachment-size>300</max-attachment-size>
+   <!--<database-type>MSSQL</database-type>-->
+   <!--<database-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database-driver>-->
+   <!--<database-url>jdbc:sqlserver://ender:1433;databaseName=onepoint_test_hc</database-url>-->
+   <!--<database-login>sa</database-login>-->
+   <!--<database-password encrypted="true">YXNlcmVuaW1lZWFycA==</database-password>-->
+
 </configuration>
