@@ -64,8 +64,9 @@ public final class OpEnvironmentManager {
       PRODUCT_CODES_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, Boolean.TRUE);
+      PRODUCT_CODES_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, Boolean.TRUE);
    }
-   
+
    /**
     * The product code used in the initialization process
     */
@@ -193,7 +194,7 @@ public final class OpEnvironmentManager {
    /**
     * Returns the path to the onepoint data directory. This path is system dependent.
     *
-    * @return  Path of the onepoint data folder. Path uses "/" separator.
+    * @return Path of the onepoint data folder. Path uses "/" separator.
     */
    public static String getDataFolderPath() {
       if (isMultiUser()) {
@@ -231,7 +232,12 @@ public final class OpEnvironmentManager {
          throw new UnsupportedOperationException("Cannot determine whether application is multi user or not");
       }
       return isMultiUser.booleanValue();
-   }   
+   }
+
+
+   public static boolean isNetworkEdition() {
+      return productCode.equals(OpProjectConstants.NETWORK_EDITION_CODE);
+   }
 
 
    /**

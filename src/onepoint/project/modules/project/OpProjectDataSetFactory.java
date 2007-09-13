@@ -46,6 +46,10 @@ public final class OpProjectDataSetFactory {
    public final static String FILTERED_OUT_IDS = "FilteredOutIds";
    public final static String NOT_SELECTABLE_IDS = "NotSelectableIds";
 
+   public final static String PROJECT_DESCRIPTOR = "p";
+
+   public final static int ARCHIVED_INDEX = 23;
+
    private final static String PROJECT_BY_PERMISSIONS_QUERY =
         "select project.ID from OpPermission as permission, OpProjectNode as project " +
              "where permission.Object.ID = project.ID " +
@@ -57,7 +61,6 @@ public final class OpProjectDataSetFactory {
 
    private final static String PORTFOLIO_DESCRIPTOR = "f";
    private final static String TEMPLATE_DESCRIPTOR = "t";
-   private final static String PROJECT_DESCRIPTOR = "p";
 
    private final static int PORTFOLIO_ICON_INDEX = 0;
    private final static int TEMPLATE_ICON_INDEX = 1;
@@ -635,6 +638,12 @@ public final class OpProjectDataSetFactory {
 
             addProjectCostAndEffortCells(dataRow, effortDataSet, costDataSet);
          }
+
+         //23 - Archived
+         Boolean archived = projectNode.getArchived();
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(archived != null ? archived : Boolean.FALSE);
+         dataRow.addChild(dataCell);
       }
       return dataRow;
    }
@@ -748,7 +757,7 @@ public final class OpProjectDataSetFactory {
     * @param type    a <code>String</code> constant representing possible types of a data-row.
     * @return <code>true</code> if the dataRow represents a portfolio.
     */
-   private static boolean isOfType(XComponent dataRow, String type) {
+   public static boolean isOfType(XComponent dataRow, String type) {
       String descriptor = ((XComponent) dataRow.getChild(0)).getStringValue();
       if (descriptor.equalsIgnoreCase(type)) {
          return true;

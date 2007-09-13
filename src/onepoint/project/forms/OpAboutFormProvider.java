@@ -5,7 +5,6 @@
 package onepoint.project.forms;
 
 import onepoint.express.XComponent;
-import onepoint.express.XDisplay;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
@@ -25,8 +24,6 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -34,7 +31,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
-import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 /**
@@ -88,6 +84,7 @@ public class OpAboutFormProvider implements XFormProvider {
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.OPEN_EDITION_CODE, "Onepoint Project Open Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.TEAM_EDITION_CODE, "Onepoint Project Team Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.NETWORK_EDITION_CODE, "Onepoint Project Network Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "Onepoint Project On Demand Edition");
    }
 
@@ -116,7 +113,7 @@ public class OpAboutFormProvider implements XFormProvider {
       String productName = (String) PRODUCT_CODES_DESCRIPTION.get(productCode);
 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
-      
+
       String version = null;
       Date build = null;
       // try reading infos from manifest
@@ -153,7 +150,7 @@ public class OpAboutFormProvider implements XFormProvider {
       }
       form.findComponent(VERSION_LABEL).setText(version);
       String dateText = ((OpProjectSession) session).getCalendar().localizedDateToString(
-            new java.sql.Date(build.getTime()));
+           new java.sql.Date(build.getTime()));
       form.findComponent(BUILD_LABEL).setText(dateText);
       form.findComponent(CURRENT_VERSION_LABEL).setText(currentVersion);
    }

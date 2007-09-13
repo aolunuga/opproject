@@ -35,6 +35,7 @@ public interface OpProjectConstants {
    public static final String PROFESSIONAL_EDITION_CODE = "OPPPE";
    public static final String OPEN_EDITION_CODE = "OPPOE";
    public static final String TEAM_EDITION_CODE = "OPPTE";
+   public static final String NETWORK_EDITION_CODE = "OPPNE";
    public static final String ON_DEMAND_EDITION_CODE = "OPPOD";
 
    /**
@@ -42,7 +43,7 @@ public interface OpProjectConstants {
     */
    public static final String CODE_VERSION_MAJOR_NUMBER = "7";
    public static final String CODE_VERSION_MINOR_NUMBER = "1";
-   public static final String CODE_VERSION_NUMBER = CODE_VERSION_MAJOR_NUMBER+"."+CODE_VERSION_MINOR_NUMBER;
+   public static final String CODE_VERSION_NUMBER = CODE_VERSION_MAJOR_NUMBER + "." + CODE_VERSION_MINOR_NUMBER;
    public static final String CALENDAR = "calendar";
 
    /**

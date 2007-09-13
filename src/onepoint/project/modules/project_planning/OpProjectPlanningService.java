@@ -234,11 +234,17 @@ public class OpProjectPlanningService extends OpProjectService {
     * @return a <code>XMessage</code> containing information about the resource changes.
     */
    private XMessage checkExternalModifications(OpProjectNode project, OpProjectSession session, OpBroker broker) {
-
       XMessage result = new XMessage();
+
+      boolean haveSettingsChanged = this.checkSettingsModifications(project, session);
+      if (haveSettingsChanged) {
+         result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
+         result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.CALENDARS_MODIFIED_WARNING));
+         return result;
+      }
+
       boolean hasAvailabilityChanged = false;
       boolean haveRatesChanged = false;
-      boolean haveSettingsChanged = this.checkSettingsModifications(project, session);
 
       Set<OpActivity> activities = project.getPlan().getActivities();
       //form the list of exluded activity types (activities that do not need an udate of costs)
@@ -266,11 +272,6 @@ public class OpProjectPlanningService extends OpProjectService {
          if (haveRatesChanged) {
             result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
             result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.HOURLY_RATES_MODIFIED_WARNING));
-            return result;
-         }
-         if (haveSettingsChanged) {
-            result.setArgument(WARNING_ARGUMENT, Boolean.TRUE);
-            result.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.CALENDARS_MODIFIED_WARNING));
             return result;
          }
       }
