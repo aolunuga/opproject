@@ -10,6 +10,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project.components.OpIncrementalValidator;
 
 import java.util.HashMap;
 
@@ -130,7 +131,7 @@ public class OpProjectPlanValidator {
     * @return a <code>OpGanttValidator</code> instance.
     */
    private OpGanttValidator createValidator(HashMap resources) {
-      OpGanttValidator validator = new OpGanttValidator();
+      OpGanttValidator validator = new OpIncrementalValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));

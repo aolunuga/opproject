@@ -26,20 +26,20 @@
       <resource id="PasswordRetyped">Retype password</resource>
       <resource id="Description">Description</resource>
       <resource id="UserLanguage">Language</resource>
-      
+
       <resource id="Contact">Contact</resource>
       <resource id="EMail">Email</resource>
       <resource id="Phone">Phone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
-      
+
       <resource id="Groups">Groups</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
 
       <resource id="UserLevel">User Level</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>      
+      <resource id="StandardLevel">Standard</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Delete Users or Groups</resource>
@@ -58,10 +58,10 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>
    </resource-map>
-  <resource-map id="user.Info">
+   <resource-map id="user.Info">
       <resource id="InfoUser">User Info</resource>
       <resource id="InfoGroup">Group Info</resource>
-  </resource-map>  
+   </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">New User</resource>
       <resource id="General">General</resource>
@@ -86,13 +86,13 @@
       <resource id="ManagerLevel">Manager</resource>
       <resource id="StandardLevel">Standard</resource>
    </resource-map>
-	<resource-map id="user.users">
-		<resource id="NewGroup">New Group</resource>
-		<resource id="NewUser">New User</resource>
-		<resource id="Properties">Properties</resource>
-		<resource id="Edit">Edit</resource>
-		<resource id="Delete">Delete</resource>
-		<resource id="AssignToGroup">Assign to Group</resource>
+   <resource-map id="user.users">
+      <resource id="NewGroup">New Group</resource>
+      <resource id="NewUser">New User</resource>
+      <resource id="Properties">Properties</resource>
+      <resource id="Edit">Edit</resource>
+      <resource id="Delete">Delete</resource>
+      <resource id="AssignToGroup">Assign to Group</resource>
       <resource id="Search">Find</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Description</resource>
@@ -104,8 +104,8 @@
       <resource id="EditTooltip">Edit meta information for the selected user or group</resource>
       <resource id="DeleteTooltip">Delete selected users and groups</resource>
       <resource id="AssignToGroupTooltip">Assign the selected users and groups to a group</resource>
-				
-	</resource-map>
+
+   </resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Select User or Group</resource>
       <resource id="OK">OK</resource>
@@ -145,5 +145,6 @@
       <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
       <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
       <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
+      <resource id="UserHasPlanVersionsError">The user has created Project Plan Versions and cannot be deleted</resource>
    </resource-map>
 </language-kit>
