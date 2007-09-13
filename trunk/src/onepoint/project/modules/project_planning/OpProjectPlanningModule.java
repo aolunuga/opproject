@@ -64,7 +64,7 @@ public class OpProjectPlanningModule extends OpModule {
          OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
          //due to a previous bug, we must make sure the start/end of the project plans are ok - 1st thing that most be done !
          fixProjectPlanDates(projectPlan, broker);
-         updateActualProceeds(projectPlan, broker);
+         updateProceeds(projectPlan, broker);
          projectPlanIds.add(projectPlan.getID());
       }
       broker.close();
@@ -139,12 +139,14 @@ public class OpProjectPlanningModule extends OpModule {
     *                    which to update.
     * @param broker      a <code>OpBroker</code> used for persistence operations.
     */
-   private void updateActualProceeds(OpProjectPlan projectPlan, OpBroker broker) {
+   private void updateProceeds(OpProjectPlan projectPlan, OpBroker broker) {
       OpTransaction tx = broker.newTransaction();
       for (OpActivity activity : projectPlan.getActivities()) {
          activity.setActualProceeds(activity.getActualPersonnelCosts());
+         activity.setBaseProceeds(activity.getBasePersonnelCosts());
          broker.updateObject(activity);
          for (OpAssignment assignment : activity.getAssignments()) {
+            assignment.setBaseProceeds(assignment.getBaseCosts());
             assignment.setActualProceeds(assignment.getActualCosts());
             broker.updateObject(assignment);
             for (OpWorkRecord workRecord : assignment.getWorkRecords()) {

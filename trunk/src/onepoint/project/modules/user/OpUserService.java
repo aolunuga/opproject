@@ -65,6 +65,8 @@ public class OpUserService extends OpProjectService {
 
    private final static String WARNING = "warning";
 
+   private final static String USERS_QUERY = "select count(user) from OpUser as user where user.Level=? and user.Name != '" + OpUser.ADMINISTRATOR_NAME + "'";
+
    // FIXME(dfreis Mar 5, 2007 11:16:13 AM)
    // should be set within constructor!
    private OpUserServiceImpl serviceIfcImpl_ = new OpUserServiceImpl();
@@ -159,8 +161,15 @@ public class OpUserService extends OpProjectService {
       }
       user.setLevel(userLevelId);
 
-      // NOTE: do not remove local broker reference!! (ThreadLocal)
       OpBroker broker = session.newBroker();
+
+      reply = aditionalCheck(session, broker, user);
+      if (reply.getError() != null) {
+         broker.close();
+         return reply;
+      }
+
+      // NOTE: do not remove local broker reference!! (ThreadLocal)
       OpTransaction t = broker.newTransaction();
 
       try {
@@ -209,6 +218,18 @@ public class OpUserService extends OpProjectService {
       }
       broker.close();
       return reply;
+   }
+
+   /**
+    * Template method that allows aditional user check for overriding class.
+    *
+    * @param session
+    * @param broker
+    * @param user    User that needs to be checked
+    * @return error reply if the user failed the check
+    */
+   protected XMessage aditionalCheck(OpProjectSession session, OpBroker broker, OpUser user) {
+      return new XMessage();
    }
 
    public XMessage insertGroup(OpProjectSession session, XMessage request) {
@@ -383,6 +404,11 @@ public class OpUserService extends OpProjectService {
 
          // Create display name (note: This could be made configurable in the future)
          user.setDisplayName(contact.calculateDisplayName(user.getName()));
+
+         reply = aditionalCheck(session, broker, user);
+         if (reply.getError() != null) {
+            return reply;
+         }
 
          // validation successfully completed
          t = broker.newTransaction();
@@ -1016,5 +1042,18 @@ public class OpUserService extends OpProjectService {
    public Object getServiceImpl() {
       return serviceIfcImpl_;
    }
+
+
+   public static int getUsersOfLevel(OpBroker broker, byte level) {
+      OpQuery query = broker.newQuery(USERS_QUERY);
+      query.setByte(0, level);
+      Iterator result = broker.iterate(query);
+      int users = 0;
+      if (result.hasNext()) {
+         users = ((Number) result.next()).intValue();
+      }
+      return users;
+   }
+
 
 }
