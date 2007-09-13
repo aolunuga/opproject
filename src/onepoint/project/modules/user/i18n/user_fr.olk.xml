@@ -26,20 +26,20 @@
       <resource id="PasswordRetyped">Resaisir le Mot de Passe</resource>
       <resource id="Description">Description</resource>
       <resource id="UserLanguage">Langue</resource>
-      
+
       <resource id="Contact">Contact</resource>
       <resource id="EMail">Email</resource>
       <resource id="Phone">Téléphone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
-      
+
       <resource id="Groups">Groupes</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
 
       <resource id="UserLevel">Niveau Utilisateur</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>      
+      <resource id="StandardLevel">Standard</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Supprimer les Utilisateurs ou Groupes</resource>
@@ -58,10 +58,10 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
-  <resource-map id="user.Info">
+   <resource-map id="user.Info">
       <resource id="InfoUser">Information Utilisateur</resource>
       <resource id="InfoGroup">Information Groupe</resource>
-  </resource-map>  
+   </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">Nouveau Utilisateur</resource>
       <resource id="General">Généralités</resource>
@@ -86,13 +86,13 @@
       <resource id="ManagerLevel">Manager</resource>
       <resource id="StandardLevel">Standard</resource>
    </resource-map>
-	<resource-map id="user.users">
-		<resource id="NewGroup">Nouveau Groupe</resource>
-		<resource id="NewUser">Nouveau Utilisateur</resource>
-		<resource id="Properties">Propriétés</resource>
-		<resource id="Edit">Modifier</resource>
-		<resource id="Delete">Supprimer</resource>
-		<resource id="AssignToGroup">Ajouter au groupe</resource>
+   <resource-map id="user.users">
+      <resource id="NewGroup">Nouveau Groupe</resource>
+      <resource id="NewUser">Nouveau Utilisateur</resource>
+      <resource id="Properties">Propriétés</resource>
+      <resource id="Edit">Modifier</resource>
+      <resource id="Delete">Supprimer</resource>
+      <resource id="AssignToGroup">Ajouter au groupe</resource>
       <resource id="Search">Chercher</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
@@ -104,8 +104,8 @@
       <resource id="EditTooltip">Modifier les informations pour l'utilisateur ou groupe choisi</resource>
       <resource id="DeleteTooltip">Supprimer les utilisateurs et groupes choisis</resource>
       <resource id="AssignToGroupTooltip">Ajouter les utilisateurs et groupes choisis � un groupe</resource>
-				
-	</resource-map>
+
+   </resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Choisir un utilisateur ou un groupe</resource>
       <resource id="OK">OK</resource>
@@ -122,7 +122,7 @@
       <resource id="AdministratorDescription">L'administrateur a des droits partout</resource>
       <resource id="EveryoneDisplayName">Tout le monde</resource>
       <resource id="EveryoneDescription">Tout les utilisateurs sont d'office dans ce groupe</resource>
-   </resource-map>   
+   </resource-map>
    <resource-map id="user.error">
       <resource id="PasswordMismatch">Le Mot de passe est invalide</resource>
       <resource id="UserUnknown">Le nom de l'utilisateur est inconu</resource>
@@ -145,5 +145,6 @@
       <resource id="UserDemoteError">Vous ne pouvez pas r�trograder cet utilisateur au niveau standard : Il y a encore des niveau manager pour cet utilisateur dans le d�p�t</resource>
       <resource id="PermissionLevelError">Le niveau utilisateur est trop bas pour mettre ce droit</resource>
       <resource id="AdminPermissionError">Vous ne pouvez pas modifier les droits de l'administrateur</resource>
+      <resource id="UserHasPlanVersionsError">The user has created Project Plan Versions and cannot be deleted</resource>
    </resource-map>
 </language-kit>

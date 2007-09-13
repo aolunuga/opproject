@@ -878,6 +878,17 @@ public class OpUserService extends OpProjectService {
       OpUser subject;
       while (result.hasNext()) {
          subject = (OpUser) result.next();
+
+         /*check if any of the users has created at least one project plan version and set an error message if this
+           is the case */
+         if (hasCreatedProjectVersions(broker, subject)) {
+            XMessage reply = new XMessage();
+            XError error = session.newError(ERROR_MAP, OpUserError.USER_HAS_PLAN_VERSIONS);
+            reply.setError(error);
+            finalizeSession(t, broker);
+            return reply;
+         }
+
          Set res = subject.getResources();
          for (Iterator iterator = res.iterator(); iterator.hasNext();) {
             OpResource resource = (OpResource) iterator.next();
@@ -1221,5 +1232,26 @@ public class OpUserService extends OpProjectService {
          return password2.equals(password1) || password2.equals(BLANK_PASSWORD);//for backward compatibility
       }
       return password1 == password2;
+   }
+
+   /**
+    * Checks if the <code>OpUser</code> passed as parameter has created at leat a project plan version and returns
+    *    <code>true</code> if this is the case or <code>false</code> otherwise.
+    *
+    * @param broker - the session <code>OpBroker</code>.
+    * @param user - the <code>OpUser</code> for which we are trying to determine if he has created any project plan versions.
+    * @return <code>true</code> if the <code>OpUser</code> passed as parameter has created any project plan versions and
+    *    <code>false</code> otherwise.
+    */
+   private boolean hasCreatedProjectVersions(OpBroker broker, OpUser user) {
+      OpQuery query = broker.newQuery("select count(version) from OpProjectPlanVersion as version where version.Creator.ID = :userId ");
+      query.setLong("userId", user.getID());
+      Iterator result = broker.list(query).iterator();
+
+      if (result.hasNext() && (((Integer) result.next()).intValue() > 0)) {
+         return true;
+      }
+
+      return false;
    }
 }

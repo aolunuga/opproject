@@ -109,4 +109,8 @@ public class OpHibernateQuery implements OpQuery {
    public void setMaxResults(int count) {
       query.setMaxResults(count);
    }
+
+   public void setFetchSize(int size) {
+      query.setFetchSize(size);
+   }
 }

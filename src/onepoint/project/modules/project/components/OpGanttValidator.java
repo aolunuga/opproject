@@ -127,7 +127,6 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
-   public final static String INVALID_BASE_EFFORT_EXCEPTION = "InvalidBaseEffortException";
 
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -1484,16 +1483,20 @@ public class OpGanttValidator extends XValidator {
     * @see OpGanttValidator#updateCollectionValues(onepoint.express.XComponent)
     */
    protected void updateCollectionTreeValues(XComponent activity) {
-      if (getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK) {
+      if (isCollectionType(activity)) {
          updateCollectionValues(activity);
       }
       XComponent superActivity = superActivity(activity);
       while (superActivity != null) {
-         if (getType(superActivity) == COLLECTION || getType(superActivity) == COLLECTION_TASK || getType(superActivity) == SCHEDULED_TASK) {
+         if (isCollectionType(superActivity)) {
             updateCollectionValues(superActivity);
          }
          superActivity = superActivity(superActivity);
       }
+   }
+
+   protected boolean isCollectionType(XComponent activity) {
+      return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK;
    }
 
    private void _validateActivity(XComponent activity, XCalendar calendar, Date not_before, boolean child,
@@ -1979,18 +1982,16 @@ public class OpGanttValidator extends XValidator {
     */
    public void addDataRow(int index, XComponent data_row) {
       addToUndo();
+
       // Insert data-row at index position
-      // *** TODO -- important: Do index link management
-      // ==> Update all references to all rows "behind" this new row
-      // ==> Check if predecessor or successor contains i > index: Increment
       if (index > data_set.getChildCount()) {
          index = data_set.getChildCount();
       }
       XComponent updated_data_row = null;
       for (int i = 0; i < data_set.getChildCount(); i++) {
          updated_data_row = (XComponent) (data_set._getChild(i));
-         updateIndexListAfterAdd(getSuccessors(updated_data_row), index, Integer.MAX_VALUE, 1);
-         updateIndexListAfterAdd(getPredecessors(updated_data_row), index, Integer.MAX_VALUE, 1);
+         updateIndexListAfterAdd(getSuccessors(updated_data_row), index);
+         updateIndexListAfterAdd(getPredecessors(updated_data_row), index);
       }
       if (index < data_set.getChildCount()) {
          XComponent previousChild = (XComponent) data_set.getChild(index);
@@ -2002,10 +2003,23 @@ public class OpGanttValidator extends XValidator {
             updateType(data_row, TASK);
          }
 
+         if (isCollectionType(previousChild)) {
+            clearCollectionActivity(previousChild);
+         }
+
          setCategory(data_row, getCategory(previousChild));
       }
       data_set.addChild(index, data_row);
       validateDataSet();
+   }
+
+   private void clearCollectionActivity(XComponent previousChild) {
+      setComplete(previousChild, 0);
+      setBaseExternalCosts(previousChild, 0);
+      setBaseMaterialCosts(previousChild, 0);
+      setBaseMiscellaneousCosts(previousChild, 0);
+      setBasePersonnelCosts(previousChild, 0);
+      setBaseTravelCosts(previousChild, 0);
    }
 
    /**
@@ -2076,8 +2090,8 @@ public class OpGanttValidator extends XValidator {
          XComponent updated_data_row = null;
          for (int i = 0; i < data_set.getChildCount(); i++) {
             updated_data_row = (XComponent) (data_set._getChild(i));
-            updateIndexListAfterRemove(getSuccessors(updated_data_row), index, Integer.MAX_VALUE, -1);
-            updateIndexListAfterRemove(getPredecessors(updated_data_row), index, Integer.MAX_VALUE, -1);
+            updateIndexListAfterRemove(getSuccessors(updated_data_row), index);
+            updateIndexListAfterRemove(getPredecessors(updated_data_row), index);
          }
       }
    }
@@ -2438,7 +2452,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
-      
+
       if (isProjectMandatory(data_row)) {
          if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
               (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
@@ -4225,49 +4239,35 @@ public class OpGanttValidator extends XValidator {
     * the <code>array</code> is greater then <code>start</code> but lower than <code>end</code> the value is
     * incresead by <code>offset</code>
     *
-    * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
-    * @param start  the start index, index of the modified row.
-    * @param end    the end index, value of the last index that has to be updated
-    * @param offset the offset, amount for the update of indexes
+    * @param array          <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
+    * @param elemToAddIndex a <code>int</code> the index where the new element will be added.
     */
-   private static void updateIndexListAfterAdd(ArrayList array, int start, int end, int offset) {
-      // Update index list values: Add offset if value is index
-      // TODO: Check where this one is used -- next one might be more efficient
-      int value = 0;
+   private static void updateIndexListAfterAdd(ArrayList array, int elemToAddIndex) {
       for (int i = 0; i < array.size(); i++) {
-         value = ((Integer) (array.get(i))).intValue();
-         if ((value >= start) && (value <= end)) {
-            value += offset;
-            array.set(i, new Integer(value));
-            logger.debug(" *** value " + value);
+         int index = ((Integer) (array.get(i))).intValue();
+         if (index >= elemToAddIndex) {
+            array.set(i, new Integer(index + 1));
          }
       }
    }
 
    /**
     * Updates the given array (Successors or Predecessors) after a remove was made in the data set. If one element from
-    * the <code>array</code> is greater then <code>start</code> but lower than <code>end</code> the value is
-    * incresead by <code>offset</code>. The start index will be removed from the given array.
+    * the <code>array</code> is greater then <code>removedElementIndex</code> but lower than <code>end</code> the value is
+    * incresead by <code>offset</code>. The removedElementIndex index will be removed from the given array.
     *
-    * @param array  <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
-    * @param start  the start index, index of the modified row.
-    * @param end    the end index, value of the last index that has to be updated
-    * @param offset the offset, amount for the update of indexes
+    * @param array               <code>XArray</code> of <code>Integer</code> (succesors or predecesors)
+    * @param removedElementIndex the removedElementIndex index, index of the modified row.
     */
-   private static void updateIndexListAfterRemove(ArrayList array, int start, int end, int offset) {
-      // Update index list values: Add offset if value is index
-      int value = 0;
-      for (int i = 0; i < array.size(); i++) {
-         value = ((Integer) (array.get(i))).intValue();
-         // start is the index of the dataSet that was removed.
-         // It must be removed also from the successor/predecessor lists
-         if (value == start) {
-            array.remove(i);
+   private static void updateIndexListAfterRemove(ArrayList array, int removedElementIndex) {
+      for (Iterator it = array.iterator(); it.hasNext();) {
+         Integer indexElement = ((Integer) it.next());
+         int index = indexElement.intValue();
+         if (index == removedElementIndex) {
+            it.remove();
          }
-         if ((value > start) && (value <= end)) {
-            value += offset;
-            array.set(i, new Integer(value));
-            logger.debug(" *** value " + value);
+         else if (index > removedElementIndex) {
+            array.set(array.indexOf(indexElement), new Integer(index - 1));
          }
       }
    }
@@ -4365,8 +4365,8 @@ public class OpGanttValidator extends XValidator {
    public void updateDataCells(XComponent data_row, ArrayList array) {
 
       Date start, end;
-      Double duration;
-      Double effort;
+      Double newDuration;
+      Double newEffort;
       ArrayList assignments;
 
       start = (Date) array.get(0);
@@ -4378,40 +4378,20 @@ public class OpGanttValidator extends XValidator {
       Date oldEnd = getEnd(data_row);
       //old base effort
       double oldBaseEffort = getBaseEffort(data_row);
+      //old assignments
+      ArrayList old_assignments = getResources(data_row);
+      //old duration
+      double oldDuration = getDuration(data_row);
 
-      if (start != null && end != null) {
-         //duration
-         duration = (Double) array.get(2);
-         if (duration != null && duration.doubleValue() != getDuration(data_row)) {
-            setDataCellValue(data_row, DURATION_COLUMN_INDEX, duration);
-         }
-         //effort
-         effort = (Double) array.get(3);
-         if (effort != null && effort.doubleValue() != oldBaseEffort) {
-            setDataCellValue(data_row, BASE_EFFORT_COLUMN_INDEX, effort);
-         }
-      }
-      else {
-         //start/end are null -> update effort
-         effort = (Double) array.get(3);
-         if (effort != null && effort.doubleValue() != oldBaseEffort) {
-            setDataCellValue(data_row, BASE_EFFORT_COLUMN_INDEX, effort);
-         }
-      }
-
-      if ((start == null && oldStart != null) || (start != null && !start.equals(oldStart))) {
-         setDataCellValue(data_row, START_COLUMN_INDEX, start);
-      }
-
-      if ((end == null && oldEnd != null) || (end != null && !end.equals(oldEnd))) {
-         setDataCellValue(data_row, END_COLUMN_INDEX, end);
-      }
-
-      //assignments
+      newEffort = (Double) array.get(3);
+      boolean effortChanged = newEffort != null && newEffort.doubleValue() != oldBaseEffort;
+      newDuration = (Double) array.get(2);
+      boolean durationChanged = newDuration != null && newDuration.doubleValue() != oldDuration;
+      boolean startChanged = (start == null && oldStart != null) || (start != null && !start.equals(oldStart));
+      boolean endChanged = (end == null && oldEnd != null) || (end != null && !end.equals(oldEnd));
       boolean assignments_changed = false;
       assignments = (ArrayList) array.get(4);
       if (assignments != null) {
-         ArrayList old_assignments = getResources(data_row);
          if (assignments.size() != old_assignments.size()) {
             assignments_changed = true;
          }
@@ -4423,9 +4403,37 @@ public class OpGanttValidator extends XValidator {
                }
             }
          }
-         if (assignments_changed) {
-            setDataCellValue(data_row, VISUAL_RESOURCES_COLUMN_INDEX, assignments);
+      }
+
+
+      if (start != null && end != null) {
+         //duration
+         if (durationChanged) {
+            setDataCellValue(data_row, DURATION_COLUMN_INDEX, newDuration);
          }
+         //effort
+         if (effortChanged) {
+            setDataCellValue(data_row, BASE_EFFORT_COLUMN_INDEX, newEffort);
+         }
+      }
+      else {
+         //start/end are null -> update effort
+         if (effortChanged) {
+            setDataCellValue(data_row, BASE_EFFORT_COLUMN_INDEX, newEffort);
+         }
+      }
+
+      if (startChanged) {
+         setDataCellValue(data_row, START_COLUMN_INDEX, start);
+      }
+
+      if (endChanged) {
+         setDataCellValue(data_row, END_COLUMN_INDEX, end);
+      }
+
+      //assignments
+      if (assignments_changed) {
+         setDataCellValue(data_row, VISUAL_RESOURCES_COLUMN_INDEX, assignments);
       }
 
    }
@@ -4456,7 +4464,7 @@ public class OpGanttValidator extends XValidator {
             assignmentValue = Double.parseDouble(captionNumber);
          }
          catch (NumberFormatException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return assignmentValue;
@@ -4469,6 +4477,8 @@ public class OpGanttValidator extends XValidator {
    /**
     * Returns a numerical value representing the percentage a resource is assigned, from an i18n string (given by the user).
     *
+    * @param assignment
+    * @return
     * @see OpGanttValidator#percentageAssigned(String)
     */
    public static double localizedPercentageAssigned(String assignment) {
@@ -4480,7 +4490,7 @@ public class OpGanttValidator extends XValidator {
             assignmentValue = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
          }
          catch (ParseException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return assignmentValue;
@@ -4498,14 +4508,14 @@ public class OpGanttValidator extends XValidator {
     */
    public static double localizedHoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h') && caption.indexOf(' ') != -1) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = XCalendar.getDefaultCalendar().parseDouble(captionNumber);
          }
          catch (ParseException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4523,14 +4533,14 @@ public class OpGanttValidator extends XValidator {
     */
    public static double hoursAssigned(String assignment) {
       String caption = XValidator.choiceCaption(assignment);
-      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h')) {
+      if ((caption != null) && (caption.charAt(caption.length() - 1) == 'h') && caption.indexOf(' ') != -1) {
          double hoursAssigned;
          String captionNumber = caption.substring(caption.lastIndexOf(' ') + 1, caption.length() - 1);
          try {
             hoursAssigned = Double.parseDouble(captionNumber);
          }
          catch (NumberFormatException e) {
-            logger.warn(captionNumber + " is not a valid nummber", e);
+            logger.warn(captionNumber + " is not a valid number", e);
             return INVALID_ASSIGNMENT;
          }
          return hoursAssigned;
@@ -4611,7 +4621,7 @@ public class OpGanttValidator extends XValidator {
 
       String assignment = null;
       double[] assigneds = new double[individualEfforts.length];
-      int sumAssigned = 0;
+      double sumAssigned = 0;
       int i = 0;
       String resource_locator = null;
       double personnel_costs = 0.0;

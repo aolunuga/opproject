@@ -1,4 +1,4 @@
-Onepoint Project 07 Basic Edition (Update 3)
+Onepoint Project 07 Basic Edition (Update 4)
 ============================================
 
 Welcome to the most current release of Onepoint Project Basic Edition. This
@@ -52,3 +52,12 @@ Onepoint Project can be started by simply double-clicking the "Onepoint Project"
 application (Windows/Mac OS X) or shell script (Linux), or by running it from
 the command line.
 
+
+Known Issues
+---------------------------
+
+* When using or changing the holiday calendars in the application, via System - Settings,
+in order to make the holidays visible when planning a project, each project has to be
+manually updated. In order to manually update a project, go to Projects - Planning, select
+the desired project, press the Edit button, then right-click in the table and from the
+pop-up menu, select the option "Recalculate Project".

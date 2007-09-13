@@ -1,4 +1,4 @@
-Onepoint Project 07 Open Edition (Update 3)
+Onepoint Project 07 Open Edition (Update 4)
 ===========================================
 
 Welcome to the most current release of Onepoint Project Open Edition. This
@@ -245,3 +245,12 @@ we will completely drop support for non-transactional MySQL databases (MyISAM).
 Therfore, we strongly recommend that you upgrade your database instance
 right after installing this update.
 
+
+Appendix F: Known Issues
+---------------------------
+
+* When using or changing the holiday calendars in the application, via System - Settings,
+in order to make the holidays visible when planning a project, each project has to be
+manually updated. In order to manually update a project, go to Projects - Planning, select
+the desired project, press the Edit button, then right-click in the table and from the
+pop-up menu, select the option "Recalculate Project".

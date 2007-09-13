@@ -17,6 +17,7 @@ import onepoint.project.modules.mail.OpMailMessage;
 import onepoint.project.modules.mail.OpMailer;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.project_planning.msproject.OpMSProjectManager;
 import onepoint.project.modules.resource.OpResource;
@@ -224,7 +225,7 @@ public class OpProjectPlanningService extends OpProjectService {
          Iterator activitiesIt = activities.iterator();
          while (activitiesIt.hasNext()) {
             OpActivity activity = (OpActivity) activitiesIt.next();
-            if (!activity.getDeleted()) {
+            if (!activity.getDeleted() && activity.getType() != OpGanttValidator.MILESTONE && activity.getType() != OpGanttValidator.ADHOC_TASK) {
                hasAvailabilityChanged |= checkResourceAvailabilityModifications(activity, broker);
                haveRatesChanged |= checkHourlyRateModifications(activity, broker);
             }
@@ -305,7 +306,9 @@ public class OpProjectPlanningService extends OpProjectService {
          //update all super activities
          while (activity.getSuperActivity() != null) {
             OpActivity superActivity = activity.getSuperActivity();
-            superActivity.recalculateBasePersonnelCosts();
+            double personnelCostsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
+            currentPersonnelCosts = superActivity.getBasePersonnelCosts();
+            superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + personnelCostsDifference);
             broker.updateObject(superActivity);
             activity = superActivity;
          }
@@ -980,7 +983,7 @@ public class OpProjectPlanningService extends OpProjectService {
       logger.info("Revalidating working plan for " + projectNode.getName());
 
       //create the validator
-      OpGanttValidator validator = new OpGanttValidator();
+      OpGanttValidator validator = new OpIncrementalValidator();
       validator.setProjectStart(projectPlan.getProjectNode().getStart());
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));

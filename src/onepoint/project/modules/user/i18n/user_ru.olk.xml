@@ -26,20 +26,20 @@
       <resource id="PasswordRetyped">Повтор пароля</resource>
       <resource id="Description">Описание</resource>
       <resource id="UserLanguage">Язык</resource>
-      
+
       <resource id="Contact">Contact</resource>
       <resource id="EMail">Email</resource>
       <resource id="Phone">Phone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
-      
+
       <resource id="Groups">Группы</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
 
       <resource id="UserLevel">Уровень доступа</resource>
       <resource id="ManagerLevel">Manager</resource>
-      <resource id="StandardLevel">Standard</resource>      
+      <resource id="StandardLevel">Standard</resource>
    </resource-map>
    <resource-map id="user.delete">
       <resource id="ConfirmDelete">Удалить пользователей или группы</resource>
@@ -58,10 +58,10 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
-  <resource-map id="user.Info">
+   <resource-map id="user.Info">
       <resource id="InfoUser">Свойства пользователя</resource>
       <resource id="InfoGroup">Свойства группы</resource>
-  </resource-map>  
+   </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">Новый пользователь</resource>
       <resource id="General">Основные</resource>
@@ -90,7 +90,7 @@
       <resource id="NewGroup">Добавить группу</resource>
       <resource id="NewUser">Новый пользователь</resource>
       <resource id="Properties">Свойства</resource>
-		<resource id="Edit">Изменить</resource>
+      <resource id="Edit">Изменить</resource>
       <resource id="Delete">Удалить</resource>
       <resource id="AssignToGroup">Добавить в группу</resource>
       <resource id="Search">Поиск</resource>
@@ -104,7 +104,7 @@
       <resource id="EditTooltip">Изменить мета-данные для указанного пользователя или группы</resource>
       <resource id="DeleteTooltip">Удалить указанного пользователя или группу</resource>
       <resource id="AssignToGroupTooltip">Добавить указанного пользователя или группу в другую группу</resource>
-				
+
    </resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Укажите пользователя или группу</resource>
@@ -145,5 +145,6 @@
       <resource id="UserDemoteError">You cannot demote this user to standard level: There are still manager level permissions left for this user in the repository</resource>
       <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
       <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
+      <resource id="UserHasPlanVersionsError">The user has created Project Plan Versions and cannot be deleted</resource>
    </resource-map>
 </language-kit>

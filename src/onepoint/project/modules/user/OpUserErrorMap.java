@@ -34,6 +34,7 @@ public class OpUserErrorMap extends XErrorMap {
       registerErrorCode(OpUserError.INVALID_USER_LEVEL, OpUserError.INVALID_USER_LEVEL_NAME);
       registerErrorCode(OpUserError.ADMIN_PERMISSION_ERROR, OpUserError.ADMIN_PERMISSION_ERROR_NAME);
       registerErrorCode(OpUserError.PERMISSION_LEVEL_ERROR, OpUserError.PERMISSION_LEVEL_ERROR_NAME);
+      registerErrorCode(OpUserError.USER_HAS_PLAN_VERSIONS, OpUserError.USER_HAS_PLAN_VERSIONS_NAME);
    }
 
 }
