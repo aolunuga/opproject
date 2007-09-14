@@ -88,6 +88,27 @@ public class OpProjectModule extends OpModule {
       broker.close();
    }
 
+   /**
+    * Upgrades this module to version #21 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion21(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlanVersion planVersion");
+      Iterator it = broker.iterate(query);
+      OpTransaction transaction = broker.newTransaction();
+      while (it.hasNext()) {
+         OpProjectPlanVersion planVersion = (OpProjectPlanVersion) it.next();
+         if (planVersion.isBaseline() == null) {
+            planVersion.setBaseline(Boolean.FALSE);
+            broker.updateObject(planVersion);
+         }
+      }
+      transaction.commit();
+      broker.close();
+   }
+
 
    public void upgradeToVersion24(OpProjectSession session) {
       OpBroker broker = session.newBroker();
@@ -127,26 +148,6 @@ public class OpProjectModule extends OpModule {
       broker.close();
    }
 
-   /**
-    * Upgrades this module to version #21 (via reflection).
-    *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-    */
-   public void upgradeToVersion21(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlanVersion planVersion");
-      Iterator it = broker.iterate(query);
-      OpTransaction transaction = broker.newTransaction();
-      while (it.hasNext()) {
-         OpProjectPlanVersion planVersion = (OpProjectPlanVersion) it.next();
-         if (planVersion.isBaseline() == null) {
-            planVersion.setBaseline(Boolean.FALSE);
-            broker.updateObject(planVersion);
-         }
-      }
-      transaction.commit();
-      broker.close();
-   }
 
    /**
     * Changes the name of the root project portfolio from the old resource naming - starting with {$

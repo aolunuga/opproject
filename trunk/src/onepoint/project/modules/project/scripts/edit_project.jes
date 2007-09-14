@@ -103,8 +103,9 @@ function ok_edit(event) {
       parameters.to_dos_set = to_dos_set;
       parameters.resource_set = assigned_resource_set;
       parameters.versions_set = versions_set;
+      parameters.attachment_set = attachmentListDataSet;
       parameters.changed = "resourceTab";
-      dialog.open("/modules/project/forms/confirm_assignment_changed.oxf.xml", parameters);
+      dialog.open("/modules/project/forms/confirm_project_changed.oxf.xml", parameters);
       return;
    }
 

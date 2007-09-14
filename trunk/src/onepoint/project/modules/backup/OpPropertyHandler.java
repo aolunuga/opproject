@@ -24,27 +24,27 @@ public class OpPropertyHandler implements XNodeHandler {
    private static final XLog logger = XLogFactory.getServerLogger(OpPropertyHandler.class);
 
    /**
-    * @see XNodeHandler#newNode(onepoint.xml.XContext, String, java.util.HashMap)
+    * @see XNodeHandler#newNode(onepoint.xml.XContext,String,java.util.HashMap)
     */
    public Object newNode(XContext context, String name, HashMap attributes) {
       return new StringBuffer();
    }
 
    /**
-    * @see XNodeHandler#addChildNode(onepoint.xml.XContext, Object, String, Object)
+    * @see XNodeHandler#addChildNode(onepoint.xml.XContext,Object,String,Object)
     */
    public void addChildNode(XContext context, Object node, String child_name, Object child) {
    }
 
    /**
-    * @see XNodeHandler#addNodeContent(onepoint.xml.XContext, Object, String)
+    * @see XNodeHandler#addNodeContent(onepoint.xml.XContext,Object,String)
     */
    public void addNodeContent(XContext context, Object node, String content) {
       ((StringBuffer) node).append(content);
    }
 
    /**
-    * @see XNodeHandler#nodeFinished(onepoint.xml.XContext, String, Object, Object)
+    * @see XNodeHandler#nodeFinished(onepoint.xml.XContext,String,Object,Object)
     */
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
       // Members are always written in the same order as defined in the backup file header
@@ -57,19 +57,22 @@ public class OpPropertyHandler implements XNodeHandler {
          value = OpBackupTypeManager.convertParsedValue(backupMember.typeId, valueString, workingDirectory);
       }
       // Call accessor method in order to set value
-      Object[] arguments = new Object[] {value};
+      Object[] arguments = new Object[]{value};
       try {
-      	//we should be somewhat graceful. It may happen, that members vanish...
-    	 if(backupMember.accessor != null)
+         //we should be somewhat graceful. It may happen, that members vanish...
+         if (backupMember.accessor != null) {
             backupMember.accessor.invoke(object, arguments);
-    	 else
-    		logger.error("skipped execution of accessor for " + backupMember.name + " as it was null.");
+         }
+         else {
+            logger.error("skipped execution of accessor for " + backupMember.name + " as it was null.");
+         }
       }
       catch (InvocationTargetException e) {
-         logger.error("Could not restore property value" , e);
+         logger.error("Could not restore property value", e);
       }
       catch (IllegalAccessException e) {
-         logger.error("Could not restore property value" , e);
+         logger.error("Could not restore property value", e);
       }
+      arguments = null;
    }
 }

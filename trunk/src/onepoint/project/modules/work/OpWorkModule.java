@@ -10,8 +10,11 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.components.OpGanttValidator;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class representing the work module.
@@ -44,6 +47,138 @@ public class OpWorkModule extends OpModule {
       tx.commit();
       broker.close();
    }
+
+   /**
+    * Upgrade to version 26.
+    * Takes care of the values on activities and assignments given by work records.
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion26(OpProjectSession session) {
+
+      resetAssignments(session);
+
+      resetActivities(session);
+
+      applyWorkRecords(session);
+   }
+
+   private void applyWorkRecords(OpProjectSession session) {
+      OpBroker broker;
+      OpTransaction transaction;
+      OpQuery query;
+
+      broker = session.newBroker();
+      transaction = broker.newTransaction();
+      query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord");
+      List<Long> workRecords = broker.list(query);
+
+      for (Long workRecordId : workRecords) {
+         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, workRecordId);
+         if (workRecord.getRemainingEffort() < 0) {
+            workRecord.setRemainingEffort(0.0);
+         }
+         if (workRecord.getRemExternalCosts() < 0) {
+            workRecord.setRemExternalCosts(0.0);
+         }
+         if (workRecord.getRemMaterialCosts() < 0) {
+            workRecord.setRemMaterialCosts(0.0);
+         }
+         if (workRecord.getRemMiscCosts() < 0) {
+            workRecord.setRemMiscCosts(0.0);
+         }
+         if (workRecord.getRemTravelCosts() < 0) {
+            workRecord.setRemTravelCosts(0.0);
+         }
+      }
+
+      for (Long workRecordId : workRecords) {
+         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, workRecordId);
+         OpProgressCalculator.addWorkRecord(broker, workRecord, session.getCalendar());
+         broker.updateObject(workRecord);
+      }
+
+      transaction.commit();
+      broker.close();
+   }
+
+   private void resetActivities(OpProjectSession session) {
+      OpBroker broker;
+      OpTransaction transaction;
+      OpQuery query;
+      Iterator result;
+
+      //reset activities
+      broker = session.newBroker();
+      transaction = broker.newTransaction();
+      query = broker.newQuery("select activity.ID from OpActivity activity where activity.Deleted = false");
+      result = broker.iterate(query);
+      while (result.hasNext()) {
+         long id = (Long) result.next();
+         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, id);
+
+         //actual set to 0 (simulate the no workslip state)
+         activity.setActualEffort(0);
+         activity.setActualExternalCosts(0);
+         activity.setActualMaterialCosts(0);
+         activity.setActualMiscellaneousCosts(0);
+         activity.setActualPersonnelCosts(0);
+         activity.setActualProceeds(0.0);
+         activity.setActualTravelCosts(0);
+
+         //remaining values
+         if (activity.getProjectPlan().getProgressTracked()) {
+            activity.setRemainingEffort(activity.getBaseEffort());
+         }
+         else {
+            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), activity.getComplete());
+            activity.setRemainingEffort(remainingEffort);
+         }
+         //this will be set by progress calculator
+         activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
+         activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
+         activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+         activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+      }
+      transaction.commit();
+      broker.close();
+   }
+
+   private void resetAssignments(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+      //reset assignments
+      OpQuery query = broker.newQuery("select assignment.ID from OpAssignment assignment");
+      Iterator result = broker.iterate(query);
+      while (result.hasNext()) {
+         long id = (Long) result.next();
+         OpAssignment assignment = (OpAssignment) broker.getObject(OpAssignment.class, id);
+
+         //actual set to 0 (simulate the no workslip state)
+         assignment.setActualCosts(0);
+         assignment.setActualEffort(0);
+         assignment.setActualProceeds(0.0);
+
+         //reset remaining values based on tracking
+         if (assignment.getProjectPlan().getProgressTracked()) {
+            assignment.setRemainingEffort(assignment.getBaseEffort());
+            assignment.setRemainingPersonnelCosts(assignment.getBaseCosts());
+            assignment.setRemainingProceeds(assignment.getBaseProceeds());
+         }
+         else {
+            double complete = assignment.getActivity().getComplete();
+            assignment.setComplete(complete);
+            OpProgressCalculator.updateAssignmentBasedOnTracking(assignment, false, false);
+            //will be set by progress calculator
+            assignment.setRemainingPersonnelCosts(assignment.getBaseCosts());
+            assignment.setRemainingProceeds(assignment.getBaseProceeds());
+         }
+         broker.updateObject(assignment);
+      }
+      transaction.commit();
+      broker.close();
+   }
+
 
    /**
     * Updates the remaining costs for all un-deleted activities.

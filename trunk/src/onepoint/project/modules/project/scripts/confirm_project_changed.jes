@@ -19,6 +19,7 @@ function ok(event) {
    to_dos_set = form.findComponent("to_dos_set");
    resource_set = form.findComponent("resource_set");
    versions_set = form.findComponent("versions_set");
+   attachment_set = form.findComponent("attachment_set");
 
    request = new XMessage;
    request.setAction("ProjectService.updateProject");
@@ -27,7 +28,8 @@ function ok(event) {
    request.setArgument("goals_set", goals_set);
    request.setArgument("to_dos_set", to_dos_set);
    request.setArgument("resource_set", resource_set);
-   request.setArgument("versions_set", versions_set);   
+   request.setArgument("versions_set", versions_set);
+   request.setArgument("attachments_list_set", attachment_set);
    response = XDisplay.getClient().invokeMethod(request);
 
    XDisplay.getActiveWindow().close();
