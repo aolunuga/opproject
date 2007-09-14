@@ -15,6 +15,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.xml.XContext;
+import onepoint.project.OpProjectSession;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -41,9 +42,9 @@ public class OpRestoreContext extends XContext {
    private static final XLog logger = XLogFactory.getServerLogger(OpRestoreContext.class);
 
    /**
-    * The broker used for performing db operations.
+    * The servser session used for performing db operations.
     */
-   private OpBroker broker = null;
+   private OpProjectSession session = null;
 
    /**
     * Map that holds [String, List] representing pairs of [PrototypeName, List<BackupMember>].
@@ -97,9 +98,11 @@ public class OpRestoreContext extends XContext {
 
    /**
     * Creates a new restore context with the given broker.
+    *
+    * @param session a <code>OpProjectSession</code> the server session.
     */
-   OpRestoreContext(OpBroker broker) {
-      this.broker = broker;
+   OpRestoreContext(OpProjectSession session) {
+      this.session = session;
    }
 
    /**
@@ -164,6 +167,7 @@ public class OpRestoreContext extends XContext {
          // Map active ID to valid system object ID
          String queryString = OpBackupManager.getSystemObjectIDQuery(activeSystem);
          logger.debug("QUERY: " + queryString);
+         OpBroker broker = session.newBroker();
          OpQuery query = broker.newQuery(queryString);
          Iterator iterator = broker.forceIterate(query);
          if (iterator.hasNext()) {
@@ -177,6 +181,7 @@ public class OpRestoreContext extends XContext {
             broker.deleteObject(systemObject);
             t.commit();
          }
+         broker.close();
       }
       executeActiveObjectPersist();
    }
@@ -197,7 +202,7 @@ public class OpRestoreContext extends XContext {
    /**
     * Activates a prototype with the given name.
     *
-    * @param prototypeName
+    * @param prototypeName a <code>String</code> the name of a prototype
     * @throws OpBackupException if the given prototype name is invalid.
     */
    void activatePrototype(String prototypeName)
@@ -251,11 +256,13 @@ public class OpRestoreContext extends XContext {
    void commitRestoredObjects() {
       if (objectsToAdd.size() > 0) {
          logger.info("Inserting objects into db...");
+         OpBroker broker = session.newBroker();
          OpTransaction t = broker.newTransaction();
          for (OpObject anObjectsToAdd : objectsToAdd) {
             broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
+         broker.close();
          logger.info("Objects persisted");
          objectsToAdd.clear();
          insertCount = 0;

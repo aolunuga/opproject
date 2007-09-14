@@ -747,10 +747,8 @@ public class OpBackupManager {
       long start = System.currentTimeMillis();
       logger.info("Restoring repository...");
       // Extra path is required for restoring binary content stored in separate files
-      OpBroker broker = session.newBroker();
       OpBackupLoader backupLoader = new OpBackupLoader();
-      backupLoader.loadBackup(broker, input, workingDirectory);
-      broker.close();
+      backupLoader.loadBackup(session, input, workingDirectory);
       long elapsedTimeSecs = (System.currentTimeMillis() - start) / 1000;
       logger.info("Repository restore completed in " + elapsedTimeSecs + " seconds");
    }

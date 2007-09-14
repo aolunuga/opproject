@@ -1,4 +1,4 @@
-<form width="400" height="80" layout="border" default-button-ref="OKButton" resource-map-ref="project.change" text="${ConfirmChange}" provider-class="onepoint.project.modules.project.forms.OpConfirmChangeProjectFormProvider" script="/modules/project/scripts/confirm_project_change.jes">
+<form layout="border" default-button-ref="OKButton" resource-map-ref="project.change" text="${ConfirmChange}" provider-class="onepoint.project.modules.project.forms.OpConfirmChangeProjectFormProvider" script="/modules/project/scripts/confirm_project_changed.jes">
    <panel y="0" layout="border">
       <data-field id="project_id"/>
       <data-field id="project_data"/>
@@ -6,6 +6,7 @@
       <data-set id="to_dos_set"/>
       <data-set id="resource_set"/>
       <data-set id="versions_set"/>
+      <data-set id="attachment_set"/>
 
       <label y="0" id="ConfirmChangeLabel"/>
       <panel y="1" layout="flow" direction="west">
