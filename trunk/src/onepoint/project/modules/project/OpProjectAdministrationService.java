@@ -37,7 +37,6 @@ public class OpProjectAdministrationService extends OpProjectService {
    private OpProjectAdministrationServiceImpl serviceImpl =
         new OpProjectAdministrationServiceImpl();
 
-   public final static int WORKING_VERSION_NUMBER = -1;
    public final static String PROJECT_DATA = "project_data";
    public final static String PROJECT_ID = "project_id";
    public final static String PROJECT_IDS = "project_ids";
@@ -1055,7 +1054,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       // create a map of the existing versions
       Map<String, OpProjectPlanVersion> existingVersionMap = new HashMap<String, OpProjectPlanVersion>(existingVersions.size());
       for (OpProjectPlanVersion existingVersion : existingVersions) {
-         if (existingVersion.getVersionNumber() != WORKING_VERSION_NUMBER) {
+         if (existingVersion.getVersionNumber() != OpProjectPlan.WORKING_VERSION_NUMBER) {
             String versionId = OpLocator.locatorString(existingVersion);
             existingVersionMap.put(versionId, existingVersion);
          }
@@ -1086,7 +1085,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       for (int i = 0; i < versionsDataSet.getChildCount(); i++) {
          XComponent row = (XComponent) versionsDataSet.getChild(i);
          String versionId = ((XComponent) row.getChild(0)).getStringValue();
-         if (versionId.equals(String.valueOf(WORKING_VERSION_NUMBER))) {
+         if (versionId.equals(String.valueOf(OpProjectPlan.WORKING_VERSION_NUMBER))) {
             continue;
          }
          existingVersionMap.remove(versionId);
@@ -1570,7 +1569,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
          Date activityStart = OpGanttValidator.getStart(dataRow);
-         int gap = calendar.getWorkingDaysFromInterval(start, activityStart).size();
+         int gap = calendar.getWorkingDaysFromInterval(start, activityStart).size() - 1;
          gaps.add(gap);
       }
 
@@ -1789,6 +1788,7 @@ public class OpProjectAdministrationService extends OpProjectService {
                   if (assignmentVersion.getPlanVersion().getProjectPlan().getProjectNode().getID() ==
                        projectAssignment.getProjectNode().getID()) {
                      OpActivityVersion activityVersion = assignmentVersion.getActivityVersion();
+                     //TODO: I think this should not happen, but got activityVersion == null (maybe a good hook, to try healing?)
                      //check if the resource's activity assignments are covered by hourly rates periods
                      if (!isPeriodCoveredByHourlyRatesPeriod(activityVersion.getStart(), activityVersion.getFinish(), newResourceSet)
                           //check if the rates have changed for this interval
@@ -1927,7 +1927,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       queryString.append("where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and planVersion.ProjectPlan.ID = ?");
 
       OpQuery query = broker.newQuery(queryString.toString());
-      query.setInteger(0, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      query.setInteger(0, OpProjectPlan.WORKING_VERSION_NUMBER);
       query.setLong(1, projectPlanId);
 
       return broker.iterate(query);
@@ -2077,8 +2077,8 @@ public class OpProjectAdministrationService extends OpProjectService {
     * Each row has the resource locator as value set on it and a data cell with a map containing
     * the interval start date as key and a list with internal and external rates as value.
     *
-    * @param project            The current project.
-    * @param dataSet            Hourly rates data set.
+    * @param project The current project.
+    * @param dataSet Hourly rates data set.
     */
    public void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
       Set<OpProjectNodeAssignment> assignments = project.getAssignments();

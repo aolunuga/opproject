@@ -136,7 +136,8 @@
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
       <resource id="ActivityAssignmentVersionsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's versions activities</resource>
       <resource id="ResponsibleActivitiesExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project</resource>
-      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project's versions</resource>      
+      <resource id="ResponsibleActivityVersionsExistError">The resource cannot be removed from the project because it is still responsible for some of the activities of the project's versions</resource>
+      <resource id="InvalidUserLevelError">The responsible user has an invalid user level</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Supprimer les ressources ou groupes</resource>

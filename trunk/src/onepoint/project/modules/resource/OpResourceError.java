@@ -31,6 +31,7 @@ public interface OpResourceError {
    public final static int ACTIVITY_ASSIGNMENT_VERSIONS_EXIST_ERROR = 26;
    public final static int RESPONSIBLE_ACTIVITIES_EXIST_ERROR = 27;
    public final static int RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR = 28;
+   public final static int INVALID_USER_LEVEL_ERROR = 29;
 
    // Error names
    public final static String RESOURCE_NAME_NOT_SPECIFIED_NAME = "ResourceNameNotSpecified";
@@ -57,4 +58,7 @@ public interface OpResourceError {
    public final static String ACTIVITY_ASSIGNMENT_VERSIONS_EXIST_ERROR_NAME = "ActivityAssignmentVersionsExistError";
    public final static String RESPONSIBLE_ACTIVITIES_EXIST_ERROR_NAME = "ResponsibleActivitiesExistError";
    public final static String RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR_NAME = "ResponsibleActivityVersionsExistError";
+   public final static String INVALID_USER_LEVEL_ERROR_NAME = "InvalidUserLevelError";
+
+
 }

@@ -450,7 +450,8 @@
          <fileset dir="${reportjars.dir}" includes="**/*.jar"/>
       </copy>
 
-      <copy file="${tutorial.basic.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+      <!-- failonerror for tutorials is because of SourceForge -->
+      <copy file="${tutorial.basic.src.file}"  tofile="${dist.basic.dir}/${dist.main.folder}/${tutorial.basic.dest.file}" failonerror="false"/>
       <copy file="${readme.basic.file}" tofile="${dist.basic.dir}/${dist.main.folder}/readme.txt"/>
       <copy file="${license.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
 
@@ -499,6 +500,7 @@
          <fileset dir="${build.dir}" includes="${reportsjar}/*.jar"/>
          <fileset dir="${build.dir}" includes="${calendars}/*.xml"/>
          <fileset dir="${src.dir}/onepoint/project" includes="registry.oxr.xml"/>
+         <fileset dir="." includes="${demodata.dir}/*.opx.xml"/>
          <lib dir="${lib.dir}">
             <patternset refid="webapp.lib.pathid"/>
             <exclude name="*_client*.jar"/>
@@ -526,8 +528,9 @@
       </copy>
       <copy file="${readme.open.file}" tofile="${dist.open.dir}/readme.txt"/>
       <copy file="license.txt" todir="${dist.open.dir}"/>
-      <copy file="${tutorial.open.file}" todir="${dist.open.dir}"/>
-      <copydir src="${demodata.dir}" dest="${dist.open.dir}/${demodata.dir}"/>
+      <!-- failonerror for tutorials is because of SourceForge -->
+      <copy file="${tutorial.open.src.file}" tofile="${dist.open.dir}/${tutorial.open.dest.file}" failonerror="false"/>
+      <copydir src="${demodata.dir}" dest="${dist.open.dir}/${demodata.dir}" excludes="*.opx.xml"/>
       <zip zipfile="${dist.dir}/${open.name}.zip">
          <zipfileset dir="${dist.open.dir}"/>
       </zip>
@@ -545,7 +548,7 @@
          <zipfileset file="build.xml" prefix="${zip.root.dir}"/>
          <zipfileset dir="WEB-INF" prefix="${zip.root.dir}/WEB-INF"/>
          <zipfileset dir="${security.dir}" prefix="${zip.root.dir}/${security.dir}"/>
-         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}"/>
+         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}" excludes="*.opx.xml"/>
          <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
          <zipfileset file="${readme.basic.file}" prefix="${zip.root.dir}"/>
          <zipfileset file="${readme.open.file}" prefix="${zip.root.dir}"/>
@@ -556,7 +559,7 @@
       <zip zipfile="${release.dir}/${release.root.filename}.zip">
          <zipfileset dir="${dist.open.dir}" prefix="${zip.root.dir}"/>
          <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
-         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}"/>
+         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}" excludes="*.opx.xml"/>
          <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
       </zip>
 

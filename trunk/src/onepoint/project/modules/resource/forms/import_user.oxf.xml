@@ -1,4 +1,5 @@
 <form layout="border" width="750" height="450" text="${ImportUser}" resource-map-ref="resource.ImportUser" provider-class="onepoint.project.modules.resource.forms.OpImportUserFormProvider" script="/modules/resource/scripts/import_user.jes">
+
    <data-set id="UserDataSet"/>
    <data-set id="PoolDataSet"/>
    <data-field id="PoolsRates"/>

@@ -13,13 +13,13 @@ import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.user.OpPreference;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
-import onepoint.project.modules.project_planning.components.OpProjectComponent;
+import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -205,7 +205,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
               .append("where planVersion.ProjectPlan.ID = ? and planVersion.VersionNumber != ? and activity.Deleted = false order by activity.Sequence, planVersion.VersionNumber desc");
          query = broker.newQuery(queryBuffer.toString());
          query.setLong(0, planId);
-         query.setLong(1, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         query.setLong(1, OpProjectPlan.WORKING_VERSION_NUMBER);
       }
       else {
          long resourceID = OpLocator.parseLocator(filterResourceId).getID();
@@ -216,7 +216,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
               .append("where planVersion.ProjectPlan.ID = ? and planVersion.VersionNumber != ? and activity.Deleted = false and assignment.Resource.ID = ? order by activity.Sequence, planVersion.VersionNumber desc");
          query = broker.newQuery(queryBuffer.toString());
          query.setLong(0, planId);
-         query.setLong(1, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         query.setLong(1, OpProjectPlan.WORKING_VERSION_NUMBER);
          query.setLong(2, resourceID);
       }
 
@@ -281,14 +281,17 @@ public class OpProjectDatesFormProvider implements XFormProvider {
     * @param resourceDataSet a <code>XComponent(DATA_SET)</code> representing the
     */
    private void fillResourcesDataSet(OpProjectNode project, XComponent resourceDataSet) {
+      Map<String, String> sortedResources = new TreeMap<String, String>();
       Iterator assignments = project.getAssignments().iterator();
       while (assignments.hasNext()) {
          OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
          OpResource resource = assignment.getResource();
+         sortedResources.put(resource.getName(), resource.locator());
+      }
+      for (String resourceName : sortedResources.keySet()) {
          XComponent dataRow = resourceDataSet.newDataRow();
-         dataRow.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
+         dataRow.setStringValue(XValidator.choice(sortedResources.get(resourceName), resourceName));
          resourceDataSet.addChild(dataRow);
-         resourceDataSet.sort();
       }
    }
 

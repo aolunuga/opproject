@@ -7,44 +7,21 @@ package onepoint.project.modules.resource;
 import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpLocator;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpObjectOrderCriteria;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpTransaction;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
-import onepoint.project.modules.project.OpActivityVersion;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpAssignmentVersion;
-import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectNodeAssignment;
-import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.project.OpProjectPlanValidator;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.modules.user.OpContact;
-import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
-import onepoint.project.modules.user.OpSubject;
-import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceException;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class OpResourceService extends onepoint.project.OpProjectService {
 
@@ -88,6 +65,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    private final static String ORIGINAL_EXTERNAL_RATE = "originalExternalRate";
 
    public XMessage insertResource(OpProjectSession session, XMessage request) {
+
       logger.debug("OpResourceService.insertResource()");
       HashMap resource_data = (HashMap) (request.getArgument(RESOURCE_DATA));
       // *** More error handling needed (check mandatory fields)
@@ -103,138 +81,149 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       resource.setInheritPoolRate((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE)));
 
       OpBroker broker = session.newBroker();
+      OpTransaction transaction = null;
 
-      // Set pool for this resource and set hourly rate of pool if inherit is true
-      String pool_id_string = (String) (resource_data.get("PoolID"));
-      logger.debug("***INTO-POOL: " + pool_id_string);
-      OpResourcePool pool;
-      if (pool_id_string != null) {
-         pool = (OpResourcePool) (broker.getObject(pool_id_string));
-         if (pool == null) {
-            logger.warn("Superpool is null. Resource will be added to root pool.");
+      try {
+         // Set pool for this resource and set hourly rate of pool if inherit is true
+         String pool_id_string = (String) (resource_data.get("PoolID"));
+         logger.debug("***INTO-POOL: " + pool_id_string);
+         OpResourcePool pool;
+         if (pool_id_string != null) {
+            pool = (OpResourcePool) (broker.getObject(pool_id_string));
+            if (pool == null) {
+               logger.warn("Superpool is null. Resource will be added to root pool.");
+               pool = findRootPool(broker);
+            }
+         }
+         else {
+            logger.warn("Given superpool locator is null. Resource will be added to root pool.");
             pool = findRootPool(broker);
          }
-      }
-      else {
-         logger.warn("Given superpool locator is null. Resource will be added to root pool.");
-         pool = findRootPool(broker);
-      }
-      resource.setPool(pool);
+         resource.setPool(pool);
 
-      if (resource.getInheritPoolRate()) {
-         resource.setHourlyRate(resource.getPool().getHourlyRate());
-         resource.setExternalRate(resource.getPool().getExternalRate());
-      }
+         if (resource.getInheritPoolRate()) {
+            resource.setHourlyRate(resource.getPool().getHourlyRate());
+            resource.setExternalRate(resource.getPool().getExternalRate());
+         }
 
-      // Check manager access for pool
-      if (!session.checkAccessLevel(broker, resource.getPool().getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Insert access to pool denied; ID = " + resource.getPool().getID());
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
+         // Check manager access for pool
+         if (!session.checkAccessLevel(broker, resource.getPool().getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Insert access to pool denied; ID = " + resource.getPool().getID());
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
 
-      // check mandatory input fields
-      if (resource.getName() == null || resource.getName().length() == 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
-         broker.close();
-         return reply;
-      }
-      //check if resource name contains invalid char %
-      if (resource.getName().indexOf("%") != -1) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
-         broker.close();
-         return reply;
-      }
+         // check mandatory input fields
+         if (resource.getName() == null || resource.getName().length() == 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
+            broker.close();
+            return reply;
+         }
+         //check if resource name contains invalid char %
+         if (resource.getName().indexOf("%") != -1) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
+            broker.close();
+            return reply;
+         }
 
-      double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
-      // check valid availability range [0..maxAvailability]
-      int availability = ((Double) resource_data.get(OpResource.AVAILABLE)).intValue();
-      if (availability < 0 || availability > maxAvailability) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-         broker.close();
-         return reply;
-      }
+         double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         // check valid availability range [0..maxAvailability]
+         int availability = ((Double) resource_data.get(OpResource.AVAILABLE)).intValue();
+         if (availability < 0 || availability > maxAvailability) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
+            broker.close();
+            return reply;
+         }
 
-      // check valid hourly rate
-      if (resource.getHourlyRate() < 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-      // check valid external rate
-      if (resource.getExternalRate() < 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
-         broker.close();
-         return reply;
-      }
+         // check valid hourly rate
+         if (resource.getHourlyRate() < 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
+            broker.close();
+            return reply;
+         }
+         // check valid external rate
+         if (resource.getExternalRate() < 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
+            broker.close();
+            return reply;
+         }
 
-      // check if resource name is already used
-      OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.Name = :resourceName");
-      query.setString("resourceName", resource.getName());
-      Iterator resourceIds = broker.iterate(query);
-      if (resourceIds.hasNext()) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
-         broker.close();
-         return reply;
-      }
+         // check if resource name is already used
+         OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.Name = :resourceName");
+         query.setString("resourceName", resource.getName());
+         Iterator resourceIds = broker.iterate(query);
+         if (resourceIds.hasNext()) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
+            broker.close();
+            return reply;
+         }
 
-      // *** TODO: Currently a work-around (should use choice instead of ID)
-      if (OpEnvironmentManager.isMultiUser()) {
-         String user_id_string = (String) (resource_data.get("UserID"));
-         if ((user_id_string != null) && (user_id_string.length() > 0)) {
-            OpUser user = (OpUser) (broker.getObject(user_id_string));
+         // *** TODO: Currently a work-around (should use choice instead of ID)
+         if (OpEnvironmentManager.isMultiUser()) {
+            String user_id_string = (String) (resource_data.get("UserID"));
+            if ((user_id_string != null) && (user_id_string.length() > 0)) {
+               OpUser user = (OpUser) (broker.getObject(user_id_string));
+               resource.setUser(user);
+            }
+            else { // set user to login user
+               resource.setUser(session.user(broker));
+            }
+         }
+         else {
+            OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getAdministratorID()));
             resource.setUser(user);
          }
-         else { // set user to login user
-            resource.setUser(session.user(broker));
+
+         //validate resource before persisting
+         resource.validate();
+
+         transaction = broker.newTransaction();
+
+         broker.makePersistent(resource);
+
+         // Add projects assignments
+         ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
+         if ((assigned_projects != null) && (assigned_projects.size() > 0)) {
+            logger.debug("ASSIGNED " + assigned_projects);
+            OpProjectNode projectNode;
+            OpProjectNodeAssignment projectNodeAssignment;
+            // TODO: Check for read-access to project node (important if we add Web Services access)
+            for (Object assigned_project : assigned_projects) {
+               projectNode = (OpProjectNode) (broker.getObject((String) assigned_project));
+               projectNodeAssignment = new OpProjectNodeAssignment();
+               projectNodeAssignment.setResource(resource);
+               projectNodeAssignment.setProjectNode(projectNode);
+               broker.makePersistent(projectNodeAssignment);
+               OpProjectAdministrationService.insertContributorPermission(broker, projectNode, resource);
+            }
          }
-      }
-      else {
-         OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getAdministratorID()));
-         resource.setUser(user);
-      }
 
-      OpTransaction t = broker.newTransaction();
-
-      broker.makePersistent(resource);
-
-      // Add projects assignments
-      ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
-      if ((assigned_projects != null) && (assigned_projects.size() > 0)) {
-         logger.debug("ASSIGNED " + assigned_projects);
-         OpProjectNode projectNode;
-         OpProjectNodeAssignment projectNodeAssignment;
-         // TODO: Check for read-access to project node (important if we add Web Services access)
-         for (Object assigned_project : assigned_projects) {
-            projectNode = (OpProjectNode) (broker.getObject((String) assigned_project));
-            projectNodeAssignment = new OpProjectNodeAssignment();
-            projectNodeAssignment.setResource(resource);
-            projectNodeAssignment.setProjectNode(projectNode);
-            broker.makePersistent(projectNodeAssignment);
-            OpProjectAdministrationService.insertContributorPermission(broker, projectNode, resource);
+         reply = insertExtendedHourlyRatesForResource(session, broker, resource_data, resource);
+         if (reply.getError() != null) {
+            broker.close();
+            return reply;
          }
-      }
 
-      reply = insertExtendedHourlyRatesForResource(session, broker, resource_data, resource);
-      if (reply.getError() != null) {
-         broker.close();
+         XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
+         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            broker.close();
+            return reply;
+         }
+
+         transaction.commit();
+         logger.debug("/OpResourceService.insertResource()");
          return reply;
+
       }
-
-      XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
-         return reply;
+      catch (OpEntityException e) {
+         throw new XServiceException(session.newError(ERROR_MAP, mapEntityError(e)));
       }
-
-      t.commit();
-
-      broker.close();
-      logger.debug("/OpResourceService.insertResource()");
-      return reply;
+      finally {
+         finalizeSession(transaction, broker);
+      }
    }
 
    //this method is used in order to add hourly rates periods functionality in the closed module
@@ -249,124 +238,145 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
+      OpTransaction transaction = null;
+      try {
+         OpResource resource = new OpResource();
+         // get associated user
+         OpUser user = null;
+         String userId = (String) resourceData.get("UserID");
+         if ((userId != null) && (userId.length() > 0)) {
+            user = (OpUser) (broker.getObject(userId));
+            resource.setUser(user);
+         }
+         else {
+            logger.warn("UserID not set, could not import user as resource");
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.USER_ID_NOT_SPECIFIED));
+            return reply;
+         }
+         //set resource name
+         String name = user.getName();
+         // check if resource name is already used
+         OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.Name = :resourceName");
+         query.setString("resourceName", name);
+         Iterator resourceIds = broker.iterate(query);
+         if (resourceIds.hasNext()) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
+            broker.close();
+            return reply;
+         }
+         resource.setName(name);
 
-      OpResource resource = new OpResource();
-      // get associated user
-      OpUser user = null;
-      String userId = (String) resourceData.get("UserID");
-      if ((userId != null) && (userId.length() > 0)) {
-         user = (OpUser) (broker.getObject(userId));
-         resource.setUser(user);
-      }
-      else {
-         logger.warn("UserID not set, could not import user as resource");
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.USER_ID_NOT_SPECIFIED));
-         return reply;
-      }
-      //set resource name
-      String name = user.getName();
-      // check if resource name is already used
-      OpQuery query = broker.newQuery("select resource.ID from OpResource as resource where resource.Name = :resourceName");
-      query.setString("resourceName", name);
-      Iterator resourceIds = broker.iterate(query);
-      if (resourceIds.hasNext()) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
-         broker.close();
-         return reply;
-      }
-      resource.setName(name);
-
-      //set resource description (from user contact)
-      OpContact contact = user.getContact();
-      StringBuffer description = new StringBuffer();
-      if ((contact.getFirstName() != null) && (contact.getFirstName().length() > 0)) {
-         description.append(contact.getFirstName());
-      }
-      if ((contact.getLastName() != null) && (contact.getLastName().length() > 0)) {
+         //set resource description (from user contact)
+         OpContact contact = user.getContact();
+         StringBuffer description = new StringBuffer();
+         if ((contact.getFirstName() != null) && (contact.getFirstName().length() > 0)) {
+            description.append(contact.getFirstName());
+         }
+         if ((contact.getLastName() != null) && (contact.getLastName().length() > 0)) {
+            if (description.length() > 0) {
+               description.append(' ');
+            }
+            description.append(contact.getLastName());
+         }
          if (description.length() > 0) {
-            description.append(' ');
+            resource.setDescription(description.toString());
          }
-         description.append(contact.getLastName());
-      }
-      if (description.length() > 0) {
-         resource.setDescription(description.toString());
-      }
 
-      // check valid availability range [0..system.maxAvailable]
-      double availability = (Double) resourceData.get(OpResource.AVAILABLE);
-      double maxAvailable = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
-      if (availability < 0 || availability > maxAvailable) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-      else {
-         resource.setAvailable(availability);
-      }
-
-      // check valid hourly rate
-      if ((Double) (resourceData.get(OpResource.HOURLY_RATE)) < 0) {
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
-         return reply;
-      }
-      // check valid external rate
-      if ((Double) (resourceData.get(OpResource.EXTERNAL_RATE)) < 0) {
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
-         return reply;
-      }
-
-      resource.setHourlyRate((Double) (resourceData.get(OpResource.HOURLY_RATE)));
-      resource.setExternalRate((Double) (resourceData.get(OpResource.EXTERNAL_RATE)));
-      resource.setInheritPoolRate((Boolean) (resourceData.get(OpResource.INHERIT_POOL_RATE)));
-
-      // Check if resource is to be created inside a pool
-      OpResourcePool pool = null;
-      String poolId = (String) resourceData.get("PoolID");
-      if (poolId != null) {
-         logger.debug("***INTO-POOL: " + poolId);
-         pool = (OpResourcePool) broker.getObject(poolId);
-      }
-      else {
-         pool = OpResourceService.findRootPool(broker);
-      }
-
-      // Check manager access for pool
-      if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Import access to pool denied; ID = " + pool.getID());
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
-      //set up the pool for the resource
-      resource.setPool(pool);
-
-      OpTransaction t = broker.newTransaction();
-      //persist entity
-      broker.makePersistent(resource);
-      //persist permissions
-      OpPermissionSetFactory.addSystemObjectPermissions(session, broker, resource);
-
-      // Add projects assignments
-      List<String> assignedProjects = (List<String>) resourceData.get(PROJECTS);
-      if ((assignedProjects != null) && (assignedProjects.size() > 0)) {
-         logger.debug("ASSIGNED " + assignedProjects);
-         for (String assignedProjectId : assignedProjects) {
-            OpProjectNode projectNode = (OpProjectNode) (broker.getObject(assignedProjectId));
-            OpProjectNodeAssignment projectNodeAssignment = new OpProjectNodeAssignment();
-            projectNodeAssignment.setResource(resource);
-            projectNodeAssignment.setProjectNode(projectNode);
-            broker.makePersistent(projectNodeAssignment);
-            OpProjectAdministrationService.insertContributorPermission(broker, projectNode, resource);
+         // check valid availability range [0..system.maxAvailable]
+         double availability = (Double) resourceData.get(OpResource.AVAILABLE);
+         double maxAvailable = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         if (availability < 0 || availability > maxAvailable) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
+            broker.close();
+            return reply;
          }
+         else {
+            resource.setAvailable(availability);
+         }
+
+         // check valid hourly rate
+         if ((Double) (resourceData.get(OpResource.HOURLY_RATE)) < 0) {
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
+            return reply;
+         }
+         // check valid external rate
+         if ((Double) (resourceData.get(OpResource.EXTERNAL_RATE)) < 0) {
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
+            return reply;
+         }
+
+         resource.setHourlyRate((Double) (resourceData.get(OpResource.HOURLY_RATE)));
+         resource.setExternalRate((Double) (resourceData.get(OpResource.EXTERNAL_RATE)));
+         resource.setInheritPoolRate((Boolean) (resourceData.get(OpResource.INHERIT_POOL_RATE)));
+
+         // Check if resource is to be created inside a pool
+         OpResourcePool pool = null;
+         String poolId = (String) resourceData.get("PoolID");
+         if (poolId != null) {
+            logger.debug("***INTO-POOL: " + poolId);
+            pool = (OpResourcePool) broker.getObject(poolId);
+         }
+         else {
+            pool = OpResourceService.findRootPool(broker);
+         }
+
+         // Check manager access for pool
+         if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Import access to pool denied; ID = " + pool.getID());
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
+         //set up the pool for the resource
+         resource.setPool(pool);
+
+         //validate resource
+         resource.validate();
+
+         transaction = broker.newTransaction();
+         //persist entity
+         broker.makePersistent(resource);
+         //persist permissions
+         OpPermissionSetFactory.addSystemObjectPermissions(session, broker, resource);
+
+         // Add projects assignments
+         List<String> assignedProjects = (List<String>) resourceData.get(PROJECTS);
+         if ((assignedProjects != null) && (assignedProjects.size() > 0)) {
+            logger.debug("ASSIGNED " + assignedProjects);
+            for (String assignedProjectId : assignedProjects) {
+               OpProjectNode projectNode = (OpProjectNode) (broker.getObject(assignedProjectId));
+               OpProjectNodeAssignment projectNodeAssignment = new OpProjectNodeAssignment();
+               projectNodeAssignment.setResource(resource);
+               projectNodeAssignment.setProjectNode(projectNode);
+               broker.makePersistent(projectNodeAssignment);
+               OpProjectAdministrationService.insertContributorPermission(broker, projectNode, resource);
+            }
+         }
+         transaction.commit();
+         logger.debug("/OpResourceService.importUser()");
+         return reply;
       }
-      t.commit();
-      logger.debug("/OpResourceService.importUser()");
-      broker.close();
-      return reply;
+      catch (OpEntityException e) {
+         throw new XServiceException(session.newError(ERROR_MAP, mapEntityError(e)));
+      }
+      finally {
+         finalizeSession(transaction, broker);
+      }
    }
+
+   //<FIXME author="Mihai Costin" description="This should be done by a general mechanism, like for XServiceException">
+   private int mapEntityError(OpEntityException e) {
+      int entityErrorCode = e.getErrorCode();
+      if (entityErrorCode == OpResource.INVALID_USER_LEVEL) {
+         return OpResourceError.INVALID_USER_LEVEL_ERROR;
+      }
+      return -1; //should be a default error
+   }
+   //</FIXME>
+
 
    public XMessage updateResource(OpProjectSession session, XMessage request) {
       String id_string = (String) (request.getArgument(RESOURCE_ID));
@@ -376,199 +386,209 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       XMessage reply = new XMessage();
 
       OpBroker broker = session.newBroker();
+      OpTransaction transaction = null;
+      try {
+         OpResource resource = (OpResource) (broker.getObject(id_string));
+         if (resource == null) {
+            logger.warn("ERROR: Could not find object with ID " + id_string);
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NOT_FOUND));
+            return reply;
+         }
 
-      OpResource resource = (OpResource) (broker.getObject(id_string));
-      if (resource == null) {
-         logger.warn("ERROR: Could not find object with ID " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NOT_FOUND));
-         return reply;
-      }
+         // Check manager access
+         if (!session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Udpate access to resource denied; ID = " + id_string);
+            broker.close();
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
 
-      // Check manager access
-      if (!session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Udpate access to resource denied; ID = " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
+         String resourceName = (String) (resource_data.get(OpResource.NAME));
 
-      String resourceName = (String) (resource_data.get(OpResource.NAME));
-
-      // check mandatory input fields
-      if (resourceName == null || resourceName.length() == 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
-         broker.close();
-         return reply;
-      }
-      //check if resource name contains invalid char %
-      if (resourceName.indexOf("%") != -1) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-      // check if resource name is already used
-      OpQuery query = broker.newQuery("select resource from OpResource as resource where resource.Name = :resourceName");
-      query.setString("resourceName", resourceName);
-      Iterator resources = broker.iterate(query);
-      while (resources.hasNext()) {
-         OpResource other = (OpResource) resources.next();
-         if (other.getID() != resource.getID()) {
-            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
+         // check mandatory input fields
+         if (resourceName == null || resourceName.length() == 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
             broker.close();
             return reply;
          }
-      }
-
-      resource.setName(resourceName);
-      resource.setDescription((String) (resource_data.get(OpResource.DESCRIPTION)));
-
-      double oldAvailableValue = resource.getAvailable();
-      double availableValue = (Double) (resource_data.get(OpResource.AVAILABLE));
-      boolean availibityChanged = (oldAvailableValue != availableValue);
-      resource.setAvailable(availableValue);
-
-      double hourlyRate = (Double) (resource_data.get(OpResource.HOURLY_RATE));
-      resource.setHourlyRate(hourlyRate);
-      double externalRate = (Double) (resource_data.get(OpResource.EXTERNAL_RATE));
-      resource.setExternalRate(externalRate);
-      resource.setInheritPoolRate((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE)));
-      // Overwrite hourly rate w/pool rate if inherit is false
-      if (resource.getInheritPoolRate()) {
-         hourlyRate = resource.getPool().getHourlyRate();
-         resource.setHourlyRate(resource.getPool().getHourlyRate());
-         externalRate = resource.getPool().getExternalRate();
-         resource.setExternalRate(resource.getPool().getExternalRate());
-      }
-
-      double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
-      // check valid availability range [0..maxAvailability]
-      double availability = (Double) resource_data.get(OpResource.AVAILABLE);
-      if (availability < 0 || availability > maxAvailability) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-
-      // check valid hourly rate
-      if (resource.getHourlyRate() < 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-      // check valid external rate
-      if (resource.getExternalRate() < 0) {
-         reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
-         broker.close();
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      // *** TODO: Currently a work-around (should use choice instead of ID)
-      String user_locator = (String) (resource_data.get("UserID"));
-      if ((user_locator != null) && (user_locator.length() > 0)) {
-         OpUser user = (OpUser) (broker.getObject(user_locator));
-         Iterator assignments = resource.getProjectNodeAssignments().iterator();
-         //user has no responsible user -> for all the resource's project assignments add a contributor permission entry
-         if (resource.getUser() == null) {
-            //set up the new responsible user for the resource
-            resource.setUser(user);
-            while (assignments.hasNext()) {
-               OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
-               OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+         //check if resource name contains invalid char %
+         if (resourceName.indexOf("%") != -1) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
+            broker.close();
+            return reply;
+         }
+         // check if resource name is already used
+         OpQuery query = broker.newQuery("select resource from OpResource as resource where resource.Name = :resourceName");
+         query.setString("resourceName", resourceName);
+         Iterator resources = broker.iterate(query);
+         while (resources.hasNext()) {
+            OpResource other = (OpResource) resources.next();
+            if (other.getID() != resource.getID()) {
+               reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
+               broker.close();
+               return reply;
             }
          }
-         else {
-            OpUser oldResponsibleUser = resource.getUser();
-            if (oldResponsibleUser.getID() != user.getID()) { //responsible user has been changed
-               //list of resource ids for which the resource's old user is responsible
-               query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");
-               query.setLong("userId", oldResponsibleUser.getID());
-               List resourceIds = broker.list(query);
 
+         resource.setName(resourceName);
+         resource.setDescription((String) (resource_data.get(OpResource.DESCRIPTION)));
+
+         double oldAvailableValue = resource.getAvailable();
+         double availableValue = (Double) (resource_data.get(OpResource.AVAILABLE));
+         boolean availibityChanged = (oldAvailableValue != availableValue);
+         resource.setAvailable(availableValue);
+
+         double hourlyRate = (Double) (resource_data.get(OpResource.HOURLY_RATE));
+         resource.setHourlyRate(hourlyRate);
+         double externalRate = (Double) (resource_data.get(OpResource.EXTERNAL_RATE));
+         resource.setExternalRate(externalRate);
+         resource.setInheritPoolRate((Boolean) (resource_data.get(OpResource.INHERIT_POOL_RATE)));
+         // Overwrite hourly rate w/pool rate if inherit is false
+         if (resource.getInheritPoolRate()) {
+            hourlyRate = resource.getPool().getHourlyRate();
+            resource.setHourlyRate(resource.getPool().getHourlyRate());
+            externalRate = resource.getPool().getExternalRate();
+            resource.setExternalRate(resource.getPool().getExternalRate());
+         }
+
+         double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         // check valid availability range [0..maxAvailability]
+         double availability = (Double) resource_data.get(OpResource.AVAILABLE);
+         if (availability < 0 || availability > maxAvailability) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
+            broker.close();
+            return reply;
+         }
+
+         // check valid hourly rate
+         if (resource.getHourlyRate() < 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
+            broker.close();
+            return reply;
+         }
+         // check valid external rate
+         if (resource.getExternalRate() < 0) {
+            reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
+            broker.close();
+            return reply;
+         }
+
+
+         transaction = broker.newTransaction();
+
+         // *** TODO: Currently a work-around (should use choice instead of ID)
+         String user_locator = (String) (resource_data.get("UserID"));
+         if ((user_locator != null) && (user_locator.length() > 0)) {
+            OpUser user = (OpUser) (broker.getObject(user_locator));
+            Iterator assignments = resource.getProjectNodeAssignments().iterator();
+            //user has no responsible user -> for all the resource's project assignments add a contributor permission entry
+            if (resource.getUser() == null) {
                //set up the new responsible user for the resource
                resource.setUser(user);
-
                while (assignments.hasNext()) {
                   OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
-                  query = broker.newQuery("select count(assignment) from OpProjectNodeAssignment as assignment where assignment.Resource.ID in (:resourceIds) and assignment.ProjectNode.ID  = :projectId");
-                  query.setLong("projectId", assignment.getProjectNode().getID());
-                  query.setCollection("resourceIds", resourceIds);
-                  Number counter = (Number) broker.iterate(query).next();
-                  // at least one project assignment exist for the resources the old user was responsible
-                  if (counter.intValue() > 1) {
-                     OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
-                  }
-                  else {//update the permision subject for the persisted assignment projectNode
-                     query = broker.newQuery("select permission from OpPermission permission where permission.Object.ID = :projectId " +
-                          "and permission.Subject.ID = :subjectId and permission.AccessLevel = :accessLevel and permission.SystemManaged = :systemManaged");
+                  OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+               }
+            }
+            else {
+               OpUser oldResponsibleUser = resource.getUser();
+               if (oldResponsibleUser.getID() != user.getID()) { //responsible user has been changed
+                  //list of resource ids for which the resource's old user is responsible
+                  query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");
+                  query.setLong("userId", oldResponsibleUser.getID());
+                  List resourceIds = broker.list(query);
+
+                  //set up the new responsible user for the resource
+                  resource.setUser(user);
+
+                  while (assignments.hasNext()) {
+                     OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
+                     query = broker.newQuery("select count(assignment) from OpProjectNodeAssignment as assignment where assignment.Resource.ID in (:resourceIds) and assignment.ProjectNode.ID  = :projectId");
                      query.setLong("projectId", assignment.getProjectNode().getID());
-                     query.setLong("subjectId", oldResponsibleUser.getID());
-                     query.setByte("accessLevel", OpPermission.CONTRIBUTOR);
-                     query.setBoolean("systemManaged", true);
-                     List permissions = broker.list(query);
-                     for (Object permission : permissions) {
-                        broker.deleteObject((OpPermission) permission);
+                     query.setCollection("resourceIds", resourceIds);
+                     Number counter = (Number) broker.iterate(query).next();
+                     // at least one project assignment exist for the resources the old user was responsible
+                     if (counter.intValue() > 1) {
                         OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+                     }
+                     else {//update the permision subject for the persisted assignment projectNode
+                        query = broker.newQuery("select permission from OpPermission permission where permission.Object.ID = :projectId " +
+                             "and permission.Subject.ID = :subjectId and permission.AccessLevel = :accessLevel and permission.SystemManaged = :systemManaged");
+                        query.setLong("projectId", assignment.getProjectNode().getID());
+                        query.setLong("subjectId", oldResponsibleUser.getID());
+                        query.setByte("accessLevel", OpPermission.CONTRIBUTOR);
+                        query.setBoolean("systemManaged", true);
+                        List permissions = broker.list(query);
+                        for (Object permission : permissions) {
+                           broker.deleteObject((OpPermission) permission);
+                           OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+                        }
                      }
                   }
                }
             }
          }
+         else {
+            resource.setUser(null);
+         }
+
+         resource.validate();
+
+         //update resource
+         broker.updateObject(resource);
+
+         //update resource assignments
+         ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
+         reply = updateProjectAssignments(session, assigned_projects, broker, resource);
+         if (reply.getError() != null) {
+            broker.close();
+            return reply;
+         }
+
+         //update resource hourlyRatesPeriods
+         reply = updateHourlyRatesPeriods(session, broker, resource_data, resource);
+         if (reply.getError() != null) {
+            broker.close();
+            return reply;
+         }
+
+         //update permissions
+         XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
+         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            broker.close();
+            return reply;
+         }
+
+         //update availability
+         List projectPlans = new ArrayList();
+         if (availibityChanged) {
+            projectPlans = updateAvailability(broker, resource);
+         }
+
+         //update the working versions for the project plans
+         for (Object projectPlan : projectPlans) {
+            OpProjectPlan plan = (OpProjectPlan) projectPlan;
+            new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null, false);
+         }
+
+         XCalendar xCalendar = session.getCalendar();
+         //update personnel & proceeds costs
+         updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
+         updateActualCosts(broker, resource);
+
+         transaction.commit();
+
+         logger.debug("/OpResourceService.updateResource()");
       }
-      else {
-         resource.setUser(null);
+      catch (OpEntityException e) {
+         throw new XServiceException(session.newError(ERROR_MAP, mapEntityError(e)));
       }
-
-      //update resource
-      broker.updateObject(resource);
-
-      //update resource assignments
-      ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
-      reply = updateProjectAssignments(session, assigned_projects, broker, resource);
-      if (reply.getError() != null) {
-         broker.close();
-         return reply;
+      finally {
+         finalizeSession(transaction, broker);
       }
-
-      //update resource hourlyRatesPeriods
-      reply = updateHourlyRatesPeriods(session, broker, resource_data, resource);
-      if (reply.getError() != null) {
-         broker.close();
-         return reply;
-      }
-
-      //update permissions
-      XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
-         return reply;
-      }
-
-      //update availability
-      List projectPlans = new ArrayList();
-      if (availibityChanged) {
-         projectPlans = updateAvailability(broker, resource);
-      }
-
-      //update the working versions for the project plans
-      for (Object projectPlan : projectPlans) {
-         OpProjectPlan plan = (OpProjectPlan) projectPlan;
-         new OpProjectPlanValidator(plan).validateProjectPlanWorkingVersion(broker, null, false);
-      }
-
-      XCalendar xCalendar = session.getCalendar();
-      //update personnel & proceeds costs
-      updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
-      updateActualCosts(broker, resource);
-
-      t.commit();
-
-      logger.debug("/OpResourceService.updateResource()");
-      broker.close();
       return reply;
    }
 
@@ -585,7 +605,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       queryString.append("where assignment.ActivityVersion.PlanVersion.VersionNumber = ? and resource.ID = ?");
 
       OpQuery query = broker.newQuery(queryString.toString());
-      query.setInteger(0, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      query.setInteger(0, OpProjectPlan.WORKING_VERSION_NUMBER);
       query.setLong(1, resourceId);
 
       return broker.iterate(query);

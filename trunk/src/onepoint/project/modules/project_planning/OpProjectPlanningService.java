@@ -428,7 +428,7 @@ public class OpProjectPlanningService extends OpProjectService {
          // Check if working plan version ID is correct (if it is set)
          boolean fromProjectPlan = true;
          OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-              projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+              projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
          if (workingPlanVersionLocator != null) {
             // It is important that fromProjectPlan is checked against workingPlanVersionLocator parameter
             // (And not against existing working plan version in database, because client view might not have been
@@ -443,7 +443,7 @@ public class OpProjectPlanningService extends OpProjectService {
          // Create new working plan version object if it does not already exist
          if (workingPlanVersion == null) {
             workingPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session
-                 .user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, false);
+                 .user(broker), OpProjectPlan.WORKING_VERSION_NUMBER, false);
          }
 
          // Store working copy as project plan version
@@ -537,13 +537,13 @@ public class OpProjectPlanningService extends OpProjectService {
          int versionNumber = 1;
          // a version exists and it's not WORKING VERSION NUMBER
          if (maxVersionNumber != null &&
-              maxVersionNumber != OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+              maxVersionNumber != OpProjectPlan.WORKING_VERSION_NUMBER) {
             versionNumber = maxVersionNumber + 1;
          }
          OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);
 
          // Check if working plan version ID is correct (if it is set)
-         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
          if (workingPlanVersionLocator != null) {
             if ((workingPlanVersion != null)
                  && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
@@ -617,7 +617,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
             // Try to retrieve working plan version
             OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                 projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+                 projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
 
             // Delete working version (note: There is not necessarily a working version)
             if (workingPlanVersion != null) {

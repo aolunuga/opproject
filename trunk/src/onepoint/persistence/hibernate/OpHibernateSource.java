@@ -415,6 +415,7 @@ public class OpHibernateSource extends OpSource {
 
    /**
     * Closes this source, by releasing all resources.
+    * <FIXME author="Horia Chiorean" description="According to JLS, this code does assure that we won't get NoClassDefFound if hsqld.jar isn't present in classpath">
     */
    public void close() {
       sessionFactory.close();

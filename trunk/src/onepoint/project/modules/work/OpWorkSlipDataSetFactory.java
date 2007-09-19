@@ -7,6 +7,7 @@ package onepoint.project.modules.work;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
@@ -46,13 +47,14 @@ public class OpWorkSlipDataSetFactory {
     * @param activityTypes         Types of activities to include in the search.
     * @param start                 Limit date. Will return only those assignments that have activities starting before the
     *                              given date.
+    * @param activityOrderCriteria a <code>OpObjectOrderCriteria</code> used for ordering the activities.
     * @param projectNodeId         Project Id filter. Will return only those assignments that have activities belonging
     *                              to the given project. If all projects are to be taken into account, ALL_PROJECTS_ID
     *                              should be used.
-    * @param allowArchivedProjects a <code>boolean</code> whether to filter out or not archived projects.
-    * @return Iterator over the found assignments.
+    * @param allowArchivedProjects a <code>boolean</code> whether to filter out or not archived projects. @return Iterator over the found assignments.
     */
-   public static Iterator getAssignments(OpBroker broker, List resourceIds, List activityTypes, Date start, long projectNodeId, boolean allowArchivedProjects) {
+   public static Iterator<Object[]> getAssignments(OpBroker broker, List resourceIds, List activityTypes,
+        Date start, OpObjectOrderCriteria activityOrderCriteria, long projectNodeId, boolean allowArchivedProjects) {
       StringBuffer buffer = new StringBuffer();
       buffer.append("select assignment, activity from OpAssignment as assignment inner join assignment.Activity as activity ");
       buffer.append("where assignment.Resource.ID in (:resourceIds) and assignment.Complete < 100 and activity.Type in (:type) and activity.Deleted = false");
@@ -65,6 +67,9 @@ public class OpWorkSlipDataSetFactory {
       if (projectNodeId != ALL_PROJECTS_ID) {
          buffer.append(" and assignment.ProjectPlan.ProjectNode.ID = :projectNodeId");
       }
+      if (activityOrderCriteria != null) {
+         buffer.append(activityOrderCriteria.toHibernateQueryString("activity"));
+      }
       OpQuery query = broker.newQuery(buffer.toString());
       query.setCollection("resourceIds", resourceIds);
       query.setCollection("type", activityTypes);
@@ -74,7 +79,22 @@ public class OpWorkSlipDataSetFactory {
       if (projectNodeId != ALL_PROJECTS_ID) {
          query.setLong("projectNodeId", projectNodeId);
       }
-      return broker.iterate(query);
+
+      List<Object[]> result = new ArrayList<Object[]>();
+      List<Object[]> adHocActivities = new ArrayList<Object[]>();
+      Iterator<Object[]> it = broker.iterate(query);
+      while (it.hasNext()) {
+         Object[] record = it.next();
+         OpActivity activity = (OpActivity) record[1];
+         if (activity.getType() == OpActivity.ADHOC_TASK) {
+            adHocActivities.add(record);
+         }
+         else {
+            result.add(record);
+         }
+      }
+      result.addAll(adHocActivities);
+      return result.iterator();
    }
 
    /**
@@ -433,6 +453,10 @@ public class OpWorkSlipDataSetFactory {
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setListValue(resourceList);
          projectDataRow.addChild(dataCell);
+         //2 - progress tracked
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(project.getPlan().getProgressTracked());
+         projectDataRow.addChild(dataCell);
       }
    }
 
@@ -702,7 +726,7 @@ public class OpWorkSlipDataSetFactory {
       StringBuffer nameBuffer = new StringBuffer(name);
       boolean hasParent = activity.getSuperActivity() != null;
       if (hasParent) {
-         nameBuffer.append("(");
+         nameBuffer.append(" (");
       }
       while (activity.getSuperActivity() != null) {
          nameBuffer.append(activity.getSuperActivity().getName());
@@ -777,5 +801,18 @@ public class OpWorkSlipDataSetFactory {
       }
 
       return subset;
+   }
+
+   /**
+    * Creates an ordering criteria that is used throughout the workslip code.
+    *
+    * @return a <code>OpObjectOrderCriteria</code>.
+    */
+   public static OpObjectOrderCriteria createActivityOrderCriteria() {
+      // Configure activity sort order
+      Map<String, String> sortOrders = new HashMap<String, String>(2);
+      sortOrders.put(OpActivity.START, OpObjectOrderCriteria.ASCENDING);
+      sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
+      return  new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
    }
 }

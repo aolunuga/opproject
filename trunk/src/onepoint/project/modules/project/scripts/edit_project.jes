@@ -82,7 +82,7 @@ function ok_edit(event) {
 
    //check extended hourly rates
    if (checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
-        to_dos_set, versions_set)) {
+        to_dos_set, versions_set, attachmentListDataSet)) {
       return;
    }
 
@@ -131,7 +131,7 @@ function cancel(event) {
 }
 
 function checkExtendedHourlyRates(assigned_resource_set, project_id, project_data, goals_set,
-                                  to_dos_set, versions_set) {
+                                  to_dos_set, versions_set, attachment_set) {
    return false;
 }
 

@@ -108,9 +108,7 @@
 
    <resource-map id="project_planning.ImportProjectPlan">
       <resource id="ConfirmImport">Projektplan importieren</resource>
-      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge im Projekt
-         <parameter name="ProjectName"/>
-         ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?
+      <resource id="ConfirmImportProjectPlan">Der Import wird alle existierenden Vorgänge im Projekt <parameter name="ProjectName"/> ersetzen. Sind Sie sicher, dass Sie einen externen Projektplan importieren möchten?
       </resource>
       <resource id="FileReadError">Die Datei konnte nicht gelesen werden</resource>
       <resource id="ValidationError">Der Projektplan enthält inkonsistente Daten</resource>

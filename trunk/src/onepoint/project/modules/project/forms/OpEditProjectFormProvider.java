@@ -362,7 +362,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       XLocalizer userObjectsLocalizer = new XLocalizer();
       userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
 
-      form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectAdministrationService.WORKING_VERSION_NUMBER));
+      form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.WORKING_VERSION_NUMBER));
 
       XComponent versionsDataSet = form.findComponent(VERSION_DATA_SET);
       Map<Integer, XComponent> rowsMap = new TreeMap<Integer, XComponent>();
@@ -377,7 +377,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          int versionNr = version.getVersionNumber();
          XComponent dataRow = this.createProjectVersionDataRow(session, version,
               userObjectsLocalizer, editMode);
-         if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+         if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
             workingDataRow = dataRow;
          }
          else {
@@ -412,7 +412,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       //version id - 0
       XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-      if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+      if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
          dataCell.setStringValue(String.valueOf(version.getVersionNumber()));
       }
       else {
@@ -422,7 +422,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       //version number - 1
       dataCell = new XComponent(XComponent.DATA_CELL);
-      if (version.getVersionNumber() == OpProjectAdministrationService.WORKING_VERSION_NUMBER) {
+      if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
          dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
       }
       else {

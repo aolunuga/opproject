@@ -4,6 +4,7 @@
 
 package onepoint.project.modules.resource;
 
+import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentVersion;
@@ -36,6 +37,9 @@ public class OpResource extends OpObject {
    public final static int INTERNAL_RATE_LIST_INDEX = 0;
    public final static int EXTERNAL_RATE_LIST_INDEX = 1;
 
+   public static int INVALID_USER_LEVEL = 0;
+
+
    private String name;
    private String description;
    private double available = 100; // Default: 100%
@@ -51,6 +55,7 @@ public class OpResource extends OpObject {
    private Set responsibleActivities;
    private Set responsibleActivityVersions;
    private Set<OpHourlyRatesPeriod> hourlyRatesPeriods;
+
 
    public void setName(String name) {
       this.name = name;
@@ -176,10 +181,11 @@ public class OpResource extends OpObject {
     * Returns a List containing the internal and external rates of a resource for a given day.
     * When looking for the internal rate the most prioritary is the OpHourlyRatesPeriod set
     * and then the resource's hourly rate
+    *
     * @param aDay - the day for which the internal rate will be returned
     * @return - the <code>List</code> containing the internal and external rates of a resource for the given day
     */
-   public List<Double> getRatesForDay(Date aDay){
+   public List<Double> getRatesForDay(Date aDay) {
       List<Double> result = new ArrayList<Double>();
       Double internalRate = null;
       Double externalRate = null;
@@ -187,9 +193,9 @@ public class OpResource extends OpObject {
       aDay.setTime(calendar.getTimeInMillis());
 
       //first look in the set of OpHourlyRatesPeriod
-      if(!hourlyRatesPeriods.isEmpty()){
-         for(OpHourlyRatesPeriod hourlyRatePeriod:hourlyRatesPeriods){
-            if(!hourlyRatePeriod.getStart().after(aDay) && !hourlyRatePeriod.getFinish().before(aDay)){
+      if (!hourlyRatesPeriods.isEmpty()) {
+         for (OpHourlyRatesPeriod hourlyRatePeriod : hourlyRatesPeriods) {
+            if (!hourlyRatePeriod.getStart().after(aDay) && !hourlyRatePeriod.getFinish().before(aDay)) {
                internalRate = hourlyRatePeriod.getInternalRate();
                externalRate = hourlyRatePeriod.getExternalRate();
             }
@@ -199,10 +205,10 @@ public class OpResource extends OpObject {
       // if the resource has no OpHourlyRatesPeriods defined or
       // if the day is not in one of the OpHourlyRatesPeriods time intervals
       // we return the resource's hourly rate & external rate
-      if(hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)){
+      if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)) {
          internalRate = hourlyRate;
       }
-      if(hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)){
+      if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)) {
          externalRate = this.externalRate;
       }
 
@@ -215,12 +221,13 @@ public class OpResource extends OpObject {
     * Returns a <code>List</code> that contains a list of internal rates and a list of external rates
     * for a resource for a given interval. When looking for the internal rate the most
     * prioritary is the OpHourlyRatesPeriod set and then the resource's hourly rate
+    *
     * @param start - the begining of the interval
-    * @param end - the end of the interval
+    * @param end   - the end of the interval
     * @return - the <code>List</code> with an internal rates list and an external rates list for a resource
-    *  for the given interval
+    *         for the given interval
     */
-   public List<List> getRatesForInterval(Date start, Date end){
+   public List<List> getRatesForInterval(Date start, Date end) {
       List<List> result = new ArrayList<List>();
       List<Double> internalRates = new ArrayList<Double>();
       List<Double> externalRates = new ArrayList<Double>();
@@ -231,18 +238,18 @@ public class OpResource extends OpObject {
       Double internalDayRate;
       Double externalDayRate;
 
-      while(!startDate.after(endDate)){
+      while (!startDate.after(endDate)) {
          internalDayRate = getRatesForDay(new Date(startDate.getTime())).get(INTERNAL_RATE_INDEX);
          internalRates.add(internalDayRate);
          externalDayRate = getRatesForDay(new Date(startDate.getTime())).get(EXTERNAL_RATE_INDEX);
          externalRates.add(externalDayRate);
          calendar = XCalendar.setCalendarTimeToZero(startDate);
-         calendar.add(Calendar.DATE,1);
+         calendar.add(Calendar.DATE, 1);
          startDate = new Date(calendar.getTimeInMillis());
       }
 
-      result.add(INTERNAL_RATE_LIST_INDEX,internalRates);
-      result.add(EXTERNAL_RATE_LIST_INDEX,externalRates);
+      result.add(INTERNAL_RATE_LIST_INDEX, internalRates);
+      result.add(EXTERNAL_RATE_LIST_INDEX, externalRates);
       return result;
    }
 
@@ -280,28 +287,40 @@ public class OpResource extends OpObject {
     * @return <code>true</code> if all period intervals are distinct
     *         <code>false</code> if at least two period intervals ovelap
     */
-   public boolean checkPeriodDoNotOverlap(){
+   public boolean checkPeriodDoNotOverlap() {
 
       ArrayList<OpHourlyRatesPeriod> periodList = new ArrayList<OpHourlyRatesPeriod>();
       Iterator<OpHourlyRatesPeriod> iterator = getHourlyRatesPeriods().iterator();
-      while(iterator.hasNext()){
-          periodList.add(iterator.next());
+      while (iterator.hasNext()) {
+         periodList.add(iterator.next());
       }
 
-      for(int i = 0; i < periodList.size(); i++){
+      for (int i = 0; i < periodList.size(); i++) {
          OpHourlyRatesPeriod currentPeriod = periodList.get(i);
          java.util.Date currentStart = currentPeriod.getStart();
          java.util.Date currentEnd = currentPeriod.getFinish();
 
-         for(int j = i + 1; j < periodList.size(); j++){
+         for (int j = i + 1; j < periodList.size(); j++) {
             OpHourlyRatesPeriod secondPeriod = periodList.get(j);
             java.util.Date secondStart = secondPeriod.getStart();
             java.util.Date secondEnd = secondPeriod.getFinish();
-            if(!((currentEnd.before(secondStart)) || (secondEnd.before(currentStart)))){
+            if (!((currentEnd.before(secondStart)) || (secondEnd.before(currentStart)))) {
                return false;
             }
          }
       }
       return true;
    }
+
+   //<FIXME author="Mihai Costin" description="Move validations from service into this method">
+   public void validate()
+        throws OpEntityException {
+      if (this.getUser() != null) {
+         if (this.getUser().getLevel() < OpUser.CONTRIBUTOR_USER_LEVEL) {
+            throw new OpEntityException(INVALID_USER_LEVEL);
+         }
+      }
+   }
+   //</FIXME>
+
 }
