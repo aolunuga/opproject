@@ -9,6 +9,7 @@ import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
@@ -88,7 +89,8 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
       long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, projectNodeId, false);
+      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, orderCriteria, projectNodeId, false);
 
       List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
       Object[] record;
@@ -160,9 +162,15 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       //check time tracking
       form.findComponent(TIME_TRACKING).setValue(timeTrackingEnabled);
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(choiceEffortActivitySet.getChildCount() > 0);
+      boolean hasChildren = choiceEffortActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_HOURS_BUTTON).setEnabled(hasChildren);
+      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(hasChildren);
+      if (hasChildren) {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
 
       //if time tracking is off hide the time tab and select hours tab
       if(!timeTrackingEnabled) {

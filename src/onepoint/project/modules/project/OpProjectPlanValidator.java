@@ -116,7 +116,7 @@ public class OpProjectPlanValidator {
     */
    private void validateWorkingVersionPlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //if there is a working plan, validate it
-      OpProjectPlanVersion workingPlan = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      OpProjectPlanVersion workingPlan = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
       if (workingPlan != null) {
          XComponent dataSet = new XComponent(XComponent.DATA_SET);
          OpActivityVersionDataSetFactory.retrieveActivityVersionDataSet(broker, workingPlan, dataSet, true);

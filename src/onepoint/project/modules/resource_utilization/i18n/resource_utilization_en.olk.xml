@@ -17,7 +17,7 @@
       <resource id="Underused">Underutilized (&lt; 0.8)</resource>
       <resource id="Normalused">Good utilization (0.8 - 1.0)</resource>
       <resource id="Overused">Overutilized (&gt; 1.0)</resource>
-      <resource id="HighlyOverused">Highly Overutilized (&gt; 1.2)</resource>
+      <resource id="HighlyOverused">Highly overutilized (&gt; 1.2)</resource>
    </resource-map>
 
    <resource-map id="resource_utilization.details">

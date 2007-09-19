@@ -468,17 +468,25 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             hourRow.setValue(entry.getKey());
 
             hoursValidator.setProject(hourRow, this.getProject(timeRow));
-            hoursValidator.setResource(hourRow, this.getResource(timeRow));
-            hoursValidator.setActivity(hourRow, this.getActivity(timeRow));
+            String resourceChoice = this.getResource(timeRow);
+            hoursValidator.setResource(hourRow, resourceChoice);
+            String activityChoice = this.getActivity(timeRow);
+            hoursValidator.setActivity(hourRow, activityChoice);
+            Byte type = getActivityTypeForChoice(activityChoice);
+            hoursValidator.setActivityType(hourRow, type);
+            hoursValidator.enableRowForActivityType(hourRow, type.byteValue(), isProgressTracked(timeRow));
+            hoursValidator.updateEffortCells(activityChoice, resourceChoice, hourRow, isProgressTracked(hourRow), getAssignmentMap());
+
             Double actualEffort = new Double(effort.doubleValue() / XCalendar.MINUTES_PER_HOUR);
             hoursValidator.setActualEffort(hourRow, actualEffort);
-            hoursValidator.updateEffortCells(this.getActivity(timeRow), this.getResource(timeRow), hourRow);
-            Double originalRemaining = (Double) ((XComponent) hourRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX)).getValue();
-            double remainingValue = originalRemaining.doubleValue() - actualEffort.doubleValue();
-            if (remainingValue < 0) {
-               remainingValue = 0;
+            if (isProgressTracked(hourRow)) {
+               Double originalRemaining = (Double) ((XComponent) hourRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX)).getValue();
+               double remainingValue = originalRemaining.doubleValue() - actualEffort.doubleValue();
+               if (remainingValue < 0) {
+                  remainingValue = 0;
+               }
+               hoursValidator.setRemainingEffort(hourRow, new Double(remainingValue));
             }
-            hoursValidator.setRemainingEffort(hourRow, new Double(remainingValue));
 
             hourRow.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
             hourRow.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX).setEnabled(false);

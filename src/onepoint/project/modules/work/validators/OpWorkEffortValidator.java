@@ -75,9 +75,11 @@ public class OpWorkEffortValidator extends OpWorkValidator {
          }
 
          if (getRemainingEffort(row) == null) {
-            if (getActivityType(row).byteValue() != OpGanttValidator.MILESTONE &&
-                 getActivityType(row).byteValue() != OpGanttValidator.ADHOC_TASK) {
-               throw new XValidationException(REMAINING_EFFORT_EXCEPTION);
+            if (isProgressTracked(row)) {
+               if (getActivityType(row).byteValue() != OpGanttValidator.MILESTONE &&
+                    getActivityType(row).byteValue() != OpGanttValidator.ADHOC_TASK) {
+                  throw new XValidationException(REMAINING_EFFORT_EXCEPTION);
+               }
             }
          }
          else {
@@ -208,53 +210,15 @@ public class OpWorkEffortValidator extends OpWorkValidator {
 
                setActivityChoiceValue(cell, (String) value);
 
-               //set the activity type cell value
-               XComponent activityChoiceDataSet = getActivitySet();
+               Byte type = getActivityTypeForChoice(value);
 
-               //find the activity in the activity choice set
-               for (int i = 0; i < activityChoiceDataSet.getChildCount(); i++) {
-                  XComponent choiceActivityRow = (XComponent) activityChoiceDataSet.getChild(i);
-                  if (choiceActivityRow.getStringValue().equals(cell.getStringValue())) {
-                     //set the activity type
-                     byte activityType = ((XComponent) choiceActivityRow.getChild(ACTIVITY_CHOICE_SET_ACTIVITY_TYPE_INDEX)).getByteValue();
-                     setValue(dataRow, ACTIVITY_TYPE_INDEX, new Byte(activityType));
-
-                     //if the new activity is a milestone set disable actual and remaining effort, else enable them
-                     if (activityType == OpGanttValidator.MILESTONE) {
-                        setValue(dataRow, ACTUAL_EFFORT_INDEX, null);
-                        setValue(dataRow, REMAINING_EFFORT_INDEX, null);
-                        dataRow.getChild(ACTUAL_EFFORT_INDEX).setEnabled(false);
-                        dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(false);
-                     }
-                     else {
-                        setActualEffort(dataRow, new Double(0));
-                        setValue(dataRow, REMAINING_EFFORT_INDEX, new Double(0));
-                        dataRow.getChild(ACTUAL_EFFORT_INDEX).setEnabled(true);
-                        dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(true);
-                     }
-
-                     //if the new activity is an adhoc task disable base cost and remaining effost and set them to null,
-                     //else enable remaining and set both of them to 0
-                     if (activityType == OpGanttValidator.ADHOC_TASK) {
-                        setValue(dataRow, PLANNED_EFFORT_INDEX, null);
-                        setValue(dataRow, REMAINING_EFFORT_INDEX, null);
-                        dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(false);
-                     }
-                     else {
-                        setValue(dataRow, PLANNED_EFFORT_INDEX, new Double(0));
-                        setValue(dataRow, REMAINING_EFFORT_INDEX, new Double(0));
-                        dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(true);
-                     }
-                  }
-               }
-
-               //reset the completed check box
-               setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
+               setActivityType(dataRow, type);
+               enableRowForActivityType(dataRow, type.byteValue(), isProgressTracked(dataRow));
 
                //check if the resource name cell is filled in order to set the planned effort cell value
                if (getResource(dataRow) != null) {
                   //set the base effort, remaining & original remaining effort cell values
-                  updateEffortCells(cell.getStringValue(), getResource(dataRow), dataRow);
+                  updateEffortCells(cell.getStringValue(), getResource(dataRow), dataRow, isProgressTracked(dataRow), getAssignmentMap());
                }
                break;
 
@@ -269,7 +233,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                //check if the activity name cell is filled
                if (getActivity(dataRow) != null) {
                   //set the base effort cell value & the original remaining effort cell value
-                  updateEffortCells(getActivity(dataRow), cell.getStringValue(), dataRow);
+                  updateEffortCells(getActivity(dataRow), cell.getStringValue(), dataRow, isProgressTracked(dataRow), getAssignmentMap());
                   //set the project name cell value
                   setValue(dataRow, PROJECT_NAME_INDEX, getProjectChoiceByActivity(activityChoice));
                }
@@ -369,6 +333,59 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                cell.setValue(value);
                break;
          }
+      }
+   }
+
+   public void setActivityType(XComponent dataRow, Byte type) {
+      setValue(dataRow, ACTIVITY_TYPE_INDEX, type);
+   }
+
+   /**
+    * Enables/diables the data cells of this data row for the given activity type.
+    *
+    * @param dataRow
+    * @param activityType
+    * @param progressTracked
+    */
+   public void enableRowForActivityType(XComponent dataRow, byte activityType, boolean progressTracked) {
+
+      if (activityType == OpGanttValidator.MILESTONE) {
+         //if the new activity is a milestone set disable actual and remaining effort
+         setValue(dataRow, ACTUAL_EFFORT_INDEX, null);
+         setValue(dataRow, REMAINING_EFFORT_INDEX, null);
+         dataRow.getChild(ACTUAL_EFFORT_INDEX).setEnabled(false);
+         dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(false);
+         //reset the completed check box
+         setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
+         dataRow.getChild(COMPLETED_INDEX).setEnabled(true);
+      }
+      else if (activityType == OpGanttValidator.ADHOC_TASK) {
+         //if the new activity is an adhoc task disable base cost and remaining effort and set them to null,
+         setValue(dataRow, PLANNED_EFFORT_INDEX, null);
+         setValue(dataRow, REMAINING_EFFORT_INDEX, null);
+         dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(false);
+         //reset the completed check box
+         setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
+         dataRow.getChild(COMPLETED_INDEX).setEnabled(true);
+      }
+      else {
+         //other activity types
+         dataRow.getChild(ACTUAL_EFFORT_INDEX).setEnabled(true);
+         if (progressTracked) {
+            dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(true);
+            setValue(dataRow, REMAINING_EFFORT_INDEX, new Double(0));
+            //reset the completed check box
+            setValue(dataRow, COMPLETED_INDEX, new Boolean(false));
+            dataRow.getChild(COMPLETED_INDEX).setEnabled(true);
+         }
+         else {
+            dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(false);
+            setValue(dataRow, REMAINING_EFFORT_INDEX, null);
+            dataRow.getChild(COMPLETED_INDEX).setEnabled(false);
+            setValue(dataRow, COMPLETED_INDEX, null);
+         }
+         setValue(dataRow, PLANNED_EFFORT_INDEX, new Double(0));
+         setActualEffort(dataRow, new Double(0));
       }
    }
 
@@ -519,7 +536,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
                   dataRow.getChild(REMAINING_EFFORT_INDEX).setEnabled(true);
                }
             }
-            setValue(dataRow, ACTIVITY_TYPE_INDEX, null);
+            setActivityType(dataRow, null);
          }
       }
 
@@ -537,10 +554,11 @@ public class OpWorkEffortValidator extends OpWorkValidator {
     * @param resourceChoice - the choice of the resource, which together with the choice of the resource,
     *                       determines the assignment from which the efforts are takken
     * @param dataRow        - the data row that is being updated.
+    * @param progressTracked
+    * @param mapField
     */
-   public void updateEffortCells(String activityChoice, String resourceChoice, XComponent dataRow) {
+   public void updateEffortCells(String activityChoice, String resourceChoice, XComponent dataRow, boolean progressTracked, XComponent mapField) {
       //get the list of assignment data from the assignment map
-      XComponent mapField = getAssignmentMap();
       HashMap assignmentMap = (HashMap) mapField.getValue();
       List assignmentDataList = (List) assignmentMap.get(activityChoice + "-" + resourceChoice);
 
@@ -550,13 +568,15 @@ public class OpWorkEffortValidator extends OpWorkValidator {
          setValue(dataRow, PLANNED_EFFORT_INDEX, baseEffort);
       }
 
-      //get the original remaining effort from the assignment and set it on the original remaining effort cell
-      //and on the remaining effort cell
-      Double originalRemainingEffort = (Double) assignmentDataList.get(ASSIGNMENT_REMAINING_EFFORT_INDEX);
-      setValue(dataRow, ORIGINAL_REMAINING_INDEX, originalRemainingEffort);
-      setValue(dataRow, ACTUAL_REMAINING_SUM_INDEX, originalRemainingEffort);
-      if (dataRow.getChild(REMAINING_EFFORT_INDEX).getEnabled()) {
-         setValue(dataRow, REMAINING_EFFORT_INDEX, originalRemainingEffort);
+      if (progressTracked) {
+         //get the original remaining effort from the assignment and set it on the original remaining effort cell
+         //and on the remaining effort cell
+         Double originalRemainingEffort = (Double) assignmentDataList.get(ASSIGNMENT_REMAINING_EFFORT_INDEX);
+         setValue(dataRow, ORIGINAL_REMAINING_INDEX, originalRemainingEffort);
+         setValue(dataRow, ACTUAL_REMAINING_SUM_INDEX, originalRemainingEffort);
+         if (dataRow.getChild(REMAINING_EFFORT_INDEX).getEnabled()) {
+            setValue(dataRow, REMAINING_EFFORT_INDEX, originalRemainingEffort);
+         }
       }
    }
 
@@ -603,9 +623,9 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    /**
     * Returns a list which contains an activity -> resource map and an resource -> activity map.
     * First map: Key - the locator of the activity which has completed assignments
-    *            Value - a list of resources, one resource for each completed assignment
+    * Value - a list of resources, one resource for each completed assignment
     * Second map: Key - the locator of the resource which has completed assignments
-    *             Value - a list of activities, one activity for each completed assignment
+    * Value - a list of activities, one activity for each completed assignment
     *
     * @return - the list of maps.
     */
@@ -617,30 +637,30 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       for (int j = 0; j < data_set.getChildCount(); j++) {
          XComponent row = (XComponent) data_set.getChild(j);
          boolean completed = false;
-         if(((XComponent) row.getChild(COMPLETED_INDEX)).getValue() != null){
+         if (((XComponent) row.getChild(COMPLETED_INDEX)).getValue() != null) {
             completed = ((XComponent) row.getChild(COMPLETED_INDEX)).getBooleanValue();
          }
-         if(completed){
+         if (completed) {
             //add the row's resource to the list of resources that belong to the row's activity
             List resourceList;
-            if(!activityResourceMap.keySet().contains(getActivity(row))){
+            if (!activityResourceMap.keySet().contains(getActivity(row))) {
                resourceList = new ArrayList();
                resourceList.add(getResource(row));
                activityResourceMap.put(getActivity(row), resourceList);
             }
-            else{
+            else {
                resourceList = (ArrayList) activityResourceMap.get(getActivity(row));
                resourceList.add(getResource(row));
             }
 
             //add the row's activity to the list of activities that belong to the row's resource
             List activityList;
-            if(!resourceActivityMap.keySet().contains(getResource(row))){
+            if (!resourceActivityMap.keySet().contains(getResource(row))) {
                activityList = new ArrayList();
                activityList.add(getActivity(row));
                resourceActivityMap.put(getResource(row), activityList);
             }
-            else{
+            else {
                activityList = (ArrayList) resourceActivityMap.get(getResource(row));
                activityList.add(getActivity(row));
             }
@@ -656,34 +676,33 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    /**
     * Checks if all the assignments of the activity specified by the activityChoice parameter are completed.
     *
-    * @param activityChoice - the choice of the activity whose assignments are being checked.
+    * @param activityChoice     - the choice of the activity whose assignments are being checked.
     * @param activityResouceMap - the map which contains all the resources from the completed assignments
-    *                         for each activity in the activity set.
-    *
-    * @return  -  <code>true</code> if the activity has no uncompleted assignments or <code>false</code> otherwise.
+    *                           for each activity in the activity set.
+    * @return -  <code>true</code> if the activity has no uncompleted assignments or <code>false</code> otherwise.
     */
    private boolean areAllActivityAssignmentsCompleted(String activityChoice, Map activityResouceMap) {
       //get the list of resources (one for each assignment) for the activity
       List resourceList = new ArrayList();
-      for(int i = 0; i < getActivitySet().getChildCount(); i++) {
+      for (int i = 0; i < getActivitySet().getChildCount(); i++) {
          XComponent activityRow = (XComponent) getActivitySet().getChild(i);
-         if(activityRow.getStringValue().equals(activityChoice)){
+         if (activityRow.getStringValue().equals(activityChoice)) {
             resourceList = ((XComponent) activityRow.getChild(ACTIVITY_CHOICE_SET_RESOURCE_INDEX)).getListValue();
          }
       }
 
       //get the list of resources from the completed assignments for the activity
       List assignmentResourceList = new ArrayList();
-      if(activityResouceMap.keySet().contains(activityChoice)) {
+      if (activityResouceMap.keySet().contains(activityChoice)) {
          assignmentResourceList = (List) activityResouceMap.get(activityChoice);
       }
 
-      if(assignmentResourceList.isEmpty() || assignmentResourceList.size() != resourceList.size()){
+      if (assignmentResourceList.isEmpty() || assignmentResourceList.size() != resourceList.size()) {
          return false;
       }
 
-      for(int i = 0; i < resourceList.size(); i++) {
-         if(!assignmentResourceList.contains(resourceList.get(i))){
+      for (int i = 0; i < resourceList.size(); i++) {
+         if (!assignmentResourceList.contains(resourceList.get(i))) {
             return false;
          }
       }
@@ -696,19 +715,18 @@ public class OpWorkEffortValidator extends OpWorkValidator {
     * @param resourceChoice      - the choice of the resource whose assignments are being checked.
     * @param resourceActivityMap - the map which contains all the activities from the completed assignments
     *                            for each resource in the resource set.
-    *
     * @return -  <code>true</code> if the resource has no uncompleted assignments or <code>false</code> otherwise.
     */
    private boolean areAllResourceAssignmentsCompleted(String resourceChoice, Map resourceActivityMap) {
       //get the list of activities (one for each assignment) for the resource
       List activityList = new ArrayList();
-      for(int i = 0; i < getResourceSet().getChildCount(); i++) {
+      for (int i = 0; i < getResourceSet().getChildCount(); i++) {
          XComponent resourceRow = (XComponent) getResourceSet().getChild(i);
-         if(resourceRow.getStringValue().equals(resourceChoice)){
+         if (resourceRow.getStringValue().equals(resourceChoice)) {
             activityList = ((XComponent) resourceRow.getChild(RESOURCE_CHOICE_SET_ACTIVITY_INDEX)).getListValue();
          }
       }
-      
+
       //get the list of activities from the completed assignments for the resource
       List assignmentActivityList = new ArrayList();
       if (resourceActivityMap.keySet().contains(resourceChoice)) {
@@ -737,10 +755,10 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       Map activityResourceMap = (Map) completedAssignmentMaps.get(LIST_ACTIVITY_INDEX);
 
       XComponent row;
-      for(int i = 0; i < getActivitySet().getChildCount(); i++) {
+      for (int i = 0; i < getActivitySet().getChildCount(); i++) {
          row = (XComponent) getActivitySet().getChild(i);
-         if((!row.getFiltered() && areAllActivityAssignmentsCompleted(row.getStringValue(), activityResourceMap))
-              || (!row.getFiltered() && isCompletedAssignment(resourceChoice, row.getStringValue()))){
+         if ((!row.getFiltered() && areAllActivityAssignmentsCompleted(row.getStringValue(), activityResourceMap))
+              || (!row.getFiltered() && isCompletedAssignment(resourceChoice, row.getStringValue()))) {
             row.setFiltered(true);
          }
       }
@@ -754,23 +772,23 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       Map resourceActivityMap = (Map) completedAssignmentMaps.get(LIST_RESOURCE_INDEX);
 
       XComponent row;
-      for(int i = 0; i < getResourceSet().getChildCount(); i++) {
+      for (int i = 0; i < getResourceSet().getChildCount(); i++) {
          row = (XComponent) getResourceSet().getChild(i);
-         if((!row.getFiltered() && areAllResourceAssignmentsCompleted(row.getStringValue(), resourceActivityMap))
-              || (!row.getFiltered() && isCompletedAssignment(row.getStringValue(), activityChoice))){
+         if ((!row.getFiltered() && areAllResourceAssignmentsCompleted(row.getStringValue(), resourceActivityMap))
+              || (!row.getFiltered() && isCompletedAssignment(row.getStringValue(), activityChoice))) {
             row.setFiltered(true);
-         }       
+         }
       }
    }
 
    /**
     * Checks if the assignment determined by the activity choice and resource choice passed as parameters is completed
-    *    in the current work slip or not.
+    * in the current work slip or not.
     *
     * @param resourceChoice - the choice of the resource for which the assignment is being checked.
     * @param activityChoice - the choice of the activity for which the assignment is being checked.
     * @return <code>true</code> if the assignment formed by the resource choice and activity choice passed as parameters
-    *    is completed in the current work slip or <code>false</code> otherwise.
+    *         is completed in the current work slip or <code>false</code> otherwise.
     */
    private boolean isCompletedAssignment(String resourceChoice, String activityChoice) {
       if (resourceChoice != null && activityChoice != null) {

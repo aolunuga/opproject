@@ -4,6 +4,8 @@
 
 package onepoint.project.modules.work;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
@@ -13,6 +15,7 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.components.OpGanttValidator;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,6 +23,8 @@ import java.util.List;
  * Class representing the work module.
  */
 public class OpWorkModule extends OpModule {
+
+   private static final XLog logger = XLogFactory.getServerLogger(OpWorkModule.class);
 
    /**
     * Upgrades the module to version 5 (internal schema version) via reflection.
@@ -71,31 +76,34 @@ public class OpWorkModule extends OpModule {
       broker = session.newBroker();
       transaction = broker.newTransaction();
       query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord");
-      List<Long> workRecords = broker.list(query);
-
-      for (Long workRecordId : workRecords) {
+      List<Long> workRecordsId = broker.list(query);
+      List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
+      logger.info("Found " + workRecordsId.size() + " work records to upgrade.");
+      
+      for (Long workRecordId : workRecordsId) {
          OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, workRecordId);
-         if (workRecord.getRemainingEffort() < 0) {
+         if (workRecord.getRemainingEffort() < 0.0) {
             workRecord.setRemainingEffort(0.0);
          }
-         if (workRecord.getRemExternalCosts() < 0) {
+         if (workRecord.getRemExternalCosts() < 0.0) {
             workRecord.setRemExternalCosts(0.0);
          }
-         if (workRecord.getRemMaterialCosts() < 0) {
+         if (workRecord.getRemMaterialCosts() < 0.0) {
             workRecord.setRemMaterialCosts(0.0);
          }
-         if (workRecord.getRemMiscCosts() < 0) {
+         if (workRecord.getRemMiscCosts() < 0.0) {
             workRecord.setRemMiscCosts(0.0);
          }
-         if (workRecord.getRemTravelCosts() < 0) {
+         if (workRecord.getRemTravelCosts() < 0.0) {
             workRecord.setRemTravelCosts(0.0);
          }
+         workRecords.add(workRecord);
+         broker.updateObject(workRecord);
       }
 
-      for (Long workRecordId : workRecords) {
-         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(OpWorkRecord.class, workRecordId);
+      for (OpWorkRecord workRecord : workRecords) {
+         logger.info("Upgrading work record " + workRecord);
          OpProgressCalculator.addWorkRecord(broker, workRecord, session.getCalendar());
-         broker.updateObject(workRecord);
       }
 
       transaction.commit();

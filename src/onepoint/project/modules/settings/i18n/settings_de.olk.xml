@@ -97,7 +97,7 @@
       <resource id="Sunday">S</resource>
    </resource-map>
    <resource-map id="settings.calendar_change">
-      <resource id="ConfirmChange">Change Calendar</resource>
+      <resource id="ConfirmChange">Kalender ändern</resource>
       <resource id="ConfirmCalendarChange">Die Änderung der Kalendereinstellungen erfordert eine Neuberechnung des Projekts.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Cancel</resource>      

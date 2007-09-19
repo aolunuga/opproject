@@ -109,7 +109,7 @@
 
    <resource-map id="project_planning.ImportProjectPlan">
       <resource id="ConfirmImport">Import Project Plan</resource>
-      <resource id="ConfirmImportProjectPlan">Importing will replace all activities within project<parameter name="ProjectName"/>.Are you sure you want to import an external project plan?</resource>
+      <resource id="ConfirmImportProjectPlan">Importing will replace all activities within project <parameter name="ProjectName"/>. Are you sure you want to import an external project plan?</resource>
       <resource id="FileReadError">The file could not be read</resource>
       <resource id="ValidationError">The project plan contains inconsistent data</resource>
       <resource id="OK">OK</resource>

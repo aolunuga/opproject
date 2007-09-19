@@ -16,7 +16,10 @@ public abstract class OpWorkValidator extends XValidator {
    //indexes in the choice data sets
    public static int PROJECT_CHOICE_SET_ACTIVITY_INDEX = 0;
    public static int PROJECT_CHOICE_SET_RESOURCE_INDEX = 1;
+   public static int PROJECT_PROGRESS_TRACKED_INDEX = 2;
+
    public static int RESOURCE_CHOICE_SET_ACTIVITY_INDEX = 0;
+
    public static int ACTIVITY_CHOICE_SET_ACTIVITY_TYPE_INDEX = 0;
    public static int ACTIVITY_CHOICE_SET_ACTIVITY_COSTS_INDEX = 1;
    public static int ACTIVITY_CHOICE_SET_RESOURCE_INDEX = 2;
@@ -295,7 +298,7 @@ public abstract class OpWorkValidator extends XValidator {
             filterDataSet(getResourceSet(), resourceList);
 
             //if the activity has only one resource assigned to it and that resurce is not selected set it on the data row
-            if(resourceList.size() == 1){
+            if (resourceList.size() == 1) {
                setResource(dataRow, (String) resourceList.get(0));
             }
          }
@@ -432,10 +435,57 @@ public abstract class OpWorkValidator extends XValidator {
    /**
     * Overriden in OpWorkEffortValidator
     */
-   protected void advancedFilteringForResource(String activityChoice) {}
+   protected void advancedFilteringForResource(String activityChoice) {
+   }
 
    /**
     * Overriden in OpWorkEffortValidator
     */
-   protected void advancedFilteringForActivity(String resourceChoice) {}
+   protected void advancedFilteringForActivity(String resourceChoice) {
+   }
+
+   /**
+    * Gets the progress tracked flag for this activity.
+    * The project cell must be set on this row.
+    * @param dataRow
+    * @return
+    */
+   protected boolean isProgressTracked(XComponent dataRow) {
+      String projectChoice = getProject(dataRow);
+      XComponent projectRow = null;
+      for (int i = 0; i < getProjectSet().getChildCount(); i++) {
+         XComponent row = (XComponent) getProjectSet().getChild(i);
+         if (row.getStringValue().equals(projectChoice)) {
+            projectRow = row;
+            break;
+         }
+      }
+      if (projectRow != null) {
+         XComponent dataCell = (XComponent) projectRow.getChild(PROJECT_PROGRESS_TRACKED_INDEX);
+         return dataCell.getBooleanValue();
+      }
+
+      //default value
+      return true;
+   }
+
+   /**
+    * Gets the activity type for the given activity caption by searching in the activity choice data set.
+    * @param value
+    * @return
+    */
+   public Byte getActivityTypeForChoice(Object value) {
+      Byte activityType = null;
+      //set the activity type cell value
+      XComponent activityChoiceDataSet = getActivitySet();
+      //find the activity in the activity choice set
+      for (int i = 0; i < activityChoiceDataSet.getChildCount(); i++) {
+         XComponent choiceActivityRow = (XComponent) activityChoiceDataSet.getChild(i);
+         if (choiceActivityRow.getStringValue().equals(value)) {
+            //set the activity type
+            activityType = (Byte) ((XComponent) choiceActivityRow.getChild(ACTIVITY_CHOICE_SET_ACTIVITY_TYPE_INDEX)).getValue();
+         }
+      }
+      return activityType;
+   }
 }

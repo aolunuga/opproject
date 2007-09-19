@@ -64,7 +64,7 @@
          <tab-box id="WorkSlipsTabBox" flexible="true">
 
          <tab id="TimeTab" text="${Time}" layout="border">
-            <table-box id="TimeTable" data-set-ref="WorkTimeRecordSet" edit-mode="true" auto-grow="true">
+            <table-box id="TimeTable" data-set-ref="WorkTimeRecordSet" edit-mode="true" auto-grow="consecutive">
                <table-column width="100" text="${Project}" data-column-index="0" value-type="Choice" data-set-ref="TimeProjectSet"/>
                <table-column width="100" text="${Task}" data-column-index="1" value-type="Choice" data-set-ref="TimeActivitySet" on-activate="filterActivitiesTime"/>
                <table-column width="100" text="${Resource}" data-column-index="2" value-type="Choice" data-set-ref="TimeResourceSet" on-activate="filterResourcesTime"/>
@@ -79,7 +79,7 @@
          </tab>
 
          <tab id="HoursTab" text="${Hours}" layout="border">
-            <table-box id="EffortTable" data-set-ref="WorkEffortRecordSet" edit-mode="true" auto-grow="true">
+            <table-box id="EffortTable" data-set-ref="WorkEffortRecordSet" edit-mode="true" auto-grow="consecutive">
                <table-column width="100" text="${Project}" id="HoursProjectColumn" data-column-index="0" value-type="Choice" data-set-ref="EffortProjectSet"/>
                <table-column width="100" text="${Task}" id="HoursTaskColumn" data-column-index="1" value-type="Choice" data-set-ref="EffortActivitySet" on-activate="filterActivitiesEffort"/>
                <table-column width="100" text="${Resource}" id="HoursResourceColumn" data-column-index="2" value-type="Choice" data-set-ref="EffortResourceSet" on-activate="filterResourcesEffort"/>
@@ -96,8 +96,7 @@
          </tab>
 
          <tab id="CostTab" text="${Costs}" layout="border">
-            <table-box id="CostTable" data-set-ref="WorkCostRecordSet" edit-mode="true" auto-grow="true"
-                 on-double-click="manageAttachments">>
+            <table-box id="CostTable" data-set-ref="WorkCostRecordSet" edit-mode="true" auto-grow="consecutive" on-double-click="manageAttachments">
                <table-column width="30" text="" data-column-index="3" value-type="IndicatorList" icon-set-ref="IndicatorIconSet"/>
                <table-column width="100" text="${Project}" data-column-index="0" value-type="Choice" data-set-ref="CostProjectSet"/>
                <table-column width="100" text="${Task}" data-column-index="1" value-type="Choice" data-set-ref="CostActivitySet" on-activate="filterActivitiesCost"/>

@@ -864,9 +864,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
 
       // create a Project plan version
       t = broker.newTransaction();
-      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, true);
+      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectPlan.WORKING_VERSION_NUMBER, true);
       t.commit();
-      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectPlan.WORKING_VERSION_NUMBER);
       assertNotNull(planVersion);
 
       broker.close();
@@ -878,7 +878,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       response = service.revertActivities(session, request);
       assertNoError(response);
       broker = session.newBroker();
-      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectPlan.WORKING_VERSION_NUMBER);
       broker.close();
       assertNull(planVersion);
    }
@@ -934,9 +934,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
 
       // create a Project plan version
       t = broker.newTransaction();
-      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectAdministrationService.WORKING_VERSION_NUMBER, true);
+      OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, plan, session.user(broker), OpProjectPlan.WORKING_VERSION_NUMBER, true);
       t.commit();
-      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+      OpProjectPlanVersion planVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, plan, OpProjectPlan.WORKING_VERSION_NUMBER);
       assertNotNull(planVersion);
 
       broker.close();

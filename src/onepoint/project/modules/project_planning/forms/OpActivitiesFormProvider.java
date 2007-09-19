@@ -242,7 +242,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
          if (projectPlan != null) {
 
             OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                 project.getPlan(), OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+                 project.getPlan(), OpProjectPlan.WORKING_VERSION_NUMBER);
             OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET));
 
             if (edit_mode) {
@@ -442,12 +442,12 @@ public class OpActivitiesFormProvider implements XFormProvider {
       //enable auto-grow feature for tables
       // *** Set table selection model to cell-based
       XExtendedComponent table_box = (XExtendedComponent) form.findComponent(ACTIVITY_TABLE);
-      table_box.setAutoGrow(Boolean.TRUE);
+      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_ALTERNATE);
       table_box.setEditMode(true);
       table_box.setSelectionModel(XComponent.CELL_SELECTION);
 
       table_box = (XExtendedComponent) form.findComponent(COSTS_TABLE);
-      table_box.setAutoGrow(Boolean.TRUE);
+      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_ALTERNATE);
       table_box.setEditMode(true);
       table_box.setSelectionModel(XComponent.CELL_SELECTION);
       XComponent ganttChart = form.findComponent(ACTIVITY_GANTT_CHART);

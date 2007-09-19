@@ -136,7 +136,8 @@
       <resource id="LoopAssignment">Diese Zuweisung würde eine Schleife erzeugen</resource>
       <resource id="ActivityAssignmentVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch in einem oder mehreren Vorgängen in Versionen des Projektplans verwendet wird</resource>
       <resource id="ResponsibleActivitiesExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge im Projektplan verantwortlich ist</resource>
-      <resource id="ResponsibleActivityVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge in Versionen des Projektplans verantwortlich ist</resource>      
+      <resource id="ResponsibleActivityVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge in Versionen des Projektplans verantwortlich ist</resource>
+      <resource id="InvalidUserLevelError">Der verantwortliche Benutzer hat nicht die passende Benutzerebene</resource>
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Ressourcen oder Pools löschen</resource>

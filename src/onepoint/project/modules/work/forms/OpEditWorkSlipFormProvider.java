@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
@@ -101,7 +102,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(OpActivity.TASK);
       activityTypes.add(OpActivity.ADHOC_TASK);
 
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, true);
+      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, orderCriteria, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, true);
       List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
       Object[] record;
       while (result.hasNext()) {
@@ -110,9 +112,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       }
 
       //add the completed assignments from the work records of this work slip
-      for(OpWorkRecord wr : workSlip.getRecords()){
-         if(wr.getAssignment().getComplete() == 100){
-            assignmentList.add(wr.getAssignment());   
+      for (OpWorkRecord wr : workSlip.getRecords()) {
+         if (wr.getAssignment().getComplete() == 100) {
+            assignmentList.add(wr.getAssignment());
          }
       }
 
@@ -213,9 +215,15 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       OpWorkSlipDataSetFactory.configureResourceChoiceMap(broker, choiceCostResourceSet, choiceCostActivitySet);
       OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceCostActivitySet, choiceCostResourceSet);
 
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(choiceEffortActivitySet.getChildCount() > 0);
-      ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(choiceEffortActivitySet.getChildCount() > 0);
+      boolean hasChildren = choiceEffortActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_HOURS_BUTTON).setEnabled(hasChildren);
+      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(hasChildren);
+      if (hasChildren) {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE); 
+      }
 
    }
 }

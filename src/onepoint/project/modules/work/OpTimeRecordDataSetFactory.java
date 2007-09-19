@@ -151,5 +151,8 @@ public class OpTimeRecordDataSetFactory {
          OpWorkSlipDataSetFactory.fillChoiceDataSetsFromSingleAssignment(assignment, choiceProjectSet,
               choiceActivitySet, choiceResourceSet);
       }
+      //sort the project & resources data-sets ascending after name
+      choiceProjectSet.sort();
+      choiceResourceSet.sort();
    }
 }

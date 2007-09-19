@@ -45,6 +45,7 @@ public class OpProjectPlan extends OpObject {
    private Set<OpWorkPeriod> workPeriods;
    private Set<OpDependency> dependencies;
    private Set<OpProjectPlanVersion> versions;
+   public final static int WORKING_VERSION_NUMBER = -1;
 
    public void setStart(Date start) {
       this.start = start;
@@ -184,5 +185,15 @@ public class OpProjectPlan extends OpObject {
          }
       }
       return null;
+   }
+
+   public boolean hasWorkingVersion() {
+      Set<OpProjectPlanVersion> versions = getVersions();
+      for (OpProjectPlanVersion version : versions) {
+         if (version.getVersionNumber() == WORKING_VERSION_NUMBER) {
+            return true;
+         }
+      }
+      return false;
    }
 }

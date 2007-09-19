@@ -313,39 +313,36 @@ public class OpWorkRecord extends OpObject {
     */
    public double calculateRemainingCostsOfType(byte type) {
       double sum = 0;
-      boolean remainingWasCalculated = false;
       Set<OpCostRecord> costRecords = this.getCostRecordByType(type);
       if (!costRecords.isEmpty()) {
          for (OpCostRecord costRecord : costRecords) {
-            sum = costRecord.getRemainingCosts();
-            break;
+            sum += costRecord.getRemainingCosts();
          }
-         remainingWasCalculated = true;
       }
       switch (type) {
          case OpCostRecord.MATERIAL_COST: {
-            if (!remainingWasCalculated) {
+            if (sum == 0) {
                sum = this.getAssignment().getActivity().getRemainingMaterialCosts();
             }
             this.remMaterialCosts = sum;
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
-            if (!remainingWasCalculated) {
+            if (sum == 0) {
                sum = this.getAssignment().getActivity().getRemainingExternalCosts();
             }
             this.remExternalCosts = sum;
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
-            if (!remainingWasCalculated) {
+            if (sum == 0) {
                sum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
             }
             this.remMiscCosts = sum;
             break;
          }
          case OpCostRecord.TRAVEL_COST: {
-            if (!remainingWasCalculated) {
+            if (sum == 0) {
                sum = this.getAssignment().getActivity().getRemainingTravelCosts();
             }
             this.remTravelCosts = sum;
@@ -458,5 +455,16 @@ public class OpWorkRecord extends OpObject {
          timRecord.validate();
       }
 
+   }
+
+
+   @Override
+   public String toString() {
+      if (workSlip != null && assignment != null) {
+         return "Work slip date " + workSlip.getDate() + " for Activity " + assignment.getActivity().getName() + " and resource " + assignment.getResource().getName();
+      }
+      else {
+         return super.toString();
+      }
    }
 }

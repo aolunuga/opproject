@@ -307,23 +307,24 @@ public class OpProgressCalculator {
     * @param broker     a <code>OpBroker</code> used for performing db operations.
     */
    private static void updateAssignmentForWorkingVersion(OpAssignment assignment, OpBroker broker) {
-      OpActivity activity = assignment.getActivity();
+      if (assignment.getProjectPlan().hasWorkingVersion()) {
+         OpActivity activity = assignment.getActivity();
+         StringBuffer activityVersionQueryString = new StringBuffer();
+         activityVersionQueryString.append("select assignmentVer from OpAssignmentVersion assignmentVer ");
+         activityVersionQueryString.append(" inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer ");
+         activityVersionQueryString.append(" where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?");
 
-      StringBuffer activityVersionQueryString = new StringBuffer();
-      activityVersionQueryString.append("select assignmentVer from OpAssignmentVersion assignmentVer ");
-      activityVersionQueryString.append(" inner join assignmentVer.ActivityVersion actVersion inner join actVersion.PlanVersion planVer ");
-      activityVersionQueryString.append(" where assignmentVer.Resource.ID = ? and actVersion.Activity.ID = ? and planVer.VersionNumber = ?");
+         OpQuery query = broker.newQuery(activityVersionQueryString.toString());
+         query.setLong(0, assignment.getResource().getID());
+         query.setLong(1, activity.getID());
+         query.setInteger(2, OpProjectPlan.WORKING_VERSION_NUMBER);
 
-      OpQuery query = broker.newQuery(activityVersionQueryString.toString());
-      query.setLong(0, assignment.getResource().getID());
-      query.setLong(1, activity.getID());
-      query.setInteger(2, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
-
-      Iterator it = broker.iterate(query);
-      if (it.hasNext()) {
-         OpAssignmentVersion assignmentVersion = (OpAssignmentVersion) it.next();
-         assignmentVersion.setComplete(assignment.getComplete());
-         broker.updateObject(assignmentVersion);
+         Iterator it = broker.iterate(query);
+         if (it.hasNext()) {
+            OpAssignmentVersion assignmentVersion = (OpAssignmentVersion) it.next();
+            assignmentVersion.setComplete(assignment.getComplete());
+            broker.updateObject(assignmentVersion);
+         }
       }
    }
 
@@ -335,20 +336,22 @@ public class OpProgressCalculator {
     * @param broker   a <code>OpBroker</code> used for performing db operations.
     */
    private static void updateActivityForWorkingVersion(OpActivity activity, OpBroker broker) {
-      StringBuffer activityVersionQueryString = new StringBuffer();
-      activityVersionQueryString.append("select actVersion from OpActivityVersion actVersion ");
-      activityVersionQueryString.append(" inner join actVersion.PlanVersion planVer ");
-      activityVersionQueryString.append(" where actVersion.Activity.ID = ? and planVer.VersionNumber = ?");
+      if (activity.getProjectPlan().hasWorkingVersion()) {
+         StringBuffer activityVersionQueryString = new StringBuffer();
+         activityVersionQueryString.append("select actVersion from OpActivityVersion actVersion ");
+         activityVersionQueryString.append(" inner join actVersion.PlanVersion planVer ");
+         activityVersionQueryString.append(" where actVersion.Activity.ID = ? and planVer.VersionNumber = ?");
 
-      OpQuery query = broker.newQuery(activityVersionQueryString.toString());
-      query.setLong(0, activity.getID());
-      query.setInteger(1, OpProjectAdministrationService.WORKING_VERSION_NUMBER);
+         OpQuery query = broker.newQuery(activityVersionQueryString.toString());
+         query.setLong(0, activity.getID());
+         query.setInteger(1, OpProjectPlan.WORKING_VERSION_NUMBER);
 
-      Iterator it = broker.iterate(query);
-      if (it.hasNext()) {
-         OpActivityVersion activityVersion = (OpActivityVersion) it.next();
-         activityVersion.setComplete(activity.getComplete());
-         broker.updateObject(activityVersion);
+         Iterator it = broker.iterate(query);
+         if (it.hasNext()) {
+            OpActivityVersion activityVersion = (OpActivityVersion) it.next();
+            activityVersion.setComplete(activity.getComplete());
+            broker.updateObject(activityVersion);
+         }
       }
    }
 
