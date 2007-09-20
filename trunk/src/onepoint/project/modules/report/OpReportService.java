@@ -7,6 +7,7 @@ package onepoint.project.modules.report;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -22,6 +23,7 @@ import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpHashProvider;
 import onepoint.resource.XLocaleManager;
@@ -228,7 +230,9 @@ public class OpReportService extends OpProjectService {
          OpUser user = session.user(broker);
          String creator = "";
          if (user != null) {
-            creator = user.getDisplayName();
+            XLocalizer localizer = new XLocalizer();
+            localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+            creator = localizer.localize(user.getDisplayName());
          }
          //get the resource map for the report         
          String title = xrm.getLocalizedJasperFileName(name, session.getLocale().getID());

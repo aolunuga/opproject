@@ -4997,14 +4997,17 @@ public class OpGanttValidator extends XValidator {
       //update the % of the resources in the activity, if any
       try {
          if (previousEffort != 0) {
-            if (effort == 0) {
-               if (!isEffortBasedProject()) {
-                  updatePercentage(data_row, 0);
-               }
-            }
-            else {
+            if (effort != 0) {
                updatePercentage(data_row, effort / previousEffort);
             }
+            else if (!isEffortBasedProject()) {
+               updatePercentage(data_row, 0);
+            }
+         }
+         else {
+            //if coming from a previous effort of 0  redistribute the resources from scratch
+            List resources = prepareResources(data_row, getResources(data_row));
+            setResources(data_row, resources);
          }
       }
       catch (XValidationException e) {

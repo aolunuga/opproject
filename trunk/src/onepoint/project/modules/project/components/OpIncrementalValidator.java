@@ -395,7 +395,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
    }
 
    /**
-    *  Validates the entire data-set, by setting the start-points to all the activities in the data-set.
+    * Validates the entire data-set, by setting the start-points to all the activities in the data-set.
     */
    public void validateEntireDataSet() {
       startPoints = new HashSet();
@@ -591,7 +591,11 @@ public class OpIncrementalValidator extends OpGanttValidator {
                   OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
                }
             }
+            Date oldFinish = OpGanttValidator.getEnd(dataRow);
             updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
+            if (oldFinish != null && !oldFinish.equals(OpGanttValidator.getEnd(dataRow))) {
+               validateSuccessors = true;
+            }
             //update collection
             updateCollectionTreeValues(dataRow);
          }

@@ -2090,15 +2090,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          resourceRow.setStringValue(resource.locator());
          Map<Date, List> sortedIntervals = new TreeMap<Date, List>();
 
-         List<Double> rates = new ArrayList<Double>();
-         if (assignment.getHourlyRate() != null) {
-            rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getHourlyRate());
-            rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getExternalRate());
-         }
-         else {
-            rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getHourlyRate());
-            rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getExternalRate());
-         }
+         List<Double> rates = getDefaultHourlyRates(resource, assignment);
          sortedIntervals.put(project.getStart(), rates);
 
          XComponent dataCell = new XComponent(XComponent.DATA_CELL);
@@ -2106,5 +2098,25 @@ public class OpProjectAdministrationService extends OpProjectService {
          resourceRow.addChild(dataCell);
          dataSet.addChild(resourceRow);
       }
+   }
+
+   /**
+    * Gets the default hourly rates for a resource, by choosing either from the hourly rates on the project assignment,
+    * or  the hourly rates globally defined for the resource.
+    * @param resource a <code>OpResource</code>.
+    * @param assignment a <code>OpProjectNodeAssignment</code>
+    * @return a <code>List</code> of [internal, external] rates.
+    */
+   protected List<Double> getDefaultHourlyRates(OpResource resource, OpProjectNodeAssignment assignment) {
+      List<Double> rates = new ArrayList<Double>();
+      if (assignment.getHourlyRate() != null) {
+         rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getHourlyRate());
+         rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getExternalRate());
+      }
+      else {
+         rates.add(OpGanttValidator.INTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getHourlyRate());
+         rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getExternalRate());
+      }
+      return rates;
    }
 }

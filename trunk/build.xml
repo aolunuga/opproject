@@ -124,8 +124,13 @@
       <exclude name="*cenquatasks*.*"/>
       <exclude name="*opproject*.*"/>
       <exclude name="svn*.*"/>
-      <exclude name="*express4j*.*"/>
       <exclude name="*_client*.*"/>
+      <exclude name="*ant-contrib*.jar"/>
+      <exclude name="*commons-cli*.jar"/> <!-- at the moment only used within ldap, but may be of general perpose -->
+      <exclude name="*jsr173*.jar"/> 
+      <exclude name="*retroweaver-all*.jar"/>
+      <exclude name="*ws-commons-util*.jar"/> <!-- used for sending reports (icomedias) -->
+      <exclude name="*xmlrpc-*.jar"/> <!-- for xmlrpc only -->
    </patternset>
 
    <patternset id="standalone.lib.pathid">
@@ -451,7 +456,7 @@
       </copy>
 
       <!-- failonerror for tutorials is because of SourceForge -->
-      <copy file="${tutorial.basic.src.file}"  tofile="${dist.basic.dir}/${dist.main.folder}/${tutorial.basic.dest.file}" failonerror="false"/>
+      <copy file="${tutorial.basic.file}"  todir="${dist.basic.dir}/${dist.main.folder}" failonerror="false"/>
       <copy file="${readme.basic.file}" tofile="${dist.basic.dir}/${dist.main.folder}/readme.txt"/>
       <copy file="${license.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
 
@@ -529,7 +534,7 @@
       <copy file="${readme.open.file}" tofile="${dist.open.dir}/readme.txt"/>
       <copy file="license.txt" todir="${dist.open.dir}"/>
       <!-- failonerror for tutorials is because of SourceForge -->
-      <copy file="${tutorial.open.src.file}" tofile="${dist.open.dir}/${tutorial.open.dest.file}" failonerror="false"/>
+      <copy file="${tutorial.open.file}" todir="${dist.open.dir}" failonerror="false"/>
       <copydir src="${demodata.dir}" dest="${dist.open.dir}/${demodata.dir}" excludes="*.opx.xml"/>
       <zip zipfile="${dist.dir}/${open.name}.zip">
          <zipfileset dir="${dist.open.dir}"/>
