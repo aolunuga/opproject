@@ -331,14 +331,18 @@ public class OpProjectPlanningService extends OpProjectService {
 
       boolean changed = false;
       double currentPersonnelCosts = activity.getBasePersonnelCosts();
+      double currentProceeds = activity.getBaseProceeds();
       if (updatePersonnelCostsForActivity(broker, activity, calendar)) {
          //update all super activities
          changed = true;
          while (activity.getSuperActivity() != null) {
             OpActivity superActivity = activity.getSuperActivity();
             double personnelCostsDifference = activity.getBasePersonnelCosts() - currentPersonnelCosts;
+            double proceedsDifference = activity.getBaseProceeds() - currentProceeds;
             currentPersonnelCosts = superActivity.getBasePersonnelCosts();
+            currentProceeds = superActivity.getBaseProceeds();
             superActivity.setBasePersonnelCosts(superActivity.getBasePersonnelCosts() + personnelCostsDifference);
+            superActivity.setBaseProceeds(superActivity.getBaseProceeds() + proceedsDifference);
             broker.updateObject(activity);
             activity = superActivity;
          }
@@ -364,7 +368,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       for (OpAssignment assignment : assignments) {
          if (OpActivityDataSetFactory.updateAssignmentCosts(assignment, calendar)) {
-            OpActivityDataSetFactory.updateRemainingValues(broker, calendar, assignment);
+            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, calendar);
          }
          internalActivitySum += assignment.getBaseCosts();
          externalActivitySum += assignment.getBaseProceeds();

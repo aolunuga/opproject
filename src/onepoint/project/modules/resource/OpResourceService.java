@@ -109,7 +109,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // Check manager access for pool
          if (!session.checkAccessLevel(broker, resource.getPool().getID(), OpPermission.MANAGER)) {
             logger.warn("ERROR: Insert access to pool denied; ID = " + resource.getPool().getID());
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
             return reply;
          }
@@ -117,13 +116,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // check mandatory input fields
          if (resource.getName() == null || resource.getName().length() == 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
-            broker.close();
             return reply;
          }
          //check if resource name contains invalid char %
          if (resource.getName().indexOf("%") != -1) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
-            broker.close();
             return reply;
          }
 
@@ -132,20 +129,17 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          int availability = ((Double) resource_data.get(OpResource.AVAILABLE)).intValue();
          if (availability < 0 || availability > maxAvailability) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-            broker.close();
             return reply;
          }
 
          // check valid hourly rate
          if (resource.getHourlyRate() < 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
-            broker.close();
             return reply;
          }
          // check valid external rate
          if (resource.getExternalRate() < 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
-            broker.close();
             return reply;
          }
 
@@ -155,7 +149,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Iterator resourceIds = broker.iterate(query);
          if (resourceIds.hasNext()) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
-            broker.close();
             return reply;
          }
 
@@ -201,7 +194,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
          reply = insertExtendedHourlyRatesForResource(session, broker, resource_data, resource);
          if (reply.getError() != null) {
-            broker.close();
             return reply;
          }
 
@@ -209,7 +201,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
          if (result != null) {
             reply.setError(result);
-            broker.close();
             return reply;
          }
 
@@ -250,7 +241,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          }
          else {
             logger.warn("UserID not set, could not import user as resource");
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.USER_ID_NOT_SPECIFIED));
             return reply;
          }
@@ -262,7 +252,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Iterator resourceIds = broker.iterate(query);
          if (resourceIds.hasNext()) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
-            broker.close();
             return reply;
          }
          resource.setName(name);
@@ -288,7 +277,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          double maxAvailable = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
          if (availability < 0 || availability > maxAvailable) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-            broker.close();
             return reply;
          }
          else {
@@ -297,13 +285,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
          // check valid hourly rate
          if ((Double) (resourceData.get(OpResource.HOURLY_RATE)) < 0) {
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
             return reply;
          }
          // check valid external rate
          if ((Double) (resourceData.get(OpResource.EXTERNAL_RATE)) < 0) {
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
             return reply;
          }
@@ -326,7 +312,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // Check manager access for pool
          if (!session.checkAccessLevel(broker, pool.getID(), OpPermission.MANAGER)) {
             logger.warn("ERROR: Import access to pool denied; ID = " + pool.getID());
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
             return reply;
          }
@@ -391,7 +376,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          OpResource resource = (OpResource) (broker.getObject(id_string));
          if (resource == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NOT_FOUND));
             return reply;
          }
@@ -399,7 +383,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // Check manager access
          if (!session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
             logger.warn("ERROR: Udpate access to resource denied; ID = " + id_string);
-            broker.close();
             reply.setError(session.newError(ERROR_MAP, OpResourceError.UPDATE_ACCESS_DENIED));
             return reply;
          }
@@ -409,13 +392,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          // check mandatory input fields
          if (resourceName == null || resourceName.length() == 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_SPECIFIED));
-            broker.close();
             return reply;
          }
          //check if resource name contains invalid char %
          if (resourceName.indexOf("%") != -1) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_VALID));
-            broker.close();
             return reply;
          }
          // check if resource name is already used
@@ -426,7 +407,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             OpResource other = (OpResource) resources.next();
             if (other.getID() != resource.getID()) {
                reply.setError(session.newError(ERROR_MAP, OpResourceError.RESOURCE_NAME_NOT_UNIQUE));
-               broker.close();
                return reply;
             }
          }
@@ -457,20 +437,17 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          double availability = (Double) resource_data.get(OpResource.AVAILABLE);
          if (availability < 0 || availability > maxAvailability) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
-            broker.close();
             return reply;
          }
 
          // check valid hourly rate
          if (resource.getHourlyRate() < 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.HOURLY_RATE_NOT_VALID));
-            broker.close();
             return reply;
          }
          // check valid external rate
          if (resource.getExternalRate() < 0) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.EXTERNAL_RATE_NOT_VALID));
-            broker.close();
             return reply;
          }
 
@@ -542,14 +519,12 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          ArrayList assigned_projects = (ArrayList) (resource_data.get(PROJECTS));
          reply = updateProjectAssignments(session, assigned_projects, broker, resource);
          if (reply.getError() != null) {
-            broker.close();
             return reply;
          }
 
          //update resource hourlyRatesPeriods
          reply = updateHourlyRatesPeriods(session, broker, resource_data, resource);
          if (reply.getError() != null) {
-            broker.close();
             return reply;
          }
 
@@ -558,7 +533,6 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
          if (result != null) {
             reply.setError(result);
-            broker.close();
             return reply;
          }
 

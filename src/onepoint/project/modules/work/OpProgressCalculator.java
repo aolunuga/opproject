@@ -83,7 +83,11 @@ public class OpProgressCalculator {
       double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
       updateActivity(broker, work_record, insert_mode, remainingEffortChange);
       //update cost values on work months
-      OpActivityDataSetFactory.updateRemainingValues(broker, calendar, work_record.getAssignment());
+
+      //<FIXME author="Mihai Costin" description="Only the remaining values should be updated here... removed because of OPP-218">
+      //OpActivityDataSetFactory.updateRemainingValues(broker, calendar, work_record.getAssignment());
+      OpActivityDataSetFactory.updateWorkMonths(broker, work_record.getAssignment(), calendar);
+      //</FIXME>
    }
 
    /**

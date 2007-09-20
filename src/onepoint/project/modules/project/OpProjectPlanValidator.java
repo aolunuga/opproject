@@ -138,10 +138,14 @@ public class OpProjectPlanValidator {
     */
    public OpIncrementalValidator createValidator(HashMap resources) {
       OpIncrementalValidator validator = new OpIncrementalValidator();
-      validator.setProjectStart(projectPlan.getProjectNode().getStart());
-      Date finish = projectPlan.getProjectNode().getFinish();
+      OpProjectNode projectNode = projectPlan.getProjectNode();
+
+      Date startDate = (projectNode.getType() == OpProjectNode.TEMPLATE) ? projectPlan.getStart() : projectNode.getStart();
+      validator.setProjectStart(startDate);
+
+      Date finish = (projectNode.getType() == OpProjectNode.TEMPLATE) ? projectPlan.getFinish() : projectNode.getFinish();
       validator.setProjectFinish(finish);
-      validator.setProjectPlanFinish(projectPlan.getProjectNode().getFinish());
+      validator.setProjectPlanFinish(finish);
 
       validator.setProgressTracked(Boolean.valueOf(projectPlan.getProgressTracked()));
       validator.setProjectTemplate(Boolean.valueOf(projectPlan.getTemplate()));
