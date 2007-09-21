@@ -1,0 +1,105 @@
+<language-kit locale="ru">
+   <resource-map id="settings.module">
+      <resource id="SettingsTool">Настройки общие</resource>
+   </resource-map>
+   <resource-map id="settings.settings">
+      <resource id="Settings">Настройки общие</resource>
+      <resource id="UserLocale">Язык по умолчанию</resource>      
+      <resource id="TimeControl">Time Settings</resource>
+      <resource id="FirstWorkday">Первый рабочий день</resource>
+      <resource id="LastWorkday">Последний рабочий день</resource>
+      <resource id="DayWorkTime">Рабочих часов в день</resource>
+      <resource id="WeekWorkTime">Рабочих часов в неделю</resource>
+      <resource id="Holidays">Календарь (выходные и праздники)</resource>
+      <resource id="EMailNotificationFromAddress">Адрес отправителя эл. почты для уведомлений</resource>
+      <resource id="ReportsRemoveTimePeriod">Report archiving period (weeks)</resource>
+      <resource id="ShowResourceHours">Показывать назначения ресурса в часах</resource>
+      <resource id="ResourceMaxAvailability">Максимальная доступность ресурса (%)</resource>
+      <resource id="AllowEmptyPassword">Разрешить пустые пароли</resource>
+      <resource id="Save">Сохранить настройки</resource>
+      <resource id="SaveTooltip">Сохранить системные настройки</resource>
+      <resource id="SelectCalendar">(Выбор календаря)</resource>
+      <resource id="MilestoneControllingInterval">Milestone controlling interval (weeks)</resource>
+      <resource id="EnableTimeTracking">Enable time tracking</resource>
+      <resource id="EnablePulsing">Enable pulsing</resource>
+      <resource id="Pulsing">Pulsing (minutes)</resource>
+      <resource id="Currency">Currency</resource>
+      <resource id="HideManagerFeatures">Hide cost and utilization information from non-manager users</resource>
+      
+      <!-- Currencies -->
+      <resource id="AUD">Australia Dollars (AUD, AUD)</resource>
+      <resource id="CAD">Canada Dollars (CAD, CAD)</resource>
+      <resource id="CHF">Switzerland Francs (CHF, CHF)</resource>
+      <resource id="CNY">China Yuan Renminbi (CNY, CNY)</resource>
+      <resource id="DKK">DKK Denmark Kroner (DKK, DKK)</resource>
+      <resource id="EUR">Euro (EUR, €)</resource>
+      <resource id="GBP">United Kingdom Pounds (GBP, ₤)</resource>
+      <resource id="HKD">Hong Kong Dollars (HKD, HKD)</resource>
+      <resource id="HUF">Hungary Forint (HUF, HUF)</resource>
+      <resource id="INR">India Rupees (INR, INR)</resource>
+      <resource id="JPY">Japan Yen (JPY, JPY)</resource>
+      <resource id="MXN">Mexico Pesos (MXN, MXN)</resource>
+      <resource id="MYR">Malaysia Ringgits (MYR, MYR)</resource>
+      <resource id="NOK">Norway Kroner (NOK, NOK)</resource>
+      <resource id="NZD">New Zealand Dollars (NZD, NZD)</resource>
+      <resource id="RUB">Russia Rubles (RUB, RUB)</resource>
+      <resource id="SEK">Sweden Kronor (SEK, SEK)</resource>
+      <resource id="SGD">Singapore Dollars (SGD, SGD)</resource>
+      <resource id="THB">Thailand Baht (THB, THB)</resource>
+      <resource id="USD">United States Dollars (USD, $)</resource>
+      <resource id="ZAR">South Africa Rand (ZAR, ZAR)</resource>      
+   </resource-map>
+
+   <resource-map id="settings.weekdays">
+      <resource id="Monday">Понедельник</resource>
+      <resource id="Tuesday">Вторник</resource>
+      <resource id="Wednesday">Среда</resource>
+      <resource id="Thursday">Четверг</resource>
+      <resource id="Friday">Пятница</resource>
+      <resource id="Saturday">Суббота</resource>
+      <resource id="Sunday">Воскресенье</resource>
+   </resource-map>
+
+   <resource-map id="settings.error">
+      <resource id="LastWorkDayIncorrect">The selected last work day is not valid</resource>
+      <resource id="DayWorkTimeIncorrect">The specified day work time is not valid</resource>
+      <resource id="WeekWorkTimeIncorrect">The specified week work time is not valid</resource>
+      <resource id="EmailIncorrect">The specified notification sender e-mail is not valid</resource>
+      <resource id="ReportsRemoveTimePeriodIncorrect">The specified report archiving period is not valid</resource>
+      <resource id="ResourceMaxAvailabilityIncorrect">The specified resource maximum availability value is not valid</resource>
+      <resource id="MilestoneControlingIncorrect">The specified milestone controlling interval is not valid</resource>
+      <resource id="FirstWorkDayIncorrect">The specified first work day is not valid</resource>
+      <resource id="InvalidPulseValue">The specified pulse value is not valid</resource>      
+   </resource-map>
+
+   <resource-map id="settings.calendar">
+      <resource id="HourInitial">ч</resource>
+      <resource id="DayInitial">д</resource>
+      <resource id="WeekInitial">н</resource>
+      <resource id="January">Январь</resource>
+      <resource id="February">Февраль</resource>
+      <resource id="March">Март</resource>
+      <resource id="April">Апрель</resource>
+      <resource id="May">Май</resource>
+      <resource id="June">Июнь</resource>
+      <resource id="July">Июль</resource>
+      <resource id="August">Август</resource>
+      <resource id="September">Сентябрь</resource>
+      <resource id="October">Октябрь</resource>
+      <resource id="November">Ноябрь</resource>
+      <resource id="December">Декабрь</resource>
+      <resource id="Monday">П</resource>
+      <resource id="Tuesday">В</resource>
+      <resource id="Wednesday">С</resource>
+      <resource id="Thursday">Ч</resource>
+      <resource id="Friday">П</resource>
+      <resource id="Saturday">С</resource>
+      <resource id="Sunday">В</resource>
+   </resource-map>
+   <resource-map id="settings.calendar_change">
+      <resource id="ConfirmChange">Change Calendar</resource>
+      <resource id="ConfirmCalendarChange">Changing the holiday calendar will result in the revalidation the project plans.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>      
+   </resource-map>
+</language-kit>

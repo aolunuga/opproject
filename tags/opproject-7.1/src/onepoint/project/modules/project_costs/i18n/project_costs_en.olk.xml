@@ -1,0 +1,26 @@
+<language-kit locale="en">
+   <resource-map id="project_costs.module">
+      <resource id="ProjectCostsTool">Costs</resource>
+   </resource-map>
+   <resource-map id="project_costs.project_costs">
+      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="Print">Print</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+      <resource id="ActivityOrCostType">Activity/Cost Type</resource>
+      <resource id="Base">Base ({CurrencySymbol})</resource>
+      <resource id="Actual">Actual ({CurrencySymbol})</resource>
+      <resource id="Remaining">Rem. ({CurrencySymbol})</resource>
+      <resource id="Projected">Expected ({CurrencySymbol})</resource>
+      <resource id="Deviation">Deviation ({CurrencySymbol})</resource>
+      <resource id="PercentageDeviation">Deviation (%)</resource>
+      <resource id="Personnel">Personnel</resource>
+      <resource id="Travel">Travel</resource>
+      <resource id="Material">Material</resource>
+      <resource id="External">External</resource>
+      <resource id="Miscellaneous">Miscellaneous</resource>
+      <resource id="Proceeds">(Proceeds)</resource>
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+      <resource id="Total">Total</resource>
+   </resource-map>
+</language-kit>

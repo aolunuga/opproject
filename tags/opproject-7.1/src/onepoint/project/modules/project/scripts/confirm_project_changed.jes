@@ -1,0 +1,45 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+require "onepoint/project/scripts/error.jes";
+
+import onepoint.service.XMessage;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.express.XExtendedComponent;
+
+function ok(event) {
+
+   form = XDisplay.getActiveForm();
+
+   project_id = form.findComponent("project_id").getValue();
+   project_data = form.findComponent("project_data").getValue();
+   goals_set = form.findComponent("goals_set");
+   to_dos_set = form.findComponent("to_dos_set");
+   resource_set = form.findComponent("resource_set");
+   versions_set = form.findComponent("versions_set");
+   attachment_set = form.findComponent("attachment_set");
+
+   request = new XMessage;
+   request.setAction("ProjectService.updateProject");
+   request.setArgument("project_id", project_id);
+   request.setArgument("project_data", project_data);
+   request.setArgument("goals_set", goals_set);
+   request.setArgument("to_dos_set", to_dos_set);
+   request.setArgument("resource_set", resource_set);
+   request.setArgument("versions_set", versions_set);
+   request.setArgument("attachments_list_set", attachment_set);
+   response = XDisplay.getClient().invokeMethod(request);
+
+   XDisplay.getActiveWindow().close();
+   form = XDisplay.getActiveForm();
+   if (handleError(form, response, "ErrorLabel") == true) {
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

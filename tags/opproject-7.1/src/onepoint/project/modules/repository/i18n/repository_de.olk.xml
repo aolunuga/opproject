@@ -1,0 +1,59 @@
+<language-kit locale="de">
+   <resource-map id="repository.module">
+      <resource id="RepositoryTool">Datenbank</resource>
+   </resource-map>
+   <resource-map id="repository.main">
+      <resource id="Backup">Sichern</resource>
+      <resource id="BackupTooltip">Sicherungsdatei der Datenbank erstellen</resource>
+      <resource id="Restore">Wiederherstellen</resource>
+      <resource id="RestoreTooltip">Datenbank aus einer Sicherungsdatei wiederherstellen</resource>
+      <resource id="Reset">Löschen</resource>
+      <resource id="ResetTooltip">Gesamte Datenbank löschen</resource>
+      <resource id="UserGroupsCount">Benutzergruppen:</resource>
+      <resource id="UsersCount">Benutzer:</resource>
+      <resource id="PortfoliosCount">Projektportfolios:</resource>
+      <resource id="TemplatesCount">Projektvorlagen:</resource>
+      <resource id="ProjectsCount">Projekte:</resource>
+      <resource id="PoolsCount">Ressourcenpools:</resource>
+      <resource id="ResourcesCount">Ressourcen:</resource>
+      <resource id="ReportsCount">Archivierte Berichte:</resource>      
+   </resource-map>
+   <resource-map id="repository.restore_file_list">
+      <resource id="RestoreFile">Datei zum Wiederherstellen auswählen</resource>
+      <resource id="RestoreConfirmationSuccessfull">Die Wiederherstellung war erfolgreich. Drücken Sie OK, um alle Benutzersitzungen neu zu starten.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+   <resource-map id="repository.backup_confirmation">
+      <resource id="BackupConfirmation">Sicherung komplett</resource>
+      <resource id="BackupConfirmationMessage">Sicherung erfolgreich abgeschlossen unter </resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="repository.success_confirmation">
+      <resource id="SuccessConfirmation">Bestätigung</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="repository.reset_confirmation">
+      <resource id="ResetConfirmation">Löschen bestätigen</resource>
+      <resource id="ResetConfirmationSuccessfull">Das Löschen der Datenbank war erfolgreich. Drücken Sie OK um alle Benutzersitzungen neu zu starten.</resource>      
+      <resource id="AdminPasswordRequest">Bitte das Administrator-Passwort eingeben: </resource>
+      <resource id="SimpleConfirmMessage">Sind Sie sicher, dass Sie die Datenbank löschen wollen?</resource>      
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>   
+   <resource-map id="repository.restore_confirmation">
+      <resource id="RestoreConfirmation">Wiederherstellen aus Sicherungsdatei bestätigen</resource>
+      <resource id="AdminPasswordRequest">Bitte das Administrator-Passwort eingeben: </resource>
+      <resource id="SimpleConfirmMessage">Sind Sie sicher, dass Sie eine Sicherungsdatei einspielen wollen?</resource>
+      <resource id="Cancel">Abbrechen</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="repository.error">
+      <resource id="BackupError">Es ist beim Sichern ein Fehler aufgetreten. Bitte die Log-Datei für Details überprüfen</resource>
+      <resource id="RestoreError">Es ist beim Wiederherstellen ein Fehler aufgetreten. Bitte die Log-Datei für Details überprüfen</resource>
+      <resource id="ResetError">Es ist beim Löschen ein Fehler aufgetreten. Bitte die Log-Datei für Details überprüfen</resource>
+      <resource id="BackupDirectoryError">Das Sicherungsverzeichnis konnte nicht angelegt oder darauf zugegriffen werden</resource>
+      <resource id="InsuficientPermissions">Sie haben nicht die notwendigen Rechte, um diese Operation auszuführen</resource>
+      <resource id="InvalidAdminPassword">Das eingegebene Passwort ist ungültig</resource>      
+   </resource-map>
+</language-kit>

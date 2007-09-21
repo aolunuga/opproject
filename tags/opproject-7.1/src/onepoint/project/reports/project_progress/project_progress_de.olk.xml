@@ -1,0 +1,16 @@
+<language-kit locale="de">
+   <resource-map id="report.project_progress">
+      <resource id="PrintTitle">Projektfortschritt</resource>
+      <resource id="Project">Projekt</resource>
+      <resource id="Select">Auswählen</resource>
+      <resource id="Activity">Vorgang</resource>
+      <resource id="PercentComplete">% Abg.</resource>
+      <resource id="BaseEffort">Aufwand (P/h)</resource>
+      <resource id="ActualEffort">Aufwand (I/h)</resource>
+      <resource id="BaseCosts">Kosten (P/{CurrencySymbol})</resource>
+      <resource id="ActualCosts">Kosten (I/{CurrencySymbol})</resource>
+      <resource id="InvalidProject">Bitte ein Projekt auswählen</resource>
+      <resource id="SaveCSV">Als Tabelle speichern...</resource>
+      <resource id="SaveImage">Als Bild speichern...</resource>
+   </resource-map>
+</language-kit>

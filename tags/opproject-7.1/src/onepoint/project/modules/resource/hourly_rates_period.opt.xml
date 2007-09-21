@@ -1,0 +1,8 @@
+<prototype name="OpHourlyRatesPeriod" instance-class="onepoint.project.modules.resource.OpHourlyRatesPeriod" super-type="OpObject">
+   <field name="Start" type="Date" indexed="true"/>
+   <field name="Finish" type="Date" indexed="true"/>
+   <field name="InternalRate" type="Double"/>
+   <field name="ExternalRate" type="Double"/>
+   <relationship name="Resource" type="OpResource" back-relationship="HourlyRatesPeriods"/>
+   <relationship name="ProjectNodeAssignment" type="OpProjectNodeAssignment" back-relationship="HourlyRatesPeriods"/>
+</prototype>

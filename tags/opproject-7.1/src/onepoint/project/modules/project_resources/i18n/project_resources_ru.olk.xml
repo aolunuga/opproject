@@ -1,0 +1,20 @@
+<language-kit locale="ru">
+   <resource-map id="project_resources.module">
+      <resource id="ProjectResourcesTool">Ресурсы</resource>
+   </resource-map>
+   <resource-map id="project_resources.project_resources">
+      <resource id="ProjectResources">Ресурсы проекта</resource>
+      <resource id="Print">Печать</resource>
+      <resource id="PrintTooltip">Print this view</resource>
+      <resource id="ActivityOrResource">Задачи/Ресурсы</resource>
+      <resource id="Base">Плановый (ч)</resource>
+      <resource id="Actual">Текущие (ч)</resource>
+      <resource id="Remaining">Остаток (ч)</resource>
+      <resource id="Projected">Ожидаемые (ч)</resource>
+      <resource id="Deviation">Отклонение (ч)</resource>
+      <resource id="PercentageDeviation">Отклонение (%)</resource>
+      <resource id="SaveCSV">Сохранить как таблицу...</resource>
+      <resource id="SaveImage">Сохранить как изображение...</resource>
+      <resource id="Total">Total</resource>
+   </resource-map>
+</language-kit>

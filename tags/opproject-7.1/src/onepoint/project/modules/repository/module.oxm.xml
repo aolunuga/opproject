@@ -1,0 +1,12 @@
+<module name="repository" caption="Repository" version="0.1" class="onepoint.project.modules.repository.OpRepositoryModule">
+   <language-kit-paths>
+      <language-kit-path path="/modules/repository/i18n"/>
+   </language-kit-paths>
+   <service-files>
+      <service-file file-name="/modules/repository/repository_service.osd.xml"/>
+   </service-files>
+   <tools>
+      <tool name="repository" caption="${RepositoryTool}" group-ref="system" icon="/modules/repository/icons/dock_repository.png"
+            start-form="/modules/repository/forms/repository.oxf.xml"/>
+   </tools>
+</module>

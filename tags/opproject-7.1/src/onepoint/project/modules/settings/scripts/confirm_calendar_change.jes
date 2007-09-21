@@ -1,0 +1,20 @@
+/*
+ * Copyright(c) Onepoint Software GmbH 2007. All Rights Reserved.
+ */
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   XDisplay.getActiveWindow().close();
+   request = new XMessage;
+   request.setAction("PlanningService.revalidateWorkingVersions");
+
+   settingsForm = XDisplay.findFrame("MainFrame").currentForm();
+   args[0] = request;
+   settingsForm.invokeFunction("saveSettings", args);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

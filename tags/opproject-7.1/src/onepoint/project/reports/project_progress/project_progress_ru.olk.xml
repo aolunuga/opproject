@@ -1,0 +1,16 @@
+<language-kit locale="ru">
+   <resource-map id="report.project_progress">
+      <resource id="PrintTitle">Выполнение проекта</resource>
+      <resource id="Project">Проект</resource>
+      <resource id="Select">Выбор</resource>
+      <resource id="Activity">Активность</resource>
+      <resource id="PercentComplete">% Вып.</resource>
+      <resource id="BaseEffort">Объем работ (План/ч)</resource>
+      <resource id="ActualEffort">Объем работ (Факт/ч)</resource>
+      <resource id="BaseCosts">Стоимость (План/в‚¬)</resource>
+      <resource id="ActualCosts">Стоимость (Факт/в‚¬)</resource>
+      <resource id="InvalidProject">Пожалуйста, выберите проект</resource>
+      <resource id="SaveCSV">Сохранить как таблицу...</resource>
+      <resource id="SaveImage">Сохранить как изображение...</resource>
+   </resource-map>
+</language-kit>

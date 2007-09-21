@@ -1,0 +1,4 @@
+<prototype name="OpReportType" instance-class="onepoint.project.modules.report.OpReportType" super-type="OpObject">
+   <field name="Name" type="String" mandatory="true" unique="true"/>
+   <relationship name="Reports" type="OpReport" collection-type="Set" back-relationship="Type" inverse="true"/>
+</prototype>

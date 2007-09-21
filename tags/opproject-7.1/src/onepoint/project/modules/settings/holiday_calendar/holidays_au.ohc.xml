@@ -1,0 +1,38 @@
+<holiday-calendars location="au" label="Australia">
+   <holiday-calendar year="2006">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="01-26" name="National Day"/>
+      <holiday date="04-14" name="Good Friday"/>
+      <holiday date="04-17" name="Easter Monday"/>
+      <holiday date="04-25" name="Anzac Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2007">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="01-26" name="National Day"/>
+      <holiday date="04-06" name="Good Friday"/>
+      <holiday date="04-09" name="Easter Monday"/>
+      <holiday date="04-25" name="Anzac Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2008">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="01-28" name="National Day"/>
+      <holiday date="03-21" name="Good Friday"/>
+      <holiday date="03-24" name="Easter Monday"/>
+      <holiday date="04-25" name="Anzac Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+   <holiday-calendar year="2009">
+      <holiday date="01-01" name="New Year's Day"/>
+      <holiday date="01-26" name="National Day"/>
+      <holiday date="04-10" name="Good Friday"/>
+      <holiday date="04-13" name="Easter Monday"/>
+      <holiday date="04-25" name="Anzac Day"/>
+      <holiday date="12-25" name="Christmas Day"/>
+      <holiday date="12-26" name="Boxing Day"/>
+   </holiday-calendar>
+</holiday-calendars>

@@ -1,0 +1,10 @@
+<form width="400" height="80" layout="border" default-button-ref="OKButton" resource-map-ref="work.delete" text="${ConfirmDelete}" provider-class="onepoint.project.modules.work.forms.OpConfirmDeleteWorkFormProvider" script="/modules/work/scripts/confirm_work_delete.jes">
+   <panel y="0" layout="border">
+   <data-field id="WorkIds"/>
+   <label y="0" id="ConfirmDeleteLabel"/>
+   <panel y="1" layout="flow" direction="west">
+      <button id="CancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+      <button id="OKButton" text="${OK}" on-button-pressed="ok"/>
+   </panel>
+   </panel>
+</form>

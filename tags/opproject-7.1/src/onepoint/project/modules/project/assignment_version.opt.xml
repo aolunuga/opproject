@@ -1,0 +1,11 @@
+<prototype name="OpAssignmentVersion" instance-class="onepoint.project.modules.project.OpAssignmentVersion" super-type="OpObject">
+   <field name="Assigned" type="Double"/>
+   <field name="Complete" type="Double"/>
+   <field name="BaseEffort" type="Double"/>
+   <field name="BaseCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
+   <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="AssignmentVersions"/>
+   <relationship name="Resource" type="OpResource" back-relationship="AssignmentVersions"/>
+   <relationship name="ActivityVersion" type="OpActivityVersion" back-relationship="AssignmentVersions"/>
+   <relationship name="WorkMonthVersions" type="OpWorkMonthVersion" collection-type="Set" back-relationship="AssignmentVersion" inverse="true" cascade="delete"/>
+</prototype>

@@ -1,0 +1,81 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for edit_work_slip.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/work/scripts/work_time.jes";
+require "onepoint/project/modules/work/scripts/work_effort.jes";
+require "onepoint/project/modules/work/scripts/work_cost.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   editMode = form.findComponent("EditMode").getBooleanValue();
+   if (editMode == true) {
+      work_slip_locator = form.findComponent("WorkSlipIDField").getStringValue();
+
+
+      effort_data_set = form.findComponent("WorkEffortRecordSet");
+      if (!effort_data_set.validate()) {
+         return;
+      }
+      time_data_set = form.findComponent("WorkTimeRecordSet");
+      if (!time_data_set.validate()){
+         return;
+      }
+      costs_data_set = form.findComponent("WorkCostRecordSet");
+      if (!costs_data_set.validate()) {
+         return;
+      }
+
+      data_set = form.findComponent("WorkRecordSet");
+      request = new XMessage;
+      request.setAction("WorkService.editWorkSlip");
+      request.setArgument("work_slip_id", work_slip_locator);
+      request.setArgument("effort_record_set", effort_data_set);
+      request.setArgument("time_record_set", time_data_set);
+      request.setArgument("costs_record_set", costs_data_set);
+      response = XDisplay.getClient().invokeMethod(request);
+      
+      if (handleError(form, response, "ErrorLabel") == true) {
+         XDisplay.getActiveWindow().close();
+         XDisplay.findFrame("MainFrame").refreshForm();
+      }
+   }
+   else {
+      cancel(event);
+   }
+}
+
+function manageAttachments(event) {
+   form = XDisplay.getActiveForm();
+   if (form.findComponent("WorkCostRecordSet") != null) {
+      workCostDataSet = form.findComponent("WorkCostRecordSet");
+      selectedRows = workCostDataSet.selectedRows();
+
+      if (selectedRows.size() > 0) {
+         selectedIndex = selectedRows.get(0).getIndex();
+         attachmentList = selectedRows.get(0).getChild(9).getValue();
+
+         parameters.costRowIndex = selectedIndex;
+         parameters.attachmentsList = attachmentList;
+
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/work/forms/manage_attachments.oxf.xml", parameters);
+      }
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+
+function updateAllViews(){
+   XDisplay.getActiveForm().findComponent("EffortTable").update();
+   XDisplay.getActiveForm().findComponent("CostTable").update();   
+}

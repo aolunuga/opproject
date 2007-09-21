@@ -1,0 +1,37 @@
+<language-kit locale="ru">
+   <resource-map id="report.module">
+      <resource id="QueryTool">Запросы</resource>
+   </resource-map>
+   <resource-map id="report.report">
+      <resource id="ReportNavigator">REPORT NAVIGATOR</resource>
+      <resource id="RunQuery">Быстрый запрос</resource>
+      <resource id="CreateReport">Сформировать отчет</resource>
+      <resource id="SendReport">Send Report</resource>
+      <resource id="ResetQuery">Сбросить параметры</resource>
+      <resource id="Print">Печать</resource>
+      <resource id="ProjectEffort">Project Effort</resource>
+      <resource id="ProjectCosts">Project Costs</resource>
+      <resource id="ResourceEfforts">Resource Efforts</resource>
+      <resource id="ResourceCosts">Resource Costs</resource>
+      <resource id="WorkHours">Work Hours</resource>
+      <resource id="DaysPerProject">Days per Project (R)</resource>
+      <resource id="ProjectProgress">Project Progress (R)</resource>
+
+      <resource id="QuickQueryTooltip">Выполнить быстрый запрос</resource>
+      <resource id="CreateReportTooltip">Создать и открыть указанный отчет</resource>
+      <resource id="ResetQueryTooltip">Очистить параметры запроса</resource>
+      <resource id="PrintTooltip">Печать данной области</resource>
+      <resource id="SendReportTooltip">Send Report</resource>      
+
+   </resource-map>
+   <resource-map id="report.error">
+      <resource id="ValueConversionException">Ошибка преобразования типа значения</resource>
+      <resource id="CouldNotExecuteReportSQL">SQL запрос данного отчета не может быть выполнен</resource>
+      <resource id="JasperCanNotBuildFilledReport">Данные получены, но библиотека Jasper не может построить отчет</resource>
+      <resource id="JasperCanNotExportReport">Библиотека Jasper не может экспортировать отчет</resource>
+      <resource id="InvalidReportFormat">Requested report format is not supported</resource>
+      <resource id="CreateReportException">An error occured while trying to create the report</resource>
+      <resource id="SaveReportException">An error occured while trying to save the report</resource>
+      <resource id="SendReportException">An error occured while trying to send the report</resource>
+   </resource-map>
+</language-kit>

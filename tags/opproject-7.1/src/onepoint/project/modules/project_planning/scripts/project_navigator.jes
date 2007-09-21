@@ -1,0 +1,123 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Event-script for projects.oxf.xml
+require "onepoint/project/scripts/lazyLoad.jes";
+
+import onepoint.express.XComponent;
+import onepoint.express.XDisplay;
+import onepoint.express.XValidator;
+import onepoint.service.XMessage;
+
+function changeProject(event) {
+   project_data_set = XDisplay.getActiveForm().findComponent("ProjectNavigatorDataSet");
+   //this can happen if you start a dragging from the main frame and drop on one of the projects in the navigation frame
+   if (project_data_set == null) {
+      return;
+   }
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() == 1) {
+      parameters.project_id = selected_rows[0].getStringValue();
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      contentFrame = XDisplay.findFrame("ProjectContentFrame");
+      form = contentFrame.currentForm();
+      activitiesFormId = "ActivitiesForm";
+      // only update project status if user selected a project or template (not a portfolio)
+      if (descriptor.equals("p") || descriptor.equals("t")) {
+         if (form.getID() != null) {
+            if (form.getID().equals(activitiesFormId)) {
+                if (descriptor.equals("t")) {
+                   disableImportExportButtons(form);
+                }
+               Console.println("   ***ActivitiesForm: Trigger auto-save");
+               // Patch event source form
+               event.sourceForm = form;
+               arguments[0] = event;
+               form.invokeFunction("autoSave", arguments);
+            }
+         }
+         Console.println("==> PROJECT NAVIGATOR refresh content form");
+         contentFrame.refreshForm(parameters);
+         Console.println("<== after PROJECT NAVIGATOR refresh content form");
+      }
+      else {
+         if (form.getID() != null) {
+            if (form.getID().equals(activitiesFormId)) {
+               disableActivitiesFormToolbar(form);
+            }
+         }
+      }
+   }
+   return;
+}
+
+function resizeDivision(event){
+   contentFrame = XDisplay.findFrame("ProjectNavigatorFrame");
+   panel = contentFrame.getParent();
+   panel.doLayout();
+   panel.getParent().repaint();
+}
+
+function retrieveChildren(event) {
+   dataRow = event.expand_source;
+   archivedProjectsIds = dataRow.getForm().findComponent("ArchivedProjects").getListValue();
+   request = new XMessage;
+   request.setAction("ProjectService.expandProjectNode");
+   request.setArgument("project_row", dataRow);
+   request.setArgument("FilteredOutIds", archivedProjectsIds);
+   //not tabular
+   request.setArgument("tabular", false);      
+   expandNode(dataRow, 1, request);
+}
+
+function showProjectNavigator(event) {
+   form = event.event_source;
+
+    project_data_set = form.findComponent("ProjectNavigatorDataSet");
+   //this can happen if you start a dragging from the main frame and drop on one of the projects in the navigation frame
+   if (project_data_set == null) {
+      return;
+   }
+   selected_rows = project_data_set.selectedRows();
+   if (selected_rows.size() == 1) {
+      parameters.project_id = selected_rows[0].getStringValue();
+      descriptor = selected_rows[0].getChild(0).getStringValue();
+      contentFrame = XDisplay.findFrame("ProjectContentFrame");
+      form = contentFrame.currentForm();
+      activitiesFormId = "ActivitiesForm";
+      if (!descriptor.equals("p") && !descriptor.equals("t")) {
+         if (form.getID() != null) {
+            if (form.getID().equals(activitiesFormId)) {
+               disableActivitiesFormToolbar(form);
+            }
+         }
+      }
+      else {
+         if (descriptor.equals("t")) {
+            if (form.getID() != null) {
+               if (form.getID().equals(activitiesFormId)) {
+                  disableImportExportButtons(form);
+               }
+            }
+         }
+      }
+   }
+}
+
+function disableActivitiesFormToolbar(form) {
+   //disable toolbar buttons
+   form.findComponent("EditButton").setEnabled(false);
+   form.findComponent("SaveButton").setEnabled(false);
+   form.findComponent("CheckInButton").setEnabled(false);
+   form.findComponent("PrintButton").setEnabled(false);
+   form.findComponent("RevertButton").setEnabled(false);
+   disableImportExportButtons(form);
+   form.repaint();
+}
+
+function disableImportExportButtons(form) {
+   form.findComponent("ImportButton").setEnabled(false);
+   form.findComponent("ExportButton").setEnabled(false);
+   form.repaint();
+}

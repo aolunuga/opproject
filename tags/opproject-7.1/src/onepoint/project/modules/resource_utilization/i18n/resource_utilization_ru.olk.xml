@@ -1,0 +1,41 @@
+<language-kit locale="ru">
+   <resource-map id="resource_utilization.module">
+      <resource id="UtilizationTool">Использование ресурсов</resource>
+   </resource-map>
+   <resource-map id="resource_utilization.overview">
+      <resource id="FrameTitle">Использование ресурсов</resource>
+      <resource id="Print">Печать</resource>
+      <resource id="PrintTooltip">Печать данной области</resource>
+      <resource id="ChangeTimeUnit">Ед. времени</resource>
+      <resource id="Days">Дни</resource>
+      <resource id="Weeks">Недели</resource>
+      <resource id="Months">Месяцы</resource>
+      <resource id="SaveImage">Сохранить как изображение...</resource>
+      <resource id="PrintTitle">Использование ресурсов</resource>
+
+      <resource id="HighlyUnderused">Очень низкая загрузка (&lt; 0.5)</resource>
+      <resource id="Underused">Низкая загрузка (&lt; 0.8)</resource>
+      <resource id="Normalused">Нормальная загрузка (0.8 - 1.0)</resource>
+      <resource id="Overused">Перегрузка (&gt; 1.0)</resource>
+      <resource id="HighlyOverused">Огромная перегрузка (&gt; 1.2)</resource>
+   </resource-map>
+
+   <resource-map id="resource_utilization.details">
+      <resource id="ProjectName">Проект</resource>
+      <resource id="ActivityName">Задача</resource>
+      <resource id="ActivitySequence">Nr.</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="Finish">Окончание</resource>
+      <resource id="Assigned">% назначения</resource>
+      <resource id="Effort">Объём работ (ч)</resource>
+      <resource id="Total">ИТОГО</resource>
+   </resource-map>
+
+   <resource-map id="pool_utilization.details">
+      <resource id="ResourceName">Resource</resource>
+      <resource id="Assigned">% Assigned</resource>
+      <resource id="Effort">Effort (h)</resource>
+      <resource id="Total">TOTAL</resource>
+   </resource-map>
+
+</language-kit>

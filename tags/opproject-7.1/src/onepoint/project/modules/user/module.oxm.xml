@@ -1,0 +1,22 @@
+<module name="user" caption="Benutzerkonten" version="0.8" class="onepoint.project.modules.user.OpUserModule">
+   <prototype-files>
+      <prototype-file file-name="/modules/user/subject.opt.xml"/>
+      <prototype-file file-name="/modules/user/user.opt.xml"/>
+      <prototype-file file-name="/modules/user/contact.opt.xml"/>
+      <prototype-file file-name="/modules/user/group.opt.xml"/>
+      <prototype-file file-name="/modules/user/user_assignment.opt.xml"/>
+      <prototype-file file-name="/modules/user/group_assignment.opt.xml"/>
+      <prototype-file file-name="/modules/user/lock.opt.xml"/>
+      <prototype-file file-name="/modules/user/preference.opt.xml"/>
+      <prototype-file file-name="/modules/user/permission.opt.xml"/>
+   </prototype-files>
+   <service-files>
+      <service-file file-name="/modules/user/user_service.osd.xml"/>
+   </service-files>
+   <language-kit-paths>
+      <language-kit-path path="/modules/user/i18n"/>
+   </language-kit-paths>
+   <tools>
+      <tool name="user" caption="${UserTool}" group-ref="system" icon="/modules/user/icons/user_tool.png" start-form="/modules/user/forms/users.oxf.xml" multi-user-only="true"/>
+   </tools>
+</module>

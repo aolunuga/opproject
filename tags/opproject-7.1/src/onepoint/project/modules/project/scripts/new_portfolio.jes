@@ -1,0 +1,48 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for new_portfolio.oxf.xml
+
+require "onepoint/project/scripts/error.jes";
+
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+
+   portfolio_data.Type = 1;
+   portfolio_data.SuperPortfolioID = form.findComponent("SuperPortfolioID").getStringValue();
+   portfolio_data.Name = form.findComponent("Name").getStringValue();
+   portfolio_data.Description = form.findComponent("Description").getStringValue();
+
+   portfolio_data.PermissionSet = form.findComponent("PermissionSet");
+
+   request = new XMessage;
+   request.setAction("ProjectService.insertPortfolio");
+   request.setArgument("portfolio_data", portfolio_data);
+   
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleError(form, response, "ErrorLabel") == true) {
+      // Expand super portfolio row
+      mainFrame = XDisplay.findFrame("MainFrame");
+      superPortfolioIndex = form.findComponent("SuperPortfolioIndexField").getIntValue();
+      if (superPortfolioIndex != -1) {
+         superPortfolioRow = mainFrame.currentForm().findComponent("ProjectDataSet").getChild(superPortfolioIndex);
+         if (superPortfolioRow != null) {
+            superPortfolioRow.setExpanded(true);
+         }
+      }
+      XDisplay.getActiveWindow().close();
+      XDisplay.findFrame("MainFrame").refreshForm();
+   }
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
