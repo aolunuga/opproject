@@ -1,0 +1,61 @@
+<form id="ResourceUtilizationForm" layout="border" resource-map-ref="resource_utilization.overview" provider-class="onepoint.project.modules.resource_utilization.forms.OpResourceUtilizationFormProvider" script="/modules/resource_utilization/scripts/resource_utilization.jes">
+   <data-set id="IconSet">
+      <data-row icon="/modules/resource/icons/pool.png"/>
+      <data-row icon="/modules/resource/icons/resource.png"/>
+   </data-set>
+   <data-field id="PrintTitle" string-value="${PrintTitle}"/>
+   <data-field id="resourceColumnsSelector"/>
+   <data-field id="poolColumnsSelector"/>
+   <data-set id="UtilizationDataSet" stateful="true" on-expand="expandDataSet"/>
+
+   <data-set id="TimeUnitSet">
+      <data-row string-value="d['${Days}']"/>
+      <data-row string-value="w['${Weeks}']"/>
+      <data-row string-value="m['${Months}']"/>
+   </data-set>
+   <pop-up-menu id="UtilizationPopupMenu">
+      <pop-up-item text="${SaveImage}" on-item-selected="saveUtilizationImage"/>
+   </pop-up-menu>
+
+    <panel layout="border" style-ref="compact-panel-default">
+
+    <panel layout="border" style-ref="compact-panel-default">
+
+	<panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar x="-1">
+            <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png"
+                         disabled-icon="/icons/print_disabled.png" on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
+         </tool-bar>
+
+     <panel x="1" layout="border" style-ref="compact-panel-default">
+        <panel layout="table" flexible="false">
+           <label x="0" width="2" text="${ChangeTimeUnit}"/>
+           <choice-field x="2" width="3" id="TimeUnitChooser" data-set-ref="TimeUnitSet"
+                         on-value-changed="timeUnitChanged" selected-index="0" stateful="true"/>
+        </panel>
+     </panel>
+
+   </panel>
+
+   <panel layout="border" style-ref="compact-panel-default">
+      <table-box x="-1" id="UtilizationTable" data-set-ref="UtilizationDataSet" tree-column-index="0" header-rows="2"
+                 icon-set-ref="IconSet" on-layout-changed="UtilizationTable_onLayoutChanged" horizontal-scroll-bar="always">
+         <table-column width="160" text="Name" data-column-index="1" value-type="Choice" resizeable="false"/>
+      </table-box>
+      <utilization-box id="UtilizationBox" color-data-set-ref="UtilizationResourceColorSet" 
+                       details-form-ref="/modules/resource_utilization/forms/utilization_details.oxf.xml"
+                       alternate-details-form-ref="/modules/resource_utilization/forms/pool_utilization_details.oxf.xml"
+                       data-set-ref="UtilizationDataSet" time-unit="days"
+                       stateful="true" pop-up-menu-ref="UtilizationPopupMenu" resource-table="UtilizationTable" 
+                       horizontal-scroll-bar="always"/>
+   </panel>
+
+  <color-legend-box y="1" id="UtilizationLegend" orientation="horizontal" color-data-set-ref="UtilizationResourceColorSet"/>
+  <data-set id="UtilizationResourceColorSet"/>
+	</panel>
+
+	<status-bar y="1"/>
+
+	</panel>
+
+</form>

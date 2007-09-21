@@ -1,0 +1,53 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+
+// Controller script for add_role_assignment.oxf.xml
+
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
+
+function ok(event) {
+
+   default_role_choice = XDisplay.getActiveForm().findComponent("DefaultRoleDataField").getStringValue();
+
+   users_data_set = XDisplay.getActiveForm().findComponent("UsersDataSet");
+   selected_rows = users_data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+      this_dialog = XDisplay.getActiveWindow();
+      previous_dialog = XDisplay.getDefaultDisplay().previousLayer(this_dialog);
+      // *** Probably DIALOG.getContent() would be "nicer" than getChild(1)
+      role_assignments_data_set = previous_dialog.getChild(1).findComponent("RoleAssignmentsDataSet");
+      i = 0;
+      while (i < selected_rows.size()) {
+         choice = selected_rows[i].getStringValue();
+         // *** Note: Choice contains a group-indicator as the first character of locator
+         data_row = role_assignments_data_set.newDataRow();
+         role_assignments_data_set.addChild(data_row);
+         data_cell = XComponent.newDataCell();
+         choices[0] = choice;
+         data_cell.setListValue(choices);
+         // data_cell.setStringValue(choice);
+         data_cell.setEnabled(false);
+         data_row.addChild(data_cell);
+         data_cell = XComponent.newDataCell();
+         default_role_choices[0] = default_role_choice;
+         data_cell.setListValue(default_role_choices);
+         data_cell.setEnabled(true);
+         data_row.addChild(data_cell);
+         i++;
+      }
+      // Update assigned user list
+      role_assignments_table_box = previous_dialog.getChild(1).findComponent("RoleAssignmentsTableBox");
+      role_assignments_table_box.update();
+      this_dialog.close();
+   }
+   // *** Else: Error no selection
+
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}
+

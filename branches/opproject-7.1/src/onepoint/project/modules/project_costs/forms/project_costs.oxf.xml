@@ -1,0 +1,51 @@
+<form id="ProjectCostsForm" layout="border" resource-map-ref="project_costs.project_costs" provider-class="onepoint.project.modules.project_costs.forms.OpProjectCostsFormProvider" script="/modules/project_costs/scripts/project_costs.jes">
+   <data-field id="ProjectIDField"/>
+   <data-field id="PrintTitle"/>
+   <data-set id="CostSet"/>
+   <data-set id="CostFooterSet"/>
+   <data-set id="Total" text="${Total}"/>
+
+   <pop-up-menu id="CostsTablePopupMenu">
+      <pop-up-item text="${SaveCSV}" on-item-selected="saveTableCSV"/>
+      <pop-up-item text="${SaveImage}" on-item-selected="saveTableImage"/>
+   </pop-up-menu>
+
+   <panel layout="border" style-ref="compact-panel-default">
+
+      <panel layout="border" style-ref="tool-panel-default" y="-1" id="ToolsPanel">
+         <tool-bar x="-1">
+            <tool-button id="PrintButton" text="${Print}" icon="/icons/print.png" disabled-icon="/icons/print_disabled.png"
+                         on-button-pressed="print" tooltip="${PrintTooltip}" enabled="false"/>
+         </tool-bar>
+      </panel>
+
+      <tab-box id="PlanningCostsBox" stateful="true">
+         <!-- Maybe add first tab showing overview of resources w/trends -->
+         <!-- What about resource matrix: Similar to Gantt; y-axis showing resources -->
+         <!-- Note: Maybe we need separate data-sets and/or frames/forms per tab -->
+         <tab layout="border" text="${ProjectCosts}" id="ProjectCostsTab">
+            <!-- Note: If we add a choice-field for selecting outline-level -->
+            <!-- Then, we cannot use the same data-set for this and the bar-chart -->
+            <!-- (Major reason: Bar chart only make sense on first level) -->
+            <table-box id="CostTable" data-set-ref="CostSet" tree-column-index="1" pop-up-menu-ref="CostsTablePopupMenu"
+                       footer-data-set-ref="CostFooterSet">
+               <!-- The list of columns to show could be editable and dynamic (form-provider) -->
+               <table-column text="" width="0" hidden="true" data-column-index="7"
+                             row-font-styles="plain;bold;bold+italic;italic;italic;plain"/>
+               <table-column text="${ActivityOrCostType}" width="185" data-column-index="0" sortable="true"/>
+               <table-column text="${Base}" width="70" data-column-index="1" value-type="Double" sortable="true" decimals="2"/>
+               <table-column text="${Actual}" width="70" data-column-index="2" value-type="Double" sortable="true" decimals="2"/>
+               <table-column text="${Remaining}" width="70" data-column-index="3" value-type="Double" sortable="true" decimals="2"/>
+               <table-column text="${Projected}" width="70" data-column-index="4" value-type="Double" sortable="true" decimals="2"/>
+               <table-column text="${Deviation}" width="70" data-column-index="5" value-type="Deviation" sortable="true" decimals="2"/>
+               <table-column text="${PercentageDeviation}" width="70" data-column-index="6" value-type="Deviation" sortable="true"/>
+               <!-- maybe add percentage in addition -->
+            </table-box>
+         </tab>
+      </tab-box>
+
+      <status-bar y="1"/>
+
+   </panel>
+
+</form>

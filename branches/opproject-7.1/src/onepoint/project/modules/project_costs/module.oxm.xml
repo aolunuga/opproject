@@ -1,0 +1,9 @@
+<module name="project_costs" caption="Projektkosten" version="0.5" class="onepoint.project.modules.project_costs.OpProjectCostsModule">
+   <language-kit-paths>
+      <language-kit-path path="/modules/project_costs/i18n"/>
+   </language-kit-paths>
+   <tools>
+      <tool name="project_costs" caption="${ProjectCostsTool}" group-ref="projects" icon="/modules/project_costs/icons/project_costs_tool.png" 
+      	start-form="/modules/project_costs/forms/project_costs_start.oxf.xml" sequence="20" level="Observer"/>
+   </tools>
+</module>

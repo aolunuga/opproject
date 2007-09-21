@@ -1,0 +1,723 @@
+<project name="opproject - Open" basedir="." default="dist.war">
+
+   <!-- Sets property references that are used throught the build file -->
+   <property file="build.properties"/>
+
+   <taskdef name="retroweaver" classname="net.sourceforge.retroweaver.ant.RetroWeaverTask">
+      <classpath>
+         <pathelement location="${lib.dir}/retroweaver-all-2.0.jar"/>
+      </classpath>
+   </taskdef>
+
+   <!-- Classpath reference -->
+   <path id="op.classpath">
+      <fileset dir="${lib.dir}" includes="*.jar"/>
+   </path>
+
+   <!-- Unit tests classpath reference -->
+   <path id="op.tests.classpath">
+      <path refid="op.classpath"/>
+      <pathelement location="${classes.dir}"/>
+   </path>
+
+   <!-- Pattern sets used for the different tasks -->
+   <patternset id="compile.pathid">
+      <exclude name="**/*Test.java"/>
+      <exclude name="**/*_test.java"/>
+      <exclude name="**/test/**"/>
+   </patternset>
+
+   <patternset id="compile.client.pathid">
+      <patternset refid="compile.pathid"/>
+      <include name="**/applet/*.java"/>
+      <include name="**/components/**/*.java"/>
+      <include name="**/validators/**/*.java"/>
+      <include name="onepoint/project/util/*.java"/>
+   </patternset>
+
+   <!-- Pattern set for opproject.jar (depends on opexpress.jar) -->
+   <patternset id="project.pathid">
+      <include name="${rootpackage.dir}/persistence/**/*.class"/>
+      <include name="${rootpackage.dir}/persistence/**/*.xml"/>
+      <include name="${rootpackage.dir}/persistence/**/*.properties"/>
+      <include name="${rootpackage.dir}/project/**/*.class"/>
+      <include name="${rootpackage.dir}/project/**/*.xml"/>
+      <include name="${rootpackage.dir}/project/**/*.properties"/>
+      <include name="${rootpackage.dir}/project/**/*.gif"/>
+      <include name="${rootpackage.dir}/project/**/*.png"/>
+      <include name="${rootpackage.dir}/project/**/*.ico"/>
+      <include name="${rootpackage.dir}/project/**/*.jasper"/>
+      <include name="${rootpackage.dir}/project/**/*.jes"/>
+      <include name="${rootpackage.dir}/project/configuration/generated/**/*.ser" />
+      <exclude name="${rootpackage.dir}/**/test/**"/>
+      <exclude name="${rootpackage.dir}/project/reports/**/*.*"/>
+   </patternset>
+
+   <!-- Pattern set for opproject.jar (Proffesional) -->
+   <patternset id="project.standalone.pathid">
+      <patternset refid="project.pathid"/>
+      <exclude name="${rootpackage.dir}/project/applet/**/*.*"/>
+      <exclude name="${rootpackage.dir}/project/servlet/**/*.*"/>
+      <!--exclude remote configuration wizard resources-->
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/forms/configuration_wizard.oxf.xml"/>
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/forms/OpDbConfigurationWizardFormProvider.class"/>
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/scripts/configuration_wizard.jes"/>
+   </patternset>
+
+   <patternset id="project.remote.pathid">
+      <patternset refid="project.pathid"/>
+      <exclude name="${rootpackage.dir}/project/applet/**/*.*"/>
+      <exclude name="${rootpackage.dir}/project/application/**/*.*"/>
+      <exclude name="${rootpackage.dir}/project/professional/**/*.*"/>
+      <!--exclude remote configuration wizard resources-->
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/forms/standalone_configuration_wizard.oxf.xml"/>
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/forms/OpStandaloneDbConfigurationWizardFormProvider.class"/>
+      <exclude name="${rootpackage.dir}/project/modules/configuration_wizard/scripts/standalone_configuration_wizard.jes"/>
+   </patternset>
+
+   <!-- Pattern set for opproject-client.jar (depends on opexpress-client.jar) -->
+   <patternset id="project.client.pathid">
+      <include name="${rootpackage.dir}/**/components/*.class"/>
+      <include name="${rootpackage.dir}/**/validators/*.class"/>
+      <include name="${rootpackage.dir}/project/util/*.class"/>
+      <include name="${rootpackage.dir}/**/*Applet*.class"/>
+      <exclude name="${rootpackage.dir}/**/test/*.class"/>
+   </patternset>
+
+   <!-- Pattern set for all the client jars -->
+   <patternset id="client.jars">
+      <include name="${express.client.jarname}"/>
+      <include name="${opproject.client.open.jarname}"/>
+   </patternset>
+
+   <!-- Pattern set for all the resources of the application -->
+   <patternset id="resources.pathid">
+      <include name="**/*.xml"/>
+      <include name="**/*.jes"/>
+      <include name="**/*.png"/>
+      <include name="**/*.jasper"/>
+      <include name="**/*.gif"/>
+      <include name="**/*.properties"/>
+      <include name="**/*.ser"/>
+      <exclude name="**/test/**/*.*"/>
+   </patternset>
+
+   <!-- Pattern set for all test resources of the application -->
+   <patternset id="resources.test.pathid">
+      <include name="**/*.xml"/>
+      <include name="**/*.properties"/>
+      <include name="**/*.gif"/>
+      <include name="**/test/*.jes"/>
+   </patternset>
+
+   <patternset id="standalone.lib.excluded.pathid">
+      <exclude name="*servlet*.*"/>
+      <exclude name="*mysql*.*"/>
+      <exclude name="*postgresql*.*"/>
+      <exclude name="*jtds*.*"/>
+      <exclude name="*sqljdbc*.*"/>     
+      <exclude name="*svn*.*"/>
+      <exclude name="*junit*.*"/>
+      <exclude name="*jarbundler*.*"/>
+      <exclude name="*jcookie*.*"/>
+      <exclude name="*clover*.*"/>
+      <exclude name="*cenquatasks*.*"/>
+      <exclude name="*opproject*.*"/>
+      <exclude name="svn*.*"/>
+      <exclude name="*_client*.*"/>
+      <exclude name="*ant-contrib*.jar"/>
+      <exclude name="*commons-cli*.jar"/> <!-- at the moment only used within ldap, but may be of general perpose -->
+      <exclude name="*jsr173*.jar"/> 
+      <exclude name="*retroweaver-all*.jar"/>
+      <exclude name="*ws-commons-util*.jar"/> <!-- used for sending reports (icomedias) -->
+      <exclude name="*xmlrpc-*.jar"/> <!-- for xmlrpc only -->
+   </patternset>
+
+   <patternset id="standalone.lib.pathid">
+      <patternset refid="standalone.lib.excluded.pathid"/>
+      <include name="*.jar"/>
+   </patternset>
+
+   <patternset id="standalone.lib.licenses.pathid">
+      <patternset refid="standalone.lib.excluded.pathid"/>
+      <include name="*.txt"/>
+   </patternset>
+
+
+   <!-- Pattern set for the lib files of the web application -->
+   <patternset id="webapp.lib.pathid">
+      <include name="*.jar"/>
+      <exclude name="*servlet*.*"/>
+      <exclude name="*mysql*.*"/>
+      <exclude name="*hsql*.*"/>
+      <exclude name="*junit*.*"/>
+      <exclude name="*jarbundler*.*"/>
+      <exclude name="*jcookie*.*"/>
+      <exclude name="*retroweaver-all*.*"/>
+      <exclude name="svn*.*"/>
+      <exclude name="*sqljdbc*.*"/>
+   </patternset>
+
+   <!-- Pattern set for the lib files of the applet -->
+   <patternset id="applet.lib.pathid">
+      <include name="*jcookie*.jar"/>
+   </patternset>
+
+   <patternset id="tests.compile.pathid">
+      <include name="**/*Test*.java"/>
+   </patternset>
+ 
+   <!-- check if the express4j module is present -->
+   <available file="${express4j.dir}" type="dir" property="express4j.present"/>
+
+   <tstamp>
+      <format property="build.date" pattern="yyyyMMdd"/>
+   </tstamp>
+ 
+   <property name="manifest" value="${build.dir}/manifest.mf"/>
+
+   <!-- Removes the directory where the classes are generated -->
+   <target name="clean" description="Cleans the output of the build process, dist and tests.">
+      <delete dir="${build.dir}" failonerror="false"/>
+      <delete dir="${dist.dir}" failonerror="false"/>
+      <delete dir="${release.dir}" failonerror="false"/>
+      <delete dir="${tests.dir}" failonerror="false"/>
+      <delete failonerror="false">
+         <fileset dir="${lib.dir}">
+            <include name="express4j*.jar"/>
+         </fileset>
+      </delete>
+   </target>
+
+   <target name="clean.tests" description="Cleans the test results">
+      <delete dir="${tests.dir}" failonerror="false"/>
+   </target>
+
+   <!-- Creates directories where compiled files will be placed -->
+   <target name="init" description="Creates output directories">
+      <mkdir dir="${classes.dir}"/>
+      <mkdir dir="${client.classes.dir}"/>
+      <mkdir dir="${applet.dir}"/>
+      <mkdir dir="${jars.dir}"/>
+      <mkdir dir="${reportjars.dir}"/>
+      <mkdir dir="${tests.dir}"/>
+      <mkdir dir="${dist.dir}"/>
+      <mkdir dir="${release.dir}"/>
+   </target>
+
+   <target name="build.express4j.jars" if="express4j.present" description="Build the express lib and copy the jars if present">
+      <ant target="dist" antfile="build.xml" inheritall="false" dir="${express4j.dir}/"/>
+      <!-- Copy express4j libs -->
+      <copy todir="${lib.dir}" failonerror="false" overwrite="true">
+         <fileset dir="${express4j.dir}/${dist.dir}">
+            <include name="${express.jarname}"/>
+            <include name="${express.client.jarname}"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <!-- Copies all the forms, images and other resources needed for the web application -->
+   <target name="copy.resources" depends="init,build.express4j.jars" description="Copies all the resource files necessary for the application">
+      <property name="project.dir" value="${rootpackage.dir}/project"/>
+      <property name="persistence.dir" value="${rootpackage.dir}/persistence"/>
+      <copy todir="${classes.dir}/${project.dir}">
+         <fileset dir="${src.dir}/${project.dir}" excludes="**/reports/**/*.*">
+            <patternset refid="resources.pathid"/>
+         </fileset>
+      </copy>
+      <copy todir="${classes.dir}/${persistence.dir}">
+         <fileset dir="${src.dir}/${persistence.dir}">
+            <patternset refid="resources.pathid"/>
+         </fileset>
+      </copy>
+      <copy todir="${classes.dir}">
+         <fileset dir="${src.dir}">
+            <include name="*.properties"/>
+         </fileset>
+      </copy>
+      <copy todir="${build.dir}/${webimages}">
+         <fileset dir="${src.dir}/onepoint/project/application">
+            <include name="*.png"/>
+            <include name="*.ico"/>
+            <include name="*.icns"/>
+         </fileset>
+      </copy>
+      <copy todir="${calendars.dir}">
+         <fileset dir="${src.dir}/onepoint/project/modules/settings/holiday_calendar">
+            <include name="*.ohc.xml"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <!--Builds the project classes-->
+   <target name="build" depends="copy.resources" description="Builds all the project classes.">
+      <javac srcdir="${src.dir}" destdir="${classes.dir}"
+             classpathref="op.classpath" debug="${debug}"
+             target="${jdk.target}" source="${jdk.source}"
+             deprecation="${deprecation}">
+         <patternset refid="compile.pathid"/>
+      </javac>
+      <retroweaver srcdir="${build.dir}"/>
+      <javac srcdir="${src.dir}" destdir="${client.classes.dir}"
+             classpathref="op.classpath" debug="${debug}"
+             target="${jdk.client.target}" source="${jdk.client.source}"
+             deprecation="${deprecation}">
+         <patternset refid="compile.client.pathid"/>
+      </javac>
+   </target>
+
+   <target name="build.basic.jar" depends="build" description="builds the basic app jar file">
+      <path id="basic.lib.path">
+         <fileset dir="${lib.dir}">
+            <patternset refid="webapp.lib.pathid"/>
+            <exclude name="*_client*.jar"/>
+         </fileset> 
+      </path>
+      <pathconvert pathsep=" " dirsep="/" property="basic.lib.path.manifest">
+         <path refid="basic.lib.path"/>
+         <chainedmapper>
+            <flattenmapper/>
+            <globmapper from="*" to="lib/*"/>
+         </chainedmapper>
+      </pathconvert>
+      <jar destfile="${jars.dir}/${project.basic.jarname}">
+         <fileset dir="${classes.dir}">
+            <patternset refid="project.standalone.pathid"/>
+         </fileset> 
+         <manifest>
+            <attribute name="Built-By" value="Onepoint Software GmbH"/>
+            <attribute name="Build-Date" value = "${build.date}"/>
+            <attribute name="Main-Class" value="onepoint.project.application.OpBasicSplasher"/>
+            <attribute name="Class-Path" value="${basic.lib.path.manifest}" />
+    
+            <section name="Implementation">
+               <attribute name="Implementation-Title" value="${opproject.launchername} Basic Edition"/>
+               <attribute name="Implementation-Version" value="${version}"/>
+               <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+               <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+            </section>
+         </manifest>
+      </jar>
+   </target>
+
+   <target name="build.open.jar" depends="build" description="builds the open app jar file">
+      <manifest file="${manifest}">
+         <attribute name="Built-By" value="Onepoint Software GmbH"/>
+         <attribute name="Build-Date" value = "${build.date}"/>
+         <section name="Implementation">
+            <attribute name="Implementation-Title" value="${opproject.launchername} Open"/>
+            <attribute name="Implementation-Version" value="${version}"/>
+            <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+            <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+         </section>
+      </manifest>
+
+      <jar destfile="${jars.dir}/${opproject.open.jarname}" manifest="${manifest}">
+         <fileset dir="${classes.dir}">
+            <patternset refid="project.remote.pathid"/>
+         </fileset>
+      </jar>
+   </target>
+
+   <!-- Creates the client-side jar files with the client libraries -->
+   <target name="build.client.jars" depends="build" description="Create the opproject client jars">
+      <jar destfile="${jars.dir}/${opproject.client.open.jarname}">
+         <fileset dir="${client.classes.dir}">
+            <patternset refid="project.client.pathid"/>
+         </fileset>
+      </jar>
+   </target>
+
+   <!-- builds the appropriate report.jars holding the jasper-definitions... -->
+   <!-- internal logic is controlled via the Manifest file. All elements of  -->
+   <!-- the "Report" section are loaded in an internal map. The elements should -->
+   <!-- be self-explaning. For new language-translations, just insert new    -->
+   <!-- locales -->
+   <target name="jar.reports" depends="build" description="creates the necessary Jars for the JasperReports...">
+      <property name="reportBase" value="${classes.dir}/${reports.dir}"/>
+      <copy todir="${reportBase}">
+         <fileset dir="${src.dir}/${reports.dir}">
+            <patternset refid="resources.pathid"/>
+            <include name="**/*.jrxml"/>
+         </fileset>
+      </copy>
+      <!-- ********************************* -->
+      <!-- Resource Allocation report -->
+      <!-- ********************************* -->
+      <delete file="${reportjars.dir}/resourceallocation.jar"/>
+      <jar destfile="${reportjars.dir}/resourceallocation.jar">
+         <fileset dir="${reportBase}/resource_allocation" excludes="*.class"/>
+         <fileset dir="${classes.dir}" includes="**/reports/resource_allocation/*.class"/>
+         <manifest>
+            <section name="Implementation">
+               <attribute name="Implementation-Title" value="ResourceAllocation"/>
+               <attribute name="Implementation-Version" value="1.0.0"/>
+               <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+               <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+            </section>
+            <section name="Report">
+               <attribute name="mainfile" value="ResourceAllocation.jrxml"/>
+               <attribute name="jesname" value="resource_allocation"/>
+               <attribute name="i18nfilename" value="resource_allocation"/>
+               <attribute name="en" value="Resource Allocation"/>
+               <attribute name="de" value="Ressourcen-Zuweisung"/>
+               <attribute name="fr" value="Affectation Ressource"/>
+               <attribute name="ru" value="Распределение Ресурса"/>
+            </section>
+         </manifest>
+      </jar>
+      <!-- ********************************* -->
+      <!-- Work Report -->
+      <!-- ********************************* -->
+      <delete file="${reportjars.dir}/workreport.jar"/>
+      <jar destfile="${reportjars.dir}/workreport.jar">
+         <fileset dir="${reportBase}/work_report" excludes="*.class"/>
+         <fileset dir="${classes.dir}" includes="**/reports/work_report/*.class"/>
+         <manifest>
+            <section name="Implementation">
+               <attribute name="Implementation-Title" value="WorkReport"/>
+               <attribute name="Implementation-Version" value="1.0.0"/>
+               <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+               <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+            </section>
+            <section name="Report">
+               <attribute name="mainfile" value="WorkReport.jrxml"/>
+               <attribute name="jesname" value="work_report"/>
+               <attribute name="i18nfilename" value="work_report"/>
+               <attribute name="en" value="Work Report"/>
+               <attribute name="de" value="Arbeitsbericht"/>
+               <attribute name="fr" value="Rapport d'Activité"/>
+               <attribute name="ru" value="Сообщение о Работе"/>
+            </section>
+         </manifest>
+      </jar>
+      <!-- ********************************* -->
+      <!-- Project progress report -->
+      <!-- ********************************* -->
+      <delete file="${reportjars.dir}/projectprogress.jar"/>
+      <jar destfile="${reportjars.dir}/projectprogress.jar">
+         <fileset dir="${reportBase}/project_progress" excludes="*.class"/>
+         <fileset dir="${classes.dir}" includes="**/reports/project_progress/*.class"/>
+         <manifest>
+            <section name="Implementation">
+               <attribute name="Implementation-Title" value="ProjectProgress"/>
+               <attribute name="Implementation-Version" value="1.0.0"/>
+               <attribute name="Implementation-Vendor" value="Onepoint Software GmbH"/>
+               <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at"/>
+            </section>
+            <section name="Report">
+               <attribute name="mainfile" value="ProjectProgress.jrxml"/>
+               <attribute name="jesname" value="project_progress"/>
+               <attribute name="i18nfilename" value="project_progress"/>
+               <attribute name="en" value="Project Progress"/>
+               <attribute name="de" value="Projektfortschritt"/>
+               <attribute name="fr" value="Progression Projet"/>
+               <attribute name="ru" value="Проектное Продвижение"/>
+            </section>
+         </manifest>
+      </jar>
+   </target>
+
+   <!-- Creates the Basic jar distribution files -->
+   <target name="dist.standalone" depends="clean, build.basic.jar,jar.reports">
+      <!--remove old dist files-->
+      <delete dir="${dist.basic.dir}" failonerror="false"/>
+      <mkdir dir="${dist.basic.dir}/${dist.main.folder}"/>
+
+      <!--copy to dist dir registry.xml-->
+      <copy todir="${dist.basic.dir}/${dist.main.folder}">
+         <fileset dir="${jars.dir}" includes="${project.basic.jarname}"/>
+         <fileset dir="${src.dir}/onepoint/project" includes="registry.oxr.xml"/>
+      </copy>
+
+      <!--copy the resources for the distribution-->
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/lib">
+         <fileset dir="${lib.dir}">
+            <patternset refid="standalone.lib.pathid"/>
+         </fileset>
+         <fileset dir="${lib.dir}">
+            <include name="${express.jarname}"/>
+         </fileset>
+      </copy>
+
+      <!--licenses txt files-->
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/licenses">
+         <fileset dir="${lib.dir}">
+            <patternset refid="standalone.lib.licenses.pathid"/>
+         </fileset>
+      </copy>
+
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/${calendars}">
+         <fileset dir="${calendars.dir}"/>
+      </copy>
+
+      <copy todir="${dist.basic.dir}/${dist.main.folder}/${reportsjar}">
+         <fileset dir="${reportjars.dir}" includes="**/*.jar"/>
+      </copy>
+
+      <!-- failonerror for tutorials is because of SourceForge -->
+      <copy file="${tutorial.basic.file}"  todir="${dist.basic.dir}/${dist.main.folder}" failonerror="false"/>
+      <copy file="${readme.basic.file}" tofile="${dist.basic.dir}/${dist.main.folder}/readme.txt"/>
+      <copy file="${license.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
+
+   </target>
+
+
+   <!-- Performs all the tasks necessary to create the web application -->
+   <target name="dist.war" depends="clean, build.open.jar, build.client.jars, jar.reports" description="Performs the initialization, build and war tasks">
+      <copy todir="${jars.dir}">
+         <fileset dir="${lib.dir}">
+            <include name="${express.jarname}"/>
+            <include name="${express.client.jarname}"/>
+         </fileset>
+      </copy>
+      <!-- Sign the jars -->
+      <signjar keystore="${keystore}" storepass="${keystore.password}" alias="${keystore.key}">
+         <fileset dir="${jars.dir}">
+            <patternset refid="client.jars"/>
+         </fileset>
+      </signjar>
+      <!--copy resources to applet dir-->
+      <copy todir="${build.dir}/${applet}" overwrite="false">
+         <fileset dir="${lib.dir}">
+            <patternset refid="applet.lib.pathid"/>
+         </fileset>
+      </copy>
+      <!--move client side jars-->
+      <move todir="${build.dir}/${applet}" overwrite="false">
+         <fileset dir="${jars.dir}">
+            <patternset refid="client.jars"/>
+         </fileset>
+      </move>
+    
+      <!-- expand properties within web.xml file -->
+      <loadfile property="web.xml.content" srcFile="${webxml.file}">
+         <filterchain>
+            <expandproperties/>
+         </filterchain>
+      </loadfile>
+      <echo message="${web.xml.content}" file="${build.dir}/web.xml"/>
+   
+      <!--build war file-->    
+      <war destfile="${build.dir}/${warname}" webxml="${build.dir}/web.xml" manifest="${manifest}">
+         <fileset dir="${build.dir}" includes="${applet}/**/*"/>
+         <fileset dir="${build.dir}" includes="${webimages}/**/*"/>
+         <fileset dir="${build.dir}" includes="${reportsjar}/*.jar"/>
+         <fileset dir="${build.dir}" includes="${calendars}/*.xml"/>
+         <fileset dir="${src.dir}/onepoint/project" includes="registry.oxr.xml"/>
+         <fileset dir="." includes="${demodata.dir}/*.opx.xml"/>
+         <lib dir="${lib.dir}">
+            <patternset refid="webapp.lib.pathid"/>
+            <exclude name="*_client*.jar"/>
+         </lib>
+         <!--include application jar-->
+         <lib dir="${jars.dir}">
+            <include name="*.jar"/>
+            <exclude name="*_client*.jar"/>
+            <exclude name="express4j*.jar"/>
+            <exclude name="opproject*be.jar"/>
+         </lib>
+      </war>
+      <!--remove old dist files-->
+      <delete dir="${dist.open.dir}" failonerror="false"/>
+      <mkdir dir="${dist.open.dir}"/>
+      <!--Copy the generated war file to the dist dir-->
+      <copy file="${build.dir}/${warname}" tofile="${dist.open.dir}/${warname.open}"/>
+
+      <mkdir dir="${dist.open.dir}/licenses"/>
+      <copy todir="${dist.open.dir}/licenses">
+         <fileset dir="${lib.dir}">
+            <include name="*.txt"/>
+            <exclude name="mysql*.txt"/>
+         </fileset>
+      </copy>
+      <copy file="${readme.open.file}" tofile="${dist.open.dir}/readme.txt"/>
+      <copy file="license.txt" todir="${dist.open.dir}"/>
+      <!-- failonerror for tutorials is because of SourceForge -->
+      <copy file="${tutorial.open.file}" todir="${dist.open.dir}" failonerror="false"/>
+      <copydir src="${demodata.dir}" dest="${dist.open.dir}/${demodata.dir}" excludes="*.opx.xml"/>
+      <zip zipfile="${dist.dir}/${open.name}.zip">
+         <zipfileset dir="${dist.open.dir}"/>
+      </zip>
+
+   </target>
+
+   <target name="release" depends="generate.Linux.distribution.basic, generate.Windows.distribution.basic"
+           description="Packages the project sources into a release archive.">
+      
+      <!--src release-->
+      <zip zipfile="${release.dir}/${release.root.filename}-src.zip">
+         <zipfileset dir="${src.dir}" prefix="${zip.root.dir}/${src.dir}"/>
+         <zipfileset dir="${lib.dir}" prefix="${zip.root.dir}/${lib.dir}"/>
+         <zipfileset dir="META-INF" prefix="${zip.root.dir}/META-INF"/>
+         <zipfileset file="build.xml" prefix="${zip.root.dir}"/>
+         <zipfileset dir="WEB-INF" prefix="${zip.root.dir}/WEB-INF"/>
+         <zipfileset dir="${security.dir}" prefix="${zip.root.dir}/${security.dir}"/>
+         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}" excludes="*.opx.xml"/>
+         <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
+         <zipfileset file="${readme.basic.file}" prefix="${zip.root.dir}"/>
+         <zipfileset file="${readme.open.file}" prefix="${zip.root.dir}"/>
+      </zip>
+
+      <!--war release [for applet version] -->
+      <copy file="${readme.open.file}" tofile="${release.dir}/readme.txt" overwrite="true"/>
+      <zip zipfile="${release.dir}/${release.root.filename}.zip">
+         <zipfileset dir="${dist.open.dir}" prefix="${zip.root.dir}"/>
+         <zipfileset file="${release.dir}/readme.txt" prefix="${zip.root.dir}"/>
+         <zipfileset dir="${demodata.dir}" prefix="${zip.root.dir}/${demodata.dir}" excludes="*.opx.xml"/>
+         <zipfileset file="${license.file}" prefix="${zip.root.dir}"/>
+      </zip>
+
+   </target>
+
+
+   <!--Linux dist-->
+   <target name="generate.Linux.distribution.basic"
+           depends="dist.standalone"
+           description="Generates basic linux distribution">
+      <echo file="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}" append="false">#!/bin/bash
+JAR=${project.basic.jarname}
+if [ -e "$JAVA_HOME" ]; then
+ $JAVA_HOME/bin/java -jar $JAR
+else 
+ java -jar $JAR
+fi
+      </echo>
+      <tar destfile="${dist.dir}/${basic.name}-linux.tar">
+         <tarfileset dir="${dist.basic.dir}">
+            <exclude name="**/${opproject.linux.launcher}"/>
+         </tarfileset>
+         <tarfileset dir="${dist.basic.dir}" mode="755">
+            <include name="**/${opproject.linux.launcher}"/>
+         </tarfileset>
+      </tar>
+      <gzip src="${dist.dir}/${basic.name}-linux.tar" destfile="${dist.dir}/${basic.name}-linux.tgz"/>
+      <delete file="${dist.dir}/${basic.name}-linux.tar"/>
+   </target>
+
+   <!--Generates Windows executable file using Java Application Wrapper- Launch4j-->
+   <target name="generate.Windows.distribution.basic"
+           depends="dist.standalone"
+           description="Generates Windows executable file">
+
+      <property name="executable.file" value="${opproject.launchername}.exe"/>
+      <property name="executable.file.tmp" value="opproject.exe"/>
+
+      <!--Launch4j task definition-->
+      <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.path}"/>
+      <launch4j>
+         <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
+                 outfile="${dist.basic.dir}/${executable.file.tmp}" customProcName="false"
+                 dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
+            <jre minVersion="1.4.0"/>
+            <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
+                         copyright="Onepoint Software GmbH" productVersion="${version}.0.0" txtProductVersion="${version}"
+                         productName="Onepoint Projects" companyName="Onepoint Software GmbH"
+                         internalName="onepoint" originalFilename="${executable.file}"/>
+         </config>
+      </launch4j>
+      <move file="${dist.basic.dir}/${executable.file.tmp}" tofile="${dist.basic.dir}/${dist.main.folder}/${executable.file}"/>
+      <zip basedir="${dist.basic.dir}" zipfile="${dist.dir}/${basic.name}-win.zip"/>
+   </target>
+
+   <!--Mac OS-->
+   <target name="generate.MacOs.distribution.basic"
+           depends="dist.standalone"
+           description="Generates Mac Os executable file">
+      <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
+               classpath="${op.jarbundler.classpath}"/>
+      <jarbundler dir="${dist.basic.dir}/${dist.main.folder}" verbose="true" infostring="Onepoint Project, copyright Onepoint Software GmbH 2007"
+                  name="${opproject.launchername}"
+                  icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
+                  shortname="${opproject.launchername}"
+                  version="${version}"
+                  jvmversion="1.5+"
+                  vmoptions="-Xmx192m"
+   	              stubfile="${opproject.launchername}"
+                  mainclass="onepoint.project.application.OpBasicSplasher">
+         <jarfileset dir="${jars.dir}">
+            <include name="${project.basic.jarname}"/>
+            <include name="${express.jarname}"/>
+         </jarfileset>
+         <!--jars from lib will be included in the application bundle-->
+         <jarfileset dir="${dist.basic.dir}/${dist.main.folder}/lib">
+            <patternset includes="*.*"/>
+         </jarfileset>         
+      </jarbundler>
+   </target>
+
+   <!-- build the xml-rpc examples zip file -->
+   <target name="build.xml-rpc.examples.zip" depends="init" description="Builds the xml-rpc examples zip file">
+      <mkdir dir="${dist.dir}/${examples}"/>
+      <zip destfile="${dist.dir}/${examples}/xml-rpc-examples.zip">
+         <fileset dir="${src.dir}/onepoint/project/xml_rpc" includes="example/js/**/*"/>
+      </zip>
+   </target>
+
+   <!--Copies all needed resources for executing tests-->
+   <target name="copy.test.resources" description="Copies all needed resources for executing tests">
+      <!-- Now we build jar files for reports and copy them into required place -->
+      <property name="tests.onepoint.home" value="${classes.dir}/onepoint/project/test"/>
+      <copy todir="${classes.dir}">
+         <fileset dir="${src.dir}">
+            <patternset refid="resources.test.pathid"/>
+         </fileset>
+      </copy>
+      <!-- copy license file -->
+      <copy todir="${tests.onepoint.home}" flatten="true">
+         <fileset dir="${src.dir}">
+            <include name="**/license/license.oxl.xml"/>
+         </fileset>
+      </copy>
+      <ant antfile="build.xml" target="jar.reports"/>
+      <mkdir dir="${tests.onepoint.home}/${reportsjar}"/>
+      <copy todir="${tests.onepoint.home}/${reportsjar}">
+         <fileset dir="${reportjars.dir}">
+            <include name="*.jar"/>
+         </fileset>
+      </copy>
+      <copy todir="${tests.onepoint.home}">
+         <fileset dir="${src.dir}/onepoint/project/test">
+            <include name="**/*.xml"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <!-- Compiles the tests source code of the application -->
+   <target name="build.tests" depends="build,copy.resources,copy.test.resources" description="Compiles the test source code">
+      <javac srcdir="${src.dir}" destdir="${classes.dir}"
+             classpathref="op.tests.classpath" debug="${debug}"
+             target="${jdk.target}" deprecation="${deprecation}">
+         <patternset refid="tests.compile.pathid"/>
+      </javac>
+   </target>
+
+   <!--Executes OnePoint unit tests and generates html report files-->
+   <target name="run.tests" depends="clean.tests, clean, build.tests" description="Executes the Onepoint unit tests and generates report">
+      <junit printsummary="on" reloading="false" fork="on" forkmode="once" failureproperty="junit_test_failed">
+         <formatter type="xml"/>
+         <classpath>
+            <path refid="op.tests.classpath"/>
+         </classpath>
+         <batchtest fork="false" todir="${tests.dir}">
+            <fileset dir="${classes.dir}">
+               <include name="**/*Test.class"/>
+            </fileset>
+         </batchtest>
+      </junit>
+      <!--generate html test reports-->
+      <junitreport todir="${tests.dir}">
+         <fileset dir="${tests.dir}">
+            <include name="TEST-*.xml"/>
+         </fileset>
+         <report format="frames" todir="${tests.dir}/html-report"/>
+      </junitreport>
+      <antcall target="create.fail.dir"/>
+   </target>
+
+   <target name="create.fail.dir" if="junit_test_failed">
+      <mkdir dir="testFailed"/>
+   </target>
+   
+
+</project>

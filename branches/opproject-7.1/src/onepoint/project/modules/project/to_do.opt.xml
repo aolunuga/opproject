@@ -1,0 +1,7 @@
+<prototype name="OpToDo" instance-class="onepoint.project.modules.project.OpToDo" super-type="OpObject">
+   <field name="Name" type="String"/>
+   <field name="Priority" type="Byte"/>
+   <field name="Completed" type="Boolean"/>
+   <field name="Due" type="Date"/>
+   <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Goals"/>
+</prototype>

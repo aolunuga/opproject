@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.6.5
+Created-By: 1.5.0_06-b05 (Sun Microsystems Inc.)
+Main-Class: onepoint.project.application.OpBasicSplasher
+Class-Path: lib/express4j-7.1.jar
+   lib/activation.jar lib/antlr-2.7.6rc1.jar
+   lib/asm.jar lib/c3p0-0.9.0.jar lib/cglib-nodep-2.1_3.jar
+   lib/commons-collections-2.1.1.jar lib/commons-logging-1.0.4.jar
+   lib/derby.jar lib/dom4j-1.6.jar lib/hibernate3.jar
+   lib/itext-1.3.1.jar lib/jasperreports-1.2.5.jar lib/jaxen-1.1-beta-7.jar
+   lib/jdbc2_0-stdext.jar lib/jdt-compiler.jar
+   lib/jfreechart-1.0.0-rc1.jar lib/jta.jar
+   lib/log4j-1.2.9.jar lib/mail-1.0.jar lib/oscache-2.1.jar
+   lib/xercesImpl.jar lib/xml-apis.jar 
+   lib/commons-beanutils-1.6.jar lib/commons-digester-1.7.jar
+   lib/BrowserLauncher2-10rc4.jar lib/hsqldb.jar
+   lib/commons-javaflow-20060411.jar lib/gnu-crypto.jar lib/mpxj.jar
+   lib/retroweaver-all-2.0.jar lib/retroweaver-rt-2.0.jar
+   lib/poi-2.5.1-final-20040804.jar

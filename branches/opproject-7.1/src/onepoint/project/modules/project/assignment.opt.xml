@@ -1,0 +1,18 @@
+<prototype name="OpAssignment" instance-class="onepoint.project.modules.project.OpAssignment" super-type="OpObject">
+   <field name="Assigned" type="Double"/>
+   <field name="Complete" type="Double"/>
+   <field name="BaseEffort" type="Double"/>
+   <field name="ActualEffort" type="Double"/>
+   <field name="RemainingEffort" type="Double"/>
+   <field name="BaseCosts" type="Double"/>
+   <field name="ActualCosts" type="Double"/>
+   <field name="BaseProceeds" type="Double"/>
+   <field name="ActualProceeds" type="Double"/>
+   <field name="RemainingProceeds" type="Double"/>
+   <field name="RemainingPersonnelCosts" type="Double"/>
+   <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="ActivityAssignments"/>
+   <relationship name="Resource" type="OpResource" back-relationship="ActivityAssignments"/>
+   <relationship name="Activity" type="OpActivity" back-relationship="Assignments"/>
+   <relationship name="WorkRecords" type="OpWorkRecord" collection-type="Set" back-relationship="Assignment" inverse="true"/>
+   <relationship name="WorkMonths" type="OpWorkMonth" collection-type="Set" back-relationship="Assignment" inverse="true" cascade="all"/>
+</prototype>

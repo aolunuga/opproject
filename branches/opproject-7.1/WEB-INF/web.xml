@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app id="OpProject" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+   <display-name>Onepoint Project 7.1 Open Edition</display-name>
+   <description>
+      Onepoint Project 7.1 Open Edition (c) 2007 OnePoint Software GmbH
+   </description>
+
+   <!-- Listeners -->
+   <listener>
+      <listener-class>
+         onepoint.service.server.XClearSessionListener
+      </listener-class>
+   </listener>
+
+   <servlet>
+      <servlet-name>OpProjectServlet</servlet-name>
+      <servlet-class>onepoint.project.servlet.OpOpenServlet</servlet-class>
+      <init-param>
+         <param-name>html_title</param-name>
+         <param-value>Onepoint Project</param-value>
+      </init-param>
+      <init-param>
+         <param-name>webimages_path</param-name>
+         <param-value>images</param-value>
+      </init-param>
+      <init-param>
+         <param-name>applet_codebase</param-name>
+         <param-value>applet</param-value>
+      </init-param>
+      <init-param>
+         <param-name>applet_archive</param-name>
+         <param-value>${war.applet_archive}</param-value>
+      </init-param>
+      <init-param>
+         <param-name>context_path</param-name>
+         <param-value>opproject</param-value>
+      </init-param>
+   </servlet>
+   <servlet-mapping>
+      <servlet-name>OpProjectServlet</servlet-name>
+      <url-pattern>/service</url-pattern>
+   </servlet-mapping>
+
+   <!--  XML-RPC section start -->
+   <servlet>
+      <description>
+      </description>
+      <display-name>
+         OpOpenXMLRPCServlet
+      </display-name>
+      <servlet-name>OpOpenXMLRPCServlet</servlet-name>
+      <servlet-class>
+         onepoint.project.xml_rpc.OpOpenXMLRPCServlet
+      </servlet-class>
+   </servlet>
+   <servlet-mapping>
+      <servlet-name>OpOpenXMLRPCServlet</servlet-name>
+      <url-pattern>/xml-rpc</url-pattern>
+   </servlet-mapping>
+   <!--  XML-RPC section end -->
+
+
+   <!-- Session time-out is 30 minutes -->
+   <session-config>
+      <session-timeout>30</session-timeout>
+   </session-config>
+</web-app>

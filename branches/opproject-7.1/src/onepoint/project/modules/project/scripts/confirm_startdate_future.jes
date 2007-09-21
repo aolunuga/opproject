@@ -1,0 +1,17 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+
+function ok(event) {
+   XDisplay.getActiveWindow().close();
+   editForm = XDisplay.getActiveForm();
+   event.BypassFutureStartDateCheck = true;
+   arguments[0] = event;
+   editForm.invokeFunction("ok_edit", arguments);
+}
+
+function cancel(event) {
+   XDisplay.getActiveWindow().close();
+}

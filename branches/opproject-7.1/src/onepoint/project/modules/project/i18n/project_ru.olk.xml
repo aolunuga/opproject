@@ -1,0 +1,262 @@
+<language-kit locale="ru">
+
+   <resource-map id="project.module">
+
+      <resource id="ProjectsToolGroup">Проекты</resource>
+      <resource id="MyToolGroup">Дела</resource>
+      <resource id="ReportsToolGroup">Отчеты</resource>
+      <resource id="ResourcesToolGroup">Ресурсы</resource>
+      <resource id="SystemToolGroup">Системные</resource>
+
+      <resource id="ProjectsAdministrationTool">Администрирование</resource>
+      <resource id="PlanningTool">Планирование</resource>
+
+   </resource-map>
+
+   <resource-map id="template">
+      <resource id="NotificationMailSubject">Project Update</resource>
+      <resource id="NotificationMailBody">The project plan for the project '$ProjectName$' has been changed.</resource>
+   </resource-map>
+
+   <resource-map id="project.projects">
+      <resource id="NewPortfolio">Новый портфель</resource>
+      <resource id="NewProject">Новый проект</resource>
+      <resource id="Move">Переместить</resource>
+      <resource id="Info">Свойства</resource>
+      <resource id="Delete">Удалить</resource>
+      <resource id="Name">Название</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Activities">Активность</resource>
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Costs">Затраты</resource>
+      <resource id="Status">Status</resource>
+      <resource id="Priority">Priority</resource>
+
+      <resource id="ProjectList">Projects</resource>
+      <resource id="ProjectResources">Resources</resource>
+      <resource id="ProjectCosts">Costs</resource>
+
+      <resource id="Project">Project</resource>
+      <resource id="BaseEffort">Base (h)</resource>
+      <resource id="ActualEffort">Actual (h)</resource>
+      <resource id="RemainingEffort">Rem. (h)</resource>
+      <resource id="ProjectedEffort">Expected (h)</resource>
+      <resource id="DeviationEffort">Deviation (h)</resource>
+      <resource id="PercentageDeviationEffort">Deviation (%)</resource>
+      <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
+      <resource id="PercentageDeviationCosts">Deviation (%)</resource>
+
+      <resource id="NewPortfolioTooltip">Создать новый портфель проектов</resource>
+      <resource id="NewProjectTooltip">Создать новый проект</resource>
+      <resource id="MoveTooltip">Переместить указанный проект или портфель в другой портфель</resource>
+      <resource id="InfoTooltip">Показать мета-данные для указанного проекта или портфеля</resource>      
+      <resource id="DeleteTooltip">Удалить указанный проект или портфель</resource>
+
+      <resource id="SaveCSV">Save as Table...</resource>
+      <resource id="SaveImage">Save as Image...</resource>
+   </resource-map>
+
+   <resource-map id="project.ProjectChooser">
+      <resource id="SelectProject">Укажите проект или портфель</resource>
+      <resource id="SelectPortfolio">Укажите портфель</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   
+   <resource-map id="project.NewPortfolio">
+      <resource id="NewPortfolio">Новый портфель</resource>
+
+      <resource id="General">Основные</resource>
+      <resource id="Name">Название</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Permissions">Доступ</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+   <resource-map id="project.NewProject">
+      <resource id="NewProject">Новый проект</resource>
+
+      <resource id="General">Основные</resource>
+      <resource id="Name">Название</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Budget">Бюджет (р.)</resource>
+      <resource id="Priority">Priority</resource>
+      <resource id="Probability">Probability (%)</resource>
+      <resource id="Archived">Archived</resource>      
+      <resource id="Template">Шаблон</resource>
+      <resource id="NotSelected">(Not selected)</resource>
+
+      <resource id="Goals">Цели</resource>
+      <resource id="Subject">Описание цели</resource>
+      <resource id="Priority">Приоритет</resource>
+
+      <resource id="Tasks">To Dos</resource>
+      <resource id="DueTo">Due</resource>
+
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="AdjustRates">Adjust Rates</resource>
+      <resource id="InternalRate">Internal Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+
+      <resource id="Permissions">Доступ</resource>
+
+      <resource id="CalculationMode">Планирование на основе объема работ</resource>
+      <resource id="ProgressTracked">Разрешить отслеживание выполнения</resource>
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(None)</resource>
+
+      <resource id="Attachments">Attachments</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.EditProject">
+      <resource id="EditProject">Изменить проект</resource>
+
+      <resource id="General">Основные</resource>
+      <resource id="Name">Название</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Start">Начало</resource>
+      <resource id="End">Окончание</resource>
+      <resource id="Budget">Бюджет (р.)</resource>
+      <resource id="Template">Шаблон</resource>
+      <resource id="NotSelected">(Not selected)</resource>
+
+      <resource id="Goals">Цели</resource>
+      <resource id="Subject">Описание цели</resource>
+      <resource id="Priority">Приоритет</resource>
+
+      <resource id="Tasks">To Dos</resource>
+      <resource id="DueTo">Due</resource>
+
+      <resource id="Versions">Версии</resource>
+      <resource id="Version">Версия</resource>
+      <resource id="CreatedBy">Создана пользователем</resource>
+      <resource id="CreatedOn">Дата создания</resource>
+      <resource id="Baseline">Baseline Version</resource>
+      <resource id="DeleteVersions">Удалить версию</resource>
+
+      <resource id="WorkingVersion">Checked out Project Plan</resource>
+
+      <resource id="Permissions">Доступ</resource>
+	   
+      <resource id="CalculationMode">Планирование на основе объема работ</resource>
+      <resource id="ProgressTracked">Разрешить отслеживание выполнения</resource>
+
+      <resource id="Resources">Ресурсы</resource>
+      <resource id="Resource">Resource</resource>
+      <resource id="AdjustRates">Adjust Rates</resource>
+      <resource id="InternalRate">Internal Rate</resource>
+      <resource id="ExternalRate">External Rate</resource>
+      <resource id="Status">Project Status</resource>
+      <resource id="NoStatus">(No Status)</resource>
+
+      <resource id="Attachments">Attachments</resource>
+      <resource id="AddDocumentAttachmentTooltip">Add document attachment</resource>
+      <resource id="AddLinkAttachmentTooltip">Add link attachment</resource>
+      <resource id="RemoveAttachmentTooltip">Delete attachment</resource>
+      <resource id="ViewAttachmentTooltip">View attachment</resource>
+      <resource id="Title">Title</resource>
+      <resource id="Location">Location</resource>
+
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.Info">
+      <resource id="InfoProject">Свойства проекта</resource>
+      <resource id="InfoPortfolio">Свойства портфеля</resource>
+      <resource id="InfoTemplate">Свойства шаблона</resource>
+   </resource-map>
+
+   <resource-map id="project.EditPortfolio">
+      <resource id="EditPortfolio">Изменить портфель</resource>
+      <resource id="General">Основные</resource>
+      <resource id="Name">Наименование</resource>
+      <resource id="Description">Описание</resource>
+      <resource id="Permissions">Доступ</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.AddProjectAssignment">
+      <resource id="AddProjectAssignment">Добавить ресурс</resource>
+      <resource id="Resource">Ресурс</resource>
+      <resource id="Cancel">Отмена</resource>
+      <resource id="OK">OK</resource>
+   </resource-map>
+
+   <resource-map id="project.objects">
+      <resource id="RootProjectPortfolioName">Корневой портфель проектов</resource>
+      <resource id="RootProjectPortfolioDescription">Корневой портфель проектов является главным узлом дерева проектов</resource>
+   </resource-map>
+
+   <resource-map id="project.error">
+      <resource id="ProjectNameMissing">Не указано название проекта</resource>
+      <resource id="ProjectNameAlreadyUsed">Данное наименование проекта уже существует</resource>
+      <resource id="StartDateMissing">Не указана дата начала</resource>
+      <resource id="EndDateIncorrect">Указанная дата окончания не верна</resource>
+      <resource id="BudgetIncorrect">Указанный бюджет не верен</resource>
+      <resource id="PortfolioNameMissing">Не указано наименование портфеля</resource>
+      <resource id="PortfolioNameAlreadyUsed">Данное наименование портфеля уже существует</resource>
+      <resource id="UpdateAccessDenied">У вас нет достаточных прав для изменения данного проекта или портфеля</resource>
+      <resource id="ProjectNotSpecified">Не указан проект</resource>
+      <resource id="ProjectNotFound">Проект не найден</resource>
+      <resource id="TargetPortfolioNotSelected">Не указан портфель назначения</resource>
+      <resource id="ManagerAccessDenied">Для данной операции необходим уровень доступа менеджера</resource>
+      <resource id="WorkRecordsStillExistError">Данный проект не может быть удален, так как по нему уже внесены табели</resource>
+      <resource id="WorkRecordsStillExistWarning">Не все из указанных проектов могут быть удалены, так как по некоторым уже внесены табели</resource>
+      <resource id="ActivityAssignmentsExistError">Ресурс не может быть удален из проекта, так как он уже назначен на некоторые задачи</resource>
+      <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
+      <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
+      <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
+      <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
+      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
+      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
+      <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
+      <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
+      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
+      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>      
+   </resource-map>
+
+   <resource-map id="project.delete">
+      <resource id="ConfirmDelete">Удаление проекта или портфеля</resource>
+      <resource id="ConfirmVersionDelete">Вы действительно хотите удалить данные версии?</resource>
+      <resource id="NoSelectionMessage">Пожалуйста, укажите один или несколько проектов или портфелей, которые вы хотите удалить</resource>
+      <resource id="ConfirmDeleteOneMessage">Вы действительно хотите удалить данный проект или портфель?</resource>
+      <resource id="ConfirmDeleteMultipleMessage">Вы действительно хотите удалить данные проекты или портфели?</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Отмена</resource>
+   </resource-map>
+
+   <resource-map id="project.startdate_future">
+      <resource id="ConfirmStartDateFuture">Moving of the Start Date</resource>
+      <resource id="ConfirmStartDateFutureText">Moving the start date into the future also moves all activities respectively</resource>
+      <resource id="Ok">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+    <resource-map id="project.change">
+      <resource id="ConfirmChange">Modify Project</resource>      
+      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+</language-kit>

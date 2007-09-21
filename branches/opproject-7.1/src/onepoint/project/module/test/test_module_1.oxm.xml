@@ -1,0 +1,5 @@
+<module name="module_1" class="onepoint.project.module.test.OpTestModule">
+   <prototype-files>
+      <prototype-file file-name="/module/test/test_prototype_1.opt.xml"/>
+   </prototype-files>
+</module>

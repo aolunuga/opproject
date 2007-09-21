@@ -1,0 +1,23 @@
+/*
+ * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ */
+require "onepoint/project/scripts/authenticate.jes";
+
+import onepoint.express.XDisplay;
+import onepoint.service.XMessage;
+
+function ok(event) {
+   form = XDisplay.getActiveForm();
+   multiUser = form.findComponent("MultiUser").getBooleanValue();
+   if (!multiUser) {
+      defaultUserName = form.findComponent("DefaultUserName").getStringValue();
+      defaultPassword = form.findComponent("DefaultPassword").getStringValue();
+      authenticate(defaultUserName, defaultPassword, false);
+      //show login form
+      XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", null);
+   }
+   else {
+      //redirect to login
+      XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml", null);
+   }
+}

@@ -1,0 +1,15 @@
+<form width="400" height="150" layout="border" resource-map-ref="main.bandwidth" text="${BandwidthInfo}"
+   provider-class="onepoint.project.forms.OpBandwidthInfoFormProvider"
+   script="/scripts/bandwidth.jes">
+
+   <panel y="0" layout="border">
+      <panel y="-1" layout="table">
+         <label x="0" y="0" width="2" text="${MinVal}"/><text-field y="0" x="1" width="3" id="MinField" enabled="false"/>
+         <label x="0" y="1" width="2" text="${MaxVal}"/><text-field y="1" x="1" width="3" id="MaxField" enabled="false"/>
+         <label x="0" y="2" width="2" text="${AvgVal}"/><text-field y="2" x="1" width="3" id="AvgField" enabled="false"/>
+      </panel>
+      <panel y="1" layout="border">
+         <button x="0" id="OkButton" text="${OK}" on-button-pressed="ok"/>
+      </panel>
+   </panel>
+</form>
