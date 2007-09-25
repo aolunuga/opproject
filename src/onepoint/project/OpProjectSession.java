@@ -8,13 +8,7 @@ import onepoint.error.XErrorMap;
 import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpObjectOrderCriteria;
-import onepoint.persistence.OpPersistenceManager;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpSourceManager;
-import onepoint.persistence.OpTransaction;
+import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
@@ -34,15 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 public class OpProjectSession extends XExpressSession {
 
@@ -572,46 +558,46 @@ public class OpProjectSession extends XExpressSession {
       if (message != null) {
 
          Map<String, File> files = message.extractObjectsFromArguments(File.class);
-         if(!files.isEmpty()){ //only do it if we need...
-             Map<String, String> contents = new HashMap<String, String>();
-             Map<File, String> processed = new HashMap<File, String>();
-             long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
-             String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
-	         OpBroker broker = newBroker();
-	         for (Map.Entry<String, File> entry : files.entrySet()) {
-	            String id = entry.getKey();
-	            File file = entry.getValue();
-	            if (file.length() > maxFileSize) {
-	               logger.error(error);
-	               throw new IOException(error);
-	            }
-	            if (processed.keySet().contains(file)) {
-	               // this file was already processed, reuse the content
-	               contents.put(id, processed.get(file));
-	            }
-	            else {
-	               // process the file for the first time
-	               try {
-	                  XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
-	                  String mimeType = OpContentManager.getFileMimeType(file.getName());
-	                  OpContent content = OpContentManager.newContent(stream, mimeType, 0);
-	
-	                  OpTransaction t = broker.newTransaction();
-	                  broker.makePersistent(content);
-	                  t.commit();
-	
-	                  String contentId = content.locator();
-	                  contents.put(id, contentId);
-	                  processed.put(file, contentId);
-	               }
-	               catch (FileNotFoundException e) {
-	                  logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
-	                  contents.put(id, null);
-	               }
-	            }
-	         }
-	         broker.close();
-	         message.insertObjectsIntoArguments(contents);
+         if (!files.isEmpty()) { //only do it if we need...
+            Map<String, String> contents = new HashMap<String, String>();
+            Map<File, String> processed = new HashMap<File, String>();
+            long maxFileSize = OpInitializerFactory.getInstance().getInitializer().getMaxAttachmentSizeBytes();
+            String error = "Files larger than the configured size of " + maxFileSize + " are not allowed. Aborting transaction";
+            OpBroker broker = newBroker();
+            for (Map.Entry<String, File> entry : files.entrySet()) {
+               String id = entry.getKey();
+               File file = entry.getValue();
+               if (file.length() > maxFileSize) {
+                  logger.error(error);
+                  throw new IOException(error);
+               }
+               if (processed.keySet().contains(file)) {
+                  // this file was already processed, reuse the content
+                  contents.put(id, processed.get(file));
+               }
+               else {
+                  // process the file for the first time
+                  try {
+                     XSizeInputStream stream = new XSizeInputStream(new FileInputStream(file), file.length());
+                     String mimeType = OpContentManager.getFileMimeType(file.getName());
+                     OpContent content = OpContentManager.newContent(stream, mimeType, 0);
+
+                     OpTransaction t = broker.newTransaction();
+                     broker.makePersistent(content);
+                     t.commit();
+
+                     String contentId = content.locator();
+                     contents.put(id, contentId);
+                     processed.put(file, contentId);
+                  }
+                  catch (FileNotFoundException e) {
+                     logger.error("The file: " + file.getAbsolutePath() + " could not be found to be persisted.");
+                     contents.put(id, null);
+                  }
+               }
+            }
+            broker.close();
+            message.insertObjectsIntoArguments(contents);
          }
       }
    }
@@ -626,5 +612,13 @@ public class OpProjectSession extends XExpressSession {
       broker.execute(query);
       t.commit();
       broker.close();
+   }
+
+   /**
+    * Loads the application settings in this session.
+    */
+   public void loadSettings() {
+      OpSettings.loadSettings(this);
+      OpSettings.configureServerCalendar(this);
    }
 }
