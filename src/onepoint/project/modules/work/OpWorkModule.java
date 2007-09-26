@@ -14,6 +14,7 @@ import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpResource;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -97,6 +98,13 @@ public class OpWorkModule extends OpModule {
          if (workRecord.getRemTravelCosts() < 0.0) {
             workRecord.setRemTravelCosts(0.0);
          }
+
+         //make sure the costs are calculated ok
+         OpAssignment assignment = workRecord.getAssignment();
+         OpResource resource = assignment.getResource();
+         workRecord.setPersonnelCosts(workRecord.getActualEffort() * resource.getHourlyRate());
+         workRecord.setActualProceeds(workRecord.getActualEffort() * resource.getExternalRate());         
+
          workRecords.add(workRecord);
          broker.updateObject(workRecord);
       }

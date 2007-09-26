@@ -172,15 +172,6 @@ public abstract class OpModule {
       this.dependencies = dependencies;
    }
 
-   public void install(OpProjectSession session) {
-   }
-
-   public void remove(OpProjectSession session) {
-   }
-
-   public void setup(OpProjectSession session) {
-   }
-
    public void start(OpProjectSession session) {
    }
 

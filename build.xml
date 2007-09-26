@@ -1,4 +1,4 @@
-<project name="opproject - Open" basedir="." default="dist.war">
+<project name="opproject 7.1 - Open" basedir="." default="dist.war">
 
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>

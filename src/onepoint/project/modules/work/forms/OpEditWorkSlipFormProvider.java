@@ -70,6 +70,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent("WorkSlipIDField").setStringValue(workSlipLocator);
       XComponent dateField = form.findComponent(DATE_FIELD);
       dateField.setDateValue(workSlip.getDate());
+      //date field always disabled for edit mode
+      dateField.setEnabled(false);
 
       //Get the effort, time and cost data sets
       XComponent workEffortDataSet = form.findComponent(WORK_EFFORT_RECORD_SET);
@@ -151,7 +153,6 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent(EFFORT_TABLE).setEnabled(paramEditMode);
       form.findComponent(TIME_TABLE).setEnabled(paramEditMode);
       form.findComponent(COST_TABLE).setEnabled(paramEditMode);
-      form.findComponent(DATE_FIELD).setEnabled(paramEditMode);
       form.findComponent(CANCEL_BUTTON).setVisible(paramEditMode);
       String title = session.getLocale().getResourceMap(WORK_INFO_MAP).getResource(WORK_INFO).getText();
       form.setText(title);

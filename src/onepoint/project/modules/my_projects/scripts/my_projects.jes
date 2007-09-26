@@ -12,12 +12,25 @@ import onepoint.express.XValidator;
 function print(event) {
    tabBox = XDisplay.getActiveForm().findComponent("MyTabBox");
    cur_tab = tabBox.getIntValue();
-   tabName = tabBox.getChild(cur_tab + 1).getText();
-   title = tabName;
+   tab = tabBox.getChild(cur_tab + 1);
+   title = tab.getText();
+   tabId = tab.getID();
 
-   if (cur_tab == 0) {
+   if (tabId == "ProjectListTab") {
       activity_table = XDisplay.getActiveForm().findComponent("ProjectsTable");
       activity_table.print(title);
+   }
+   else {
+      if (tabId == "ProjectResourcesTab") {
+         activity_table = XDisplay.getActiveForm().findComponent("ProjectResourcesTable");
+         activity_table.print(title);
+      }
+      else {
+         if (tabId == "ProjectCostsTab") {
+            activity_table = XDisplay.getActiveForm().findComponent("ProjectCostsTable");
+            activity_table.print(title);
+         }
+      }
    }
 }
 
