@@ -44,6 +44,8 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
 
    private final static String EFFORT_TABLE = "EffortTable";
+   private final static String TIME_TABLE = "TimeTable";
+   private final static String COST_TABLE = "CostTable";
 
    //start from filter choices
    private final static String ALL = "all";
@@ -59,6 +61,11 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    private final static String PULSING = "Pulsing";
    private final static String ADD_HOURS_BUTTON = "AddHoursButton";
    private final static String REMOVE_HOURS_BUTTON = "RemoveHoursButton";
+   private final static String ADD_TIME_BUTTON = "AddTimeButton";
+   private final static String REMOVE_TIME_BUTTON = "RemoveTimeButton";
+   private final static String ADD_COST_BUTTON = "AddCostButton";
+   private final static String REMOVE_COST_BUTTON = "RemoveCostButton";
+   private final static String ATTACHMENT_BUTTON = "AttachmentButton";
 
    private static final String ASSIGNMENT_MAP = "AssignmentMap";
 
@@ -86,18 +93,10 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
       activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
-
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
-      long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, orderCriteria, projectNodeId, false);
 
-      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
-      Object[] record;
-      while (result.hasNext()) {
-         record = (Object[]) result.next();
-         assignmentList.add((OpAssignment) record[0]);
-      }
+
+      List<OpAssignment> assignmentList = getAssignmentList(broker, resourceIds, activityTypes, startBefore, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
 
       //fill project filter set
       XComponent projectFilterDataSet = form.findComponent(FILTER_PROJECT_SET);
@@ -127,7 +126,12 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          Integer pulsing = Integer.valueOf(pulsingSetting);
          form.findComponent(PULSING).setValue(pulsing);
       }
-      
+
+
+      long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
+      assignmentList = getAssignmentList(broker, resourceIds, activityTypes, startBefore, projectNodeId);
+
+
       OpTimeRecordDataSetFactory.fillChoiceDataSets(choiceTimeProjectSet, choiceTimeActivitySet, choiceTimeResourceSet, assignmentList);
       OpWorkEffortDataSetFactory.fillChoiceDataSets(choiceEffortProjectSet, choiceEffortActivitySet, choiceEffortResourceSet, assignmentList, timeTrackingEnabled);
       OpCostRecordDataSetFactory.fillChoiceDataSets(choiceCostProjectSet, choiceCostActivitySet, choiceCostResourceSet, assignmentList);
@@ -162,21 +166,64 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       //check time tracking
       form.findComponent(TIME_TRACKING).setValue(timeTrackingEnabled);
-      boolean hasChildren = choiceEffortActivitySet.getChildCount() > 0;
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(hasChildren);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(hasChildren);
-      if (hasChildren) {
-         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
-      }
-      else {
-         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
-      }
-
       //if time tracking is off hide the time tab and select hours tab
       if(!timeTrackingEnabled) {
          form.findComponent(TIME_TAB).setHidden(true);
          form.findComponent(TAB_BOX).selectDifferentTab(1);
       }
+
+      boolean effortHasChildren = choiceEffortActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_HOURS_BUTTON).setVisible(effortHasChildren);
+      form.findComponent(REMOVE_HOURS_BUTTON).setVisible(effortHasChildren);
+      if (effortHasChildren) {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+      boolean timeHasChildren = choiceTimeActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_TIME_BUTTON).setVisible(timeHasChildren);
+      form.findComponent(REMOVE_TIME_BUTTON).setVisible(timeHasChildren);
+      if (timeHasChildren) {
+         ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+      boolean costHasChildren = choiceCostActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(REMOVE_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(ATTACHMENT_BUTTON).setVisible(costHasChildren);
+      if (costHasChildren) {
+         ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+
+   }
+
+   /**
+    * Fills up a list of assignments for the given resources, activity types and projects.
+    *
+    * @param broker
+    * @param resourceIds
+    * @param activityTypes
+    * @param startBefore
+    * @param projectNodeId
+    * @return a <code>List of OpAssignment <code>
+    */
+   private List<OpAssignment> getAssignmentList(OpBroker broker, List resourceIds, List activityTypes, Date startBefore, long projectNodeId) {
+      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, orderCriteria, projectNodeId, false);
+
+      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
+      Object[] record;
+      while (result.hasNext()) {
+         record = (Object[]) result.next();
+         assignmentList.add((OpAssignment) record[0]);
+      }
+      return assignmentList;
    }
 
    private Date getFilteredStartBeforeDate(OpProjectSession session, Map parameters, XComponent form) {

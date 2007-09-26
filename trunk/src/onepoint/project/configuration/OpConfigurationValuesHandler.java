@@ -134,6 +134,12 @@ public class OpConfigurationValuesHandler implements XNodeHandler {
             databaseUrl = databaseUrl.replaceAll("[\\\\]", "/");
             OpEnvironmentManager.setDataFolderPathFromDbPath(databaseUrl.replaceFirst(OpHibernateSource.HSQLDB_JDBC_CONNECTION_PREFIX, ""));
          }
+         else if (configuration.getDatabaseType() == OpHibernateSource.DERBY) {
+            databaseUrl = databaseUrl.replaceAll("[\\\\]", "/");
+            String tmpDatabaseUrl = databaseUrl.replaceFirst(OpHibernateSource.DERBY_JDBC_CONNECTION_PREFIX, "");
+            tmpDatabaseUrl = tmpDatabaseUrl.replaceFirst(OpHibernateSource.DERBY_JDBC_CONNECTION_SUFIX, "");
+            OpEnvironmentManager.setDataFolderPathFromDbPath(tmpDatabaseUrl);
+         }
          else if (configuration.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
             // set the connection params to support large blobs
             databaseUrl = setJDBCBoolParam(databaseUrl, "useServerPrepStmts", true);

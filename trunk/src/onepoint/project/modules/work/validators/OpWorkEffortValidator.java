@@ -86,6 +86,11 @@ public class OpWorkEffortValidator extends OpWorkValidator {
             if (getRemainingEffort(row).doubleValue() < 0) {
                throw new XValidationException(REMAINING_EFFORT_EXCEPTION);
             }
+            else {
+               if (getRemainingEffort(row).doubleValue() == 0) {
+                  setValue(row, COMPLETED_INDEX, Boolean.TRUE);
+               }
+            }
          }
 
          for (int j = i + 1; j < data_set.getChildCount(); j++) {
@@ -549,11 +554,11 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    /**
     * Sets the planned effort cell value and the original remaining effort cell value.
     *
-    * @param activityChoice - the choice of the activity, which together with the choice of the resource,
-    *                       determines the assignment from which the efforts are takken
-    * @param resourceChoice - the choice of the resource, which together with the choice of the resource,
-    *                       determines the assignment from which the efforts are takken
-    * @param dataRow        - the data row that is being updated.
+    * @param activityChoice  - the choice of the activity, which together with the choice of the resource,
+    *                        determines the assignment from which the efforts are takken
+    * @param resourceChoice  - the choice of the resource, which together with the choice of the resource,
+    *                        determines the assignment from which the efforts are takken
+    * @param dataRow         - the data row that is being updated.
     * @param progressTracked
     * @param mapField
     */
@@ -804,4 +809,13 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       }
       return false;
    }
+
+
+   public void addEmptyRow(XComponent row) {
+      row.getChild(PROJECT_NAME_INDEX).setEnabled(true);
+      row.getChild(ACTIVITY_NAME_INDEX).setEnabled(true);
+      row.getChild(RESOURCE_NAME_INDEX).setEnabled(true);
+      super.addEmptyRow(row);
+   }
+
 }

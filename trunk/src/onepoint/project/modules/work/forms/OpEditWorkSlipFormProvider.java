@@ -54,6 +54,11 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
    private final static String CANCEL_BUTTON = "Cancel";
    private final static String WORK_INFO_MAP = "work.Info";
    private final static String WORK_INFO = "WorkInfo";
+   private final static String ADD_TIME_BUTTON = "AddTimeButton";
+   private final static String REMOVE_TIME_BUTTON = "RemoveTimeButton";
+   private final static String ADD_COST_BUTTON = "AddCostButton";
+   private final static String REMOVE_COST_BUTTON = "RemoveCostButton";
+   private final static String ATTACHMENT_BUTTON = "AttachmentButton";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
@@ -70,6 +75,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent("WorkSlipIDField").setStringValue(workSlipLocator);
       XComponent dateField = form.findComponent(DATE_FIELD);
       dateField.setDateValue(workSlip.getDate());
+      //date field always disabled for edit mode
+      dateField.setEnabled(false);
 
       //Get the effort, time and cost data sets
       XComponent workEffortDataSet = form.findComponent(WORK_EFFORT_RECORD_SET);
@@ -151,7 +158,6 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent(EFFORT_TABLE).setEnabled(paramEditMode);
       form.findComponent(TIME_TABLE).setEnabled(paramEditMode);
       form.findComponent(COST_TABLE).setEnabled(paramEditMode);
-      form.findComponent(DATE_FIELD).setEnabled(paramEditMode);
       form.findComponent(CANCEL_BUTTON).setVisible(paramEditMode);
       String title = session.getLocale().getResourceMap(WORK_INFO_MAP).getResource(WORK_INFO).getText();
       form.setText(title);
@@ -215,15 +221,37 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       OpWorkSlipDataSetFactory.configureResourceChoiceMap(broker, choiceCostResourceSet, choiceCostActivitySet);
       OpWorkSlipDataSetFactory.configureActivityChoiceMap(broker, choiceCostActivitySet, choiceCostResourceSet);
 
-      boolean hasChildren = choiceEffortActivitySet.getChildCount() > 0;
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(hasChildren);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(hasChildren);
-      if (hasChildren) {
+      boolean effortHasChildren = choiceEffortActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_HOURS_BUTTON).setVisible(effortHasChildren);
+      form.findComponent(REMOVE_HOURS_BUTTON).setVisible(effortHasChildren);
+      if (effortHasChildren) {
          ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
       }
       else {
-        ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE); 
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
       }
+      boolean timeHasChildren = choiceTimeActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_TIME_BUTTON).setVisible(timeHasChildren);
+      form.findComponent(REMOVE_TIME_BUTTON).setVisible(timeHasChildren);
+      if (timeHasChildren) {
+         ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+      boolean costHasChildren = choiceCostActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(REMOVE_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(ATTACHMENT_BUTTON).setVisible(costHasChildren);
+      if (costHasChildren) {
+         ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+
+
+
 
    }
 }
