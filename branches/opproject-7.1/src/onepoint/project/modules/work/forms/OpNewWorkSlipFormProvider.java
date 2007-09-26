@@ -44,6 +44,8 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    private final static String PROJECT_CHOICE_ID = "project_choice_id";
 
    private final static String EFFORT_TABLE = "EffortTable";
+   private final static String TIME_TABLE = "TimeTable";
+   private final static String COST_TABLE = "CostTable";
 
    //start from filter choices
    private final static String ALL = "all";
@@ -59,6 +61,11 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
    private final static String PULSING = "Pulsing";
    private final static String ADD_HOURS_BUTTON = "AddHoursButton";
    private final static String REMOVE_HOURS_BUTTON = "RemoveHoursButton";
+   private final static String ADD_TIME_BUTTON = "AddTimeButton";
+   private final static String REMOVE_TIME_BUTTON = "RemoveTimeButton";
+   private final static String ADD_COST_BUTTON = "AddCostButton";
+   private final static String REMOVE_COST_BUTTON = "RemoveCostButton";
+   private final static String ATTACHMENT_BUTTON = "AttachmentButton";
 
    private static final String ASSIGNMENT_MAP = "AssignmentMap";
 
@@ -159,21 +166,41 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       //check time tracking
       form.findComponent(TIME_TRACKING).setValue(timeTrackingEnabled);
-      boolean hasChildren = choiceEffortActivitySet.getChildCount() > 0;
-      form.findComponent(ADD_HOURS_BUTTON).setEnabled(hasChildren);
-      form.findComponent(REMOVE_HOURS_BUTTON).setEnabled(hasChildren);
-      if (hasChildren) {
-         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
-      }
-      else {
-         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
-      }
-
       //if time tracking is off hide the time tab and select hours tab
       if(!timeTrackingEnabled) {
          form.findComponent(TIME_TAB).setHidden(true);
          form.findComponent(TAB_BOX).selectDifferentTab(1);
       }
+
+      boolean effortHasChildren = choiceEffortActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_HOURS_BUTTON).setVisible(effortHasChildren);
+      form.findComponent(REMOVE_HOURS_BUTTON).setVisible(effortHasChildren);
+      if (effortHasChildren) {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+      boolean timeHasChildren = choiceTimeActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_TIME_BUTTON).setVisible(timeHasChildren);
+      form.findComponent(REMOVE_TIME_BUTTON).setVisible(timeHasChildren);
+      if (timeHasChildren) {
+         ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+      boolean costHasChildren = choiceCostActivitySet.getChildCount() > 0;
+      form.findComponent(ADD_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(REMOVE_COST_BUTTON).setVisible(costHasChildren);
+      form.findComponent(ATTACHMENT_BUTTON).setVisible(costHasChildren);
+      if (costHasChildren) {
+         ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+      }
+      else {
+        ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+      }
+
    }
 
    /**

@@ -73,8 +73,8 @@
                <table-column width="80" text="${Duration}" data-column-index="5" value-type="Time" sortable="true"/>
             </table-box>
             <panel y="1" layout="flow" direction="east" visible="true">
-               <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addTimeRow" tooltip="${AddTime}"/>
-               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeTimeRows" tooltip="${RemoveTime}"/>
+               <button id="AddTimeButton" style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addTimeRow" tooltip="${AddTime}"/>
+               <button id="RemoveTimeButton" style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeTimeRows" tooltip="${RemoveTime}"/>
             </panel>
          </tab>
 
@@ -108,9 +108,9 @@
                <table-column width="70" text="${Comment}" data-column-index="8" value-type="String"/>
             </table-box>
             <panel y="1" layout="flow" direction="east" visible="true">
-               <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addCostRow" tooltip="${AddCost}"/>
-               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeCostRows" tooltip="${RemoveCosts}"/>
-               <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="manageAttachments" tooltip="${ManageAttachmentTooltip}"/>
+               <button id="AddCostButton" style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addCostRow" tooltip="${AddCost}"/>
+               <button id="RemoveCostButton" style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeCostRows" tooltip="${RemoveCosts}"/>
+               <button id="AttachmentButton" style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="manageAttachments" tooltip="${ManageAttachmentTooltip}"/>
             </panel>
          </tab>
 
