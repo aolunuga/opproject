@@ -154,7 +154,12 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       //hide non manager features
       XComponent hideManagerfeaturesField = form.findComponent(HIDE_MANAGER_FEATURES);
-      hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES)));
+      if (!OpEnvironmentManager.isMultiUser()) {
+         hideManagerfeaturesField.setVisible(false);
+      }
+      else {
+         hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES)));
+      }
 
       //currency
       fillCurency(form);

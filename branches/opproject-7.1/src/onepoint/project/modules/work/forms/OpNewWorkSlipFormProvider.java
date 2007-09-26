@@ -86,18 +86,10 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
       activityTypes.add(new Byte(OpActivity.MILESTONE));
       activityTypes.add(new Byte(OpActivity.TASK));
       activityTypes.add(new Byte(OpActivity.ADHOC_TASK));
-
       Date startBefore = getFilteredStartBeforeDate(session, parameters, form);
-      long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
-      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, orderCriteria, projectNodeId, false);
 
-      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
-      Object[] record;
-      while (result.hasNext()) {
-         record = (Object[]) result.next();
-         assignmentList.add((OpAssignment) record[0]);
-      }
+
+      List<OpAssignment> assignmentList = getAssignmentList(broker, resourceIds, activityTypes, startBefore, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID);
 
       //fill project filter set
       XComponent projectFilterDataSet = form.findComponent(FILTER_PROJECT_SET);
@@ -127,7 +119,12 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          Integer pulsing = Integer.valueOf(pulsingSetting);
          form.findComponent(PULSING).setValue(pulsing);
       }
-      
+
+
+      long projectNodeId = getFilteredProjectNodeId(session, parameters, form);
+      assignmentList = getAssignmentList(broker, resourceIds, activityTypes, startBefore, projectNodeId);
+
+
       OpTimeRecordDataSetFactory.fillChoiceDataSets(choiceTimeProjectSet, choiceTimeActivitySet, choiceTimeResourceSet, assignmentList);
       OpWorkEffortDataSetFactory.fillChoiceDataSets(choiceEffortProjectSet, choiceEffortActivitySet, choiceEffortResourceSet, assignmentList, timeTrackingEnabled);
       OpCostRecordDataSetFactory.fillChoiceDataSets(choiceCostProjectSet, choiceCostActivitySet, choiceCostResourceSet, assignmentList);
@@ -177,6 +174,29 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
          form.findComponent(TIME_TAB).setHidden(true);
          form.findComponent(TAB_BOX).selectDifferentTab(1);
       }
+   }
+
+   /**
+    * Fills up a list of assignments for the given resources, activity types and projects.
+    *
+    * @param broker
+    * @param resourceIds
+    * @param activityTypes
+    * @param startBefore
+    * @param projectNodeId
+    * @return a <code>List of OpAssignment <code>
+    */
+   private List<OpAssignment> getAssignmentList(OpBroker broker, List resourceIds, List activityTypes, Date startBefore, long projectNodeId) {
+      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
+      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, startBefore, orderCriteria, projectNodeId, false);
+
+      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
+      Object[] record;
+      while (result.hasNext()) {
+         record = (Object[]) result.next();
+         assignmentList.add((OpAssignment) record[0]);
+      }
+      return assignmentList;
    }
 
    private Date getFilteredStartBeforeDate(OpProjectSession session, Map parameters, XComponent form) {

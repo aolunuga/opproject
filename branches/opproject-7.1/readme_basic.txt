@@ -24,7 +24,38 @@ Web browser with the Acrobat Reader plug-in (typically, your Web browser
 already contains such a plug-in). In case you do not have Acrobot Reader
 installed, you can download it for free from the Adobe website:
 
-   hhttp://www.adobe.com ("Get Adobe Reader")
+   http://www.adobe.com ("Get Adobe Reader")
+
+
+IMPORTANT: Upgrading to New Embedded Database System
+----------------------------------------------------
+
+For scalability and performance reasons we decided to change the embedded
+database from HSQL-DB to Derby starting with this release (7.1). Please
+note that HSQL-DB is still part of the distribution and you can still use
+it. However, we strongly recommend to upgrade to the new database, because
+it is much faster and we will not support HSQL-DB anymore in the future.
+
+For security reasons, upgrading has to be done manually. In order to upgrade
+to the new database you have to do the following. Please make sure that you
+execute the steps in the correct order:
+
+(1) Backup your current data to an XML file by using the "Repository" tool
+
+(2) Open your configuration.oxc.xml file which is located in your Onepoint
+Project installation folder by using a text editor (e.g., Notepad) and
+write down the repository path part of the contents of the
+<database-url>...</database-url> element -- you will need this for the new
+repository to find your backup data again
+
+(3) Install the new software as described under "Installation" below
+
+(4) Start the new application and choose the same repository path you wrote
+down in (2)
+
+(5) You should now have a new version of Onepoint Project up and running
+and you can restore your previously backuped data using the "Repository"
+tool
 
 
 Installation

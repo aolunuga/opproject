@@ -13,8 +13,8 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.modules.project.*;
-import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.work.OpWorkRecord;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -371,7 +371,14 @@ public class OpProjectPlanningModule extends OpModule {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery("from OpProjectPlan");
       Iterator result = broker.iterate(query);
-      String holidayCalendarId = OpSettings.getHolidayCalendarId();
+
+      query = broker.newQuery("select setting.Value from OpSetting as setting where setting.Name = '" + OpSettings.CALENDAR_HOLIDAYS_LOCATION + "'");
+      Iterator calendarResult = broker.iterate(query);
+      String holidayCalendarId = null;
+      if (calendarResult.hasNext()) {
+         holidayCalendarId = (String) calendarResult.next();
+      }
+
       OpTransaction tx = broker.newTransaction();
       while (result.hasNext()) {
          OpProjectPlan projectPlan = (OpProjectPlan) result.next();
@@ -386,4 +393,25 @@ public class OpProjectPlanningModule extends OpModule {
       tx.commit();
       broker.close();
    }
+
+   /**
+    * Revalidate working version with the right calendar.
+    *
+    * @param session
+    */
+   public void upgradeToVersion29(OpProjectSession session) {
+      logger.info("Revalidating working versions with calendar settings on");
+
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlan");
+      Iterator result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+         OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
+         validator.validateProjectPlanWorkingVersion(broker, null, true);
+      }
+      broker.close();
+   }
+
 }

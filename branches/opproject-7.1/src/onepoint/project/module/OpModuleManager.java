@@ -6,11 +6,7 @@ package onepoint.project.module;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpSource;
-import onepoint.persistence.OpSourceManager;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
@@ -117,20 +113,6 @@ public final class OpModuleManager {
       }
    }
 
-   public static void setup() {
-      Collection<OpSource> allSources = OpSourceManager.getAllSources();
-      for (OpSource source : allSources) {
-         // Invoke setup callbacks (for setting up a new instance)
-         OpProjectSession setupSession = new OpProjectSession(source.getName());
-         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
-         while (modulesIt.hasNext()) {
-            OpModule module = modulesIt.next();
-            module.setup(setupSession);
-         }
-         setupSession.close();
-      }
-   }
-
    public static void start() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
@@ -169,6 +151,7 @@ public final class OpModuleManager {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
          OpProjectSession session = new OpProjectSession(source.getName());
+         session.loadSettings();
          Iterator<OpModule> modulesIt = moduleRegistry.iterator();
          while (modulesIt.hasNext()) {
             OpModule module = modulesIt.next();

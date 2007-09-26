@@ -42,7 +42,7 @@ Web browser with the Acrobat Reader plug-in (typically, your Web browser
 already contains such a plug-in). In case you do not have Acrobot Reader
 installed, you can download it for free from the Adobe website:
 
-   hhttp://www.adobe.com ("Get Adobe Reader")
+   http://www.adobe.com ("Get Adobe Reader")
 
 
 Installation
