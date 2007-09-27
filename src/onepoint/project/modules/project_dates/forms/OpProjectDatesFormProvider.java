@@ -17,6 +17,7 @@ import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
@@ -146,7 +147,7 @@ public class OpProjectDatesFormProvider implements XFormProvider {
       OpUser currentUser = session.user(broker);
       String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showHoursPref == null) {
-         showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       }
       activityDataSet.setValue(Boolean.valueOf(showHoursPref));
 

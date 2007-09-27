@@ -27,6 +27,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    public final static int ACTIVITY_TYPE_INDEX = 9;
    public final static int ACTIVITY_CREATED_INDEX = 10;
    public final static int ACTUAL_REMAINING_SUM_INDEX = 11;
+   public final static int ENABLED_INDEX = 12;
 
    public static final String PROJECT_SET = "EffortProjectSet";
    public static final String ACTIVITY_SET = "EffortActivitySet";
@@ -174,11 +175,18 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       dataCell.setBooleanValue(true);
       dataRow.addChild(dataCell);
 
-      //actual + remaining sum
+      //actual + remaining sum - 11
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setEnabled(true);
       dataCell.setDoubleValue(0d);
       dataRow.addChild(dataCell);
+
+      //row enabled - 12
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setEnabled(true);
+      dataCell.setBooleanValue(true);
+      dataRow.addChild(dataCell);
+
 
       return dataRow;
    }
@@ -458,6 +466,14 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       return (Byte) getValue(row, ACTIVITY_TYPE_INDEX);
    }
 
+   public void setEnabled(XComponent row, boolean enabled) {
+      setValue(row, ENABLED_INDEX, Boolean.valueOf(enabled));
+   }
+
+   public boolean getEnabled(XComponent row) {
+      return ((Boolean) getValue(row, ENABLED_INDEX)).booleanValue();
+   }
+
    /**
     * Removes an array of data rows from the underlying data set.
     *
@@ -468,13 +484,15 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       for (int i = 0; i < dataRows.size(); i++) {
          XComponent dataRow = (XComponent) dataRows.get(i);
 
-         //reset the flag indicating that the assignment was manually mofified by the user
-         String activityChoice = getActivity(dataRow);
-         String resourceChoice = getResource(dataRow);
-         if (activityChoice != null && resourceChoice != null) {
-            setRemainingEffortModifiedByUser(activityChoice, resourceChoice, false);
+         if (getEnabled(dataRow)) {
+            //reset the flag indicating that the assignment was manually mofified by the user
+            String activityChoice = getActivity(dataRow);
+            String resourceChoice = getResource(dataRow);
+            if (activityChoice != null && resourceChoice != null) {
+               setRemainingEffortModifiedByUser(activityChoice, resourceChoice, false);
+            }
+            data_set.removeChild(dataRow);
          }
-         data_set.removeChild(dataRow);
       }
       return true;
    }

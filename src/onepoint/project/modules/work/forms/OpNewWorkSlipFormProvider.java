@@ -14,6 +14,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpCostRecordDataSetFactory;
 import onepoint.project.modules.work.OpTimeRecordDataSetFactory;
@@ -115,13 +116,13 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       //check time tracking
       boolean timeTrackingEnabled = false;
-      String timeTracking = OpSettings.get(OpSettings.ENABLE_TIME_TRACKING);
+      String timeTracking = OpSettingsService.getService().get(OpSettings.ENABLE_TIME_TRACKING);
       if(timeTracking != null){
          timeTrackingEnabled = Boolean.valueOf(timeTracking);
       }
 
       //pulsing
-      String pulsingSetting = OpSettings.get(OpSettings.PULSING);
+      String pulsingSetting = OpSettingsService.getService().get(OpSettings.PULSING);
       if (pulsingSetting != null) {
          Integer pulsing = Integer.valueOf(pulsingSetting);
          form.findComponent(PULSING).setValue(pulsing);

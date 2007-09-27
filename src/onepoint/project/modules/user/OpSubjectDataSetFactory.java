@@ -9,6 +9,7 @@ import onepoint.express.XValidator;
 import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
@@ -344,7 +345,7 @@ public final class OpSubjectDataSetFactory {
     */
    public static boolean shouldHideFromUser(OpUser user) {
       if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
          if (hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
             return true;
 

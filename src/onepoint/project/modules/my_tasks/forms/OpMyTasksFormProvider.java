@@ -14,14 +14,15 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPreference;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
-import onepoint.project.modules.project_planning.components.OpProjectComponent;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
@@ -230,7 +231,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
    private Boolean getShowHoursPreference(OpUser user) {
       String showHoursPref = user.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showHoursPref == null) {
-         showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       }
       return Boolean.valueOf(showHoursPref);
    }

@@ -14,7 +14,6 @@
    <module-file file-name="/modules/my_tasks/module.oxm.xml"/>
    <module-file file-name="/modules/my_projects/module.oxm.xml"/>
    <module-file file-name="/modules/preferences/module.oxm.xml"/>
-   <module-file file-name="/modules/schedule/module.oxm.xml"/>
    <module-file file-name="/modules/project_status/module.oxm.xml"/>
    <module-file file-name="/modules/repository/module.oxm.xml"/>
 </module-registry>

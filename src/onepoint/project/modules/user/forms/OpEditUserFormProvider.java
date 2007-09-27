@@ -12,6 +12,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.*;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
@@ -194,7 +195,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          preference = user.getPreference(OpPreference.LOCALE).getValue();
       }
       else{
-         preference = OpSettings.get(OpSettings.USER_LOCALE);
+         preference = OpSettingsService.getService().get(OpSettings.USER_LOCALE);
       }
       
       for (int i =0 ; i  < languageDataSet.getChildCount(); i++) {

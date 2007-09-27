@@ -14,6 +14,7 @@ import onepoint.project.modules.resource.OpResourceError;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
@@ -275,7 +276,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_VALID);
 
-      double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+      double maxAvailability = Double.parseDouble(OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, 1d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);
@@ -308,7 +309,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_VALID);
 
-      double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+      double maxAvailability = Double.parseDouble(OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
       request = dataFactory.createResourceMsg(NAME, DESCRIPTION, maxAvailability + 1, 2d, 3d, false, null);
       response = service.insertResource(session, request);
       assertError(response, OpResourceError.AVAILABILITY_NOT_VALID);

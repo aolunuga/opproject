@@ -11,6 +11,7 @@ import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.*;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpEnvironmentManager;
@@ -124,7 +125,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             return reply;
          }
 
-         double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         double maxAvailability = Double.parseDouble(OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
          // check valid availability range [0..maxAvailability]
          int availability = ((Double) resource_data.get(OpResource.AVAILABLE)).intValue();
          if (availability < 0 || availability > maxAvailability) {
@@ -274,7 +275,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
          // check valid availability range [0..system.maxAvailable]
          double availability = (Double) resourceData.get(OpResource.AVAILABLE);
-         double maxAvailable = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         double maxAvailable = Double.parseDouble(OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
          if (availability < 0 || availability > maxAvailable) {
             reply.setError(session.newError(ERROR_MAP, OpResourceError.AVAILABILITY_NOT_VALID));
             return reply;
@@ -432,7 +433,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             resource.setExternalRate(resource.getPool().getExternalRate());
          }
 
-         double maxAvailability = Double.parseDouble(OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
+         double maxAvailability = Double.parseDouble(OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY));
          // check valid availability range [0..maxAvailability]
          double availability = (Double) resource_data.get(OpResource.AVAILABLE);
          if (availability < 0 || availability > maxAvailability) {

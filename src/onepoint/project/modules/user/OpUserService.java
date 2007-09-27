@@ -16,6 +16,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpHashProvider;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocale;
@@ -98,7 +99,7 @@ public class OpUserService extends OpProjectService {
          serviceIfcImpl_.signOn(session, broker, login, password);
 
          //initialize the calendar settings
-         OpSettings.configureServerCalendar(session);
+         OpSettingsService.getService().configureServerCalendar(session);
 
          //send the calendar to the client
          reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
@@ -203,7 +204,7 @@ public class OpUserService extends OpProjectService {
          // do this using OpPreferencesAPI
 
          //create a preference regarding the show hours option, using the default value from the system settings
-         String showHours = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+         String showHours = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
          OpPreference pref = new OpPreference();
          pref.setUser(user);
          pref.setName(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);

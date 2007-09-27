@@ -13,6 +13,7 @@ import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
@@ -63,7 +64,8 @@ public class OpProjectSession extends XExpressSession {
       }
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
-         super.setLocalizerParameters(OpSettings.getI18NParameters());
+         OpSettings defaultSettings = new OpSettings();
+         super.setLocalizerParameters(defaultSettings.getI18NParameters());
       }
       //<FIXME>
    }
@@ -98,14 +100,23 @@ public class OpProjectSession extends XExpressSession {
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
       }
-      super.setLocalizerParameters(OpSettings.getI18NParameters());
+      OpSettingsService settingsService = OpSettingsService.getService();
+      Map<String, String> localizerParameters;
+      if (settingsService == null) {
+         OpSettings defaultSettings = new OpSettings();
+         localizerParameters = defaultSettings.getI18NParameters();
+      }
+      else {
+         localizerParameters = settingsService.getI18NParameters();
+      }
+      super.setLocalizerParameters(localizerParameters);
    }
 
    /**
     * Resets the session locale to the system default locale.
     */
    public void resetLocaleToSystemDefault() {
-      XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+      XLocale default_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
       super.setLocale(default_locale);
    }
 
@@ -618,7 +629,7 @@ public class OpProjectSession extends XExpressSession {
     * Loads the application settings in this session.
     */
    public void loadSettings() {
-      OpSettings.loadSettings(this);
-      OpSettings.configureServerCalendar(this);
+      OpSettingsService.getService().loadSettings(this);
+      OpSettingsService.getService().configureServerCalendar(this);
    }
 }

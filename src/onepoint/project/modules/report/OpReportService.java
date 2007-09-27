@@ -7,7 +7,6 @@ package onepoint.project.modules.report;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -23,6 +22,7 @@ import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPermissionSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpHashProvider;
@@ -34,17 +34,16 @@ import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
 import onepoint.util.XEncodingHelper;
 import onepoint.util.XEnvironmentManager;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
 
 public class OpReportService extends OpProjectService {
 
@@ -419,7 +418,7 @@ public class OpReportService extends OpProjectService {
          //make sure the day work time is taken from the system settings
          String dayWorkTime = (String) parameters.remove(DAY_WORK_TIME);
          if (dayWorkTime != null) {
-            parameters.put(DAY_WORK_TIME, new Double(OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME)));
+            parameters.put(DAY_WORK_TIME, new Double(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME)));
          }
       }
 

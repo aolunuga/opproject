@@ -10,6 +10,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.preferences.forms.OpPreferencesFormProvider;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
@@ -99,7 +100,7 @@ public class OpPreferencesService extends OpProjectService {
          if (!session.getLocale().getID().equals(language)) {
             XLocale newLocale = XLocaleManager.findLocale(language);
             session.setLocale(newLocale);
-            OpSettings.configureServerCalendar(session);
+            OpSettingsService.getService().configureServerCalendar(session);
             reply.setArgument(OpProjectConstants.CALENDAR, session.getCalendar());
          }
       }
@@ -140,7 +141,7 @@ public class OpPreferencesService extends OpProjectService {
          }
       }
       else {
-         boolean allowsEmptyPasswords = Boolean.valueOf(OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue();
+         boolean allowsEmptyPasswords = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD));
          if ((password == null || password.length() == 0) && !allowsEmptyPasswords) {
             response.setError(session.newError(ERROR_MAP, OpPreferencesError.EMPTY_PASSWORD));
             return response;

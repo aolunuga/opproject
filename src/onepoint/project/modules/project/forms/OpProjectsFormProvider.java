@@ -12,6 +12,7 @@ import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
@@ -63,7 +64,7 @@ public class OpProjectsFormProvider implements XFormProvider {
       OpUser user = session.user(broker);
       //check if the app. is multiuser and hide manager features is set to true and the user is not manager
       if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
          if(hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL){
             shouldHideFromUser = true;
          }
