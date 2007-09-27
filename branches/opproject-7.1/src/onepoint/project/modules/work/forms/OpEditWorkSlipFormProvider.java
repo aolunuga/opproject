@@ -14,6 +14,7 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.work.*;
 import onepoint.project.modules.work.validators.OpWorkCostValidator;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
@@ -129,7 +130,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       boolean timeTrackingEnabled = setTimeTracking(form, workEffortDataSet);
 
       //pulsing
-      String pulsingSetting = OpSettings.get(OpSettings.PULSING);
+      String pulsingSetting = OpSettingsService.getService().get(OpSettings.PULSING);
       if (pulsingSetting != null) {
          Integer pulsing = Integer.valueOf(pulsingSetting);
          form.findComponent(PULSING).setValue(pulsing);
@@ -165,7 +166,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
 
    private boolean setTimeTracking(XComponent form, XComponent workEffortDataSet) {
       boolean timeTrackingEnabled = false;
-      String timeTracking = OpSettings.get(OpSettings.ENABLE_TIME_TRACKING);
+      String timeTracking = OpSettingsService.getService().get(OpSettings.ENABLE_TIME_TRACKING);
       if (timeTracking != null) {
          timeTrackingEnabled = Boolean.valueOf(timeTracking);
       }
@@ -178,12 +179,17 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          //disable non-milestone activities on data set
          for (int i = 0; i < workEffortDataSet.getChildCount(); i++) {
             XComponent row = (XComponent) workEffortDataSet.getChild(i);
-            if (!row.getChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX).equals(OpGanttValidator.MILESTONE)) {
-               row.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
-               row.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX).setEnabled(false);
-               row.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
-               row.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
+            if (!((XComponent) row.getChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX)).getValue().equals(OpGanttValidator.MILESTONE)) {
+               ((XComponent) row.getChild(OpWorkEffortValidator.ENABLED_INDEX)).setValue(Boolean.FALSE);
             }
+
+            //<FIXME author="Mihai Costin" description="This is hiding a milestone related bug! This code should be inside the previous if">
+            row.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
+            row.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX).setEnabled(false);
+            row.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
+            row.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
+            //</FIXME>
+
          }
       }
 
@@ -237,7 +243,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
       }
       else {
-        ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+         ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
       }
       boolean costHasChildren = choiceCostActivitySet.getChildCount() > 0;
       form.findComponent(ADD_COST_BUTTON).setVisible(costHasChildren);
@@ -247,10 +253,8 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
          ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
       }
       else {
-        ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
+         ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
       }
-
-
 
 
    }

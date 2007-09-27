@@ -493,6 +493,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             hourRow.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
             hourRow.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
 
+            hoursValidator.setEnabled(hourRow, false);
             hours.addDataRow(hourRow);
          }
       }

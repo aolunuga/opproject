@@ -19,6 +19,7 @@ import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvide
 import onepoint.project.modules.project_planning.msproject.OpMSProjectManager;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionSetFactory;
@@ -665,7 +666,7 @@ public class OpProjectPlanningService extends OpProjectService {
          return;
       }
       /*get configuration form address  */
-      String fromEmailAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
+      String fromEmailAddress = OpSettingsService.getService().get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       try {
          message.setFrom(fromEmailAddress);
       }

@@ -64,7 +64,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
          if (getValue(row, COST_TYPE_INDEX) == null) {
             throw new XValidationException(RESOURCE_NAME_EXCEPTION);
          }
-         if (getValue(row, ACTUAL_COST_INDEX) == null || ((Double) getValue(row, ACTUAL_COST_INDEX)).doubleValue() < 0) {
+         if (getValue(row, ACTUAL_COST_INDEX) == null || ((Double) getValue(row, ACTUAL_COST_INDEX)).doubleValue() <= 0) {
             throw new XValidationException(ACTUAL_COST_EXCEPTION);
          }
          if ((getValue(row, REMAINING_COST_INDEX) == null || ((Double) getValue(row, REMAINING_COST_INDEX)).doubleValue() < 0)

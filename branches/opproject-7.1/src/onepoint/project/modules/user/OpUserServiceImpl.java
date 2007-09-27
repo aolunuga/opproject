@@ -4,17 +4,6 @@
 
 package onepoint.project.modules.user;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.naming.NamingException;
-import javax.naming.TimeLimitExceededException;
-
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -25,13 +14,19 @@ import onepoint.project.OpService;
 import onepoint.project.modules.ldap.OpLdapService;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpHashProvider;
 import onepoint.resource.XLocale;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XResourceCache;
 import onepoint.service.server.XServiceException;
-
 import org.hibernate.exception.ConstraintViolationException;
+
+import javax.naming.NamingException;
+import javax.naming.TimeLimitExceededException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service Implementation for Users and Groups.
@@ -324,7 +319,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       //configuration doesn't allow empty password fields
-      if ((!Boolean.valueOf(OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) &&
+      if ((!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) &&
            (user.passwordIsEmpty())) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISSING));
       }
@@ -540,7 +535,7 @@ public class OpUserServiceImpl implements OpService {
      // Fallback: Global locale setting in the database
      if (user_locale == null) {
         logger.info("Cannot determine user locale. Using global locale");
-        user_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+        user_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
      }
      session.setLocale(user_locale);
   }
@@ -690,7 +685,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       //check if configuration allows empty password fields
-      if (!Boolean.valueOf(OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) {
+      if (!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) {
          if (user.validatePassword(null)) {
             throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISSING));
          }

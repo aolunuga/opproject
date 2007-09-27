@@ -9,6 +9,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPreference;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
@@ -68,7 +69,7 @@ public class OpPreferencesFormProvider implements XFormProvider {
       passwordField.setStringValue(PASSWORD_TOKEN);
 
       //set up the hours view preference
-      Boolean showHours = Boolean.valueOf((OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS)));
+      Boolean showHours = Boolean.valueOf((OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS)));
       String showAssignInHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
       if (showAssignInHoursPref != null) {
          showHours = Boolean.valueOf(showAssignInHoursPref);

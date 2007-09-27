@@ -1,5 +1,0 @@
-<module name="schedule" caption="Scheduling" version="0.1" class="onepoint.project.modules.schedule.OpScheduleModule">
-   <prototype-files>
-      <prototype-file file-name="/modules/schedule/schedule.opt.xml"/>
-   </prototype-files>
-</module>

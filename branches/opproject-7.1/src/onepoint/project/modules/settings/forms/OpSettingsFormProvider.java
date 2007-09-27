@@ -11,9 +11,8 @@ import onepoint.express.util.XLanguageHelper;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
-import onepoint.project.module.OpModuleManager;
-import onepoint.project.modules.project_dates.OpProjectDatesModule;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
 import onepoint.project.util.OpEnvironmentManager;
@@ -47,9 +46,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    private static final String WEEK_WORK_TIME = "WeekWorkTime";
    private static final String EMAIL_NOTIFICATION_FROM_ADDRESS = "EMailNotificationFromAddress";
    private static final String EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL = "EMailNotificationFromAddressLabel";
-   private static final String REPORT_REMOVE_TIME_PERIOD = "ReportsRemoveTimePeriod";
    private static final String RESOURCE_MAX_AVAILABILITY = "ResourceMaxAvailability";
-   private static final String MILESTONE_CONTROLLING_INTERVAL = "MilestoneControllingInterval";
    private static final String ALLOW_EMPTY_PASSWORD = "AllowEmptyPassword";
    private static final String SHOW_RESOURCES_IN_HOURS = "ShowResourceHours";
    private static final String ENABLE_TIME_TRACKING = "EnableTimeTracking";
@@ -80,9 +77,9 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent fw = form.findComponent(FIRST_WORK_DAY);
       XComponent lw = form.findComponent(LAST_WORK_DAY);
       XComponent holidays = form.findComponent(HOLYDAYS);
-      String firstWorkday = OpSettings.get(OpSettings.CALENDAR_FIRST_WORKDAY);
-      String lastWorkday = OpSettings.get(OpSettings.CALENDAR_LAST_WORKDAY);
-      String lastLocation = OpSettings.get(OpSettings.CALENDAR_HOLIDAYS_LOCATION);
+      String firstWorkday = OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY);
+      String lastWorkday = OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY);
+      String lastLocation = OpSettingsService.getService().get(OpSettings.CALENDAR_HOLIDAYS_LOCATION);
       form.findComponent(ORIGINAL_HOLIDAY_CALENDAR).setStringValue(lastLocation);
 
       //fill weekdays data set
@@ -99,7 +96,7 @@ public class OpSettingsFormProvider implements XFormProvider {
 
       fillWorkTime(form);
 
-      String resourceMaxAvailability = OpSettings.get(OpSettings.RESOURCE_MAX_AVAILABYLITY);
+      String resourceMaxAvailability = OpSettingsService.getService().get(OpSettings.RESOURCE_MAX_AVAILABYLITY);
       XComponent resourceMaxAvailabilityTextField = form.findComponent(RESOURCE_MAX_AVAILABILITY);
       double available = 0;
       try {
@@ -110,39 +107,35 @@ public class OpSettingsFormProvider implements XFormProvider {
       }
       resourceMaxAvailabilityTextField.setDoubleValue(available);
 
-      fillMilestoneTrendSettings(form);
+      fillMilestoneSettings(form);
 
-      String emptyPasswordValue = OpSettings.get(OpSettings.ALLOW_EMPTY_PASSWORD);
+      String emptyPasswordValue = OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD);
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
       emptyPasswordCheckBox.setBooleanValue(Boolean.valueOf(emptyPasswordValue));
 
-      String showHours = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+      String showHours = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
       XComponent showHoursCheckBox = form.findComponent(SHOW_RESOURCES_IN_HOURS);
       showHoursCheckBox.setBooleanValue(Boolean.valueOf(showHours));
 
-      String reportsRemovePeriod = OpSettings.get(OpSettings.REPORT_REMOVE_TIME_PERIOD);
-      XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setIntValue(Integer.valueOf(reportsRemovePeriod));
-
-      String emailFromAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
+      String emailFromAddress = OpSettingsService.getService().get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
       mailMessageTextField.setStringValue(emailFromAddress);
 
       // Fill user locale data set
       XComponent dataSet = form.findComponent(USER_LOCALE_DATA_SET);
       XComponent userLocaleChoiceField = form.findComponent(USER_LOCALE);
-      String userLocaleId = OpSettings.get(OpSettings.USER_LOCALE);
+      String userLocaleId = OpSettingsService.getService().get(OpSettings.USER_LOCALE);
       XLanguageHelper.fillLanguageDataSet(dataSet, userLocaleChoiceField, userLocaleId);
       logger.info("***CURRRENT LOCALE '" + userLocaleId + "'");
 
       //enable time tracking
       XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
-      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.ENABLE_TIME_TRACKING)));
+      enableTimeTrackingField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ENABLE_TIME_TRACKING)));
 
       //pulsing
       XComponent enablePulsingField = form.findComponent(ENABLE_PULSING);
       XComponent pulsingField = form.findComponent(PULSING);
-      String pulsingValue = OpSettings.get(OpSettings.PULSING);
+      String pulsingValue = OpSettingsService.getService().get(OpSettings.PULSING);
       if (pulsingValue == null) {
          enablePulsingField.setBooleanValue(false);
          pulsingField.setEnabled(false);
@@ -158,7 +151,7 @@ public class OpSettingsFormProvider implements XFormProvider {
          hideManagerfeaturesField.setVisible(false);
       }
       else {
-         hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES)));
+         hideManagerfeaturesField.setBooleanValue(Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES)));
       }
 
       //currency
@@ -169,7 +162,6 @@ public class OpSettingsFormProvider implements XFormProvider {
          mailMessageTextField.setVisible(false);
          form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS_LABEL).setVisible(false);
          emptyPasswordCheckBox.setVisible(false);
-    //     form.findComponent(HIDE_MANAGER_FEATURES).setVisible(false);
       }
 
       // only administrator can modifiy the settings
@@ -178,19 +170,12 @@ public class OpSettingsFormProvider implements XFormProvider {
       }
    }
 
-   protected void fillMilestoneTrendSettings(XComponent form) {
-      String milestoneControllingInterval = OpSettings.get(OpSettings.MILESTONE_CONTROLLING_INTERVAL);
-      XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setIntValue(Integer.valueOf(milestoneControllingInterval));
-      OpProjectDatesModule projectDatesModule = (OpProjectDatesModule) OpModuleManager.getModuleRegistry().getModule(OpProjectDatesModule.MODULE_NAME);
-      if (!projectDatesModule.enableMilestoneControllingIntervalSetting()) {
-         milestoneControllingIntervalField.setEnabled(false);
-      }
+   protected void fillMilestoneSettings(XComponent form) {
    }
 
    private void fillWorkTime(XComponent form) {
       XComponent dayWorkTimeField = form.findComponent(DAY_WORK_TIME);
-      String dayWorkTimeString = OpSettings.get(OpSettings.CALENDAR_DAY_WORK_TIME);
+      String dayWorkTimeString = OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME);
       double dayWorkTime;
       try {
          dayWorkTime = Double.valueOf(dayWorkTimeString);
@@ -202,7 +187,7 @@ public class OpSettingsFormProvider implements XFormProvider {
       logger.debug("   dwt " + dayWorkTimeString);
 
       XComponent weekWorkTimeField = form.findComponent(WEEK_WORK_TIME);
-      String weekWorkTimeString = OpSettings.get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      String weekWorkTimeString = OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME);
       double weekWorkTime;
       try {
          weekWorkTime = Double.valueOf(weekWorkTimeString);
@@ -214,7 +199,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    }
 
    private void fillCurency(XComponent form) {
-      String currencyShortName = OpSettings.get(OpSettings.CURRENCY_SHORT_NAME);
+      String currencyShortName = OpSettingsService.getService().get(OpSettings.CURRENCY_SHORT_NAME);
       XComponent currencyChoice = form.findComponent(CURRENCY_CHOICE_ID);
       String currencySeparator = form.findComponent(CURRENCY_NAME_SYMBOL_SEPARATOR_ID).getStringValue();
       XComponent currencyDataSet = form.findComponent(CURRENCY_DATASET_ID);
@@ -232,7 +217,7 @@ public class OpSettingsFormProvider implements XFormProvider {
    }
 
 
-   private void disableFields(XComponent form) {
+   protected void disableFields(XComponent form) {
       XComponent saveButton = form.findComponent(SAVE_BUTTON);
       saveButton.setEnabled(false);
 
@@ -254,9 +239,6 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent mailMessageTextField = form.findComponent(EMAIL_NOTIFICATION_FROM_ADDRESS);
       mailMessageTextField.setEnabled(false);
 
-      XComponent reportRemovePeriodTextField = form.findComponent(REPORT_REMOVE_TIME_PERIOD);
-      reportRemovePeriodTextField.setEnabled(false);
-
       XComponent emptyPasswordCheckBox = form.findComponent(ALLOW_EMPTY_PASSWORD);
       emptyPasswordCheckBox.setEnabled(false);
 
@@ -269,8 +251,6 @@ public class OpSettingsFormProvider implements XFormProvider {
       XComponent holidays = form.findComponent(HOLYDAYS);
       holidays.setEnabled(false);
 
-      XComponent milestoneControllingIntervalField = form.findComponent(MILESTONE_CONTROLLING_INTERVAL);
-      milestoneControllingIntervalField.setEnabled(false);
 
       XComponent enableTimeTrackingField = form.findComponent(ENABLE_TIME_TRACKING);
       enableTimeTrackingField.setEnabled(false);
