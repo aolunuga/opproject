@@ -11,7 +11,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
@@ -145,7 +145,7 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
       args.put(OpResource.INHERIT_POOL_RATE, Boolean.valueOf(inheritrate));
       args.put("PoolID", poolid);
       args.put(OpResourceService.PROJECTS, projects);
-      args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_DATA, args);
       return request;
@@ -161,7 +161,7 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
       args.put(OpResource.INHERIT_POOL_RATE, Boolean.valueOf(inheritrate));
       args.put("UserID", userid);
       args.put(OpResourceService.PROJECTS, projects);
-      args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.RESOURCE_ID, id);
@@ -262,7 +262,7 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
       args.put(OpResourcePool.HOURLY_RATE, new Double(hourlyrate));
       args.put(OpResourcePool.EXTERNAL_RATE, new Double(externalrate));
       args.put("SuperPoolID", superid);
-      args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.POOL_DATA, args);
@@ -284,7 +284,7 @@ public class OpResourceTestDataFactory extends OpTestDataFactory {
       args.put(OpResourcePool.DESCRIPTION, description);
       args.put(OpResourcePool.HOURLY_RATE, hourlyrate);
       args.put(OpResourcePool.EXTERNAL_RATE, externalrate);
-      args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
       XMessage request = new XMessage();
       request.setArgument(OpResourceService.POOL_ID, id);

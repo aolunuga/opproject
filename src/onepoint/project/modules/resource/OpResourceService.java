@@ -198,8 +198,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             return reply;
          }
 
-         XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
-         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
+         XComponent permission_set = (XComponent) resource_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+         XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, resource, permission_set);
          if (result != null) {
             reply.setError(result);
             return reply;
@@ -326,7 +326,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          //persist entity
          broker.makePersistent(resource);
          //persist permissions
-         OpPermissionSetFactory.addSystemObjectPermissions(session, broker, resource);
+         OpPermissionDataSetFactory.addSystemObjectPermissions(session, broker, resource);
 
          // Add projects assignments
          List<String> assignedProjects = (List<String>) resourceData.get(PROJECTS);
@@ -530,8 +530,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          }
 
          //update permissions
-         XComponent permission_set = (XComponent) resource_data.get(OpPermissionSetFactory.PERMISSION_SET);
-         XError result = OpPermissionSetFactory.storePermissionSet(broker, session, resource, permission_set);
+         XComponent permission_set = (XComponent) resource_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+         XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, resource, permission_set);
          if (result != null) {
             reply.setError(result);
             return reply;
@@ -988,8 +988,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpTransaction t = broker.newTransaction();
       broker.makePersistent(pool);
 
-      XComponent permission_set = (XComponent) pool_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, pool, permission_set);
+      XComponent permission_set = (XComponent) pool_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, pool, permission_set);
       if (result != null) {
          reply.setError(result);
          broker.close();
@@ -1086,8 +1086,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
       broker.updateObject(pool);
 
-      XComponent permission_set = (XComponent) pool_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, pool, permission_set);
+      XComponent permission_set = (XComponent) pool_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, pool, permission_set);
       if (result != null) {
          reply.setError(result);
          broker.close();
@@ -1467,7 +1467,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       rootPool.setName(OpResourcePool.ROOT_RESOURCE_POOL_NAME);
       rootPool.setDescription(OpResourcePool.ROOT_RESOURCE_POOL_DESCRIPTION);
       broker.makePersistent(rootPool);
-      OpPermissionSetFactory.addSystemObjectPermissions(session, broker, rootPool);
+      OpPermissionDataSetFactory.addSystemObjectPermissions(session, broker, rootPool);
       t.commit();
       return rootPool;
    }

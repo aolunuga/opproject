@@ -19,7 +19,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XServiceManager;
@@ -1859,11 +1859,11 @@ public abstract class OpActivityDataSetFactory {
       attachment.setName((String) attachmentElement.get(2));
       attachment.setLocation((String) attachmentElement.get(3));
       if (plan != null) {
-         OpPermissionSetFactory.updatePermissions(broker, plan.getProjectNode(), attachment);
+         OpPermissionDataSetFactory.updatePermissions(broker, plan.getProjectNode(), attachment);
       }
       else {
          if (projectNode != null) {
-            OpPermissionSetFactory.updatePermissions(broker, projectNode, attachment);
+            OpPermissionDataSetFactory.updatePermissions(broker, projectNode, attachment);
          }
       }
 

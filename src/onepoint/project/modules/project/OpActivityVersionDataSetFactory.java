@@ -17,7 +17,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.util.XCalendar;
@@ -1171,7 +1171,7 @@ public abstract class OpActivityVersionDataSetFactory {
          attachment.setLinked(OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0)));
          attachment.setName((String) attachmentElement.get(2));
          attachment.setLocation((String) attachmentElement.get(3));
-         OpPermissionSetFactory.updatePermissions(broker, planVersion.getProjectPlan().getProjectNode(), attachment);
+         OpPermissionDataSetFactory.updatePermissions(broker, planVersion.getProjectPlan().getProjectNode(), attachment);
 
          if (!attachment.getLinked()) {
             String contentId = (String) attachmentElement.get(4);

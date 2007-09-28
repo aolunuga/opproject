@@ -15,7 +15,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -53,7 +53,7 @@ public class OpImportUserFormProvider implements XFormProvider {
       this.fillPoolDataSet(form, broker, localizer, selectedPool.getID());
 
       //fill users
-      localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
       this.fillUsersDataSet(form, broker, localizer);
 
       this.prepareHourlyRateFields(form, selectedPool, broker);

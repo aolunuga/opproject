@@ -61,8 +61,8 @@ public class OpSettingsService extends OpProjectService {
 
    protected OpSettings settings;
 
-   public OpSettingsService(){
-       settings = new OpSettings();
+   public OpSettingsService() {
+      settings = new OpSettings();
    }
 
 
@@ -184,7 +184,6 @@ public class OpSettingsService extends OpProjectService {
          location = XValidator.choiceID(value);
          newSettings.put(OpSettings.CALENDAR_HOLIDAYS_LOCATION, location);
       }
-
 
       //Show_ResourceHours
       Boolean showResourceHoursValue = (Boolean) settings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
@@ -393,7 +392,22 @@ public class OpSettingsService extends OpProjectService {
       session.setCalendar(calendar);
    }
 
-   public Map<String, String> getI18NParameters() {
+   private Map<String, String> getI18NParameters() {
       return settings.getI18NParameters();
    }
+
+   public static Map<String, String> getI18NParametersMap() {
+      OpSettingsService settingsService = getService();
+      Map<String, String> localizerParameters;
+
+      if (settingsService == null) {
+         OpSettings defaultSettings = new OpSettings();
+         localizerParameters = defaultSettings.getI18NParameters();
+      }
+      else {
+         localizerParameters = settingsService.getI18NParameters();
+      }
+      return localizerParameters;
+   }
+
 }

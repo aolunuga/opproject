@@ -67,7 +67,7 @@ public class OpEditUserFormProvider implements XFormProvider {
       XComponent passwordConfirm = form.findComponent(PASSWORD_RETYPED);
       XComponent description = form.findComponent(OpUser.DESCRIPTION);
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
       description.setStringValue(localizer.localize(user.getDescription()));
 
       // do not fill password field with data from db, because password is stored as the hash of the original password
@@ -149,7 +149,7 @@ public class OpEditUserFormProvider implements XFormProvider {
       }
 
       XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);
-      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionSetFactory.USER_OBJECTS);
+      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionDataSetFactory.USER_OBJECTS);
       Iterator assignments = user.getAssignments().iterator();
       OpUserAssignment assignment = null;
       OpGroup group = null;

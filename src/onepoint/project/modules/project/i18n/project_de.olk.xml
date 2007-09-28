@@ -161,6 +161,7 @@
       <resource id="DeleteVersions">Versionen löschen</resource>
 
       <resource id="WorkingVersion">Arbeitskopie des Projektplans</resource>
+      <resource id="ActualVersion">Actual Project Plan Version</resource>
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>

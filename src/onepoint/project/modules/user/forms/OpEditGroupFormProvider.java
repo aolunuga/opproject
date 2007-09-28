@@ -13,7 +13,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpGroupAssignment;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -43,7 +43,7 @@ public class OpEditGroupFormProvider implements XFormProvider {
       form.findComponent("EditMode").setBooleanValue(edit_mode.booleanValue());
       // Attention: We are using display name here in order to localize name of group "Everyone"
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
       XComponent name = form.findComponent("Name");
       name.setStringValue(localizer.localize(group.getDisplayName()));
       XComponent desc = form.findComponent("Description");

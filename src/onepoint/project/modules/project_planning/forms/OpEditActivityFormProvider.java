@@ -21,7 +21,7 @@ import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpProjectConstants;
@@ -199,7 +199,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
 
       //use localizer to localize name of administrator
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       while (result.hasNext()) {
          record = (Object[]) result.next();

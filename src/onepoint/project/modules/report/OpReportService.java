@@ -23,7 +23,7 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.documents.OpDynamicResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpHashProvider;
 import onepoint.resource.XLocaleManager;
@@ -230,7 +230,7 @@ public class OpReportService extends OpProjectService {
          String creator = "";
          if (user != null) {
             XLocalizer localizer = new XLocalizer();
-            localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+            localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
             creator = localizer.localize(user.getDisplayName());
          }
          //get the resource map for the report         

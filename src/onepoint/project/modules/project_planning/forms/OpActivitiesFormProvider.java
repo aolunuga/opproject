@@ -6,6 +6,7 @@ package onepoint.project.modules.project_planning.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
@@ -295,10 +296,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       broker.close();
 
-      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
+      XValidator validator = activityDataSet.validator();
       if (validator != null) {
-         if (validateProjectPlan.booleanValue()) {
-            validator.validateDataSet();
+         if (validateProjectPlan) {
+            validator.validateEntireDataSet();
          }
       }
 
