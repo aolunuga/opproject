@@ -9,7 +9,6 @@ import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
@@ -60,12 +59,11 @@ public class OpProjectSession extends XExpressSession {
       //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
       //<FIXME author="Horia Chiorean" description="For the case when the configuration wizard appears, there are no sources !">
       if (!OpSourceManager.getAllSources().isEmpty()) {
-         this.init(((OpHibernateSource) OpSourceManager.getAllSources().iterator().next()).getName());
+         this.init((OpSourceManager.getAllSources().iterator().next()).getName());
       }
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
-         OpSettings defaultSettings = new OpSettings();
-         super.setLocalizerParameters(defaultSettings.getI18NParameters());
+         super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
       }
       //<FIXME>
    }
@@ -100,16 +98,7 @@ public class OpProjectSession extends XExpressSession {
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
       }
-      OpSettingsService settingsService = OpSettingsService.getService();
-      Map<String, String> localizerParameters;
-      if (settingsService == null) {
-         OpSettings defaultSettings = new OpSettings();
-         localizerParameters = defaultSettings.getI18NParameters();
-      }
-      else {
-         localizerParameters = settingsService.getI18NParameters();
-      }
-      super.setLocalizerParameters(localizerParameters);
+      super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
    }
 
    /**

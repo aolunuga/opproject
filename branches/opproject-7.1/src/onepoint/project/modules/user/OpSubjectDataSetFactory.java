@@ -59,7 +59,7 @@ public final class OpSubjectDataSetFactory {
 
       // We are using display name here in order to localize name of group "Everyone"
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       OpBroker broker = session.newBroker();
       addSubGroupRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);

@@ -591,11 +591,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
                   OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
                }
             }
-            Date oldFinish = OpGanttValidator.getEnd(dataRow);
             updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
-            if (oldFinish != null && !oldFinish.equals(OpGanttValidator.getEnd(dataRow))) {
-               validateSuccessors = true;
-            }
             //update collection
             updateCollectionTreeValues(dataRow);
          }

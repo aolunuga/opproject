@@ -14,7 +14,7 @@ import onepoint.project.modules.project.OpProjectStatus;
 import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.project_status.OpProjectStatusError;
 import onepoint.project.modules.project_status.OpProjectStatusService;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
@@ -351,7 +351,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       args.put(OpProjectNode.ARCHIVED, OpProjectNode.DEFAULT_ARCHIVED);
       args.put(OpProjectNode.STATUS, status2.locator());
       args.put("PortfolioID", "OpProjectNode.0.xid");
-      args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
       request = new XMessage();
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);

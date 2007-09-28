@@ -10,7 +10,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.user.OpGroup;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserLanguageManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -47,7 +47,7 @@ public class OpNewUserFormProvider implements XFormProvider {
       //set up the everyone group field
       XComponent everyoneField = form.findComponent(EVERYONE_GROUP_FIELD);
       //assume that everyone group always exists (becouse is a system -managed group that can't be deleted)
-      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionSetFactory.USER_OBJECTS);
+      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionDataSetFactory.USER_OBJECTS);
       OpGroup everyone = session.everyone(broker);
       everyoneField.setStringValue(XValidator.choice(everyone.locator(), userObjectsLocalizer.localize(everyone.getDisplayName())));
 

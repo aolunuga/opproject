@@ -8,7 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
@@ -29,7 +29,7 @@ public class OpHeaderFormProvider implements XFormProvider {
       OpUser user = session.user(broker);
       // Localizer is used to localize administrator user display name
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
       if (OpEnvironmentManager.isMultiUser()) {
          form.findComponent(USER_DISPLAY_NAME).setText(localizer.localize(user.getDisplayName()));
          form.findComponent(BANDWIDTH_INFO).setVisible(true);
