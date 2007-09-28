@@ -9,10 +9,10 @@ import onepoint.express.server.XExpressSession;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpGroup;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
@@ -59,11 +59,11 @@ public class OpProjectSession extends XExpressSession {
       //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
       //<FIXME author="Horia Chiorean" description="For the case when the configuration wizard appears, there are no sources !">
       if (!OpSourceManager.getAllSources().isEmpty()) {
-         this.init(((OpHibernateSource) OpSourceManager.getAllSources().iterator().next()).getName());
+         this.init((OpSourceManager.getAllSources().iterator().next()).getName());
       }
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
-         super.setLocalizerParameters(OpSettings.getI18NParameters());
+         super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
       }
       //<FIXME>
    }
@@ -98,14 +98,14 @@ public class OpProjectSession extends XExpressSession {
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
       }
-      super.setLocalizerParameters(OpSettings.getI18NParameters());
+      super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
    }
 
    /**
     * Resets the session locale to the system default locale.
     */
    public void resetLocaleToSystemDefault() {
-      XLocale default_locale = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE));
+      XLocale default_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
       super.setLocale(default_locale);
    }
 
@@ -618,7 +618,7 @@ public class OpProjectSession extends XExpressSession {
     * Loads the application settings in this session.
     */
    public void loadSettings() {
-      OpSettings.loadSettings(this);
-      OpSettings.configureServerCalendar(this);
+      OpSettingsService.getService().loadSettings(this);
+      OpSettingsService.getService().configureServerCalendar(this);
    }
 }

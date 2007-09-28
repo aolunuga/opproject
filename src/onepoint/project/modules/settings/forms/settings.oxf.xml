@@ -71,18 +71,12 @@
                 <!-- Notification sender email adress -->
                <label x="0" y="7" width="2" text="${EMailNotificationFromAddress}" id="EMailNotificationFromAddressLabel"/>
                <text-field x="2" y="7" width="3" id="EMailNotificationFromAddress"/>
-               <!-- Report archiving period -->
-               <label x="0" y="8" width="2" text="${ReportsRemoveTimePeriod}"/>
-               <int-field x="2" y="8" width="3" id="ReportsRemoveTimePeriod" lower-limit="1"/>
                <!-- Show resource assignment in hours -->
                <check-box x="2" y="9" width="3" id="ShowResourceHours" text="${ShowResourceHours}"/>
                <!-- Rotate chart (closed) -->
                <!-- Resource availability -->
                <label x="0" y="11" width="2" text="${ResourceMaxAvailability}"/>
                <double-field x="2" y="11" width="3" id="ResourceMaxAvailability"/>
-               <!-- Milestone controlling interval -->
-               <label x="0" y="12" width="2" text="${MilestoneControllingInterval}"/>
-               <int-field x="2" y="12" width="3" id="MilestoneControllingInterval" lower-limit="1"/>
                <!-- Enable time tracking -->
                <check-box x="2" y="13" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
                <!-- Enable pulsing -->

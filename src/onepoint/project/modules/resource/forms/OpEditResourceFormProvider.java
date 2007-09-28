@@ -16,7 +16,7 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
@@ -111,7 +111,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
       OpUser user = resource.getUser();
       if (user != null) {
          XLocalizer localizer = new XLocalizer();
-         localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+         localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
          XComponent userName = form.findComponent(USER_NAME);
          userName.setStringValue(XValidator.choice(user.locator(), localizer.localize(user.getDisplayName())));
@@ -158,8 +158,8 @@ public class OpEditResourceFormProvider implements XFormProvider {
       else {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, editMode, accessLevel);
+         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, resource.getPermissions(), permissionSet, OpResourceModule.RESOURCE_ACCESS_LEVELS, session.getLocale());
+         OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
 
       prepareHourlyRatePeriodsAdvancedFeature(form, editMode, resource);

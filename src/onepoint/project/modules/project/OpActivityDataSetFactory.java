@@ -18,7 +18,8 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.settings.OpSettingsService;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.work.OpProgressCalculator;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XServiceManager;
@@ -166,7 +167,7 @@ public abstract class OpActivityDataSetFactory {
       //set also the visual resources (uses the value of the dataset as a value holder)
       Boolean showHours = (Boolean) dataSet.getValue();
       if (showHours == null) {
-         showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+         showHours = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS));
       }
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
@@ -470,7 +471,7 @@ public abstract class OpActivityDataSetFactory {
       //set also the visual resources (uses the value of the dataset as a value holder)
       Boolean showHours = (Boolean) dataSet.getValue();
       if (showHours == null) {
-         showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+         showHours = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS));
       }
       Iterator it = activityRowMap.values().iterator();
       while (it.hasNext()) {
@@ -1858,11 +1859,11 @@ public abstract class OpActivityDataSetFactory {
       attachment.setName((String) attachmentElement.get(2));
       attachment.setLocation((String) attachmentElement.get(3));
       if (plan != null) {
-         OpPermissionSetFactory.updatePermissions(broker, plan.getProjectNode(), attachment);
+         OpPermissionDataSetFactory.updatePermissions(broker, plan.getProjectNode(), attachment);
       }
       else {
          if (projectNode != null) {
-            OpPermissionSetFactory.updatePermissions(broker, projectNode, attachment);
+            OpPermissionDataSetFactory.updatePermissions(broker, projectNode, attachment);
          }
       }
 

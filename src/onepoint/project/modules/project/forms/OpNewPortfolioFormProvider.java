@@ -11,7 +11,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectModule;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
 
@@ -53,9 +53,9 @@ public class OpNewPortfolioFormProvider implements XFormProvider {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          // Retrieve permission set of portfolio -- inheritance of permissions
-         OpPermissionSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
+         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
               OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
+         OpPermissionDataSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
       }
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);

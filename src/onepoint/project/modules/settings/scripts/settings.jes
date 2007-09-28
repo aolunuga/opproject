@@ -22,10 +22,8 @@ function gatherData(){
    settings.Calendar_WeekWorkTime = form.findComponent("WeekWorkTime").getDoubleValue();
    settings.Allow_EmptyPassword = form.findComponent("AllowEmptyPassword").getBooleanValue();
    settings.EMail_FromAddress = form.findComponent("EMailNotificationFromAddress").getStringValue();
-   settings.Report_RemoveTimePeriod = form.findComponent("ReportsRemoveTimePeriod").getIntValue();
    settings.Calendar_HolidaysLocation = form.findComponent("HolidaysChoice").getStringValue();
    settings.Resource_MaxAvailability = form.findComponent("ResourceMaxAvailability").getDoubleValue();
-   settings.Milestone_ControllingInterval = form.findComponent("MilestoneControllingInterval").getIntValue();
    settings.Show_ResourceHours = form.findComponent("ShowResourceHours").getBooleanValue();
 
    enablePulsing = form.findComponent("EnablePulsing").getBooleanValue();

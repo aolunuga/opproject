@@ -17,7 +17,7 @@ import onepoint.service.XError;
 
 import java.util.*;
 
-public class OpPermissionSetFactory {
+public class OpPermissionDataSetFactory {
 
    /**
     * The user error map.

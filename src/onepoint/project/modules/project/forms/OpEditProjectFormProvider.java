@@ -14,7 +14,7 @@ import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -49,6 +49,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PROJECT_INFO = "project.Info";
    private final static String NO_STATUS = "NoStatus";
    private final static String WORKING_VERSION = "WorkingVersion";
+   private final static String ACTUAL_VERSION = "ActualVersion";
    private final static String NULL_ID = "null";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
@@ -205,9 +206,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
       if (OpEnvironmentManager.isMultiUser()) {
          byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
+         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
               OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, editMode, accessLevel);
+         OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
@@ -360,7 +361,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
     */
    private void fillVersionsDataSet(XComponent form, boolean editMode, OpProjectPlan projectPlan, OpProjectSession session) {
       XLocalizer userObjectsLocalizer = new XLocalizer();
-      userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.WORKING_VERSION_NUMBER));
 
@@ -372,16 +373,29 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       Set planVersions = projectPlan.getVersions();
       Iterator it = planVersions.iterator();
+      OpProjectPlanVersion latestVersion = null;
+      int maxVersionNr = 0;
       while (it.hasNext()) {
          OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
          int versionNr = version.getVersionNumber();
-         XComponent dataRow = this.createProjectVersionDataRow(session, version,
-              userObjectsLocalizer, editMode);
-         if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
-            workingDataRow = dataRow;
+         //<FIXME author="Mihai Costin" description="Opp-246">
+         if (versionNr != 1) {
+            //</FIXME>
+            XComponent dataRow = this.createProjectVersionDataRow(session, version,
+                 userObjectsLocalizer, editMode);
+            if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+               workingDataRow = dataRow;
+            }
+            else {
+               rowsMap.put(versionNr, dataRow);
+               if (versionNr > maxVersionNr) {
+                  latestVersion = version;
+                  maxVersionNr = versionNr;
+               }
+            }
          }
          else {
-            rowsMap.put(versionNr, dataRow);
+            latestVersion = version;
          }
       }
 
@@ -390,6 +404,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
       if (workingDataRow.getChildCount() > 0) {
          versionsDataSet.addChild(workingDataRow);
       }
+
+      //add the current version
+      if (latestVersion != null) {
+         XComponent actualVersionRow = createActualVersionRow(projectPlan, session, latestVersion, userObjectsLocalizer, editMode);
+         versionsDataSet.addChild(actualVersionRow);
+      }
+
       for (int i = versionNumbers.length - 1; i >= 0; i--) {
          Integer versionNumber = versionNumbers[i];
          versionsDataSet.addChild(rowsMap.get(versionNumber));
@@ -407,6 +428,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
     */
    protected XComponent createProjectVersionDataRow(OpProjectSession session, OpProjectPlanVersion version,
         XLocalizer userObjectsLocalizer, boolean editMode) {
+
       int versionNr = version.getVersionNumber();
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
 
@@ -426,7 +448,9 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
       }
       else {
-         dataCell.setStringValue(String.valueOf(versionNr));
+         //<FIXME author="Mihai Costin" description="Opp-246">
+         dataCell.setStringValue(String.valueOf(versionNr - 1));
+         //</FIXME>
       }
       dataRow.addChild(dataCell);
 
@@ -442,12 +466,49 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataCell.setDateValue(version.getCreated());
       dataRow.addChild(dataCell);
 
+      //<FIXME author="Mihai Costin" description="Neeed here because table column can't be extended with forms">
       //empty row - 4 (will be overridden in team edition)
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataRow.addChild(dataCell);
+      //</FIXME>
 
       return dataRow;
    }
+
+   protected XComponent createActualVersionRow(OpProjectPlan plan, OpProjectSession session, OpProjectPlanVersion latestVersion, XLocalizer userObjectsLocalizer, boolean editMode) {
+      XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+
+      //version id - 0
+      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(String.valueOf(OpProjectPlan.ACTUAL_VERSION_NUMBER));
+      dataRow.addChild(dataCell);
+
+      //version number - 1
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(ACTUAL_VERSION).getText());
+      dataRow.addChild(dataCell);
+
+      //created by - 2
+      String creator = latestVersion.getCreator();
+      String createdBy = userObjectsLocalizer.localize(creator);
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setStringValue(createdBy);
+      dataRow.addChild(dataCell);
+
+      //created on - 3
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setDateValue(plan.getCreated());
+      dataRow.addChild(dataCell);
+
+      //<FIXME author="Mihai Costin" description="Neeed here because table column can't be extended with forms">
+      //empty row - 4 (will be overridden in team edition)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataRow.addChild(dataCell);
+      //</FIXME>
+
+      return dataRow;
+   }
+
 
    /**
     * Fills the attachments for the edited project.

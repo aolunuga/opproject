@@ -9,6 +9,7 @@ import onepoint.express.XValidator;
 import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
@@ -58,7 +59,7 @@ public final class OpSubjectDataSetFactory {
 
       // We are using display name here in order to localize name of group "Everyone"
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       OpBroker broker = session.newBroker();
       addSubGroupRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
@@ -344,7 +345,7 @@ public final class OpSubjectDataSetFactory {
     */
    public static boolean shouldHideFromUser(OpUser user) {
       if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
          if (hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
             return true;
 

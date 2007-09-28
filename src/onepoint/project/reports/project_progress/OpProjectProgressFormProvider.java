@@ -11,7 +11,7 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -42,7 +42,7 @@ public class OpProjectProgressFormProvider implements XFormProvider {
       Map<String, Long> projectsWithBaseline = (Map<String, Long>) projectsWithBaselineDataField.getValue();
 
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
 
