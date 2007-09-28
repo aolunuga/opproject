@@ -6,6 +6,7 @@ package onepoint.project.modules.project_planning.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
+import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
@@ -16,6 +17,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.*;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XSession;
@@ -145,7 +147,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
          //set show resource hours
          String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
          if (showHoursPref == null) {
-            showHoursPref = OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS);
+            showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
          }
          Boolean showHours = Boolean.valueOf(showHoursPref);
          form.findComponent(SHOW_RESOURCE_HOURS).setBooleanValue(showHours.booleanValue());
@@ -294,10 +296,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       broker.close();
 
-      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
+      XValidator validator = activityDataSet.validator();
       if (validator != null) {
-         if (validateProjectPlan.booleanValue()) {
-            validator.validateDataSet();
+         if (validateProjectPlan) {
+            validator.validateEntireDataSet();
          }
       }
 

@@ -8,6 +8,7 @@ import onepoint.express.XComponent;
 import onepoint.express.util.XLanguageHelper;
 import onepoint.persistence.OpBroker;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 
 import java.util.Iterator;
 
@@ -37,7 +38,7 @@ public final class OpUserLanguageManager {
       //find the user's language
       String currentLanguage = getUserLanguage(user);
       if (currentLanguage == null) {
-         currentLanguage = OpSettings.get(OpSettings.USER_LOCALE);
+         currentLanguage = OpSettingsService.getService().get(OpSettings.USER_LOCALE);
       }
 
       XLanguageHelper.fillLanguageDataSet(languageDataSet, languageField, currentLanguage);

@@ -1875,6 +1875,10 @@ public class OpGanttValidator extends XValidator {
       return true;
    }
 
+   public void validateEntireDataSet() {
+      validateGanttChart();
+   }
+
    /*
     * public boolean validateDataRow(XComponent data_row) { return false; }
     */

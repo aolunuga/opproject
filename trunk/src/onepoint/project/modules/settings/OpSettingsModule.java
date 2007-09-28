@@ -8,7 +8,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
-import onepoint.project.modules.backup.OpBackupManager;
 
 public class OpSettingsModule extends OpModule {
 
@@ -16,7 +15,6 @@ public class OpSettingsModule extends OpModule {
 
    public void start(OpProjectSession session) {
       // Load settings
-      OpSettings.loadSettings(session);
-      OpBackupManager.addSystemObjectIDQuery(OpSettings.REPORT_ARCHIVE_SCHEDULE_NAME_DEFAULT, OpSettings.REPORT_ARCHIVE_SCHEDULE_QUERY);
+      OpSettingsService.getService().loadSettings(session);
    }
 }

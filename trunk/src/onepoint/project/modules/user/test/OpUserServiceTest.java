@@ -9,6 +9,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.*;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
@@ -1404,7 +1405,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       logIn(TEST_USER_NAME, TEST_USER_NAME);
       assertEquals("The locale of the logged in user is not correct ", language, session.getLocale().getID());
       logOut();
-      String systemLocaleId = XLocaleManager.findLocale(OpSettings.get(OpSettings.USER_LOCALE)).getID();
+      String systemLocaleId = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE)).getID();
       assertEquals("The locale of the session is not the system locale ", systemLocaleId, session.getLocale().getID());
    }
 

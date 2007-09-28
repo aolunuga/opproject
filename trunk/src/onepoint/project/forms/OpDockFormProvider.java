@@ -13,6 +13,7 @@ import onepoint.project.module.OpTool;
 import onepoint.project.module.OpToolGroup;
 import onepoint.project.module.OpToolManager;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -86,7 +87,7 @@ public class OpDockFormProvider implements XFormProvider {
     *    is set to false) the manager level on the tools that need to be hidden/shown from non manager users.
     */
    private void modifyToolManagerLevel() {
-      Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
 
       Iterator<List<OpTool>> toolListsIterator = OpToolManager.getToolLists();
       while (toolListsIterator.hasNext()) {
@@ -208,7 +209,7 @@ public class OpDockFormProvider implements XFormProvider {
     *    is set to false) the manager level on the tool groups that need to be hidden/shown from non manager users.
     */
    private void modifyToolGroupManagerLevel() {
-      Boolean hideManagerFeatures = Boolean.valueOf(OpSettings.get(OpSettings.HIDE_MANAGER_FEATURES));
+      Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
 
      Iterator<List<OpToolGroup>> groupListsIterator = OpToolManager.getGroupLists();
       while (groupListsIterator.hasNext()) {

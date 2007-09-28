@@ -12,7 +12,7 @@ import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectAdministrationService;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
@@ -310,7 +310,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         args.put(OpProjectNode.NAME, name);
         args.put(OpProjectNode.DESCRIPTION, description);
         args.put("SuperPortfolioID", parent);
-        args.put(OpPermissionSetFactory.PERMISSION_SET, set);
+        args.put(OpPermissionDataSetFactory.PERMISSION_SET, set);
 
         XMessage request = new XMessage();
         request.setArgument(OpProjectAdministrationService.PORTFOLIO_DATA, args);
@@ -325,7 +325,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         args.put(OpProjectNode.TYPE, OpProjectNode.PORTFOLIO);
         args.put(OpProjectNode.NAME, name);
         args.put(OpProjectNode.DESCRIPTION, description);
-        args.put(OpPermissionSetFactory.PERMISSION_SET, set);
+        args.put(OpPermissionDataSetFactory.PERMISSION_SET, set);
 
         XMessage request = new XMessage();
         request.setArgument(OpProjectAdministrationService.PORTFOLIO_ID, id);
@@ -384,7 +384,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
       args.put("PortfolioID", portfolio);
       args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
       args.put(OpProjectPlan.PROGRESS_TRACKED, prgTrk);
-      args.put(OpPermissionSetFactory.PERMISSION_SET, dataSet);
+      args.put(OpPermissionDataSetFactory.PERMISSION_SET, dataSet);
 
       XMessage request = new XMessage();
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
@@ -421,7 +421,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         args.put("PortfolioID", portfolio);
         args.put(OpProjectPlan.CALCULATION_MODE, calcMode);
         args.put(OpProjectPlan.PROGRESS_TRACKED, prgTrk);
-        args.put(OpPermissionSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
+        args.put(OpPermissionDataSetFactory.PERMISSION_SET, new XComponent(XComponent.DATA_SET));
 
         XMessage request = new XMessage();
         request.setArgument(OpProjectAdministrationService.PROJECT_ID, id);

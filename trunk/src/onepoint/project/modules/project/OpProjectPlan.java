@@ -46,6 +46,7 @@ public class OpProjectPlan extends OpObject {
    private Set<OpDependency> dependencies;
    private Set<OpProjectPlanVersion> versions;
    public final static int WORKING_VERSION_NUMBER = -1;
+   public final static int ACTUAL_VERSION_NUMBER = 0;
 
    public void setStart(Date start) {
       this.start = start;

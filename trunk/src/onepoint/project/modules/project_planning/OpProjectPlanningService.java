@@ -19,9 +19,10 @@ import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvide
 import onepoint.project.modules.project_planning.msproject.OpMSProjectManager;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -255,7 +256,9 @@ public class OpProjectPlanningService extends OpProjectService {
          for (OpActivity activity : activities) {
             if (!activity.getDeleted() && !isActivityExcluded(activity, excludedTypes)) {
                hasAvailabilityChanged |= checkResourceAvailabilityModifications(activity, broker);
+               //<FIXME author="Mihai Costin" description="Some of the values changes here cand also be changed on the client in order to have consistency (like base cost for example)">
                haveRatesChanged |= checkHourlyRateModifications(activity, broker, session.getCalendar());
+               //</FIXME>
             }
          }
 
@@ -665,7 +668,7 @@ public class OpProjectPlanningService extends OpProjectService {
          return;
       }
       /*get configuration form address  */
-      String fromEmailAddress = OpSettings.get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
+      String fromEmailAddress = OpSettingsService.getService().get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
       try {
          message.setFrom(fromEmailAddress);
       }
@@ -1101,7 +1104,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
       //use localizer to localize name of administrator
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       //number of comments for activity
       int commentsCount = comment.getSequence();

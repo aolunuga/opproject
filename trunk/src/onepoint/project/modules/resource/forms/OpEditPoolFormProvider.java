@@ -12,7 +12,7 @@ import onepoint.project.modules.resource.OpResourceModule;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.OpPermission;
-import onepoint.project.modules.user.OpPermissionSetFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
@@ -87,9 +87,9 @@ public class OpEditPoolFormProvider implements XFormProvider {
       if (OpEnvironmentManager.isMultiUser()) {
          // Locate permission data set in form
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissionSet,
+         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, pool.getPermissions(), permissionSet,
               OpResourceModule.POOL_ACCESS_LEVELS, session.getLocale());
-         OpPermissionSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
+         OpPermissionDataSetFactory.administratePermissionTab(form, edit_mode.booleanValue(), accessLevel);
       }
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);

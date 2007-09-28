@@ -12,6 +12,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.*;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
@@ -66,7 +67,7 @@ public class OpEditUserFormProvider implements XFormProvider {
       XComponent passwordConfirm = form.findComponent(PASSWORD_RETYPED);
       XComponent description = form.findComponent(OpUser.DESCRIPTION);
       XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionSetFactory.USER_OBJECTS));
+      localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
       description.setStringValue(localizer.localize(user.getDescription()));
 
       // do not fill password field with data from db, because password is stored as the hash of the original password
@@ -148,7 +149,7 @@ public class OpEditUserFormProvider implements XFormProvider {
       }
 
       XComponent assigned_group_data_set = form.findComponent(ASSIGNED_GROUP_DATA_SET);
-      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionSetFactory.USER_OBJECTS);
+      XLocalizer userObjectsLocalizer = XLocaleManager.createLocalizer(session.getLocale().getID(), OpPermissionDataSetFactory.USER_OBJECTS);
       Iterator assignments = user.getAssignments().iterator();
       OpUserAssignment assignment = null;
       OpGroup group = null;
@@ -194,7 +195,7 @@ public class OpEditUserFormProvider implements XFormProvider {
          preference = user.getPreference(OpPreference.LOCALE).getValue();
       }
       else{
-         preference = OpSettings.get(OpSettings.USER_LOCALE);
+         preference = OpSettingsService.getService().get(OpSettings.USER_LOCALE);
       }
       
       for (int i =0 ; i  < languageDataSet.getChildCount(); i++) {

@@ -12,17 +12,18 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpType;
 import onepoint.persistence.OpTypeManager;
-import onepoint.persistence.OpBroker;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
-import onepoint.util.XCalendar;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.resource.XLocale;
+import onepoint.util.XCalendar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,7 +93,7 @@ public class OpMSProjectManager {
     */
    private static void setVisualResources(XComponent dataSet, Map resourceAvailability) {
       //set also the visual resources
-      Boolean showHours = Boolean.valueOf(OpSettings.get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+      Boolean showHours = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS));
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
          OpGanttValidator.updateVisualResources(dataRow, showHours.booleanValue(), resourceAvailability);

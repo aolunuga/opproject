@@ -205,8 +205,8 @@ public class OpProjectAdministrationService extends OpProjectService {
          return reply;
       }
 
-      XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+      XComponent permission_set = (XComponent) project_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, project, permission_set);
       if (result != null) {
          reply.setError(result);
          broker.close();
@@ -214,7 +214,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
       //copy the permissions from the projects to the attachments belonging to the project
       for (OpAttachment attachment : project.getAttachments()) {
-         result = OpPermissionSetFactory.storePermissionSet(broker, session, attachment, permission_set);
+         result = OpPermissionDataSetFactory.storePermissionSet(broker, session, attachment, permission_set);
          if (result != null) {
             reply.setError(result);
             broker.close();
@@ -554,13 +554,13 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
 
          // update permissions
-         XComponent permission_set = (XComponent) project_data.get(OpPermissionSetFactory.PERMISSION_SET);
+         XComponent permission_set = (XComponent) project_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
          XError result = checkChangingPermissionForEditingUser(project.getLocks(), permission_set, session);
          if (result != null) {
             reply.setError(result);
             return reply;
          }
-         result = OpPermissionSetFactory.storePermissionSet(broker, session, project, permission_set);
+         result = OpPermissionDataSetFactory.storePermissionSet(broker, session, project, permission_set);
          if (result != null) {
             reply.setError(result);
             return reply;
@@ -568,7 +568,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          //update permissions for the attachments belonging to this project
          for (OpAttachment attachment : project.getAttachments()) {
-            result = OpPermissionSetFactory.storePermissionSet(broker, session, attachment, permission_set);
+            result = OpPermissionDataSetFactory.storePermissionSet(broker, session, attachment, permission_set);
             if (result != null) {
                reply.setError(result);
                broker.close();
@@ -620,7 +620,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       for (int i = 0; i < permissionSet.getChildCount(); i++) {
          XComponent permissionsRow = (XComponent) permissionSet.getChild(i);
          if (permissionsRow.getOutlineLevel() == 0) {
-            accessValue = ((XComponent) permissionsRow.getChild(OpPermissionSetFactory.ACCESS_LEVEL_COLUMN_INDEX)).getByteValue();
+            accessValue = ((XComponent) permissionsRow.getChild(OpPermissionDataSetFactory.ACCESS_LEVEL_COLUMN_INDEX)).getByteValue();
             continue;
          }
          String userLocator = XValidator.choiceID(permissionsRow.getStringValue());
@@ -1260,8 +1260,8 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       broker.makePersistent(portfolio);
 
-      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
+      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
       if (result != null) {
          reply.setError(result);
          broker.close();
@@ -1331,8 +1331,8 @@ public class OpProjectAdministrationService extends OpProjectService {
       OpTransaction t = broker.newTransaction();
       broker.updateObject(portfolio);
 
-      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionSetFactory.PERMISSION_SET);
-      XError result = OpPermissionSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
+      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
       if (result != null) {
          reply.setError(result);
          broker.close();
@@ -1533,7 +1533,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       rootPortfolio.setName(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME);
       rootPortfolio.setDescription(OpProjectNode.ROOT_PROJECT_PORTFOLIO_DESCRIPTION);
       broker.makePersistent(rootPortfolio);
-      OpPermissionSetFactory.addSystemObjectPermissions(session, broker, rootPortfolio);
+      OpPermissionDataSetFactory.addSystemObjectPermissions(session, broker, rootPortfolio);
       t.commit();
       return rootPortfolio;
    }
