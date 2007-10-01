@@ -44,7 +44,7 @@ public class OpSettings {
    public static final String RESOURCE_MAX_AVAILABYLITY_DEFAULT = "100";
    public static final String ENABLE_TIME_TRACKING_DEFAULT = "false";
    public static final String HIDE_MANAGER_FEATURES_DEFAULT = "false";
-   public static final String CURRENCY_SYMBOL_DEFAULT = "€";
+   public static final String CURRENCY_SYMBOL_DEFAULT = "\u20AC";
    public static final String CURRENCY_SHORT_NAME_DEFAULT = "EUR";
 
    /**
