@@ -155,8 +155,8 @@
       <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Delete Versions</resource>
 
-      <resource id="WorkingVersion">Checked out Project Plan</resource>
-      <resource id="ActualVersion">Actual Project Plan Version</resource>
+      <resource id="WorkingVersion">Working Version</resource>
+      <resource id="ActualVersion">Most Current Version</resource>
 
       <resource id="Permissions">Permissions</resource>
 
