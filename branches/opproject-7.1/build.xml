@@ -9,6 +9,12 @@
       </classpath>
    </taskdef>
 
+   <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+         <pathelement location="${lib.dir}/ant-contrib-1.0b3.jar"/>
+      </classpath>
+   </taskdef>
+
    <!-- Classpath reference -->
    <path id="op.classpath">
       <fileset dir="${lib.dir}" includes="*.jar"/>
@@ -247,6 +253,15 @@
             <include name="*.ohc.xml"/>
          </fileset>
       </copy>
+
+      <!--aditional resources-->
+      <if>
+         <available file="${additional.resources.dir}/${additional.resources.script}"/>
+         <then>
+            <ant antfile="${additional.resources.script}" target="${additional.resources.target}" inheritall="false" dir="${additional.resources.dir}"/>
+         </then>
+      </if>
+
    </target>
 
    <!--Builds the project classes-->
