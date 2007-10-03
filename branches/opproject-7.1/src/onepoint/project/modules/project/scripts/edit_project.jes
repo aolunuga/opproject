@@ -4,23 +4,15 @@
 
 // Controller script for edit_project.oxf.xml
 
-require
-"onepoint/project/scripts/error.jes";
-require
-"onepoint/project/modules/user/scripts/permissions_tab.jes";
-require
-"onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
-require
-"onepoint/project/modules/project/scripts/project_helper.jes";
+require "onepoint/project/scripts/error.jes";
+require "onepoint/project/modules/user/scripts/permissions_tab.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
+require "onepoint/project/modules/project/scripts/project_helper.jes";
 
-import
-onepoint.express.XValidator;
-import
-onepoint.express.XDisplay;
-import
-onepoint.express.XComponent;
-import
-onepoint.service.XMessage;
+import onepoint.express.XValidator;
+import onepoint.express.XDisplay;
+import onepoint.express.XComponent;
+import onepoint.service.XMessage;
 
 function ok(event) {
    form = XDisplay.getActiveForm();
@@ -151,7 +143,10 @@ function removeVersions(event) {
 function selectionChanged(event) {
 
    form = XDisplay.getActiveForm();
-   version_number = form.findComponent("WorkingVersionNumber");
+   form.repaint();
+
+   working_version_number = form.findComponent("WorkingVersionNumber");
+   current_version_number = form.findComponent("CurrentVersionNumber");
    version_set = form.findComponent("VersionsSet");
    selected_rows = version_set.selectedRows();
 
@@ -161,21 +156,27 @@ function selectionChanged(event) {
    can_delete = true;
    //determine if the working version is among the selected ones
    if (selected_rows.size() > 0) {
-
+      Console.println(selected_rows.size());
       i = 0;
       while (i < selected_rows.size()) {
-         if (selected_rows[i].getChild(0).getStringValue() == version_number.getStringValue()) {
+         if (selected_rows[i].getChild(0).getStringValue() == current_version_number.getStringValue()) {
+            Console.println("current selected");
             can_delete = false;
             break;
+         }
+         else {
+            if (selected_rows[i].getChild(0).getStringValue() == working_version_number.getStringValue()) {
+               Console.println("working selected");
+               can_delete = false;
+               break;
+            }
          }
          i++;
       }
    }
 
-   if (!can_delete) {
-      delete_button = form.findComponent("RemoveVersionButton");
-      delete_button.setEnabled(can_delete);
-   }
+   delete_button = form.findComponent("RemoveVersionButton");
+   delete_button.setEnabled(can_delete);
    form.repaint();
 }
 
