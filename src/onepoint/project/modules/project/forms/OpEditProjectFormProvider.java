@@ -54,6 +54,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
    private final static String FORM_WORKING_VERSION_NUMBER = "WorkingVersionNumber";
+   private final static String FORM_CURRENT_VERSION_NUMBER = "CurrentVersionNumber";
    private final static String GOALS_TABLE_BOX = "GoalsTableBox";
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
@@ -364,6 +365,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.WORKING_VERSION_NUMBER));
+      form.findComponent(FORM_CURRENT_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.ACTUAL_VERSION_NUMBER));
 
       XComponent versionsDataSet = form.findComponent(VERSION_DATA_SET);
       Map<Integer, XComponent> rowsMap = new TreeMap<Integer, XComponent>();

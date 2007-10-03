@@ -5,6 +5,7 @@
    <data-field id="EditMode"/>
    <data-field id="OriginalStartDate"/>
    <data-field id="WorkingVersionNumber"/>
+   <data-field id="CurrentVersionNumber"/>
    <data-field id="Today"/>
    <data-field id="EndOfYear"/>
 
@@ -113,7 +114,7 @@
          <table-column id="BaselineColumn" text="${Baseline}" width="70" data-column-index="4" value-type="Boolean" on-value-changed="baselineSelected"/>
       </table-box>
       <panel id="VersionsToolPanel" y="1" layout="flow" direction="east">
-         <icon-button id="RemoveVersionButton" icon-type="MinusSign" on-button-pressed="removeVersions"/>
+         <button style-ref="icon-button-default" id="RemoveVersionButton" icon="/icons/minus_s.png" disabled-icon="/icons/minus_s_disabled.png" on-button-pressed="removeVersions"/>
       </panel>
    </tab>
 
