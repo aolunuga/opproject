@@ -64,7 +64,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
    private final static String RESOURCES_TABLE = "ResourcesTable";
    private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
-   private final static String PERMISSION_TOOL_PANEL = "PermissionToolPanel";
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
@@ -214,7 +213,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
-      form.findComponent(PERMISSION_TOOL_PANEL).setVisible(editMode);
    }
 
    /**
