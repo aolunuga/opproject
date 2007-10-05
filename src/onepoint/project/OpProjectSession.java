@@ -487,6 +487,33 @@ public class OpProjectSession extends XExpressSession {
       }
    }
 
+   /**
+    * Cleans the brokers which were opened by this session, with the exception of the brokers
+    * found in the given list.
+    */
+   public void cleanupSession(List<OpBroker> exceptBrokers) {
+      super.cleanupSession();
+      for (Iterator it = brokerList.iterator(); it.hasNext();) {
+         OpBroker opBroker = (OpBroker) it.next();
+         if (exceptBrokers.contains(opBroker)) {
+            continue;
+         }
+         if (opBroker.isOpen()) {
+            opBroker.close();
+         }
+         it.remove();
+      }
+   }
+
+   /**
+    * Returns the list of brokers opened by the session.
+    *
+    * @return a <code>List(OpBroker)</code>.
+    */
+   public List<OpBroker> getBrokerList() {
+      return brokerList;
+   }
+
    public boolean isUser(OpUser user) {
       if (user == null) {
          return (userId == NO_ID);

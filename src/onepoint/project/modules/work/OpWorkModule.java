@@ -60,7 +60,7 @@ public class OpWorkModule extends OpModule {
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void upgradeToVersion26(OpProjectSession session) {
+   public void upgradeToVersion30(OpProjectSession session) {
 
       resetAssignments(session);
 
