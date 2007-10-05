@@ -618,15 +618,19 @@ public class OpWorkSlipDataSetFactory {
     */
    public static void fillProjectSet(XComponent projectDataSet, List<OpAssignment> assignmentList) {
 
+      XComponent projectSet = new XComponent(XComponent.DATA_SET);
       for (OpAssignment assignment : assignmentList) {
          OpProjectNode projectNode = assignment.getProjectPlan().getProjectNode();
          String choice = XValidator.choice(projectNode.locator(), projectNode.getName());
-         if (!projectDataSet.contains(-1, choice)) {
+         if (!projectSet.contains(-1, choice)) {
             XComponent row = new XComponent(XComponent.DATA_ROW);
             row.setStringValue(choice);
-            projectDataSet.addChild(row);
+            projectSet.addChild(row);
          }
       }
+      //sort the projects set and add it to the projectDataSet
+      projectSet.sort();
+      projectDataSet.addAllRows(projectSet);
    }
 
    /**

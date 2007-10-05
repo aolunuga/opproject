@@ -148,6 +148,24 @@ public class OpProjectModule extends OpModule {
       broker.close();
    }
 
+   /**
+    * Upgrades this module to version #31(via reflection - must be public).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion31(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
+      while (assignmentsIt.hasNext()) {
+         OpAssignmentVersion assignmentVersion = assignmentsIt.next();
+         broker.deleteObject(assignmentVersion);
+      }
+      tx.commit();
+      broker.close();
+   }
+
 
    /**
     * Changes the name of the root project portfolio from the old resource naming - starting with {$
