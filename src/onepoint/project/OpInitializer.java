@@ -301,8 +301,8 @@ public class OpInitializer {
          if (existingVersionNr < OpHibernateSource.SCHEMA_VERSION) {
             logger.info("Updating DB schema from version " + existingVersionNr + "...");
             OpPersistenceManager.updateSchema();
-            hibernateSource.updateSchemaVersionNumber();
             OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
+            hibernateSource.updateSchemaVersionNumber();
          }
       }
    }

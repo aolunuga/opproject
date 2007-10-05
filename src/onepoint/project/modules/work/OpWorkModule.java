@@ -55,12 +55,12 @@ public class OpWorkModule extends OpModule {
    }
 
    /**
-    * Upgrade to version 26.
+    * Upgrade to version 30.
     * Takes care of the values on activities and assignments given by work records.
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void upgradeToVersion26(OpProjectSession session) {
+   public void upgradeToVersion30(OpProjectSession session) {
 
       resetAssignments(session);
 
