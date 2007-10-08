@@ -52,11 +52,11 @@ public abstract class OpActivityDataSetFactory {
     * Each row has the resource locator as value set on it and a data cell with a map containing
     * the interval start date as key and a list with internal and external rates as value.
     *
-    * @param project            The current project.
-    * @param dataSet            Hourly rates data set.
+    * @param project The current project.
+    * @param dataSet Hourly rates data set.
     */
    //<FIXME author="Haizea Florin" description="This is not the proper way to use this method">
-   public static void fillHourlyRatesDataSet(OpProjectNode project,  XComponent dataSet) {
+   public static void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
       OpProjectAdministrationService service = (OpProjectAdministrationService) XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
       service.fillHourlyRatesDataSet(project, dataSet);
    }
@@ -1437,7 +1437,9 @@ public abstract class OpActivityDataSetFactory {
                      update = true;
                   }
 
-                  if (assignment.getBaseEffort() != baseEffort) {
+                  //<FIXME author="Horia Chiorean" description="Caused by double calculations in the OpGanntValidator...">
+                  if (Math.abs(assignment.getBaseEffort() - baseEffort) > OpGanttValidator.ERROR_MARGIN) {
+                     //<FIXME>
                      assignment.setBaseEffort(baseEffort);
                      if (tracking) {
 
