@@ -79,6 +79,7 @@ public class OpInitializer {
     * state of initialization
     */
    private boolean initialized = false;
+   private static final String SELECT_ALL_OBJECTS_QUERY = "select o from OpObject as o";
 
    /**
     * This class should not be instantiated randomly. You must get a valid instance from <code>OpInitializerFactory</code>
@@ -390,11 +391,19 @@ public class OpInitializer {
     */
    public void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {
-      logger.info("Dropping schema...");
-      OpPersistenceManager.dropSchema();
+      logger.info("Cleaning schema...");
+      OpBroker broker =  projectSession.newBroker();
+      OpTransaction txn = broker.newTransaction();
+      OpQuery query = broker.newQuery(SELECT_ALL_OBJECTS_QUERY);
+      Iterator it = broker.iterate(query);
+      while (it.hasNext()) {
+         OpObject opObject = (OpObject) it.next();
+         broker.deleteObject(opObject);
+      }
+      txn.commit();
+      broker.close();
 
-      logger.info("Creating schema...");
-      OpPersistenceManager.createSchema();
+      // Restore data
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
 
       //make sure all hi/lo generators are updated
