@@ -166,14 +166,13 @@ public class OpProjectPlanningModule extends OpModule {
     */
    private void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {
       logger.info("Revalidating project plans...");
-      OpBroker broker = session.newBroker();
-
       //validate all the project plans (this includes also the work phase -> work period upgrade)
       for (Long projectPlanId : projectPlanIds) {
+         OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
          new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
+         broker.close();
       }
-      broker.close();
    }
 
    /**

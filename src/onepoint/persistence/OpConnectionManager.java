@@ -156,7 +156,7 @@ public final class OpConnectionManager {
        ResultSet rs = null;
       try {
          st = connection.createStatement();
-         st.execute("SHOW TABLE STATUS LIKE '" + OpMappingsGenerator.TABLE_NAME_PREFIX + "%' ");
+         st.execute("SHOW TABLE STATUS LIKE '" + OpMappingsGenerator.getTableNamePrefix() + "%' ");
          rs = st.getResultSet();
          while (rs.next()) {
             String tableName = rs.getString("Name");

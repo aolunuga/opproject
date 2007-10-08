@@ -4,6 +4,8 @@
 
 package onepoint.persistence.sql;
 
+import java.util.List;
+
 /**
  * Interface representing an sql statement which is db dependent.
  *
@@ -21,7 +23,7 @@ public interface OpSqlStatement {
     *
     * @see java.sql.Types                                                                                                       
     */
-   public String getAlterColumnTypeStatement(String tableName, String columnName, int sqlType);
+   public List<String> getAlterColumnTypeStatement(String tableName, String columnName, int sqlType);
 
    /**
     * Returns an sql statement that will drop the given table.
@@ -48,4 +50,6 @@ public interface OpSqlStatement {
     * @return a <code>String</code> representing a statement used to drop a fk.
     */
    public String getDropIndexConstraintStatement(String tableName, String indexName);
+
+   int getColumnType(int columnType);
 }
