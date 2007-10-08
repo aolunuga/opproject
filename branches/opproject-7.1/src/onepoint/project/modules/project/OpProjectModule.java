@@ -139,7 +139,14 @@ public class OpProjectModule extends OpModule {
       Iterator<OpProjectPlanVersion> projectsIt = broker.iterate(allPlanVersions);
       while (projectsIt.hasNext()) {
          OpProjectPlanVersion planVersion = projectsIt.next();
-         OpUser user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+         OpUser user;
+         try {
+            user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+         }
+         catch (NumberFormatException e) {
+            user = null;
+         }
+
          String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
          planVersion.setCreator(displayName);
          broker.updateObject(planVersion);

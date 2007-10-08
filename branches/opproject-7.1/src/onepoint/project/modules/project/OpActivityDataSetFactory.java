@@ -1437,7 +1437,9 @@ public abstract class OpActivityDataSetFactory {
                      update = true;
                   }
 
-                  if (assignment.getBaseEffort() != baseEffort) {
+                  //<FIXME author="Horia Chiorean" description="Caused by double calculations in the OpGanntValidator...">
+                  if (Math.abs(assignment.getBaseEffort() - baseEffort) > OpGanttValidator.ERROR_MARGIN) {
+                     //<FIXME>
                      assignment.setBaseEffort(baseEffort);
                      if (tracking) {
 

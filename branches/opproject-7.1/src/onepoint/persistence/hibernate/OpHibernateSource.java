@@ -455,7 +455,7 @@ public class OpHibernateSource extends OpSource {
     * @return returns a new instance.
     */
    protected OpMappingsGenerator getMappingsGenerator() {
-      return new OpMappingsGenerator(databaseType);
+      return OpMappingsGenerator.getInstance(databaseType);
    }
 
 

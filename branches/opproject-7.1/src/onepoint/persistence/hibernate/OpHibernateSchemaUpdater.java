@@ -12,7 +12,7 @@ import onepoint.persistence.OpRelationship;
 import onepoint.persistence.OpTypeManager;
 import onepoint.persistence.sql.OpSqlStatement;
 import onepoint.persistence.sql.OpSqlStatementFactory;
-import onepoint.project.util.OpProjectConstants;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.type.NullableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
@@ -39,7 +39,6 @@ public final class OpHibernateSchemaUpdater {
 
    static {
       TABLES_WITHOUT_PROTOTYPE.add(OpHibernateSource.SCHEMA_TABLE);
-      TABLES_WITHOUT_PROTOTYPE.add(OpProjectConstants.OP_OBJECT_TABLE_NAME);
    }
 
    /**
@@ -50,7 +49,7 @@ public final class OpHibernateSchemaUpdater {
    /**
     * Constants used in the various JDBC method calls
     */
-   private static final String TABLE_PREFIX = OpMappingsGenerator.TABLE_NAME_PREFIX + "%";
+   private static final String TABLE_PREFIX = OpMappingsGenerator.getTableNamePrefix() + "%";
    private static final String[] TABLE_TYPES = new String[]{"TABLE"};
    private static final String TABLE_NAME_COLUMN = "TABLE_NAME";
 
@@ -102,9 +101,10 @@ public final class OpHibernateSchemaUpdater {
     * Creates the list of SQL instructions that update the existing database, to match the current entity structure.
     *
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
+    * @param dialect
     * @return a <code>List</code> of <code>String</code> representing db information.
     */
-   public List generateUpdateSchemaScripts(DatabaseMetaData dbMetaData) {
+   public List generateUpdateSchemaScripts(DatabaseMetaData dbMetaData, Dialect dialect) {
       //add the hi/lo generator statement
       List<String> updateStatements = new ArrayList<String>();
       try {
@@ -114,7 +114,7 @@ public final class OpHibernateSchemaUpdater {
          Iterator it = OpTypeManager.getPrototypes();
          while (it.hasNext()) {
             OpPrototype prototype = (OpPrototype) it.next();
-            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype, dbMetaData));
+            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype, dbMetaData, dialect));
          }
 
          //drop old tables
@@ -138,6 +138,11 @@ public final class OpHibernateSchemaUpdater {
          ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
          while (rs.next()) {
             String tableName = rs.getString(TABLE_NAME_COLUMN);
+            //<FIXME author="Mihai Costin" description="We should be able to get only op_tables with getTable method">
+            if (!tableName.startsWith(OpMappingsGenerator.getTableNamePrefix())) {
+               continue;
+            }
+            //</FIXME>
             List<String> tableFKConstraints = generateDropFKConstraints(tableName, dbMetaData);
             dropConstraintScripts.addAll(tableFKConstraints);
             List<String> tableIndexConstraints = generateDropIndexConstraints(tableName, dbMetaData);
@@ -181,7 +186,7 @@ public final class OpHibernateSchemaUpdater {
             while (rs.next()) {
                String indexName = rs.getString("INDEX_NAME");
                //<FIXME author="Horia Chiorean" description="Can we be 100% that this way we only get the hibernate generated indexes ?">
-               if (indexName == null || indexName.startsWith(OpMappingsGenerator.INDEX_NAME_PREFIX) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
+               if (indexName == null || indexName.startsWith(OpMappingsGenerator.getIndexNamePrefix()) || EXCLUDE_INDEX_NAMES.contains(indexName)) {
                   continue;
                }
                //<FIXME>
@@ -280,7 +285,14 @@ public final class OpHibernateSchemaUpdater {
             ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
             while (rs.next()) {
                String tableName = rs.getString(TABLE_NAME_COLUMN);
-               if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName)) {
+
+               //<FIXME author="Mihai Costin" description="We should be able to get only op_tables with getTable method">
+               if (!tableName.startsWith(OpMappingsGenerator.getTableNamePrefix())) {
+                  continue;
+               }
+               //</FIXME>
+               
+               if (!currentTables.contains(tableName) && !TABLES_WITHOUT_PROTOTYPE.contains(tableName.toLowerCase())) {
                   String sqlStatement = statement.getDropTableStatement(tableName);
                   logger.info("Adding drop statement: " + sqlStatement);
                   dropStatements.add(sqlStatement);
@@ -306,7 +318,12 @@ public final class OpHibernateSchemaUpdater {
       ResultSet rs = dbMetaData.getTables(null, null, TABLE_PREFIX, TABLE_TYPES);
       while (rs.next()) {
          String tableName = rs.getString(TABLE_NAME_COLUMN);
-         ResultSet rs1 = dbMetaData.getColumns(null, null, tableName, OpMappingsGenerator.COLUMN_NAME_PREFIX + "%");
+         //<FIXME author="Mihai Costin" description="We should be able to get only op_tables with getTable method">
+         if (!tableName.startsWith(OpMappingsGenerator.getTableNamePrefix())) {
+            continue;
+         }
+         //</FIXME>
+         ResultSet rs1 = dbMetaData.getColumns(null, null, tableName, OpMappingsGenerator.getColumnNamePrefix() + "%");
          Map<String, Short> tableColumnsMetaData = new HashMap<String, Short>();
          while (rs1.next()) {
             String columnName = rs1.getString("COLUMN_NAME");
@@ -322,9 +339,10 @@ public final class OpHibernateSchemaUpdater {
     *
     * @param prototype  a <code>OpPrototype</code> representing a prototype registered by the application.
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
+    * @param dialect
     * @return a <code>List</code> of <code>String</code> representing a list of SQL statements.
     */
-   private List<String> generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData) {
+   private List<String> generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData, Dialect dialect) {
       List<String> result = new ArrayList<String>();
       if (statement != null) {
 
@@ -350,7 +368,7 @@ public final class OpHibernateSchemaUpdater {
 
             //now find out what we have in the db
             String tableName = OpMappingsGenerator.generateTableName(prototype.getName());
-            Map columnMetaData = (Map) this.tableMetaData.get(tableName);
+            Map columnMetaData = this.tableMetaData.get(tableName);
             if (columnMetaData == null) {
                logger.info("No metadata found for table:" + tableName);
                continue;
@@ -361,8 +379,11 @@ public final class OpHibernateSchemaUpdater {
                logger.info("No metadata found for column:" + columnName);
                continue;
             }
-            if (hibernateSqlType != columnType.shortValue() && columnType.shortValue() != Types.OTHER) {
 
+            //<FIXME author="Mihai Costin" description="The dialect should help us here instead of the manual mapping done in getColumnType">
+            if (columnType != statement.getColumnType(hibernateSqlType) && columnType != Types.OTHER) {
+            //</FIXME>
+               
                //drop al fk constraints for this column before changing it's type
                List<String> dropFkConstraints = generateDropFKConstraints(tableName, columnName, dbMetaData);
                for (String fkConstraint : dropFkConstraints) {
@@ -370,9 +391,9 @@ public final class OpHibernateSchemaUpdater {
                   result.add(fkConstraint);
                }
 
-               String sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
+               List<String> sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
                logger.info("Adding update statement: " + sqlStatement);
-               result.add(sqlStatement);
+               result.addAll(sqlStatement);
 
             }
          }

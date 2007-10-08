@@ -281,7 +281,7 @@ public class OpHibernateConnection extends OpConnection {
          source.updateHiLoGeneratorValue();
 
          //finally perform the custom update
-         customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData());
+         customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData(), dialect);
          executeDDLScript((String[]) customUpdateScripts.toArray(new String[]{}));
       }
       catch (Exception e) {

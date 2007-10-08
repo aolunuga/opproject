@@ -5,19 +5,9 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpField;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpRelationship;
-import onepoint.persistence.OpType;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class is responsible for generation of Hibernate mapping file for all loaded prototypes.
@@ -28,11 +18,11 @@ public class OpMappingsGenerator {
    // The logger used in this class.
    private static final XLog logger = XLogFactory.getServerLogger(OpMappingsGenerator.class);
 
-   public final static String INDEX_NAME_PREFIX = "op_";
-   public final static String INDEX_NAME_POSTFIX = "_i";
-   public final static String COLUMN_NAME_PREFIX = "op_";
-   public final static String COLUMN_NAME_POSTFIX = "";
-   public final static String TABLE_NAME_PREFIX = "op_";
+   private final static String INDEX_NAME_PREFIX = "op_";
+   private final static String INDEX_NAME_POSTFIX = "_i";
+   private final static String COLUMN_NAME_PREFIX = "op_";
+   private final static String COLUMN_NAME_POSTFIX = "";
+   private final static String TABLE_NAME_PREFIX = "op_";
 
    private final static String TABLE_NAME_POSTFIX = "";
    private final static String JOIN_NAME_SEPARATOR = "_";
@@ -57,6 +47,9 @@ public class OpMappingsGenerator {
 
    // Hibernate filters
    protected Set<OpHibernateFilter> filters;
+
+
+   private static OpMappingsGenerator generator;
 
    /**
     * Creates a new generator for the provided prototypes.
@@ -281,7 +274,7 @@ public class OpMappingsGenerator {
          buffer.append(" not-null=\"true\"");
       }
 
-      if (field.getUnique() && field.getTypeID() != OpType.TEXT  && field.getUniqueKey() == null) {
+      if (field.getUnique() && field.getTypeID() != OpType.TEXT && field.getUniqueKey() == null) {
          buffer.append(" unique=\"true\"");
       }
 
@@ -478,9 +471,14 @@ public class OpMappingsGenerator {
     * @return column name
     */
    public static String generateColumnName(String property_name) {
-      StringBuffer buffer = new StringBuffer(COLUMN_NAME_PREFIX);
-      buffer.append(property_name.toLowerCase());
-      buffer.append(COLUMN_NAME_POSTFIX);
+      StringBuffer buffer = new StringBuffer(getColumnNamePrefix());
+      if (generateUpperCase()) {
+         buffer.append(property_name.toUpperCase());
+      }
+      else {
+         buffer.append(property_name.toLowerCase());
+      }
+      buffer.append(getColumnNamePostFix());
       return buffer.toString();
    }
 
@@ -491,8 +489,14 @@ public class OpMappingsGenerator {
     * @return table name
     */
    public static String generateTableName(String prototype_name) {
-      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
-      buffer.append(removePrototypeNamePrefixes(prototype_name).toLowerCase());
+      StringBuffer buffer = new StringBuffer(getTableNamePrefix());
+      String prototype = removePrototypeNamePrefixes(prototype_name);
+      if (generateUpperCase()) {
+         buffer.append(prototype.toUpperCase());
+      }
+      else {
+         buffer.append(prototype.toLowerCase());
+      }
       buffer.append(TABLE_NAME_POSTFIX);
       return buffer.toString();
    }
@@ -520,12 +524,21 @@ public class OpMappingsGenerator {
     * @return table name
     */
    private static String generateJoinTableName(String prototype_name1, String prototype_name2) {
-      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
-      buffer.append(prototype_name1.toLowerCase());
+      StringBuffer buffer = new StringBuffer(getTableNamePrefix());
+      if (generateUpperCase()) {
+         buffer.append(prototype_name1.toUpperCase());
+      }
+      else {
+         buffer.append(prototype_name1.toLowerCase());
+      }
       buffer.append(JOIN_NAME_SEPARATOR);
-      buffer.append(prototype_name2.toLowerCase());
+      if (generateUpperCase()) {
+         buffer.append(prototype_name2.toUpperCase());
+      }
+      else {
+         buffer.append(prototype_name2.toLowerCase());
+      }
       buffer.append(TABLE_NAME_POSTFIX);
-
       return buffer.toString();
    }
 
@@ -537,10 +550,20 @@ public class OpMappingsGenerator {
     * @return join column name
     */
    private static String generateJoinColumnName(String prototype_name, String property_name) {
-      StringBuffer buffer = new StringBuffer(TABLE_NAME_PREFIX);
-      buffer.append(prototype_name.toLowerCase());
+      StringBuffer buffer = new StringBuffer(getTableNamePrefix());
+      if (generateUpperCase()) {
+         buffer.append(prototype_name.toUpperCase());
+      }
+      else {
+         buffer.append(prototype_name.toLowerCase());
+      }
       buffer.append(JOIN_NAME_SEPARATOR);
-      buffer.append(property_name.toLowerCase());
+      if (generateUpperCase()) {
+         buffer.append(property_name.toUpperCase());
+      }
+      else {
+         buffer.append(property_name.toLowerCase());
+      }
       buffer.append(TABLE_NAME_POSTFIX);
       return buffer.toString();
    }
@@ -555,11 +578,16 @@ public class OpMappingsGenerator {
    private String generateIndexName(String prototype_name, String property_name) {
       StringBuffer buffer = new StringBuffer(generateTableName(prototype_name));
       buffer.append(JOIN_NAME_SEPARATOR);
-      buffer.append(property_name.toLowerCase());
-      buffer.append(INDEX_NAME_POSTFIX);
+      if (generateUpperCase()) {
+         buffer.append(property_name.toUpperCase());
+      }
+      else {
+         buffer.append(property_name.toLowerCase());
+      }
+      buffer.append(getIndexNamePostfix());
 
       if (databaseType == OpHibernateSource.IBM_DB2 && buffer.length() > IBM_DB2_INDEX_NAME_LENGTH) {
-         String indexName = buffer.substring(TABLE_NAME_PREFIX.length());
+         String indexName = buffer.substring(getTableNamePrefix().length());
          int start = 0;
          if (indexName.length() > IBM_DB2_INDEX_NAME_LENGTH) {
             start = indexName.length() - IBM_DB2_INDEX_NAME_LENGTH;
@@ -648,4 +676,61 @@ public class OpMappingsGenerator {
 
       return new String(array);
    }
+
+   private int getDatabaseType() {
+      return databaseType;
+   }
+
+   private static boolean generateUpperCase() {
+      if (generator != null) {
+         return generator.getDatabaseType() == OpHibernateSource.ORACLE;
+      }
+      else {
+         return false;
+      }
+   }
+
+   public static String getIndexNamePrefix() {
+      if (generateUpperCase()) {
+         return INDEX_NAME_PREFIX.toUpperCase();
+      }
+      return INDEX_NAME_PREFIX;
+   }
+
+
+   public static String getIndexNamePostfix() {
+      if (generateUpperCase()) {
+         return INDEX_NAME_POSTFIX.toUpperCase();
+      }
+      return INDEX_NAME_POSTFIX;
+   }
+
+   public static String getColumnNamePrefix() {
+      if (generateUpperCase()) {
+         return COLUMN_NAME_PREFIX.toUpperCase();
+      }
+      return COLUMN_NAME_PREFIX;
+   }
+
+   public static String getColumnNamePostFix() {
+      if (generateUpperCase()) {
+         return COLUMN_NAME_POSTFIX.toUpperCase();
+      }
+      return COLUMN_NAME_POSTFIX;
+   }
+
+   public static String getTableNamePrefix() {
+      if (generateUpperCase()) {
+         return TABLE_NAME_PREFIX.toUpperCase();
+      }
+      return TABLE_NAME_PREFIX;
+   }
+
+   public static OpMappingsGenerator getInstance(int databaseType) {
+      if (generator == null) {
+         generator = new OpMappingsGenerator(databaseType);
+      }
+      return generator;
+   }
+
 }

@@ -5,7 +5,9 @@
 package onepoint.persistence.sql;
 
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,7 +57,7 @@ public class OpDB2Statement implements OpSqlStatement {
     * @return a <code>String</code> representing a statement used to change the type of a column type.
     * @see java.sql.Types
     */
-   public String getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
+   public List<String> getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
       StringBuffer result = new StringBuffer();
       result.append("ALTER TABLE ");
       result.append(tableName);
@@ -64,7 +66,9 @@ public class OpDB2Statement implements OpSqlStatement {
       result.append(" SET DATA TYPE ");
       String columnType = (String) DB_TYPES.get(new Integer(sqlType));
       result.append(columnType);
-      return result.toString();
+      List<String> resultList = new ArrayList<String>();
+      resultList.add(result.toString());
+      return resultList;
    }
 
    /**
@@ -108,5 +112,9 @@ public class OpDB2Statement implements OpSqlStatement {
       result.append(" DROP INDEX ");
       result.append(indexName);
       return result.toString();
+   }
+
+   public int getColumnType(int columnType) {
+      return columnType;
    }
 }
