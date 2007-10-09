@@ -101,6 +101,11 @@ public class OpBackupManager {
    private static final String SLASH_STRING = "/";
 
    /**
+    * Page size used when batch-deleting
+    */
+   private static final int DELETE_PAGE_SIZE = 200;
+
+   /**
     * The path to the dir where binary files will be stored
     */
    private String binaryDirPath = null;
@@ -736,8 +741,69 @@ public class OpBackupManager {
       if (!isPathAFile(path, true)) {
          throw new IllegalArgumentException("The given path does not point to an exiting file");
       }
+      this.removeAllObjects(session);
       String parentDirectory = getParentDirectory(path);
       restoreRepository(session, new BufferedInputStream(new FileInputStream(path)), parentDirectory);
+   }
+
+   /**
+    * Removes all the objects from the db.
+    *
+    * @param session a <code>OpProjectSession</code> the server session.
+    */
+   public void removeAllObjects(OpProjectSession session) {
+      logger.info("Removing all objects from the db ");
+      List<String> prototypeNames = new ArrayList<String>(prototypes.keySet());
+      Collections.reverse(prototypeNames);
+      //remove in reverse dependency order
+      for (String prototypeName : prototypeNames) {
+         removeObjectsWithPrototype(prototypeName, null, session);
+      }
+   }
+
+   /**
+    * Removes all the objects with the given prototype name from the db.
+    *
+    * @param prototypeName a <code>String</code> the name of a prototype.
+    * @param recursiveRelationshipName a <code>String</code> the name of an optional recursive
+    * relationship for the prototype (if there isn't one, it may be <code>null</code>)
+    * @param session a <code>OpProjectSession</code> the server session.
+    */
+   private void removeObjectsWithPrototype(String prototypeName, String recursiveRelationshipName,
+        OpProjectSession session) {
+      logger.info("Remove objects with prototype: " + prototypeName);
+      if (recursiveRelationshipName == null) {
+         OpPrototype prototype = prototypes.get(prototypeName);
+         OpRelationship recursiveRelationship = prototype.getRecursiveRelationship();
+         if (recursiveRelationship != null) {
+            removeObjectsWithPrototype(prototypeName, recursiveRelationship.getName(), session);
+         }
+      }
+
+      String recursiveRelationshipCondition = (recursiveRelationshipName != null) ? " where obj." + recursiveRelationshipName + "  is not null" : "";
+      String countQueryString = "select count(obj) from " + prototypeName + " obj" + recursiveRelationshipCondition;
+
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery(countQueryString);
+      Number count = (Number) broker.iterate(query).next();
+      broker.close();
+
+      //<FIXME author="Horia Chiorean" description="count.intValue may not work for large recursive relationships">
+      int pageSize = recursiveRelationshipName == null ? DELETE_PAGE_SIZE : count.intValue();
+      //<FIXME>
+      for (int i = 0; i < count.longValue(); i += pageSize) {
+         broker = session.newBroker();
+         OpQuery objectsQuery = broker.newQuery("from " + prototypeName + " obj " + recursiveRelationshipCondition);
+         objectsQuery.setFetchSize(pageSize);
+         objectsQuery.setFirstResult(0);
+         objectsQuery.setMaxResults(pageSize);
+         OpTransaction tx = broker.newTransaction();
+         for (Iterator it = broker.iterate(objectsQuery); it.hasNext();) {
+            broker.deleteObject((OpObject) it.next());
+         }
+         tx.commit();
+         broker.close();
+      }
    }
 
    /**

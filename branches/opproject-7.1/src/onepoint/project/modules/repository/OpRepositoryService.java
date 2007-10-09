@@ -7,12 +7,14 @@ package onepoint.project.modules.repository;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpSourceManager;
 import onepoint.project.OpInitializer;
 import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 
@@ -210,10 +212,19 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
-         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
-         initializer.resetDbSchema();
+         logger.info("Stopping modules");
+         OpModuleManager.stop();
+
+         //remove all objects and clear sources
+         OpBackupManager.getBackupManager().removeAllObjects(projectSession);
+         OpSourceManager.clearAllSources();
+
+         logger.info("Starting modules");
+         OpModuleManager.start();
+
          //invalidate all server sessions
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
+
          //clear this session
          projectSession.clearSession();
       }
