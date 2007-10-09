@@ -53,12 +53,29 @@ public class OpProjectPlanningModule extends OpModule {
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
    public void upgradeToVersion5(OpProjectSession session) {
-      List<Long> projectPlanIds = new ArrayList<Long>();
+      //delete any work records that might be associated with deleted activities
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
+      OpTransaction t = broker.newTransaction();
+
+      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.Deleted = true");
+      Iterator iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         OpActivity activity = (OpActivity) iterator.next();
+         for(OpAssignment assignment : activity.getAssignments()) {
+            for(OpWorkRecord workRecord : assignment.getWorkRecords()) {
+               broker.deleteObject(workRecord);
+            }
+         }
+      }
+      t.commit();
+      broker.close();
+
+      List<Long> projectPlanIds = new ArrayList<Long>();
+      broker = session.newBroker();
+      query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
       query.setByte(0, OpProjectNode.PROJECT);
       //<FIXME author="Horia Chiorean" description="Use broker.iterate when it works">
-      Iterator iterator = broker.list(query).iterator();
+      iterator = broker.list(query).iterator();
       //<FIXME>
       while (iterator.hasNext()) {
          OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();

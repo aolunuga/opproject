@@ -428,7 +428,12 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
                   }
                }
                else {
-                  assignmentH = assignment * duration / 100.0;
+                  if (effort == 0) {
+                     assignmentH = effort;
+                  }
+                  else {
+                     assignmentH = assignment * duration / 100.0;
+                  }
                }
 
                assignment_h_cell.setDoubleValue(assignmentH);

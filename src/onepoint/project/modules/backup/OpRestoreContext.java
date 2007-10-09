@@ -6,23 +6,13 @@ package onepoint.project.modules.backup;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpSourceManager;
-import onepoint.persistence.OpTransaction;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
-import onepoint.xml.XContext;
 import onepoint.project.OpProjectSession;
+import onepoint.xml.XContext;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OpRestoreContext extends XContext {
 
@@ -34,7 +24,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 1000;
+   private final static int MAX_INSERTS_PER_TRANSACTION = 200;
 
    /**
     * This class's logger.
