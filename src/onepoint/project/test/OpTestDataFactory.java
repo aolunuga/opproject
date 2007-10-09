@@ -10,6 +10,7 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
+import onepoint.project.modules.documents.OpDocumentsService;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.preferences.OpPreferencesService;
 import onepoint.project.modules.project.OpProjectAdministrationService;
@@ -22,11 +23,10 @@ import onepoint.project.modules.resource_utilization.OpResourceUtilizationServic
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.work.OpWorkService;
-import onepoint.project.modules.documents.OpDocumentsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XServiceManager;
 
-import java.io.*;
+import java.io.File;
 
 /**
  * This is a helper class that helps you to generate strctures necessary into test (E.g to call services) and
@@ -40,7 +40,6 @@ public abstract class OpTestDataFactory {
    protected OpProjectSession session;
 
    // Defines the name of the registry file used through tests.
-   public static final String REGISTRY_FILE = "registry_test.oxr.xml";
    public static final String RESOURCE_PATH = "onepoint/project";
 
    // Locales file.

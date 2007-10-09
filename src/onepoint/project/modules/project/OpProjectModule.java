@@ -139,10 +139,35 @@ public class OpProjectModule extends OpModule {
       Iterator<OpProjectPlanVersion> projectsIt = broker.iterate(allPlanVersions);
       while (projectsIt.hasNext()) {
          OpProjectPlanVersion planVersion = projectsIt.next();
-         OpUser user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+         OpUser user;
+         try {
+            user = (OpUser) broker.getObject(OpUser.class, new Long(planVersion.getCreator()));
+         }
+         catch (NumberFormatException e) {
+            user = null;
+         }
+
          String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
          planVersion.setCreator(displayName);
          broker.updateObject(planVersion);
+      }
+      tx.commit();
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #31(via reflection - must be public).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion31(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
+      while (assignmentsIt.hasNext()) {
+         OpAssignmentVersion assignmentVersion = assignmentsIt.next();
+         broker.deleteObject(assignmentVersion);
       }
       tx.commit();
       broker.close();
@@ -168,22 +193,4 @@ public class OpProjectModule extends OpModule {
       }
       return false;
    }
-
-   /**
-     * Upgrades this module to version #31(via reflection - must be public).
-     *
-     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-     */
-    public void upgradeToVersion31(OpProjectSession session) {
-       OpBroker broker = session.newBroker();
-       OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
-       OpTransaction tx = broker.newTransaction();
-       Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
-       while (assignmentsIt.hasNext()) {
-          OpAssignmentVersion assignmentVersion = assignmentsIt.next();
-          broker.deleteObject(assignmentVersion);
-       }
-       tx.commit();
-       broker.close();
-    }   
 }

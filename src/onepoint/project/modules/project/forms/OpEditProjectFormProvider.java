@@ -54,6 +54,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PERMISSIONS_TAB = "PermissionsTab";
    private final static String READ_ONLY_RESOURCES_SET = "ReadOnlyResourceDataSet";
    private final static String FORM_WORKING_VERSION_NUMBER = "WorkingVersionNumber";
+   private final static String FORM_CURRENT_VERSION_NUMBER = "CurrentVersionNumber";
    private final static String GOALS_TABLE_BOX = "GoalsTableBox";
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
@@ -63,7 +64,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
    private final static String RESOURCES_TABLE = "ResourcesTable";
    private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
-   private final static String PERMISSION_TOOL_PANEL = "PermissionToolPanel";
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
@@ -213,7 +213,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
       else {
          form.findComponent(PERMISSIONS_TAB).setHidden(true);
       }
-      form.findComponent(PERMISSION_TOOL_PANEL).setVisible(editMode);
    }
 
    /**
@@ -364,6 +363,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       userObjectsLocalizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       form.findComponent(FORM_WORKING_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.WORKING_VERSION_NUMBER));
+      form.findComponent(FORM_CURRENT_VERSION_NUMBER).setStringValue(String.valueOf(OpProjectPlan.ACTUAL_VERSION_NUMBER));
 
       XComponent versionsDataSet = form.findComponent(VERSION_DATA_SET);
       Map<Integer, XComponent> rowsMap = new TreeMap<Integer, XComponent>();

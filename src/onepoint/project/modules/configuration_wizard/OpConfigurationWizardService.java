@@ -110,11 +110,12 @@ public class OpConfigurationWizardService extends OpProjectService {
          dbPath.append(OpProjectConstants.DB_DIR_NAME);
          dbPath.append(File.separator);
          dbPath.append(OpProjectConstants.DB_FILE_NAME);
+         String databasePath = XEnvironmentManager.convertPathToSlash(dbPath.toString());
 
-         OpEnvironmentManager.setDataFolderPathFromDbPath(dbPath.toString());
+         OpEnvironmentManager.setDataFolderPathFromDbPath(databasePath);
 
          StringBuffer dbUrl = new StringBuffer(OpHibernateSource.DERBY_JDBC_CONNECTION_PREFIX);
-         dbUrl.append(dbPath);
+         dbUrl.append(databasePath);
          dbUrl.append(OpHibernateSource.DERBY_JDBC_CONNECTION_SUFIX);
          databaseURL = dbUrl.toString();
       }
