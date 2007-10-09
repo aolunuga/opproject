@@ -102,7 +102,7 @@ public class OpPoolUtilizationDetailsFormProvider implements XFormProvider {
             OpAssignment assignment = (OpAssignment) iterator1.next();
             OpActivity activity = assignment.getActivity();
             if (activity.getType() == OpActivity.STANDARD && !activity.getTemplate() && !activity.getDeleted()) {
-               if (!(activity.getFinish().getTime() < startTime || activity.getStart().getTime() > finishTime)) {
+               if (activity.getFinish().getTime() >= startTime && activity.getStart().getTime() < finishTime) {
                   assigned += assignment.getAssigned();
                   effort += assignment.getBaseEffort();
                }

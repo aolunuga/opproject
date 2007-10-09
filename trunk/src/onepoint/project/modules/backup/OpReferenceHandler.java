@@ -57,20 +57,20 @@ public class OpReferenceHandler implements XNodeHandler {
          Long objectId = new Long(valueString);
          OpObject relationshipEnd = restoreContext.getRelationshipOwner(objectId);
          Object value = null;
-         if (backupMember.relationship) {
-            if (relationshipEnd == null) {
-               logger.error("Cannot restore relationship towards object with id:" + objectId.toString());
-            }
-            else {
-               value = relationshipEnd;
-            }
+         if (relationshipEnd == null) {
+            logger.error("Cannot restore relationship towards object with id:" + objectId.toString());
          }
          else {
-            //there was a type change
-            String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
-            //<FIXME author="Horia Chiorean" description="For relationships changed to attributes, this might not work correctly">
-            value = OpBackupTypeManager.convertParsedValue(backupMember.typeId, valueString, workingDirectory);
-            //<FIXME>
+            if (backupMember.relationship) {
+               value = relationshipEnd;
+            }
+            else {
+               //there was a type change
+               String workingDirectory = (String) context.getVariable(OpRestoreContext.WORKING_DIRECTORY);
+               //<FIXME author="Horia Chiorean" description="For relationships changed to attributes, this might not work correctly">
+               value = OpBackupTypeManager.convertParsedValue(backupMember.typeId, String.valueOf(relationshipEnd.getID()), workingDirectory);
+               //<FIXME>
+            }
          }
          try {
             if (backupMember.accessor != null) {

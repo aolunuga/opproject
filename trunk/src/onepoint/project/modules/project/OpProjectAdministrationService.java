@@ -2103,7 +2103,8 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Gets the default hourly rates for a resource, by choosing either from the hourly rates on the project assignment,
     * or  the hourly rates globally defined for the resource.
-    * @param resource a <code>OpResource</code>.
+    *
+    * @param resource   a <code>OpResource</code>.
     * @param assignment a <code>OpProjectNodeAssignment</code>
     * @return a <code>List</code> of [internal, external] rates.
     */

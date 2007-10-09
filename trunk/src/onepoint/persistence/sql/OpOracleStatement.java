@@ -5,7 +5,9 @@
 package onepoint.persistence.sql;
 
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,18 +26,18 @@ public final class OpOracleStatement implements OpSqlStatement {
     * Populate the types map.
     */
    static {
-      DB_TYPES.put(new Integer(Types.VARCHAR), "VARCHAR2");
-      DB_TYPES.put(new Integer(Types.BIGINT), "NUMBER");
-      DB_TYPES.put(new Integer(Types.FLOAT), "FLOAT");
-      DB_TYPES.put(new Integer(Types.INTEGER), "NUMBER");
-      DB_TYPES.put(new Integer(Types.DOUBLE), "FLOAT");
-      DB_TYPES.put(new Integer(Types.BIT), "NUMBER");
-      DB_TYPES.put(new Integer(Types.BOOLEAN), "BOOLEAN");
-      DB_TYPES.put(new Integer(Types.TINYINT), "NUMBER");
-      DB_TYPES.put(new Integer(Types.SMALLINT), "SMALLINT");
-      DB_TYPES.put(new Integer(Types.BLOB), "BLOB");
-      DB_TYPES.put(new Integer(Types.TIMESTAMP), "TIMESTAMP(6)");
-      DB_TYPES.put(new Integer(Types.DATE), "DATE");
+      DB_TYPES.put(Types.VARCHAR, "VARCHAR2(255)");
+      DB_TYPES.put(Types.BIGINT, "NUMBER");
+      DB_TYPES.put(Types.FLOAT, "FLOAT");
+      DB_TYPES.put(Types.INTEGER, "NUMBER");
+      DB_TYPES.put(Types.DOUBLE, "FLOAT");
+      DB_TYPES.put(Types.BIT, "NUMBER");
+      DB_TYPES.put(Types.BOOLEAN, "BOOLEAN");
+      DB_TYPES.put(Types.TINYINT, "NUMBER");
+      DB_TYPES.put(Types.SMALLINT, "SMALLINT");
+      DB_TYPES.put(Types.BLOB, "BLOB");
+      DB_TYPES.put(Types.TIMESTAMP, "TIMESTAMP(6)");
+      DB_TYPES.put(Types.DATE, "DATE");
       //... if needed, continue the list
    }
 
@@ -48,8 +50,21 @@ public final class OpOracleStatement implements OpSqlStatement {
    /**
     * @see onepoint.persistence.sql.OpSqlStatement#getAlterColumnTypeStatement(String, String, int)
     */
-   public String getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
-      StringBuffer result = new StringBuffer();
+   public List<String> getAlterColumnTypeStatement(String tableName, String columnName, int sqlType) {
+      List<String> resultList = new ArrayList<String>();
+      StringBuffer result;
+
+      //previous values must be set to null -- ORA-01439
+      result = new StringBuffer();
+      result.append("UPDATE ");
+      result.append(tableName);
+      result.append(" SET ");
+      result.append(columnName);
+      result.append("=null");
+      resultList.add(result.toString());
+
+      //alter table
+      result = new StringBuffer();
       result.append("ALTER TABLE ");
       result.append(tableName);
       result.append(" MODIFY ");
@@ -57,8 +72,9 @@ public final class OpOracleStatement implements OpSqlStatement {
       result.append(" ");
       String columnType = (String) DB_TYPES.get(new Integer(sqlType));
       result.append(columnType);
-      result.append(";");
-      return result.toString();
+      resultList.add(result.toString());
+
+      return resultList;
    }
 
    /**
@@ -68,7 +84,6 @@ public final class OpOracleStatement implements OpSqlStatement {
       StringBuffer result = new StringBuffer();
       result.append("DROP TABLE ");
       result.append(tableName);
-      result.append(";");
       return result.toString();
    }
 
@@ -81,7 +96,6 @@ public final class OpOracleStatement implements OpSqlStatement {
       result.append(tableName);
       result.append(" DROP CONSTRAINT ");
       result.append(fkConstraintName);
-      result.append(";");
       return result.toString();
    }
 
@@ -92,7 +106,22 @@ public final class OpOracleStatement implements OpSqlStatement {
       StringBuffer result = new StringBuffer();
       result.append("DROP INDEX ");
       result.append(indexName);
-      result.append(";");
       return result.toString();
+   }
+
+   public int getColumnType(int hibernateType) {
+      switch(hibernateType) {
+         case  Types.DOUBLE :
+            return Types.FLOAT;
+         case Types.INTEGER :
+            return Types.DECIMAL;
+         case Types.TINYINT:
+            return Types.DECIMAL;
+         case Types.BIT:
+            return Types.DECIMAL;
+         case Types.BIGINT:
+            return Types.DECIMAL;
+      }
+      return hibernateType;
    }
 }

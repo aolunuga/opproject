@@ -79,7 +79,6 @@ public class OpInitializer {
     * state of initialization
     */
    private boolean initialized = false;
-   private static final String SELECT_ALL_OBJECTS_QUERY = "select o from OpObject as o";
 
    /**
     * This class should not be instantiated randomly. You must get a valid instance from <code>OpInitializerFactory</code>
@@ -357,8 +356,9 @@ public class OpInitializer {
    }
 
    /**
-    * Resets the db schema by dropping the existent one and creating a new one.
-    *
+    * Resets the db schema by dropping the existent one and creating a new one.  It's important here to not loose consistency
+    * in the hibernate hi-lo generator.
+    * <FIXME author="Horia Chiorean" description="Currently this method is used only from tests">
     * @throws SQLException if the db schema cannot be droped or created.
     */
    public void resetDbSchema()
@@ -391,32 +391,8 @@ public class OpInitializer {
     */
    public void restoreSchemaFromFile(String filePath, OpProjectSession projectSession)
         throws SQLException, IOException {
-      logger.info("Cleaning schema...");
-      OpBroker broker =  projectSession.newBroker();
-      OpTransaction txn = broker.newTransaction();
-      OpQuery query = broker.newQuery(SELECT_ALL_OBJECTS_QUERY);
-      Iterator it = broker.iterate(query);
-      while (it.hasNext()) {
-         OpObject opObject = (OpObject) it.next();
-         broker.deleteObject(opObject);
-      }
-      txn.commit();
-      broker.close();
-
-      // Restore data
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
-
-      //make sure all hi/lo generators are updated
-      for (OpSource source : OpSourceManager.getAllSources()) {
-         //<FIXME author="Horia Chiorean" description="OpSource SHOULD NOT EXIST ! AT ALL !">
-         if (source instanceof OpHibernateSource) {
-            ((OpHibernateSource) source).updateHiLoGeneratorValue();
-         }
-         //<FIXME>
-      }
-
       OpSourceManager.clearAllSources();
-
-      updateDBSchema();
+      this.updateDBSchema();
    }
 }

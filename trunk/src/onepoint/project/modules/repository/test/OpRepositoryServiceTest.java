@@ -140,7 +140,11 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       assertError(response, OpRepositoryError.BACKUP_ERROR_CODE);
    }
 
-   public void testRestore()
+   /**
+    * Restores the database from a backup file made from the current state of the database
+    * @throws Exception if anything fails.
+    */
+   public void testRestoreFromCurrentState()
         throws Exception {
       XMessage request = new XMessage();
       request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, BACKUP_ROOT_DIR);
