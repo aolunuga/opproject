@@ -175,6 +175,38 @@ public class OpProjectModule extends OpModule {
 
 
    /**
+    * Upgrades this module to version #30 (via reflection - must be public).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion32(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpUser administrator = session.administrator(broker);
+      OpQuery allProjectPlans = broker.newQuery("from OpProjectPlan project");
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpProjectPlan> projectsIt = broker.iterate(allProjectPlans);
+      while (projectsIt.hasNext()) {
+         OpProjectPlan plan = projectsIt.next();
+         //it the plan has any versions, take the creator of the last version
+         OpProjectPlanVersion version = plan.getLatestVersion();
+         String displayName = (version != null) ? version.getCreator() : administrator.getDisplayName();
+         plan.setCreator(displayName);
+
+         //set the version number on the project plan
+         int versions = plan.getVersions().size();
+         if (plan.hasWorkingVersion()) {
+           versions--;
+         }         
+         plan.setVersionNumber(versions);
+         broker.updateObject(plan);
+      }
+      tx.commit();
+      broker.close();
+   }
+
+
+
+   /**
     * Changes the name of the root project portfolio from the old resource naming - starting with {$
     * to the new naming with ${ - only if the old naming exists.
     *

@@ -448,7 +448,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
 
          // Check manager access
-         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
+         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.CONTRIBUTOR)) {
             logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
             reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
             return reply;

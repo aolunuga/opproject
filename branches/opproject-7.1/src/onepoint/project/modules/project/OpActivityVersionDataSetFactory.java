@@ -1274,7 +1274,16 @@ public abstract class OpActivityVersionDataSetFactory {
       OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
       planVersion.setCreator(creator.getDisplayName());
       planVersion.setProjectPlan(projectPlan);
-      planVersion.setVersionNumber(versionNumber);
+
+      if (versionNumber != OpProjectPlan.WORKING_VERSION_NUMBER) {
+         projectPlan.incrementVersionNumber();
+         broker.updateObject(projectPlan);
+         planVersion.setVersionNumber(projectPlan.getVersionNumber());
+      }
+      else {
+         planVersion.setVersionNumber(versionNumber);
+      }
+
       planVersion.setStart(projectPlan.getStart());
       planVersion.setFinish(projectPlan.getFinish());
       planVersion.setTemplate(projectPlan.getTemplate());

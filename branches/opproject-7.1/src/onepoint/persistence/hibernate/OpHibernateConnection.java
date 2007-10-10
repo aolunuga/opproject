@@ -232,7 +232,6 @@ public class OpHibernateConnection extends OpConnection {
    }
 
    /**
-    *
     * <FIXME author="Horia Chiorean" description="According to JLS, this code does assure that we won't get NoClassDefFound if hsqld.jar isn't present in classpath">
     */
    protected static org.hsqldb.persist.HsqlProperties cleanupHSQLDBDefaultTableType(OpHibernateSource source) {
@@ -255,9 +254,9 @@ public class OpHibernateConnection extends OpConnection {
     */
    @Override
    public void updateSchema() {
-      String[] hibernateUpdateScripts = null;
-      List customUpdateScripts = new ArrayList();
-      List customDropScripts = new ArrayList<String>();
+      String[] hibernateUpdateScripts;
+      List<String> customUpdateScripts;
+      List<String> customDropScripts;
 
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
@@ -275,11 +274,21 @@ public class OpHibernateConnection extends OpConnection {
          Dialect dialect = source.newHibernateDialect();
          DatabaseMetadata meta = new DatabaseMetadata(connection, dialect);
          hibernateUpdateScripts = configuration.generateSchemaUpdateScript(dialect, meta);
-         executeDDLScript(hibernateUpdateScripts);
-         
+
+         List<String> cleanHibernateUpdateScripts = new ArrayList<String>();
+         for (String hibernateUpdateScript : hibernateUpdateScripts) {
+            if (hibernateUpdateScript.contains(OpHibernateSource.HILO_GENERATOR_TABLE_NAME)) {
+               //statements -create/update- regarding HILO_GENERATOR_TABLE_NAME must be excluded since this table will always be there and up to date
+               continue;
+            }
+            cleanHibernateUpdateScripts.add(hibernateUpdateScript);
+         }
+
+         executeDDLScript(cleanHibernateUpdateScripts.toArray(new String[]{}));
+
          //finally perform the custom update
          customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData(), dialect);
-         executeDDLScript((String[]) customUpdateScripts.toArray(new String[]{}));
+         executeDDLScript(customUpdateScripts.toArray(new String[]{}));
       }
       catch (Exception e) {
          logger.error("Cannot update DB schema because: " + e.getMessage(), e);

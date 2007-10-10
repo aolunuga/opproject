@@ -547,7 +547,9 @@ public class OpProjectPlanningService extends OpProjectService {
               maxVersionNumber != OpProjectPlan.WORKING_VERSION_NUMBER) {
             versionNumber = maxVersionNumber + 1;
          }
-         OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), versionNumber, true);
+         OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
+         projectPlan.setCreator(session.user(broker).getDisplayName());
+         broker.updateObject(projectPlan);
 
          // Check if working plan version ID is correct (if it is set)
          OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
