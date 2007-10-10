@@ -8,7 +8,6 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.persistence.hibernate.cache.OpOSCache;
-import onepoint.project.util.OpProjectConstants;
 import org.hibernate.*;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
@@ -56,7 +55,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 31;
+   public static final int SCHEMA_VERSION = 32;
 
    /**
     * Db schema related constants
@@ -67,8 +66,6 @@ public class OpHibernateSource extends OpSource {
    private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
    private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
-   private static final String UPDATE_HILO_GENERATOR_STATEMENT = "update " + HILO_GENERATOR_TABLE_NAME + " set " + HILO_GENERATOR_COLUMN_NAME + "=";
-   private static final String MAX_OBJECT_ID_QUERY = "select max(" + OpProjectConstants.OP_OBJECT_TABLE_NAME + ".op_id) from " + OpProjectConstants.OP_OBJECT_TABLE_NAME;
 
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
