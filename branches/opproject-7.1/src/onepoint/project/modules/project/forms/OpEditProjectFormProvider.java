@@ -380,17 +380,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
       for (Object planVersion : projectPlan.getVersions()) {
          OpProjectPlanVersion version = (OpProjectPlanVersion) planVersion;
          int versionNr = version.getVersionNumber();
-         //<FIXME author="Mihai Costin" description="Opp-246">
-         if (versionNr != 1) {
-            //</FIXME>
-            XComponent dataRow = this.createProjectVersionDataRow(session, version,
-                 userObjectsLocalizer, editMode);
-            if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
-               workingDataRow = dataRow;
-            }
-            else {
-               rowsMap.put(versionNr, dataRow);
-            }
+         XComponent dataRow = this.createProjectVersionDataRow(session, version,
+              userObjectsLocalizer, editMode);
+         if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            workingDataRow = dataRow;
+         }
+         else {
+            rowsMap.put(versionNr, dataRow);
          }
       }
 
@@ -441,9 +437,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
       }
       else {
-         //<FIXME author="Mihai Costin" description="Opp-246">
-         dataCell.setStringValue(String.valueOf(versionNr - 1));
-         //</FIXME>
+         dataCell.setStringValue(String.valueOf(versionNr));
       }
       dataRow.addChild(dataCell);
 
