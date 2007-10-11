@@ -504,6 +504,9 @@ public class OpProjectPlanningService extends OpProjectService {
    /**
     * Check in activities used by the service internally.
     *
+    * @param session
+    * @param request
+    * @return
     * @see #checkInActivities(onepoint.project.OpProjectSession,onepoint.service.XMessage)
     */
    private XMessage internalCheckInActivities(OpProjectSession session, XMessage request) {
@@ -533,21 +536,15 @@ public class OpProjectPlanningService extends OpProjectService {
 
          t = broker.newTransaction();
 
-         // Check if project plan already exists (create if not)
+         // The project will always have a plan attached
          OpProjectPlan projectPlan = project.getPlan();
-
-         // Archive current project plan to new project plan version
-         OpQuery query = broker.newQuery("select max(planVersion.VersionNumber) from OpProjectPlanVersion as planVersion where planVersion.ProjectPlan.ProjectNode.ID = ?");
-         query.setLong(0, project.getID());
-         Integer maxVersionNumber = (Integer) broker.iterate(query).next();
-         //first version for project plan
-         int versionNumber = 1;
-         // a version exists and it's not WORKING VERSION NUMBER
-         if (maxVersionNumber != null &&
-              maxVersionNumber != OpProjectPlan.WORKING_VERSION_NUMBER) {
-            versionNumber = maxVersionNumber + 1;
+         if (projectPlan.getVersionNumber() < 0) {
+            //first time the project is checked in => the actual version, so no project version has to be created
+            projectPlan.incrementVersionNumber();
          }
-         OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
+         else {
+            OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
+         }
          projectPlan.setCreator(session.user(broker).getDisplayName());
          broker.updateObject(projectPlan);
 

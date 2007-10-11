@@ -48,7 +48,7 @@ public class OpProjectPlan extends OpObject {
    public final static int WORKING_VERSION_NUMBER = -1;
    public final static int ACTUAL_VERSION_NUMBER = 0;
    private String creator;
-   private Integer versionNumber = 0;
+   private Integer versionNumber = -1; //default versions
 
    public void setStart(Date start) {
       this.start = start;
