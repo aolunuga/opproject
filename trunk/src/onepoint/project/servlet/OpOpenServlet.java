@@ -187,10 +187,19 @@ public class OpOpenServlet extends XExpressServlet {
    public void doGet(HttpServletRequest http_request, HttpServletResponse http_response)
         throws ServletException,
         IOException {
-      //don't cache anything for more than 1 sec (posible security issue).
-      http_response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
-      http_response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-      http_response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+      
+      // fix OPP-243 (MSIE bug: cannot view pdf files)
+      if (!isFileRequest(http_request)) {
+         http_response.setHeader("Cache-Control", "max-age=1");
+//         http_response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
+         http_response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+         http_response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+      }
+      else {
+         // don't cache anything for more than 1 sec (posible security issue).
+         http_response.setHeader("Cache-Control", "max-age=1");
+      }
+
       // Get the session context ('true': create new session if necessary)
       OpProjectSession session = (OpProjectSession) getSession(http_request);
 
@@ -588,9 +597,15 @@ public class OpOpenServlet extends XExpressServlet {
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(initializer.getRunLevel()));
          return response;
       }
-      XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
-      addAutoLoginCookie(request, response, http_response);
-      return response;
+      OpProjectSession.setSession((OpProjectSession)session);
+      try {
+         XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
+         addAutoLoginCookie(request, response, http_response);
+         return response;
+      }
+      finally {
+         OpProjectSession.removeSession();
+      }
    }
 
    /**
