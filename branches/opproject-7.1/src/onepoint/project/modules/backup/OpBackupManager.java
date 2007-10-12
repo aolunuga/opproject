@@ -627,6 +627,7 @@ public class OpBackupManager {
 
       exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
       writer.writeEndElement(OBJECTS);
+      session.cleanupSession();
    }
 
    /**
@@ -804,6 +805,7 @@ public class OpBackupManager {
          tx.commit();
          broker.close();
       }
+      session.cleanupSession();
    }
 
    /**

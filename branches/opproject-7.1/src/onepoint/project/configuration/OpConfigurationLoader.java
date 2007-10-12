@@ -93,9 +93,10 @@ public class OpConfigurationLoader extends XLoader {
     *
     * @param fileName configuration file to check.
     * @throws FileNotFoundException If provided file does not exist.
+    * @throws OpInvalidDataBaseConfigurationException if there is an error in the configuration file.
     */
    private void updateConfigurationFile(String fileName)
-        throws FileNotFoundException {
+        throws FileNotFoundException, OpInvalidDataBaseConfigurationException {
       if (fileName != null) {
          InputStream is = new FileInputStream(fileName);
          try {
@@ -112,6 +113,7 @@ public class OpConfigurationLoader extends XLoader {
          }
          catch (Exception e) {
             logger.error("Cannot update configuration file.", e);
+            throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
          }
       }
    }
@@ -131,7 +133,7 @@ public class OpConfigurationLoader extends XLoader {
       transformerFactory.setAttribute("indent-number", 2);
       Transformer t = transformerFactory.newTransformer();
       t.setOutputProperty(OutputKeys.METHOD, "xml");
-      t.setOutputProperty(OutputKeys.INDENT, "yes");
+//      t.setOutputProperty(OutputKeys.INDENT, "yes");
       StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(fileName)));
 
       // normalize document before writing
