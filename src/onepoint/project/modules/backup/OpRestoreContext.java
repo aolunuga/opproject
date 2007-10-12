@@ -24,7 +24,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 200;
+   private final static int MAX_INSERTS_PER_TRANSACTION = 300;
 
    /**
     * This class's logger.
@@ -162,7 +162,7 @@ public class OpRestoreContext extends XContext {
          Iterator iterator = broker.forceIterate(query);
          if (iterator.hasNext()) {
             //if a system object already exists in the db, make sure you mark the active object as existent.
-            long id = ((Long) iterator.next()).longValue();
+            long id = (Long) iterator.next();
             OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
 
             //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
@@ -206,7 +206,7 @@ public class OpRestoreContext extends XContext {
       }
       else {
          activePrototype = OpTypeManager.getPrototype(prototypeName);
-         activeBackupMembers = (List) backupMembersMap.get(prototypeName);
+         activeBackupMembers = backupMembersMap.get(prototypeName);
          if (activePrototype == null || activeBackupMembers == null) {
             //we should be somewhat graceful. It may happen, that entities vanish...
             logger.error("Cannot activate prototype with name:" + prototypeName);
@@ -237,7 +237,7 @@ public class OpRestoreContext extends XContext {
     *         yet.
     */
    OpObject getRelationshipOwner(Long id) {
-      return (OpObject) persistedObjectsMap.get(id);
+      return persistedObjectsMap.get(id);
    }
 
    /**
@@ -252,7 +252,7 @@ public class OpRestoreContext extends XContext {
             broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
-         broker.close();
+         session.cleanupSession();
          logger.info("Objects persisted");
          objectsToAdd.clear();
          insertCount = 0;

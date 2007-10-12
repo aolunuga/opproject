@@ -21,6 +21,7 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.util.XEnvironmentManager;
 import org.w3c.dom.*;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -152,10 +153,15 @@ public class OpConfigurationWizardService extends OpProjectService {
       Map<String, String> initParams = initializer.init(OpEnvironmentManager.getProductCode());
       response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
 
-      //<FIXME author="Horia Chiorean" description="Fix this for multi-site">
-      //set the source for the current session
-      session.init(OpSource.DEFAULT_SOURCE_NAME);
-      //<FIXME>
+      if (Byte.parseByte(initParams.get(OpProjectConstants.RUN_LEVEL)) == OpProjectConstants.SUCCESS_RUN_LEVEL) {
+         //<FIXME author="Horia Chiorean" description="Fix this for multi-site">
+         //set the source for the current session
+         session.init(OpSource.DEFAULT_SOURCE_NAME);
+         //<FIXME>
+      }
+      else {
+         return response;
+      }
 
       //check the load demodata checkbox
       Boolean loadDemodata = (Boolean) parameters.get("load_demodata");
@@ -242,9 +248,18 @@ public class OpConfigurationWizardService extends OpProjectService {
 
          File configurationFile = new File(configurationFileName);
          if (configurationFile.exists()) {
-            document = builder.parse(configurationFile);
-            //we assume that the root element <configuration> exists
-            rootElement = document.getDocumentElement();
+            try {
+               document = builder.parse(configurationFile);
+               //we assume that the root element <configuration> exists
+               rootElement = document.getDocumentElement();
+            }
+            catch (SAXParseException e) {
+               logger.error("Configuration file is not parseable...");
+               //create the document
+               document = builder.newDocument();
+               rootElement = document.createElement(OpConfigurationValuesHandler.CONFIGURATION);
+               document.appendChild(rootElement);
+            }
          }
          else {
             //create the document
