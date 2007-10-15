@@ -64,7 +64,7 @@ public class OpHibernateSource extends OpSource {
    private static final String VERSION_PLACEHOLDER = "#";
    private static final String CREATE_SCHEMA_TABLE_STATEMENT = "create table " + SCHEMA_TABLE + "(" + VERSION_COLUMN + " int)";
    private static final String INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT = "insert into " + SCHEMA_TABLE + " values(" + VERSION_PLACEHOLDER + ")";
-   private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + SCHEMA_VERSION;
+   private static final String UPDATE_SCHEMA_TABLE_STATEMENT = "update " + SCHEMA_TABLE + " set " + VERSION_COLUMN + "=" + VERSION_PLACEHOLDER;
    private static final String GET_SCHEMA_VERSION_STATEMENT = "select * from " + SCHEMA_TABLE;
 
    // A set of default properties to be used by hibernate.
@@ -458,15 +458,17 @@ public class OpHibernateSource extends OpSource {
 
    /**
     * Updates the schema version number in the db, to the value of the SCHEMA_VERSION constant.
+    *
+    * @param versionNumber The new schema version number
     */
-   public void updateSchemaVersionNumber() {
+   public void updateSchemaVersionNumber(Integer versionNumber) {
       Session session = sessionFactory.openSession();
       Connection jdbcConnection = session.connection();
       Statement statement = null;
 
       try {
          statement = jdbcConnection.createStatement();
-         statement.executeUpdate(UPDATE_SCHEMA_TABLE_STATEMENT);
+         statement.executeUpdate(UPDATE_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
          jdbcConnection.commit();
       }
       catch (SQLException e) {
@@ -508,6 +510,11 @@ public class OpHibernateSource extends OpSource {
       return -1;
    }
 
+//   public void createSchemaTable(int versionNumber) {
+//      createSchemaTable(versionNumber, false);
+//   }
+
+
    /**
     * Creates the schema table and inserts the given version number if the schema table doesn't exist..
     *
@@ -515,26 +522,29 @@ public class OpHibernateSource extends OpSource {
     */
    public void createSchemaTable(int versionNumber)
         throws SQLException {
-      if (!existsTable(SCHEMA_TABLE)) {
-         Session session = sessionFactory.openSession();
-         Connection jdbcConnection = session.connection();
-         Statement statement = null;
-         try {
-            statement = jdbcConnection.createStatement();
-            statement.execute(getCreateSchemaTableStatement());
-            statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
-            jdbcConnection.commit();
-            logger.info("Created table op_schema for versioning");
-         }
-         catch (SQLException e) {
-            logger.error("Cannot create schema version or insert version number because:" + e.getMessage(), e);
-            throw e;
-         }
-         finally {
-            //the connection object is closed by Hibernate
-            OpConnectionManager.closeJDBCObjects(null, statement, null);
-            session.close();
-         }
+
+      if (existsTable(SCHEMA_TABLE)) {
+         return;
+      }
+
+      Session session = sessionFactory.openSession();
+      Connection jdbcConnection = session.connection();
+      Statement statement = null;
+      try {
+         statement = jdbcConnection.createStatement();
+         statement.execute(getCreateSchemaTableStatement());
+         statement.executeUpdate(INSERT_CURENT_VERSION_INTO_SCHEMA_TABLE_STATEMENT.replaceAll(VERSION_PLACEHOLDER, String.valueOf(versionNumber)));
+         jdbcConnection.commit();
+         logger.info("Created table op_schema for versioning");
+      }
+      catch (SQLException e) {
+         logger.error("Cannot create schema version or insert version number because:" + e.getMessage(), e);
+         throw e;
+      }
+      finally {
+         //the connection object is closed by Hibernate
+         OpConnectionManager.closeJDBCObjects(null, statement, null);
+         session.close();
       }
    }
 

@@ -25,11 +25,7 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
 import onepoint.service.server.XSession;
-import onepoint.util.XBase64;
-import onepoint.util.XCookieManager;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
-import onepoint.util.XIOHelper;
+import onepoint.util.*;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -37,21 +33,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class OpOpenServlet extends XExpressServlet {
 
@@ -187,10 +171,19 @@ public class OpOpenServlet extends XExpressServlet {
    public void doGet(HttpServletRequest http_request, HttpServletResponse http_response)
         throws ServletException,
         IOException {
-      //don't cache anything for more than 1 sec (posible security issue).
-      http_response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
-      http_response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-      http_response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+
+      // fix OPP-243 (MSIE bug: cannot view pdf files)
+      if (!isFileRequest(http_request)) {
+         http_response.setHeader("Cache-Control", "max-age=1");
+//         http_response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
+         http_response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+         http_response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+      }
+      else {
+         // don't cache anything for more than 1 sec (posible security issue).
+         http_response.setHeader("Cache-Control", "max-age=1");
+      }
+
       // Get the session context ('true': create new session if necessary)
       OpProjectSession session = (OpProjectSession) getSession(http_request);
 
@@ -588,9 +581,15 @@ public class OpOpenServlet extends XExpressServlet {
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(initializer.getRunLevel()));
          return response;
       }
-      XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
-      addAutoLoginCookie(request, response, http_response);
-      return response;
+      OpProjectSession.setSession((OpProjectSession)session);
+      try {
+         XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
+         addAutoLoginCookie(request, response, http_response);
+         return response;
+      }
+      finally {
+         OpProjectSession.removeSession();
+      }
    }
 
    /**
@@ -611,7 +610,7 @@ public class OpOpenServlet extends XExpressServlet {
          if (request.getArgument(OpUserService.PASSWORD) != null) {
             password = (String) request.getArgument(OpUserService.PASSWORD);
          }
-         // encode [ user + ' ' + password ] with base64 . 
+         // encode [ user + ' ' + password ] with base64 .
          Cookie cookie = new Cookie(XCookieManager.AUTO_LOGIN, XBase64.encodeString(name + ' ' + password));
          cookie.setVersion(0);
          cookie.setMaxAge(XCookieManager.TTL); // one day in seconds

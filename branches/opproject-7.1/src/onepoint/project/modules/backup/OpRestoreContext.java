@@ -11,7 +11,6 @@ import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.xml.XContext;
 
-import java.sql.SQLException;
 import java.util.*;
 
 public class OpRestoreContext extends XContext {
@@ -122,12 +121,7 @@ public class OpRestoreContext extends XContext {
    void writeSchemaVersion(String schemaVersionNr) {
       //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
       OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getAllSources().iterator().next();
-      try {
-         hibernateSource.createSchemaTable(Integer.valueOf(schemaVersionNr));
-      }
-      catch (SQLException e) {
-         logger.error("Cannot restore schema table because:" + e.getMessage(), e);
-      }
+      hibernateSource.updateSchemaVersionNumber(Integer.valueOf(schemaVersionNr));
    }
 
    /**
