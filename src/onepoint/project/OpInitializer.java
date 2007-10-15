@@ -302,7 +302,7 @@ public class OpInitializer {
             logger.info("Updating DB schema from version " + existingVersionNr + "...");
             OpPersistenceManager.updateSchema();
             OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
-            hibernateSource.updateSchemaVersionNumber();
+            hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
          }
       }
    }

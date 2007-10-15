@@ -4618,7 +4618,6 @@ public class OpProjectComponent extends XComponent {
                line_editor.setSelectionEnd(-1);
                line_editor.hideCursor();
                repaint();
-
                // close the editor (captionEditor should never be null here - paranoia)
                if (captionEditor != null && captionEditorOwner != null) {
                   // close the layer
