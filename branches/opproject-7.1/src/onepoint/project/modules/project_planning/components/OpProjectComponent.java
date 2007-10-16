@@ -1885,7 +1885,8 @@ public class OpProjectComponent extends XComponent {
    }
 
    /**
-    * Synchronize selection between data and UI.
+    * Synchronize selection between data and UI. This method uses the gantt box component to synchronize
+    *    the selection.
     */
    protected void syncBoxUISelection() {
       //data-selected component will request focus
@@ -1897,9 +1898,34 @@ public class OpProjectComponent extends XComponent {
          if (dataRow != null && dataRow.getSelected()) {
             activity.requestFocus();
          }
+         else{
+            if(dataRow != null && !dataRow.getSelected()) {
+               activity.setSelected(false);
+            }
+         }
       }
    }
 
+   /**
+    * Synchronize selection between data and UI. This method uses the gantt activity component to synchronize
+    *    the selection.
+    */
+   protected void syncActivityUISelection() {
+      OpProjectComponent box = (OpProjectComponent) this.getContext();
+      OpProjectComponent chart = (OpProjectComponent) box.getBoxContent();
+      for (int i = 0; i < chart.getChildCount(); i++) {
+         OpProjectComponent activity = (OpProjectComponent) chart.getChild(i);
+         XComponent dataRow = activity.getDataRow();
+         if (dataRow != null && dataRow.getSelected()) {
+            activity.setSelected(true);
+         }
+         else {
+            if(dataRow != null && !dataRow.getSelected()) {
+               activity.setSelected(false);
+            }
+         }
+      }
+   }
 
    /**
     * Does layouting of the <code>UTILIZATION_CHART</code> component
@@ -2732,7 +2758,7 @@ public class OpProjectComponent extends XComponent {
                      chart.setInsertLine(null);
                   }
 
-                  if (getFocused() || drawActivityBorder) {
+                  if (getFocused() || drawActivityBorder || getSelected()) {
                      g.setColor(style.selection_background);
                   }
                   else {
@@ -4044,6 +4070,7 @@ public class OpProjectComponent extends XComponent {
                            XComponent dataSet = (XComponent) dataRow.getParent();
                            dataSet.clearDataSelection();
                            dataRow.setSelected(true);
+                           syncActivityUISelection();
                            break;
                         case POINTER_UP:
                            getDisplay().setDragSource(null);
@@ -4388,6 +4415,28 @@ public class OpProjectComponent extends XComponent {
       switch (pc_type) {
          case GANTT_BOX:
             processUndoRedoKeyboardEvent(action, key_code, modifiers);
+            if (action == KEY_DOWN) {
+               switch (key_code) {
+
+                  case DELETE_KEY: {
+                     if (pc_type == GANTT_BOX) {
+                        // Remove the selected activity from chart
+                        OpProjectComponent chart = (OpProjectComponent) (getBoxContent());
+                        for (int i = 0; i < chart.getChildCount(); i++) {
+                           OpProjectComponent activity = (OpProjectComponent) chart.getChild(i);
+                           XComponent dataRow = activity.getDataRow();
+                           if (dataRow != null && dataRow.getSelected()) {
+                              chart.removeActivity(activity);
+                           }
+                        }
+                        getDataSetComponent().clearDataSelection();
+                        doLayout();
+                        repaint();
+                     }
+                     break;
+                  }
+               }
+            }
             break;
 
          case GANTT_ACTIVITY:
