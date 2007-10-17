@@ -311,6 +311,7 @@ public class OpMappingsGenerator {
    private void addRelationMember(StringBuffer buffer, OpPrototype prototype, OpRelationship relationship, int level) {
       // Map relationship
       String cascadeMode = relationship.getCascadeMode();
+      String fetch = relationship.getFetch();
       OpRelationship back_relationship = relationship.getBackRelationship();
       OpPrototype target_prototype = OpTypeManager.getPrototypeByID(relationship.getTypeID());
       if (relationship.getCollectionTypeID() != OpType.SET) {
@@ -323,8 +324,10 @@ public class OpMappingsGenerator {
                buffer.append("\" property-ref=\"");
                buffer.append(back_relationship.getName());
                if (cascadeMode != null) {
-                  buffer.append("\" cascade=\"");
-                  buffer.append(cascadeMode);
+                  buffer.append("\" cascade=\"").append(cascadeMode);
+               }
+               if (fetch != null) {
+                  buffer.append("\" fetch=\"").append(fetch);
                }
                buffer.append("\"/>").append(NEW_LINE);
             }
@@ -337,8 +340,10 @@ public class OpMappingsGenerator {
                buffer.append(target_prototype.getInstanceClass().getName());
                buffer.append("\" unique=\"true\" not-null=\"true");
                if (cascadeMode != null) {
-                  buffer.append("\" cascade=\"");
-                  buffer.append(cascadeMode);
+                  buffer.append("\" cascade=\"").append(cascadeMode);
+               }
+               if (fetch != null) {
+                  buffer.append("\" fetch=\"").append(fetch);
                }
                buffer.append("\"/>").append(NEW_LINE);
             }
@@ -352,8 +357,10 @@ public class OpMappingsGenerator {
             buffer.append("\" class=\"");
             buffer.append(target_prototype.getInstanceClass().getName());
             if (cascadeMode != null) {
-               buffer.append("\" cascade=\"");
-               buffer.append(cascadeMode);
+               buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\"/>").append(NEW_LINE);
          }
@@ -369,8 +376,10 @@ public class OpMappingsGenerator {
             }
             buffer.append("\" lazy=\"true");
             if (cascadeMode != null) {
-               buffer.append("\" cascade=\"");
-               buffer.append(cascadeMode);
+               buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\">").append(NEW_LINE);
             buffer.append(generateIndent(level + 1)).append("<key column=\"");
@@ -406,6 +415,9 @@ public class OpMappingsGenerator {
             buffer.append("\" lazy=\"true");
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\">").append(NEW_LINE);
             buffer.append(generateIndent(level + 1)).append("<key column=\"").append(key_column_name).append("\"/>").append(NEW_LINE);

@@ -23,6 +23,12 @@ public class OpRelationship extends OpMember {
     */
    private String cascadeMode = null;
 
+   /**
+    * Indicates whether fetch mode should be used for this relationship.
+    * Can be one of the following: "subselect" or "join".
+    */
+   private String fetch = null;
+
    public OpRelationship() {
       // Default relationship-type is 'association'
       relationshipType = ASSOCIATION;
@@ -79,11 +85,28 @@ public class OpRelationship extends OpMember {
    }
 
    /**
+    * Gets the value of the fetch mode.
+    * @return a <code>String</code> representing the value of the fetch mode. May return <code>null</code>!
+    */
+   public String getFetch() {
+      return fetch;
+   }
+
+   /**
     * Sets the value of the cascade mode.
     * @param cascadeMode a <code>String</code> representing the value of the cascade mode.
     */
    public void setCascadeMode(String cascadeMode) {
       this.cascadeMode = cascadeMode;
+   }
+
+   /**
+    * Sets the value of the fetch mode.
+    * @param fetch a <code>String</code> representing the value of the fetch mode.
+    */
+   public void setFetch(String fetch) {
+      if(fetch.equalsIgnoreCase("subselect") || fetch.equalsIgnoreCase("join"))
+         this.fetch = fetch.toLowerCase();
    }
 
 }

@@ -78,6 +78,10 @@ public class OpRelationshipHandler implements XNodeHandler {
             relationship.setCascadeMode(s);
          }
       }
+      value = attributes.get("fetch");
+      if ((value != null) && (value instanceof String)) {
+         relationship.setFetch((String) value);
+      }
       return relationship;
    }
 
