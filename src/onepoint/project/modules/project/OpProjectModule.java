@@ -110,22 +110,6 @@ public class OpProjectModule extends OpModule {
    }
 
 
-   public void upgradeToVersion24(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
-      allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
-      while (projectsIt.hasNext()) {
-         OpProjectNode project = projectsIt.next();
-         for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
-            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
-         }
-      }
-      tx.commit();
-      broker.close();
-   }
-
    /**
     * Upgrades this module to version #25 (via reflection - must be public).
     *
@@ -150,24 +134,6 @@ public class OpProjectModule extends OpModule {
          String displayName = (user != null) ? user.getDisplayName() : administrator.getDisplayName();
          planVersion.setCreator(displayName);
          broker.updateObject(planVersion);
-      }
-      tx.commit();
-      broker.close();
-   }
-
-   /**
-    * Upgrades this module to version #31(via reflection - must be public).
-    *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-    */
-   public void upgradeToVersion31(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
-      while (assignmentsIt.hasNext()) {
-         OpAssignmentVersion assignmentVersion = assignmentsIt.next();
-         broker.deleteObject(assignmentVersion);
       }
       tx.commit();
       broker.close();

@@ -303,6 +303,7 @@ public class OpInitializer {
             OpPersistenceManager.updateSchema();
             OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
             hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
+            OpModuleManager.checkModules();
          }
       }
    }
@@ -394,5 +395,8 @@ public class OpInitializer {
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
       OpSourceManager.clearAllSources();
       this.updateDBSchema();
+
+      //check and fix modules
+      OpModuleManager.checkModules();
    }
 }

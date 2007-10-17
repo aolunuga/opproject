@@ -12,11 +12,11 @@ import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
+import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.work.OpWorkRecord;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,68 +45,6 @@ public class OpProjectPlanningModule extends OpModule {
       XFormLoader.registerComponent(OpProjectComponentHandler.GANTT_BOX, project_handler);
       XFormLoader.registerComponent(OpProjectComponentHandler.GANTT_MAP, project_handler);
       XFormLoader.registerComponent(OpProjectComponentHandler.UTILIZATION_BOX, project_handler);
-   }
-
-   /**
-    * Upgrades this module to version #5 (via reflection).
-    *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-    */
-   public void upgradeToVersion5(OpProjectSession session) {
-      //delete any work records that might be associated with deleted activities
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-
-      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.Deleted = true");
-      Iterator iterator = broker.list(query).iterator();
-      while (iterator.hasNext()) {
-         OpActivity activity = (OpActivity) iterator.next();
-         for(OpAssignment assignment : activity.getAssignments()) {
-            for(OpWorkRecord workRecord : assignment.getWorkRecords()) {
-               broker.deleteObject(workRecord);
-            }
-         }
-      }
-      t.commit();
-      broker.close();
-
-      List<Long> projectPlanIds = new ArrayList<Long>();
-      broker = session.newBroker();
-      query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
-      query.setByte(0, OpProjectNode.PROJECT);
-      //<FIXME author="Horia Chiorean" description="Use broker.iterate when it works">
-      iterator = broker.list(query).iterator();
-      //<FIXME>
-      while (iterator.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
-         //due to a previous bug, we must make sure the start/end of the project plans are ok - 1st thing that most be done !
-         fixProjectPlanDates(projectPlan, broker);
-         updateProceeds(projectPlan, broker);
-         projectPlanIds.add(projectPlan.getID());
-      }
-      broker.close();
-      revalidateProjectPlans(session, projectPlanIds);
-   }
-
-   /**
-    * Fixes the problem with invalid project plan dates (weren't correct).
-    *
-    * @param projectPlan a <code>OpProjectPlan</code> representing a project plan.
-    * @param broker      a <code>OpBroker</code> used for db operations.
-    */
-   private void fixProjectPlanDates(OpProjectPlan projectPlan, OpBroker broker) {
-      OpTransaction tx = broker.newTransaction();
-      projectPlan.copyDatesFromProject();
-      Date projectPlanFinish = projectPlan.getFinish();
-      //there can't be activities before the project start, so we only need to update the end date
-      for (OpActivity activity : projectPlan.getActivities()) {
-         if (activity.getFinish() != null && activity.getFinish().after(projectPlanFinish)) {
-            projectPlanFinish = activity.getFinish();
-         }
-      }
-      projectPlan.setFinish(projectPlanFinish);
-      broker.updateObject(projectPlan);
-      tx.commit();
    }
 
 
@@ -146,6 +84,76 @@ public class OpProjectPlanningModule extends OpModule {
       //recalculate the project plans
       revalidateProjectPlans(session, projectPlans);
    }
+
+   /**
+    * Upgrades this module to version #5 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion5(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("select projectPlan from OpProjectNode project inner join project.Plan projectPlan where project.Type = ?");
+      query.setByte(0, OpProjectNode.PROJECT);
+      Iterator iterator = broker.iterate(query);
+      while (iterator.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
+         updateProceeds(projectPlan, broker);
+      }
+      broker.close();
+   }
+
+   /**
+    * Upgrades this module to version #26 (via reflection).
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion26(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlan");
+      Iterator result = broker.iterate(query);
+
+      query = broker.newQuery("select setting.Value from OpSetting as setting where setting.Name = '" + OpSettings.CALENDAR_HOLIDAYS_LOCATION + "'");
+      Iterator calendarResult = broker.iterate(query);
+      String holidayCalendarId = null;
+      if (calendarResult.hasNext()) {
+         holidayCalendarId = (String) calendarResult.next();
+      }
+
+      OpTransaction tx = broker.newTransaction();
+      while (result.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+         projectPlan.setHolidayCalendar(holidayCalendarId);
+         for (OpProjectPlanVersion planVersion : projectPlan.getVersions()) {
+            planVersion.setHolidayCalendar(holidayCalendarId);
+            broker.updateObject(planVersion);
+         }
+         logger.info("Upgrade holiday calendar id to: " + holidayCalendarId);
+         broker.updateObject(projectPlan);
+      }
+      tx.commit();
+      broker.close();
+   }
+
+   /**
+    * Revalidate working version with the right calendar.
+    *
+    * @param session project session
+    */
+   public void upgradeToVersion29(OpProjectSession session) {
+      logger.info("Revalidating working versions with calendar settings on");
+
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpProjectPlan");
+      Iterator result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
+         OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
+         validator.validateProjectPlanWorkingVersion(broker, null, true);
+      }
+      broker.close();
+   }
+
 
    /**
     * Updates the actual proceeds of all activity, activity assignments and work records,
@@ -378,56 +386,11 @@ public class OpProjectPlanningModule extends OpModule {
       broker.close();
    }
 
-   /**
-    * Upgrades this module to version #26 (via reflection).
-    *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
-    */
-   public void upgradeToVersion26(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlan");
-      Iterator result = broker.iterate(query);
 
-      query = broker.newQuery("select setting.Value from OpSetting as setting where setting.Name = '" + OpSettings.CALENDAR_HOLIDAYS_LOCATION + "'");
-      Iterator calendarResult = broker.iterate(query);
-      String holidayCalendarId = null;
-      if (calendarResult.hasNext()) {
-         holidayCalendarId = (String) calendarResult.next();
-      }
-
-      OpTransaction tx = broker.newTransaction();
-      while (result.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
-         projectPlan.setHolidayCalendar(holidayCalendarId);
-         for (OpProjectPlanVersion planVersion : projectPlan.getVersions()) {
-            planVersion.setHolidayCalendar(holidayCalendarId);
-            broker.updateObject(planVersion);
-         }
-         logger.info("Upgrade holiday calendar id to: " + holidayCalendarId);
-         broker.updateObject(projectPlan);
-      }
-      tx.commit();
-      broker.close();
-   }
-
-   /**
-    * Revalidate working version with the right calendar.
-    *
-    * @param session
-    */
-   public void upgradeToVersion29(OpProjectSession session) {
-      logger.info("Revalidating working versions with calendar settings on");
-
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlan");
-      Iterator result = broker.iterate(query);
-
-      while (result.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) result.next();
-         OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
-         validator.validateProjectPlanWorkingVersion(broker, null, true);
-      }
-      broker.close();
+   public List<OpModuleChecker> getCheckerList() {
+      List<OpModuleChecker> checkers = new ArrayList<OpModuleChecker>();
+      checkers.add(new OpProjectPlanningModuleChecker());
+      return checkers;
    }
 
 }

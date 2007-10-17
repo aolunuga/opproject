@@ -2687,7 +2687,7 @@ public class OpProjectComponent extends XComponent {
                   // Paint collection activity
                   // Check for category color
                   Integer colorIndex = getColorIndex();
-                  if (getFocused() || drawActivityBorder) {
+                  if (getFocused() || drawActivityBorder || getSelected()) {
                      g.setColor(style.selection_background);
                   }
                   else if ((colorIndex != null) && (colorIndex.intValue() < XStyle.colorSchema.size())) {
@@ -2742,7 +2742,7 @@ public class OpProjectComponent extends XComponent {
                         g.setColor(style.background);
                      }
                   }
-                  if (getFocused()) {
+                  if (getFocused() || getSelected()) {
                      g.setColor(style.selection_background);
                   }
                   g.fillPolygon(getComponentPolygon());
@@ -3597,6 +3597,15 @@ public class OpProjectComponent extends XComponent {
             return;
          }
 
+         //detach the deleted activities from their data rows
+         for (int i = 0; i < getChildCount(); i++) {
+            activity = (OpProjectComponent) getChild(i);
+            dataRow = activity.getDataRow();
+            if(dataRow != null && dataRow.getParent() == null) {
+               activity.setDataRow(null);
+            }
+         }
+
          // reset cache
          resetCached();
       }
@@ -3903,6 +3912,7 @@ public class OpProjectComponent extends XComponent {
                            XComponent dataSet = (XComponent) dataRow.getParent();
                            dataSet.clearDataSelection();
                            dataRow.setSelected(true);
+                           syncActivityUISelection();
                            boolean changeExpandedMode = (modifiers & CTRL_KEY_DOWN) == CTRL_KEY_DOWN;
                            // expand or collapse collection activity on CTRL+POINTER_DOWN
                            if (changeExpandedMode) {
@@ -3978,6 +3988,7 @@ public class OpProjectComponent extends XComponent {
                            XComponent dataSet = (XComponent) dataRow.getParent();
                            dataSet.clearDataSelection();
                            dataRow.setSelected(true);
+                           syncActivityUISelection();
                            break;
                         case POINTER_UP:
                            getDisplay().setDragSource(null);
@@ -4425,7 +4436,7 @@ public class OpProjectComponent extends XComponent {
                         for (int i = 0; i < chart.getChildCount(); i++) {
                            OpProjectComponent activity = (OpProjectComponent) chart.getChild(i);
                            XComponent dataRow = activity.getDataRow();
-                           if (dataRow != null && dataRow.getSelected()) {
+                           if (dataRow != null && dataRow.getSelected() && getEditMode()) {
                               chart.removeActivity(activity);
                            }
                         }

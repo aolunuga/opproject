@@ -165,7 +165,7 @@ public final class OpModuleManager {
                catch (NoSuchMethodException e) {
                   logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
                }
-               catch(IllegalAccessException e) {
+               catch (IllegalAccessException e) {
                   logger.debug("Cannot access upgrade method ", e);
                }
                catch (InvocationTargetException e) {
@@ -174,6 +174,24 @@ public final class OpModuleManager {
                   throw new RuntimeException(e.getCause());
                }
             }
+         }
+         session.close();
+      }
+   }
+
+
+   /**
+    * Checks the integrity of the modules and fixes the possible module errors.
+    */
+   public static void checkModules() {
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         OpProjectSession session = new OpProjectSession(source.getName());
+         session.loadSettings();
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            module.check(session);
          }
          session.close();
       }
