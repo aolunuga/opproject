@@ -25,6 +25,12 @@ public class OpTimeRecord extends OpObject {
    private Integer finish = null;
 
    /**
+    * 
+    */
+   public OpTimeRecord() {
+      super();
+   }
+   /**
     * The duration of the time record.
     */
    private Integer duration = null;
@@ -48,6 +54,9 @@ public class OpTimeRecord extends OpObject {
     */
    public void setStart(Integer start) {
       this.start = start;
+      if (finish != null && start != null) {
+         duration = finish-start;
+      }
    }
 
    /**
@@ -64,6 +73,9 @@ public class OpTimeRecord extends OpObject {
     */
    public void setFinish(Integer finish) {
       this.finish = finish;
+      if (finish != null && start != null) {
+         duration = finish-start;
+      }
    }
 
    /**
@@ -80,6 +92,9 @@ public class OpTimeRecord extends OpObject {
     */
    public void setDuration(Integer duration) {
       this.duration = duration;
+      if (start != null && duration != null) {
+         finish = start+duration;
+      }
    }
 
    /**
@@ -135,13 +150,9 @@ public class OpTimeRecord extends OpObject {
       else if (finish >= XCalendar.MINUTES_PER_DAY) {
          throw new OpEntityException(OpWorkError.FINISH_TIME_IS_TOO_LARGE);
       }
-      //finish time must be greater than start time
-      else if (start >= finish) {
-         throw new OpEntityException(OpWorkError.START_AFTER_FINISH);
-      }
-      //duration must be finish time - start time
-      else if (duration != finish - start) {
-         throw new OpEntityException(OpWorkError.DURATION_NOT_VALID);
-      }
+      //finish time not be equal than start time
+//      else if (start == finish) {
+//         throw new OpEntityException(OpWorkError.START_AFTER_FINISH);
+//      }
    }
 }

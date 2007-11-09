@@ -9,6 +9,7 @@ import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAssignmentVersion;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.skills.OpSkillRating;
 import onepoint.project.modules.user.OpUser;
 import onepoint.util.XCalendar;
 
@@ -31,7 +32,8 @@ public class OpResource extends OpObject {
    public final static String ACTIVITY_ASSIGNMENTS = "ActivityAssignments";
    public final static String WORK_SLIPS = "WorkSlips";
    public final static String ABSENCES = "Absences";
-
+   public final static String SKILL_RATINGS = "SkillRatings";
+   
    public final static int INTERNAL_RATE_INDEX = 0;
    public final static int EXTERNAL_RATE_INDEX = 1;
    public final static int INTERNAL_RATE_LIST_INDEX = 0;
@@ -55,6 +57,7 @@ public class OpResource extends OpObject {
    private Set responsibleActivities;
    private Set responsibleActivityVersions;
    private Set<OpHourlyRatesPeriod> hourlyRatesPeriods;
+   private Set<OpSkillRating> skillRatings;
 
 
    public void setName(String name) {
@@ -205,7 +208,10 @@ public class OpResource extends OpObject {
       // if the resource has no OpHourlyRatesPeriods defined or
       // if the day is not in one of the OpHourlyRatesPeriods time intervals
       // we return the resource's hourly rate & external rate
+      //<FIXME author="Haizea Florin" description="data loading problem: the hourlyRatesPeriods.isEmpty() statement will
+      //  load all the hourly rates periods of this resource even if in some cases this is not necessary">
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)) {
+      //<FIXME>
          internalRate = hourlyRate;
       }
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)) {
@@ -310,6 +316,21 @@ public class OpResource extends OpObject {
          }
       }
       return true;
+   }
+
+   public Set<OpSkillRating> getSkillRatings() {
+      return skillRatings;
+   }
+
+   public void addSkillRating(OpSkillRating skillRating) {
+      if (this.skillRatings == null) {
+         this.skillRatings = new HashSet<OpSkillRating>();
+      }
+      this.skillRatings.add(skillRating);
+   }
+
+   public void setSkillRatings(Set skillRatings) {
+      this.skillRatings = skillRatings;
    }
 
    //<FIXME author="Mihai Costin" description="Move validations from service into this method">

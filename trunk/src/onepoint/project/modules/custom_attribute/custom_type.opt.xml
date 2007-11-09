@@ -1,0 +1,5 @@
+<prototype name="OpCustomType" instance-class="onepoint.project.modules.custom_attribute.OpCustomType" super-type="OpObject">
+   <!-- note that all fields represent differences, i.e., changes to the assignment values -->
+   <field name="PrototypeName" type="String" mandatory="true" unique="true" indexed="true" />
+   <relationship name="CustomAttributes" type="OpCustomAttribute" collection-type="Set" back-relationship="CustomType" inverse="true" cascade="all" />
+</prototype>

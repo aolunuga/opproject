@@ -15,10 +15,8 @@ import java.util.List;
 public class OpBroker {
    private static final XLog logger = XLogFactory.getServerLogger(OpBroker.class);
 
-   private OpConnection defaultConnection; // Connection to default-source
-   // Add object-caching here to broker/cursor instead of connection?!
-   // ATTENTION: First implementation ONLY uses default-source
-   // ==> Future implementations must add opening of sources and mapping of names/IDs to connections
+   private OpConnection defaultConnection;
+   private OpSource default_source;
 
    /**
     * Creates a new broker.
@@ -27,9 +25,9 @@ public class OpBroker {
     */
    OpBroker(String sourceName) {
       // Constructor is only called by OpSourceManager
-      OpSource default_source = OpSourceManager.getSource(sourceName);
+      default_source = OpSourceManager.getSource(sourceName);
       if (default_source != null) {
-         defaultConnection = default_source.newConnection();
+         defaultConnection = default_source.newConnection(this);
       }
    }
 
@@ -47,7 +45,7 @@ public class OpBroker {
       return getObject(locator.getPrototype().getInstanceClass(), locator.getID());
    }
 
-   public OpObject getObject(Class c, long id) {
+   public <C extends OpObject> C getObject(Class<C> c, long id) {
       // Get object by ID *** attention: Therewhile just default-connection
       logger.debug("getObject(): id = " + id);
       return defaultConnection.getObject(c, id);
@@ -75,6 +73,25 @@ public class OpBroker {
       }
    }
 
+   /**
+    * @param query
+    * @param name
+    * @return
+    * @pre
+    * @post
+    */
+   @SuppressWarnings("unchecked")
+   public <C> List<C> list(OpQuery query, Class<C> type) {
+      // Find object in sources specified in query (default is default source)
+      if (defaultConnection != null) {
+         return (List<C>)defaultConnection.list(query);
+      }
+      else {
+         return null;
+      }
+   }
+
+   
    public Iterator iterate(OpQuery query) {
       //<FIXME author="Mihai Costin" description="Use iterate when iterate related issues have been solved">
       // Find object in sources specified in query (default is default source)
@@ -132,6 +149,23 @@ public class OpBroker {
    }
 
    /**
+    * Closes this broker and evicts the cache.
+    */
+   public void closeAndEvict() {
+      clear();
+      close();
+   }
+
+   /**
+    * Evicts the cache for this broker.
+    */
+   public void clear() {
+      if (defaultConnection != null) {
+         default_source.clear();
+      }
+   }
+
+   /**
     * Checks if this broker (and the underlying connection) is still open.
     *
     * @return true if it's open.
@@ -153,6 +187,15 @@ public class OpBroker {
 
    public Connection getJDBCConnection() {
       return defaultConnection.getJDBCConnection();
+   }
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public OpSource getSource() {
+      return default_source;
    }
 
 }

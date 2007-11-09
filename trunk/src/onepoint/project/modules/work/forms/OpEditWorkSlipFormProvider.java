@@ -93,7 +93,7 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       }
 
       //fill the three data sets
-      List<XComponent> dataSetList = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecordList, session);
+      List<XComponent> dataSetList = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecordList, session, broker);
       workEffortDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX));
       workTimeDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.TIME_RECORD_SET_INDEX));
       workCostDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.COST_RECORD_SET_INDEX));

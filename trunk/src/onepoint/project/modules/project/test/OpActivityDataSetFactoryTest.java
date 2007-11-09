@@ -45,7 +45,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
    private OpProjectTestDataFactory dataFactory;
    private OpResourceTestDataFactory resourceDataFactory;
 
-   private OpProjectNode project;
+//   private OpProjectNode project;
 
    /**
     * The name of the xml file that contains the test data.
@@ -65,14 +65,10 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       dataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
-
       java.sql.Date date = java.sql.Date.valueOf("2007-06-06");
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 1000d, null, null);
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
-      project = dataFactory.getProjectByName(PRJ_NAME);
-
    }
 
    /**
@@ -250,29 +246,35 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    public void testFailedCreateAttachments()
         throws Exception {
-      OpProjectPlan plan = project.getPlan();
-
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
 
-      OpActivity activity = createActivity(plan, broker);
+         OpProjectPlan plan = project.getPlan();
 
-      // use an invalid Content ID - null
-      List attachmentElement = generateAttachElements(null);
+         OpTransaction t = broker.newTransaction();
 
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
-      t.commit();
-      broker.close();
+         OpActivity activity = createActivity(plan, broker);
 
-      // load content
-      broker = session.newBroker();
+         // use an invalid Content ID - null
+         List attachmentElement = generateAttachElements(null);
 
-      OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
-      List list = broker.list(query);
-      assertNotNull(list);
-      assertTrue(list.isEmpty());  // no attachemnt created because invalid content
+         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         t.commit();
+         broker.close();
 
-      broker.close();
+         // load content
+         broker = session.newBroker();
+
+         OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
+         List list = broker.list(query);
+         assertNotNull(list);
+         assertTrue(list.isEmpty());  // no attachemnt created because invalid content
+
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -286,30 +288,36 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
        byte[] bytes = "The content of the file".getBytes();
       String contentId = createContent(bytes);
 
-      OpProjectPlan plan = project.getPlan();
-
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpActivity activity = createActivity(plan, broker);
-      List attachmentElement = generateAttachElements(contentId);
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
-      t.commit();
-      broker.close();
+      try {
+         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
 
-      // load content
-      broker = session.newBroker();
+         OpProjectPlan plan = project.getPlan();
 
-      OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
-      List list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(1, list.size());
+         OpTransaction t = broker.newTransaction();
+         OpActivity activity = createActivity(plan, broker);
+         List attachmentElement = generateAttachElements(contentId);
+         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         t.commit();
+         broker.close();
 
-      query = broker.newQuery("from " + OpContent.CONTENT);
-      list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(1, list.size());
+         // load content
+         broker = session.newBroker();
 
-      broker.close();
+         OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
+         List list = broker.list(query);
+         assertNotNull(list);
+         assertEquals(1, list.size());
+
+         query = broker.newQuery("from " + OpContent.CONTENT);
+         list = broker.list(query);
+         assertNotNull(list);
+         assertEquals(1, list.size());
+
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -326,46 +334,49 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       }
       String contentId = createContent(bytes);
 
-      OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
-      OpProjectPlan plan = project.getPlan();
-
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
+         OpProjectPlan plan = project.getPlan();
 
-      OpActivity activity = createActivity(plan, broker);
+         OpTransaction t = broker.newTransaction();
 
-      List attachmentElement = generateAttachElements(contentId);
+         OpActivity activity = createActivity(plan, broker);
 
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
-      t.commit();
-      broker.close();
+         List attachmentElement = generateAttachElements(contentId);
 
-      // load content
-      broker = session.newBroker();
-      t = broker.newTransaction();
+         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         t.commit();
+         broker.close();
 
-      OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
-      List list = broker.list(query);
-      assertEquals(1, list.size());
-      OpAttachment attachment = (OpAttachment) list.get(0);
+         // load content
+         broker = session.newBroker();
+         t = broker.newTransaction();
 
-      OpContent content = (OpContent) broker.getObject(contentId);
-      assertEquals(1, content.getRefCount());
+         OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
+         List list = broker.list(query);
+         assertEquals(1, list.size());
+         OpAttachment attachment = (OpAttachment) list.get(0);
 
-      attachmentElement = generateAttachElements(contentId);
-      List<OpAttachment> reuselist = new ArrayList<OpAttachment>();
-      reuselist.add(attachment);
-      OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, reuselist, null);
-      t.commit();
-      broker.close();
+         OpContent content = (OpContent) broker.getObject(contentId);
+         assertEquals(1, content.getRefCount());
 
-      // load content
-      broker = session.newBroker();
+         attachmentElement = generateAttachElements(contentId);
+         List<OpAttachment> reuselist = new ArrayList<OpAttachment>();
+         reuselist.add(attachment);
+         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, reuselist, null);
+         t.commit();
+         broker.close();
 
-      OpContent actual = (OpContent) broker.getObject(contentId);
-      assertEquals(2, actual.getRefCount());
+         // load content
+         broker = session.newBroker();
 
-      broker.close();
+         OpContent actual = (OpContent) broker.getObject(contentId);
+         assertEquals(2, actual.getRefCount());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    // ******** Helper Methods *********

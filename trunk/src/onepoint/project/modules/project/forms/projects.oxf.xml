@@ -51,8 +51,8 @@
             <table-box if="ProjectResourcesTable" data-set-ref="ProjectDataSet" tree-column-index="0" icon-set-ref="IconSet" flexible="true" pop-up-menu-ref="ProjectTablePopupMenu"
                        on-row-select="selectionChanged"  on-double-click="edit">
             <table-column text="${Project}" width="120" sortable="true" data-column-index="1"  value-type="Choice"/>
-            <table-column text="${BaseEffort}" width="80" sortable="true" data-column-index="11" value-type="Duration" display-unit="Hours"/>
-            <table-column text="${ActualEffort}" width="80" sortable="true" data-column-index="12" value-type="Duration" display-unit="Hours"/>
+            <table-column text="${BaseEffort}" width="80" sortable="true" data-column-index="11" value-type="Double" decimals="2"/>
+            <table-column text="${ActualEffort}" width="80" sortable="true" data-column-index="12" value-type="Double" decimals="2"/>
             <table-column text="${RemainingEffort}" width="70" data-column-index="14" value-type="Double" sortable="true" decimals="2"/>
             <table-column text="${ProjectedEffort}" width="70" data-column-index="13" value-type="Double" sortable="true" decimals="2"/>
             <table-column text="${DeviationEffort}" width="70" data-column-index="19" value-type="Deviation" sortable="true" decimals="2"/>

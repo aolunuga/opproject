@@ -70,6 +70,15 @@ public final class OpProjectDataSetFactory {
    private final static int TEMPLATE_EDITED_ICON_INDEX = 5;
    private final static int TEMPLATE_LOCKED_ICON_INDEX = 6;
 
+   private static final String GET_LOCK_COUNT_FOR_PROJECT_NODE =
+        "select count(lock.ID) from OpLock lock where lock.Target = (:project)";
+   private static final String GET_ACTIVITY_COUNT_FOR_PROJECT_PLAN =
+        "select count(activity.ID) from OpActivity activity where activity.ProjectPlan = (:projectPlanId)";
+   private static final String GET_PLAN_VERSION_COUNT_FOR_PROJECT_PLAN =
+        "select count(planVersion.ID) from OpProjectPlanVersion planVersion where planVersion.ProjectPlan = (:projectPlanId)";
+   private static final String GET_PROJECT_COUNT_FOR_PROJECT_STATUS =
+        "select count(project.ID) from OpProjectNode project where project.Status = (:statusId)";
+
    /**
     * Utility class.
     */
@@ -833,7 +842,7 @@ public final class OpProjectDataSetFactory {
       Map sortOrder = new HashMap(1);
       sortOrder.put(OpProjectStatus.SEQUENCE, OpObjectOrderCriteria.ASCENDING);
       OpObjectOrderCriteria categoryOrderCriteria = new OpObjectOrderCriteria(OpProjectStatus.PROJECT_STATUS, sortOrder);
-      OpQuery query = broker.newQuery("select status from OpProjectStatus as status where status.Active=true " + categoryOrderCriteria.toHibernateQueryString("status"));
+      OpQuery query = broker.newQuery("select status from OpProjectStatus as status " + categoryOrderCriteria.toHibernateQueryString("status"));
       Iterator projectStatusItr = broker.iterate(query);
       return projectStatusItr;
    }
@@ -1140,4 +1149,75 @@ public final class OpProjectDataSetFactory {
       return result;
    }
 
+   /**
+    * Returns <code>true</code> if the <code>OpProjectNode</code> specified as parameter has locks or <code>false</code> otherwise.
+    *
+    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param projectNode - the <code>OpProjectNode</code> object.
+    * @return <code>true</code> if the <code>OpProjectNode</code> specified as parameter has locks or <code>false</code> otherwise.
+    */
+   public static boolean hasLocks(OpBroker broker, OpProjectNode projectNode) {
+      if (projectNode.getLocks() != null) {
+         OpQuery query = broker.newQuery(GET_LOCK_COUNT_FOR_PROJECT_NODE);
+         query.setParameter("project", projectNode);
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the <code>OpProjectPlan</code> specified as parameter has activities or <code>false</code> otherwise.
+    *
+    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param projectPlan - the <code>OpProjectPlan</code> object.
+    * @return <code>true</code> if the <code>OpProjectPlan</code> specified as parameter has activities or <code>false</code> otherwise.
+    */
+   public static boolean hasActivities(OpBroker broker, OpProjectPlan projectPlan) {
+      if (projectPlan.getActivities() != null) {
+         OpQuery query = broker.newQuery(GET_ACTIVITY_COUNT_FOR_PROJECT_PLAN);
+         query.setLong("projectPlanId", projectPlan.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns the number of project plan versions for the <code>OpProjectPlan</code> specified as parameter.
+    *
+    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param projectPlan - the <code>OpProjectPlan</code> object.
+    * @return the number of project plan versions for the <code>OpProjectPlan</code> specified as parameter.
+    */
+   public static int getPlanVersionsCount(OpBroker broker, OpProjectPlan projectPlan) {
+      if (projectPlan.getVersions() != null) {
+         OpQuery query = broker.newQuery(GET_PLAN_VERSION_COUNT_FOR_PROJECT_PLAN);
+         query.setLong("projectPlanId", projectPlan.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         return counter.intValue();
+      }
+      return 0;
+   }
+
+   /**
+    * Returns the number of project nodes for the <code>OpProjectStatus</code> specified as parameter.
+    *
+    * @param broker        - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param projectStatus - the <code>OpProjectStatus</code> object.
+    * @return the number of project nodes for the <code>OpProjectStatus</code> specified as parameter.
+    */
+   public static int getProjectsCount(OpBroker broker, OpProjectStatus projectStatus) {
+      if (projectStatus.getProjects() != null) {
+         OpQuery query = broker.newQuery(GET_PROJECT_COUNT_FOR_PROJECT_STATUS);
+         query.setLong("statusId", projectStatus.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         return counter.intValue();
+      }
+      return 0;
+   }
 }

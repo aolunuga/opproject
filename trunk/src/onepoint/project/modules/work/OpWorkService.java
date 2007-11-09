@@ -207,7 +207,7 @@ public class OpWorkService extends OpProjectService {
 
          workSlip.setRecords(workRecordsToAdd);
          workSlip.updateTotalActualEffort();
-         serviceImpl.insertWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
+         serviceImpl.insertMyWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 
          //delete all contents with reference count = 0
          OpContentManager.deleteZeroRefContents(broker);

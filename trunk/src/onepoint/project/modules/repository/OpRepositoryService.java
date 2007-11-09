@@ -106,7 +106,7 @@ public class OpRepositoryService extends OpProjectService {
          return response;
       }
       catch (IOException e) {
-         logger.error("Cannot backup repository because:" + e.getMessage(), e);
+         logger.error("Cannot backup repository to: '"+backupFile.getAbsolutePath()+"', because:" + e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
    }

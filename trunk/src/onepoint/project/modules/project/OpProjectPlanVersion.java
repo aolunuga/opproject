@@ -159,6 +159,14 @@ public class OpProjectPlanVersion extends OpObject {
    }
 
    public void setBaseline(Boolean baseline) {
+      setBaselineInternal(baseline);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   private void setBaselineInternal(Boolean baseline) {
       this.baseline = (baseline != null) ? baseline : Boolean.FALSE;
    }
 }

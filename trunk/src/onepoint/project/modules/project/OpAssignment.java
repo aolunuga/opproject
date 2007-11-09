@@ -89,7 +89,10 @@ public class OpAssignment extends OpObject {
    public OpAssignmentVersion getBaselineVersion() {
       OpAssignmentVersion assignmentVersion = null;
       OpActivityVersion baselineVersion = getActivity().getBaselineVersion();
+      //<FIXME author="Haizea Florin" description="data loading problem: the getAssignmentVersions().isEmpty() statement
+      // will load all the assignment versions of this activity version">
       if (baselineVersion != null && baselineVersion.getAssignmentVersions() != null && !baselineVersion.getAssignmentVersions().isEmpty()) {
+      //<FIXME>
          for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
             if (version.getResource().getID() == this.getResource().getID()) {
                //assignment version found
@@ -206,7 +209,12 @@ public class OpAssignment extends OpObject {
    public Set<OpWorkRecord> getWorkRecords() {
       return workRecords;
    }
-
+   
+   public boolean hasWorkRecords() {
+	  //<FIXME author="Jochen Mersmann" description="The .size() will initialize the whole workrecords-set which for this method is not desirable.">
+	  return workRecords != null ? workRecords.size() > 0 : false;
+	  //<FIXME>
+   }
    public Set<OpWorkMonth> getWorkMonths() {
       return workMonths;
    }

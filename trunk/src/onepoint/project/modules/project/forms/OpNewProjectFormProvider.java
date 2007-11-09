@@ -90,6 +90,11 @@ public class OpNewProjectFormProvider implements XFormProvider {
          OpProjectStatus status = (OpProjectStatus) statusIterator.next();
          row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(XValidator.choice(String.valueOf(status.locator()), status.getName()));
+
+         if (status.getActive() == false) {
+            row.setEnabled(false);
+         }
+
          statusDataSet.addChild(row);
       }
 

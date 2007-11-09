@@ -35,6 +35,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
    public static final String ACTIVITY_SET = "CostActivitySet";
    public static final String RESOURCE_SET = "CostResourceSet";
 
+   private static final String COST_TYPE_EXCEPTION = "CostTypeException";
    private static final String ACTUAL_COST_EXCEPTION = "ActualCostException";
    private static final String REMAINING_COST_EXCEPTION = "RemainingCostException";
 
@@ -62,7 +63,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
             throw new XValidationException(RESOURCE_NAME_EXCEPTION);
          }
          if (getValue(row, COST_TYPE_INDEX) == null) {
-            throw new XValidationException(RESOURCE_NAME_EXCEPTION);
+            throw new XValidationException(COST_TYPE_EXCEPTION);
          }
          if (getValue(row, ACTUAL_COST_INDEX) == null || ((Double) getValue(row, ACTUAL_COST_INDEX)).doubleValue() <= 0) {
             throw new XValidationException(ACTUAL_COST_EXCEPTION);

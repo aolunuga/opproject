@@ -64,8 +64,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       projectDataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
-
+      // create resources 'resource', 'resource2'
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg(RESOURCE_NAME, "description", 50d, 2d, 1d, false, poolid);
       XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);
@@ -76,6 +75,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       res2Id = resourceDataFactory.getResourceByName(RESOURCE_NAME + 2).locator();
 
+      // create project 'project', 'project2'
       request = OpProjectTestDataFactory.createProjectMsg(PROJECT_NAME, new Date(1), 1d, null, null);
       response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
@@ -85,8 +85,10 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       proj2Id = projectDataFactory.getProjectId(PROJECT_NAME + 2);
 
-      planId = projectDataFactory.getProjectById(projId).getPlan().locator();
-      plan2Id = projectDataFactory.getProjectById(proj2Id).getPlan().locator();
+      OpBroker broker = session.newBroker();
+      planId = projectDataFactory.getProjectById(broker, projId).getPlan().locator();
+      plan2Id = projectDataFactory.getProjectById(broker, proj2Id).getPlan().locator();
+      broker.close();
    }
 
    /**

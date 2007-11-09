@@ -50,7 +50,7 @@ public abstract class OpConnection {
 
    public abstract void persistObject(OpObject object);
 
-   public abstract OpObject getObject(Class c, long id);
+   public abstract <C extends OpObject> C getObject(Class<C> c, long id);
 
    public abstract void updateObject(OpObject object);
 

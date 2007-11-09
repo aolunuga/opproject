@@ -66,10 +66,11 @@ public abstract class OpSource {
 
    /**
     * Creates a new connection.
+    * @param broker the broker that created this connection
     *
     * @return new connection
     */
-   public abstract OpConnection newConnection();
+   public abstract OpConnection newConnection(OpBroker broker);
 
    /**
     * Checks whether a table exists or not in the db schema.
@@ -100,5 +101,11 @@ public abstract class OpSource {
     */
    public void setEmbeded(boolean embeded) {
       this.embeded = embeded;
+   }
+   
+   public <O extends OpObject> void addEntityEventListener(Class<O> opclass, OpEntityEventListener listener) {
+   }
+   
+   public <O extends OpObject> void removeEntityEventListener(Class<O> opclass, OpEntityEventListener listener) {
    }
 }

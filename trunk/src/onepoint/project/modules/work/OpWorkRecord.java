@@ -73,6 +73,14 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setActualProceeds(Double actualProceeds) {
+      setActualProceedsInternal(actualProceeds);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   public void setActualProceedsInternal(Double actualProceeds) {
       this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
    }
 
@@ -159,6 +167,14 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setRemTravelCosts(Double remTravelCosts) {
+      setRemTravelCostsInternal(remTravelCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   public void setRemTravelCostsInternal(Double remTravelCosts) {
       this.remTravelCosts = remTravelCosts != null ? remTravelCosts : 0;
    }
 
@@ -167,6 +183,14 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setRemMaterialCosts(Double remMaterialCosts) {
+      setRemMaterialCostsInternal(remMaterialCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   public void setRemMaterialCostsInternal(Double remMaterialCosts) {
       this.remMaterialCosts = remMaterialCosts != null ? remMaterialCosts : 0;
    }
 
@@ -175,6 +199,14 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setRemExternalCosts(Double remExternalCosts) {
+      setRemExternalCostsInternal(remExternalCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   public void setRemExternalCostsInternal(Double remExternalCosts) {
       this.remExternalCosts = remExternalCosts != null ? remExternalCosts : 0;
    }
 
@@ -183,6 +215,14 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setRemMiscCosts(Double remMiscCosts) {
+      setRemMiscCostsInternal(remMiscCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   public void setRemMiscCostsInternal(Double remMiscCosts) {
       this.remMiscCosts = remMiscCosts != null ? remMiscCosts : 0;
    }
 
@@ -392,7 +432,10 @@ public class OpWorkRecord extends OpObject {
     *         or <code>false</code> otherwise
     */
    public boolean isEmpty() {
+      //<FIXME author="Haizea Florin" description="data loading problem: the costRecords.isEmpty() statement will load
+      //  all the cost records of this work record">
       return !completed && actualEffort == 0 && !costRecords.isEmpty();
+      //<FIXME>
    }
 
    /**
@@ -467,4 +510,25 @@ public class OpWorkRecord extends OpObject {
          return super.toString();
       }
    }
+
+   /**
+    * @param timeRecord
+    * @pre
+    * @post
+    */
+   public void addTimeRecord(OpTimeRecord timeRecord) {
+      timeRecords.add(timeRecord);
+      timeRecord.setWorkRecord(this);
+   }
+
+   /**
+    * @param costRecord
+    * @pre
+    * @post
+    */
+   public void addCostRecord(OpCostRecord costRecord) {
+      costRecords.add(costRecord);
+      costRecord.setWorkRecord(this);
+   }
+
 }

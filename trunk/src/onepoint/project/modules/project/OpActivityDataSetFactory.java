@@ -32,6 +32,13 @@ public abstract class OpActivityDataSetFactory {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpActivityDataSetFactory.class);
 
+   private static final String GET_WORK_RECORD_COUNT_FOR_ASSIGNMENT =
+        "select count(workRecord.ID) from OpWorkRecord workRecord where workRecord.Assignment = (:assignmentId)";
+   private static final String GET_HOURLY_RATES_PERIOD_COUNT_FOR_PROJECT_ASSIGNMENT =
+        "select count(hourlyRates.ID) from OpHourlyRatesPeriod hourlyRates where hourlyRates.ProjectNodeAssignment = (:assignmentId)";
+   private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
+        "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId)";
+
    public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
            .newQuery("select assignment.Resource from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ? order by assignment.Resource.Name asc");
@@ -52,11 +59,11 @@ public abstract class OpActivityDataSetFactory {
     * Each row has the resource locator as value set on it and a data cell with a map containing
     * the interval start date as key and a list with internal and external rates as value.
     *
-    * @param project            The current project.
-    * @param dataSet            Hourly rates data set.
+    * @param project The current project.
+    * @param dataSet Hourly rates data set.
     */
    //<FIXME author="Haizea Florin" description="This is not the proper way to use this method">
-   public static void fillHourlyRatesDataSet(OpProjectNode project,  XComponent dataSet) {
+   public static void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
       OpProjectAdministrationService service = (OpProjectAdministrationService) XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
       service.fillHourlyRatesDataSet(project, dataSet);
    }
@@ -99,7 +106,7 @@ public abstract class OpActivityDataSetFactory {
       while (activities.hasNext()) {
          activity = (OpActivity) activities.next();
          dataRow = new XComponent(XComponent.DATA_ROW);
-         retrieveActivityDataRow(activity, dataRow, editable);
+         retrieveActivityDataRow(broker, activity, dataRow, editable);
          if (activity.getType() == OpActivity.TASK || activity.getType() == OpActivity.COLLECTION_TASK) {
             OpGanttValidator.setStart(dataRow, null);
             OpGanttValidator.setEnd(dataRow, null);
@@ -406,7 +413,7 @@ public abstract class OpActivityDataSetFactory {
          }
          activityIds.add(activityId);
          dataRow = new XComponent(XComponent.DATA_ROW);
-         retrieveActivityDataRow(activity, dataRow, false);
+         retrieveActivityDataRow(broker, activity, dataRow, false);
          // "Flatten" activity hierarchy
          if (dataRow.getOutlineLevel() > 0) {
             // Patch activity name by adding context information
@@ -551,7 +558,7 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   private static void retrieveActivityDataRow(OpActivity activity, XComponent dataRow, boolean editable) {
+   private static void retrieveActivityDataRow(OpBroker broker, OpActivity activity, XComponent dataRow, boolean editable) {
 
       dataRow.setStringValue(activity.locator());
 
@@ -584,7 +591,7 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setEnabled(editable && !isCollection);
       OpActivityCategory category = activity.getCategory();
       if (category != null) {
-         dataCell.setStringValue(XValidator.choice(category.locator(), category.getName()));
+         dataCell.setStringValue(XValidator.choice(category.locator(), category.getName())); // one select...
       }
       dataRow.addChild(dataCell);
 
@@ -682,7 +689,7 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setListValue(new ArrayList());
       dataRow.addChild(dataCell);
       if (activity.getAttachments().size() > 0) {
-         List attachmentList = OpGanttValidator.getAttachments(dataRow);
+         List attachmentList = OpGanttValidator.getAttachments(dataRow); // one select...
          retrieveAttachments(activity.getAttachments(), attachmentList);
       }
 
@@ -721,13 +728,13 @@ public abstract class OpActivityDataSetFactory {
       //Workrecords (24): a map of [resourceLocator, hasWorkRecords]
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setEnabled(false);
-      Set assignments = activity.getAssignments();
+      Set assignments = activity.getAssignments();  //one db-select
       Map data = new HashMap(assignments.size());
       Iterator it = assignments.iterator();
       while (it.hasNext()) {
          OpAssignment assignment = (OpAssignment) it.next();
          String resourceLocator = assignment.getResource().locator();
-         Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? Boolean.valueOf(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
+         Boolean hasWorkRecords = hasWorkRecords(broker, assignment);
          data.put(resourceLocator, hasWorkRecords);
       }
       dataCell.setValue(data);
@@ -1052,6 +1059,7 @@ public abstract class OpActivityDataSetFactory {
          // Insert a new activity
          activity = new OpActivity(OpGanttValidator.getType(dataRow));
          activity.setProjectPlan(projectPlan);
+         projectPlan.addActivity(activity);
          activity.setTemplate(projectPlan.getTemplate());
 
          activity.setName(OpGanttValidator.getName(dataRow));
@@ -1281,38 +1289,46 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
             update = true;
             activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-            double remaining = activity.getBaseTravelCosts() - activity.getActualTravelCosts();
-            if (remaining < 0) {
-               remaining = 0;
+            if (activity.getActualTravelCosts() == 0) {
+               double remaining = activity.getBaseTravelCosts() - activity.getActualTravelCosts();
+               if (remaining < 0) {
+                  remaining = 0;
+               }
+               activity.setRemainingTravelCosts(remaining);
             }
-            activity.setRemainingTravelCosts(remaining);
          }
          if (activity.getBaseMaterialCosts() != OpGanttValidator.getBaseMaterialCosts(dataRow)) {
             update = true;
             activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-            double remaining = activity.getBaseMaterialCosts() - activity.getActualMaterialCosts();
-            if (remaining < 0) {
-               remaining = 0;
+            if (activity.getActualMaterialCosts() == 0) {
+               double remaining = activity.getBaseMaterialCosts() - activity.getActualMaterialCosts();
+               if (remaining < 0) {
+                  remaining = 0;
+               }
+               activity.setRemainingMaterialCosts(remaining);
             }
-            activity.setRemainingMaterialCosts(remaining);
          }
          if (activity.getBaseExternalCosts() != OpGanttValidator.getBaseExternalCosts(dataRow)) {
             update = true;
             activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-            double remaining = activity.getBaseExternalCosts() - activity.getActualExternalCosts();
-            if (remaining < 0) {
-               remaining = 0;
+            if (activity.getActualExternalCosts() == 0) {
+               double remaining = activity.getBaseExternalCosts() - activity.getActualExternalCosts();
+               if (remaining < 0) {
+                  remaining = 0;
+               }
+               activity.setRemainingExternalCosts(remaining);
             }
-            activity.setRemainingExternalCosts(remaining);
          }
          if (activity.getBaseMiscellaneousCosts() != OpGanttValidator.getBaseMiscellaneousCosts(dataRow)) {
             update = true;
             activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-            double remaining = activity.getBaseMiscellaneousCosts() - activity.getActualMiscellaneousCosts();
-            if (remaining < 0) {
-               remaining = 0;
+            if (activity.getActualMiscellaneousCosts() == 0) {
+               double remaining = activity.getBaseMiscellaneousCosts() - activity.getActualMiscellaneousCosts();
+               if (remaining < 0) {
+                  remaining = 0;
+               }
+               activity.setRemainingMiscellaneousCosts(remaining);
             }
-            activity.setRemainingMiscellaneousCosts(remaining);
          }
          if (activity.getAttributes() != OpGanttValidator.getAttributes(dataRow)) {
             update = true;
@@ -1488,7 +1504,7 @@ public abstract class OpActivityDataSetFactory {
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
                //check if the assignemnt still has work records - if so => error
-               if (!assignment.getWorkRecords().isEmpty()) {
+                if (hasWorkRecords(broker, assignment)) {
                   throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
                }
                reusableAssignments.add(assignment);
@@ -1546,6 +1562,7 @@ public abstract class OpActivityDataSetFactory {
             assignment = new OpAssignment();
          }
          assignment.setProjectPlan(plan);
+         plan.addAssignment(assignment);
          assignment.setActivity(activity);
          resource = (OpResource) resources.get(new Long(OpLocator.parseLocator(resourceChoiceId).getID()));
          assignment.setResource(resource);
@@ -2465,8 +2482,8 @@ public abstract class OpActivityDataSetFactory {
                List<Double> rates = projectAssignment.getRatesForDay(date, true);
                double internalRate = rates.get(OpProjectNodeAssignment.INTERNAL_RATE_INDEX);
                double externalRate = rates.get(OpProjectNodeAssignment.EXTERNAL_RATE_INDEX);
-               internalSum += internalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
-               externalSum += externalRate * remainingEffortPerDay * assignment.getAssigned() / 100;
+               internalSum += internalRate * remainingEffortPerDay;
+               externalSum += externalRate * remainingEffortPerDay;
                workMonthRemainingEffort += remainingEffortPerDay;
             }
 
@@ -2534,5 +2551,62 @@ public abstract class OpActivityDataSetFactory {
             OpGanttValidator.setSuccessors(dataRow, newSuccesssors);
          }
       }
+   }
+
+   /**
+    * Returns <code>true</code> if the assignment specified as parameter has any work records or <code>false</code> otherwise.
+    *
+    * @param broker     - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param assignment - the <code>OpAssignment</code> object.
+    * @return <code>true</code> if the assignment specified as parameter has any work records or <code>false</code> otherwise.
+    */
+   public static boolean hasWorkRecords(OpBroker broker, OpAssignment assignment) {
+      if (assignment.getWorkRecords() != null) {
+         OpQuery query = broker.newQuery(GET_WORK_RECORD_COUNT_FOR_ASSIGNMENT);
+         query.setLong("assignmentId", assignment.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the project assignment specified as parameter has any hourly rate periods or
+    * <code>false</code> otherwise.
+    *
+    * @param broker            - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param projectAssignment - the <code>OpProjectNodeAssignment</code> object.
+    * @return <code>true</code> if the project assignment specified as parameter has any hourly rate periods or
+    *         <code>false</code> otherwise.
+    */
+   public static boolean hasHourlyRatesPeriods(OpBroker broker, OpProjectNodeAssignment projectAssignment) {
+      if (projectAssignment.getHourlyRatesPeriods() != null) {
+         OpQuery query = broker.newQuery(GET_HOURLY_RATES_PERIOD_COUNT_FOR_PROJECT_ASSIGNMENT);
+         query.setLong("assignmentId", projectAssignment.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns the number of subactivities for the activity specified as parameter.
+    *
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param activity - the <code>OpActivity</code> object.
+    * @return the number of subactivities for the activity specified as parameter.
+    */
+   public static int getSubactivitiesCount(OpBroker broker, OpActivity activity) {
+      if (activity.getSubActivities() != null) {
+         OpQuery query = broker.newQuery(GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY);
+         query.setLong("activityId", activity.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         return counter.intValue();
+      }
+      return 0;
    }
 }

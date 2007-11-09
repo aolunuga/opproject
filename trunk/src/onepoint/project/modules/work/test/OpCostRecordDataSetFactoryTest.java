@@ -50,7 +50,6 @@ public class OpCostRecordDataSetFactoryTest extends OpBaseOpenTestCase {
 
       dataFactory = new OpWorkTestDataFactory(session);
       projectFactory = new OpProjectTestDataFactory(session);
-      clean();
    }
 
    /**
@@ -72,8 +71,10 @@ public class OpCostRecordDataSetFactoryTest extends OpBaseOpenTestCase {
       String workRecordId = dataFactory.getWorkRecordId(RESOURCE_NAME);
       OpWorkRecord workRecord = dataFactory.getWorkRecordById(workRecordId);
 
-      XComponent dataSet = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session);
+      OpBroker broker = session.newBroker();
+      XComponent dataSet = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session, broker);
       assertEquals(workRecord.getCostRecords().size(), dataSet.getChildCount());
+      broker.close();
 
       OpAttachment attachment = new OpAttachment();
 

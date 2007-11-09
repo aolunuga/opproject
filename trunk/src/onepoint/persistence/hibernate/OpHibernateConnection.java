@@ -23,6 +23,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 
 /**
  * This class represents an implementation of a <code>OpConnection</code> for Hibernate persistance.
@@ -39,17 +40,25 @@ public class OpHibernateConnection extends OpConnection {
     */
    private Session session;
 
+   private static WeakHashMap<Session, OpBroker> sessionToBrokerMap = new WeakHashMap<Session, OpBroker>();
+
    /**
     * Creates a new instance.
     *
-    * @param source  data source to use
+    * @param broker  the broker that creates this connection
     * @param session hibernate session to use
     */
-   public OpHibernateConnection(OpSource source, Session session) {
-      super(source);
+   public OpHibernateConnection(OpBroker broker, Session session) {
+      super(broker.getSource());
       this.session = session;
+      sessionToBrokerMap.put(session, broker);
+      logger.debug("Session to broker map contains now "+sessionToBrokerMap.size()+" entries!");
    }
 
+   protected static OpBroker getBroker(Session session) {
+      return sessionToBrokerMap.get(session);
+   }
+   
    /**
     * Specify if the connection is still valid.
     *
@@ -232,7 +241,6 @@ public class OpHibernateConnection extends OpConnection {
    }
 
    /**
-    *
     * <FIXME author="Horia Chiorean" description="According to JLS, this code does assure that we won't get NoClassDefFound if hsqld.jar isn't present in classpath">
     */
    protected static org.hsqldb.persist.HsqlProperties cleanupHSQLDBDefaultTableType(OpHibernateSource source) {
@@ -255,9 +263,9 @@ public class OpHibernateConnection extends OpConnection {
     */
    @Override
    public void updateSchema() {
-      String[] hibernateUpdateScripts = null;
-      List customUpdateScripts = new ArrayList();
-      List customDropScripts = new ArrayList<String>();
+      String[] hibernateUpdateScripts;
+      List<String> customUpdateScripts;
+      List<String> customDropScripts;
 
       OpHibernateSource source = ((OpHibernateSource) getSource());
       Configuration configuration = source.getConfiguration();
@@ -275,11 +283,21 @@ public class OpHibernateConnection extends OpConnection {
          Dialect dialect = source.newHibernateDialect();
          DatabaseMetadata meta = new DatabaseMetadata(connection, dialect);
          hibernateUpdateScripts = configuration.generateSchemaUpdateScript(dialect, meta);
-         executeDDLScript(hibernateUpdateScripts);
+
+         List<String> cleanHibernateUpdateScripts = new ArrayList<String>();
+         for (String hibernateUpdateScript : hibernateUpdateScripts) {
+            if (hibernateUpdateScript.contains(OpHibernateSource.HILO_GENERATOR_TABLE_NAME)) {
+               //statements -create/update- regarding HILO_GENERATOR_TABLE_NAME must be excluded since this table will always be there and up to date
+               continue;
+            }
+            cleanHibernateUpdateScripts.add(hibernateUpdateScript);
+         }
+
+         executeDDLScript(cleanHibernateUpdateScripts.toArray(new String[]{}));
 
          //finally perform the custom update
          customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData(), dialect);
-         executeDDLScript((String[]) customUpdateScripts.toArray(new String[]{}));
+         executeDDLScript(customUpdateScripts.toArray(new String[]{}));
       }
       catch (Exception e) {
          logger.error("Cannot update DB schema because: " + e.getMessage(), e);
@@ -331,10 +349,10 @@ public class OpHibernateConnection extends OpConnection {
     * @param id object identifier
     * @return object with the provided identifier
     */
-   public OpObject getObject(Class c, long id) {
-      OpObject object = null;
+   public <C extends OpObject> C getObject(Class<C> c, long id) {
+      C object = null;
       try {
-         object = (OpObject) (session.get(c, new Long(id)));
+         object = (C) (session.get(c, new Long(id)));
       }
       catch (HibernateException e) {
          logger.error("OpHibernateConnection.persistObject(): Could not load object: " + e);
@@ -379,7 +397,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().list();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -391,7 +410,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().iterate();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -403,7 +423,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().executeUpdate();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return 0;
@@ -411,6 +432,7 @@ public class OpHibernateConnection extends OpConnection {
 
    public void close() {
       try {
+         sessionToBrokerMap.remove(session);
          if (session != null) {
             session.close();
          }

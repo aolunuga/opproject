@@ -8,7 +8,12 @@
 package onepoint.project.xml_rpc.onepoint.project.modules.my_tasks;
 
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpMember;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
+import onepoint.project.module.OpModuleRegistry;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.*;
@@ -21,6 +26,7 @@ import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
 import org.apache.xmlrpc.XmlRpcException;
 
+import java.lang.reflect.Method;
 import java.sql.Date;
 import java.util.*;
 
@@ -30,6 +36,24 @@ import java.util.*;
  * @author dfreis
  */
 public class OpMyTasksServiceXMLRPC {
+   private final static String[] IGNORES = new String[] {
+      "SubActivities", 
+      "SuccessorDependencies", 
+      "PredecessorDependencies", 
+      "SuperActivity", 
+      "ResponsibleResource",
+      "ProjectPlan.ProjectNode",
+      "ProjectPlan.Activities",
+      "ProjectPlan.ActivityAttachments",
+      "ProjectPlan.ActivityAssignments",
+      "ProjectPlan.WorkPeriods",
+      "ProjectPlan.Dependencies",
+      "ProjectPlan.Versions",
+      "Assignments.ProjectPlan",
+      "Assignments.Resource",
+      "Assignments.Activity",
+      "Assignments.WorkRecords",
+      "Assignments.WorkMonths" };
    /**
     * the underlaying OpMyTaskService
     */
@@ -79,7 +103,7 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
             map = getActivityData(rootTaskIter.next());
-            OpXMLRPCUtil.deleteMapNullValues(map);
+            //OpXMLRPCUtil.deleteMapNullValues(map);
             ret.add(map);
          }
          return ret;
@@ -103,7 +127,7 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
             map = getActivityData(rootTaskIter.next());
-            OpXMLRPCUtil.deleteMapNullValues(map);
+            //OpXMLRPCUtil.deleteMapNullValues(map);
             ret.add(map);
          }
          return ret;
@@ -127,7 +151,7 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map;
          while (rootTaskIter.hasNext()) {
             map = getActivityData(rootTaskIter.next());
-            OpXMLRPCUtil.deleteMapNullValues(map);
+            //OpXMLRPCUtil.deleteMapNullValues(map);
             ret.add(map);
          }
          return ret;
@@ -150,9 +174,9 @@ public class OpMyTasksServiceXMLRPC {
          if (parent == null) {
             return (new HashMap<String, Object>());
          }
-         Map<String, Object> map = getActivityData(parent);
-         OpXMLRPCUtil.deleteMapNullValues(map);
-         return map;
+         return(getActivityData(parent));
+         //OpXMLRPCUtil.deleteMapNullValues(map);
+         //return map;
       }
       catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
@@ -173,7 +197,7 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map;
          while (childTaskIter.hasNext()) {
             map = getActivityData(childTaskIter.next());
-            OpXMLRPCUtil.deleteMapNullValues(map);
+            //OpXMLRPCUtil.deleteMapNullValues(map);
             ret.add(map);
          }
          return ret;
@@ -197,7 +221,7 @@ public class OpMyTasksServiceXMLRPC {
          Map<String, Object> map;
          while (childTaskIter.hasNext()) {
             map = getActivityData(childTaskIter.next());
-            OpXMLRPCUtil.deleteMapNullValues(map);
+            //OpXMLRPCUtil.deleteMapNullValues(map);
             ret.add(map);
          }
          return ret;
@@ -216,9 +240,9 @@ public class OpMyTasksServiceXMLRPC {
       OpBroker broker = session.newBroker();
       try {
          OpActivity activity = impl.getTaskById(session, broker, Long.parseLong(id));
-         Map<String, Object> map = getActivityData(activity);
-         OpXMLRPCUtil.deleteMapNullValues(map);
-         return map;
+         return getActivityData(activity);
+         //OpXMLRPCUtil.deleteMapNullValues(map);
+         //return map;
       }
       catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
@@ -235,9 +259,7 @@ public class OpMyTasksServiceXMLRPC {
       try {
          OpActivity activity = getActivity(session, broker, activityData);
          impl.insertAdhocTask(session, broker, activity);
-         Map<String, Object> map = getActivityData(activity);
-         OpXMLRPCUtil.deleteMapNullValues(map);
-         return map;
+         return getActivityData(activity);
       }
       catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
@@ -272,9 +294,7 @@ public class OpMyTasksServiceXMLRPC {
       try {
          OpActivity activity = getActivity(session, broker, activityData);
          impl.updateAdhocTask(session, broker, activity);
-         Map<String, Object> map = getActivityData(activity);
-         OpXMLRPCUtil.deleteMapNullValues(map);
-         return map;
+         return getActivityData(activity);
       }
       catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
@@ -290,80 +310,7 @@ public class OpMyTasksServiceXMLRPC {
     * @return a map containing all user information.
     */
    private static Map<String, Object> getActivityData(OpActivity activity) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-
-      ret.put(OpActivity.ID, Long.toString(activity.getID())); // note: xml-rpc does not 
-      // support Long
-      if (activity.getName() != null) {
-         ret.put(OpActivity.NAME, activity.getName());
-      }
-      if (activity.getDescription() != null) {
-         ret.put(OpActivity.DESCRIPTION, activity.getDescription());
-      }
-      //ret.put(OpActivity.TYPE, activity.getType());
-      //ret.put(OpActivity.OUTLINE_LEVEL = "OutlineLevel";
-      if (activity.getStart() != null) {
-         ret.put(OpActivity.START, activity.getStart());
-      }
-      if (activity.getFinish() != null) {
-         ret.put(OpActivity.FINISH, activity.getFinish());
-      }
-      ret.put(OpActivity.DURATION, activity.getDuration());
-      ret.put(OpActivity.COMPLETE, activity.getComplete());
-      ret.put(OpActivity.PRIORITY, new Integer(activity.getPriority()));
-      ret.put(OpActivity.BASE_EFFORT, activity.getBaseEffort());
-      ret.put(OpActivity.BASE_TRAVEL_COSTS, activity.getBaseTravelCosts());
-      ret.put(OpActivity.BASE_PERSONNEL_COSTS, activity.getBasePersonnelCosts());
-      ret.put(OpActivity.BASE_MATERIAL_COSTS, activity.getBaseMaterialCosts());
-      ret.put(OpActivity.BASE_EXTERNAL_COSTS, activity.getBaseExternalCosts());
-      ret.put(OpActivity.BASE_MISCELLANEOUS_COSTS, activity.getBaseMiscellaneousCosts());
-      ret.put(OpActivity.ACTUAL_EFFORT, activity.getActualEffort());
-      ret.put(OpActivity.ACTUAL_PERSONNEL_COSTS, activity.getActualPersonnelCosts());
-      ret.put(OpActivity.ACTUAL_TRAVEL_COSTS, activity.getActualTravelCosts());
-      ret.put(OpActivity.ACTUAL_MATERIAL_COSTS, activity.getActualMaterialCosts());
-      ret.put(OpActivity.ACTUAL_EXTERNAL_COSTS, activity.getActualExternalCosts());
-      ret.put(OpActivity.ACTUAL_MISCELLANEOUS_COSTS, activity.getActualMiscellaneousCosts());
-      ret.put(OpActivity.REMAINING_EFFORT, activity.getRemainingEffort());
-//      ret.put(OpActivity.PROJECT_PLAN = "ProjectPlan";
-//      ret.put(OpActivity.SUPER_ACTIVITY = "SuperActivity";
-//      ret.put(OpActivity.SUB_ACTIVITIES = "SubActivities";
-      ret.put(OpActivity.PROJECT_PLAN + "_ID", Long.toString(activity.getProjectPlan().getID()));
-
-      // add assignments
-      LinkedList<Map<String, Object>> assignments = new LinkedList<Map<String, Object>>();
-      for (OpAssignment assignment : activity.getAssignments()) {
-         assignments.add(getAssignmentData(assignment));
-      }
-      ret.put(OpActivity.ASSIGNMENTS, assignments);
-      // add work periods
-      LinkedList<Map<String, Object>> activities = new LinkedList<Map<String, Object>>();
-      for (OpWorkPeriod period : activity.getWorkPeriods()) {
-         activities.add(getWorkPeriodData(period));
-      }
-      ret.put(OpActivity.WORK_PERIODS, activities);
-//      ret.put(OpActivity.SUCCESSOR_DEPENDENCIES = "SuccessorDependencies";
-//      ret.put(OpActivity.PREDECESSOR_DEPENDENCIES = "PredecessorDependencies";
-      // add attachments
-      LinkedList<Map<String, Object>> attachments = new LinkedList<Map<String, Object>>();
-      for (OpAttachment attachment : activity.getAttachments()) {
-         attachments.add(getAttachmentData(attachment));
-      }
-      ret.put(OpActivity.ATTACHMENTS, attachments);
-
-      // add versions
-      LinkedList<Map<String, Object>> versions = new LinkedList<Map<String, Object>>();
-      for (OpActivityVersion version : activity.getVersions()) {
-         versions.add(getVersionData(version));
-      }
-      ret.put(OpActivity.VERSIONS, versions);
-
-      // add comments
-      LinkedList<Map<String, Object>> comments = new LinkedList<Map<String, Object>>();
-      for (OpActivityComment comment : activity.getComments()) {
-         comments.add(getCommentData(comment));
-      }
-      ret.put(OpActivity.COMMENTS, comments);
-      return ret;
+      return OpXMLRPCUtil.convertToXMLRPCMap(activity, IGNORES);
    }
 
    /**
@@ -373,6 +320,11 @@ public class OpMyTasksServiceXMLRPC {
     */
    private OpActivity getActivity(OpProjectSession session, OpBroker broker,
         Map<String, Object> activity) {
+      
+      // FIXME(dfreis Sep 12, 2007 10:51:27 AM)
+      // to be done
+      
+      
       OpActivity ret;
       String id = (String) activity.get(OpActivity.ID);
       if (id != null) {
@@ -511,7 +463,7 @@ public class OpMyTasksServiceXMLRPC {
       String stringValue = (String) activity.get(OpActivity.PROJECT_PLAN + "_ID");
       OpProjectPlan projectPlan = null;
       if (stringValue != null) {
-         projectPlan = projectAdminImpl.getProjectPlanMyId(session, broker,
+         projectPlan = projectAdminImpl.getProjectPlanById(session, broker,
               Long.parseLong(stringValue));
          ret.setProjectPlan(projectPlan);
       }
@@ -685,210 +637,210 @@ public class OpMyTasksServiceXMLRPC {
       return null;
    }
 
-   /**
-    * @param comment
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getCommentData(OpActivityComment comment) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpActivityComment.ID, Long.toString(comment.getID()));
-      if (comment.getName() != null) {
-         ret.put(OpActivityComment.NAME, comment.getName());
-      }
-      if (comment.getText() != null) {
-         ret.put(OpActivityComment.TEXT, comment.getText());
-      }
-      ret.put(OpActivityComment.CREATOR + "_ID", Long.toString(comment.getCreator().getID()));
-      return ret;
-   }
-
-   /**
-    * @param version
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getVersionData(OpActivityVersion version) {
-      // TODO
-      Map<String, Object> ret = new HashMap<String, Object>();
-      return ret;
-   }
-
-   /**
-    * @param attachment
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getAttachmentData(OpAttachment attachment) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpAttachment.ID, Long.toString(attachment.getID()));
-      if (attachment.getName() != null) {
-         ret.put(OpAttachment.NAME, attachment.getName());
-      }
-      ret.put(OpAttachment.CONTENT, getContentData(attachment.getContent()));
-      ret.put(OpAttachment.LINKED, attachment.getLinked());
-      if (attachment.getLocation() != null) {
-         ret.put(OpAttachment.LOCATION, attachment.getLocation());
-      }
-      return ret;
-   }
-
-   /**
-    * @param content
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getContentData(OpContent content) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpContent.ID, Long.toString(content.getID()));
-      if (content.getMediaType() != null) {
-         ret.put(OpContent.MEDIA_TYPE, content.getMediaType());
-      }
-      // Note: Xml-Rpc does not support long! 
-      ret.put(OpContent.SIZE + "_HI", (int) (content.getSize() >> 32));
-      ret.put(OpContent.SIZE + "_LO", (int) content.getSize());
-      // add documents
-//      LinkedList<Map<String,Object>> documents = new LinkedList<Map<String,Object>>();  
-//      for (OpDocument document : content.getDocuments()) {
-//         documents.add(getDocumentData(document));
-//      }      
-//      ret.put(OpContent.DOCUMENTS, documents);
-      //TODO: <FIXME author="Lucian Furtos" description="Fix the streaming over XML-RPC, make sure the connection to DB is NOT closed (broker.close())">
-      if (content.getStream() != null) {
-         ret.put(OpContent.STREAM, content.getStream());
-      }
-      //</FIXME>
-      return ret;
-   }
-
 //   /**
-//    * @param document
+//    * @param comment
 //    * @return
 //    * @pre
 //    * @post
 //    */
-//   private static Map<String, Object> getDocumentData(OpDocument document) {
+//   private static Map<String, Object> getCommentData(OpActivityComment comment) {
 //      Map<String, Object> ret = new HashMap<String, Object>();
-//      document.getID();
-//      document.getName();
-//      // TODO Auto-generated method stub
-//      return null;
+//      ret.put(OpActivityComment.ID, Long.toString(comment.getID()));
+//      if (comment.getName() != null) {
+//         ret.put(OpActivityComment.NAME, comment.getName());
+//      }
+//      if (comment.getText() != null) {
+//         ret.put(OpActivityComment.TEXT, comment.getText());
+//      }
+//      ret.put(OpActivityComment.CREATOR + "_ID", Long.toString(comment.getCreator().getID()));
+//      return ret;
 //   }
-
-   /**
-    * @param period
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getWorkPeriodData(OpWorkPeriod period) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpWorkPeriod.ID, Long.toString(period.getID()));
-      ret.put(OpWorkPeriod.BASE_EFFORT, period.getBaseEffort());
-      if (period.getStart() != null) {
-         ret.put(OpWorkPeriod.START, period.getStart());
-      }
-      ret.put(OpWorkPeriod.WORKING_DAYS + "_HI", (int) (period.getWorkingDays() >> 32));
-      ret.put(OpWorkPeriod.WORKING_DAYS + "_LO", (int) (period.getWorkingDays()));
-      return ret;
-   }
-
-   /**
-    * @param assignment
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getAssignmentData(OpAssignment assignment) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpAssignment.ID, Long.toString(assignment.getID())); // note: xml-rpc does not 
-      ret.put(OpAssignment.ACTUAL_COSTS, assignment.getActualCosts());
-      ret.put(OpAssignment.BASE_COSTS, assignment.getBaseCosts());
-      ret.put(OpAssignment.COMPLETE, assignment.getComplete());
-      ret.put(OpAssignment.ACTUAL_EFFORT, assignment.getActualEffort());
-      ret.put(OpAssignment.BASE_EFFORT, assignment.getBaseEffort());
-      ret.put(OpAssignment.REMAINING_EFFORT, assignment.getRemainingEffort());
-      ret.put(OpAssignment.ASSIGNED, assignment.getAssigned());
-      ret.put(OpAssignment.RESOURCE, getResourceData(assignment.getResource()));
-      // add work records
-      LinkedList<Map<String, Object>> workRecords = new LinkedList<Map<String, Object>>();
-      for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
-         workRecords.add(getWorkRecordData(workRecord));
-      }
-      ret.put(OpAssignment.WORK_RECORDS, workRecords);
-      ret.put(OpAssignment.PROJECT_PLAN + "_ID", Long.toString(assignment.getProjectPlan().getID()));
-      return ret;
-   }
-
-   /**
-    * @param workRecord
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getWorkRecordData(OpWorkRecord workRecord) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpWorkRecord.ID, Long.toString(workRecord.getID())); // note: xml-rpc does not 
-      ret.put(OpWorkRecord.ACTUAL_EFFORT, workRecord.getActualEffort());
-      if (workRecord.getComment() != null) {
-         ret.put(OpWorkRecord.COMMENT, workRecord.getComment());
-      }
-      ret.put(OpWorkRecord.EXTERNAL_COSTS, workRecord.getExternalCosts());
-      ret.put(OpWorkRecord.MATERIAL_COSTS, workRecord.getMaterialCosts());
-      ret.put(OpWorkRecord.MISCELLANEOUS_COSTS, workRecord.getMiscellaneousCosts());
-      ret.put(OpWorkRecord.REMAINING_EFFORT, workRecord.getRemainingEffort());
-      ret.put(OpWorkRecord.TRAVEL_COSTS, workRecord.getTravelCosts());
-      ret.put(OpWorkRecord.WORK_SLIP, getWorkSlipData(workRecord.getWorkSlip()));
-      return ret;
-   }
-
-   /**
-    * @param workSlip
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getWorkSlipData(OpWorkSlip workSlip) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpWorkSlip.ID, Long.toString(workSlip.getID())); // note: xml-rpc does not 
-      if (workSlip.getDate() != null) {
-         ret.put(OpWorkSlip.DATE, workSlip.getDate());
-      }
-      ret.put(OpWorkSlip.NUMBER, workSlip.getNumber());
-      ret.put(OpWorkSlip.CREATOR + "_ID", Long.toString(workSlip.getCreator().getID()));
-      return ret;
-   }
-
-   /**
-    * @param resource
-    * @return
-    * @pre
-    * @post
-    */
-   private static Map<String, Object> getResourceData(OpResource resource) {
-      Map<String, Object> ret = new HashMap<String, Object>();
-      ret.put(OpResource.ID, Long.toString(resource.getID())); // note: xml-rpc does not 
-      if (resource.getName() != null) {
-         ret.put(OpResource.NAME, resource.getName());
-      }
-      // add absences
-//      LinkedList<Map<String,Object>> absences = new LinkedList<Map<String,Object>>();
-//      for (Op workRecord : resource.getAbsences()) {
+//
+//   /**
+//    * @param version
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getVersionData(OpActivityVersion version) {
+//      // TODO
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      return ret;
+//   }
+//
+//   /**
+//    * @param attachment
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getAttachmentData(OpAttachment attachment) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpAttachment.ID, Long.toString(attachment.getID()));
+//      if (attachment.getName() != null) {
+//         ret.put(OpAttachment.NAME, attachment.getName());
+//      }
+//      ret.put(OpAttachment.CONTENT, getContentData(attachment.getContent()));
+//      ret.put(OpAttachment.LINKED, attachment.getLinked());
+//      if (attachment.getLocation() != null) {
+//         ret.put(OpAttachment.LOCATION, attachment.getLocation());
+//      }
+//      return ret;
+//   }
+//
+//   /**
+//    * @param content
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getContentData(OpContent content) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpContent.ID, Long.toString(content.getID()));
+//      if (content.getMediaType() != null) {
+//         ret.put(OpContent.MEDIA_TYPE, content.getMediaType());
+//      }
+//      // Note: Xml-Rpc does not support long! 
+//      ret.put(OpContent.SIZE + "_HI", (int) (content.getSize() >> 32));
+//      ret.put(OpContent.SIZE + "_LO", (int) content.getSize());
+//      // add documents
+////      LinkedList<Map<String,Object>> documents = new LinkedList<Map<String,Object>>();  
+////      for (OpDocument document : content.getDocuments()) {
+////         documents.add(getDocumentData(document));
+////      }      
+////      ret.put(OpContent.DOCUMENTS, documents);
+//      //TODO: <FIXME author="Lucian Furtos" description="Fix the streaming over XML-RPC, make sure the connection to DB is NOT closed (broker.close())">
+//      if (content.getStream() != null) {
+//         ret.put(OpContent.STREAM, content.getStream());
+//      }
+//      //</FIXME>
+//      return ret;
+//   }
+//
+////   /**
+////    * @param document
+////    * @return
+////    * @pre
+////    * @post
+////    */
+////   private static Map<String, Object> getDocumentData(OpDocument document) {
+////      Map<String, Object> ret = new HashMap<String, Object>();
+////      document.getID();
+////      document.getName();
+////      // TODO Auto-generated method stub
+////      return null;
+////   }
+//
+//   /**
+//    * @param period
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getWorkPeriodData(OpWorkPeriod period) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpWorkPeriod.ID, Long.toString(period.getID()));
+//      ret.put(OpWorkPeriod.BASE_EFFORT, period.getBaseEffort());
+//      if (period.getStart() != null) {
+//         ret.put(OpWorkPeriod.START, period.getStart());
+//      }
+//      ret.put(OpWorkPeriod.WORKING_DAYS + "_HI", (int) (period.getWorkingDays() >> 32));
+//      ret.put(OpWorkPeriod.WORKING_DAYS + "_LO", (int) (period.getWorkingDays()));
+//      return ret;
+//   }
+//
+//   /**
+//    * @param assignment
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getAssignmentData(OpAssignment assignment) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpAssignment.ID, Long.toString(assignment.getID())); // note: xml-rpc does not 
+//      ret.put(OpAssignment.ACTUAL_COSTS, assignment.getActualCosts());
+//      ret.put(OpAssignment.BASE_COSTS, assignment.getBaseCosts());
+//      ret.put(OpAssignment.COMPLETE, assignment.getComplete());
+//      ret.put(OpAssignment.ACTUAL_EFFORT, assignment.getActualEffort());
+//      ret.put(OpAssignment.BASE_EFFORT, assignment.getBaseEffort());
+//      ret.put(OpAssignment.REMAINING_EFFORT, assignment.getRemainingEffort());
+//      ret.put(OpAssignment.ASSIGNED, assignment.getAssigned());
+//      ret.put(OpAssignment.RESOURCE, getResourceData(assignment.getResource()));
+//      // add work records
+//      LinkedList<Map<String, Object>> workRecords = new LinkedList<Map<String, Object>>();
+//      for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
 //         workRecords.add(getWorkRecordData(workRecord));
 //      }
-//      ret.put(OpResource.ABSENCES, resource.getAbsences()); 
-//      ret.put(OpResource.ACTIVITY_ASSIGNMENTS, resource.getActivityAssignments()); 
-      ret.put(OpResource.AVAILABLE, resource.getAvailable());
-      if (resource.getDescription() != null) {
-         ret.put(OpResource.DESCRIPTION, resource.getDescription());
-      }
-      ret.put(OpResource.EXTERNAL_RATE, resource.getExternalRate());
-      ret.put(OpResource.HOURLY_RATE, resource.getHourlyRate());
-      ret.put(OpResource.INHERIT_POOL_RATE, resource.getInheritPoolRate());
-      return ret;
-   }
+//      ret.put(OpAssignment.WORK_RECORDS, workRecords);
+//      ret.put(OpAssignment.PROJECT_PLAN + "_ID", Long.toString(assignment.getProjectPlan().getID()));
+//      return ret;
+//   }
+
+//   /**
+//    * @param workRecord
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getWorkRecordData(OpWorkRecord workRecord) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpWorkRecord.ID, Long.toString(workRecord.getID())); // note: xml-rpc does not 
+//      ret.put(OpWorkRecord.ACTUAL_EFFORT, workRecord.getActualEffort());
+//      if (workRecord.getComment() != null) {
+//         ret.put(OpWorkRecord.COMMENT, workRecord.getComment());
+//      }
+//      ret.put(OpWorkRecord.EXTERNAL_COSTS, workRecord.getExternalCosts());
+//      ret.put(OpWorkRecord.MATERIAL_COSTS, workRecord.getMaterialCosts());
+//      ret.put(OpWorkRecord.MISCELLANEOUS_COSTS, workRecord.getMiscellaneousCosts());
+//      ret.put(OpWorkRecord.REMAINING_EFFORT, workRecord.getRemainingEffort());
+//      ret.put(OpWorkRecord.TRAVEL_COSTS, workRecord.getTravelCosts());
+//      ret.put(OpWorkRecord.WORK_SLIP, getWorkSlipData(workRecord.getWorkSlip()));
+//      return ret;
+//   }
+//
+//   /**
+//    * @param workSlip
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getWorkSlipData(OpWorkSlip workSlip) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpWorkSlip.ID, Long.toString(workSlip.getID())); // note: xml-rpc does not 
+//      if (workSlip.getDate() != null) {
+//         ret.put(OpWorkSlip.DATE, workSlip.getDate());
+//      }
+//      ret.put(OpWorkSlip.NUMBER, workSlip.getNumber());
+//      ret.put(OpWorkSlip.CREATOR + "_ID", Long.toString(workSlip.getCreator().getID()));
+//      return ret;
+//   }
+//
+//   /**
+//    * @param resource
+//    * @return
+//    * @pre
+//    * @post
+//    */
+//   private static Map<String, Object> getResourceData(OpResource resource) {
+//      Map<String, Object> ret = new HashMap<String, Object>();
+//      ret.put(OpResource.ID, Long.toString(resource.getID())); // note: xml-rpc does not 
+//      if (resource.getName() != null) {
+//         ret.put(OpResource.NAME, resource.getName());
+//      }
+//      // add absences
+////      LinkedList<Map<String,Object>> absences = new LinkedList<Map<String,Object>>();
+////      for (Op workRecord : resource.getAbsences()) {
+////         workRecords.add(getWorkRecordData(workRecord));
+////      }
+////      ret.put(OpResource.ABSENCES, resource.getAbsences()); 
+////      ret.put(OpResource.ACTIVITY_ASSIGNMENTS, resource.getActivityAssignments()); 
+//      ret.put(OpResource.AVAILABLE, resource.getAvailable());
+//      if (resource.getDescription() != null) {
+//         ret.put(OpResource.DESCRIPTION, resource.getDescription());
+//      }
+//      ret.put(OpResource.EXTERNAL_RATE, resource.getExternalRate());
+//      ret.put(OpResource.HOURLY_RATE, resource.getHourlyRate());
+//      ret.put(OpResource.INHERIT_POOL_RATE, resource.getInheritPoolRate());
+//      return ret;
+//   }
 }

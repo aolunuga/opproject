@@ -3,6 +3,7 @@
  */
 package onepoint.project.modules.repository.test;
 
+import onepoint.persistence.OpBroker;
 import onepoint.project.modules.repository.OpRepositoryError;
 import onepoint.project.modules.repository.OpRepositoryService;
 import onepoint.project.modules.user.OpUser;
@@ -28,7 +29,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
 
    private static final String DEFAULT_USER = "tester";
    private static final String DEFAULT_PASSWORD = "pass";
-   private static final String BACKUP_ROOT_DIR = ".";
+   private static final String BACKUP_ROOT_DIR = System.getProperty("java.io.tmpdir");
    private static final String BACKUP_CONTENT_PREFIX = "backup-";
 
    /**
@@ -39,7 +40,6 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-      cleanUp();
    }
 
    /**
@@ -54,7 +54,8 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       cleanUp();
 
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      OpUser user = usrData.getUserByName(DEFAULT_USER);
+      OpBroker broker = session.newBroker();
+      OpUser user = usrData.getUserByName(broker, DEFAULT_USER);
       if (user != null) {
          List ids = new ArrayList();
          ids.add(user.locator());
@@ -62,6 +63,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
          request.setArgument(OpUserService.SUBJECT_IDS, ids);
          OpTestDataFactory.getUserService().deleteSubjects(session, request);
       }
+      broker.close();
 
       super.tearDown();
    }
@@ -160,6 +162,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       request = new XMessage();
       request.setArgument("restoreFile", file.getCanonicalPath());
       response = OpTestDataFactory.getRepositoryService().restore(session, request);
+      
       assertNoError(response);
       assertFalse(newSession.isValid());
    }

@@ -288,13 +288,15 @@ public class OpWorkSlipDataSetFactory {
     * @param workRecords - the <code>List</code> of <code>OpWorkRecord</code> entities from which the
     *                    data sets will be formed
     * @param session     - the <code>OpProjectSession</code> needed to get the internationalized cost types
+    * @param broker      - the <code>OpBroker</code> needed to perform the DB operations
     * @return a <code>List</code> of <code>XComponent</code> data sets formed from a <code>List</code>
     *         of <code>OpWorkRecord</code> entities. The list will contain:
     *         a set containing information about the work records
     *         a set containing information about the time records
     *         a set containing information about the cost records
     */
-   public static List<XComponent> formDataSetsFromWorkRecords(List<OpWorkRecord> workRecords, OpProjectSession session) {
+   public static List<XComponent> formDataSetsFromWorkRecords(List<OpWorkRecord> workRecords, OpProjectSession session,
+        OpBroker broker) {
       List<XComponent> dataSetList = new ArrayList<XComponent>();
       XComponent workRecordDataSet = new XComponent(XComponent.DATA_SET);
       XComponent timeRecordDataSet = new XComponent(XComponent.DATA_SET);
@@ -315,7 +317,7 @@ public class OpWorkSlipDataSetFactory {
          }
 
          //add the cost record subset of this work record to the final cost record data set
-         XComponent costRecordSubset = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session);
+         XComponent costRecordSubset = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session, broker);
          for (int i = 0; i < costRecordSubset.getChildCount(); i++) {
             costRecordDataSet.addChild(costRecordSubset.getChild(i));
          }

@@ -8,10 +8,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
@@ -47,10 +44,10 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
      * @param portofolioName the portofolio name
      * @return an instance of <code>OpProjectNode</code>
      */
-    public OpProjectNode getPortofolioByName(String portofolioName) {
+    public OpProjectNode getPortofolioByName(OpBroker broker, String portofolioName) {
         String locator = getPortofolioId(portofolioName);
         if (locator != null) {
-            return getPortofolioById(locator);
+            return getPortofolioById(broker, locator);
         }
 
         return null;
@@ -62,8 +59,8 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
      * @param locator the uniq identifier (locator) of an entity
      * @return an instance of <code>OpProjectNode</code>
      */
-    public OpProjectNode getPortofolioById(String locator) {
-        return getProjectById(locator);
+    public OpProjectNode getPortofolioById(OpBroker broker, String locator) {
+        return getProjectById(broker, locator);
     }
 
     /**
@@ -103,14 +100,15 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
 
     /**
      * Get a project by the name
+    * @param broker 
      *
      * @param projectName the project name
      * @return an instance of <code>OpProjectNode</code>
      */
-    public OpProjectNode getProjectByName(String projectName) {
+    public OpProjectNode getProjectByName(OpBroker broker, String projectName) {
         String locator = getProjectId(projectName);
         if (locator != null) {
-            return getProjectById(locator);
+            return getProjectById(broker, locator);
         }
 
         return null;
@@ -118,18 +116,23 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
 
     /**
      * Get a project by the locator
+    * @param broker 
      *
      * @param locator the uniq identifier (locator) of an entity
      * @return an instance of <code>OpProjectNode</code>
      */
-    public OpProjectNode getProjectById(String locator) {
-        OpBroker broker = session.newBroker();
-
+    public OpProjectNode getProjectById(OpBroker broker, String locator) {
         OpProjectNode project = (OpProjectNode) broker.getObject(locator);
         // just to inialize the collection
         project.getAssignments().size();
         if (project.getPlan() != null && project.getPlan().getActivityAssignments() != null) {
             project.getPlan().getActivityAssignments().size();
+        }
+        if (project.getPlan() != null && project.getPlan().getActivities() != null) {
+            project.getPlan().getActivities().size();
+        }
+        if (project.getPlan() != null && project.getPlan().getVersions() != null) {
+            project.getPlan().getVersions().size();
         }
         project.getDynamicResources().size();
         project.getGoals().size();
@@ -138,7 +141,6 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         project.getPermissions().size();
         project.getSubNodes().size();
         project.getToDos().size();
-        broker.close();
 
         return project;
     }
@@ -178,6 +180,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
 
         OpAssignment assignment = (OpAssignment) broker.getObject(locator);
         //initialize other objects in the graph
+        assignment.getWorkRecords().size();
         assignment.getProjectPlan().getProjectNode().getName();
         assignment.getActivity().getName();
         assignment.getResource().getName();
@@ -229,7 +232,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
      * @return an instance of <code>OpProjectPlan</code>
      */
     public OpProjectPlan getProjectPlanByName(String projectPlanName) {
-        String locator = getProjectId(projectPlanName);
+        String locator = getProjectPlanId(projectPlanName);
         if (locator != null) {
             return getProjectPlanById(locator);
         }
@@ -285,6 +288,30 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         }
         return null;
     }
+
+    /**
+    * Get a project plan version by it's locator.
+    *
+    * @param locator the unique identifier (locator) of the <code>OpProjectPlanVersion</code> entity.
+    * @return an instance of <code>OpProjectPlanVersion</code>.
+    */
+   public OpProjectPlanVersion getProjectPlanVersionById(String locator) {
+      OpBroker broker = session.newBroker();
+
+      OpProjectPlanVersion planVersion = (OpProjectPlanVersion) broker.getObject(locator);
+      // just to inialize the collection
+      planVersion.getActivityVersions().size();
+      planVersion.getAssignmentVersions().size();
+      planVersion.getAttachmentVersions().size();
+      planVersion.getDependencyVersions().size();
+      planVersion.getDynamicResources().size();
+      planVersion.getLocks().size();
+      planVersion.getPermissions().size();
+      planVersion.getWorkPeriodVersions().size();
+      broker.close();
+
+      return planVersion;
+   }
 
     /**
      * Get all the projects

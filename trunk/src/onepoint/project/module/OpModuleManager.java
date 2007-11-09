@@ -10,6 +10,7 @@ import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.service.server.XService;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -63,55 +64,14 @@ public final class OpModuleManager {
          return;
       }
       moduleRegistry.registerModules();
-      initializeBackupManager();
+      OpBackupManager.getBackupManager().initializeBackupManager();
       //<FIXME author="Horia Chiorean" description="Is this needed ?">
       OpTypeManager.lock();
       //<FIXME>
    }
 
 
-   /**
-    * Initializes the backup manager by registering all the prototypes in correct order.
-    */
-   private static void initializeBackupManager() {
-      List toAddLast = new ArrayList();
-      OpPrototype superPrototype = OpTypeManager.getPrototypeByClassName(OpObject.class.getName());
-      Iterator it = OpTypeManager.getPrototypes();
-      while (it.hasNext()) {
-         OpPrototype startPoint = (OpPrototype) it.next();
-         if (!(startPoint.getID() == superPrototype.getID())) {
-            registerPrototypeForBackup(superPrototype, startPoint, toAddLast);
-         }
-      }
-      it = toAddLast.iterator();
-      while (it.hasNext()) {
-         OpBackupManager.addPrototype((OpPrototype) it.next());
-      }
-   }
 
-   /**
-    * Registers a prototype with the backup manager, taking into account the prototype's dependencies.
-    *
-    * @param superPrototype           a <code>OpPrototype</code> representing OpObject's prototype.
-    * @param startPoint               a <code>OpPrototype</code> representing a start point in the back-up registration process.
-    * @param lastPrototypesToRegister a <code>List</code> which acts as an acumulator and will contain at the end a list
-    *                                 of prototypes which will be registered at the end of all the others.
-    */
-   private static void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List lastPrototypesToRegister) {
-      List dependencies = startPoint.getBackupDependencies();
-      for (Object dependency1 : dependencies) {
-         OpPrototype dependency = (OpPrototype) dependency1;
-         if (dependency.getID() == superPrototype.getID()) {
-            lastPrototypesToRegister.add(startPoint);
-         }
-         else if (!OpBackupManager.hasRegistered(dependency)) {
-            registerPrototypeForBackup(superPrototype, dependency, lastPrototypesToRegister);
-         }
-      }
-      if (!startPoint.subTypes().hasNext() && !OpBackupManager.hasRegistered(startPoint)) {
-         OpBackupManager.addPrototype(startPoint);
-      }
-   }
 
    public static void start() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
@@ -121,6 +81,7 @@ public final class OpModuleManager {
          Iterator<OpModule> modulesIt = moduleRegistry.iterator();
          while (modulesIt.hasNext()) {
             OpModule module = modulesIt.next();
+            logger.info("Loading module " + module.getName());
             module.start(startupSession);
          }
          startupSession.close();
@@ -165,7 +126,7 @@ public final class OpModuleManager {
                catch (NoSuchMethodException e) {
                   logger.debug("No upgrade method " + methodName + " found for module " + module.getName());
                }
-               catch(IllegalAccessException e) {
+               catch (IllegalAccessException e) {
                   logger.debug("Cannot access upgrade method ", e);
                }
                catch (InvocationTargetException e) {
@@ -174,6 +135,24 @@ public final class OpModuleManager {
                   throw new RuntimeException(e.getCause());
                }
             }
+         }
+         session.close();
+      }
+   }
+
+
+   /**
+    * Checks the integrity of the modules and fixes the possible module errors.
+    */
+   public static void checkModules() {
+      Collection<OpSource> allSources = OpSourceManager.getAllSources();
+      for (OpSource source : allSources) {
+         OpProjectSession session = new OpProjectSession(source.getName());
+         session.loadSettings();
+         Iterator<OpModule> modulesIt = moduleRegistry.iterator();
+         while (modulesIt.hasNext()) {
+            OpModule module = modulesIt.next();
+            module.check(session);
          }
          session.close();
       }

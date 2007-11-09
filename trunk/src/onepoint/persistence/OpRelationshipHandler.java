@@ -78,6 +78,14 @@ public class OpRelationshipHandler implements XNodeHandler {
             relationship.setCascadeMode(s);
          }
       }
+      value = attributes.get("fetch");
+      if ((value != null) && (value instanceof String)) {
+         relationship.setFetch((String) value);
+      }
+      value = attributes.get("lazy");
+      if ((value != null) && (value instanceof String)) {
+         relationship.setLazy((String) value);
+      }
       return relationship;
    }
 

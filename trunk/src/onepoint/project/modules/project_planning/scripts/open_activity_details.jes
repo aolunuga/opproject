@@ -177,11 +177,23 @@ function setDurationValue(duration_field, duration) {
    durationUnit = Byte.parseByte("1");
 
    if (XDisplay.getActiveForm().findComponent("ActivityTable") != null) {
+      //get the table header and from there get the duration column
       durationColumn = XDisplay.getActiveForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
       if (durationColumn.getID() == "Duration") {
          durationUnit = durationColumn.getDisplayUnit();
       }
+      //if the parent form has an activity table but the table has no duration column: show the duration in days
+      else{
+         //DAYS
+         durationUnit = Byte.parseByte("2");
+      }
    }
+   //if the parent form doesn't have the activity table always show the duration in days 
+   else{
+      //DAYS
+      durationUnit = Byte.parseByte("2");
+   }
+
    duration_field.setDoubleValue(XCalendar.convertDurationToUnit(duration, durationUnit));
 }
 
@@ -428,7 +440,12 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
                   }
                }
                else {
-                  assignmentH = assignment * duration / 100.0;
+                  if (effort == 0) {
+                     assignmentH = effort;
+                  }
+                  else {
+                     assignmentH = assignment * duration / 100.0;
+                  }
                }
 
                assignment_h_cell.setDoubleValue(assignmentH);

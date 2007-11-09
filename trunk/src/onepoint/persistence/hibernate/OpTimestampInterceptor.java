@@ -47,8 +47,10 @@ public final class OpTimestampInterceptor extends EmptyInterceptor {
       Timestamp currentGMT = getCurrentTimeGMT();
       for (int i = 0; i < propertyNames.length; i++) {
          if (propertyNames[i].equals(OpObject.CREATED)) {
-            state[i] = currentGMT;
-            modified = true;
+            if (state[i] == null) {
+               state[i] = currentGMT;
+               modified = true;
+            }
             break;
          }
       }

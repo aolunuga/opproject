@@ -27,7 +27,9 @@
 	<parameter name="ProjectId" isForPrompting="true" class="java.lang.Long">
 		<parameterDescription><![CDATA[op_id of Projectnode from op_projectnode]]></parameterDescription>
 	</parameter>
-	<queryString><![CDATA[select a.*, s.op_id,
+	<parameter name="Currency" isForPrompting="true" class="java.lang.String"/>
+	<queryString><![CDATA[select s.op_id, a.op_remainingpersonnelcosts AS remaining_personnel_costs,
+	a.op_remainingeffort AS op_remainingeffort, 
 ac.op_name, ac.op_start, ac.op_finish, ac.op_duration,
 rs.op_name AS rs_name, rs.op_description AS rs_description, rs.op_hourlyrate AS rs_rate,
 po.op_name AS po_name, po.op_description AS po_description,
@@ -109,7 +111,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$R{groupFooter_Subtotal_Pool}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="445"
@@ -123,7 +125,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="9" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.Double"><![CDATA[$V{poolCost}==null?new Double(0):$V{poolCost}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{Currency} + " " + new DecimalFormat("#,##0.00").format($V{poolCost}==null?new Double(0):$V{poolCost})]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0h" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
@@ -199,7 +201,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$R{groupFooter_Subtotal_Resource}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="445"
@@ -213,7 +215,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="9" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.Double"><![CDATA[$V{resCost}==null?new Double(0):$V{resCost}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{Currency} + " " + new DecimalFormat("#,##0.00").format($V{resCost}==null?new Double(0):$V{resCost})]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0h" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
@@ -471,7 +473,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.lang.Double"><![CDATA[$F{op_remainingeffort}==null?new Double(0):$F{op_remainingeffort}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="445"
@@ -485,7 +487,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="9" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.Double"><![CDATA[$V{remCost}==null?new Double(0):$V{remCost}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{Currency} + " " + new DecimalFormat("#,##0.00").format($V{remCost}==null?new Double(0):$V{remCost})]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="dd.MM.yyyy" isBlankWhenNull="true" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
@@ -627,7 +629,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					</textElement>
 				<textFieldExpression   class="java.lang.String"><![CDATA[$R{groupFooter_Total}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						mode="Transparent"
 						x="445"
@@ -641,7 +643,7 @@ order by pn_name, po.op_name, rs.op_name, op_start]]></queryString>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Helvetica" pdfFontName="Helvetica" size="9" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="true" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<textFieldExpression   class="java.lang.Double"><![CDATA[$V{totCost}==null?new Double(0):$V{totCost}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{Currency} + " " + new DecimalFormat("#,##0.00").format($V{totCost}==null?new Double(0):$V{totCost})]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.0h" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement

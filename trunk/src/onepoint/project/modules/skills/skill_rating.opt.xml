@@ -1,0 +1,5 @@
+<prototype name="OpSkillRating" instance-class="onepoint.project.modules.skills.OpSkillRating" super-type="OpObject">
+   <field name="Rating" type="Double" mandatory="true"/>
+   <relationship name="Resource" type="OpResource" back-relationship="SkillRatings"/>
+   <relationship name="Skill" type="OpSkill" back-relationship="Ratings"/>
+</prototype>

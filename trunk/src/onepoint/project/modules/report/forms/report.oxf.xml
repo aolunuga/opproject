@@ -5,6 +5,7 @@
       on-show="prepareForm">
    <data-set id="QuerySet"/>
    <data-field id="PreviousQueryForm"/>
+   <data-field id="Currency"/>
 
    <panel layout="border" style-ref="compact-panel-default">
 		

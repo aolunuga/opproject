@@ -162,7 +162,7 @@ public class OpEditResourceFormProvider implements XFormProvider {
          OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
 
-      prepareHourlyRatePeriodsAdvancedFeature(form, editMode, resource);
+      prepareTablesAdvancedFeature(form, editMode, resource);
 
       broker.close();
    }
@@ -174,6 +174,6 @@ public class OpEditResourceFormProvider implements XFormProvider {
     * @param editMode
     * @param resource
     */
-   protected void prepareHourlyRatePeriodsAdvancedFeature(XComponent form, Boolean editMode, OpResource resource) {
+   protected void prepareTablesAdvancedFeature(XComponent form, Boolean editMode, OpResource resource) {
    }
 }

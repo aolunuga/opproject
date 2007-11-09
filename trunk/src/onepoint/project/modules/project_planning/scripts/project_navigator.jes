@@ -60,6 +60,7 @@ function resizeDivision(event){
 }
 
 function retrieveChildren(event) {
+   XDisplay.setWaitingCursor();
    dataRow = event.expand_source;
    archivedProjectsIds = dataRow.getForm().findComponent("ArchivedProjects").getListValue();
    request = new XMessage;
@@ -69,6 +70,7 @@ function retrieveChildren(event) {
    //not tabular
    request.setArgument("tabular", false);      
    expandNode(dataRow, 1, request);
+   XDisplay.resetCursor();
 }
 
 function showProjectNavigator(event) {

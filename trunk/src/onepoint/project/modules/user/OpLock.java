@@ -26,7 +26,7 @@ public class OpLock extends OpObject {
    private OpUser owner;
    private OpObject target;
 
-   private Long lockerId;
+   private Long lockerID;
 
    public void setOwner(OpUser owner) {
       this.owner = owner;
@@ -50,7 +50,7 @@ public class OpLock extends OpObject {
     * @param id the id to set
     */
    public void setLockerID(Long id) {
-      this.lockerId = id;
+      this.lockerID = id;
    }
 
    /**
@@ -58,7 +58,7 @@ public class OpLock extends OpObject {
     * @return the identifier the lock was set.
     */
    public Long getLockerID() {
-      return lockerId;
+      return lockerID;
    }
 
    /**
@@ -83,10 +83,10 @@ public class OpLock extends OpObject {
          }
          // check if XServer is older than lock timesatamp (restarted after lock)
          if (new Timestamp(session.getServer().getCreationTimeMillis()).before(lockTS)) {
-            if (lockerId != null) {
-               if (session.getID() != lockerId.intValue()) {
+            if (lockerID != null) {
+               if (session.getID() != lockerID.intValue()) {
                   // check if lock is held by a still open session
-                  OpProjectSession lockerSession = (OpProjectSession) session.getServer().getSession(lockerId.intValue());
+                  OpProjectSession lockerSession = (OpProjectSession) session.getServer().getSession(lockerID.intValue());
                   // check if lockerSession is still valid and no logoff toke place
                   if ((lockerSession != null) && (lockerSession.isValid()) &&
                         (lockerSession.getUserID() == owner.getID())) {

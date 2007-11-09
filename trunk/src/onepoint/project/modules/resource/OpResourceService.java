@@ -29,6 +29,8 @@ public class OpResourceService extends onepoint.project.OpProjectService {
    public static final String SERVICE_NAME = "ResourceService";
    protected static final XLog logger = XLogFactory.getServerLogger(OpResourceService.class);
 
+   private OpResourceServiceImpl serviceImpl = new OpResourceServiceImpl();
+
    public final static String EDIT_MODE = "edit_mode";
 
    public final static String RESOURCE_DATA = "resource_data";
@@ -529,6 +531,12 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             return reply;
          }
 
+         //update skill rating
+         reply = updateSkillRatings(session, broker, resource_data, resource);
+         if (reply.getError() != null) {
+            return reply;
+         }
+
          //update permissions
          XComponent permission_set = (XComponent) resource_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
          XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, resource, permission_set);
@@ -553,6 +561,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          //update personnel & proceeds costs
          updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
          updateActualCosts(broker, resource);
+
+         //update work months (remaining cost values)
+         for (OpAssignment assignment : resource.getActivityAssignments()) {
+            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
+         }
 
          transaction.commit();
 
@@ -598,10 +611,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpBroker broker = s.newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
       boolean hasAssignments = false;
-      if (resource.getAssignmentVersions().size() != 0) {
+      if (OpResourceDataSetFactory.hasAssignmentVersions(broker, resource)) {
          hasAssignments = true;
       }
-      if (resource.getActivityAssignments().size() != 0) {
+      if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource)) {
          hasAssignments = true;
       }
       XMessage xMessage = new XMessage();
@@ -633,11 +646,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpResourcePool pool = (OpResourcePool) broker.getObject(id_string);
       for (Object o : pool.getResources()) {
          OpResource resource = (OpResource) o;
-         if (resource.getAssignmentVersions().size() != 0) {
+         if (OpResourceDataSetFactory.hasAssignmentVersions(broker, resource)) {
             hasAssignments = true;
             break;
          }
-         if (resource.getActivityAssignments().size() != 0) {
+         if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource)) {
             hasAssignments = true;
          }
       }
@@ -768,7 +781,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             if (workRecord.getPersonnelCosts() != newActualCosts || workRecord.getActualProceeds() != newActualProceeds) {
                workRecord.setPersonnelCosts(newActualCosts);
                workRecord.setActualProceeds(newActualProceeds);
-               broker.updateObject(assignment);
+               broker.updateObject(workRecord);
             }
             internalSum += workRecord.getPersonnelCosts();
             externalSum += workRecord.getActualProceeds();
@@ -852,6 +865,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
    //method which allows insertion of advanced hourly rate periods functionality
    protected XMessage updateHourlyRatesPeriods(OpProjectSession session, OpBroker broker, Map resource_data, OpResource resource) {
+      //the reply message
+      XMessage reply = new XMessage();
+      return reply;
+   }
+
+   //method which allows insertion of advanced hourly rate periods functionality
+   protected XMessage updateSkillRatings(OpProjectSession session, OpBroker broker, Map resource_data, OpResource resource) {
       //the reply message
       XMessage reply = new XMessage();
       return reply;
@@ -1160,8 +1180,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Set resources = pool.getResources();
          for (Object resource1 : resources) {
             OpResource resource = (OpResource) resource1;
-            if (!resource.getActivityAssignments().isEmpty() || !resource.getAssignmentVersions().isEmpty() ||
-                 !resource.getResponsibleActivities().isEmpty() || !resource.getResponsibleActivityVersions().isEmpty()) {
+            if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource) ||
+                 OpResourceDataSetFactory.hasAssignmentVersions(broker, resource) ||
+                 OpResourceDataSetFactory.hasResponsibleActivities(broker, resource) ||
+                 OpResourceDataSetFactory.hasResponsibleActivityVersions(broker, resource)) {
                logger.warn("Resource " + resource.getName() + " is used in project assignments");
                reply.setError(session.newError(ERROR_MAP, OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED));
                t.rollback();
@@ -1703,4 +1725,12 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       xMessage.setArgument(EXTERNAL_RATE, ratesList.get(OpResource.EXTERNAL_RATE_INDEX));
       return xMessage;
    }
+   /* (non-Javadoc)
+    * @see onepoint.project.OpProjectService#getServiceImpl()
+    */
+   @Override
+   public Object getServiceImpl() {
+      return serviceImpl;
+   }
+
 }

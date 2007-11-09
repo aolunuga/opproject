@@ -6,13 +6,13 @@ package onepoint.project;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceInterceptor;
-import onepoint.persistence.OpBroker;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service interceptor which performs cleanup for service method invocations.
@@ -48,7 +48,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
       logger.info("Applying after advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
       if (session != null) {
-         session.cleanupSession(exceptBrokers);
+         session.cleanupSession(exceptBrokers, false);
       }
       exceptBrokers.clear();
    }

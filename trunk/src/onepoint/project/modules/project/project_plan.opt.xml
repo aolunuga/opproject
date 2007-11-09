@@ -5,6 +5,8 @@
    <field name="ProgressTracked" type="Boolean"/>
    <field name="Template" type="Boolean"/>
    <field name="HolidayCalendar" type="String"/>
+   <field name="Creator" type="String"/>
+   <field name="VersionNumber" type="Integer"/>
    <relationship name="ProjectNode" type="OpProjectNode" back-relationship="Plan"/>
    <relationship name="Activities" type="OpActivity" collection-type="Set" back-relationship="ProjectPlan" inverse="true" cascade="delete"/>
    <relationship name="ActivityAttachments" type="OpAttachment" collection-type="Set" back-relationship="ProjectPlan" inverse="true"/>

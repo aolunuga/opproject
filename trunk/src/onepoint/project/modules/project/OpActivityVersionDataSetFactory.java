@@ -29,6 +29,9 @@ public abstract class OpActivityVersionDataSetFactory {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpActivityVersionDataSetFactory.class);
 
+   private static final String GET_SUBACTIVITY_VERSION_COUNT_FOR_ACTIVITY_VERSION =
+        "select count(activityVersion.ID) from OpActivityVersion activityVersion where activityVersion.SuperActivityVersion = (:activityVersionId)";
+
    public static void retrieveActivityVersionDataSet(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataSet, boolean editable) {
 
@@ -42,7 +45,7 @@ public abstract class OpActivityVersionDataSetFactory {
       while (activities.hasNext()) {
          activity = (OpActivityVersion) activities.next();
          dataRow = new XComponent(XComponent.DATA_ROW);
-         retrieveActivityVersionDataRow(activity, dataRow, editable);
+         retrieveActivityVersionDataRow(broker, activity, dataRow, editable);
          if (activity.getType() == OpActivityVersion.TASK || activity.getType() == OpActivityVersion.COLLECTION_TASK) {
             OpGanttValidator.setStart(dataRow, null);
             OpGanttValidator.setEnd(dataRow, null);
@@ -176,7 +179,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
    }
 
-   private static void retrieveActivityVersionDataRow(OpActivityVersion activityVersion, XComponent dataRow,
+   private static void retrieveActivityVersionDataRow(OpBroker broker, OpActivityVersion activityVersion, XComponent dataRow,
         boolean editable) {
 
       dataRow.setStringValue(activityVersion.locator());
@@ -349,7 +352,7 @@ public abstract class OpActivityVersionDataSetFactory {
          while (it.hasNext()) {
             OpAssignment assignment = (OpAssignment) it.next();
             String resourceLocator = assignment.getResource().locator();
-            Boolean hasWorkRecords = (assignment.getWorkRecords() != null) ? Boolean.valueOf(assignment.getWorkRecords().size() > 0) : Boolean.FALSE;
+            Boolean hasWorkRecords = OpActivityDataSetFactory.hasWorkRecords(broker, assignment);
             data.put(resourceLocator, hasWorkRecords);
          }
       }
@@ -1274,7 +1277,16 @@ public abstract class OpActivityVersionDataSetFactory {
       OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
       planVersion.setCreator(creator.getDisplayName());
       planVersion.setProjectPlan(projectPlan);
-      planVersion.setVersionNumber(versionNumber);
+
+      if (versionNumber != OpProjectPlan.WORKING_VERSION_NUMBER) {
+         projectPlan.incrementVersionNumber();
+         broker.updateObject(projectPlan);
+         planVersion.setVersionNumber(projectPlan.getVersionNumber());
+      }
+      else {
+         planVersion.setVersionNumber(versionNumber);
+      }
+
       planVersion.setStart(projectPlan.getStart());
       planVersion.setFinish(projectPlan.getFinish());
       planVersion.setTemplate(projectPlan.getTemplate());
@@ -1535,5 +1547,22 @@ public abstract class OpActivityVersionDataSetFactory {
       }
 
       return modified;
+   }
+
+   /**
+    * Returns the number of subactivity versions for the activity version specified as parameter.
+    *
+    * @param broker          - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param activityVersion - the <code>OpActivityVersion</code> object.
+    * @return the number of subactivity versions for the activity version specified as parameter.
+    */
+   public static int getSubactivityVersionsCount(OpBroker broker, OpActivityVersion activityVersion) {
+      if (activityVersion.getSubActivityVersions() != null) {
+         OpQuery query = broker.newQuery(GET_SUBACTIVITY_VERSION_COUNT_FOR_ACTIVITY_VERSION);
+         query.setLong("activityVersionId", activityVersion.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         return counter.intValue();
+      }
+      return 0;
    }
 }

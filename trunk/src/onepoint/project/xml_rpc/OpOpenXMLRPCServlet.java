@@ -79,8 +79,14 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
    protected void initProjectHome() {
       String projectHome = getServletConfig().getInitParameter("onepoint_home");
       if (projectHome == null) {
-         ServletContext context = getServletConfig().getServletContext();
-         projectHome = context.getRealPath("");
+         try {
+            ServletContext context = getServletConfig().getServletContext();
+            projectHome = context.getRealPath("");
+         }
+         catch (IllegalStateException exc) {
+            // may only happen during junit testing
+            projectHome = OpEnvironmentManager.getOnePointHome();
+         }
       }
       OpEnvironmentManager.setOnePointHome(projectHome);
    }
@@ -178,7 +184,8 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
    @Override
    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
       try {
-         OpProjectSession session = (OpProjectSession) request.getSession(true).getAttribute(OP_PROJECT_SESSION);
+         OpProjectSession session = null; 
+         session = (OpProjectSession) request.getSession(true).getAttribute(OP_PROJECT_SESSION);
          if (session == null) {
             session = new OpProjectSession();
             request.getSession().setAttribute(OP_PROJECT_SESSION, session);

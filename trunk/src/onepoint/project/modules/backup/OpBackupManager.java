@@ -22,6 +22,9 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.hibernate.HibernateException;
+import org.hibernate.exception.ConstraintViolationException;
+
 /**
  * Class that backs-up and restores the application repository.
  *
@@ -115,6 +118,8 @@ public class OpBackupManager {
     */
    private String binaryDirName = null;
 
+   private LinkedList<OpPrototype> deleteOrder = new LinkedList<OpPrototype>();
+
    /**
     * There should be only 1 instance of this class.
     */
@@ -131,6 +136,25 @@ public class OpBackupManager {
          backupManager = new OpBackupManager();
       }
       return backupManager;
+   }
+
+   /**
+    * Initializes the backup manager by registering all the prototypes in correct order.
+    */
+   public void initializeBackupManager() {
+      List toAddLast = new ArrayList();
+      OpPrototype superPrototype = OpTypeManager.getPrototypeByClassName(OpObject.class.getName());
+      Iterator it = OpTypeManager.getPrototypes(); // unordered!
+      while (it.hasNext()) {
+         OpPrototype startPoint = (OpPrototype) it.next();
+         if (!(startPoint.getID() == superPrototype.getID())) {
+            registerPrototypeForBackup(superPrototype, startPoint, toAddLast);
+         }
+      }
+      it = toAddLast.iterator();
+      while (it.hasNext()) {
+         addPrototype((OpPrototype) it.next());
+      }
    }
 
    /**
@@ -441,7 +465,7 @@ public class OpBackupManager {
                if ((recursiveBy != null) && (childObjects.size() > 0)) {
                   exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
                }
-               pagingBroker.close();
+               pagingBroker.closeAndEvict();
             }
             return;
          }
@@ -457,7 +481,7 @@ public class OpBackupManager {
       if ((recursiveBy != null) && (childObjects.size() > 0)) {
          exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
       }
-      broker.close();
+      broker.closeAndEvict();
    }
 
    private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
@@ -488,10 +512,11 @@ public class OpBackupManager {
                   continue;
                }
 
+               logger.info("value accessor is "+member.accessor.getName()+", on type "+object.getClass().getName());
                Object value = member.accessor.invoke(object);
                if (member.relationship) {
                   this.writeRelationshipMember(writer, value);
-                  if (recursiveBy != null && recursiveBy.equals(member.name)) {
+                  if (member.backRelationshipName != null && recursiveBy != null && recursiveBy.equals(member.name)) {
                      try {
                         Method m = object.getClass().getMethod("get" + member.backRelationshipName);
                         Object backReturnValue = m.invoke(object);
@@ -627,6 +652,7 @@ public class OpBackupManager {
 
       exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
       writer.writeEndElement(OBJECTS);
+      session.cleanupSession(true);
    }
 
    /**
@@ -647,6 +673,7 @@ public class OpBackupManager {
       fileName = fileName.substring(0, fileName.indexOf('.'));
       this.binaryDirName = fileName + BINARY_DIR_NAME_SUFFIX;
       this.binaryDirPath = workingDir + SLASH_STRING + this.binaryDirName;
+      logger.info("backing up to "+path);
       this.backupRepository(session, new BufferedOutputStream(new FileOutputStream(path, false)));
    }
 
@@ -712,7 +739,7 @@ public class OpBackupManager {
       // Query system object ID ids and names before exporting objects
       OpBroker broker = session.newBroker();
       Map systemIdMap = querySystemObjectIdMap(broker);
-      broker.close();
+      broker.closeAndEvict();
 
       int memberIndex = 0;
       for (OpPrototype prototype : prototypes.values()) {
@@ -753,12 +780,11 @@ public class OpBackupManager {
     */
    public void removeAllObjects(OpProjectSession session) {
       logger.info("Removing all objects from the db ");
-      List<String> prototypeNames = new ArrayList<String>(prototypes.keySet());
-      Collections.reverse(prototypeNames);
-      //remove in reverse dependency order
-      for (String prototypeName : prototypeNames) {
-         removeObjectsWithPrototype(prototypeName, null, session);
-      }
+      for (OpPrototype delete : deleteOrder) {
+         logger.info("deleting all objects of type: "+delete.getName());
+         removeObjectsWithPrototype(delete.getName(), null, session);
+      }  
+
    }
 
    /**
@@ -786,7 +812,7 @@ public class OpBackupManager {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery(countQueryString);
       Number count = (Number) broker.iterate(query).next();
-      broker.close();
+      broker.closeAndEvict();
 
       //<FIXME author="Horia Chiorean" description="count.intValue may not work for large recursive relationships">
       int pageSize = recursiveRelationshipName == null ? DELETE_PAGE_SIZE : count.intValue();
@@ -802,8 +828,9 @@ public class OpBackupManager {
             broker.deleteObject((OpObject) it.next());
          }
          tx.commit();
-         broker.close();
+         broker.closeAndEvict();
       }
+      session.cleanupSession(true);
    }
 
    /**
@@ -904,21 +931,21 @@ public class OpBackupManager {
          return prototype.getInstanceClass().getMethod("get" + member.getName());
       }
       catch (NoSuchMethodException e) {
-         logger.warn(e.getMessage());
+         logger.info(e.getMessage());
       }
 
       try {
          return prototype.getInstanceClass().getMethod("is" + member.getName());
       }
       catch (NoSuchMethodException e) {
-         logger.warn(e.getMessage());
+         logger.info(e.getMessage());
       }
 
       try {
          return prototype.getInstanceClass().getMethod("has" + member.getName());
       }
       catch (NoSuchMethodException e) {
-         logger.warn(e.getMessage());
+         logger.error("no accessor method found for field "+member.getName()+", within class "+prototype.getInstanceClass().getName());
       }
       return null;
    }
@@ -937,6 +964,41 @@ public class OpBackupManager {
       catch (IOException e) {
          logger.error("An I/O exception occured when trying to read binary file" + path, e);
          return null;
+      }
+   }
+   
+   /**
+    * Registers a prototype with the backup manager, taking into account the prototype's dependencies.
+    *
+    * @param superPrototype           a <code>OpPrototype</code> representing OpObject's prototype.
+    * @param startPoint               a <code>OpPrototype</code> representing a start point in the back-up registration process.
+    * @param lastPrototypesToRegister a <code>List</code> which acts as an acumulator and will contain at the end a list
+    *                                 of prototypes which will be registered at the end of all the others.
+    */
+   private void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List<OpPrototype> lastPrototypesToRegister) {
+       // FIXME(dfreis Oct 23, 2007 9:44:40 AM) wont work see also my comment on OPP-80
+       // note lastPrototypesToRegister is a hack only!
+
+      List dependencies = startPoint.getBackupDependencies();
+      logger.debug("start point is: "+startPoint.getName());
+      for (Object dependency1 : dependencies) {
+         OpPrototype dependency = (OpPrototype) dependency1;
+         if (dependency.getID() == superPrototype.getID()) {
+            if (!lastPrototypesToRegister.contains(startPoint)) {
+               lastPrototypesToRegister.add(startPoint);
+               deleteOrder.add(0, startPoint); // reverse order
+            }
+         }
+         else if (!OpBackupManager.hasRegistered(dependency)) {
+            logger.debug("dependency is: "+dependency.getName());
+            registerPrototypeForBackup(superPrototype, dependency, lastPrototypesToRegister);
+         }
+      }
+      if (!startPoint.subTypes().hasNext() && !OpBackupManager.hasRegistered(startPoint)) {
+         if (!lastPrototypesToRegister.contains(startPoint)) {
+            addPrototype(startPoint);
+            deleteOrder.add(0, startPoint);
+         }
       }
    }
 }

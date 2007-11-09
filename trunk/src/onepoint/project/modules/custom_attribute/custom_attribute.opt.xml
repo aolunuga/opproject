@@ -1,0 +1,9 @@
+<prototype name="OpCustomAttribute" instance-class="onepoint.project.modules.custom_attribute.OpCustomAttribute" super-type="OpObject">
+   <field name="Name" type="String" mandatory="true" indexed="true" />
+   <field name="Type" type="Integer" mandatory="true" />
+   <field name="Unique" type="Boolean" />
+   <field name="Mandatory" type="Boolean" />
+   <field name="Deleted" type="Boolean" indexed="true" />
+   <field name="Position" type="Integer" indexed="true" />
+   <relationship name="CustomType" type="OpCustomType" back-relationship="CustomAttribute"/>
+</prototype>

@@ -11,6 +11,8 @@ import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project_status.OpProjectStatusService;
+import onepoint.project.modules.project_status.test.OpProjectStatusTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
@@ -25,10 +27,7 @@ import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class test project service methods.
@@ -39,10 +38,14 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
 
    private static final String PRJ_NAME = "prj";
    private static final String PORTOFOLIO_NAME = "portofolio";
+   private static final String STATUS_NAME = "prj_status";
+   private static final String DESCRIPTION = "A test project status";
 
    private static final String RES_NAME = "res";
    private static final String RES_DESCR = "descr";
 
+   private OpProjectStatusService projectStatusService;
+   private OpProjectStatusTestDataFactory projectStatusDataFactory;
    private OpProjectAdministrationService service;
    private OpProjectTestDataFactory dataFactory;
    private OpResourceTestDataFactory resourceDataFactory;
@@ -62,11 +65,12 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
+      projectStatusService = OpTestDataFactory.getProjectStatusService();
+      projectStatusDataFactory = new OpProjectStatusTestDataFactory(session);
       service = OpTestDataFactory.getProjectService();
       dataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
       // create resources
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 50d, 2d, 2d, false, poolid);
@@ -164,11 +168,13 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       response = service.insertPortfolio(session, request);
       assertNoError(response);
 
-      assertNotNull(dataFactory.getPortofolioByName(PORTOFOLIO_NAME));
+      OpBroker broker = session.newBroker();
+      assertNotNull(dataFactory.getPortofolioByName(broker, PORTOFOLIO_NAME));
 
       request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, null, null, null);
       response = service.insertPortfolio(session, request);
       assertError(response, OpProjectError.PORTFOLIO_NAME_ALREADY_USED);
+      broker.close();
    }
 
    /**
@@ -182,18 +188,22 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       XMessage response = service.insertPortfolio(session, request);
       assertNoError(response);
 
-      OpProjectNode portfolio = dataFactory.getPortofolioByName(PORTOFOLIO_NAME);
+      OpBroker broker = session.newBroker();
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(broker, PORTOFOLIO_NAME);
       assertNotNull(portfolio);
       String id = portfolio.locator();
-
+      broker.close();
+      
       request = OpProjectTestDataFactory.updatePortofolioMsg(id, "New" + PORTOFOLIO_NAME, "new description", null);
       response = service.updatePortfolio(session, request);
       assertNoError(response);
 
-      portfolio = dataFactory.getPortofolioById(id);
+      broker = session.newBroker();
+      portfolio = dataFactory.getPortofolioById(broker, id);
       assertNotNull(portfolio);
       assertEquals("New" + PORTOFOLIO_NAME, portfolio.getName());
       assertEquals("new description", portfolio.getDescription());
+      broker.close();
    }
 
    /**
@@ -238,7 +248,8 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       XMessage response = service.insertPortfolio(session, request);
       assertNoError(response);
 
-      OpProjectNode portfolio = dataFactory.getPortofolioByName(PORTOFOLIO_NAME);
+      OpBroker broker = session.newBroker();
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(broker, PORTOFOLIO_NAME);
       assertNotNull(portfolio);
       String id = portfolio.locator();
 
@@ -251,7 +262,9 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       List ids = new ArrayList();
-      OpBroker broker = session.newBroker();
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
       List portofolios = dataFactory.getAllPortofolios(broker);
       assertEquals(4, portofolios.size());
       for (int i = 0; i < portofolios.size(); i++) {
@@ -288,8 +301,10 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
            Boolean.FALSE, Boolean.TRUE, resources, null, null);
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
-      OpProjectNode project = dataFactory.getProjectByName(PRJ_NAME);
+      OpBroker broker = session.newBroker();
+      OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);      
       assertEquals(date, project.getStart());
+      broker.close();
    }
 
    /**
@@ -371,6 +386,107 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
            new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_ALREADY_USED);
+   }
+
+   /**
+    * Test project update
+    * When we update a project and we assign it another status, the old status of the project will be remove
+    * from the data base if it is no longer refred by any other project
+    *
+    * @throws Exception if the tst fails
+    */
+   public void testUpdateProjectChangeStatus()
+        throws Exception {
+
+      OpBroker broker = null;
+      OpTransaction t = null;
+
+      //create the projectStatus
+      HashMap args = new HashMap();
+      args.put(OpProjectStatus.NAME, STATUS_NAME);
+      args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+      args.put(OpProjectStatus.COLOR, new Integer(7));
+      XMessage request = new XMessage();
+      request.setArgument("project_status_data", args);
+      XMessage response = projectStatusService.insertProjectStatus(session, request);
+
+      assertNoError(response);
+
+      Long statusId = projectStatusDataFactory.getProjectStatusId(STATUS_NAME);
+      String statusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, statusId);
+      broker = session.newBroker();
+      OpProjectStatus projectStatus = (OpProjectStatus) broker.getObject(statusLocator);
+      broker.close();
+
+      assertNotNull(projectStatus);
+      assertEquals(DESCRIPTION, projectStatus.getDescription());
+      assertEquals(7, projectStatus.getColor());
+
+      //create the first project
+      Date date = Date.valueOf("2007-06-06");
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 100d, null, null);
+      response = service.insertProject(session, request);
+
+      assertNoError(response);
+
+      String projectLocator = dataFactory.getProjectId(PRJ_NAME);
+      broker = session.newBroker();
+      OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+
+      assertEquals(date, project.getStart());
+
+      //create the second project
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME+1, date, 100d, null, null);
+      response = service.insertProject(session, request);
+
+      assertNoError(response);
+
+      String secondProjectLocator = dataFactory.getProjectId(PRJ_NAME+1);
+      broker = session.newBroker();
+      OpProjectNode secondProject = (OpProjectNode) broker.getObject(secondProjectLocator);
+
+      assertEquals(date, secondProject.getStart());
+
+      //assign the projectStatus to projects
+      project.setStatus(projectStatus);
+      secondProject.setStatus(projectStatus);
+      t = broker.newTransaction();
+      broker.updateObject(project);
+      broker.updateObject(secondProject);
+      t.commit();
+      broker.close();
+
+      //delete the projectStatus
+      ArrayList ids = new ArrayList(1);
+      ids.add(statusLocator);
+      request = new XMessage();
+      request.setArgument("project_status_ids", ids);
+      response = projectStatusService.deleteProjectStatus(session, request);
+
+      assertNoError(response);
+
+      //update project to another project status
+      XComponent emptyDataSet =  new XComponent(XComponent.DATA_SET);
+      request = OpProjectTestDataFactory.updateProjectMsg(projectLocator, project.getName(), project.getStart(),
+           null, project.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet);
+      response = service.updateProject(session, request);
+      assertNoError(response);
+
+      broker = session.newBroker();
+      projectStatus = (OpProjectStatus) broker.getObject(statusLocator);
+      broker.close();
+      assertNotNull(projectStatus);
+
+      //update secondProject to another project status
+      request = OpProjectTestDataFactory.updateProjectMsg(secondProjectLocator, secondProject.getName(), secondProject.getStart(),
+           null, secondProject.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet);
+      response = service.updateProject(session, request);
+      assertNoError(response);
+
+      broker = session.newBroker();
+      projectStatus = (OpProjectStatus) broker.getObject(statusLocator);
+      broker.close();
+      assertNull(projectStatus);
    }
 
    /**
@@ -489,10 +605,10 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       response = service.insertProject(session, request);
       assertNoError(response);
 
-      String planId = dataFactory.getProjectByName(PRJ_NAME + 1).getPlan().locator();
+      OpBroker broker = session.newBroker();
+      String planId = dataFactory.getProjectByName(broker, PRJ_NAME + 1).getPlan().locator();
       OpProjectPlan plan = dataFactory.getProjectPlanById(planId);
 
-      OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
       plan.setCalculationMode(OpGanttValidator.INDEPENDENT);
@@ -551,7 +667,7 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertEquals(2, dataSet.getChildCount());
 
       OpActivityFilter filter = new OpActivityFilter();
-      filter.addProjectNodeID(dataFactory.getProjectByName(PRJ_NAME + 1).getID());
+      filter.addProjectNodeID(dataFactory.getProjectByName(broker, PRJ_NAME + 1).getID());
       filter.addResourceID(resourceDataFactory.getResourceById(resId1).getID());
       filter.addResourceID(resourceDataFactory.getResourceById(resId2).getID());
       filter.addType(OpActivity.TASK);
@@ -653,15 +769,19 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, "portofolio description", null, null);
       response = service.insertPortfolio(session, request);
       assertNoError(response);
-      OpProjectNode portofolio = dataFactory.getPortofolioByName(PORTOFOLIO_NAME);
+      broker = session.newBroker();
+      OpProjectNode portofolio = dataFactory.getPortofolioByName(broker, PORTOFOLIO_NAME);
       assertTrue(portofolio.getSubNodes().isEmpty());
 
       request = OpProjectTestDataFactory.moveProjectsMsg(portofolio.locator(), ids);
+      broker.close();      
       response = service.moveProjectNode(session, request);
       assertNoError(response);
 
-      portofolio = dataFactory.getPortofolioById(portofolio.locator());
+      broker = session.newBroker(); 
+      portofolio = dataFactory.getPortofolioById(broker, portofolio.locator());
       assertEquals(3, portofolio.getSubNodes().size());
+      broker.close();
    }
 
    // ********* Test DataSet Factories **********

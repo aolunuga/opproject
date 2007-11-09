@@ -63,7 +63,6 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       projectFactory = new OpProjectTestDataFactory(session);
       activityFactory = new OpActivityTestDataFactory(session);
       resourceFactory = new OpResourceTestDataFactory(session);
-      clean();
    }
 
    /**
@@ -86,8 +85,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
         throws Exception {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      OpBroker broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have ono rows because the are no work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -116,8 +117,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       workRecords.add(workRecord);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      OpBroker broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session,broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have only one row corresponding to the work record
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -173,8 +176,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       workRecords.add(workRecord);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have only one row corresponding to the work record
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -218,7 +223,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
 
       //create another workRecord
       OpWorkRecord workRecord2 = new OpWorkRecord();
-      workRecord2.setActualEffort(10);
+      workRecord2.setActualEffort(10d);
       workRecord2.setAssignment(assignment);
       workRecord2.setComment("Comment work record 2");
 
@@ -236,8 +241,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       workRecords.add(workRecord1);
       workRecords.add(workRecord2);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have two rows corresponding to the work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -284,7 +291,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       //create another workRecord
       OpWorkRecord workRecord2 = new OpWorkRecord();
       workRecord2.setAssignment(assignment);
-      workRecord2.setActualEffort(10);
+      workRecord2.setActualEffort(10d);
       workRecord2.setComment("Comment work record 2");
 
       //create the OpCostRecords
@@ -332,8 +339,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       workRecords.add(workRecord1);
       workRecords.add(workRecord2);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have two rows corresponding to the work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -486,9 +495,9 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       OpActivity activity = activityFactory.getActivityById(idActivity);
 
       String projectId = projectFactory.getProjectId(PROJECT_NAME);
-      OpProjectNode project = projectFactory.getProjectById(projectId);
-     
       OpBroker broker = session.newBroker();
+      OpProjectNode project = projectFactory.getProjectById(broker, projectId);
+     
       OpTransaction t = broker.newTransaction();
 
       //create a new assignment for another resource
@@ -827,29 +836,36 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
         XComponent projectsSet = new XComponent(XComponent.DATA_SET);
 
         String projectId = projectFactory.getProjectId(PROJECT_NAME);
-        OpProjectNode project = projectFactory.getProjectById(projectId);
-        String project1Id = projectFactory.getProjectId(PROJECT_NAME + 1);
-        OpProjectNode project1 = projectFactory.getProjectById(project1Id);
+        OpBroker broker = session.newBroker();
+        try {
+           OpProjectNode project = projectFactory.getProjectById(broker, projectId);
+           String project1Id = projectFactory.getProjectId(PROJECT_NAME + 1);
+           OpProjectNode project1 = projectFactory.getProjectById(broker, project1Id);
 
-        List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
-        assertEquals(0, projectsSet.getChildCount());
+           List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
+           assertEquals(0, projectsSet.getChildCount());
 
-        for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
-            assignmentList.add(assignment);
+           for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
+              assignmentList.add(assignment);
+           }
+           for (OpAssignment assignment : project1.getPlan().getActivityAssignments()) {
+              assignmentList.add(assignment);
+           }
+
+           OpWorkSlipDataSetFactory.fillProjectSet(projectsSet, assignmentList);
+           assertEquals(2, projectsSet.getChildCount());
+
+           String choice = XValidator.choice(project.locator(), project.getName());
+           String choice1 = XValidator.choice(project1.locator(), project1.getName());
+           for (int i = 0; i < projectsSet.getChildCount(); i++) {
+              XComponent dataRow = (XComponent) projectsSet.getChild(i);
+              assertTrue(dataRow.getValue().equals(choice) || dataRow.getValue().equals(choice1));
+           }
         }
-        for (OpAssignment assignment : project1.getPlan().getActivityAssignments()) {
-            assignmentList.add(assignment);
+        finally {
+           broker.close();
         }
 
-        OpWorkSlipDataSetFactory.fillProjectSet(projectsSet, assignmentList);
-        assertEquals(2, projectsSet.getChildCount());
-
-        String choice = XValidator.choice(project.locator(), project.getName());
-        String choice1 = XValidator.choice(project1.locator(), project1.getName());
-        for (int i = 0; i < projectsSet.getChildCount(); i++) {
-            XComponent dataRow = (XComponent) projectsSet.getChild(i);
-            assertTrue(dataRow.getValue().equals(choice) || dataRow.getValue().equals(choice1));
-        }
     }
 
     /**
@@ -866,61 +882,67 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
         XComponent choiceResourceSet = new XComponent(XComponent.DATA_SET);
 
         String project1Id = projectFactory.getProjectId(PROJECT_NAME + 1);
-        OpProjectNode project1 = projectFactory.getProjectById(project1Id);
+        OpBroker broker = session.newBroker();
+        try {
+           OpProjectNode project1 = projectFactory.getProjectById(broker, project1Id);
 
-        OpAssignment assignment = new OpAssignment();
-        for (OpAssignment activityAssignment : project1.getPlan().getActivityAssignments()) {
-            activityAssignment = projectFactory.getAssignmentById(activityAssignment.locator());
-            if(activityAssignment.getActivity().getName().equals(ACTIVITY_NAME + 1)){
-                assignment = activityAssignment;
-                break;
-            }
+           OpAssignment assignment = new OpAssignment();
+           for (OpAssignment activityAssignment : project1.getPlan().getActivityAssignments()) {
+              activityAssignment = projectFactory.getAssignmentById(activityAssignment.locator());
+              if(activityAssignment.getActivity().getName().equals(ACTIVITY_NAME + 1)){
+                 assignment = activityAssignment;
+                 break;
+              }
+           }
+
+           OpWorkSlipDataSetFactory.fillChoiceDataSetsFromSingleAssignment(assignment, choiceProjectSet,
+                 choiceActivitySet, choiceResourceSet);
+
+           //check if the project choice data set was filled correctly
+           assertEquals(1, choiceProjectSet.getChildCount());
+           String projectChoice = XValidator.choice(project1.locator(), project1.getName());
+           assertEquals(projectChoice, ((XComponent)choiceProjectSet.getChild(0)).getValue());
+
+           //check if the activity choice data set was filled correctly
+           assertEquals(1, choiceActivitySet.getChildCount());
+           assertEquals(2, choiceActivitySet.getChild(0).getChildCount());
+           OpActivity activity = assignment.getActivity();
+           String activityChoice = XValidator.choice(activity.locator(), activity.getName());
+           assertEquals(activityChoice, ((XComponent)choiceActivitySet.getChild(0)).getValue());
+           assertEquals(activity.getType(), ((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(0)).getValue());
+
+           //check the activity costs map
+           Map<Byte, List> costsMap = (Map)((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(1)).getValue();
+           assertEquals(4, costsMap.keySet().size());
+
+           List travelCosts = costsMap.get(OpCostRecord.TRAVEL_COST);
+           assertEquals(activity.getBaseTravelCosts(), (Double) travelCosts.get(0), DOUBLE_ERROR_MARGIN);
+           assertEquals(activity.getRemainingTravelCosts(), (Double) travelCosts.get(1), DOUBLE_ERROR_MARGIN);
+           assertFalse((Boolean)travelCosts.get(2));
+
+           List materialCosts = costsMap.get(OpCostRecord.MATERIAL_COST);
+           assertEquals(activity.getBaseMaterialCosts(), (Double) materialCosts.get(0), DOUBLE_ERROR_MARGIN);
+           assertEquals(activity.getRemainingMaterialCosts(), (Double) materialCosts.get(1), DOUBLE_ERROR_MARGIN);
+           assertFalse((Boolean)materialCosts.get(2));
+
+           List externalCosts = costsMap.get(OpCostRecord.EXTERNAL_COST);
+           assertEquals(activity.getBaseExternalCosts(), (Double) externalCosts.get(0), DOUBLE_ERROR_MARGIN);
+           assertEquals(activity.getRemainingExternalCosts(), (Double) externalCosts.get(1), DOUBLE_ERROR_MARGIN);
+           assertFalse((Boolean)externalCosts.get(2));
+
+           List miscCosts = costsMap.get(OpCostRecord.MISCELLANEOUS_COST);
+           assertEquals(activity.getBaseMiscellaneousCosts(), (Double) miscCosts.get(0), DOUBLE_ERROR_MARGIN);
+           assertEquals(activity.getRemainingMiscellaneousCosts(), (Double) miscCosts.get(1), DOUBLE_ERROR_MARGIN);
+           assertFalse((Boolean)miscCosts.get(2));
+
+           //check if the resource choice data set was filled correctly
+           assertEquals(1, choiceResourceSet.getChildCount());
+           String resourceChoice = XValidator.choice(assignment.getResource().locator(), assignment.getResource().getName());
+           assertEquals(resourceChoice, ((XComponent)choiceResourceSet.getChild(0)).getValue());
         }
-
-        OpWorkSlipDataSetFactory.fillChoiceDataSetsFromSingleAssignment(assignment, choiceProjectSet,
-                choiceActivitySet, choiceResourceSet);
-
-        //check if the project choice data set was filled correctly
-        assertEquals(1, choiceProjectSet.getChildCount());
-        String projectChoice = XValidator.choice(project1.locator(), project1.getName());
-        assertEquals(projectChoice, ((XComponent)choiceProjectSet.getChild(0)).getValue());
-
-        //check if the activity choice data set was filled correctly
-        assertEquals(1, choiceActivitySet.getChildCount());
-        assertEquals(2, choiceActivitySet.getChild(0).getChildCount());
-        OpActivity activity = assignment.getActivity();
-        String activityChoice = XValidator.choice(activity.locator(), activity.getName());
-        assertEquals(activityChoice, ((XComponent)choiceActivitySet.getChild(0)).getValue());
-        assertEquals(activity.getType(), ((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(0)).getValue());
-
-        //check the activity costs map
-        Map<Byte, List> costsMap = (Map)((XComponent)((XComponent)choiceActivitySet.getChild(0)).getChild(1)).getValue();
-        assertEquals(4, costsMap.keySet().size());
-
-        List travelCosts = costsMap.get(OpCostRecord.TRAVEL_COST);
-        assertEquals(activity.getBaseTravelCosts(), (Double) travelCosts.get(0), DOUBLE_ERROR_MARGIN);
-        assertEquals(activity.getRemainingTravelCosts(), (Double) travelCosts.get(1), DOUBLE_ERROR_MARGIN);
-        assertFalse((Boolean)travelCosts.get(2));
-
-        List materialCosts = costsMap.get(OpCostRecord.MATERIAL_COST);
-        assertEquals(activity.getBaseMaterialCosts(), (Double) materialCosts.get(0), DOUBLE_ERROR_MARGIN);
-        assertEquals(activity.getRemainingMaterialCosts(), (Double) materialCosts.get(1), DOUBLE_ERROR_MARGIN);
-        assertFalse((Boolean)materialCosts.get(2));
-
-        List externalCosts = costsMap.get(OpCostRecord.EXTERNAL_COST);
-        assertEquals(activity.getBaseExternalCosts(), (Double) externalCosts.get(0), DOUBLE_ERROR_MARGIN);
-        assertEquals(activity.getRemainingExternalCosts(), (Double) externalCosts.get(1), DOUBLE_ERROR_MARGIN);
-        assertFalse((Boolean)externalCosts.get(2));
-        
-        List miscCosts = costsMap.get(OpCostRecord.MISCELLANEOUS_COST);
-        assertEquals(activity.getBaseMiscellaneousCosts(), (Double) miscCosts.get(0), DOUBLE_ERROR_MARGIN);
-        assertEquals(activity.getRemainingMiscellaneousCosts(), (Double) miscCosts.get(1), DOUBLE_ERROR_MARGIN);
-        assertFalse((Boolean)miscCosts.get(2));
-
-        //check if the resource choice data set was filled correctly
-        assertEquals(1, choiceResourceSet.getChildCount());
-        String resourceChoice = XValidator.choice(assignment.getResource().locator(), assignment.getResource().getName());
-        assertEquals(resourceChoice, ((XComponent)choiceResourceSet.getChild(0)).getValue());
+        finally {
+           broker.close();
+        }
     }
 
     /**
@@ -996,7 +1018,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       //create the workRecord
       OpWorkRecord workRecord = new OpWorkRecord();
       workRecord.setAssignment(assignment);
-      workRecord.setActualEffort(10);
+      workRecord.setActualEffort(10d);
       workRecord.setComment("Comment work record");
 
       broker.makePersistent(project);

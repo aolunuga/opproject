@@ -6,8 +6,22 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XResourceBroker;
 
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is responsible for generation of Hibernate mapping file for all loaded prototypes.
@@ -93,7 +107,9 @@ public class OpMappingsGenerator {
       StringBuffer buffer = new StringBuffer();
 
       buffer.append("<?xml version=\"1.0\"?>\n");
-      buffer.append("<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">");
+      buffer.append("<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n");
+      // FIXME(dfreis Oct 11, 2007 6:35:57 AM) OPP 8.1: direct field access - will break backup/restore
+//      buffer.append("<hibernate-mapping default-access=\"onepoint.persistence.hibernate.OpPropertyAccessor\">").append(NEW_LINE);
       buffer.append("<hibernate-mapping>").append(NEW_LINE);
 
       //Process all root types
@@ -311,6 +327,8 @@ public class OpMappingsGenerator {
    private void addRelationMember(StringBuffer buffer, OpPrototype prototype, OpRelationship relationship, int level) {
       // Map relationship
       String cascadeMode = relationship.getCascadeMode();
+      String fetch = relationship.getFetch();
+      String lazy = relationship.getLazy();
       OpRelationship back_relationship = relationship.getBackRelationship();
       OpPrototype target_prototype = OpTypeManager.getPrototypeByID(relationship.getTypeID());
       if (relationship.getCollectionTypeID() != OpType.SET) {
@@ -323,8 +341,10 @@ public class OpMappingsGenerator {
                buffer.append("\" property-ref=\"");
                buffer.append(back_relationship.getName());
                if (cascadeMode != null) {
-                  buffer.append("\" cascade=\"");
-                  buffer.append(cascadeMode);
+                  buffer.append("\" cascade=\"").append(cascadeMode);
+               }
+               if (fetch != null) {
+                  buffer.append("\" fetch=\"").append(fetch);
                }
                buffer.append("\"/>").append(NEW_LINE);
             }
@@ -337,8 +357,10 @@ public class OpMappingsGenerator {
                buffer.append(target_prototype.getInstanceClass().getName());
                buffer.append("\" unique=\"true\" not-null=\"true");
                if (cascadeMode != null) {
-                  buffer.append("\" cascade=\"");
-                  buffer.append(cascadeMode);
+                  buffer.append("\" cascade=\"").append(cascadeMode);
+               }
+               if (fetch != null) {
+                  buffer.append("\" fetch=\"").append(fetch);
                }
                buffer.append("\"/>").append(NEW_LINE);
             }
@@ -352,8 +374,10 @@ public class OpMappingsGenerator {
             buffer.append("\" class=\"");
             buffer.append(target_prototype.getInstanceClass().getName());
             if (cascadeMode != null) {
-               buffer.append("\" cascade=\"");
-               buffer.append(cascadeMode);
+               buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\"/>").append(NEW_LINE);
          }
@@ -367,10 +391,12 @@ public class OpMappingsGenerator {
             if (relationship.getInverse()) {
                buffer.append("\" inverse=\"true");
             }
-            buffer.append("\" lazy=\"true");
+            buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
-               buffer.append("\" cascade=\"");
-               buffer.append(cascadeMode);
+               buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\">").append(NEW_LINE);
             buffer.append(generateIndent(level + 1)).append("<key column=\"");
@@ -403,9 +429,12 @@ public class OpMappingsGenerator {
             column_name = generateJoinColumnName(target_prototype.getName(), back_relationship.getName());
             buffer.append("\" table=\"");
             buffer.append(join_table_name);
-            buffer.append("\" lazy=\"true");
+            buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
+            }
+            if (fetch != null) {
+               buffer.append("\" fetch=\"").append(fetch);
             }
             buffer.append("\">").append(NEW_LINE);
             buffer.append(generateIndent(level + 1)).append("<key column=\"").append(key_column_name).append("\"/>").append(NEW_LINE);
@@ -676,6 +705,80 @@ public class OpMappingsGenerator {
 
       return new String(array);
    }
+   
+   public static void main(String[] args) {
+      if (args.length < 1) {
+         System.out.println("usage java -cp lib OpHibernateSource dbtype <outfile>");
+         System.out.println("  dbtype is one of derby, mysql_innodb, mysql, postgres, oracle, hsql or db2");
+         System.out.println("  outfile is the filename to write the mapping to, stdout is used if this argument is not given");
+         System.exit(-1);
+      }
+      int dbType = -1;
+      if (args[0].equalsIgnoreCase("derby")) {
+         dbType = OpHibernateSource.DERBY;
+      }
+      else if (args[0].equalsIgnoreCase("mysql_innodb")) {
+         dbType = OpHibernateSource.MYSQL_INNODB;
+      }
+      else if (args[0].equalsIgnoreCase("mysql")) {
+         dbType = OpHibernateSource.IBM_DB2;
+      }
+      else if (args[0].equalsIgnoreCase("postgres")) {
+         dbType = OpHibernateSource.POSTGRESQL;
+      }
+      else if (args[0].equalsIgnoreCase("oracle")) {
+         dbType = OpHibernateSource.ORACLE;
+      }
+      else if (args[0].equalsIgnoreCase("hsql")) {
+         dbType = OpHibernateSource.HSQLDB;
+      }
+      else if (args[0].equalsIgnoreCase("db2")) {
+         dbType = OpHibernateSource.IBM_DB2;
+      }
+      else {
+         System.err.println("ERROR unknown dbtype '"+args[0]+"'");
+         System.exit(-1);
+      }
+      PrintStream out = System.out;
+      if (args.length > 1) {
+         try {
+            File file = new File(args[1]);
+            if (file.exists()) {
+               file.delete();
+            }
+            file.createNewFile();
+            out = new PrintStream(file);
+         }
+         catch (IOException exc) {
+            System.err.println("ERROR could not create file '"+args[1]+"', error: "+exc.getLocalizedMessage());
+            System.exit(-1);
+         }
+      }
+      
+      
+      File path;
+      try {
+         path = new File(OpMappingsGenerator.class.getResource("OpMappingsGenerator.class").toURI());
+      }
+      catch (URISyntaxException exc) {
+         exc.printStackTrace();
+         path = new File("onepoint/project");
+      }
+      path = path.getParentFile().getParentFile().getParentFile().getParentFile();
+      path = new File(path, "onepoint/project/test");
+      OpEnvironmentManager.setOnePointHome(path.getPath());
+      XResourceBroker.setResourcePath("onepoint/project");
+      // initialize factory
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      factory.setInitializer(OpInitializer.class);
+
+      OpInitializer initializer = factory.getInitializer();
+      initializer.init(OpProjectConstants.TEAM_EDITION_CODE);//OPEN_EDITION_CODE);
+      OpMappingsGenerator generator = new OpMappingsGenerator(dbType);
+      generator.init(OpTypeManager.getPrototypes());
+      String mapping = generator.generateMappings();
+      out.print(mapping);
+   }
 
    private int getDatabaseType() {
       return databaseType;
@@ -732,5 +835,4 @@ public class OpMappingsGenerator {
       }
       return generator;
    }
-
 }

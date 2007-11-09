@@ -62,19 +62,8 @@ public class OpProjectStatusService extends OpProjectService {
 
       OpBroker broker = session.newBroker();
 
-      // check if projectStatus name is already used
-      OpQuery query = broker
-           .newQuery("select status.ID from OpProjectStatus as status where status.Name = :statusName");
-      query.setString("statusName", projectStatus.getName());
-      Iterator categoryIds = broker.iterate(query);
-      if (categoryIds.hasNext()) {
-         reply.setError(session.newError(ERROR_MAP, OpProjectStatusError.PROJECT_STATUS_NAME_NOT_UNIQUE));
-         broker.close();
-         return reply;
-      }
-
       //get the max sequence from db
-      query = broker.newQuery("select max(status.Sequence) from OpProjectStatus as status");
+      OpQuery query = broker.newQuery("select max(status.Sequence) from OpProjectStatus as status");
       Iterator result = broker.iterate(query);
       int sequence = 0;
       if (result.hasNext()) {
@@ -84,6 +73,33 @@ public class OpProjectStatusService extends OpProjectService {
          }
       }
       projectStatus.setSequence(sequence);
+
+      // check if projectStatus name is already used
+       query = broker
+           .newQuery("from OpProjectStatus as status where status.Name = :statusName");
+      query.setString("statusName", projectStatus.getName());
+      Iterator categoryIds = broker.iterate(query);
+      if (categoryIds.hasNext()) {
+         OpProjectStatus existingProjectStatus = (OpProjectStatus) categoryIds.next();
+         if (existingProjectStatus.getActive()) {
+            reply.setError(session.newError(ERROR_MAP, OpProjectStatusError.PROJECT_STATUS_NAME_NOT_UNIQUE));
+            broker.close();
+            return reply;
+         } else {
+            existingProjectStatus.setActive(true);
+            existingProjectStatus.setName(projectStatus.getName());
+            existingProjectStatus.setDescription(projectStatus.getDescription());
+            existingProjectStatus.setColor(projectStatus.getColor());
+            existingProjectStatus.setSequence(projectStatus.getSequence());
+
+            OpTransaction t = broker.newTransaction();
+            broker.updateObject(existingProjectStatus);
+            t.commit();
+            
+            broker.close();
+            return reply;
+         }
+      }
 
       OpTransaction t = broker.newTransaction();
       broker.makePersistent(projectStatus);
@@ -263,7 +279,7 @@ public class OpProjectStatusService extends OpProjectService {
       Iterator results = broker.iterate(query);
       while (results.hasNext()) {
          OpProjectStatus status = (OpProjectStatus) results.next();
-         if (status.getProjects().size() > 0) {
+         if (OpProjectDataSetFactory.getProjectsCount(broker, status) > 0) {
             if (status.getActive()) {
                status.setActive(false);
                minSequence--;
@@ -281,6 +297,10 @@ public class OpProjectStatusService extends OpProjectService {
       int sequence = 0;
       while (results.hasNext()) {
          OpProjectStatus status = (OpProjectStatus) results.next();
+
+         if (!status.getActive()) {
+            continue;
+         }
          status.setSequence(sequence);
          broker.updateObject(status); 
          sequence++;

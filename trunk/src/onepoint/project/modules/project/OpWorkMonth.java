@@ -9,6 +9,8 @@ import onepoint.persistence.OpObject;
  */
 public class OpWorkMonth extends OpObject {
 
+   public final static String WORK_MONTH = "OpWorkMonth";
+
    private int year;
    private byte month;
 
@@ -60,6 +62,10 @@ public class OpWorkMonth extends OpObject {
    private Double remainingPersonnel = 0d;
    private Double remainingProceeds = 0d;
    private Double remainingEffort = 0d;
+
+   /**
+    * The activity's working days in the month represented by this work month
+    */
    private Byte workingDays = 0;
 
    public int getYear() {

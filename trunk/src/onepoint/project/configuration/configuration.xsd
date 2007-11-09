@@ -18,6 +18,7 @@
          <xsd:element name="shared-secret" type="OpSecret" minOccurs="0"/>
          <xsd:element name="report-workflow" type="OpReportWorkflow" minOccurs="0"/>
          <xsd:element name="ldap" type="OpLdapConfig" minOccurs="0"/>
+         <xsd:element name="message-queue" type="OpMesageQueueConfig" minOccurs="0"/>
       </xsd:all>
    </xsd:complexType>
 
@@ -57,16 +58,29 @@
       </xsd:sequence>
       <xsd:attribute name="enabled" type="xsd:boolean" default="false" />
    </xsd:complexType>
+ 
+   <xsd:complexType name="OpMesageQueueConfig">
+      <xsd:sequence>
+         <xsd:element name="database-type" type="xsd:string" default="MySQLInnoDB"/>
+         <xsd:element name="database-driver" type="xsd:string" default="com.mysql.jdbc.Driver"/>
+         <xsd:element name="database-url" type="xsd:string" default="jdbc:mysql://localhost:3306/oppMessageQueue"/>
+         <xsd:element name="database-login" type="xsd:string" default="oppmq"/>
+         <xsd:element name="database-password" type="OpConfigDatabasePassword" default="oppmq"/>
+         <xsd:element name="database-path" type="xsd:string" minOccurs="0"/>
+         <xsd:element name="update-schedule" type="OpScheduleConfig" maxOccurs="unbounded"/>         
+      </xsd:sequence>
+      <xsd:attribute name="name" type="xsd:string"/>
+   </xsd:complexType>
    
    <xsd:complexType name="OpLdapConfig">
       <xsd:sequence minOccurs="0">
          <xsd:element name="connection" type="OpLdapConnectionConfig"/>
-         <xsd:element name="update-schedule" type="OpLdapScheduleConfig" maxOccurs="unbounded"/>
+         <xsd:element name="update-schedule" type="OpScheduleConfig" maxOccurs="unbounded"/>
          <xsd:element name="users" type="OpLdapUserConfig"/>
          <xsd:element name="groups" type="OpLdapGroupConfig" minOccurs="0"/>
       </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="OpLdapScheduleConfig">
+   <xsd:complexType name="OpScheduleConfig">
       <xsd:sequence>
          <!--  <xsd:element name="second" type="xsd:string" maxOccurs="unbounded" default="0" /> -->
          <xsd:element name="minute" type="xsd:string" maxOccurs="unbounded" default="30"/>
