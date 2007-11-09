@@ -24,6 +24,10 @@ import java.util.Set;
 public class OpProjectAdministrationServiceImpl implements OpService {
 
    /**
+    * The name of this service.
+    */
+   public static final String SERVICE_NAME = "ProjectService";
+   /**
     * the portfolio type.
     */
    public static final int TYPE_PORTFOLIO = OpProjectNode.PORTFOLIO;
@@ -46,7 +50,7 @@ public class OpProjectAdministrationServiceImpl implements OpService {
     * @return the requested project plan or <code>null</code> if no 
     * project was found for the given id.
     */
-   public final OpProjectPlan getProjectPlanMyId(
+   public final OpProjectPlan getProjectPlanById(
          final OpProjectSession session, final OpBroker broker, final long id) {
       return (OpProjectPlan) broker.getObject(OpProjectPlan.class, id);
    }

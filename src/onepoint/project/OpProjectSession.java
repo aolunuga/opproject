@@ -176,6 +176,9 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public OpGroup everyone(OpBroker broker) {
+      if (everyoneId == NO_ID) {
+         lookUpEveryoneID(broker);
+      }
       return (OpGroup) broker.getObject(OpGroup.class, everyoneId);
    }
 
@@ -474,13 +477,17 @@ public class OpProjectSession extends XExpressSession {
    }
 
    /**
-    * @see onepoint.service.server.XSession#cleanupSession()
+    * @see onepoint.service.server.XSession#cleanupSession(boolean)
+    * @param clearCache
     */
-   public void cleanupSession() {
-      super.cleanupSession();
+   public void cleanupSession(boolean clearCache) {
+      super.cleanupSession(clearCache);
       for (Iterator it = brokerList.iterator(); it.hasNext();) {
          OpBroker opBroker = (OpBroker) it.next();
          if (opBroker.isOpen()) {
+            if (clearCache) {
+               opBroker.clear();
+            }
             opBroker.close();
          }
          it.remove();
@@ -490,9 +497,12 @@ public class OpProjectSession extends XExpressSession {
    /**
     * Cleans the brokers which were opened by this session, with the exception of the brokers
     * found in the given list.
+    *
+    * @param exceptBrokers Brokers to be excluded from close/cleanup
+    * @param clearCache
     */
-   public void cleanupSession(List<OpBroker> exceptBrokers) {
-      super.cleanupSession();
+   public void cleanupSession(List<OpBroker> exceptBrokers, boolean clearCache) {
+      super.cleanupSession(clearCache);
       for (Iterator it = brokerList.iterator(); it.hasNext();) {
          OpBroker opBroker = (OpBroker) it.next();
          if (exceptBrokers.contains(opBroker)) {

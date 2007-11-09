@@ -46,8 +46,6 @@ public class OpReportServiceTest extends OpBaseOpenTestCase {
 
       reportService = OpTestDataFactory.getReportService();
       dataFactory = new OpReportTestDataFactory(session);
-
-      cleanUp();
    }
 
    /**

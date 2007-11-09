@@ -88,16 +88,16 @@ public class OpEditProjectFormProvider implements XFormProvider {
       // Downgrade edit mode to view mode if no manager access
       Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
       byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-      if (editMode && (accessLevel < OpPermission.MANAGER)) {
+      if (editMode && (accessLevel < OpPermission.CONTRIBUTOR)) {
          editMode = Boolean.FALSE;
       }
       form.findComponent(EDIT_MODE).setBooleanValue(editMode);
 
       //update components which are not project-related
-      this.updateComponentsProjectUnrelated(session, broker, form, editMode);
+      this.updateComponentsProjectUnrelated(session, broker, form, editMode, project, parameters);
 
       //update components which are project related
-      this.fillDataFromProject(form, project, broker, session, editMode);
+      this.fillDataFromProject(form, project, broker, session, editMode, parameters);
 
       broker.close();
    }
@@ -105,13 +105,15 @@ public class OpEditProjectFormProvider implements XFormProvider {
    /**
     * Sets the data in the form's fields by taking the information out of the requested project.
     *
-    * @param form     a <code>XComponent(FORM)</code> representing the edit projec form.
-    * @param project  a <code>OpProjectNode</code> representing the project being edited.
-    * @param broker   a <code>OpBroker</code> used for business operations.
-    * @param session  a <code>OpProjectSession</code> representing the current server session.
-    * @param editMode a <code>boolean</code> indicating whether we are editing or view-ing a project.
+    * @param form       a <code>XComponent(FORM)</code> representing the edit projec form.
+    * @param project    a <code>OpProjectNode</code> representing the project being edited.
+    * @param broker     a <code>OpBroker</code> used for business operations.
+    * @param session    a <code>OpProjectSession</code> representing the current server session.
+    * @param editMode   a <code>boolean</code> indicating whether we are editing or view-ing a project.
+    * @param parameters a <code>HashMap</code> containing the parameters for the form provider.
     */
-   private void fillDataFromProject(XComponent form, OpProjectNode project, OpBroker broker, OpProjectSession session, Boolean editMode) {
+   private void fillDataFromProject(XComponent form, OpProjectNode project, OpBroker broker,
+        OpProjectSession session, Boolean editMode, HashMap parameters) {
 
       boolean isAdministrator = (session.getAdministratorID() == session.getUserID()) ||
            session.checkAccessLevel(broker, project.getID(), OpPermission.ADMINISTRATOR);
@@ -122,7 +124,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //set the calculation mode
       XComponent calculationModeComponent = form.findComponent(OpProjectPlan.CALCULATION_MODE);
       calculationModeComponent.setBooleanValue(project.getPlan().getCalculationMode() == OpProjectPlan.EFFORT_BASED);
-      calculationModeComponent.setEnabled(editMode);
+      calculationModeComponent.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //progress tracked - can't be changed at edit time (disabled)
       XComponent progressTrackedComponent = form.findComponent(OpProjectPlan.PROGRESS_TRACKED);
@@ -132,61 +134,62 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //name
       XComponent name = form.findComponent(OpProjectNode.NAME);
       name.setStringValue(project.getName());
-      name.setEnabled(editMode);
+      name.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //description
       XComponent desc = form.findComponent(OpProjectNode.DESCRIPTION);
       desc.setStringValue(project.getDescription());
-      desc.setEnabled(editMode);
+      desc.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //start
       XComponent start = form.findComponent(OpProjectNode.START);
       start.setDateValue(project.getStart());
-      start.setEnabled(editMode);
+      start.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //finish
       XComponent end = form.findComponent(OpProjectNode.FINISH);
       end.setDateValue(project.getFinish());
-      end.setEnabled(editMode);
+      end.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //budget
       XComponent budget = form.findComponent(OpProjectNode.BUDGET);
       budget.setDoubleValue(project.getBudget());
-      budget.setEnabled(editMode && isAdministrator);
+      budget.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator);
 
       //priority
       XComponent priority = form.findComponent(OpProjectNode.PRIORITY);
       priority.setIntValue(project.getPriority());
-      priority.setEnabled(editMode);
+      priority.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //probability
       XComponent probability = form.findComponent(OpProjectNode.PROBABILITY);
       probability.setIntValue(project.getProbability());
-      probability.setEnabled(editMode);
+      probability.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //archived
       XComponent archived = form.findComponent(OpProjectNode.ARCHIVED);
       archived.setBooleanValue(project.getArchived());
-      archived.setEnabled(editMode);
+      archived.setEnabled(hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //statuses
       String noStatusText = XValidator.choice(NULL_ID, session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(NO_STATUS).getText());
-      this.fillStatuses(broker, form, noStatusText, project.getStatus(), editMode && isAdministrator);
+      this.fillStatuses(broker, form, noStatusText, project.getStatus(),
+           hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator);
 
       //goals
-      this.fillGoals(form, project, editMode);
+      this.fillGoals(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //to dos
-      this.fillToDos(form, project, editMode);
+      this.fillToDos(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill the version of the project
-      this.fillProjectPlanVersions(form, editMode && isAdministrator, project, session);
+      this.fillProjectPlanVersions(form, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator, project, session, broker);
 
       //fill the resources & hourly rates periods data set
-      this.fillResources(form, project, editMode);
+      this.fillResources(broker, form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill permissions
-      this.fillPermissions(session, broker, form, project, editMode);
+      this.fillPermissions(session, broker, form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill attachments
       this.fillAttachments(form, project, editMode);
@@ -203,11 +206,12 @@ public class OpEditProjectFormProvider implements XFormProvider {
     */
    private void fillPermissions(OpProjectSession session, OpBroker broker, XComponent form,
         OpProjectNode project, boolean editMode) {
-      if (OpEnvironmentManager.isMultiUser()) {
+
          byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
          XComponent permissionSet = form.findComponent(PERMISSION_SET);
          OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
               OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
+      if (OpEnvironmentManager.isMultiUser()) {
          OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
       else {
@@ -259,9 +263,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param editMode a <code>boolean</code> indicating whether it's and edit or view operation.
     * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param session  a <code>OpProjectSession</code> representing the server session.
+    * @param broker   a <code>OpBroker</code> needed to perform the DB operations.
     */
-   private void fillProjectPlanVersions(XComponent form, boolean editMode, OpProjectNode project, OpProjectSession session) {
-      boolean isButtonVisible = editMode && (project.getPlan() != null) && (project.getPlan().getVersions().size() > 0);
+   private void fillProjectPlanVersions(XComponent form, boolean editMode, OpProjectNode project, OpProjectSession session,
+        OpBroker broker) {
+      boolean isButtonVisible = editMode && (project.getPlan() != null) && (OpProjectDataSetFactory.getPlanVersionsCount(broker, project.getPlan()) > 0);
       if (project.getPlan() != null) {
          this.fillVersionsDataSet(form, editMode, project.getPlan(), session);
       }
@@ -292,6 +298,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
          OpProjectStatus status = (OpProjectStatus) statusIterator.next();
          row = new XComponent(XComponent.DATA_ROW);
          row.setStringValue(XValidator.choice(String.valueOf(status.locator()), status.getName()));
+
+         if (status.getActive() == false) {
+            row.setEnabled(false);
+         }
+
          statusDataSet.addChild(row);
          if (projectStatus != null && (projectStatus.getID() == status.getID())) {
             selectedIndex = row.getIndex();
@@ -317,14 +328,17 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * Updates the form's components which are independent of the
     * selected project according to the edit mode.
     *
-    * @param session  a <code>OpProjectSession</code> representing the server session
-    * @param broker   a <code>OpBroker</code> used for business operations.
-    * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
-    * @param editMode a <code>boolean</code> indicating whether we are in edit or info mode.
+    * @param session    a <code>OpProjectSession</code> representing the server session
+    * @param broker     a <code>OpBroker</code> used for business operations.
+    * @param form       a <code>XComponent(FORM)</code> representing the edit project form.
+    * @param editMode   a <code>boolean</code> indicating whether we are in edit or info mode.
+    * @param project    a <code>OpProjectNode</code> representing the project being edited.
+    * @param parameters a <code>HashMap</code> containing the parameters for the form provider.
     */
-   private void updateComponentsProjectUnrelated(OpProjectSession session, OpBroker broker, XComponent form, boolean editMode) {
+   private void updateComponentsProjectUnrelated(OpProjectSession session, OpBroker broker, XComponent form,
+        boolean editMode, OpProjectNode project, HashMap parameters) {
 
-      if (editMode) {
+      if (hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER)) {
          XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
          OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);
       }
@@ -371,31 +385,16 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //add the version nrs in ascending order
       XComponent workingDataRow = new XComponent(XComponent.DATA_ROW);
 
-      Set planVersions = projectPlan.getVersions();
-      Iterator it = planVersions.iterator();
-      OpProjectPlanVersion latestVersion = null;
-      int maxVersionNr = 0;
-      while (it.hasNext()) {
-         OpProjectPlanVersion version = (OpProjectPlanVersion) it.next();
+      for (Object planVersion : projectPlan.getVersions()) {
+         OpProjectPlanVersion version = (OpProjectPlanVersion) planVersion;
          int versionNr = version.getVersionNumber();
-         //<FIXME author="Mihai Costin" description="Opp-246">
-         if (versionNr != 1) {
-            //</FIXME>
-            XComponent dataRow = this.createProjectVersionDataRow(session, version,
-                 userObjectsLocalizer, editMode);
-            if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
-               workingDataRow = dataRow;
-            }
-            else {
-               rowsMap.put(versionNr, dataRow);
-               if (versionNr > maxVersionNr) {
-                  latestVersion = version;
-                  maxVersionNr = versionNr;
-               }
-            }
+         XComponent dataRow = this.createProjectVersionDataRow(session, version,
+              userObjectsLocalizer, editMode);
+         if (version.getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            workingDataRow = dataRow;
          }
          else {
-            latestVersion = version;
+            rowsMap.put(versionNr, dataRow);
          }
       }
 
@@ -406,10 +405,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
       }
 
       //add the current version
-      if (latestVersion != null) {
-         XComponent actualVersionRow = createActualVersionRow(projectPlan, session, latestVersion, userObjectsLocalizer, editMode);
-         versionsDataSet.addChild(actualVersionRow);
-      }
+      XComponent actualVersionRow = createActualVersionRow(projectPlan, session, userObjectsLocalizer, editMode);
+      versionsDataSet.addChild(actualVersionRow);
 
       for (int i = versionNumbers.length - 1; i >= 0; i--) {
          Integer versionNumber = versionNumbers[i];
@@ -448,9 +445,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataCell.setStringValue(session.getLocale().getResourceMap(PROJECT_EDIT_PROJECT).getResource(WORKING_VERSION).getText());
       }
       else {
-         //<FIXME author="Mihai Costin" description="Opp-246">
-         dataCell.setStringValue(String.valueOf(versionNr - 1));
-         //</FIXME>
+         dataCell.setStringValue(String.valueOf(versionNr));
       }
       dataRow.addChild(dataCell);
 
@@ -475,7 +470,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       return dataRow;
    }
 
-   protected XComponent createActualVersionRow(OpProjectPlan plan, OpProjectSession session, OpProjectPlanVersion latestVersion, XLocalizer userObjectsLocalizer, boolean editMode) {
+   protected XComponent createActualVersionRow(OpProjectPlan plan, OpProjectSession session, XLocalizer userObjectsLocalizer, boolean editMode) {
       XComponent dataRow = new XComponent(XComponent.DATA_ROW);
 
       //version id - 0
@@ -489,8 +484,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataRow.addChild(dataCell);
 
       //created by - 2
-      String creator = latestVersion.getCreator();
-      String createdBy = userObjectsLocalizer.localize(creator);
+      String createdBy = userObjectsLocalizer.localize(plan.getCreator());
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setStringValue(createdBy);
       dataRow.addChild(dataCell);
@@ -575,11 +569,12 @@ public class OpEditProjectFormProvider implements XFormProvider {
    /**
     * Fills the resources for the edited project.
     *
+    * @param broker   the <code>OpBroker</code> object needed to perform the DB operations.
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
     * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
     */
-   private void fillResources(XComponent form, OpProjectNode project, boolean editMode) {
+   private void fillResources(OpBroker broker, XComponent form, OpProjectNode project, boolean editMode) {
       XComponent dataSet = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
       XComponent originalDataSet = form.findComponent(ORIGINAL_RESOURCE_DATA_SET);
       XComponent dataRow;
@@ -654,7 +649,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataRow.addChild(dataCell);
 
          //expand the row if the assignment has hourly rates periods
-         if (!assignment.getHourlyRatesPeriods().isEmpty()) {
+         if (!OpActivityDataSetFactory.hasHourlyRatesPeriods(broker, assignment)) {
             dataRow.setExpanded(true);
          }
          dataSet.addChild(dataRow);
@@ -666,5 +661,27 @@ public class OpEditProjectFormProvider implements XFormProvider {
       }
       form.findComponent(RESOURCES_TABLE).setEditMode(editMode);
       form.findComponent(RESOURCE_TOOL_PANEL).setVisible(editMode);
+   }
+
+   /**
+    * Downgrade edit mode to view mode according to the permission level send as parameter.
+    *
+    * @param session         a <code>OpProjectSession</code> representing the current server session.
+    * @param broker          a <code>OpBroker</code> used for business operations.
+    * @param project         the <code>OpProjectNode</code> which is being edited.
+    * @param parameters      a <code>HashMap</code> containing the parameters for the form provider.
+    * @param permissionLevel the lowest permission level to for which the edit mode is still accepted. Any
+    *                        user that has a user level lower that the permission level will have the edit mode switched to
+    *                        view mode.
+    * @return the <code>boolean</code> value indicating the new edit mode.
+    */
+   protected boolean hasUserPermissions(OpProjectSession session, OpBroker broker, OpProjectNode project,
+        HashMap parameters, byte permissionLevel) {
+      Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
+      byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
+      if (editMode && (accessLevel < permissionLevel)) {
+         editMode = Boolean.FALSE;
+      }
+      return editMode;
    }
 }

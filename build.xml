@@ -9,6 +9,12 @@
       </classpath>
    </taskdef>
 
+  <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+    <classpath>
+       <fileset dir="${lib.dir}" includes="*.jar" />
+    </classpath>
+  </taskdef>
+
    <taskdef resource="net/sf/antcontrib/antlib.xml">
       <classpath>
          <pathelement location="${lib.dir}/ant-contrib-1.0b3.jar"/>
@@ -121,7 +127,7 @@
       <exclude name="*mysql*.*"/>
       <exclude name="*postgresql*.*"/>
       <exclude name="*jtds*.*"/>
-      <exclude name="*sqljdbc*.*"/>     
+      <exclude name="*sqljdbc*.*"/>
       <exclude name="*svn*.*"/>
       <exclude name="*junit*.*"/>
       <exclude name="*jarbundler*.*"/>
@@ -133,7 +139,7 @@
       <exclude name="*_client*.*"/>
       <exclude name="*ant-contrib*.jar"/>
       <exclude name="*commons-cli*.jar"/> <!-- at the moment only used within ldap, but may be of general perpose -->
-      <exclude name="*jsr173*.jar"/> 
+      <exclude name="*jsr173*.jar"/>
       <exclude name="*retroweaver-all*.jar"/>
       <exclude name="*ws-commons-util*.jar"/> <!-- used for sending reports (icomedias) -->
       <exclude name="*xmlrpc-*.jar"/> <!-- for xmlrpc only -->
@@ -172,14 +178,14 @@
    <patternset id="tests.compile.pathid">
       <include name="**/*Test*.java"/>
    </patternset>
- 
+
    <!-- check if the express4j module is present -->
    <available file="${express4j.dir}" type="dir" property="express4j.present"/>
 
    <tstamp>
       <format property="build.date" pattern="yyyyMMdd"/>
    </tstamp>
- 
+
    <property name="manifest" value="${build.dir}/manifest.mf"/>
 
    <!-- Removes the directory where the classes are generated -->
@@ -188,9 +194,9 @@
       <delete dir="${dist.dir}" failonerror="false"/>
       <delete dir="${release.dir}" failonerror="false"/>
       <delete dir="${tests.dir}" failonerror="false"/>
-      <delete failonerror="false">
+      <delete failonerror="false" deleteonexit="true">
          <fileset dir="${lib.dir}">
-            <include name="express4j*.jar"/>
+            <include name="**/express4j*.jar"/>
          </fileset>
       </delete>
    </target>
@@ -264,8 +270,18 @@
 
    </target>
 
+   <!-- Generates all jaxb classes from the configuration schema -->
+   <target name="generate.schema">
+      <mkdir dir="${src.dir}/onepoint/project/configuration/generated" />
+      <xjc schema="${src.dir}/onepoint/project/configuration/configuration.xsd"
+           target="${src.dir}"
+           package="onepoint.project.configuration.generated">
+         <produces dir="${src.dir}/onepoint/project/configuration/generated" includes="* impl/*" />
+      </xjc>
+   </target>
+
    <!--Builds the project classes-->
-   <target name="build" depends="copy.resources" description="Builds all the project classes.">
+   <target name="build" depends="generate.schema,copy.resources" description="Builds all the project classes.">
       <javac srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.classpath" debug="${debug}"
              target="${jdk.target}" source="${jdk.source}"
@@ -298,6 +314,7 @@
       <jar destfile="${jars.dir}/${project.basic.jarname}">
          <fileset dir="${classes.dir}">
             <patternset refid="project.standalone.pathid"/>
+            <include name="*.properties"/>
          </fileset> 
          <manifest>
             <attribute name="Built-By" value="Onepoint Software GmbH"/>
@@ -330,6 +347,7 @@
       <jar destfile="${jars.dir}/${opproject.open.jarname}" manifest="${manifest}">
          <fileset dir="${classes.dir}">
             <patternset refid="project.remote.pathid"/>
+            <include name="*.properties"/>
          </fileset>
       </jar>
    </target>
@@ -339,6 +357,9 @@
       <jar destfile="${jars.dir}/${opproject.client.open.jarname}">
          <fileset dir="${client.classes.dir}">
             <patternset refid="project.client.pathid"/>
+         </fileset>
+         <fileset dir="${classes.dir}">
+            <include name="${log.properties.filename.client}"/>
          </fileset>
       </jar>
    </target>
@@ -626,7 +647,7 @@ fi
                  dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
             <jre minVersion="1.4.0"/>
             <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
-                         copyright="Onepoint Software GmbH" productVersion="${version}.0.0" txtProductVersion="${version}"
+                         copyright="Onepoint Software GmbH" productVersion="${version.mayor}.${version.minor}.0.0" txtProductVersion="${version}"
                          productName="Onepoint Projects" companyName="Onepoint Software GmbH"
                          internalName="onepoint" originalFilename="${executable.file}"/>
          </config>

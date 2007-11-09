@@ -76,8 +76,6 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
       activityFactory = new OpActivityTestDataFactory(session);
 
-      clean();
-
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, null, OpUser.CONTRIBUTOR_USER_LEVEL,
            "John", "Doe", "en", "user@email.com", null, null, null, null);
       XMessage request = new XMessage();
@@ -94,7 +92,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
       OpResource res = (OpResource) broker.getObject(resId);
-      res.setUser(userDataFactory.getUserByName(DEFAULT_USER));
+      res.setUser(userDataFactory.getUserByName(broker, DEFAULT_USER));
       broker.updateObject(res);
       t.commit();
       broker.close();
@@ -103,8 +101,9 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
       projId = projectDataFactory.getProjectId("project");
-
-      planId = projectDataFactory.getProjectById(projId).getPlan().locator();
+      broker = session.newBroker();
+      planId = projectDataFactory.getProjectById(broker, projId).getPlan().locator();
+      broker.close();
 
    }
 
@@ -133,7 +132,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       OpTransaction t = broker.newTransaction();
 
       OpResource resource = resourceDataFactory.getResourceById(resId);
-      OpProjectNode project = projectDataFactory.getProjectById(projId);
+      OpProjectNode project = projectDataFactory.getProjectById(broker, projId);
 
       OpActivity activity = new OpActivity(OpActivity.COLLECTION_TASK);
       activity.setProjectPlan(plan);

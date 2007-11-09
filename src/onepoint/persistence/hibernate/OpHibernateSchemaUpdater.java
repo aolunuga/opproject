@@ -104,7 +104,7 @@ public final class OpHibernateSchemaUpdater {
     * @param dialect
     * @return a <code>List</code> of <code>String</code> representing db information.
     */
-   public List generateUpdateSchemaScripts(DatabaseMetaData dbMetaData, Dialect dialect) {
+   public List<String> generateUpdateSchemaScripts(DatabaseMetaData dbMetaData, Dialect dialect) {
       //add the hi/lo generator statement
       List<String> updateStatements = new ArrayList<String>();
       try {

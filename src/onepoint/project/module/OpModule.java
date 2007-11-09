@@ -134,7 +134,7 @@ public abstract class OpModule {
    }
 
    private Map<String, OpToolGroup> getToolGroupsMap() {
-      if (toolGroupsMap .size()!= toolGroups.size()) {
+      if (toolGroupsMap.size() != toolGroups.size()) {
          for (OpToolGroup opToolGroup : toolGroups) {
             toolGroupsMap.put(opToolGroup.getName(), opToolGroup);
          }
@@ -289,8 +289,9 @@ public abstract class OpModule {
    }
 
    /**
-    *  Extends this module with another module, merging all "internal" data like: prototypes,
+    * Extends this module with another module, merging all "internal" data like: prototypes,
     * tools, groups etc.
+    *
     * @param parentModule a <code>OpModule</code> which has to be extended.
     */
    void extend(OpModule parentModule) {
@@ -304,6 +305,7 @@ public abstract class OpModule {
 
    /**
     * Extends the prototypes from the parent module.
+    *
     * @param parentModule a <code>OpModule</code> representing the parent module.
     */
    private void extendPrototypes(OpModule parentModule) {
@@ -322,6 +324,7 @@ public abstract class OpModule {
 
    /**
     * Extends the tool groups from the parent module.
+    *
     * @param parentModule a <code>OpModule</code> representing the parent module.
     */
    private void extendToolGroups(OpModule parentModule) {
@@ -336,15 +339,27 @@ public abstract class OpModule {
 
    /**
     * Extends this module's tools with the tools from the parent.
-     * @param parentModule a <code>OpModule</code> representing the parent module.
+    *
+    * @param parentModule a <code>OpModule</code> representing the parent module.
     */
    private void extendTools(OpModule parentModule) {
       Iterator<OpTool> it = parentModule.getTools();
       while (it.hasNext()) {
-         OpTool parentTool =it.next();
+         OpTool parentTool = it.next();
          if (!(this.getToolsMap().containsKey(parentTool.getName()))) {
             this.tools.add(parentTool);
          }
       }
    }
+
+   public void check(OpProjectSession session) {
+      for (OpModuleChecker moduleChecker : getCheckerList()) {
+         moduleChecker.check(session);
+      }
+   }
+
+   public List<OpModuleChecker> getCheckerList() {
+      return new ArrayList<OpModuleChecker>();
+   }
+
 }

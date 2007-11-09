@@ -39,6 +39,15 @@ public final class OpResourceDataSetFactory {
    // I18n map for hard-wired resource objects (root resource pool)
    public final static String RESOURCE_OBJECTS = "resource.objects";
 
+   private static final String GET_ASSIGNMENT_COUNT_FOR_RESOURCE =
+        "select count(assignment.ID) from OpAssignment assignment where assignment.Resource = (:resourceId)";
+   private static final String GET_ASSIGNMENT_VERSION_COUNT_FOR_RESOURCE =
+        "select count(assignmentVersion.ID) from OpAssignmentVersion assignmentVersion where assignmentVersion.Resource = (:resourceId)";
+   private static final String GET_RESPONSIBLE_ACTIVITY_COUNT_FOR_RESOURCE =
+        "select count(respActivity.ID) from OpActivity respActivity where respActivity.ResponsibleResource = (:resourceId)";
+   private static final String GET_RESPONSIBLE_ACTIVITY_VERSION_COUNT_FOR_RESOURCE =
+        "select count(respActivityVers.ID) from OpActivityVersion respActivityVers where respActivityVers.ResponsibleResource = (:resourceId)";
+
    /**
     * Utility class.
     */
@@ -423,5 +432,85 @@ public final class OpResourceDataSetFactory {
          availabilityMap.put(resource.locator(), resource.getAvailable());
       }
       return availabilityMap;
+   }
+
+   /**
+    * Returns <code>true</code> if the resource specified as parameter has any activity assignments or <code>false</code> otherwise.
+    *
+    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param resource - the <code>OpResource</code> object.
+    * @return <code>true</code> if the resource specified as parameter has any activity assignments or <code>false</code> otherwise.
+    */
+   public static boolean hasActivityAssignments(OpBroker broker, OpResource resource) {
+      if (resource.getActivityAssignments() != null) {
+         OpQuery query = broker.newQuery(GET_ASSIGNMENT_COUNT_FOR_RESOURCE);
+         query.setLong("resourceId", resource.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the resource specified as parameter has any assignment versions or <code>false</code> otherwise.
+    *
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param resource - the <code>OpResource</code> object.
+    * @return <code>true</code> if the resource specified as parameter has any assignment versions or <code>false</code> otherwise.
+    */
+   public static boolean hasAssignmentVersions(OpBroker broker, OpResource resource) {
+      if (resource.getAssignmentVersions() != null) {
+         OpQuery query = broker.newQuery(GET_ASSIGNMENT_VERSION_COUNT_FOR_RESOURCE);
+         query.setLong("resourceId", resource.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the resource specified as parameter has any responsible activities or
+    *    <code>false</code> otherwise.
+    *
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param resource - the <code>OpResource</code> object.
+    * @return <code>true</code> if the resource specified as parameter has any responsible activities or
+    *    <code>false</code> otherwise.
+    */
+   public static boolean hasResponsibleActivities(OpBroker broker, OpResource resource) {
+      if (resource.getResponsibleActivities() != null) {
+         OpQuery query = broker.newQuery(GET_RESPONSIBLE_ACTIVITY_COUNT_FOR_RESOURCE);
+         query.setLong("resourceId", resource.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the resource specified as parameter has any responsible activity versions
+    *    or <code>false</code> otherwise.
+    *
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param resource - the <code>OpResource</code> object.
+    * @return  <code>true</code> if the resource specified as parameter has any responsible activity versions
+    *    or <code>false</code> otherwise.
+    */
+   public static boolean hasResponsibleActivityVersions(OpBroker broker, OpResource resource) {
+      if (resource.getResponsibleActivityVersions() != null) {
+         OpQuery query = broker.newQuery(GET_RESPONSIBLE_ACTIVITY_VERSION_COUNT_FOR_RESOURCE);
+         query.setLong("resourceId", resource.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
    }
 }

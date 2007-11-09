@@ -81,6 +81,7 @@
       <resource id="ActualEffortException">Actual effort is invalid</resource>
       <resource id="RemainingEffortException">Remaining effort is invalid</resource>
       <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="CostTypeException">Cost type is invalid</resource>
       <resource id="ActualCostException">Actual cost is invalid</resource>
       <resource id="RemainingCostException">Remaining cost is invalid</resource>
 
@@ -137,6 +138,7 @@
       <resource id="ActualEffortException">Actual effort is invalid</resource>
       <resource id="RemainingEffortException">Remaining effort is invalid</resource>
       <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
+      <resource id="CostTypeException">Cost type is invalid</resource>
       <resource id="ActualCostException">Actual cost is invalid</resource>
       <resource id="RemainingCostException">Remaining cost is invalid</resource>
 

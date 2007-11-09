@@ -110,22 +110,6 @@ public class OpProjectModule extends OpModule {
    }
 
 
-   public void upgradeToVersion24(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
-      allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
-      OpTransaction tx = broker.newTransaction();
-      Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
-      while (projectsIt.hasNext()) {
-         OpProjectNode project = projectsIt.next();
-         for (OpAssignment assignment : project.getPlan().getActivityAssignments()) {
-            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
-         }
-      }
-      tx.commit();
-      broker.close();
-   }
-
    /**
     * Upgrades this module to version #25 (via reflection - must be public).
     *
@@ -155,23 +139,37 @@ public class OpProjectModule extends OpModule {
       broker.close();
    }
 
+
    /**
-    * Upgrades this module to version #31(via reflection - must be public).
+    * Upgrades this module to version #30 (via reflection - must be public).
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void upgradeToVersion31(OpProjectSession session) {
+   public void upgradeToVersion32(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
+      OpUser administrator = session.administrator(broker);
+      OpQuery allProjectPlans = broker.newQuery("from OpProjectPlan project");
       OpTransaction tx = broker.newTransaction();
-      Iterator<OpAssignmentVersion> assignmentsIt = broker.iterate(assignmentVersionQuery);
-      while (assignmentsIt.hasNext()) {
-         OpAssignmentVersion assignmentVersion = assignmentsIt.next();
-         broker.deleteObject(assignmentVersion);
+      Iterator<OpProjectPlan> projectsIt = broker.iterate(allProjectPlans);
+      while (projectsIt.hasNext()) {
+         OpProjectPlan plan = projectsIt.next();
+         //it the plan has any versions, take the creator of the last version
+         OpProjectPlanVersion version = plan.getLatestVersion();
+         String displayName = (version != null) ? version.getCreator() : administrator.getDisplayName();
+         plan.setCreator(displayName);
+
+         //set the version number on the project plan
+         int versions = OpProjectDataSetFactory.getPlanVersionsCount(broker, plan);
+         if (plan.hasWorkingVersion()) {
+           versions--;
+         }         
+         plan.setVersionNumber(versions);
+         broker.updateObject(plan);
       }
       tx.commit();
       broker.close();
    }
+
 
 
    /**

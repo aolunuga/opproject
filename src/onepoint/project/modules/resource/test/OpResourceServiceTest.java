@@ -72,8 +72,6 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       activityFactory = new OpActivityTestDataFactory(session);
       workFactory = new OpWorkTestDataFactory(session);
 
-      clean();
-
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);
@@ -492,7 +490,8 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    public void testImportUser()
         throws Exception {
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
-      OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
+      OpBroker broker = session.newBroker();
+      OpUser user = userDataFactory.getUserByName(broker, DEFAULT_USER);
 
       XMessage request = OpProjectTestDataFactory.createProjectMsg("prj1", new Date(System.currentTimeMillis()), 1000d, null, null);
       XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
@@ -517,6 +516,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       assertEquals(res.getHourlyRate(), 8d, 0d);
       assertEquals(res.getExternalRate(), 10d, 0d);
       assertFalse(res.getInheritPoolRate());
+      broker.close();
    }
 
    /**
@@ -543,7 +543,8 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
    public void testImportUserWithErrors()
         throws Exception {
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
-      OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
+      OpBroker broker = session.newBroker();
+      OpUser user = userDataFactory.getUserByName(broker, DEFAULT_USER);
 
       XMessage request = dataFactory.importUserMsg(user.locator(), -4d, 8d, 10d, false, null, null);
       XMessage response = service.importUser(session, request);
@@ -560,6 +561,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       request = dataFactory.importUserMsg(user.locator(), 50d, 4d, -10d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.EXTERNAL_RATE_NOT_VALID);
+      broker.close();
    }
 
    /**
@@ -574,11 +576,13 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
-      OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
+      OpBroker broker = session.newBroker();
+      OpUser user = userDataFactory.getUserByName(broker, DEFAULT_USER);
 
       request = dataFactory.importUserMsg(user.locator(), 34d, 8d, 10d, false, null, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.RESOURCE_NAME_NOT_UNIQUE);
+      broker.close();
    }
 
 
@@ -676,12 +680,18 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       assertNotNull(resource);
       assertEquals(2, resource.getProjectNodeAssignments().size());
 
-      OpProjectNode project = projectDataFactory.getProjectByName("prj1");
-      assertNotNull(project);
-      assertEquals(2, project.getAssignments().size());
-      project = projectDataFactory.getProjectByName("prj2");
-      assertNotNull(project);
-      assertEquals(2, project.getAssignments().size());
+      OpBroker broker = session.newBroker();
+      try {
+         OpProjectNode project = projectDataFactory.getProjectByName(broker, "prj1");
+         assertNotNull(project);
+         assertEquals(2, project.getAssignments().size());
+         project = projectDataFactory.getProjectByName(broker, "prj2");
+         assertNotNull(project);
+         assertEquals(2, project.getAssignments().size());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -827,7 +837,10 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
 
       //import users
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
-      OpUser user = userDataFactory.getUserByName(DEFAULT_USER);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpUser user = userDataFactory.getUserByName(broker, DEFAULT_USER);
       request = dataFactory.importUserMsg(user.locator(), 34d, 8d, 10d, false, superPoolId, null);
       response = service.importUser(session, request);
       assertError(response, OpResourceError.UPDATE_ACCESS_DENIED);
@@ -857,6 +870,7 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpResourceService.RESOURCE_IDS, ids);
       response = service.deleteResources(session, request);
       assertError(response, OpResourceError.MANAGER_ACCESS_DENIED);
+      broker.close();
    }
 
    //                           ***** Helper Methods *****

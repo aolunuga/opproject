@@ -10,6 +10,8 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.configuration.OpNewConfigurationHandler;
 import onepoint.project.configuration.generated.OpReportWorkflow;
 import onepoint.project.modules.report.OpReportManager;
+import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
@@ -41,6 +43,7 @@ public class OpReportListFormProvider implements XFormProvider {
    private static final String SEND_REPORT_BUTTON = "SendReportButton";
    private static final String RESET_QUERY_BUTTON = "ResetQueryButton";
    private static final String PRINT_BUTTON = "PrintButton";
+   private static final String CURRENCY_FIELD = "Currency";
 
 
    public void prepareForm(XSession session, XComponent form,
@@ -53,6 +56,9 @@ public class OpReportListFormProvider implements XFormProvider {
       // fill the data-set
       XComponent resultSet = form.findComponent(RESULT_SET);
       XComponent resultRow = null;
+      //fill the currency field
+      XComponent currencyField = form.findComponent(CURRENCY_FIELD);
+      currencyField.setStringValue(OpSettingsService.getService().get(OpSettings.CURRENCY_SYMBOL));    
 
       //Now we deal with the jasper-stuff...
       String currLocale = s.getLocale().getID();

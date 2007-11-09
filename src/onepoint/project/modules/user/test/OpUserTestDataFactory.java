@@ -56,12 +56,12 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param userName user name to look for.
     * @return found user or null.
     */
-   public OpUser getUserByName(String userName) {
+   public OpUser getUserByName(OpBroker broker, String userName) {
       Long id = getSubjectId(userName);
       if (id != null) {
          String locator = OpLocator.locatorString(OpUser.USER, Long.parseLong(id.toString()));
 
-         return getUserById(locator);
+         return getUserById(broker, locator);
       }
 
       return null;
@@ -85,8 +85,8 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator id/locator to look for.
     * @return found user or null.
     */
-   public OpUser getUserById(String locator) {
-      return (OpUser) getSubjectById(locator);
+   public OpUser getUserById(OpBroker broker, String locator) {
+      return (OpUser) getSubjectById(broker, locator);
    }
 
    /**
@@ -95,12 +95,12 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param groupName group  name to look for.
     * @return found group or null.
     */
-   public OpGroup getGroupByName(String groupName) {
+   public OpGroup getGroupByName(OpBroker broker, String groupName) {
       Long id = getSubjectId(groupName);
       if (id != null) {
          String locator = OpLocator.locatorString(OpGroup.GROUP, Long.parseLong(id.toString()));
 
-         return getGroupById(locator);
+         return getGroupById(broker, locator);
       }
 
       return null;
@@ -112,8 +112,8 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator id/locator to look for.
     * @return found group or null.
     */
-   public OpGroup getGroupById(String locator) {
-      return (OpGroup) getSubjectById(locator);
+   public OpGroup getGroupById(OpBroker broker, String locator) {
+      return (OpGroup) getSubjectById(broker, locator);
    }
 
    /**
@@ -122,9 +122,7 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
     * @param locator subject locator.
     * @return found subject (instace of <code>OpUser</code> or <code>OpGroup</code>) or null.
     */
-   private OpSubject getSubjectById(String locator) {
-      OpBroker broker = session.newBroker();
-
+   private OpSubject getSubjectById(OpBroker broker, String locator) {
       OpSubject subject = (OpSubject) broker.getObject(locator);
       if (subject instanceof OpUser) {
          OpUser user = (OpUser) subject;
@@ -139,8 +137,6 @@ public class OpUserTestDataFactory extends OpTestDataFactory {
          group.getSuperGroupAssignments().size();
          group.getUserAssignments().size();
       }
-
-      broker.close();
 
       return subject;
    }

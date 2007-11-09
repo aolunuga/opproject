@@ -6,6 +6,7 @@ package onepoint.project.modules.work;
 
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.user.OpUser;
 
 import java.sql.Date;
@@ -29,6 +30,13 @@ public class OpWorkSlip extends OpObject {
    private Double totalActualEffort;
    private Set<OpWorkRecord> records = new HashSet<OpWorkRecord>();
 
+   /**
+    * 
+    */
+   public OpWorkSlip() {
+      super();
+   }
+
    public void setNumber(int number) {
       this.number = number;
    }
@@ -39,6 +47,10 @@ public class OpWorkSlip extends OpObject {
 
    public void setDate(Date date) {
       this.date = date;
+   }
+
+   public void setDate(java.util.Date date) {
+      this.date = new Date(date.getTime());
    }
 
    public Date getDate() {
@@ -114,12 +126,7 @@ public class OpWorkSlip extends OpObject {
 
       // test all the work records from this work-slip
       for (OpWorkRecord record : records) {
-         try{
-            record.validate();
-         }
-         catch (OpEntityException e){
-            throw e;
-         }
+         record.validate();
       }
    }
 
@@ -143,5 +150,19 @@ public class OpWorkSlip extends OpObject {
       }
 
       return totalEffort;
+   }
+
+   /**
+    * @param assignment
+    * @return
+    * @pre
+    * @post
+    */
+   public OpWorkRecord getRecord(OpAssignment assignment) {
+      for (OpWorkRecord record : records) {
+         if (record.getAssignment().equals(assignment))
+            return(record);
+      }
+      return null;
    }
 }

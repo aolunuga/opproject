@@ -86,6 +86,14 @@ public class OpResourcePool extends OpObject {
    }
 
    public void setExternalRate(Double externalRate) {
+      setExternalRateInternal(externalRate);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   private void setExternalRateInternal(Double externalRate) {
       this.externalRate = (externalRate != null) ? externalRate : 0;
    }
 }

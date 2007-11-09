@@ -79,8 +79,6 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       resourceDataFactory = new OpResourceTestDataFactory(session);
       activityDataFactory = new OpActivityTestDataFactory(session);
 
-      clean();
-
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 1d, false, poolid);
       XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);
@@ -92,71 +90,77 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       projId = projectDataFactory.getProjectId("project");
 
-      planId = projectDataFactory.getProjectById(projId).getPlan().locator();
+      OpBroker broker = session.newBroker();
+      try {
+         planId = projectDataFactory.getProjectById(broker, projId).getPlan().locator();
 
-      request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 100d, 2d, 1d, false, poolid);
-      response = OpTestDataFactory.getResourceService().insertResource(session, request);
-      assertNoError(response);
-      resource1 = resourceDataFactory.getResourceByName(RES_NAME + 1);
-      resId1 = resourceDataFactory.getResourceByName(RES_NAME + 1).locator();
+         request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 100d, 2d, 1d, false, poolid);
+         response = OpTestDataFactory.getResourceService().insertResource(session, request);
+         assertNoError(response);
+         resource1 = resourceDataFactory.getResourceByName(RES_NAME + 1);
+         resId1 = resourceDataFactory.getResourceByName(RES_NAME + 1).locator();
 
-      dataRowRes1 = new XComponent(XComponent.DATA_ROW);
-      dataRowRes1.setStringValue(XValidator.choice(resource1.locator(), resource1.getName()));
+         dataRowRes1 = new XComponent(XComponent.DATA_ROW);
+         dataRowRes1.setStringValue(XValidator.choice(resource1.locator(), resource1.getName()));
 
-      //0 - resource name
-      XComponent dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setStringValue(resource1.getName());
-      dataRowRes1.addChild(dataCell);
+         //0 - resource name
+         XComponent dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource1.getName());
+         dataRowRes1.addChild(dataCell);
 
-      //1 - resource description
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setStringValue(resource1.getDescription());
-      dataRowRes1.addChild(dataCell);
+         //1 - resource description
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource1.getDescription());
+         dataRowRes1.addChild(dataCell);
 
-      //2 - adjust rates
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setBooleanValue(false);
-      dataRowRes1.addChild(dataCell);
+         //2 - adjust rates
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(false);
+         dataRowRes1.addChild(dataCell);
 
-      //3 - internal rate
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataRowRes1.addChild(dataCell);
+         //3 - internal rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRowRes1.addChild(dataCell);
 
-      //4 - external rate
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataRowRes1.addChild(dataCell);
+         //4 - external rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRowRes1.addChild(dataCell);
 
-      request = resourceDataFactory.createResourceMsg(RES_NAME + 2, RES_DESCR, 100d, 5d, 3d, false, poolid);
-      response = OpTestDataFactory.getResourceService().insertResource(session, request);
-      assertNoError(response);
-      resource2 = resourceDataFactory.getResourceByName(RES_NAME + 2);
-      resId2 = resourceDataFactory.getResourceByName(RES_NAME + 2).locator();
+         request = resourceDataFactory.createResourceMsg(RES_NAME + 2, RES_DESCR, 100d, 5d, 3d, false, poolid);
+         response = OpTestDataFactory.getResourceService().insertResource(session, request);
+         assertNoError(response);
+         resource2 = resourceDataFactory.getResourceByName(RES_NAME + 2);
+         resId2 = resourceDataFactory.getResourceByName(RES_NAME + 2).locator();
 
-      dataRowRes2 = new XComponent(XComponent.DATA_ROW);
-      dataRowRes2.setStringValue(XValidator.choice(resource2.locator(), resource2.getName()));
+         dataRowRes2 = new XComponent(XComponent.DATA_ROW);
+         dataRowRes2.setStringValue(XValidator.choice(resource2.locator(), resource2.getName()));
 
-      //0 - resource name
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setStringValue(resource2.getName());
-      dataRowRes2.addChild(dataCell);
+         //0 - resource name
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource2.getName());
+         dataRowRes2.addChild(dataCell);
 
-      //1 - resource description
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setStringValue(resource2.getDescription());
-      dataRowRes2.addChild(dataCell);
+         //1 - resource description
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setStringValue(resource2.getDescription());
+         dataRowRes2.addChild(dataCell);
 
-      //2 - adjust rates
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setBooleanValue(false);
-      dataRowRes2.addChild(dataCell);
+         //2 - adjust rates
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setBooleanValue(false);
+         dataRowRes2.addChild(dataCell);
 
-      //3 - internal rate
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataRowRes2.addChild(dataCell);
+         //3 - internal rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRowRes2.addChild(dataCell);
 
-      //4 - external rate
-      dataCell = new XComponent(XComponent.DATA_CELL);
-      dataRowRes2.addChild(dataCell);
+         //4 - external rate
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataRowRes2.addChild(dataCell);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -357,35 +361,39 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       long time = System.currentTimeMillis();
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
-      OpResource resource = (OpResource) broker.getObject(resId);
+         OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
+         OpResource resource = (OpResource) broker.getObject(resId);
 
-      OpActivity activity = new OpActivity();
-      activity.setType(OpActivity.SCHEDULED_TASK);
-      activity.setStart(new Date(1));
-      broker.makePersistent(activity);
+         OpActivity activity = new OpActivity();
+         activity.setType(OpActivity.SCHEDULED_TASK);
+         activity.setStart(new Date(1));
+         broker.makePersistent(activity);
 
-      OpAssignment assignment = new OpAssignment();
-      assignment.setProjectPlan(plan);
-      assignment.setResource(resource);
-      assignment.setActivity(activity);
-      assignment.setComplete(60d);
-      broker.makePersistent(assignment);
+         OpAssignment assignment = new OpAssignment();
+         assignment.setProjectPlan(plan);
+         assignment.setResource(resource);
+         assignment.setActivity(activity);
+         assignment.setComplete(60d);
+         broker.makePersistent(assignment);
 
-      t.commit();
+         t.commit();
 
-      List resources = new ArrayList();
-      resources.add(new Long(resourceDataFactory.getResourceById(resId).getID()));
-      List types = new ArrayList();
-      types.add(new Byte(OpActivity.SCHEDULED_TASK));
-      types.add(new Byte(OpActivity.COLLECTION_TASK));
-      Date date = new Date(time);
-      long id = projectDataFactory.getProjectById(projId).getID();
-      Iterator it = OpWorkSlipDataSetFactory.getAssignments(broker, resources, types, date, null, id, true);
-      assertTrue(it.hasNext());
-      broker.close();
+         List resources = new ArrayList();
+         resources.add(new Long(resourceDataFactory.getResourceById(resId).getID()));
+         List types = new ArrayList();
+         types.add(new Byte(OpActivity.SCHEDULED_TASK));
+         types.add(new Byte(OpActivity.COLLECTION_TASK));
+         Date date = new Date(time);
+         long id = projectDataFactory.getProjectById(broker, projId).getID();
+         Iterator it = OpWorkSlipDataSetFactory.getAssignments(broker, resources, types, date, null, id, true);
+         assertTrue(it.hasNext());
+      }
+      finally {
+         broker.close();
+      }
    }
 
    // ******** Helper Methods *********

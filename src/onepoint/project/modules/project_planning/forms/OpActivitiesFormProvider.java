@@ -132,7 +132,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
       OpUser currentUser = session.user(broker);
       if (project_id_string != null) {
 
-         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
+         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string)); // two db-trips opproject and attachment
          form.findComponent(PROJECT_TYPE_FIELD).setByteValue(project.getType());
          logger.debug("after get-project: " + project.getID());
 
@@ -231,12 +231,12 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
          // Retrieve data-set of resources assigned to the project node
          logger.debug("before-project-resources");
-         OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, resourceDataSet);
+         OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, resourceDataSet);  //one DB-query only!
          logger.debug("after-project-resources");
 
          //fill the availability map
          XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
-         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker);
+         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker); //one DB-query only!
          resourceAvailability.setValue(availabilityMap);
 
          // Check if there is already a project plan
@@ -244,8 +244,8 @@ public class OpActivitiesFormProvider implements XFormProvider {
          if (projectPlan != null) {
 
             OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                 project.getPlan(), OpProjectPlan.WORKING_VERSION_NUMBER);
-            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET));
+                 project.getPlan(), OpProjectPlan.WORKING_VERSION_NUMBER);  //one DB-query only
+            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET)); //one DB-query only
 
             if (edit_mode) {
                // Show working plan version (if one exists already)
@@ -265,7 +265,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
             else {
                form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
                activityDataSet.setValue(showHours);
-               OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, false);
+               OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, false); //bad guy...
             }
 
          }

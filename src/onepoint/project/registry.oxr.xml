@@ -1,4 +1,5 @@
 <module-registry>
+   <module-file file-name="/modules/custom_attribute/module.oxm.xml"/>   
    <module-file file-name="/modules/user/module.oxm.xml"/>
    <module-file file-name="/modules/resource/module.oxm.xml"/>
    <module-file file-name="/modules/resource_utilization/module.oxm.xml"/>
@@ -17,4 +18,5 @@
    <module-file file-name="/modules/schedule/module.oxm.xml"/>
    <module-file file-name="/modules/project_status/module.oxm.xml"/>
    <module-file file-name="/modules/repository/module.oxm.xml"/>
+   <module-file file-name="/modules/skills/module.oxm.xml"/>
 </module-registry>

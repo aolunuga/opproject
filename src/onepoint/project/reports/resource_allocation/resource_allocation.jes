@@ -54,9 +54,14 @@ function createRequest() {
       //report formats
       formats[0] = "PDF";
 
+      //report parameters
+      reportForm = XDisplay.findFrame("MainFrame").currentForm();
+      parameters.Currency = reportForm.findComponent("Currency").getValue();
+
       request = new XMessage;
       request.setArgument("name", name);
       request.setArgument("formats", formats);
+      request.setArgument("parameters", parameters);
 
       return request;
    }

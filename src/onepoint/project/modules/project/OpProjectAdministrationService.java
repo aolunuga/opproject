@@ -14,6 +14,7 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
+import onepoint.project.modules.project_status.OpProjectStatusService;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceService;
 import onepoint.project.modules.user.*;
@@ -448,7 +449,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
 
          // Check manager access
-         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
+         if (!session.checkAccessLevel(broker, project.getID(), OpPermission.CONTRIBUTOR)) {
             logger.warn("ERROR: Udpate access to project denied; ID = " + id_string);
             reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
             return reply;
@@ -481,7 +482,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          //check if the start date is in the future
          if (project.getStart().after(originalStartDate)) {
             //if its checked out, throw error
-            if (project.getLocks().size() > 0) {
+            if (OpProjectDataSetFactory.hasLocks(broker, project)) {
                error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
                reply.setError(error);
                return reply;
@@ -495,6 +496,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          //project status
          String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
          OpProjectStatus status = null;
+         OpProjectStatus oldStatus = project.getStatus();
          if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
             status = (OpProjectStatus) (broker.getObject(statusLocator));
             project.setStatus(status);
@@ -505,7 +507,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          OpProjectPlan projectPlan = project.getPlan();
          //check if the project plan has any activities and if not, update the start and end
-         if (projectPlan.getActivities().size() == 0) {
+         if (!OpProjectDataSetFactory.hasActivities(broker, projectPlan)) {
             projectPlan.copyDatesFromProject();
          }
 
@@ -582,6 +584,22 @@ public class OpProjectAdministrationService extends OpProjectService {
          updateActualCosts(broker, project);
 
          transaction.commit();
+         //delete unused status if it is inactive and it is no longer refered by another project
+         if (oldStatus != null && ! oldStatus.getActive()) {
+            oldStatus = (OpProjectStatus) broker.getObject(OpProjectStatus.class, oldStatus.getID());
+            if (oldStatus.getProjects().size() == 0) {
+
+               OpProjectStatusService statusService = new OpProjectStatusService();
+               XMessage requestDelete = new XMessage();
+               ArrayList project_status_ids = new ArrayList();
+
+               project_status_ids.add(oldStatus.locator());
+               requestDelete.setArgument("project_status_ids", project_status_ids);
+
+               statusService.deleteProjectStatus(session, requestDelete);
+
+            }
+         }
 
          //if project was archived and is currently saved in the session clear it
          if (session.getVariable(OpProjectConstants.PROJECT_ID) != null) {

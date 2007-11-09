@@ -155,7 +155,7 @@ public class OpPrototype extends OpType {
       for (OpMember member : members.values()) {
          if (member instanceof OpRelationship && ((OpRelationship) member).getRecursive()) {
             return (OpRelationship) member;
-}
+         }
       }
       return null;
    }

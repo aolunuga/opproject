@@ -12,12 +12,16 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.project.OpAttachmentDataSetFactory;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
 import onepoint.util.XCalendar;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -29,8 +33,11 @@ public class OpWorkServiceImpl implements OpService {
    /**
     * The name of this service.
     */
-   public static final String SERVICE_NAME = "UserService";
+   public static final String SERVICE_NAME = "WorkService";
    private static final XLog logger = XLogFactory.getServerLogger(OpWorkServiceImpl.class);
+
+   private final static String SELECT_WORK_SLIP_BY_USER_AND_DATE = "select workslip from OpWorkSlip as workslip where workslip.Creator.ID = ? and workslip.Date = ?";
+
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
    /**
@@ -106,7 +113,7 @@ public class OpWorkServiceImpl implements OpService {
       broker.makePersistent(work_slip);
 
       // Inserts work-records into database and add to progress calculator
-      insertWorkRecords(session, broker, work_slip.getRecords().iterator(), work_slip);
+      insertMyWorkRecords(session, broker, work_slip.getRecords().iterator(), work_slip);
       broker.getConnection().flush(); // required to ensure ConstraintViolationException!
    }
 
@@ -182,6 +189,36 @@ public class OpWorkServiceImpl implements OpService {
    }
 
    /**
+    * @param session
+    * @param broker
+    * @param user
+    * @param date
+    * @return
+    * @pre
+    * @post
+    */
+   public OpWorkSlip getWorkSlip(OpProjectSession session, OpBroker broker, OpUser user, Date date) {
+      OpQuery query = broker.newQuery(SELECT_WORK_SLIP_BY_USER_AND_DATE);
+      
+      Calendar c = new GregorianCalendar();
+      c.setTime(date);
+      c.set(Calendar.HOUR, 0);
+      c.set(Calendar.MINUTE, 0);
+      c.set(Calendar.SECOND, 0);
+      c.set(Calendar.MILLISECOND, 0);
+      
+      java.sql.Date sqlDate = new java.sql.Date(c.getTimeInMillis());
+      query.setLong(0, user.getID());
+      query.setDate(1, sqlDate);
+      
+      Iterator iter = broker.iterate(query);
+      if (iter.hasNext()) {
+         return (OpWorkSlip) iter.next();
+      }
+      return null;
+   }
+
+   /**
     * @param id
     * @param session
     * @param broker
@@ -211,7 +248,7 @@ public class OpWorkServiceImpl implements OpService {
       return (work_slip);
    }
 
-   private void insertMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record, OpWorkSlip work_slip)
+   public void insertMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord work_record, OpWorkSlip work_slip)
         throws XServiceException {
       // check and complete all fields
       // check work slip
@@ -244,14 +281,45 @@ public class OpWorkServiceImpl implements OpService {
     * @param work_slip
     * @throws XServiceException if any given {@link OpWorkRecord} is of an invalid state, or if one is already existing. Prior records will be inserted.
     */
-   public void insertWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records, OpWorkSlip work_slip)
+   public void insertMyWorkRecords(OpProjectSession session, OpBroker broker, Iterator<OpWorkRecord> work_records, OpWorkSlip work_slip)
         throws XServiceException {
       while (work_records.hasNext()) {
          insertMyWorkRecord(session, broker, work_records.next(), work_slip);
       }
    }
 
-   private void deleteMyWorkRecord(OpBroker broker, OpWorkRecord work_record, XCalendar calendar)
+   /**
+    * @param session
+    * @param broker
+    * @param workRecord
+    * @param workSlip
+    * @pre
+    * @post
+    */
+   public void updateMyWorkRecord(OpProjectSession session, OpBroker broker, OpWorkRecord workRecord) {
+      // check and complete all fields
+      // check work slip
+      logger.info("updateMyWorkRecord(" + workRecord + ")");
+
+      if (!session.isUser(workRecord.getWorkSlip().getCreator()) && (!session.userIsAdministrator())) {
+         throw new XServiceException(session.newError(OpUserServiceImpl.ERROR_MAP,
+              OpUserError.INSUFFICIENT_PRIVILEGES)); // user may only insert work records to his/her work slips
+      }
+
+      // check assignment
+      if (workRecord.getAssignment() == null) {
+         throw (new XServiceException(session.newError(ERROR_MAP, OpWorkError.INCORRECT_ASSIGNMENT)));
+      }
+
+      // Use progress calculator to update progress information in associated project plan
+      //workRecord.get
+      OpProgressCalculator.addWorkRecord(broker, workRecord, session.getCalendar());
+
+//      broker.makePersistent(work_record);
+   }
+
+
+   public void deleteMyWorkRecord(OpBroker broker, OpWorkRecord work_record, XCalendar calendar)
         throws XServiceException {
       logger.info("deleteMyWorkRecord(" + work_record + ")");
       OpProgressCalculator.removeWorkRecord(broker, work_record, calendar);

@@ -344,6 +344,15 @@ public class OpActivityVersion extends OpObject {
    }
 
    public void setBaseProceeds(Double baseProceeds) {
+      setBaseProceedsInternal(baseProceeds);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+   private void setBaseProceedsInternal(Double baseProceeds) {
       this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 
@@ -352,6 +361,14 @@ public class OpActivityVersion extends OpObject {
    }
 
    public void setPayment(Double payment) {
+      setPaymentInternal(payment);
+   }
+
+   /**
+    * called internally by hibernate
+    * @see OpPropertyAccessor
+    */
+   private void setPaymentInternal(Double payment) {
       this.payment = (payment != null) ? payment : 0;
    }
 

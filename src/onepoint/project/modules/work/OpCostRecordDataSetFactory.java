@@ -6,6 +6,7 @@ package onepoint.project.modules.work;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
@@ -33,20 +34,24 @@ public class OpCostRecordDataSetFactory {
    private static final String EXTERNAL_COST_RESOURCE = "ExternalCost";
    private static final String MISCELLANEOUS_COST_RESOURCE = "MiscellaneousCost";
 
+   private static final String GET_ATTACHMENT_COUNT_FOR_COST_RECORD =
+        "select count(attachment.ID) from OpAttachment attachment where attachment.CostRecord = (:costRecordId)";
+
    /**
     * Creates a <code>XComponent</code> data set from a <code>OpWorkRecord</code> entity. Each row in the
     * data set will represent an <code>OpCostRecord</code> entity from the work record's cost recods set.
     *
     * @param workRecord - the <code>OpWorkRecord</code> entity whose cost records will be in the data set
     * @param session    - the <code>OpProjectSession</code> needed to get the internationalized cost types
+    * @param broker     - the <code>OpBroker</code> needed to perform the DB operations
     * @return a <code>XComponent</code> data set created from the <code>OpWorkRecord</code> entity. Each row in the
     *         data set will represent an <code>OpCostRecord</code> entity from the work record's cost recods set.
     */
-   public static XComponent getCostDataSetForWorkRecord(OpWorkRecord workRecord, OpProjectSession session) {
+   public static XComponent getCostDataSetForWorkRecord(OpWorkRecord workRecord, OpProjectSession session, OpBroker broker) {
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
 
       for (OpCostRecord costRecord : workRecord.getCostRecords()) {
-         XComponent dataRow = createCostRow(costRecord, session);
+         XComponent dataRow = createCostRow(costRecord, session, broker);
          dataSet.addChild(dataRow);
       }
 
@@ -107,9 +112,10 @@ public class OpCostRecordDataSetFactory {
     *
     * @param costRecord - the <code>OpCostRecord</code> entity whose atributes will be set on the data row
     * @param session    - the <code>OpProjectSession</code> needed to get the internationalized cost types
+    * @param broker     - the <code>OpBroker</code> needed to perform the DB operations
     * @return a data row with the cell's values set from the <code>OpCostRecord</code> entity
     */
-   private static XComponent createCostRow(OpCostRecord costRecord, OpProjectSession session) {
+   private static XComponent createCostRow(OpCostRecord costRecord, OpProjectSession session, OpBroker broker) {
       OpWorkCostValidator costValidator = new OpWorkCostValidator();
       XComponent dataRow = costValidator.newDataRow();
       XComponent dataCell;
@@ -133,7 +139,7 @@ public class OpCostRecordDataSetFactory {
 
       //3 - set the indicator
       dataCell = (XComponent) dataRow.getChild(OpWorkCostValidator.INDICATOR_INDEX);
-      if (!costRecord.getAttachments().isEmpty()) {
+      if (hasAttachments(broker, costRecord)) {
          costValidator.setAttribute(dataRow, OpWorkCostValidator.HAS_ATTACHMENTS, true);
       }
       else {
@@ -311,5 +317,24 @@ public class OpCostRecordDataSetFactory {
       //sort the project & resources data-sets ascending after name
       choiceProjectSet.sort();
       choiceResourceSet.sort();
+   }
+
+   /**
+    * Returns <code>true</code> if the <code>OpCostRecord</code> specified as parameter has attachments or <code>false</code> otherwise.
+    *
+    * @param broker     - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param costRecord - the <code>OpCostRecord</code> object.
+    * @return <code>true</code> if the <code>OpCostRecord</code> specified as parameter has attachments or <code>false</code> otherwise.
+    */
+   public static boolean hasAttachments(OpBroker broker, OpCostRecord costRecord) {
+      if (costRecord.getAttachments() != null) {
+         OpQuery query = broker.newQuery(GET_ATTACHMENT_COUNT_FOR_COST_RECORD);
+         query.setLong("costRecordId", costRecord.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
    }
 }

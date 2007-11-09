@@ -12,6 +12,7 @@ import onepoint.service.XMessage;
 import onepoint.service.server.XLocalServer;
 import onepoint.service.server.XServer;
 
+import java.util.Iterator;
 import java.util.TimeZone;
 
 /**
@@ -167,8 +168,9 @@ public class OpBaseTestCase extends OpTestCase {
     */
    protected void deleteAllObjects(OpBroker broker, String prototypeName) {
       OpQuery query = broker.newQuery("from " + prototypeName);
-      for (Object o : broker.list(query)) {
-         OpObject object = (OpObject) o;
+      Iterator iter = broker.iterate(query);
+      while (iter.hasNext()) {
+         OpObject object = (OpObject) iter.next();
          broker.deleteObject(object);
       }
    }

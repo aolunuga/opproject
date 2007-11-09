@@ -48,7 +48,6 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
 
       dataFactory = new OpWorkTestDataFactory(session);
       projectFactory = new OpProjectTestDataFactory(session);
-      clean();
    }
 
    /**

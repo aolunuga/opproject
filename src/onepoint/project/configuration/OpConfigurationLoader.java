@@ -93,9 +93,10 @@ public class OpConfigurationLoader extends XLoader {
     *
     * @param fileName configuration file to check.
     * @throws FileNotFoundException If provided file does not exist.
+    * @throws OpInvalidDataBaseConfigurationException if there is an error in the configuration file.
     */
    private void updateConfigurationFile(String fileName)
-        throws FileNotFoundException {
+        throws FileNotFoundException, OpInvalidDataBaseConfigurationException {
       if (fileName != null) {
          InputStream is = new FileInputStream(fileName);
          try {
@@ -109,9 +110,11 @@ public class OpConfigurationLoader extends XLoader {
 
             //write the result back to the file
             writeConfigurationFile(configurationDocument, fileName);
+            is.close();
          }
          catch (Exception e) {
             logger.error("Cannot update configuration file.", e);
+            throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
          }
       }
    }
@@ -131,7 +134,7 @@ public class OpConfigurationLoader extends XLoader {
       transformerFactory.setAttribute("indent-number", 2);
       Transformer t = transformerFactory.newTransformer();
       t.setOutputProperty(OutputKeys.METHOD, "xml");
-      t.setOutputProperty(OutputKeys.INDENT, "yes");
+//      t.setOutputProperty(OutputKeys.INDENT, "yes");
       StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(fileName)));
 
       // normalize document before writing
@@ -202,21 +205,22 @@ public class OpConfigurationLoader extends XLoader {
       if (list != null && list.getLength() > 0) {
          for (int counter = 0; counter < list.getLength(); counter++) {
             Element passwordElement = (Element) list.item(counter);
-
-            // check if the password must be updated/encripted or not.
-            boolean isPassEncrypted = Boolean.parseBoolean(passwordElement.getAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE));
-            if (!isPassEncrypted) {
-               NodeList values = passwordElement.getChildNodes();
-               String password = "";
-               for (int i = 0; i < values.getLength(); i++) {
-                  Node value = values.item(i);
-                  password = value.getNodeValue();
-                  passwordElement.removeChild(value);
+            if (passwordElement.getParentNode().getNodeName().equals(OpConfigurationValuesHandler.DATABASE)) {
+               // check if the password must be updated/encripted or not.
+               boolean isPassEncrypted = Boolean.parseBoolean(passwordElement.getAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE));
+               if (!isPassEncrypted) {
+                  NodeList values = passwordElement.getChildNodes();
+                  String password = "";
+                  for (int i = 0; i < values.getLength(); i++) {
+                     Node value = values.item(i);
+                     password = value.getNodeValue();
+                     passwordElement.removeChild(value);
+                  }
+                  String encryptedPassword = onepoint.project.configuration.OpConfiguration.getEncryptedDbPassword(password);
+                  passwordElement.setAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE, Boolean.TRUE.toString());
+                  Text value = configurationDocument.createTextNode(encryptedPassword);
+                  passwordElement.appendChild(value);
                }
-               String encryptedPassword = onepoint.project.configuration.OpConfiguration.getEncryptedDbPassword(password);
-               passwordElement.setAttribute(OpConfigurationValuesHandler.ENCRYPTED_ATTRIBUTE, Boolean.TRUE.toString());
-               Text value = configurationDocument.createTextNode(encryptedPassword);
-               passwordElement.appendChild(value);
             }
          }
       }

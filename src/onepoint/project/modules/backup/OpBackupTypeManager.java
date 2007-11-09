@@ -161,7 +161,7 @@ public final class OpBackupTypeManager {
     * @param type a <code>int</code> representing an <code>OpType</code> type identifier.
     * @return a  <code>Class</code> representing the corresponding Java type class.
     */
-   static Class getJavaType(int type) {
+   public static Class getJavaType(int type) {
       return (Class) typeJavaTypeMap.get(new Integer(type));
    }
 

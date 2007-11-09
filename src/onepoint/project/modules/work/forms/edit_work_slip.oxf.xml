@@ -15,6 +15,7 @@
    <data-field id="DurationValueException" text="${DurationValueException}"/>
    <data-field id="IntervalsOverlapException" text="${IntervalsOverlapException}"/>
 
+   <data-field id="CostTypeException" text="${CostTypeException}"/>
    <data-field id="ActualEffortException" text="${ActualEffortException}"/>
    <data-field id="RemainingEffortException" text="${RemainingEffortException}"/>
    <data-field id="DuplicateEffortException" text="${DuplicateEffortException}"/>

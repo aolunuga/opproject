@@ -6,6 +6,8 @@ package onepoint.project.modules.user;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpEnvironmentManager;
@@ -23,6 +25,10 @@ public class OpPermissionDataSetFactory {
     * The user error map.
     */
    private final static OpUserErrorMap USER_ERROR_MAP = new OpUserErrorMap();
+   /**
+    * This class logger.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpPermissionDataSetFactory.class);
 
    // Attention: Role icon index is "appended" to typical icon indexes of user module (reusability)
    public final static int GROUP_ICON_INDEX = 0;
@@ -43,6 +49,9 @@ public class OpPermissionDataSetFactory {
    public final static String MANAGERS = "${Managers}";
    public final static String CONTRIBUTORS = "${Contributors}";
    public final static String OBSERVERS = "${Observers}";
+
+   private static final String GET_PERMISSION_COUNT_FOR_OBJECT =
+        "select count(permission.ID) from OpPermission permission where permission.Object = (:objectId)";
 
    public static XComponent defaultPermissionRows(OpProjectSession session, OpBroker broker, XComponent permissionSet) {
       // Reload user and everyone objects in case it was detached
@@ -215,21 +224,26 @@ public class OpPermissionDataSetFactory {
                permissionRow = new XComponent(XComponent.DATA_ROW);
                permissionRow.setOutlineLevel(1);
                subject = permission.getSubject();
-               //don't use s[ubject instance of OpGroup] becouse of Hibernate's "proxy problem" when using polymorphic collections
-               if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
-                  iconIndex = GROUP_ICON_INDEX;
+               //<FIXME author="Jochen Mersmann" description="the try-block is a grace-case if you imported data from the team-edition, where this might happen. In the end, for the OE/PE we should not even touch this code" />
+               try{ 
+	               //don't use subject instance of OpGroup because of Hibernate's "proxy problem" when using polymorphic collections
+	               if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
+	                  iconIndex = GROUP_ICON_INDEX;
+	               }
+	               else {
+	                  iconIndex = USER_ICON_INDEX;
+	               }
+	               permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
+	               // Disable system-managed permissions (not editable by the user)
+	               permissionRow.setEnabled(!permission.getSystemManaged());
+	               if (subject.getID() == session.administrator(broker).getID()) {
+	                  imutableFlag.setBooleanValue(true);
+	               }
+	               permissionRow.addChild(imutableFlag);
+	               permissionSet.addChild(permissionRow);
+               } catch (NullPointerException npe){
+            	   logger.info("did not have a user in permission for rolename '" +roleName +"'. Most propably imported team-data into single-user version");
                }
-               else {
-                  iconIndex = USER_ICON_INDEX;
-               }
-               permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
-               // Disable system-managed permissions (not editable by the user)
-               permissionRow.setEnabled(!permission.getSystemManaged());
-               if (subject.getID() == session.administrator(broker).getID()) {
-                  imutableFlag.setBooleanValue(true);
-               }
-               permissionRow.addChild(imutableFlag);
-               permissionSet.addChild(permissionRow);
             }
          }
       }
@@ -411,8 +425,7 @@ public class OpPermissionDataSetFactory {
     * @return true if the permissions were set on the object (or if the permissions were already on the object).
     */
    private static boolean createAdministratorPermissions(OpObject object, OpBroker broker) {
-      Set permissions = object.getPermissions();
-      if (permissions == null || permissions.isEmpty()) {
+      if (!hasPermissions(broker, object)) {
          OpQuery query = broker.newQuery(OpUser.ADMINISTRATOR_ID_QUERY);
          List result = broker.list(query);
          if (result.size() != 1) {
@@ -442,7 +455,7 @@ public class OpPermissionDataSetFactory {
       int index = permissionRow.getIndex();
       String subjectLocator = XValidator.choiceID(permissionRow.getStringValue());
       int accessLevel = permissionAccessLevel;
-      //navigate downwords and remove permission rows with the same locator but access level lower
+      //navigate downwards and remove permission rows with the same locator but access level lower
       for (int i = ++index; i < permissionSet.getChildCount(); i++) {
          XComponent row = (XComponent) permissionSet.getChild(i);
          if (row.getOutlineLevel() == 0) {
@@ -508,5 +521,24 @@ public class OpPermissionDataSetFactory {
          newPermissions.add(toPermission);
       }
       to.setPermissions(newPermissions);
+   }
+
+   /**
+    * Returns <code>true</code> if the <code>OpObject</code> specified as parameter has permissions or <code>false</code> otherwise.
+    *
+    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param object - the <code>OpObject</code> object.
+    * @return <code>true</code> if the <code>OpObject</code> specified as parameter has permissions or <code>false</code> otherwise.
+    */
+   public static boolean hasPermissions(OpBroker broker, OpObject object) {
+      if (object.getPermissions() != null) {
+         OpQuery query = broker.newQuery(GET_PERMISSION_COUNT_FOR_OBJECT);
+         query.setLong("objectId", object.getID());
+         Number counter = (Number) broker.iterate(query).next();
+         if (counter.intValue() > 0) {
+            return true;
+         }
+      }
+      return false;
    }
 }

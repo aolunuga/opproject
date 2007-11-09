@@ -10,6 +10,7 @@ import onepoint.log.XLogFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class OpTypeManager {
@@ -29,7 +30,7 @@ public class OpTypeManager {
    static {
       // Initialize hashtable and type-ID counters
       types = new HashMap<String, OpType>();
-      prototypes = new HashMap<String, OpPrototype>();
+      prototypes = new LinkedHashMap<String, OpPrototype>();
       prototypeIds = new HashMap<Integer, OpPrototype>();
       classNames = new HashMap<String, OpType>();
       minTypeId = 0;

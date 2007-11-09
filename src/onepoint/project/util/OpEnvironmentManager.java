@@ -109,6 +109,7 @@ public final class OpEnvironmentManager {
          process.waitFor();
          //wait on class monitor until envProps is filled up
          OpEnvironmentManager.class.wait();
+         stdin.close();
       }
       catch (Exception e) {
          logger.error("Error occured while executing command that retrives environment variables", e);

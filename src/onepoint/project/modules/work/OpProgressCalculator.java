@@ -53,7 +53,7 @@ public class OpProgressCalculator {
     * @param calendar     Calendar used for updating costs
     */
    public static void removeWorkRecords(OpBroker broker, Iterator work_records, XCalendar calendar) {
-      OpWorkRecord work_record = null;
+      OpWorkRecord work_record;
       while (work_records.hasNext()) {
          work_record = (OpWorkRecord) (work_records.next());
          applyWorkRecord(broker, work_record, false, calendar);
@@ -93,8 +93,8 @@ public class OpProgressCalculator {
    /**
     * Updates the values of this activity (and its super activities) based on the given workrecord : effort and costs.
     *
-    * @param broker
-    * @param work_record
+    * @param broker                broker to access db
+    * @param work_record           work record
     * @param insert_mode           true if work record was added, fals if it was removed
     * @param remainingEffortChange amount of remaining effort that was changed by the last operation
     */
@@ -134,6 +134,16 @@ public class OpProgressCalculator {
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() + work_record.getMiscellaneousCosts());
 
             setActivityRemainingCosts(activity, latestWorkRecord);
+
+            //set the completed attribute for the adhoc tasks
+            if (work_record == latestWorkRecord && activity.getType() == OpActivity.ADHOC_TASK) {
+               if (latestWorkRecord.getCompleted()) {
+                  activity.setComplete(100);
+               }
+               else {
+                  activity.setComplete(0);
+               }
+            }
          }
          else {
             activity.setActualEffort(activity.getActualEffort() - work_record.getActualEffort());
@@ -155,20 +165,24 @@ public class OpProgressCalculator {
                   secondLatest = workRecords.get(1);
                }
                setActivityRemainingCosts(activity, secondLatest);
+               
+               //set the completed attribute for the adhoc tasks
+               if (activity.getType() == OpActivity.ADHOC_TASK) {
+                  if (secondLatest != null && secondLatest.getCompleted()) {
+                     activity.setComplete(100);
+                  }
+                  else {
+                     activity.setComplete(0);
+                  }
+               }
             }
          }
 
+         //update the completed attribute only for non adhoc tasks (the adhoc task already had their completed calculated)
          if (activity.getType() != OpActivity.ADHOC_TASK) {
             updateActivityBasedOnTracking(activity, progressTracked);
          }
-         else {
-            if (work_record.getCompleted()) {
-               activity.setComplete(100);
-            }
-            else {
-               activity.setComplete(0);
-            }
-         }
+
          broker.updateObject(activity);
          if (activity.getType() != OpActivity.ADHOC_TASK) {
             updateActivityForWorkingVersion(activity, broker);
@@ -181,7 +195,7 @@ public class OpProgressCalculator {
    /**
     * Returns the first two results of the given query.
     *
-    * @param broker
+    * @param broker              broker for db access
     * @param query               Query over workRecord. Result must be work record ids.
     * @param includeEmptyRecords true if cons-only records should be included or not in the result
     * @return a list of work records (keeps the same order as the query result)
@@ -227,8 +241,8 @@ public class OpProgressCalculator {
    /**
     * Updates the values of the workRecord's assignment.
     *
-    * @param broker
-    * @param workRecord
+    * @param broker      broker to access db
+    * @param workRecord  work record
     * @param insert_mode insert or remove work record
     * @return The remaining effort change amount.
     */
@@ -281,8 +295,28 @@ public class OpProgressCalculator {
          }
       }
 
-      boolean workRecordCompleted = insert_mode && workRecord.getCompleted();
+      boolean workRecordCompleted = false;
+      //update the non adhoc assignments
+      if (assignment.getActivity().getType() != OpActivity.ADHOC_TASK) {
+         workRecordCompleted = insert_mode && latestWorkRecord.getCompleted();
+      }
+      else {
+         //update the adhoc assignments
+         if (workRecord == latestWorkRecord) {
+            OpWorkRecord secondLatest = null;
+            if (workRecords.size() > 1) {
+               secondLatest = workRecords.get(1);
+            }
+            workRecordCompleted = completeAdhocAssignment(assignment, insert_mode, workRecord, secondLatest);
+         }
+         else {
+            if (latestWorkRecord.getCompleted()) {
+               workRecordCompleted = true;
+            }
+         }
+      }
       updateAssignmentBasedOnTracking(assignment, workRecordCompleted, progressTracked);
+
       broker.updateObject(assignment);
       updateAssignmentForWorkingVersion(assignment, broker);
       return remainingEffortChange;
@@ -399,6 +433,43 @@ public class OpProgressCalculator {
    }
 
    /**
+    * Returns a <code>boolean</code> value indicating wether the assignment should be set 100% complete or 0% complete
+    *    (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
+    *
+    * @param assignment a <code>OpAssignment</code> representing the assignment which is to be updated.
+    * @param insertMode a <code>boolean</code> indicating whether the work record is being added or deleted
+    *    (<code>true</code> for adding and <code>false</code> for deleting).
+    * @param workRecord  the <code>OpWorkRecord</code> being added or deleted.
+    * @param nextLatestWorkRecord the most recent <code>OpWorkRecord</code> after the work record that's being added
+    *    or deleted.
+    * @return a <code>boolean</code> value indicating wether the assignment should be set 100% complete or 0% complete
+    *    (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
+    */
+   private static boolean completeAdhocAssignment(OpAssignment assignment, boolean insertMode,
+        OpWorkRecord workRecord, OpWorkRecord nextLatestWorkRecord) {
+
+      //in case of an insert the completion of the assignment should reflect the completion of the work record
+      if (insertMode) {
+         if (workRecord.getCompleted()) {
+            return true;
+         }
+         else {
+            return false;
+         }
+      }
+      // in case of a delete the completion of the assignment should reflect the completion of the most recent
+      // work record, if it exists
+      else {
+         if (nextLatestWorkRecord != null && nextLatestWorkRecord.getCompleted()) {
+            return true;
+         }
+         else {
+            return false;
+         }
+      }
+   }
+
+   /**
     * Updates the activity based on the value of the project tracking.
     *
     * @param activity     a <code>OpActivity</code> representing the current activity to update.
@@ -421,7 +492,8 @@ public class OpProgressCalculator {
             activity.setComplete(complete);
          }
          else if (!collection) {
-            double complete = calculateCompleteForStandard(activity);
+            double complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(),
+                 activity.getBaseEffort(), activity.getRemainingEffort());
             activity.setComplete(complete);
          }
       }
@@ -434,29 +506,6 @@ public class OpProgressCalculator {
 
 
    /**
-    * Determines the %complete for a standard activity.
-    *
-    * @param activity a <code>OpActivity</code> representing a standard activity.
-    * @return a <code>double</code> value represeting the %complete of the activity.
-    */
-   private static double calculateCompleteForStandard(OpActivity activity) {
-      Set assignments = activity.getAssignments();
-      if (assignments.size() == 0) {
-         return 0;
-      }
-      double baseSum = 0;
-      double actualSum = 0;
-      double remainingSum = 0;
-      for (Iterator it = assignments.iterator(); it.hasNext();) {
-         OpAssignment assignment = (OpAssignment) it.next();
-         actualSum += assignment.getActualEffort();
-         remainingSum += assignment.getRemainingEffort();
-         baseSum += assignment.getBaseEffort();
-      }
-      return OpGanttValidator.calculateCompleteValue(actualSum, baseSum, remainingSum);
-   }
-
-   /**
     * Gets the %complete value for a task or a milestone.
     *
     * @param activity a <code>OpActivity</code> that is either a task or a milestone
@@ -465,9 +514,8 @@ public class OpProgressCalculator {
    private static double calculateCompleteForTaksOrMilestone(OpActivity activity) {
       boolean allComplete = true;
       Set assignments = activity.getAssignments();
-      Iterator it = assignments.iterator();
-      while (it.hasNext()) {
-         OpAssignment assignment = (OpAssignment) it.next();
+      for (Object assignment1 : assignments) {
+         OpAssignment assignment = (OpAssignment) assignment1;
          allComplete &= (assignment.getComplete() == 100);
       }
       if (allComplete) {
@@ -494,13 +542,11 @@ public class OpProgressCalculator {
       int taskCount = 0;
 
       Set subActivities = collection.getSubActivities();
-      Iterator it = subActivities.iterator();
-      while (it.hasNext()) {
-         OpActivity child = (OpActivity) it.next();
+      for (Object subActivity : subActivities) {
+         OpActivity child = (OpActivity) subActivity;
          int type = child.getType();
-         //decision 25.04.06 - exclude milestones from %Complete calculations
          if (type == OpActivity.MILESTONE) {
-            continue;
+            //decision 25.04.06 - exclude milestones from %Complete calculations
          }
          else if (type == OpActivity.TASK || type == OpActivity.COLLECTION_TASK) {
             taskCount++;

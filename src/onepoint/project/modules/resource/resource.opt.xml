@@ -13,4 +13,5 @@
    <relationship name="AssignmentVersions" type="OpAssignmentVersion" collection-type="Set" back-relationship="Resource" inverse="true"/>
    <relationship name="ResponsibleActivities" type="OpActivity" collection-type="Set" back-relationship="ResponsibleResource" inverse="true"/>
    <relationship name="ResponsibleActivityVersions" type="OpActivityVersion" collection-type="Set" back-relationship="ResponsibleResource" inverse="true"/>
+   <relationship name="SkillRatings" type="OpSkillRating" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>
 </prototype>

@@ -62,7 +62,6 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       dataFactory = new OpUserTestDataFactory(session);
       userService = OpTestDataFactory.getUserService();
-      cleanUp();
    }
 
    /**
@@ -209,7 +208,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       assertEquals(TEST_USER_NAME, user.getName());
@@ -225,6 +225,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertEquals(DUMMY_STRING, contact.getFax());
       assertEquals(DUMMY_STRING, contact.getMobile());
       assertEquals(DUMMY_STRING, contact.getPhone());
+      broker.close();
    }
 
    /**
@@ -344,7 +345,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       Map userData = OpUserTestDataFactory.createUserData(TEST_USER_NAME, TEST_PASS, DUMMY_STRING, OpUser.MANAGER_USER_LEVEL,
@@ -359,7 +361,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       Set superGroups = user.getAssignments();
@@ -370,6 +375,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(superGroupAssignement);
       assertEquals(group.getID(), superGroupAssignement.getGroup().getID());
       assertEquals(user.getID(), superGroupAssignement.getUser().getID());
+      broker.close();
    }
 
    /**
@@ -402,7 +408,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -419,7 +426,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve user and check its data.
-      user = dataFactory.getUserByName(newValue);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      user = dataFactory.getUserByName(broker, newValue);
       assertNotNull(user);
 
       assertEquals(newValue, user.getName());
@@ -435,6 +445,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertEquals(newValue, contact.getFax());
       assertEquals(newValue, contact.getMobile());
       assertEquals(newValue, contact.getPhone());
+      broker.close();
    }
 
    /**
@@ -462,7 +473,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -475,6 +487,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = userService.updateUser(session, request);
       assertError(response, OpUserError.LOGIN_ALREADY_USED);
+      broker.close();
    }
 
    /**
@@ -487,7 +500,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -500,6 +514,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = userService.updateUser(session, request);
       assertError(response, OpUserError.LOGIN_MISSING);
+      broker.close();
    }
 
    /**
@@ -512,7 +527,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -526,6 +542,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = userService.updateUser(session, request);
       assertError(response, OpUserError.EMAIL_INCORRECT);
+      broker.close();
    }
 
    /**
@@ -538,7 +555,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -558,6 +576,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       userData.put(OpUserService.USER_LEVEL, "999");
       response = userService.updateUser(session, request);
       assertError(response, OpUserError.INVALID_USER_LEVEL);
+      broker.close();
    }
 
    /**
@@ -570,7 +589,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultUser();
 
       // now retrieve user and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // now update user with Administrator username.
@@ -584,6 +604,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.USER_DATA, userData);
       XMessage response = userService.updateUser(session, request);
       assertError(response, OpUserError.PASSWORD_MISMATCH);
+      broker.close();
    }
 
    // -------------------------- GROUPS TESTS --------------------------------
@@ -597,11 +618,13 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();      
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       assertEquals(TEST_GROUP_NAME, group.getName());
       assertEquals(DUMMY_STRING, group.getDescription());
+      broker.close();
    }
 
    /**
@@ -631,7 +654,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       Map groupData = OpUserTestDataFactory.createGroupData(TEST_GROUP_NAME, DUMMY_STRING, null);
@@ -642,6 +666,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.insertGroup(session, request);
       assertError(response, OpUserError.GROUP_NAME_ALREADY_USED);
+      broker.close();
    }
 
    /**
@@ -662,7 +687,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, superGroupName);
       assertNotNull(superGroup);
 
       // now try to add a new group with super group.
@@ -677,7 +703,11 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       assertEquals(TEST_GROUP_NAME, group.getName());
@@ -691,6 +721,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(superGroupAssignement);
       assertEquals(superGroup.getID(), superGroupAssignement.getSuperGroup().getID());
       assertEquals(group.getID(), superGroupAssignement.getSubGroup().getID());
+      broker.close();
    }
 
    /**
@@ -723,7 +754,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       String newValue = "newValue";
@@ -737,10 +769,14 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       XMessage response = userService.updateGroup(session, request);
       assertNoError(response);
 
-      group = dataFactory.getGroupByName(newValue);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      group = dataFactory.getGroupByName(broker, newValue);
       assertNotNull(group);
       assertEquals(newValue, group.getName());
       assertEquals(newValue, group.getDescription());
+      broker.close();
    }
 
    /**
@@ -771,7 +807,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       Map groupData = OpUserTestDataFactory.createGroupData(OpGroup.EVERYONE_NAME, DUMMY_STRING, null);
@@ -783,6 +820,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.updateGroup(session, request);
       assertError(response, OpUserError.GROUP_NAME_ALREADY_USED);
+      broker.close();
    }
 
    /**
@@ -795,7 +833,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       Map groupData = OpUserTestDataFactory.createGroupData(null, DUMMY_STRING, null);
@@ -807,6 +846,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.updateGroup(session, request);
       assertError(response, OpUserError.GROUP_NAME_MISSING);
+      broker.close();
    }
 
    /**
@@ -827,14 +867,18 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, superGroupName);
       assertNotNull(superGroup);
 
       // now create a group without super group
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       // now update group
@@ -847,7 +891,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       Set superGroups = group.getSuperGroupAssignments();
@@ -856,8 +903,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       OpGroupAssignment superGroupAssignement = (OpGroupAssignment) superGroups.iterator().next();
       assertNotNull(superGroupAssignement);
+      long id = superGroup.getID();
       assertEquals(superGroup.getID(), superGroupAssignement.getSuperGroup().getID());
       assertEquals(group.getID(), superGroupAssignement.getSubGroup().getID());
+      broker.close();
    }
 
    /**
@@ -871,7 +920,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       // now update group
@@ -882,6 +932,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.updateGroup(session, request);
       assertError(response, OpUserError.SUPER_GROUP_NOT_FOUND);
+      broker.close();
    }
 
    /**
@@ -899,7 +950,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.insertGroup(session, request);
       assertNoError(response);
-      OpGroup firstGroup = dataFactory.getGroupByName(firstGroupName);
+      OpBroker broker = session.newBroker();
+      OpGroup firstGroup = dataFactory.getGroupByName(broker, firstGroupName);
       assertNotNull(firstGroup);
 
       // create second group
@@ -912,7 +964,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup secondGroup = dataFactory.getGroupByName(secondGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup secondGroup = dataFactory.getGroupByName(broker, secondGroupName);
       assertNotNull(secondGroup);
 
       // create second group
@@ -925,7 +980,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup thirdGroup = dataFactory.getGroupByName(thirdGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup thirdGroup = dataFactory.getGroupByName(broker, thirdGroupName);
       assertNotNull(thirdGroup);
 
       // now update group Group_A to have as a parent Group_C. In this case we would have a loop.
@@ -936,6 +994,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       response = userService.updateGroup(session, request);
       assertError(response, OpUserError.LOOP_ASSIGNMENT);
+      broker.close();
    }
 
    /**
@@ -946,11 +1005,15 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
    public void testAssignmentToGroup()
         throws Exception {
       createDefaultUser();
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       createDefaultGroup();
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       // create supergroup
@@ -960,7 +1023,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       req.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage res = userService.insertGroup(session, req);
       assertNoError(res);
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, superGroupName);
       assertNotNull(superGroup);
 
       // Now try to assign these subjects to an invalid group.
@@ -979,7 +1045,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(res);
 
       // check id user and group was linked to supergroup
-      superGroup = dataFactory.getGroupByName(superGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      superGroup = dataFactory.getGroupByName(broker, superGroupName);
       Set subGroupAssignments = superGroup.getSubGroupAssignments();
       assertNotNull(subGroupAssignments);
       assertEquals(1, subGroupAssignments.size());
@@ -987,7 +1056,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(subUserAssignments);
       assertEquals(1, subUserAssignments.size());
 
-      user = dataFactory.getUserByName(TEST_USER_NAME);
+      user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       Set userAssignments = user.getAssignments();
       assertNotNull(userAssignments);
       assertEquals(1, userAssignments.size());
@@ -995,14 +1064,14 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNotNull(userAssignment);
       assertEquals(superGroup.getID(), userAssignment.getGroup().getID());
 
-      group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       Set groupAssignments = group.getSuperGroupAssignments();
       assertNotNull(groupAssignments);
       assertEquals(1, groupAssignments.size());
       OpGroupAssignment groupAssignment = (OpGroupAssignment) groupAssignments.iterator().next();
       assertNotNull(groupAssignment);
       assertEquals(superGroup.getID(), groupAssignment.getSuperGroup().getID());
-
+      broker.close();
    }
 
    /**
@@ -1015,7 +1084,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(superGroup);
 
       // now try to add a new group with super group.
@@ -1029,7 +1099,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup subGroup = dataFactory.getGroupByName(subGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup subGroup = dataFactory.getGroupByName(broker, subGroupName);
       assertNotNull(subGroup);
 
       // Now try to delete group to group assigment.
@@ -1043,15 +1116,19 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now check if the relation ship was realy deleted
-      superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       Set subGroupsAss = superGroup.getSubGroupAssignments();
       assertNotNull(subGroupsAss);
       assertEquals(0, subGroupsAss.size());
 
-      subGroup = dataFactory.getGroupByName(subGroupName);
+      subGroup = dataFactory.getGroupByName(broker, subGroupName);
       Set superGroupsAss = subGroup.getSuperGroupAssignments();
       assertNotNull(superGroupsAss);
       assertEquals(0, superGroupsAss.size());
+      broker.close();
    }
 
    /**
@@ -1064,7 +1141,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(superGroup);
 
       // now try to add a new user with super group.
@@ -1077,7 +1155,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // Now try to delete group to group assigment.
@@ -1091,15 +1172,19 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now check if the relation ship was realy deleted
-      superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       Set subGroupsAss = superGroup.getSubGroupAssignments();
       assertNotNull(subGroupsAss);
       assertEquals(0, subGroupsAss.size());
 
-      user = dataFactory.getUserByName(TEST_USER_NAME);
+      user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       Set superGroupsAss = user.getAssignments();
       assertNotNull(superGroupsAss);
       assertEquals(0, superGroupsAss.size());
+      broker.close();
    }
 
    /**
@@ -1118,7 +1203,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       broker.close();
 
       createDefaultUser();
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       // Now delete user.
@@ -1151,9 +1237,11 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       broker.close();
 
       createDefaultGroup();
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
-
+      broker.close();
+      
       // Now delete group.
       XMessage req = new XMessage();
       req.setArgument(OpUserService.SUBJECT_IDS, Arrays.asList(group.locator()));
@@ -1174,7 +1262,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
     */
    public void testWrongDeletions()
         throws Exception {
-      OpGroup group = dataFactory.getGroupByName(OpGroup.EVERYONE_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, OpGroup.EVERYONE_NAME);
       assertNotNull(group);
 
       // Now try to delete Everyone group
@@ -1189,6 +1278,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
            Arrays.asList(new String[]{OpLocator.locatorString(OpUser.USER, session.getUserID())}));
       res = userService.deleteSubjects(session, req);
       assertError(res, OpUserError.SESSION_USER);
+      broker.close();
    }
 
    /**
@@ -1201,7 +1291,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(superGroup);
 
       // now try to add a new group with super group.
@@ -1215,7 +1306,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup subGroup = dataFactory.getGroupByName(subGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup subGroup = dataFactory.getGroupByName(broker, subGroupName);
       assertNotNull(subGroup);
 
       // Now create also an user
@@ -1230,7 +1324,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve user and check its data.
-      OpUser subUser = dataFactory.getUserByName(TEST_USER_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpUser subUser = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(subUser);
 
       // Now test expand groups method
@@ -1244,6 +1341,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       List list = (List) response.getArgument(OpProjectConstants.CHILDREN);
       assertNotNull(list);
       assertEquals(2, list.size());
+      broker.close();
 
    }
 
@@ -1257,7 +1355,8 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       createDefaultGroup();
 
       // now retrieve group and check its data.
-      OpGroup superGroup = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      OpBroker broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(superGroup);
 
       // now try to add a new group with super group.
@@ -1271,7 +1370,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve group and check its data.
-      OpGroup subGroup = dataFactory.getGroupByName(subGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup subGroup = dataFactory.getGroupByName(broker, subGroupName);
       assertNotNull(subGroup);
 
       // Now create also an user
@@ -1286,7 +1388,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       // now retrieve user and check its data.
-      OpUser subUser = dataFactory.getUserByName(TEST_USER_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpUser subUser = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(subUser);
 
       // Now test expand groups method
@@ -1304,7 +1409,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       List list = (List) response.getArgument(OpProjectConstants.CHILDREN);
       assertNotNull(list);
       assertEquals(1, list.size());
-
+      broker.close();
    }
 
 
@@ -1320,11 +1425,15 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
         throws Exception {
 
       createDefaultUser();
-      OpUser user = dataFactory.getUserByName(TEST_USER_NAME);
+      OpBroker broker = session.newBroker();
+      OpUser user = dataFactory.getUserByName(broker, TEST_USER_NAME);
       assertNotNull(user);
 
       createDefaultGroup();
-      OpGroup group = dataFactory.getGroupByName(TEST_GROUP_NAME);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup group = dataFactory.getGroupByName(broker, TEST_GROUP_NAME);
       assertNotNull(group);
 
       // create supergroup
@@ -1334,7 +1443,10 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
       request.setArgument(OpUserService.GROUP_DATA, groupData);
       XMessage response = userService.insertGroup(session, request);
       assertNoError(response);
-      OpGroup superGroup = dataFactory.getGroupByName(superGroupName);
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
+      OpGroup superGroup = dataFactory.getGroupByName(broker, superGroupName);
       assertNotNull(superGroup);
 
       //log-out Administrator
@@ -1381,6 +1493,7 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
          // log out the other user and log-in Administrator.
          logOut();
          logIn();
+         broker.close();
       }
    }
 

@@ -4,16 +4,23 @@
 
 package onepoint.project.modules.user;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
+import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.backup.OpBackupManager;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class OpUserModule extends OpModule {
+
+   private static final XLog logger = XLogFactory.getServerLogger(OpUserModule.class);
 
    @Override
    public void start(OpProjectSession session) {
@@ -92,5 +99,12 @@ public class OpUserModule extends OpModule {
       }
       transaction.commit();
       broker.close();
+   }
+
+
+   public List<OpModuleChecker> getCheckerList() {
+      List<OpModuleChecker> checkers = new ArrayList<OpModuleChecker>();
+      checkers.add(new OpUserModuleChecker());
+      return checkers;
    }
 }

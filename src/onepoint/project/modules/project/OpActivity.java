@@ -250,7 +250,10 @@ public class OpActivity extends OpObject {
 
    public OpActivityVersion getBaselineVersion() {
       OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
+      //<FIXME author="Haizea Florin" description="data loading problem: the getVersions().isEmpty() statement will load
+      //  all the versions of this activity">
       if (baselinePlanVersion != null && getVersions() != null && !getVersions().isEmpty()) {
+         //<FIXME>
          for (OpActivityVersion version : getVersions()) {
             if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
                return version;
@@ -540,6 +543,15 @@ public class OpActivity extends OpObject {
    }
 
    public void setBaseProceeds(Double baseProceeds) {
+      setBaseProceedsInternal(baseProceeds);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+   private void setBaseProceedsInternal(Double baseProceeds) {
       this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
    }
 
@@ -548,6 +560,15 @@ public class OpActivity extends OpObject {
    }
 
    public void setActualProceeds(Double actualProceeds) {
+      setActualProceedsInternal(actualProceeds);
+   }
+   
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+   private void setActualProceedsInternal(Double actualProceeds) {
       this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
    }
 
@@ -556,6 +577,16 @@ public class OpActivity extends OpObject {
    }
 
    public void setPayment(Double payment) {
+      setPaymentInternal(payment);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+
+   private void setPaymentInternal(Double payment) {
       this.payment = (payment != null) ? payment : 0;
    }
 
@@ -564,6 +595,15 @@ public class OpActivity extends OpObject {
    }
 
    public void setRemainingTravelCosts(Double remainingTravelCosts) {
+      setRemainingTravelCostsInternal(remainingTravelCosts);
+   }
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+
+   private void setRemainingTravelCostsInternal(Double remainingTravelCosts) {
       this.remainingTravelCosts = remainingTravelCosts != null ? remainingTravelCosts : 0;
    }
 
@@ -572,6 +612,15 @@ public class OpActivity extends OpObject {
    }
 
    public void setRemainingMaterialCosts(Double remainingMaterialCosts) {
+      setRemainingMaterialCostsInternal(remainingMaterialCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+   private void setRemainingMaterialCostsInternal(Double remainingMaterialCosts) {
       this.remainingMaterialCosts = remainingMaterialCosts != null ? remainingMaterialCosts : 0;
    }
 
@@ -580,6 +629,16 @@ public class OpActivity extends OpObject {
    }
 
    public void setRemainingExternalCosts(Double remainingExternalCosts) {
+      setRemainingExternalCostsInternal(remainingExternalCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+
+   private void setRemainingExternalCostsInternal(Double remainingExternalCosts) {
       this.remainingExternalCosts = remainingExternalCosts != null ? remainingExternalCosts : 0;
    }
 
@@ -588,6 +647,16 @@ public class OpActivity extends OpObject {
    }
 
    public void setRemainingMiscellaneousCosts(Double remainingMiscellaneousCosts) {
+      setRemainingMiscellaneousCostsInternal(remainingMiscellaneousCosts);
+   }
+
+   /**
+    * called internally by hibernate
+    * @param actualProceeds
+    * @see OpPropertyAccessor
+    */
+
+   private void setRemainingMiscellaneousCostsInternal(Double remainingMiscellaneousCosts) {
       this.remainingMiscellaneousCosts = remainingMiscellaneousCosts != null ? remainingMiscellaneousCosts : 0;
    }
 

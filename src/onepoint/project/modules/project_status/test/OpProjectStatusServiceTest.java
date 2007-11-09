@@ -39,12 +39,15 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
    private static final String NEW_NAME = "new_prj_status";
    private static final String DESCRIPTION = "A test project status";
    private static final String NEW_DESCRIPTION = "The new test project status";
+   private static final String PRJ_NAME = "prj";
 
    private static final String DEFAULT_USER = "tester";
    private static final String DEFAULT_PASSWORD = "pass";
 
    private OpProjectStatusService service;
    private OpProjectStatusTestDataFactory dataFactory;
+   private OpProjectTestDataFactory projectDataFactory;
+   private OpProjectAdministrationService projectService;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -56,6 +59,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       super.setUp();
       service = OpTestDataFactory.getProjectStatusService();
       dataFactory = new OpProjectStatusTestDataFactory(session);
+      projectDataFactory = new OpProjectTestDataFactory(session);
+      projectService = OpTestDataFactory.getProjectService();
       clean();
    }
 
@@ -141,6 +146,96 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       request.setArgument("project_status_data", new HashMap(args));
       response = service.insertProjectStatus(session, request);
       assertError(response, OpProjectStatusError.PROJECT_STATUS_NAME_NOT_UNIQUE);
+   }
+
+   /**
+    * Test happy flow for creation of a project status with a name that is assign to
+    * an inactive status
+    *
+    * @throws Exception if the test fails
+    */
+   public void testExistingNameInactiveProjectStatus() throws Exception {
+      OpBroker broker = null;
+      OpTransaction t = null;
+      
+      //create the status
+      HashMap args = new HashMap();
+      args.put(OpProjectStatus.NAME, NAME);
+      args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+      args.put(OpProjectStatus.COLOR, new Integer(7));
+      XMessage request = new XMessage();
+      request.setArgument("project_status_data", args);
+      XMessage response = service.insertProjectStatus(session, request);  
+
+      assertNoError(response);
+
+      Long statusId = dataFactory.getProjectStatusId(NAME);
+      String statusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, statusId);
+      broker = session.newBroker();
+      OpProjectStatus status = (OpProjectStatus) broker.getObject(statusLocator);
+
+      assertNotNull(status);
+      assertEquals(DESCRIPTION, status.getDescription());
+      assertEquals(7, status.getColor());
+
+      broker.close();
+      //create the project
+      Date date = Date.valueOf("2007-06-06");
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 100d, null, null);
+      response = projectService.insertProject(session, request);
+
+      assertNoError(response);
+
+      String projectLocator = projectDataFactory.getProjectId(PRJ_NAME);
+      broker = session.newBroker();
+      OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+
+      assertEquals(date, project.getStart());
+
+      //assign the status to project
+      project.setStatus(status);
+      t = broker.newTransaction();
+      broker.updateObject(project);
+      t.commit();
+      broker.close();
+
+      //delete the status
+      ArrayList ids = new ArrayList(1);
+      ids.add(statusLocator);
+      request = new XMessage();
+      request.setArgument("project_status_ids", ids);
+      response = service.deleteProjectStatus(session, request);
+
+      assertNoError(response);
+
+      //create a status with the same name
+      args = new HashMap();
+      args.put(OpProjectStatus.NAME, NAME);
+      args.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+      args.put(OpProjectStatus.COLOR, new Integer(10));
+      request = new XMessage();
+      request.setArgument("project_status_data", args);
+      response = service.insertProjectStatus(session, request);
+
+      assertNoError(response);
+      
+      broker = session.newBroker();
+      status = (OpProjectStatus) broker.getObject(statusLocator);
+      broker.close();
+
+      assertNoError(response);
+
+      Long newStatusId = dataFactory.getProjectStatusId(NAME);
+      String newStatusLocator = OpLocator.locatorString(OpProjectStatus.PROJECT_STATUS, newStatusId);
+      broker = session.newBroker();
+      OpProjectStatus newStatus = (OpProjectStatus) broker.getObject(newStatusLocator);
+      broker.close();
+      
+      assertNotNull(newStatus);
+      assertEquals(status.getID(), newStatus.getID());
+      assertEquals(DESCRIPTION, newStatus.getDescription());
+      assertEquals(10, newStatus.getColor());
+
    }
 
    /**
@@ -509,7 +604,8 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       logOut();
       logIn();
       OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      OpUser user = usrData.getUserByName(DEFAULT_USER);
+      OpBroker broker = session.newBroker();
+      OpUser user = usrData.getUserByName(broker, DEFAULT_USER);
       if (user != null) {
          List ids = new ArrayList();
          ids.add(user.locator());
@@ -517,8 +613,9 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
          request.setArgument(OpUserService.SUBJECT_IDS, ids);
          OpTestDataFactory.getUserService().deleteSubjects(session, request);
       }
-
-      OpBroker broker = session.newBroker();
+      // FIXME(dfreis Oct 4, 2007 8:08:40 PM) fucking OpServiceInterceptor closes all brokers, so we have to create a new one here
+      broker.close();
+      broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
 
       OpProjectTestDataFactory projectDataFactory = new OpProjectTestDataFactory(session);

@@ -11,7 +11,6 @@ import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
 import onepoint.xml.XContext;
 
-import java.sql.SQLException;
 import java.util.*;
 
 public class OpRestoreContext extends XContext {
@@ -24,7 +23,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 200;
+   private final static int MAX_INSERTS_PER_TRANSACTION = 300;
 
    /**
     * This class's logger.
@@ -122,12 +121,7 @@ public class OpRestoreContext extends XContext {
    void writeSchemaVersion(String schemaVersionNr) {
       //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
       OpHibernateSource hibernateSource = (OpHibernateSource) OpSourceManager.getAllSources().iterator().next();
-      try {
-         hibernateSource.createSchemaTable(Integer.valueOf(schemaVersionNr));
-      }
-      catch (SQLException e) {
-         logger.error("Cannot restore schema table because:" + e.getMessage(), e);
-      }
+      hibernateSource.updateSchemaVersionNumber(Integer.valueOf(schemaVersionNr));
    }
 
    /**
@@ -156,22 +150,27 @@ public class OpRestoreContext extends XContext {
       if (activeSystem != null) {
          // Map active ID to valid system object ID
          String queryString = OpBackupManager.getSystemObjectIDQuery(activeSystem);
-         logger.debug("QUERY: " + queryString);
-         OpBroker broker = session.newBroker();
-         OpQuery query = broker.newQuery(queryString);
-         Iterator iterator = broker.forceIterate(query);
-         if (iterator.hasNext()) {
-            //if a system object already exists in the db, make sure you mark the active object as existent.
-            long id = ((Long) iterator.next()).longValue();
-            OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
+         if (queryString != null) {
+            logger.debug("QUERY: " + queryString);
+            OpBroker broker = session.newBroker();
+            OpQuery query = broker.newQuery(queryString);
+            Iterator iterator = broker.forceIterate(query);
+            if (iterator.hasNext()) {
+               //if a system object already exists in the db, make sure you mark the active object as existent.
+               long id = (Long) iterator.next();
+               OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
 
-            //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
-            OpTransaction t = broker.newTransaction();
-            logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
-            broker.deleteObject(systemObject);
-            t.commit();
+               //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
+               OpTransaction t = broker.newTransaction();
+               logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
+               broker.deleteObject(systemObject);
+               t.commit();
+            }
+            broker.closeAndEvict();
          }
-         broker.close();
+         else {
+            logger.warn("No  [ " + activeSystem + " ] found when persisting Active Objects");
+         }
       }
       executeActiveObjectPersist();
    }
@@ -206,7 +205,7 @@ public class OpRestoreContext extends XContext {
       }
       else {
          activePrototype = OpTypeManager.getPrototype(prototypeName);
-         activeBackupMembers = (List) backupMembersMap.get(prototypeName);
+         activeBackupMembers = backupMembersMap.get(prototypeName);
          if (activePrototype == null || activeBackupMembers == null) {
             //we should be somewhat graceful. It may happen, that entities vanish...
             logger.error("Cannot activate prototype with name:" + prototypeName);
@@ -237,7 +236,7 @@ public class OpRestoreContext extends XContext {
     *         yet.
     */
    OpObject getRelationshipOwner(Long id) {
-      return (OpObject) persistedObjectsMap.get(id);
+      return persistedObjectsMap.get(id);
    }
 
    /**
@@ -252,7 +251,8 @@ public class OpRestoreContext extends XContext {
             broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
-         broker.close();
+         broker.closeAndEvict();
+         session.cleanupSession(true);
          logger.info("Objects persisted");
          objectsToAdd.clear();
          insertCount = 0;
