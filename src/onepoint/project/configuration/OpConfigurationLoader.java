@@ -110,6 +110,7 @@ public class OpConfigurationLoader extends XLoader {
 
             //write the result back to the file
             writeConfigurationFile(configurationDocument, fileName);
+            is.close();
          }
          catch (Exception e) {
             logger.error("Cannot update configuration file.", e);

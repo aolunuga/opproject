@@ -62,7 +62,6 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       dataFactory = new OpUserTestDataFactory(session);
       userService = OpTestDataFactory.getUserService();
-      cleanUp();
    }
 
    /**

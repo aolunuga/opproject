@@ -12,10 +12,8 @@ import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleChecker;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.project.OpProjectPlanValidator;
+import onepoint.project.modules.project.*;
+import onepoint.project.modules.work.OpWorkRecord;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -23,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * Checker class associated to the project planning module.
+ *
  * @author mihai.costin
  */
 public class OpProjectPlanningModuleChecker implements OpModuleChecker {
@@ -35,18 +35,84 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
 
 
    public void check(OpProjectSession session) {
-      logger.info("Checking module ProjectPlanning");
+      logger.info("Checking module Project Planning...");
       fixProjectPlans(session);
-      logger.info("Done");
+      deleteWorkRecordsForDeletedActivities(session);
+      deleteWorkRecordsForCollections(session);
+      revalidateAllProjects(session);
+   }
+
+   private void deleteWorkRecordsForCollections(OpProjectSession session) {
+
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.SubActivities.size > 0");
+      Iterator iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         OpActivity activity = (OpActivity) iterator.next();
+         for (OpAssignment assignment : activity.getAssignments()) {
+            for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
+               broker.deleteObject(workRecord);
+            }
+            broker.deleteObject(assignment);
+         }
+      }
+      t.commit();
+      broker.closeAndEvict();
    }
 
 
    /**
-    * Upgrades this module to version #5 (via reflection).
+    * Deletes all the workrecords that are linked to deleted activities.
+    *
+    * @param session Project session
+    */
+   private void deleteWorkRecordsForDeletedActivities(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.Deleted = true");
+      Iterator iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         OpActivity activity = (OpActivity) iterator.next();
+         for (OpAssignment assignment : activity.getAssignments()) {
+            for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
+               broker.deleteObject(workRecord);
+            }
+            broker.deleteObject(assignment);
+         }
+      }
+      t.commit();
+      broker.closeAndEvict();
+   }
+
+
+   /**
+    * Fixes the start and end dates for all the project plans.
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void fixProjectPlans(OpProjectSession session) {
+   private void revalidateAllProjects(OpProjectSession session) {
+      //delete any work records that might be associated with deleted activities
+      List<Long> projectPlanIds = new ArrayList<Long>();
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery(ALL_PROJECT_PLANS);
+      query.setByte(0, OpProjectNode.PROJECT);
+      Iterator iterator = broker.iterate(query);
+      while (iterator.hasNext()) {
+         OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
+         projectPlanIds.add(projectPlan.getID());
+      }
+      broker.closeAndEvict();
+      revalidateProjectPlans(session, projectPlanIds);
+   }
+
+
+   /**
+    * Fixes the start and end dates for all the project plans.
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   private void fixProjectPlans(OpProjectSession session) {
       //delete any work records that might be associated with deleted activities
       List<Long> projectPlanIds = new ArrayList<Long>();
       OpBroker broker = session.newBroker();
@@ -59,8 +125,7 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
          fixProjectPlanDates(projectPlan, broker);
          projectPlanIds.add(projectPlan.getID());
       }
-      broker.close();
-      revalidateProjectPlans(session, projectPlanIds);
+      broker.closeAndEvict();
    }
 
    /**
@@ -69,14 +134,14 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
     * @param session        a <code>OpProjectSession</code> representing a server session.
     * @param projectPlanIds a <code>List(Long)</code> representing a list of project plan ids.
     */
-   private void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {
+   private static void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {
       logger.info("Revalidating project plans...");
       //validate all the project plans (this includes also the work phase -> work period upgrade)
       for (Long projectPlanId : projectPlanIds) {
          OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
          new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
-         broker.close();
+         broker.closeAndEvict();
       }
    }
 

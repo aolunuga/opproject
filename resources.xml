@@ -1,0 +1,14 @@
+<project name="Language resources - Open" basedir="." default="archive">
+
+   <property name="language" value="en"/>
+   <property name="zipFile" value="resources"/>
+
+   <target name="archive" description="Archives the language resources">
+      <zip zipfile="${zipFile}_${language}_open.zip">
+         <fileset dir="src">
+            <include name="**/*_${language}.olk.xml"/>
+         </fileset>
+      </zip>
+   </target>
+
+</project>

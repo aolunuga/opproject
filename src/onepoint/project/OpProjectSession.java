@@ -176,6 +176,9 @@ public class OpProjectSession extends XExpressSession {
    }
 
    public OpGroup everyone(OpBroker broker) {
+      if (everyoneId == NO_ID) {
+         lookUpEveryoneID(broker);
+      }
       return (OpGroup) broker.getObject(OpGroup.class, everyoneId);
    }
 
@@ -359,9 +362,7 @@ public class OpProjectSession extends XExpressSession {
          queryString.append(sortQuery);
          OpQuery query = broker.newQuery(queryString.toString());
          query.setCollection("objectIds", objectIds);
-         // <FIXME author="Lucian Furtos" description="This is memory ineficient. Using broker.iterate(qeury) fails to load one-to-one relations for project nodes.">
-         Iterator result = broker.list(query).iterator();
-         // </FIXME>
+         Iterator result = broker.iterate(query);
          OpObject object;
          while (result.hasNext()) {
             object = (OpObject) result.next();
@@ -375,7 +376,7 @@ public class OpProjectSession extends XExpressSession {
          if (groupByString.length() > 0) {
             groupByString = "," + groupByString;
          }
-         StringBuffer queryBuffer = new StringBuffer("select accessibleObject");
+         StringBuffer queryBuffer = new StringBuffer("select accessibleObject.ID");
          queryBuffer.append(", max(permission.AccessLevel)");
          queryBuffer.append(" from ");
          queryBuffer.append(entityName);
@@ -396,7 +397,8 @@ public class OpProjectSession extends XExpressSession {
          OpObject object = null;
          while (result.hasNext()) {
             record = (Object[]) result.next();
-            object = (OpObject) record[0];
+            long id = ((Long) record[0]); 
+            object = broker.getObject(OpObject.class, id);
             object.setEffectiveAccessLevel((Byte) record[1]);
             accessibleObjectMap.put(object.getID(), object);
             accessibleObjects.add(object);
@@ -474,17 +476,51 @@ public class OpProjectSession extends XExpressSession {
    }
 
    /**
-    * @see onepoint.service.server.XSession#cleanupSession()
+    * @see onepoint.service.server.XSession#cleanupSession(boolean)
+    * @param clearCache
     */
-   public void cleanupSession() {
-      super.cleanupSession();
+   public void cleanupSession(boolean clearCache) {
+      super.cleanupSession(clearCache);
       for (Iterator it = brokerList.iterator(); it.hasNext();) {
          OpBroker opBroker = (OpBroker) it.next();
+         if (opBroker.isOpen()) {
+            if (clearCache) {
+               opBroker.clear();
+            }
+            opBroker.close();
+         }
+         it.remove();
+      }
+   }
+
+   /**
+    * Cleans the brokers which were opened by this session, with the exception of the brokers
+    * found in the given list.
+    *
+    * @param exceptBrokers Brokers to be excluded from close/cleanup
+    * @param clearCache
+    */
+   public void cleanupSession(List<OpBroker> exceptBrokers, boolean clearCache) {
+      super.cleanupSession(clearCache);
+      for (Iterator it = brokerList.iterator(); it.hasNext();) {
+         OpBroker opBroker = (OpBroker) it.next();
+         if (exceptBrokers.contains(opBroker)) {
+            continue;
+         }
          if (opBroker.isOpen()) {
             opBroker.close();
          }
          it.remove();
       }
+   }
+
+   /**
+    * Returns the list of brokers opened by the session.
+    *
+    * @return a <code>List(OpBroker)</code>.
+    */
+   public List<OpBroker> getBrokerList() {
+      return brokerList;
    }
 
    public boolean isUser(OpUser user) {

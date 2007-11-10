@@ -250,7 +250,10 @@ public class OpActivity extends OpObject {
 
    public OpActivityVersion getBaselineVersion() {
       OpProjectPlanVersion baselinePlanVersion = getProjectPlan().getBaselineVersion();
+      //<FIXME author="Haizea Florin" description="data loading problem: the getVersions().isEmpty() statement will load
+      //  all the versions of this activity">
       if (baselinePlanVersion != null && getVersions() != null && !getVersions().isEmpty()) {
+      //<FIXME>
          for (OpActivityVersion version : getVersions()) {
             if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
                return version;

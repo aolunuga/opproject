@@ -4,16 +4,6 @@
 
 package onepoint.project.modules.my_tasks;
 
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -22,15 +12,14 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.documents.OpContent;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpAttachment;
-import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XServiceException;
+
+import java.util.*;
 
 /**
  * Service Implementation for MyTasks.
@@ -459,7 +448,7 @@ public class OpMyTasksServiceImpl implements OpService {
         OpProjectSession session, OpBroker broker, OpActivity activity)
         throws XServiceException {
       if (activity == null) {
-         LOGGER.warn("ERROR: given task is <null>");
+         LOGGER.debug("Given task is <null>");
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
       }
       // check rights
@@ -474,7 +463,7 @@ public class OpMyTasksServiceImpl implements OpService {
 
       // cannot delete if work records exist
       for (OpAssignment assignment : activity.getAssignments()) {
-         if (!assignment.getWorkRecords().isEmpty()) {
+         if(OpActivityDataSetFactory.hasWorkRecords(broker, assignment)) {        
             throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
          }
       }
@@ -624,7 +613,7 @@ public class OpMyTasksServiceImpl implements OpService {
          return true;
       }
       else {
-         LOGGER.warn("Insufficient Adhoc task view permissions!");
+         LOGGER.debug("Insufficient Adhoc task view permissions!");
          return false;
       }
    }
@@ -645,7 +634,7 @@ public class OpMyTasksServiceImpl implements OpService {
       }
       // check if logged in
       if (!session.isLoggedOn()) {
-         LOGGER.info("not logged in!");
+         LOGGER.info("User is not logged in.");
          return false;
       }
       // create rights include admin rights
@@ -657,7 +646,7 @@ public class OpMyTasksServiceImpl implements OpService {
          return true;
       }
       else {
-         LOGGER.warn("Insufficient Adhoc task create permissions!");
+         LOGGER.debug("Insufficient Adhoc task create permissions!");
          return false;
       }
    }
@@ -695,7 +684,7 @@ public class OpMyTasksServiceImpl implements OpService {
       finally {
          broker.close();
       }
-      LOGGER.warn("Insufficient Adhoc task edit permissions!");
+      LOGGER.debug("Insufficient Adhoc task edit permissions!");
       return false;
    }
 
@@ -716,7 +705,7 @@ public class OpMyTasksServiceImpl implements OpService {
          return true;
       }
       else {
-         LOGGER.warn("Insufficient Adhoc task delete permissions!");
+         LOGGER.debug("Insufficient Adhoc task delete permissions!");
          return false;
       }
    }
@@ -730,7 +719,7 @@ public class OpMyTasksServiceImpl implements OpService {
    private static boolean basicRightsCheck(OpProjectSession session) {
       // check if logged in
       if (!session.isLoggedOn()) {
-         LOGGER.info("not logged in!");
+         LOGGER.info("User is not logged in.");
          return false;
       }
       // administrator has all the rights

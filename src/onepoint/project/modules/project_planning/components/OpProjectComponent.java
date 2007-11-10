@@ -16,6 +16,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Date;
 import java.util.*;
@@ -42,22 +43,14 @@ public class OpProjectComponent extends XComponent {
    public final static byte UTILIZATION_ROW = 10;
    public final static byte UTILIZATION_HEADER = 11;
 
-   // *** All rendering preferences are set for GANTT_BOX, because everything
-   // else could be incrementally loaded
-   // ==> For instance: text-left="@name" text-right="@resources"
-   // *** Maybe DATA_SET and XValidator should be independent (program-wise)
-   // ==> Hand data-set to validator each time?
-
-   public final static Integer TEXT_LEFT = new Integer(256); // GanttBox
+  public final static Integer TEXT_LEFT = new Integer(256); // GanttBox
    public final static Integer TEXT_RIGHT = new Integer(257); // GanttBox
-   // *** TEXT_CENTER/INSIDE?
    public final static Integer TIME_SCALE = new Integer(258); // GanttChart
    public final static Integer ACTIVITY_TYPE = new Integer(259); // Gantt
    public final static Integer DATA_ROW = new Integer(260); // Gantt
    public final static Integer SOURCE = new Integer(261); // GanttDependency
    public final static Integer TARGET = new Integer(262); // GanttDependency
    public final static Integer PATH = new Integer(263); // GanttDependency
-   // (transient)
    public final static Integer DRAG_MODE = new Integer(264); // (transient)
    public final static Integer GRID_X = new Integer(265); // GanttChart
    public final static Integer GRID_Y = new Integer(266); // GanttChart
@@ -285,7 +278,7 @@ public class OpProjectComponent extends XComponent {
    /**
     * Type of the project component
     */
-   protected byte pc_type = 0;
+   protected byte pcType = 0;
 
    /**
     * Used by activity component (gantt and wsb) to know if an insert border should be drawn around the activity
@@ -314,25 +307,25 @@ public class OpProjectComponent extends XComponent {
     * @return componentShape for this project component
     */
    private Polygon getComponentPolygon() {
-      if (pc_type != GANTT_ACTIVITY) {
+      if (pcType != GANTT_ACTIVITY) {
          throw new UnsupportedOperationException("Area can anly be obtained on project components");
       }
       return componentShape;
    }
 
    private Map getGanttIndexes() {
-      if (pc_type != GANTT_CHART) {
+      if (pcType != GANTT_CHART) {
          throw new UnsupportedOperationException("Gantt indexes can only be called on gantt chart component");
       }
       return ganttIndexes;
    }
 
    protected boolean isChartActivity() {
-      return (pc_type == GANTT_ACTIVITY);
+      return (pcType == GANTT_ACTIVITY);
    }
 
    protected boolean isChartComponent() {
-      return (pc_type == GANTT_CHART);
+      return (pcType == GANTT_CHART);
    }
 
    protected boolean getDrawActivityBorder() {
@@ -373,14 +366,14 @@ public class OpProjectComponent extends XComponent {
    }
 
    public final int getComponentType() {
-      return pc_type;
+      return pcType;
    }
 
 
    protected void initializeProjectComponent(byte type) {
       setFocusable(true);
-      pc_type = type;
-      switch (pc_type) {
+      pcType = type;
+      switch (pcType) {
          case GANTT_CHART:
             setStyle(DEFAULT_GANTT_CHART_STYLE);
             setFocusable(false); // *** really?
@@ -871,7 +864,7 @@ public class OpProjectComponent extends XComponent {
 
          captionEditor.registerEventHandler(this, COMPONENT_EVENT);
          captionEditorOwner = this;
-         XComponent viewPort = (XComponent) getContext().getViewPort();
+         XComponent viewPort = getContext().getViewPort();
          XComponent verticalScrollBar = (XComponent) getContext().getChild(VERTICAL_SCROLL_BAR_INDEX);
          int scrollWidth = 0;
          if (verticalScrollBar.getBounds() != null) {
@@ -896,6 +889,7 @@ public class OpProjectComponent extends XComponent {
          Point absolutePoint = getParent().absolutePosition(x, getBounds().y);
          // <FIXME author="Horia Chiorean" description="For some reason, only forms may have the property below set =>
          // we need to set it here.">
+         captionEditorOwner.setFocused(false);
          captionEditor.setFocusedView(captionEditor);
          // <FIXME>
          getDisplay().openLayer(captionEditor, absolutePoint.x, absolutePoint.y, true);
@@ -919,7 +913,7 @@ public class OpProjectComponent extends XComponent {
    // ==> Maybe have polygons as shapes registered and x/y hashtables?
 
    public boolean insideShape(Rectangle bounds, int x, int y) {
-      if (pc_type == GANTT_DEPENDENCY) {
+      if (pcType == GANTT_DEPENDENCY) {
          Point[] path = getPath();
          Point p1 = null;
          Point p2 = null;
@@ -965,7 +959,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public XComponent getContext() {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_ACTIVITY:
          case GANTT_DEPENDENCY:
          case GANTT_CHART:
@@ -1026,7 +1020,7 @@ public class OpProjectComponent extends XComponent {
     */
    private boolean initializeCalendar() {
 
-      if ((pc_type != GANTT_CHART) && (pc_type != UTILIZATION_CHART)) {
+      if ((pcType != GANTT_CHART) && (pcType != UTILIZATION_CHART)) {
          throw new UnsupportedOperationException("Initialize calendar can only be called on GANTT_CHART or UTILIZATION_CHART");
       }
 
@@ -1050,7 +1044,7 @@ public class OpProjectComponent extends XComponent {
          OpProjectComponent box = (OpProjectComponent) getContext();
          XComponent data_set = box.getDataSetComponent();
          OpGanttValidator validator = null;
-         if (pc_type == GANTT_CHART) {
+         if (pcType == GANTT_CHART) {
             validator = (OpGanttValidator) (data_set.validator());
          }
          // *** Check for data-set?
@@ -1060,7 +1054,7 @@ public class OpProjectComponent extends XComponent {
          for (int index = 0; index < data_set.getChildCount(); index++) {
             data_row = (XComponent) (data_set._getChild(index));
             if (!OpProjectConstants.DUMMY_ROW_ID.equals(data_row.getStringValue())) {
-               if (pc_type == GANTT_CHART) {
+               if (pcType == GANTT_CHART) {
                   if (OpGanttValidator.getStart(data_row) == null ||
                        OpGanttValidator.getEnd(data_row) == null) {
                      continue;
@@ -1161,7 +1155,7 @@ public class OpProjectComponent extends XComponent {
          double unitRatio = getUnitRatio(box.getTimeUnit());
 
 
-         if (pc_type == GANTT_CHART) {
+         if (pcType == GANTT_CHART) {
             double dayWidth = box._dayWidth();
             int maxLeftCaption = box.getMaxLeftCaptionSize();
             int maxRightCaption = box.getMaxRightCaptionSize();
@@ -1259,7 +1253,7 @@ public class OpProjectComponent extends XComponent {
     * @return graphical unit width.
     */
    protected final double _dayWidth() {
-      if ((pc_type == GANTT_BOX) || (pc_type == UTILIZATION_BOX)) {
+      if ((pcType == GANTT_BOX) || (pcType == UTILIZATION_BOX)) {
          // get the GanttHeaderComponent
          XComponent ganttHeader = (XComponent) (_getChild(3)).getChild(0);
          // get the style of the Gantt Header
@@ -1518,7 +1512,7 @@ public class OpProjectComponent extends XComponent {
       /* unit ratio */
       double unitRatio = 0;
 
-      switch (pc_type) {
+      switch (pcType) {
 
          case GANTT_CHART: {
             // Force new initialization: in case of non existing start Value
@@ -1867,7 +1861,7 @@ public class OpProjectComponent extends XComponent {
     * @param type new type of this component
     */
    private void initializeGanttComponent(byte type) {
-      this.pc_type = type;
+      this.pcType = type;
       switch (type) {
          case GANTT_ACTIVITY:
             this.setVisible(true);
@@ -1926,6 +1920,13 @@ public class OpProjectComponent extends XComponent {
          }
       }
    }
+
+   protected void clearSelection() {
+      getContext().getDataSetComponent().clearDataSelection();
+      syncActivityUISelection();
+   }
+
+
 
    /**
     * Does layouting of the <code>UTILIZATION_CHART</code> component
@@ -2008,7 +2009,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public void doLayout() {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_CHART:
             // First layout Gantt chart activities (creating cached dependencies)
             initializeCalendar();
@@ -2060,7 +2061,7 @@ public class OpProjectComponent extends XComponent {
     * @param timeUnit a <code>byte</code> representing the gannt time unit (weeks or months).
     */
    private void moveToWeekMonthBeginning(byte timeUnit) {
-      if (this.pc_type == GANTT_CHART || this.pc_type == UTILIZATION_CHART) {
+      if (this.pcType == GANTT_CHART || this.pcType == UTILIZATION_CHART) {
          // set the start for chart to "round" values - begining of month/begining of week
          Date start = this.getStart();
          Calendar calendar = XDisplay.getDefaultDisplay().getCalendar().getCalendar();
@@ -2118,7 +2119,7 @@ public class OpProjectComponent extends XComponent {
          data_row = (XComponent) (data_set._getChild(index));
          // *** pc-type should here always be GANTT_ACTIVITY
          // ==> Therefore, we could skip this if-construct
-         if ((child.pc_type == GANTT_ACTIVITY) && child.getVisible()) {
+         if ((child.pcType == GANTT_ACTIVITY) && child.getVisible()) {
             bounds = child.getBounds();
 
             center_y = (bounds.height / 2) + (ascent / 2);
@@ -2630,7 +2631,7 @@ public class OpProjectComponent extends XComponent {
       // (connector/dependency)
       Rectangle bounds = getBounds();
       XStyle style = getStyleAttributes();
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_CHART:
             initializeCalendar();
             _paintTimeChartBackground(g, clip_area);
@@ -2970,7 +2971,7 @@ public class OpProjectComponent extends XComponent {
       XView dragSource = getDisplay().getDragSource();
       if (dragSource != null && dragSource instanceof OpProjectComponent) {
          OpProjectComponent activity = (OpProjectComponent) dragSource;
-         if (activity.pc_type == GANTT_ACTIVITY &&
+         if (activity.pcType == GANTT_ACTIVITY &&
               activity.getDragPosition() != null) {
             int gridY = ((OpProjectComponent) getContext()).getGridY();
             int ganttIndex = activity.getBounds().y / gridY;
@@ -3003,7 +3004,7 @@ public class OpProjectComponent extends XComponent {
       if (dragSource != null && dragSource instanceof OpProjectComponent) {
          OpProjectComponent activity = (OpProjectComponent) dragSource;
 
-         if (activity.getDragPosition() != null && activity.pc_type == GANTT_ACTIVITY && activity != this) {
+         if (activity.getDragPosition() != null && activity.pcType == GANTT_ACTIVITY && activity != this) {
 
             Area intersection = this.intersects(activity);
             if (intersection.isEmpty()) {
@@ -3613,7 +3614,7 @@ public class OpProjectComponent extends XComponent {
 
    protected void removeDependency(OpProjectComponent dependency) {
       // Remove dependency from all references
-      if (pc_type == GANTT_CHART) {
+      if (pcType == GANTT_CHART) {
          OpProjectComponent source = dependency.getSource();
          OpProjectComponent target = dependency.getTarget();
          OpGanttValidator validator = (OpGanttValidator) getContext().getDataSetComponent().validator();
@@ -3624,7 +3625,7 @@ public class OpProjectComponent extends XComponent {
 
    protected void _setExpandedActivity(boolean expanded) {
       // Make this activity visible or hidden including its dependencies
-      if (pc_type == GANTT_ACTIVITY) {
+      if (pcType == GANTT_ACTIVITY) {
          getDataRow().expanded(expanded, false);
       }
    }
@@ -3820,7 +3821,7 @@ public class OpProjectComponent extends XComponent {
 
    public void processPointerEvent(HashMap event, int action, int x, int y, int modifiers) {
       logger.debug("OpProjectComponent.processPointerEvent");
-      switch (pc_type) {
+      switch (pcType) {
          // *** Not easily possible now: We cannot determine, if someone clicks
          // "beside" a shape
          // ==> Not really true: Use the following code, but call
@@ -3832,7 +3833,7 @@ public class OpProjectComponent extends XComponent {
                XView component = find(x, y);
                if (component instanceof OpProjectComponent) {
                   OpProjectComponent activity = ((OpProjectComponent) component);
-                  if (activity.pc_type == GANTT_ACTIVITY
+                  if (activity.pcType == GANTT_ACTIVITY
                        && ((action == POINTER_DOWN) || (action == POINTER_DOUBLE_TAP))
                        || action == POINTER_TAP) {
                      passEvent = true;
@@ -3842,6 +3843,11 @@ public class OpProjectComponent extends XComponent {
                   break;
                }
             }
+
+            if (action == POINTER_DOWN) {
+               clearSelection();
+            }
+
             super.processPointerEvent(event, action, x, y, modifiers);
 
             // processEvent() could return true if the event was consumed
@@ -3910,9 +3916,7 @@ public class OpProjectComponent extends XComponent {
                            // select the data row
                            XComponent dataRow = this.getDataRow();
                            XComponent dataSet = (XComponent) dataRow.getParent();
-                           dataSet.clearDataSelection();
                            dataRow.setSelected(true);
-                           syncActivityUISelection();
                            boolean changeExpandedMode = (modifiers & CTRL_KEY_DOWN) == CTRL_KEY_DOWN;
                            // expand or collapse collection activity on CTRL+POINTER_DOWN
                            if (changeExpandedMode) {
@@ -3986,9 +3990,7 @@ public class OpProjectComponent extends XComponent {
                            // select the data row
                            XComponent dataRow = this.getDataRow();
                            XComponent dataSet = (XComponent) dataRow.getParent();
-                           dataSet.clearDataSelection();
                            dataRow.setSelected(true);
-                           syncActivityUISelection();
                            break;
                         case POINTER_UP:
                            getDisplay().setDragSource(null);
@@ -4079,9 +4081,7 @@ public class OpProjectComponent extends XComponent {
                            // select the data row
                            XComponent dataRow = this.getDataRow();
                            XComponent dataSet = (XComponent) dataRow.getParent();
-                           dataSet.clearDataSelection();
                            dataRow.setSelected(true);
-                           syncActivityUISelection();
                            break;
                         case POINTER_UP:
                            getDisplay().setDragSource(null);
@@ -4381,7 +4381,7 @@ public class OpProjectComponent extends XComponent {
    private void dropOnActivity(OpProjectComponent activity) {
       if (activity != null) {
          // Connect open activity with target activity
-         if (activity.pc_type == GANTT_DEPENDENCY) {
+         if (activity.pcType == GANTT_DEPENDENCY) {
             this.linkToDependency(activity);
          }
       }
@@ -4423,14 +4423,14 @@ public class OpProjectComponent extends XComponent {
 
    public void processKeyboardEvent(HashMap event, int action, int key_code, char key_char, int modifiers) {
       logger.debug("OpProjectComponent.processKeyboardEvent");
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             processUndoRedoKeyboardEvent(action, key_code, modifiers);
             if (action == KEY_DOWN) {
                switch (key_code) {
 
                   case DELETE_KEY: {
-                     if (pc_type == GANTT_BOX) {
+                     if (pcType == GANTT_BOX) {
                         // Remove the selected activity from chart
                         OpProjectComponent chart = (OpProjectComponent) (getBoxContent());
                         for (int i = 0; i < chart.getChildCount(); i++) {
@@ -4481,7 +4481,7 @@ public class OpProjectComponent extends XComponent {
                      // *** CURSOR_UP/DOWN: Move activity up/down?
                   case BACK_SPACE_KEY:
                   case DELETE_KEY: {
-                     if (pc_type == GANTT_ACTIVITY) {
+                     if (pcType == GANTT_ACTIVITY) {
                         // Remove activity from chart
                         box = (OpProjectComponent) getContext();
                         OpProjectComponent chart = (OpProjectComponent) (box.getBoxContent());
@@ -4638,7 +4638,7 @@ public class OpProjectComponent extends XComponent {
     * Removes a gannt dependency from the chart.
     */
    private void removeChartDependency() {
-      if (this.pc_type == GANTT_DEPENDENCY) {
+      if (this.pcType == GANTT_DEPENDENCY) {
          // Remove activity from chart
          OpProjectComponent box = (OpProjectComponent) getContext();
          OpProjectComponent chart = (OpProjectComponent) box.getBoxContent();
@@ -4650,7 +4650,7 @@ public class OpProjectComponent extends XComponent {
 
    public void processFocusEvent(HashMap event, int action) {
       logger.debug("OpProjectComponent.processFocusEvent");
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_ACTIVITY:
             if (action == FOCUS_GAINED) {
                scrollToComponent();
@@ -4787,7 +4787,7 @@ public class OpProjectComponent extends XComponent {
       // component
       // events
       logger.debug("OpProjectComponent.processComponentEvent");
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             // the Horizontal scroll Bar is at minumum or maximul position and the box is enabled
             if (action == SCROLL_AT_END && getEditMode()) {
@@ -4893,7 +4893,7 @@ public class OpProjectComponent extends XComponent {
 
    public void reset() {
       // *** Call super.reset() for correctly implementing derived components?
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             // Clear all data
             XComponent data = (XComponent) getBoxContent();
@@ -4905,7 +4905,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public void addChild(XView child) {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             getBoxContent().addChild(child);
             break;
@@ -4979,7 +4979,7 @@ public class OpProjectComponent extends XComponent {
          int mouseX = ((Integer) event.get(X)).intValue();
          int mouseY = ((Integer) event.get(Y)).intValue();
          // special tool tip
-         switch (pc_type) {
+         switch (pcType) {
             case GANTT_ACTIVITY:
                openActivityTooltip(mouseX, mouseY);
                break;
@@ -5016,6 +5016,12 @@ public class OpProjectComponent extends XComponent {
       // fill up the form
       fillUpDetails(form);
       //show tool tip form
+      if (form != null) {
+         XView parent = form.getParent();
+         if (parent != null) {
+            parent.removeChild(form);
+         }
+      }
       showToolTipFormForComponent(mouseX, mouseY, form);
    }
 
@@ -5092,7 +5098,7 @@ public class OpProjectComponent extends XComponent {
 
 
    public void setStateful(boolean stateful) {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             super.setStateful(stateful);
             if (stateful) {
@@ -5107,7 +5113,7 @@ public class OpProjectComponent extends XComponent {
 
    public Serializable state() {
       Serializable state = null;
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             OpProjectComponent chart = (OpProjectComponent) getBoxContent();
             List ganttState = new ArrayList();
@@ -5126,7 +5132,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public void restoreState(Serializable state) {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             OpProjectComponent chart = (OpProjectComponent) getBoxContent();
             List ganttState = (List) state;
@@ -5397,7 +5403,7 @@ public class OpProjectComponent extends XComponent {
     */
    protected void setMouseCursor(Cursor cursor) {
       super.setMouseCursor(cursor);
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_CHART:
             //set also for all children
             for (int i = 0; i < getChildCount(); i++) {
@@ -5411,7 +5417,7 @@ public class OpProjectComponent extends XComponent {
 
    public Dimension prepareImageableView() {
       Dimension size;
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             //this is required in order to make the gantt scroller dissapear
             getBoxContent().setEditMode(getEditMode());
@@ -5430,7 +5436,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public void restoreImageableView() {
-      switch (pc_type) {
+      switch (pcType) {
          case GANTT_BOX:
             setEditMode(getBoxContent().getEditMode());
             getBoxContent().setEditMode(false);
@@ -5507,4 +5513,16 @@ public class OpProjectComponent extends XComponent {
    public void setShowCosts(boolean showCosts) {
       this.setProperty(SHOW_COSTS,  Boolean.valueOf(showCosts));
    }
+
+
+   private void writeObject(java.io.ObjectOutputStream stream)
+        throws IOException {
+      stream.writeByte(pcType);
+   }
+
+   private void readObject(java.io.ObjectInputStream stream)
+        throws IOException, ClassNotFoundException {
+      pcType = stream.readByte();
+   }
+
 }

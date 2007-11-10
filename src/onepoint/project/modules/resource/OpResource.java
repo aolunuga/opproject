@@ -205,7 +205,10 @@ public class OpResource extends OpObject {
       // if the resource has no OpHourlyRatesPeriods defined or
       // if the day is not in one of the OpHourlyRatesPeriods time intervals
       // we return the resource's hourly rate & external rate
+      //<FIXME author="Haizea Florin" description="data loading problem: the hourlyRatesPeriods.isEmpty() statement will
+      //  load all the hourly rates periods of this resource even if in some cases this is not necessary">
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)) {
+         //<FIXME>
          internalRate = hourlyRate;
       }
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && externalRate == null)) {

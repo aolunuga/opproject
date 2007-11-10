@@ -55,8 +55,6 @@ public class XMLRPCServiceTest extends OpBaseOpenTestCase {
       projectDataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
-
 //      String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
 //      XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 1d, false, poolid);
 //      XMessage response = getResourceService().insertResource(session, request);

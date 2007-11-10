@@ -67,6 +67,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
+   private final static String MODIFIED_RATES = "ModifiedRates";
 
    private final static String ADD_DOCUMENT_BUTTON = "AddDocumentButton";
    private final static String ADD_URL_BUTTON = "AddURLButton";
@@ -92,6 +93,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          editMode = Boolean.FALSE;
       }
       form.findComponent(EDIT_MODE).setBooleanValue(editMode);
+      form.findComponent(MODIFIED_RATES).setBooleanValue(false);
 
       //update components which are not project-related
       this.updateComponentsProjectUnrelated(session, broker, form, editMode, project, parameters);
@@ -183,10 +185,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
       this.fillToDos(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill the version of the project
-      this.fillProjectPlanVersions(form, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator, project, session);
+      this.fillProjectPlanVersions(form, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator,
+           project, session, broker);
 
       //fill the resources & hourly rates periods data set
-      this.fillResources(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
+      this.fillResources(broker, form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill permissions
       this.fillPermissions(session, broker, form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
@@ -206,11 +209,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
     */
    private void fillPermissions(OpProjectSession session, OpBroker broker, XComponent form,
         OpProjectNode project, boolean editMode) {
+      byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
+      XComponent permissionSet = form.findComponent(PERMISSION_SET);
+      OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
+           OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
       if (OpEnvironmentManager.isMultiUser()) {
-         byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-         XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
-              OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
          OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
       else {
@@ -262,9 +265,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * @param editMode a <code>boolean</code> indicating whether it's and edit or view operation.
     * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param session  a <code>OpProjectSession</code> representing the server session.
+    * @param broker   a <code>OpBroker</code> needed to perform the DB operations.
     */
-   private void fillProjectPlanVersions(XComponent form, boolean editMode, OpProjectNode project, OpProjectSession session) {
-      boolean isButtonVisible = editMode && (project.getPlan() != null) && (project.getPlan().getVersions().size() > 0);
+   private void fillProjectPlanVersions(XComponent form, boolean editMode, OpProjectNode project, OpProjectSession session,
+        OpBroker broker) {
+      boolean isButtonVisible = editMode && (project.getPlan() != null) && (OpProjectDataSetFactory.getPlanVersionsCount(broker, project.getPlan()) > 0);
       if (project.getPlan() != null) {
          this.fillVersionsDataSet(form, editMode, project.getPlan(), session);
       }
@@ -562,10 +567,11 @@ public class OpEditProjectFormProvider implements XFormProvider {
     * Fills the resources for the edited project.
     *
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
+    * @param broker   the <code>OpBroker</code> object needed to perform the DB operations.
     * @param project  a <code>OpProjectNode</code> representing the project being edited.
     * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
     */
-   private void fillResources(XComponent form, OpProjectNode project, boolean editMode) {
+   private void fillResources(OpBroker broker, XComponent form, OpProjectNode project, boolean editMode) {
       XComponent dataSet = form.findComponent(ASSIGNED_RESOURCE_DATA_SET);
       XComponent originalDataSet = form.findComponent(ORIGINAL_RESOURCE_DATA_SET);
       XComponent dataRow;
@@ -640,7 +646,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataRow.addChild(dataCell);
 
          //expand the row if the assignment has hourly rates periods
-         if (!assignment.getHourlyRatesPeriods().isEmpty()) {
+         if (!OpActivityDataSetFactory.hasHourlyRatesPeriods(broker, assignment)) {
             dataRow.setExpanded(true);
          }
          dataSet.addChild(dataRow);

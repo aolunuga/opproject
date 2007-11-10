@@ -26,9 +26,11 @@ public class OpProjectModuleChecker implements OpModuleChecker {
    }
 
    /**
+    * Deletes all the "orphan" assignment versions (not liked to an activity version)
+    *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
-   public void cleanUpAssignments(OpProjectSession session) {
+   private void cleanUpAssignments(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       OpQuery assignmentVersionQuery = broker.newQuery("from OpAssignmentVersion assignmentVersion where assignmentVersion.ActivityVersion is null");
       OpTransaction tx = broker.newTransaction();
@@ -38,6 +40,6 @@ public class OpProjectModuleChecker implements OpModuleChecker {
          broker.deleteObject(assignmentVersion);
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 }

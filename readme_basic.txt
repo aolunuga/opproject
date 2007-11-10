@@ -1,4 +1,4 @@
-Onepoint Project 7.1 Basic Edition
+Onepoint Project 7.1 (Update 1) Basic Edition
 
 ==================================
 
@@ -20,7 +20,7 @@ System Requirements
 
 
 
-* Microsoft Windows 2000/XP, Mac OS X 10.4, Linux 2.4 or later
+* Microsoft Windows XP/Vista, Mac OS X 10.4, Linux 2.4 or later
 
 
 
@@ -64,7 +64,7 @@ IMPORTANT: Upgrading to New Embedded Database System
 
 For scalability and performance reasons we decided to change the embedded
 
-database from HSQL-DB to Derby starting with this release (7.1). Please
+database from HSQL-DB to Derby starting with the 7.1 release. Please
 
 note that HSQL-DB is still part of the distribution and you can still use
 

@@ -79,6 +79,7 @@
       <resource id="ActualEffortException">Der Ist-Aufwand ist nicht korrekt</resource>
       <resource id="RemainingEffortException">Der Rest-Aufwand ist nicht korrekt</resource>
       <resource id="DuplicateEffortException">Mindestens zwei Aufwandseinträge haben die gleiche Zuordnung</resource>
+      <resource id="CostTypeException">Die Kostenart ist nicht korrekt</resource>
       <resource id="ActualCostException">Die Ist-Kosten sind nicht korrekt</resource>
       <resource id="RemainingCostException">Die Rest-Kosten sind nicht korrekt</resource>
 
@@ -135,6 +136,7 @@
       <resource id="ActualEffortException">Der Ist-Aufwand ist nicht korrekt</resource>
       <resource id="RemainingEffortException">Der Rest-Aufwand ist nicht korrekt</resource>
       <resource id="DuplicateEffortException">Mindestens zwei Aufwandseinträge haben die gleiche Zuordnung</resource>
+      <resource id="CostTypeException">Die Kostenart ist nicht korrekt</resource>
       <resource id="ActualCostException">Die Ist-Kosten sind nicht korrekt</resource>
       <resource id="RemainingCostException">Die Rest-Kosten sind nicht korrekt</resource>
             

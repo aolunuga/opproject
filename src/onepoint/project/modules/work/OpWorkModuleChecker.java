@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * Checker class associated to the work module.
+ *
  * @author mihai.costin
  */
 public class OpWorkModuleChecker implements OpModuleChecker {
@@ -31,31 +33,9 @@ public class OpWorkModuleChecker implements OpModuleChecker {
    private static final XLog logger = XLogFactory.getServerLogger(OpWorkModule.class);
 
    public void check(OpProjectSession session) {
-      deleteWorkRecordsForDeletedActivities(session);
+      logger.info("Checking module Work...");
       resetWorkValues(session);
       resetWorkMonths(session);
-   }
-
-   /**
-    * Deletes all the workrecords that are linked to the deleted activities.
-    *
-    * @param session Project session
-    */
-   private void deleteWorkRecordsForDeletedActivities(OpProjectSession session) {
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.Deleted = true");
-      Iterator iterator = broker.list(query).iterator();
-      while (iterator.hasNext()) {
-         OpActivity activity = (OpActivity) iterator.next();
-         for (OpAssignment assignment : activity.getAssignments()) {
-            for (OpWorkRecord workRecord : assignment.getWorkRecords()) {
-               broker.deleteObject(workRecord);
-            }
-         }
-      }
-      t.commit();
-      broker.close();
    }
 
 
@@ -70,8 +50,12 @@ public class OpWorkModuleChecker implements OpModuleChecker {
       applyWorkRecords(session);
    }
 
-
-   public void resetWorkMonths(OpProjectSession session) {
+   /**
+    * Recalculates the values for all the work months.
+    *
+    * @param session project session
+    */
+   private void resetWorkMonths(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
       allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
@@ -84,10 +68,15 @@ public class OpWorkModuleChecker implements OpModuleChecker {
          }
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
-   
 
+   /**
+    * Applies all the found work records in the db on the associated assignments.
+    * This method must be called only after resetting the values on assignments and activities.
+    *
+    * @param session project session
+    */
    private void applyWorkRecords(OpProjectSession session) {
       OpBroker broker;
       OpTransaction transaction;
@@ -134,9 +123,14 @@ public class OpWorkModuleChecker implements OpModuleChecker {
       }
 
       transaction.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
+   /**
+    * Reset the values on all the activities (actual and remaining).
+    *
+    * @param session project session.
+    */
    private void resetActivities(OpProjectSession session) {
       OpBroker broker;
       OpTransaction transaction;
@@ -176,9 +170,14 @@ public class OpWorkModuleChecker implements OpModuleChecker {
          activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
       }
       transaction.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
+   /**
+    * Resets the values on all the assignments (actual and remaining).
+    *
+    * @param session project session
+    */
    private void resetAssignments(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
@@ -211,7 +210,7 @@ public class OpWorkModuleChecker implements OpModuleChecker {
          broker.updateObject(assignment);
       }
       transaction.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 

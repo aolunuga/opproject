@@ -105,8 +105,11 @@ public class OpProjectNodeAssignment extends OpObject {
 
       // if the assignment has no OpHourlyRatesPeriods defined or
       // if the day is not in one of the OpHourlyRatesPeriods time intervals
-      // we return the assignmet's hourly rate & external rate
+      // we return the assignment's hourly rate & external rate
+      //<FIXME author="Haizea Florin" description="data loading problem: the hourlyRatesPeriods.isEmpty() statement will
+      //  load all the hourly rates periods of this project node assignment even if in some cases this is not necessary">
       if (hourlyRatesPeriods.isEmpty() || (!hourlyRatesPeriods.isEmpty() && internalRate == null)) {
+      //<FIXME>
          internalRate = hourlyRate;
          //if the internal rate is null return the assignment's resource rate
          if (internalRate == null) {

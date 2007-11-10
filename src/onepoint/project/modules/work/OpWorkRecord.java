@@ -392,7 +392,10 @@ public class OpWorkRecord extends OpObject {
     *         or <code>false</code> otherwise
     */
    public boolean isEmpty() {
+      //<FIXME author="Haizea Florin" description="data loading problem: the costRecords.isEmpty() statement will load
+      //  all the cost records of this work record">
       return !completed && actualEffort == 0 && !costRecords.isEmpty();
+      //<FIXME>
    }
 
    /**

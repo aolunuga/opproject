@@ -76,8 +76,6 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       OpUserTestDataFactory userDataFactory = new OpUserTestDataFactory(session);
       activityFactory = new OpActivityTestDataFactory(session);
 
-      clean();
-
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, null, OpUser.CONTRIBUTOR_USER_LEVEL,
            "John", "Doe", "en", "user@email.com", null, null, null, null);
       XMessage request = new XMessage();

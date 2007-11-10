@@ -20,6 +20,7 @@
    <data-field id="RemainingEffortException" text="${RemainingEffortException}"/>
    <data-field id="DuplicateEffortException" text="${DuplicateEffortException}"/>
 
+   <data-field id="CostTypeException" text="${CostTypeException}"/>
    <data-field id="ActualCostException" text="${ActualCostException}"/>
    <data-field id="RemainingCostException" text="${RemainingCostException}"/>
 

@@ -79,8 +79,6 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       resourceDataFactory = new OpResourceTestDataFactory(session);
       activityDataFactory = new OpActivityTestDataFactory(session);
 
-      clean();
-
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg("resource", "description", 50d, 2d, 1d, false, poolid);
       XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);

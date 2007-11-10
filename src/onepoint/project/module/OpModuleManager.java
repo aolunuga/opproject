@@ -121,6 +121,7 @@ public final class OpModuleManager {
          Iterator<OpModule> modulesIt = moduleRegistry.iterator();
          while (modulesIt.hasNext()) {
             OpModule module = modulesIt.next();
+            logger.info("Loading module " + module.getName());
             module.start(startupSession);
          }
          startupSession.close();

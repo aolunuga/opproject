@@ -232,27 +232,19 @@ public class OpWorkSlipDataSetFactory {
          //obtain the sub data set of cost records which belong to the work record
          XComponent costRecordSubset = filterDataSet(costRecordDataSet, workDataRow);
          workRecord.setCostRecords(OpCostRecordDataSetFactory.createCostRecords(broker, costRecordSubset));
-
-         //remove the cost subset for this work record from the original CostRecordDataSet
-         costRecordRowsList = new ArrayList<XComponent>();
-         for (int j = 0; j < costRecordSubset.getChildCount(); j++) {
-            costRecordRowsList.add((XComponent) costRecordSubset.getChild(j));
-         }
-         costRecordDataSet.removeChildren(costRecordRowsList);
-
          workRecords.add(workRecord);
       }
 
       /*if there are any cost records that do not belong to any work records create "empty" work records for
         these cost records*/
       List<OpWorkRecord> emptyWorkRecords = new ArrayList<OpWorkRecord>();
-      XComponent costDataRow;
       boolean existsEmptyWorkRecord;
-      for (int i = 0; i < costRecordDataSet.getChildCount(); i++) {
+      List<XComponent> rows = costRecordDataSet.asList();
+      for (XComponent costDataRow : rows) {
          existsEmptyWorkRecord = false;
-         costDataRow = (XComponent) costRecordDataSet.getChild(i);
          //form a set with the cost record form this row
          XComponent tempDataSet = new XComponent();
+         costRecordDataSet.removeChild(costDataRow);
          tempDataSet.addChild(costDataRow);
          Set<OpCostRecord> costRecordSet = OpCostRecordDataSetFactory.createCostRecords(broker, tempDataSet);
 
@@ -288,13 +280,15 @@ public class OpWorkSlipDataSetFactory {
     * @param workRecords - the <code>List</code> of <code>OpWorkRecord</code> entities from which the
     *                    data sets will be formed
     * @param session     - the <code>OpProjectSession</code> needed to get the internationalized cost types
+    * @param broker      - the <code>OpBroker</code> needed to perform the DB operations
     * @return a <code>List</code> of <code>XComponent</code> data sets formed from a <code>List</code>
     *         of <code>OpWorkRecord</code> entities. The list will contain:
     *         a set containing information about the work records
     *         a set containing information about the time records
     *         a set containing information about the cost records
     */
-   public static List<XComponent> formDataSetsFromWorkRecords(List<OpWorkRecord> workRecords, OpProjectSession session) {
+   public static List<XComponent> formDataSetsFromWorkRecords(List<OpWorkRecord> workRecords, OpProjectSession session,
+        OpBroker broker) {
       List<XComponent> dataSetList = new ArrayList<XComponent>();
       XComponent workRecordDataSet = new XComponent(XComponent.DATA_SET);
       XComponent timeRecordDataSet = new XComponent(XComponent.DATA_SET);
@@ -310,14 +304,18 @@ public class OpWorkSlipDataSetFactory {
 
          //add the time record subset of this work record to the final time record data set
          XComponent timeRecordSubset = OpTimeRecordDataSetFactory.getTimeDataSetForWorkRecord(workRecord);
-         for (int i = 0; i < timeRecordSubset.getChildCount(); i++) {
-            timeRecordDataSet.addChild(timeRecordSubset.getChild(i));
+         List<XComponent> rows = timeRecordSubset.asList();
+         for (XComponent row : rows) {
+            timeRecordSubset.removeChild(row);
+            timeRecordDataSet.addChild(row);
          }
 
          //add the cost record subset of this work record to the final cost record data set
-         XComponent costRecordSubset = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session);
-         for (int i = 0; i < costRecordSubset.getChildCount(); i++) {
-            costRecordDataSet.addChild(costRecordSubset.getChild(i));
+         XComponent costRecordSubset = OpCostRecordDataSetFactory.getCostDataSetForWorkRecord(workRecord, session, broker);
+         rows = costRecordSubset.asList();
+         for (XComponent row : rows) {
+            costRecordSubset.removeChild(row);
+            costRecordDataSet.addChild(row);
          }
       }
 
@@ -796,14 +794,15 @@ public class OpWorkSlipDataSetFactory {
       XComponent subset = new XComponent(XComponent.DATA_SET);
       XComponent dataRow;
 
-      for (int j = 0; j < dataSet.getChildCount(); j++) {
-         dataRow = (XComponent) dataSet.getChild(j);
+      List rows = dataSet.asList();
+      for (int j = 0; j < rows.size(); j++) {
+         dataRow = (XComponent) rows.get(j);
          String assignmentLocator = dataRow.getStringValue();
          if (workDataRow.getStringValue().equals(assignmentLocator)) {
+            dataSet.removeChild(dataRow);
             subset.addChild(dataRow);
          }
       }
-
       return subset;
    }
 
@@ -817,6 +816,6 @@ public class OpWorkSlipDataSetFactory {
       Map<String, String> sortOrders = new HashMap<String, String>(2);
       sortOrders.put(OpActivity.START, OpObjectOrderCriteria.ASCENDING);
       sortOrders.put(OpActivity.PRIORITY, OpObjectOrderCriteria.ASCENDING);
-      return  new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
+      return new OpObjectOrderCriteria(OpActivity.ACTIVITY, sortOrders);
    }
 }

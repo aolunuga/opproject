@@ -150,22 +150,27 @@ public class OpRestoreContext extends XContext {
       if (activeSystem != null) {
          // Map active ID to valid system object ID
          String queryString = OpBackupManager.getSystemObjectIDQuery(activeSystem);
-         logger.debug("QUERY: " + queryString);
-         OpBroker broker = session.newBroker();
-         OpQuery query = broker.newQuery(queryString);
-         Iterator iterator = broker.forceIterate(query);
-         if (iterator.hasNext()) {
-            //if a system object already exists in the db, make sure you mark the active object as existent.
-            long id = (Long) iterator.next();
-            OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
+         if (queryString != null) {
+            logger.debug("QUERY: " + queryString);
+            OpBroker broker = session.newBroker();
+            OpQuery query = broker.newQuery(queryString);
+            Iterator iterator = broker.forceIterate(query);
+            if (iterator.hasNext()) {
+               //if a system object already exists in the db, make sure you mark the active object as existent.
+               long id = (Long) iterator.next();
+               OpObject systemObject = broker.getObject(activePrototype.getInstanceClass(), id);
 
-            //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
-            OpTransaction t = broker.newTransaction();
-            logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
-            broker.deleteObject(systemObject);
-            t.commit();
+               //delete the already existent system object - otherwise inconsistencie might happen with system objects which are restored
+               OpTransaction t = broker.newTransaction();
+               logger.info("Deleting system object with prototype: " + activePrototype.getName() + " and id:" + systemObject.getID());
+               broker.deleteObject(systemObject);
+               t.commit();
+            }
+            broker.closeAndEvict();
          }
-         broker.close();
+         else {
+            logger.warn("No  [ " + activeSystem + " ] found when persisting Active Objects");
+         }
       }
       executeActiveObjectPersist();
    }
@@ -246,7 +251,8 @@ public class OpRestoreContext extends XContext {
             broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
-         session.cleanupSession();
+         broker.closeAndEvict();
+         session.cleanupSession(true);
          logger.info("Objects persisted");
          objectsToAdd.clear();
          insertCount = 0;

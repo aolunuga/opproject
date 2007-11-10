@@ -289,7 +289,7 @@ public class OpProjectPlanningModule extends OpModule {
          Long activityId = (Long) result[0];
          OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, activityId);
          int activityType = activity.getType();
-         int totalChildCount = activity.getSubActivities().size();
+         int totalChildCount = OpActivityDataSetFactory.getSubactivitiesCount(broker, activity);
          int subTasksCount = ((Number) result[1]).intValue();
 
          if (totalChildCount == subTasksCount && activityType != OpActivity.COLLECTION_TASK && activityType != OpActivity.SCHEDULED_TASK) {
@@ -311,7 +311,7 @@ public class OpProjectPlanningModule extends OpModule {
                subTask.setStart(activity.getStart());
                subTask.setFinish(activity.getFinish());
                subTask.setDuration(activity.getDuration());
-               if (subTask.getSubActivities().size() == 0) {
+               if (OpActivityDataSetFactory.getSubactivitiesCount(broker, subTask) == 0) {
                   subTask.setType(OpActivityVersion.STANDARD);
                }
                else {
@@ -350,7 +350,7 @@ public class OpProjectPlanningModule extends OpModule {
          Long activityVersionId = (Long) result[0];
          OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(OpActivityVersion.class, activityVersionId);
          int activityVersionType = activityVersion.getType();
-         int totalChildCount = activityVersion.getSubActivityVersions().size();
+         int totalChildCount = OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, activityVersion);
          int subTaskVersionsCount = ((Number) result[1]).intValue();
 
          if (totalChildCount == subTaskVersionsCount && activityVersionType != OpActivity.COLLECTION_TASK && activityVersionType != OpActivity.SCHEDULED_TASK) {
@@ -372,7 +372,7 @@ public class OpProjectPlanningModule extends OpModule {
                subTaskVersion.setStart(activityVersion.getStart());
                subTaskVersion.setFinish(activityVersion.getFinish());
                subTaskVersion.setDuration(activityVersion.getDuration());
-               if (subTaskVersion.getSubActivityVersions().size() == 0) {
+               if (OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, subTaskVersion) == 0) {
                   subTaskVersion.setType(OpActivityVersion.STANDARD);
                }
                else {

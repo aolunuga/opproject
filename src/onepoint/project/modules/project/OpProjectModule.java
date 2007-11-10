@@ -159,7 +159,7 @@ public class OpProjectModule extends OpModule {
          plan.setCreator(displayName);
 
          //set the version number on the project plan
-         int versions = plan.getVersions().size();
+         int versions = OpProjectDataSetFactory.getPlanVersionsCount(broker, plan);
          if (plan.hasWorkingVersion()) {
            versions--;
          }         

@@ -63,6 +63,7 @@ public class OpProjectAdministrationService extends OpProjectService {
    private final static String PROJECT_ROW_PARAMETER = "project_row";
    private final static String TYPES_PARAMETER = "project_types";
    private final static String TABULAR_PARAMETER = "tabular";
+   private final static String MODIFIED_RATES = "modified_rates";
 
    public final static int ADJUST_RATES_COLUMN_INDEX = 2;
    public final static int INTERNAL_PROJECT_RATE_COLUMN_INDEX = 3;
@@ -481,7 +482,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          //check if the start date is in the future
          if (project.getStart().after(originalStartDate)) {
             //if its checked out, throw error
-            if (project.getLocks().size() > 0) {
+            if (OpProjectDataSetFactory.hasLocks(broker, project)) {
                error = session.newError(ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR);
                reply.setError(error);
                return reply;
@@ -505,7 +506,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          OpProjectPlan projectPlan = project.getPlan();
          //check if the project plan has any activities and if not, update the start and end
-         if (projectPlan.getActivities().size() == 0) {
+         if (!OpProjectDataSetFactory.hasActivities(broker, projectPlan)) {
             projectPlan.copyDatesFromProject();
          }
 
@@ -579,7 +580,10 @@ public class OpProjectAdministrationService extends OpProjectService {
          XCalendar xCalendar = session.getCalendar();
          //update personnel & actual costs
          updatePersonnelCostsForWorkingVersion(broker, xCalendar, project);
-         updateActualCosts(broker, project);
+         //update the actual costs only if there were some modifications on the resource rates or hourly rates
+         if((Boolean)request.getArgument(MODIFIED_RATES)){
+            updateActualCosts(broker, project);
+         }
 
          transaction.commit();
 
