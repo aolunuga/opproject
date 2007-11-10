@@ -211,7 +211,7 @@ public class OpProjectPlanningService extends OpProjectService {
          }
 
          // *** Check if lock is already set -- if yes throw exception
-         if (project.getLocks().size() > 0) {
+         if (OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is already locked");
             broker.close();
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
@@ -412,7 +412,7 @@ public class OpProjectPlanningService extends OpProjectService {
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
          // *** Check if current user has lock on project
-         if (project.getLocks().size() == 0) {
+         if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is currently not being edited");
             broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
@@ -526,7 +526,7 @@ public class OpProjectPlanningService extends OpProjectService {
          }
 
          // Check if project is locked and current user owns the lock
-         if (project.getLocks().size() == 0) {
+         if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is currently not being edited");
             broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
@@ -600,7 +600,7 @@ public class OpProjectPlanningService extends OpProjectService {
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
          // Check if project is locked and current user owns the lock
-         if (project.getLocks().size() == 0) {
+         if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is currently not being edited");
             broker.close();
             // TODO: Error handling

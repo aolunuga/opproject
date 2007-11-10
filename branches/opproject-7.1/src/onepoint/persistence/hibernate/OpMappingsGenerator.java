@@ -312,6 +312,7 @@ public class OpMappingsGenerator {
       // Map relationship
       String cascadeMode = relationship.getCascadeMode();
       String fetch = relationship.getFetch();
+      String lazy = relationship.getLazy();
       OpRelationship back_relationship = relationship.getBackRelationship();
       OpPrototype target_prototype = OpTypeManager.getPrototypeByID(relationship.getTypeID());
       if (relationship.getCollectionTypeID() != OpType.SET) {
@@ -374,7 +375,7 @@ public class OpMappingsGenerator {
             if (relationship.getInverse()) {
                buffer.append("\" inverse=\"true");
             }
-            buffer.append("\" lazy=\"true");
+            buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
             }
@@ -412,7 +413,7 @@ public class OpMappingsGenerator {
             column_name = generateJoinColumnName(target_prototype.getName(), back_relationship.getName());
             buffer.append("\" table=\"");
             buffer.append(join_table_name);
-            buffer.append("\" lazy=\"true");
+            buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
             }

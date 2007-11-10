@@ -66,7 +66,6 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       dataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
       // create resources
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg(RES_NAME + 1, RES_DESCR, 50d, 2d, 2d, false, poolid);
@@ -339,36 +338,36 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       String goodId = dataFactory.getProjectId(PRJ_NAME + 1);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, null, null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, null, null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_MISSING);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, "", null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, "", null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_MISSING);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.START_DATE_MISSING);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() - 1000), 0d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() - 1000), 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.END_DATE_INCORRECT);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), -1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), -1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.BUDGET_INCORRECT);
 
       String id = OpLocator.locatorString(OpProjectNode.PROJECT_NODE, -1);
       request = OpProjectTestDataFactory.updateProjectMsg(id, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NOT_FOUND);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_ALREADY_USED);
    }
@@ -596,7 +595,7 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       resources1.addChild(dataRowRes1);
 
       XComponent resources2 = new XComponent(XComponent.DATA_SET);
-      resources2.addChild(dataRowRes1);
+      resources2.addChild(dataRowRes1.copyData());
       resources2.addChild(dataRowRes2);
 
       XComponent permissions = OpTestDataFactory.createPermissionSet(OpPermission.ADMINISTRATOR, adminId, OpUser.ADMINISTRATOR_NAME);

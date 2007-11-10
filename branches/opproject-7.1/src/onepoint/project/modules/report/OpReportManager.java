@@ -261,6 +261,7 @@ public class OpReportManager implements XResourceInterceptor {
          try {
             FileInputStream fis = new FileInputStream((File) expressFilePathCache.get(path));
             byte[] bytes = readBytesFromFile(fis);
+            fis.close();
             return s.getResourceBroker().applyFilters(path, bytes);
          }
          catch (FileNotFoundException fnfe) {
@@ -286,6 +287,7 @@ public class OpReportManager implements XResourceInterceptor {
          if (is != null) {
             try {
                byte[] bytes = readBytesFromFile(is);
+               is.close();
                return s.getResourceBroker().applyFilters(path, bytes);
             }
             catch (IOException e) {
@@ -313,7 +315,9 @@ public class OpReportManager implements XResourceInterceptor {
          bytes_read = fileInputStream.read(file_buffer);
       }
       byte_output.flush();
-      return byte_output.toByteArray();
+      byte[] byteOutputArray = byte_output.toByteArray();
+      byte_output.close();
+      return byteOutputArray;
    }
 
    /**
@@ -927,6 +931,7 @@ public class OpReportManager implements XResourceInterceptor {
             BufferedInputStream buff = new BufferedInputStream(languageKitFile.toURL().openStream());
             XLanguageKit languageKit = OpLanguageKitFile.loadLanguageKit(buff);
             XLocaleManager.registerOverriddingLanguageKit(languageKit, true);
+            buff.close();
             logger.info("Registered language kit: " + languageKitFile.getName());
          }
          catch (IOException e) {

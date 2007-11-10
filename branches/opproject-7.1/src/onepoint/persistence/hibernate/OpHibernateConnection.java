@@ -388,7 +388,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().list();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -400,7 +401,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().iterate();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return null;
@@ -412,7 +414,8 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().executeUpdate();
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.find(): Could not execute query: " + e);
+         logger.error("Could not execute query: " + query);
+         logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return 0;

@@ -56,7 +56,6 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       super.setUp();
       service = OpTestDataFactory.getProjectStatusService();
       dataFactory = new OpProjectStatusTestDataFactory(session);
-      clean();
    }
 
 

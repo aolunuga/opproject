@@ -15,10 +15,8 @@ import java.util.List;
 public class OpBroker {
    private static final XLog logger = XLogFactory.getServerLogger(OpBroker.class);
 
-   private OpConnection defaultConnection; // Connection to default-source
-   // Add object-caching here to broker/cursor instead of connection?!
-   // ATTENTION: First implementation ONLY uses default-source
-   // ==> Future implementations must add opening of sources and mapping of names/IDs to connections
+   private OpConnection defaultConnection;
+   private OpSource default_source;
 
    /**
     * Creates a new broker.
@@ -27,7 +25,7 @@ public class OpBroker {
     */
    OpBroker(String sourceName) {
       // Constructor is only called by OpSourceManager
-      OpSource default_source = OpSourceManager.getSource(sourceName);
+      default_source = OpSourceManager.getSource(sourceName);
       if (default_source != null) {
          defaultConnection = default_source.newConnection();
       }
@@ -128,6 +126,23 @@ public class OpBroker {
       if (defaultConnection != null) {
          defaultConnection.close();
          defaultConnection = null;
+      }
+   }
+
+   /**
+    * Closes this broker and evicts the cache.
+    */
+   public void closeAndEvict() {
+      clear();
+      close();
+   }
+
+   /**
+    * Evicts the cache for this broker.
+    */
+   public void clear() {
+      if (defaultConnection != null) {
+         default_source.clear();
       }
    }
 

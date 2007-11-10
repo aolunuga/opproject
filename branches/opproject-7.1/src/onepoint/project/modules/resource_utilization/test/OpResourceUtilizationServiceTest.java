@@ -47,8 +47,6 @@ public class OpResourceUtilizationServiceTest extends OpBaseOpenTestCase {
       service = OpTestDataFactory.getResourceUtilizationService();
       resourceService = OpTestDataFactory.getResourceService();
       dataFactory = new OpResourceTestDataFactory(session);
-
-      clean();
    }
 
    /**

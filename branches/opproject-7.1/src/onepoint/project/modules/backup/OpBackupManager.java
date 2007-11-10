@@ -441,7 +441,7 @@ public class OpBackupManager {
                if ((recursiveBy != null) && (childObjects.size() > 0)) {
                   exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
                }
-               pagingBroker.close();
+               pagingBroker.closeAndEvict();
             }
             return;
          }
@@ -457,7 +457,7 @@ public class OpBackupManager {
       if ((recursiveBy != null) && (childObjects.size() > 0)) {
          exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
       }
-      broker.close();
+      broker.closeAndEvict();
    }
 
    private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
@@ -627,7 +627,7 @@ public class OpBackupManager {
 
       exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
       writer.writeEndElement(OBJECTS);
-      session.cleanupSession();
+      session.cleanupSession(true);
    }
 
    /**
@@ -713,7 +713,7 @@ public class OpBackupManager {
       // Query system object ID ids and names before exporting objects
       OpBroker broker = session.newBroker();
       Map systemIdMap = querySystemObjectIdMap(broker);
-      broker.close();
+      broker.closeAndEvict();
 
       int memberIndex = 0;
       for (OpPrototype prototype : prototypes.values()) {
@@ -787,7 +787,7 @@ public class OpBackupManager {
       OpBroker broker = session.newBroker();
       OpQuery query = broker.newQuery(countQueryString);
       Number count = (Number) broker.iterate(query).next();
-      broker.close();
+      broker.closeAndEvict();
 
       //<FIXME author="Horia Chiorean" description="count.intValue may not work for large recursive relationships">
       int pageSize = recursiveRelationshipName == null ? DELETE_PAGE_SIZE : count.intValue();
@@ -803,9 +803,9 @@ public class OpBackupManager {
             broker.deleteObject((OpObject) it.next());
          }
          tx.commit();
-         broker.close();
+         broker.closeAndEvict();
       }
-      session.cleanupSession();
+      session.cleanupSession(true);
    }
 
    /**

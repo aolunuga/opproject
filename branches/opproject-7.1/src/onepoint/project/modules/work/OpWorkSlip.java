@@ -114,12 +114,7 @@ public class OpWorkSlip extends OpObject {
 
       // test all the work records from this work-slip
       for (OpWorkRecord record : records) {
-         try{
-            record.validate();
-         }
-         catch (OpEntityException e){
-            throw e;
-         }
+         record.validate();
       }
    }
 

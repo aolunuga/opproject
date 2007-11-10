@@ -312,6 +312,12 @@ function addActivity(before) {
             before_row = activity_data_set.getChild(index - 1);
             outline_level = before_row.getOutlineLevel();
             expanded = before_row.getExpanded();
+            if (outline_level > 0) {
+               parentRow = before_row.getParentInDataSet();
+               if (!parentRow.getExpanded()) {
+                  parentRow.expanded(true, false);
+               }
+            }
          }
          data_row.setExpanded(expanded);
          data_row.setOutlineLevel(outline_level);

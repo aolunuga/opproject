@@ -2729,8 +2729,10 @@ public class OpGanttValidator extends XValidator {
             throw new XValidationException(ASSIGNMENT_EXCEPTION);
          }
          //if 0% remove
-         if (assigned == 0) {
-            resources.set(i, null);
+         if (baseEffort != 0 || isEffortBasedProject()) {
+            if (assigned == 0) {
+               resources.set(i, null);
+            }
          }
       }
       for (Iterator iterator = resources.iterator(); iterator.hasNext();) {
@@ -5316,13 +5318,13 @@ public class OpGanttValidator extends XValidator {
          }
 
          //update the costs
-         List costs = calculateCosts(data_row, individualEffortsPerDay, effort.doubleValue(), assigneds, sumAssigned,
+         List costs = calculateCosts(data_row, individualEffortsPerDay, getBaseEffort(data_row), assigneds, sumAssigned,
               assignments);
          setBasePersonnelCosts(data_row, ((Double) costs.get(INTERNAL_HOURLY_RATE_INDEX)).doubleValue());
          setBaseProceeds(data_row, ((Double) costs.get(EXTERNAL_HOURLY_RATE_INDEX)).doubleValue());
 
          //recompute the work phase efforts
-         recomputeWorkPhaseEffort(workPhaseEfforts, effort.doubleValue(), previousEffort);
+         recomputeWorkPhaseEffort(workPhaseEfforts, getBaseEffort(data_row), previousEffort);
 
          //add workphase efforts
          setWorkPhaseBaseEfforts(data_row, workPhaseEfforts);
@@ -5851,7 +5853,7 @@ public class OpGanttValidator extends XValidator {
             String resourceName = getResourceName(caption, "%");
             Double available = (Double) resourceAvailability.get(id);
             double assigned = percentageAssigned(resource);
-            if (assigned == available.doubleValue()) {
+            if (assigned == available.doubleValue() || assigned == 0.0) {
                visualResources.add(XValidator.choice(id, resourceName));
             }
             else if (assigned != INVALID_ASSIGNMENT) {
@@ -5944,7 +5946,11 @@ public class OpGanttValidator extends XValidator {
 
          //do not add the resource availability to resources that have
          //only the name specified in the cell and the base effort is 0
-         if (!(onlyName && baseEffort == 0)) {
+         if (onlyName && baseEffort == 0) {
+            String percentString = String.valueOf(0);
+            resource = XValidator.choice(id, name + " " + percentString + "%");
+         }
+         else {
             String percentString = String.valueOf(percent);
             resource = XValidator.choice(id, name + " " + percentString + "%");
          }
@@ -6008,7 +6014,7 @@ public class OpGanttValidator extends XValidator {
          if (newAssigned > resourceAvailability && !id.equals(NO_RESOURCE_ID) && isEffortBasedProject()) {
             throw new XValidationException(ASSIGNMENT_EXCEPTION);
          }
-         if (newAssigned == 0) {
+         if (newAssigned == 0 && ((getBaseEffort(data_row) != 0) || isEffortBasedProject())) {
             resources.set(j, null);
          }
          else {
@@ -6042,7 +6048,7 @@ public class OpGanttValidator extends XValidator {
          if (getBaseEffort(dataRow) > 0) {
             resourceEffort = getIndividualEffort(getDuration(dataRow), resource);
          }
-         if (resourceEffort == INVALID_ASSIGNMENT) {
+         if (resourceEffort == INVALID_ASSIGNMENT || (resourceEffort == 0 && !isEffortBasedProject())) {
             distributionIndexes.add(new Integer(i));
          }
          else {

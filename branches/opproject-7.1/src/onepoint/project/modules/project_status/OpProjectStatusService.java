@@ -263,7 +263,7 @@ public class OpProjectStatusService extends OpProjectService {
       Iterator results = broker.iterate(query);
       while (results.hasNext()) {
          OpProjectStatus status = (OpProjectStatus) results.next();
-         if (status.getProjects().size() > 0) {
+         if (OpProjectDataSetFactory.getProjectsCount(broker, status) > 0) {
             if (status.getActive()) {
                status.setActive(false);
                minSequence--;

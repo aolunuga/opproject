@@ -39,7 +39,6 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-      clean();
    }
 
    /**

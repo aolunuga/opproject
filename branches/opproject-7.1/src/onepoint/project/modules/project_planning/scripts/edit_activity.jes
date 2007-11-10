@@ -463,20 +463,3 @@ function addComment(event) {
 function cancel(event) {
    XDisplay.getActiveWindow().close();
 }
-
-function refreshCalculatedFields() {
-   form = XDisplay.getActiveForm();
-   activity_row_index = form.findComponent("ActivityRowIndex").getIntValue();
-   activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
-   activity_row = activity_set.getChild(activity_row_index);
-   start = activity_row.getChild(2).getDateValue();
-   form.findComponent("Start").setDateValue(start);
-   end = activity_row.getChild(3).getDateValue();
-   form.findComponent("End").setDateValue(end);
-   duration = activity_row.getChild(4).getDoubleValue() / 8.0;
-   form.findComponent("Duration").setDoubleValue(duration);
-   base_effort = activity_row.getChild(5).getDoubleValue();
-   form.findComponent("BaseEffort").setDoubleValue(base_effort);
-   form.repaint();
-}
-

@@ -59,8 +59,6 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
       projectDataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
-
       String poolid = OpLocator.locatorString(OpResourcePool.RESOURCE_POOL, 0); // fake id
       XMessage request = resourceDataFactory.createResourceMsg("resource1", "description", 50d, 1d, 1d, false, poolid);
       XMessage response = OpTestDataFactory.getResourceService().insertResource(session, request);

@@ -39,7 +39,6 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
-      cleanUp();
    }
 
    /**

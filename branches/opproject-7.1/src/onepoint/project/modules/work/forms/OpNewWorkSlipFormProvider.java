@@ -15,7 +15,6 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpCostRecordDataSetFactory;
 import onepoint.project.modules.work.OpTimeRecordDataSetFactory;
 import onepoint.project.modules.work.OpWorkEffortDataSetFactory;
@@ -76,12 +75,6 @@ public class OpNewWorkSlipFormProvider implements XFormProvider {
 
       // Locate effort record data set in form
       XComponent effortRecordSet = form.findComponent(WORK_EFFORT_RECORD_SET);
-
-      // Note: OpUser instance in session is detached, we therefore have to refetch it
-      OpUser user = (OpUser) (broker.getObject(OpUser.class, session.getUserID()));
-      if (user.getResources().size() == 0) {
-         return; // TODO: UI-level error -- no resource associated with this user
-      }
 
       //fill the list of resource ids
       List resourceIds = OpWorkSlipDataSetFactory.getListOfSubordinateResourceIds(session, broker);

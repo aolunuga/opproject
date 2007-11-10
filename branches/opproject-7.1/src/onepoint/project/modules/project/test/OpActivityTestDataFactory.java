@@ -22,7 +22,6 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
 
    private final static String SELECT_ACTIVITY_ID_BY_NAME_QUERY = "select activity.ID from OpActivity as activity where activity.Name = ?";
    private final static String SELECT_ACTIVITY_VERSION_ID_BY_NAME_QUERY = "select activityVersion.ID from OpActivityVersion as activityVersion where activityVersion.Name = ?";
-   private final static String ACTIVITY_DATA = "activityData";
 
    /**
     * Creates a new data factory with the given session

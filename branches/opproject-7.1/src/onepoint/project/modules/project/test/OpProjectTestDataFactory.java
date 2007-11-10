@@ -8,10 +8,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectAdministrationService;
-import onepoint.project.modules.project.OpProjectNode;
-import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
@@ -131,6 +128,12 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         if (project.getPlan() != null && project.getPlan().getActivityAssignments() != null) {
             project.getPlan().getActivityAssignments().size();
         }
+        if (project.getPlan() != null && project.getPlan().getActivities() != null) {
+            project.getPlan().getActivities().size();
+        }
+        if (project.getPlan() != null && project.getPlan().getVersions() != null) {
+            project.getPlan().getVersions().size();
+        }
         project.getDynamicResources().size();
         project.getGoals().size();
         project.getInstanceNodes().size();
@@ -178,6 +181,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
 
         OpAssignment assignment = (OpAssignment) broker.getObject(locator);
         //initialize other objects in the graph
+        assignment.getWorkRecords().size();
         assignment.getProjectPlan().getProjectNode().getName();
         assignment.getActivity().getName();
         assignment.getResource().getName();
@@ -229,7 +233,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
      * @return an instance of <code>OpProjectPlan</code>
      */
     public OpProjectPlan getProjectPlanByName(String projectPlanName) {
-        String locator = getProjectId(projectPlanName);
+        String locator = getProjectPlanId(projectPlanName);
         if (locator != null) {
             return getProjectPlanById(locator);
         }
@@ -285,6 +289,30 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         }
         return null;
     }
+
+    /**
+    * Get a project plan version by it's locator.
+    *
+    * @param locator the unique identifier (locator) of the <code>OpProjectPlanVersion</code> entity.
+    * @return an instance of <code>OpProjectPlanVersion</code>.
+    */
+   public OpProjectPlanVersion getProjectPlanVersionById(String locator) {
+      OpBroker broker = session.newBroker();
+
+      OpProjectPlanVersion planVersion = (OpProjectPlanVersion) broker.getObject(locator);
+      // just to inialize the collection
+      planVersion.getActivityVersions().size();
+      planVersion.getAssignmentVersions().size();
+      planVersion.getAttachmentVersions().size();
+      planVersion.getDependencyVersions().size();
+      planVersion.getDynamicResources().size();
+      planVersion.getLocks().size();
+      planVersion.getPermissions().size();
+      planVersion.getWorkPeriodVersions().size();
+      broker.close();
+
+      return planVersion;
+   }
 
     /**
      * Get all the projects
@@ -396,18 +424,19 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
    }
 
    public static XMessage updateProjectMsg(String id, String name, Date date, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos) {
-        return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos));
+                                            Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos, boolean modifiedRates) {
+        return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos), modifiedRates);
     }
 
    public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos) {
+                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, boolean modifiedRates) {
       XComponent attachmentSet = createEmptyAttachmentDataSet();
-      return updateProjectMsg(id, name, startDate, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, attachmentSet);
+      return updateProjectMsg(id, name, startDate, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, attachmentSet, modifiedRates);
    }
 
     public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, XComponent attachmetSet) {
+                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, XComponent attachmetSet,
+                                            boolean modifiedRates) {
         HashMap args = new HashMap();
         args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
         args.put(OpProjectNode.NAME, name);
@@ -431,6 +460,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmetSet);
         request.setArgument("resource_set", resources);
         request.setArgument("versions_set", new XComponent(XComponent.DATA_SET));
+        request.setArgument("modified_rates", modifiedRates);
         return request;
     }
 

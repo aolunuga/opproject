@@ -65,8 +65,6 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
       dataFactory = new OpProjectTestDataFactory(session);
       resourceDataFactory = new OpResourceTestDataFactory(session);
 
-      clean();
-
       java.sql.Date date = java.sql.Date.valueOf("2007-06-06");
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 1000d, null, null);
       XMessage response = service.insertProject(session, request);

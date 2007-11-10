@@ -208,13 +208,14 @@ public class OpMyTasksFormProvider implements XFormProvider {
     */
    private void sortActivityDataSet(XComponent unsortedDataSet, XComponent sortedDataSet) {
       List<XComponent> adHocTasks = new ArrayList<XComponent>();
-      for (int i = 0; i < unsortedDataSet.getChildCount(); i++) {
-         XComponent activityRow = (XComponent) unsortedDataSet.getChild(i);
-         if (OpGanttValidator.getType(activityRow) == OpGanttValidator.ADHOC_TASK) {
-            adHocTasks.add(activityRow);
+      List<XComponent> rows = unsortedDataSet.asList();
+      for (XComponent row : rows) {
+         unsortedDataSet.removeChild(row);
+         if (OpGanttValidator.getType(row) == OpGanttValidator.ADHOC_TASK) {
+            adHocTasks.add(row);
          }
          else {
-            sortedDataSet.addChild(activityRow);
+            sortedDataSet.addChild(row);
          }
       }
       unsortedDataSet.removeAllChildren();

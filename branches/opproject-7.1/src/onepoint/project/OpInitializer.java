@@ -291,9 +291,9 @@ public class OpInitializer {
    /**
     * Updates the db schema if necessary.
     */
-   private void updateDBSchema() {
+   private boolean updateDBSchema() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
-
+      boolean updated = false;
       for (OpSource source : allSources) {
          OpHibernateSource hibernateSource = (OpHibernateSource) source;
 
@@ -302,10 +302,12 @@ public class OpInitializer {
             logger.info("Updating DB schema from version " + existingVersionNr + "...");
             OpPersistenceManager.updateSchema();
             OpModuleManager.upgrade(existingVersionNr, OpHibernateSource.SCHEMA_VERSION);
-            hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
             OpModuleManager.checkModules();
+            hibernateSource.updateSchemaVersionNumber(OpHibernateSource.SCHEMA_VERSION);
+            updated = true;
          }
       }
+      return updated;
    }
 
    /**
@@ -394,9 +396,11 @@ public class OpInitializer {
         throws SQLException, IOException {
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
       OpSourceManager.clearAllSources();
-      this.updateDBSchema();
+      boolean  updated = this.updateDBSchema();
 
-      //check and fix modules
-      OpModuleManager.checkModules();
+      //check and fix modules, only if not aldready done by upgrade
+      if (!updated) {
+         OpModuleManager.checkModules();
+      }
    }
 }

@@ -63,7 +63,6 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       projectFactory = new OpProjectTestDataFactory(session);
       activityFactory = new OpActivityTestDataFactory(session);
       resourceFactory = new OpResourceTestDataFactory(session);
-      clean();
    }
 
    /**
@@ -86,8 +85,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
         throws Exception {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      OpBroker broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have ono rows because the are no work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -116,8 +117,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       workRecords.add(workRecord);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      OpBroker broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have only one row corresponding to the work record
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -173,8 +176,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       workRecords.add(workRecord);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have only one row corresponding to the work record
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -236,8 +241,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       workRecords.add(workRecord1);
       workRecords.add(workRecord2);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have two rows corresponding to the work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -332,8 +339,10 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       workRecords.add(workRecord1);
       workRecords.add(workRecord2);
 
-      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session);
+      broker = session.newBroker();
+      List<XComponent> dataSets = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecords, session, broker);
       assertEquals(3, dataSets.size());
+      broker.close();
 
       //the work record set should have two rows corresponding to the work records
       XComponent workRecordDataSet = dataSets.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX);
@@ -721,6 +730,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
       broker = session.newBroker();
       t = broker.newTransaction();
 
+      XComponent recordDataSet = timeRecordDataSet.copyData();
       List<OpWorkRecord> workRecords = OpWorkSlipDataSetFactory.formWorkRecordsFromDataSets(broker, workRecordDataSet, timeRecordDataSet, costRecordDataSet);
 
       assertEquals(2, workRecords.size());
@@ -730,7 +740,7 @@ public class OpWorkSlipDataSetFactoryTest extends OpBaseOpenTestCase {
             assertTrue(OpWorkEffortDataSetFactoryTest.hasEntityFieldsInDataRow(resultWorkRecord, (XComponent) workRecordDataSet.getChild(0)));
             assertEquals(1, resultWorkRecord.getTimeRecords().size());
             for (OpTimeRecord timeRecord : resultWorkRecord.getTimeRecords()) {
-               assertTrue(OpTimeRecordDataSetFactoryTest.hasEntityFieldsInDataSet(timeRecord, timeRecordDataSet));
+               assertTrue(OpTimeRecordDataSetFactoryTest.hasEntityFieldsInDataSet(timeRecord, recordDataSet));
             }
          }
          //check the validity of the "empty" work record

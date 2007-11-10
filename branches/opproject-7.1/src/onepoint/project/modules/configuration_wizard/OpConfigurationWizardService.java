@@ -41,7 +41,7 @@ public class OpConfigurationWizardService extends OpProjectService {
    /**
     * This class's logger.
     */
-   private static final XLog logger = XLogFactory.getClientLogger(OpConfigurationWizardService.class);
+   private static final XLog logger = XLogFactory.getServerLogger(OpConfigurationWizardService.class);
 
    /**
     * Request argument names.

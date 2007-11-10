@@ -72,8 +72,6 @@ public class OpResourceServiceTest extends OpBaseOpenTestCase {
       activityFactory = new OpActivityTestDataFactory(session);
       workFactory = new OpWorkTestDataFactory(session);
 
-      clean();
-
       Map userData = OpUserTestDataFactory.createUserData(DEFAULT_USER, DEFAULT_PASSWORD, OpUser.CONTRIBUTOR_USER_LEVEL);
       XMessage request = new XMessage();
       request.setArgument(OpUserService.USER_DATA, userData);

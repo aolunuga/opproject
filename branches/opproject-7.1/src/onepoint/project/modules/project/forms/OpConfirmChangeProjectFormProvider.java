@@ -27,11 +27,13 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
    private final static String ATTACHMENT_SET = "attachment_set";
    protected final static String CHANGE_LABEL = "ConfirmChangeLabel";
    protected final static String CONFIRM_HR = "ConfirmChangeHR";
-   protected final static String RESOURCE_MAP = "project.change";   
+   protected final static String RESOURCE_MAP = "project.change";
+   protected final static String MODIFIED_RATES = "ModifiedRates";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
+      form.findComponent(MODIFIED_RATES).setValue(true);
       // Retrieve the parameters
       String id= (String) (parameters.get(PROJECT_ID));
       form.findComponent(PROJECT_ID).setValue(id);
@@ -73,7 +75,7 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
       XComponent formAttachmentSet = form.findComponent(ATTACHMENT_SET);
       for(int i = 0; i <  attachmentSet.getChildCount(); i++){
          dataRow = (XComponent)attachmentSet.getChild(i);
-         formAttachmentSet.addChild(dataRow);
+         formAttachmentSet.addChild(dataRow.copyData());
       }
 
       //set confirm message (available/hr)

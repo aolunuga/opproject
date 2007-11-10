@@ -554,6 +554,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          updatePersonnelCostsForWorkingVersion(broker, xCalendar, resource);
          updateActualCosts(broker, resource);
 
+         //update work months (remaining cost values)
+         for (OpAssignment assignment : resource.getActivityAssignments()) {
+            OpActivityDataSetFactory.updateWorkMonths(broker, assignment, session.getCalendar());
+         }
+
          transaction.commit();
 
          logger.debug("/OpResourceService.updateResource()");
@@ -598,10 +603,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpBroker broker = s.newBroker();
       OpResource resource = (OpResource) (broker.getObject(id_string));
       boolean hasAssignments = false;
-      if (resource.getAssignmentVersions().size() != 0) {
+      if (OpResourceDataSetFactory.hasAssignmentVersions(broker, resource)) {
          hasAssignments = true;
       }
-      if (resource.getActivityAssignments().size() != 0) {
+      if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource)) {
          hasAssignments = true;
       }
       XMessage xMessage = new XMessage();
@@ -633,11 +638,11 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       OpResourcePool pool = (OpResourcePool) broker.getObject(id_string);
       for (Object o : pool.getResources()) {
          OpResource resource = (OpResource) o;
-         if (resource.getAssignmentVersions().size() != 0) {
+         if (OpResourceDataSetFactory.hasAssignmentVersions(broker, resource)) {
             hasAssignments = true;
             break;
          }
-         if (resource.getActivityAssignments().size() != 0) {
+         if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource)) {
             hasAssignments = true;
          }
       }
@@ -768,7 +773,7 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             if (workRecord.getPersonnelCosts() != newActualCosts || workRecord.getActualProceeds() != newActualProceeds) {
                workRecord.setPersonnelCosts(newActualCosts);
                workRecord.setActualProceeds(newActualProceeds);
-               broker.updateObject(assignment);
+               broker.updateObject(workRecord);
             }
             internalSum += workRecord.getPersonnelCosts();
             externalSum += workRecord.getActualProceeds();
@@ -1160,8 +1165,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          Set resources = pool.getResources();
          for (Object resource1 : resources) {
             OpResource resource = (OpResource) resource1;
-            if (!resource.getActivityAssignments().isEmpty() || !resource.getAssignmentVersions().isEmpty() ||
-                 !resource.getResponsibleActivities().isEmpty() || !resource.getResponsibleActivityVersions().isEmpty()) {
+            if (OpResourceDataSetFactory.hasActivityAssignments(broker, resource) ||
+                 OpResourceDataSetFactory.hasAssignmentVersions(broker, resource) ||
+                 OpResourceDataSetFactory.hasResponsibleActivities(broker, resource) ||
+                 OpResourceDataSetFactory.hasResponsibleActivityVersions(broker, resource)) {
                logger.warn("Resource " + resource.getName() + " is used in project assignments");
                reply.setError(session.newError(ERROR_MAP, OpResourceError.DELETE_POOL_RESOURCE_ASSIGNMENTS_DENIED));
                t.rollback();

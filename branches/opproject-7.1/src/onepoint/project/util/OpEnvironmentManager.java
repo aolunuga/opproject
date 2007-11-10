@@ -284,6 +284,7 @@ public final class OpEnvironmentManager {
                   envProps.setProperty(line, "");
                }
             }
+            br.close();
          }
          catch (IOException e) {
             logger.error("Error occured while reading environment variables", e);
