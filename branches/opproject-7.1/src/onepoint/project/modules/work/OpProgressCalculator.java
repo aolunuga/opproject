@@ -355,6 +355,17 @@ public class OpProgressCalculator {
       return remainingEffortChange;
    }
 
+   /**
+    * Sets the remaining costs (material/travel/external/miscellaneous) on the activity.
+    *
+    * @param activity - the <code>OpActivity</code> object which has its remaining costs set.
+    * @param work_record - the <code>OpWorkRecord</code> from which the remaining costs are updated.
+    * @param hasSubActivities - a <code>boolean</code> value indicating whether or not the activity is a collection.
+    * @param remainingMaterialCostsChange - the value with which the material costs have changed.
+    * @param remainingTravelCostsChange - the value with which the travel costs have changed.
+    * @param remainingExternalCostsChange - the value with which the external costs have changed.
+    * @param remainingMiscellaneiousCostsChange - the value with which the miscellaneous costs have changed.
+    */
    private static void setActivityRemainingCosts(OpActivity activity, OpWorkRecord work_record, boolean hasSubActivities,
         double remainingMaterialCostsChange, double remainingTravelCostsChange, double remainingExternalCostsChange,
         double remainingMiscellaneiousCostsChange) {
