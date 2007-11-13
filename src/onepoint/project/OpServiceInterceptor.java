@@ -36,7 +36,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
     * @see onepoint.service.server.XServiceInterceptor#beforeAdvice(onepoint.service.server.XService,java.lang.reflect.Method,Object[])
     */
    public void beforeAdvice(XService service, Method method, Object[] arguments) {
-      logger.info("Applying before advice...");
+      logger.debug("Applying before advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
       exceptBrokers = new ArrayList<OpBroker>(session.getBrokerList());
    }
@@ -45,7 +45,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
     * @see onepoint.service.server.XServiceInterceptor#afterAdvice(onepoint.service.server.XService,java.lang.reflect.Method,Object[])
     */
    public void afterAdvice(XService service, Method method, Object[] arguments) {
-      logger.info("Applying after advice...");
+      logger.debug("Applying after advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
       if (session != null) {
          session.cleanupSession(exceptBrokers, false);

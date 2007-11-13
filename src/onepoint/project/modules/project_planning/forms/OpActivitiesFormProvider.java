@@ -99,7 +99,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
-      logger.info("OpActivitiesFormProvider.prepareForm()");
+      logger.debug("OpActivitiesFormProvider.prepareForm()");
       long begin = new Date().getTime();
       long  activityTime = 0;
 
@@ -304,7 +304,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
       }
 
       setFooterData(form, activityDataSet);
-      logger.info("/OpActivitiesFormProvider.prepareForm(). Time : " + (new Date().getTime() - begin) + ". Activity Time: " + activityTime);
+      logger.debug("/OpActivitiesFormProvider.prepareForm(). Time : " + (new Date().getTime() - begin) + ". Activity Time: " + activityTime);
    }
 
    /**

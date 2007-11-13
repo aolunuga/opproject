@@ -4,6 +4,7 @@
 
 package onepoint.project.util;
 
+import onepoint.express.util.XConstants;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.util.XEnvironmentManager;
@@ -157,6 +158,7 @@ public final class OpEnvironmentManager {
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
+      System.setProperty(XConstants.LOGGER_HOME, envProps.getProperty(ONEPOINT_HOME)+XConstants.LOGGER_FOLDER);
    }
 
    /**
