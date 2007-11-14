@@ -984,6 +984,9 @@ public abstract class OpActivityDataSetFactory {
          broker.updateObject(markedActivity);
       }
 
+      //Phase 6: Update remaining costs on collections
+      updateRemainingCostsOnCollections(activityList);
+
       // Finally, update project plan version start and finish fields
       plan.setStart(planStart);
       plan.setFinish(planFinish);
@@ -1054,6 +1057,8 @@ public abstract class OpActivityDataSetFactory {
       OpProjectNode projectNode = projectPlan.getProjectNode();
       String categoryChoice = OpGanttValidator.getCategory(dataRow);
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
+      byte type = OpGanttValidator.getType(dataRow);
+      boolean isCollection = (type == OpActivity.COLLECTION) || (type == OpActivity.COLLECTION_TASK) || (type == OpActivity.SCHEDULED_TASK);
       if (activity == null) {
          // Insert a new activity
          activity = new OpActivity(OpGanttValidator.getType(dataRow));
@@ -1119,6 +1124,12 @@ public abstract class OpActivityDataSetFactory {
          activity.setRemainingEffort(remaining);
          //actual costs are 0 initially
          activity.setActualPersonnelCosts(0);
+         //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+         //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+         if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection) {
+            activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
+            activity.setRemainingProceeds(activity.getBaseProceeds());
+         }
          activity.setActualTravelCosts(0);
          activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
          activity.setActualMaterialCosts(0);
@@ -1158,7 +1169,7 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getSuperActivity() != superActivity) {
             update = true;
             //update actual effort and costs
-            updateParentsActualEffort(activity, superActivity, broker);
+            updateParentsActualValues(activity, superActivity, broker);
             activity.setSuperActivity(superActivity);
          }
          if ((activity.getStart() != null && !activity.getStart().equals(OpGanttValidator.getStart(dataRow)))
@@ -1278,54 +1289,47 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getBasePersonnelCosts() != OpGanttValidator.getBasePersonnelCosts(dataRow)) {
             update = true;
             activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
+            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+           //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualPersonnelCosts() == 0) {
+                  activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
+            }
          }
          if (activity.getBaseProceeds() != OpGanttValidator.getBaseProceeds(dataRow)) {
             update = true;
             activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
+            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualProceeds() == 0) {
+               activity.setRemainingProceeds(activity.getBaseProceeds());
+            }
          }
-
          if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
             update = true;
             activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
             if (activity.getActualTravelCosts() == 0) {
-               double remaining = activity.getBaseTravelCosts() - activity.getActualTravelCosts();
-               if (remaining < 0) {
-                  remaining = 0;
-               }
-               activity.setRemainingTravelCosts(remaining);
+               activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
             }
          }
          if (activity.getBaseMaterialCosts() != OpGanttValidator.getBaseMaterialCosts(dataRow)) {
             update = true;
             activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
             if (activity.getActualMaterialCosts() == 0) {
-               double remaining = activity.getBaseMaterialCosts() - activity.getActualMaterialCosts();
-               if (remaining < 0) {
-                  remaining = 0;
-               }
-               activity.setRemainingMaterialCosts(remaining);
+               activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
             }
          }
          if (activity.getBaseExternalCosts() != OpGanttValidator.getBaseExternalCosts(dataRow)) {
             update = true;
             activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
             if (activity.getActualExternalCosts() == 0) {
-               double remaining = activity.getBaseExternalCosts() - activity.getActualExternalCosts();
-               if (remaining < 0) {
-                  remaining = 0;
-               }
-               activity.setRemainingExternalCosts(remaining);
+               activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
             }
          }
          if (activity.getBaseMiscellaneousCosts() != OpGanttValidator.getBaseMiscellaneousCosts(dataRow)) {
             update = true;
             activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
             if (activity.getActualMiscellaneousCosts() == 0) {
-               double remaining = activity.getBaseMiscellaneousCosts() - activity.getActualMiscellaneousCosts();
-               if (remaining < 0) {
-                  remaining = 0;
-               }
-               activity.setRemainingMiscellaneousCosts(remaining);
+               activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
             }
          }
          if (activity.getAttributes() != OpGanttValidator.getAttributes(dataRow)) {
@@ -1362,17 +1366,18 @@ public abstract class OpActivityDataSetFactory {
     *                  that the activity has no current parent.
     * @param broker    a <code>OpBroker</code> used for performing business operations.
     */
-   private static void updateParentsActualEffort(OpActivity activity, OpActivity newParent, OpBroker broker) {
+   private static void updateParentsActualValues(OpActivity activity, OpActivity newParent, OpBroker broker) {
       OpActivity originalActivity = activity;
       //update old parents
       while (activity.getSuperActivity() != null) {
          OpActivity oldParent = activity.getSuperActivity();
-         oldParent.setActualEffort(oldParent.getActualEffort() - activity.getActualEffort());
-         oldParent.setActualExternalCosts(oldParent.getActualExternalCosts() - activity.getActualExternalCosts());
-         oldParent.setActualMaterialCosts(oldParent.getActualMaterialCosts() - activity.getActualMaterialCosts());
-         oldParent.setActualMiscellaneousCosts(oldParent.getActualMiscellaneousCosts() - activity.getActualMiscellaneousCosts());
-         oldParent.setActualPersonnelCosts(oldParent.getActualPersonnelCosts() - activity.getActualPersonnelCosts());
-         oldParent.setActualTravelCosts(oldParent.getActualTravelCosts() - activity.getActualTravelCosts());
+         oldParent.setActualEffort(oldParent.getActualEffort() - originalActivity.getActualEffort());
+         oldParent.setActualExternalCosts(oldParent.getActualExternalCosts() - originalActivity.getActualExternalCosts());
+         oldParent.setActualMaterialCosts(oldParent.getActualMaterialCosts() - originalActivity.getActualMaterialCosts());
+         oldParent.setActualMiscellaneousCosts(oldParent.getActualMiscellaneousCosts() - originalActivity.getActualMiscellaneousCosts());
+         oldParent.setActualPersonnelCosts(oldParent.getActualPersonnelCosts() - originalActivity.getActualPersonnelCosts());
+         oldParent.setActualProceeds(oldParent.getActualProceeds() - originalActivity.getActualProceeds());
+         oldParent.setActualTravelCosts(oldParent.getActualTravelCosts() - originalActivity.getActualTravelCosts());
          broker.updateObject(oldParent);
 
          activity = oldParent;
@@ -1380,12 +1385,13 @@ public abstract class OpActivityDataSetFactory {
       //update the new parents
       activity = originalActivity;
       while (newParent != null) {
-         newParent.setActualEffort(newParent.getActualEffort() + activity.getActualEffort());
-         newParent.setActualExternalCosts(newParent.getActualExternalCosts() + activity.getActualExternalCosts());
-         newParent.setActualMaterialCosts(newParent.getActualMaterialCosts() + activity.getActualMaterialCosts());
-         newParent.setActualMiscellaneousCosts(newParent.getActualMiscellaneousCosts() + activity.getActualMiscellaneousCosts());
-         newParent.setActualPersonnelCosts(newParent.getActualPersonnelCosts() + activity.getActualPersonnelCosts());
-         newParent.setActualTravelCosts(newParent.getActualTravelCosts() + activity.getActualTravelCosts());
+         newParent.setActualEffort(newParent.getActualEffort() + originalActivity.getActualEffort());
+         newParent.setActualExternalCosts(newParent.getActualExternalCosts() + originalActivity.getActualExternalCosts());
+         newParent.setActualMaterialCosts(newParent.getActualMaterialCosts() + originalActivity.getActualMaterialCosts());
+         newParent.setActualMiscellaneousCosts(newParent.getActualMiscellaneousCosts() + originalActivity.getActualMiscellaneousCosts());
+         newParent.setActualPersonnelCosts(newParent.getActualPersonnelCosts() + originalActivity.getActualPersonnelCosts());
+         newParent.setActualProceeds(newParent.getActualProceeds() + originalActivity.getActualProceeds());
+         newParent.setActualTravelCosts(newParent.getActualTravelCosts() + originalActivity.getActualTravelCosts());
          broker.updateObject(newParent);
 
          activity = newParent;
@@ -2500,8 +2506,16 @@ public abstract class OpActivityDataSetFactory {
             }
          }
       }
+      double oldRemainingPersonnelCosts = assignment.getRemainingPersonnelCosts();
+      double oldRemainingProceeds = assignment.getRemainingProceeds();
       assignment.updateRemainingPersonnelCosts();
       assignment.updateRemainingProceeds();
+      double remainingPersonnelCostsChange = oldRemainingPersonnelCosts - assignment.getRemainingPersonnelCosts();
+      double remainingProceedsChange = oldRemainingProceeds - assignment.getRemainingProceeds();
+
+      //update the remaining personnel costs & remaining proceeds on the activity and its superactivities
+      assignment.getActivity().updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
+      assignment.getActivity().updateRemainingProceeds(remainingProceedsChange);
 
       broker.updateObject(assignment);
    }
@@ -2605,5 +2619,196 @@ public abstract class OpActivityDataSetFactory {
          return counter.intValue();
       }
       return 0;
+   }
+
+   /**
+    * Returns an <code>IdentityHashMap<OpActivity, List<OpActivity>></code> which contains as keys all the collection
+    *    activities and as values the corresponding subactivities for each collection.
+    *
+    * @param activityList - the <code>List<OpActivity></code> of activities which is going to be organized into the
+    *    hierarchy.
+    * @return an <code>IdentityHashMap<OpActivity, List<OpActivity>></code> which contains as keys all the collection
+    *    activities and as values the corresponding subactivities for each collection.
+    */
+   private static void updateRemainingCostsOnCollections(List<OpActivity> activityList) {
+
+      //create an <code>IdentityHashMap<OpActivity, List<OpActivity>></code> which contains as keys all the collection
+      // activities and as values the corresponding subactivities for each collection.
+      IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap = new IdentityHashMap<OpActivity, List<OpActivity>>();
+      //hold all root collections into a separate list
+      List<OpActivity> rootCollections = new ArrayList<OpActivity>();
+      OpActivity superActivity;
+      for (OpActivity activity : activityList) {
+         if (!activity.getDeleted()) {
+            superActivity = activity.getSuperActivity();
+            if (superActivity != null) {
+               if (hierarchyMap.containsKey(superActivity)) {
+                  hierarchyMap.get(superActivity).add(activity);
+               }
+               else {
+                  List<OpActivity> childrenList = new ArrayList<OpActivity>();
+                  childrenList.add(activity);
+                  hierarchyMap.put(superActivity, childrenList);
+               }
+            }
+            else {
+               rootCollections.add(activity);
+            }
+         }
+      }
+
+      //update each type of remaining costs starting with the root collections recursively
+      for (OpActivity planActivity : rootCollections) {
+         updateRemainingPersonnelCosts(planActivity, hierarchyMap);
+         updateRemainingProceeds(planActivity, hierarchyMap);
+         updateRemainingTravelCosts(planActivity, hierarchyMap);
+         updateRemainingMaterialCosts(planActivity, hierarchyMap);
+         updateRemainingExternalCosts(planActivity, hierarchyMap);
+         updateRemainingMiscCosts(planActivity, hierarchyMap);
+      }
+   }
+
+   /**
+    * Calculates the sum of the remainingPersonnelCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity - the <code>OpActivity</code> which has its remainingPersonnelCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *    corresponding subactivities of each collection.
+    * @return - the value of the remainingPersonnelCosts on the activity.
+    */
+   private static double updateRemainingPersonnelCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalPersonnelCosts = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalPersonnelCosts += updateRemainingPersonnelCosts(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingPersonnelCosts();
+      }
+
+      activity.setRemainingPersonnelCosts(totalPersonnelCosts);
+      return activity.getRemainingPersonnelCosts();
+   }
+
+   /**
+    * Calculates the sum of the remainingPersonnelCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity     - the <code>OpActivity</code> which has its remainingPersonnelCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *                     corresponding subactivities of each collection.
+    * @return - the value of the remainingPersonnelCosts on the activity.
+    */
+   private static double updateRemainingProceeds(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalProceeds = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalProceeds += updateRemainingProceeds(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingProceeds();
+      }
+
+      activity.setRemainingProceeds(totalProceeds);
+      return activity.getRemainingProceeds();
+   }
+
+   /**
+    * Calculates the sum of the remainingTravelCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity     - the <code>OpActivity</code> which has its remainingTravelCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *                     corresponding subactivities of each collection.
+    * @return - the value of the remainingTravelCosts on the activity.
+    */
+   private static double updateRemainingTravelCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalTravelCosts = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalTravelCosts += updateRemainingTravelCosts(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingTravelCosts();
+      }
+
+      activity.setRemainingTravelCosts(totalTravelCosts);
+      return activity.getRemainingTravelCosts();
+   }
+
+   /**
+    * Calculates the sum of the remainingMaterialCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity     - the <code>OpActivity</code> which has its remainingMaterialCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *                     corresponding subactivities of each collection.
+    * @return - the value of the remainingMaterialCosts on the activity.
+    */
+   private static double updateRemainingMaterialCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalMaterialCosts = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalMaterialCosts += updateRemainingMaterialCosts(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingMaterialCosts();
+      }
+
+      activity.setRemainingMaterialCosts(totalMaterialCosts);
+      return activity.getRemainingMaterialCosts();
+   }
+
+   /**
+    * Calculates the sum of the remainingExternalCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity     - the <code>OpActivity</code> which has its remainingExternalCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *                     corresponding subactivities of each collection.
+    * @return - the value of the remainingExternalCosts on the activity.
+    */
+   private static double updateRemainingExternalCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalExternalCosts = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalExternalCosts += updateRemainingExternalCosts(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingExternalCosts();
+      }
+
+      activity.setRemainingExternalCosts(totalExternalCosts);
+      return activity.getRemainingExternalCosts();
+   }
+
+   /**
+    * Calculates the sum of the remainingMiscellaneousCosts from all the subactivities of a collection, recursively, and
+    *    sets it on the collection.
+    *
+    * @param activity     - the <code>OpActivity</code> which has its remainingMiscellaneousCosts set.
+    * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
+    *                     corresponding subactivities of each collection.
+    * @return - the value of the remainingMiscellaneousCosts on the activity.
+    */
+   private static double updateRemainingMiscCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
+      double totalMiscellaneousCosts = 0;
+      if (hierarchyMap.containsKey(activity) && !hierarchyMap.get(activity).isEmpty()) {
+         for (OpActivity subActivity : hierarchyMap.get(activity)) {
+            totalMiscellaneousCosts += updateRemainingMiscCosts(subActivity, hierarchyMap);
+         }
+      }
+      else {
+         return activity.getRemainingMiscellaneousCosts();
+      }
+
+      activity.setRemainingMiscellaneousCosts(totalMiscellaneousCosts);
+      return activity.getRemainingMiscellaneousCosts();
    }
 }

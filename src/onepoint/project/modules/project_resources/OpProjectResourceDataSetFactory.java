@@ -38,8 +38,11 @@ public final class OpProjectResourceDataSetFactory {
     */
    public static void fillEffortDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set) {
 
-      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
+      StringBuffer queryString = new StringBuffer("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ?");
+      queryString.append(" and activity.OutlineLevel <= ? order by activity.Sequence");
+      OpQuery query = broker.newQuery(queryString.toString());
       query.setID(0, project.getID());
+      query.setInteger(1, max_outline_level);
       List<OpActivity> activities = broker.list(query);
 
       double predicted;
@@ -79,14 +82,12 @@ public final class OpProjectResourceDataSetFactory {
             }
          }
 
-         if (activity.getOutlineLevel() <= max_outline_level) {
-            // Add previous visible activity with summarized values and reset both
-            if (previous_visible_activity != null) {
-               addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
-            }
-            resource_summaries.clear();
-            previous_visible_activity = activity;
+         // Add previous visible activity with summarized values and reset both
+         if (previous_visible_activity != null) {
+            addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
          }
+         resource_summaries.clear();
+         previous_visible_activity = activity;
 
          baselineResource = new HashSet<Long>();
          if (useBaseline) {

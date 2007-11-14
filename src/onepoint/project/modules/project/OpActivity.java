@@ -98,6 +98,7 @@ public class OpActivity extends OpObject {
    private double actualTravelCosts;
    private double remainingTravelCosts;
    private double actualPersonnelCosts;
+   private double remainingPersonnelCosts;
    private double actualMaterialCosts;
    private double remainingMaterialCosts;
    private double actualExternalCosts;
@@ -107,6 +108,7 @@ public class OpActivity extends OpObject {
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
+   private double remainingProceeds;
    private double payment;
    private boolean deleted;
    private boolean expanded;
@@ -163,6 +165,11 @@ public class OpActivity extends OpObject {
       this.attributes = attributes;
    }
 
+   /**
+    * Gets the attributes of this activity.
+    *
+    * @return each bit in the returned number represents the pressence of an attribute.
+    */
    public int getAttributes() {
       return attributes;
    }
@@ -253,7 +260,7 @@ public class OpActivity extends OpObject {
       //<FIXME author="Haizea Florin" description="data loading problem: the getVersions().isEmpty() statement will load
       //  all the versions of this activity">
       if (baselinePlanVersion != null && getVersions() != null && !getVersions().isEmpty()) {
-      //<FIXME>
+         //<FIXME>
          for (OpActivityVersion version : getVersions()) {
             if (version.getPlanVersion().getID() == baselinePlanVersion.getID()) {
                return version;
@@ -693,19 +700,53 @@ public class OpActivity extends OpObject {
 
 
    public double getRemainingProceeds() {
-      double proceeds = 0;
-      for (OpAssignment assignment : getAssignments()) {
-         proceeds += assignment.getRemainingProceeds();
-      }
-      return proceeds;
+      return remainingProceeds;
+   }
+
+   public void setRemainingProceeds(double remainingProceeds) {
+      this.remainingProceeds = remainingProceeds;
    }
 
    public double getRemainingPersonnelCosts() {
-      double personnel = 0;
-      for (OpAssignment assignment : getAssignments()) {
-         personnel += assignment.getRemainingPersonnelCosts();
-      }
-      return personnel;
+      return remainingPersonnelCosts;
    }
+
+   public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
+      this.remainingPersonnelCosts = remainingPersonnelCosts;
+   }
+
+   /**
+    * Updates the remaining personnel costs on the activity and its super activities.
+    *
+    * @param remainingPersonnelCostsChange - the <code>double</code> value with which the remaining personnel costs was
+    *                                      changed.
+    */
+   public void updateRemainingPersonnelCosts(double remainingPersonnelCostsChange) {
+      this.remainingPersonnelCosts = this.remainingPersonnelCosts - remainingPersonnelCostsChange;
+      if (superActivity != null) {
+         superActivity.updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
+      }
+   }
+
+   /**
+    * Updates the remaining proceeds on the activity and its super activities.
+    *
+    * @param remainingProceedsChange - the <code>double</code> value with which the remaining proceeds was changed.
+    */
+   public void updateRemainingProceeds(double remainingProceedsChange) {
+      this.remainingProceeds = this.remainingProceeds - remainingProceedsChange;
+      if (superActivity != null) {
+         superActivity.updateRemainingProceeds(remainingProceedsChange);
+      }
+   }
+
+   public boolean hasAttachments() {
+      return (attributes & HAS_ATTACHMENTS) == HAS_ATTACHMENTS;
+   }
+
+   public boolean hasComments() {
+      return (attributes & HAS_COMMENTS) == HAS_COMMENTS;
+   }
+
 
 }
