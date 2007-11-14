@@ -154,6 +154,54 @@ public class OpProjectPlanningModule extends OpModule {
       broker.close();
    }
 
+   /**
+    * Added 2 new fields on OpActivity: remainingPersonnelCosts & remainingProceeds.
+    *
+    * @param session project session
+    */
+   public void upgradeToVersion33(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+      List<OpActivity> collectionList = new ArrayList<OpActivity>();
+
+      //set the collection's remaining personnel costs and remaining proceeds to 0
+      OpQuery query = broker.newQuery("from OpActivity activity where not exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+      Iterator<OpActivity> result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpActivity activity = result.next();
+         activity.setRemainingPersonnelCosts(0);
+         activity.setRemainingProceeds(0);
+         collectionList.add(activity);
+      }
+
+      query = broker.newQuery("from OpActivity activity where exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+      result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpActivity activity = result.next();
+         activity.setRemainingPersonnelCosts(0);
+         activity.setRemainingProceeds(0);
+         double totalRemainingPersonnelCosts = 0;
+         double totalRemainingProceeds = 0;
+
+         //update the remaining personnel costs and remaining proceeds on the activity and its parents
+         for (OpAssignment assignment : activity.getAssignments()) {
+            totalRemainingPersonnelCosts -= assignment.getRemainingPersonnelCosts();
+            totalRemainingProceeds -= assignment.getRemainingProceeds();
+         }
+         activity.updateRemainingPersonnelCosts(totalRemainingPersonnelCosts);
+         activity.updateRemainingProceeds(totalRemainingProceeds);
+         broker.updateObject(activity);
+      }
+
+      for(OpActivity activity : collectionList) {
+         broker.updateObject(activity);
+      }
+
+      tx.commit();
+      broker.close();
+   }
 
    /**
     * Updates the actual proceeds of all activity, activity assignments and work records,
