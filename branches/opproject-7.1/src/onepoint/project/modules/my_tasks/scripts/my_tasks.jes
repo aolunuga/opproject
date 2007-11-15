@@ -153,6 +153,8 @@ function selectionChanged(event) {
 
    infoButton = form.findComponent("InfoButton");
    infoButton.setEnabled(true);
+   newCommentButton = form.findComponent("NewCommentButton");
+   newCommentButton.setEnabled(true);
 
    deleteButton = form.findComponent("DeleteAdhocButton");
    // get delete permission for selected row
@@ -190,6 +192,9 @@ function activateTasklistTab(event) {
    infoButton = form.findComponent("InfoButton");
    infoButton.setEnabled(false);
    infoButton.update();
+   newCommentButton = form.findComponent("NewCommentButton");
+   newCommentButton.setEnabled(false);
+   newCommentButton.update();
 }
 
 /**
@@ -203,6 +208,9 @@ function activateGanttTab(event) {
    infoButton = form.findComponent("InfoButton");
    infoButton.setEnabled(false);
    infoButton.update();
+   newCommentButton = form.findComponent("NewCommentButton");
+   newCommentButton.setEnabled(false);
+   newCommentButton.update();
 }
 
 /**

@@ -98,7 +98,7 @@ public class OpActivity extends OpObject {
    private double actualTravelCosts;
    private double remainingTravelCosts;
    private double actualPersonnelCosts;
-   private double remainingPersonnelCosts;
+   private Double remainingPersonnelCosts;
    private double actualMaterialCosts;
    private double remainingMaterialCosts;
    private double actualExternalCosts;
@@ -108,7 +108,7 @@ public class OpActivity extends OpObject {
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
-   private double remainingProceeds;
+   private Double remainingProceeds;
    private double payment;
    private boolean deleted;
    private boolean expanded;
@@ -699,20 +699,20 @@ public class OpActivity extends OpObject {
    }
 
 
-   public double getRemainingProceeds() {
+   public Double getRemainingProceeds() {
       return remainingProceeds;
    }
 
-   public void setRemainingProceeds(double remainingProceeds) {
-      this.remainingProceeds = remainingProceeds;
+   public void setRemainingProceeds(Double remainingProceeds) {
+      this.remainingProceeds = remainingProceeds != null ? remainingProceeds : 0;
    }
 
-   public double getRemainingPersonnelCosts() {
+   public Double getRemainingPersonnelCosts() {
       return remainingPersonnelCosts;
    }
 
-   public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
-      this.remainingPersonnelCosts = remainingPersonnelCosts;
+    public void setRemainingPersonnelCosts(Double remainingPersonnelCosts) {
+       this.remainingPersonnelCosts = remainingPersonnelCosts != null ? remainingPersonnelCosts : 0;
    }
 
    /**

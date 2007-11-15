@@ -71,7 +71,7 @@ public class OpWorkService extends OpProjectService {
       try {
          OpWorkSlip workSlip = new OpWorkSlip();
          workSlip.setDate(start);
-         workSlip.setRecords(workRecordsToAdd);
+         workSlip.addRecords(workRecordsToAdd);
          workSlip.updateTotalActualEffort();
 
          // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
@@ -205,7 +205,7 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
-         workSlip.setRecords(workRecordsToAdd);
+         workSlip.addRecords(workRecordsToAdd);
          workSlip.updateTotalActualEffort();
          serviceImpl.insertWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 

@@ -192,6 +192,16 @@ public class OpWorkRecord extends OpObject {
 
    public void setCostRecords(Set<OpCostRecord> costRecords) {
       this.costRecords = costRecords;
+   }
+
+   /**
+    * Sets the cost record set on the <code>OpWorkRecord</code> entity and sets the work record on each
+    * <code>OpCostRecord</code> entity in the set.
+    *
+    * @param costRecords - the <code>Set<OpCostRecord></code> of cost records which will be set on the work record.
+    */
+   public void addCostRecords(Set<OpCostRecord> costRecords) {
+      this.costRecords = costRecords;
       for (OpCostRecord cost : costRecords) {
          cost.setWorkRecord(this);
       }
@@ -202,6 +212,16 @@ public class OpWorkRecord extends OpObject {
    }
 
    public void setTimeRecords(Set<OpTimeRecord> timeRecords) {
+      this.timeRecords = timeRecords;
+   }
+
+   /**
+    * Sets the time record set on the <code>OpWorkRecord</code> entity and sets the work record on each
+    * <code>OpTimeRecord</code> entity in the set.
+    *
+    * @param timeRecords - the <code>Set<OpTimeRecord></code> of time records which will be set on the work record.
+    */
+   public void addTimeRecords(Set<OpTimeRecord> timeRecords) {
       this.timeRecords = timeRecords;
       for (OpTimeRecord time : timeRecords) {
          time.setWorkRecord(this);

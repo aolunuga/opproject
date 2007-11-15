@@ -329,7 +329,7 @@ public class OpProjectAdministrationService extends OpProjectService {
                attachments.add(attachment);
             }
          }
-         project.setAttachments(attachments);
+         project.addAttachments(attachments);
       }
    }
 
@@ -849,7 +849,7 @@ public class OpProjectAdministrationService extends OpProjectService {
                attachments.add(attachment);
             }
          }
-         project.setAttachments(attachments);
+         project.addAttachments(attachments);
       }
 
       //delete all contents with reference count = 0
