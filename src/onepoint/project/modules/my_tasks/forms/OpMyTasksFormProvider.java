@@ -103,6 +103,10 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
       XComponent dataSet = form.findComponent(ACTIVITY_SET);
 
+      if (dataSet.selectedRows().size() == 0) {
+         form.findComponent(NEW_COMMENT).setEnabled(false);
+      }
+
       //create the activity filter
       OpActivityFilter activityFilter = createActivityFilter(session, broker, parameters, form, user.getResources(), projectsResourcesMap);
       //retrieve the activities

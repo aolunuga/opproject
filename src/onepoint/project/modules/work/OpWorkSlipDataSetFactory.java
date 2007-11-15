@@ -227,11 +227,11 @@ public class OpWorkSlipDataSetFactory {
 
          //obtain the sub data set of time records which belong to the work record
          XComponent timeRecordSubset = filterDataSet(timeRecordDataSet, workDataRow);
-         workRecord.setTimeRecords(OpTimeRecordDataSetFactory.createTimeRecords(timeRecordSubset));
+         workRecord.addTimeRecords(OpTimeRecordDataSetFactory.createTimeRecords(timeRecordSubset));
 
          //obtain the sub data set of cost records which belong to the work record
          XComponent costRecordSubset = filterDataSet(costRecordDataSet, workDataRow);
-         workRecord.setCostRecords(OpCostRecordDataSetFactory.createCostRecords(broker, costRecordSubset));
+         workRecord.addCostRecords(OpCostRecordDataSetFactory.createCostRecords(broker, costRecordSubset));
          workRecords.add(workRecord);
       }
 
@@ -264,7 +264,7 @@ public class OpWorkSlipDataSetFactory {
             workRecord.setAssignment((OpAssignment) broker.getObject(costDataRow.getStringValue()));
             Set<OpCostRecord> costRecords = new HashSet<OpCostRecord>();
             costRecords.addAll(costRecordSet);
-            workRecord.setCostRecords(costRecords);
+            workRecord.addCostRecords(costRecords);
             workRecords.add(workRecord);
             emptyWorkRecords.add(workRecord);
          }

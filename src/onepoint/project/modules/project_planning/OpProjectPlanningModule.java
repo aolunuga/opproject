@@ -170,8 +170,8 @@ public class OpProjectPlanningModule extends OpModule {
 
       while (result.hasNext()) {
          OpActivity activity = result.next();
-         activity.setRemainingPersonnelCosts(0);
-         activity.setRemainingProceeds(0);
+         activity.setRemainingPersonnelCosts(0d);
+         activity.setRemainingProceeds(0d);
          collectionList.add(activity);
       }
 
@@ -180,8 +180,8 @@ public class OpProjectPlanningModule extends OpModule {
 
       while (result.hasNext()) {
          OpActivity activity = result.next();
-         activity.setRemainingPersonnelCosts(0);
-         activity.setRemainingProceeds(0);
+         activity.setRemainingPersonnelCosts(0d);
+         activity.setRemainingProceeds(0d);
          double totalRemainingPersonnelCosts = 0;
          double totalRemainingProceeds = 0;
 

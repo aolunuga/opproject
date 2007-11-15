@@ -281,7 +281,7 @@ public class OpCostRecordDataSetFactory {
                attachments.add(attachment);
             }
          }
-         costRecord.setAttachments(attachments);
+         costRecord.addAttachments(attachments);
       }
       return costRecord;
    }

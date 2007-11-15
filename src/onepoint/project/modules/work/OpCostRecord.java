@@ -166,6 +166,16 @@ public class OpCostRecord extends OpObject {
     */
    public void setAttachments(Set<OpAttachment> attachments) {
       this.attachments = attachments;
+   }
+
+   /**
+    * Sets the attachments on the cost record entity and sets the <code>OpCostRecord</code> on each
+    *    <code>OpAttachment</code> from the set.
+    *
+    * @param attachments - the <code>Set<OpAttachment></code> of attachments that will be set on the cost record.
+    */
+   public void addAttachments(Set<OpAttachment> attachments) {
+      this.attachments = attachments;
       for (OpAttachment attachment : attachments) {
          attachment.setCostRecord(this);
       }

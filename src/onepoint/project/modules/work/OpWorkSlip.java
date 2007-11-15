@@ -63,6 +63,16 @@ public class OpWorkSlip extends OpObject {
 
    public void setRecords(Set<OpWorkRecord> records) {
       this.records = records;
+   }
+
+   /**
+    * Sets the work record set on the <code>OpWorkSlip</code> entity and sets the work slip on each
+    * <code>OpWorkRecord</code> entity in the set.
+    *
+    * @param records - the <code>Set<OpWorkRecord></code> of work records which will be set on the work slip.
+    */
+   public void addRecords(Set<OpWorkRecord> records) {
+      this.records = records;
       for (OpWorkRecord record : records) {
          record.setWorkSlip(this);
       }

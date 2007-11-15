@@ -193,9 +193,6 @@ public class OpProjectNode extends OpObject {
 
    public void setAttachments(Set<OpAttachment> attachments) {
       this.attachments = attachments;
-      for (OpAttachment attachment : attachments) {
-         attachment.setProjectNode(this);
-      }
    }
 
    public Set<OpAttachment> getAttachments() {
@@ -255,6 +252,19 @@ public class OpProjectNode extends OpObject {
     */
    public void setPriority(Integer priority) {
       this.priority = priority;
+   }
+
+   /**
+    * Sets the attachments on the project node entity and sets the <code>OpProjectNode</code> on each
+    *    <code>OpAttachment</code> from the set.
+    *
+    * @param attachments - the <code>Set<OpAttachment></code> of attachments that will be set on the project node.
+    */
+   public void addAttachments(Set<OpAttachment> attachments) {
+      this.attachments = attachments;
+      for (OpAttachment attachment : attachments) {
+         attachment.setProjectNode(this);
+      }
    }
 
    /**
