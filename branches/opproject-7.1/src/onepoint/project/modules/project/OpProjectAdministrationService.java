@@ -581,7 +581,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          //update personnel & actual costs
          updatePersonnelCostsForWorkingVersion(broker, xCalendar, project);
          //update the actual costs only if there were some modifications on the resource rates or hourly rates
-         if((Boolean)request.getArgument(MODIFIED_RATES)){
+         if ((Boolean) request.getArgument(MODIFIED_RATES)) {
             updateActualCosts(broker, project);
          }
 
@@ -1599,6 +1599,7 @@ public class OpProjectAdministrationService extends OpProjectService {
             Date newActivityStart = new Date(date.getTime());
             OpGanttValidator.setStart(dataRow, newActivityStart);
             OpGanttValidator.setResources(dataRow, new ArrayList());
+            OpGanttValidator.setResponsibleResource(dataRow, null);
             OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseStarts(dataRow, new ArrayList());

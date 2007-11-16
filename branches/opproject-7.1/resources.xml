@@ -2,13 +2,21 @@
 
    <property name="language" value="en"/>
    <property name="zipFile" value="resources"/>
+   <property name="sourceDir" value="src"/>
+
+   <property name="unzipFile" value="${zipFile}_${language}_open.zip"/>
+   <property name="destination" value="src"/>
 
    <target name="archive" description="Archives the language resources">
       <zip zipfile="${zipFile}_${language}_open.zip">
-         <fileset dir="src">
+         <fileset dir="${sourceDir}">
             <include name="**/*_${language}.olk.xml"/>
          </fileset>
       </zip>
+   </target>
+
+   <target name="desarchive" description="Desarchive the language resources">
+      <unzip src="${unzipFile}" dest="${destination}"/>
    </target>
 
 </project>

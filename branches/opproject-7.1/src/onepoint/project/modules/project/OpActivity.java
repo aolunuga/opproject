@@ -98,7 +98,7 @@ public class OpActivity extends OpObject {
    private double actualTravelCosts;
    private double remainingTravelCosts;
    private double actualPersonnelCosts;
-   private Double remainingPersonnelCosts;
+   private Double remainingPersonnelCosts = 0d;
    private double actualMaterialCosts;
    private double remainingMaterialCosts;
    private double actualExternalCosts;
@@ -108,7 +108,7 @@ public class OpActivity extends OpObject {
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
-   private Double remainingProceeds;
+   private Double remainingProceeds = 0d;
    private double payment;
    private boolean deleted;
    private boolean expanded;

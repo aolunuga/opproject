@@ -10,9 +10,9 @@ package onepoint.project.xml_rpc;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
-import onepoint.project.OpInitializerFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XService;
@@ -36,7 +36,6 @@ import java.util.Iterator;
  * Servlet used for Xml-Rpc Funcionality.
  *
  * @author dfreis
- *
  */
 public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 
@@ -103,20 +102,19 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
          xmlRpcServiceClass = getXMLRPCServiceClass(service);
          if (xmlRpcServiceClass != null) {
             try {
-               logger.info("Registered service: "+xmlRpcServiceClass.getName());
+               logger.info("Registered service: " + xmlRpcServiceClass.getName());
                handler_mapping.addHandler(service.getName(), xmlRpcServiceClass);
             }
             catch (XmlRpcException exc) {
-               logger.error("Could not add XML-RPC handler for service: "+service.getName());
+               logger.error("Could not add XML-RPC handler for service: " + service.getName());
                logger.debug(exc);
             }
             catch (NoClassDefFoundError exc) {
-               System.err.println("EXC: "+exc);   
                exc.printStackTrace();
             }
          }
          else {
-            logger.error("No XML-RPC handler for service '"+(service == null ? "<null>" : service.getName())+"' found!");            
+            logger.error("No XML-RPC handler for service '" + (service == null ? "<null>" : service.getName()) + "' found!");
          }
       }
    }
@@ -125,7 +123,8 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
     * @see javax.servlet.GenericServlet#init()
     */
    @Override
-   public void init() throws ServletException {
+   public void init()
+        throws ServletException {
       logger.debug("Call init() method");
 
       super.init();
@@ -165,7 +164,8 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
     * @see org.apache.xmlrpc.webserver.XmlRpcServlet#newXmlRpcHandlerMapping()
     */
    @Override
-   protected XmlRpcHandlerMapping newXmlRpcHandlerMapping() throws XmlRpcException {
+   protected XmlRpcHandlerMapping newXmlRpcHandlerMapping()
+        throws XmlRpcException {
       if (handler_mapping == null) {
          throw new IllegalStateException("handler not jet initialized");
       }
@@ -176,7 +176,8 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
     * @see org.apache.xmlrpc.webserver.XmlRpcServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
     */
    @Override
-   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+   public void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws IOException, ServletException {
       try {
          OpProjectSession session = (OpProjectSession) request.getSession(true).getAttribute(OP_PROJECT_SESSION);
          if (session == null) {
@@ -186,11 +187,11 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
          OpProjectSession.setSession(session);
          super.doPost(request, response);
          OpProjectSession.removeSession();
-      } catch (Throwable t) {
+      }
+      catch (Throwable t) {
          logger.error("XML-RPC: get Exception during doPost()", t);
       }
    }
-
 
 //   /* (non-Javadoc)
 //    * @see org.apache.xmlrpc.webserver.XmlRpcServlet#getXmlRpcServletServer()
@@ -202,12 +203,14 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
 //      
 //   }
 
-   protected PropertyHandlerMapping newPropertyHandlerMapping(URL url) throws IOException, XmlRpcException {
+   protected PropertyHandlerMapping newPropertyHandlerMapping(URL url)
+        throws IOException, XmlRpcException {
       PropertyHandlerMapping mapping = new PropertyHandlerMapping();
       RequestProcessorFactoryFactory factory = new RequestProcessorFactoryFactory.RequestSpecificProcessorFactoryFactory() {
-         protected Object getRequestProcessor(Class pClass, XmlRpcRequest pRequest) throws XmlRpcException {
+         protected Object getRequestProcessor(Class pClass, XmlRpcRequest pRequest)
+              throws XmlRpcException {
             Object proc = super.getRequestProcessor(pClass, pRequest);
-            logger.debug("PROC: "+proc.getClass().getName());
+            logger.debug("PROC: " + proc.getClass().getName());
             return proc;
          }
       };
@@ -219,6 +222,7 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
    /**
     * Returns a XMLRPCService that uses the given service to perform its work.
     * An XMLRPCService can therefor be seen as an XML-RPC adapter for the given service.
+    *
     * @param service the service to get the XML-RPC adapter for.
     * @return the XML-RPC specific adapter or null if no such adapter was found.
     */
@@ -227,23 +231,24 @@ public class OpOpenXMLRPCServlet extends XmlRpcServlet {
          return null;
       }
       try {
-         String className = getClass().getPackage().getName()+"."+service.getClass().getName();
+         String className = getClass().getPackage().getName() + "." + service.getClass().getName();
          // FIXME(dfreis Apr 17, 2007 1:48:18 PM) temporary code until
          // ServiceImpls become Service, prevents changing all XML-RPC adapter classes.
          // {
-         if (className.endsWith("Impl"))
-            className = className.substring(0, className.length()-4);
+         if (className.endsWith("Impl")) {
+            className = className.substring(0, className.length() - 4);
+         }
          // }
          className += XMLRPC_SUFFIX;
          return Class.forName(className);
       }
-      catch (Exception exc)
-      {
-         logger.debug("No XMLRPC class found for Service '"+service.getClass().getName()+"'");
+      catch (Exception exc) {
+         logger.debug("No XMLRPC class found for Service '" + service.getClass().getName() + "'");
          //exc.printStackTrace();
          return null;
       }
    }
+
    /**
     * Gets a product code string for this servlet.
     *

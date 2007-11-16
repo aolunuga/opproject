@@ -587,13 +587,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
          //0 - resource name
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(resource.getName());
-         dataCell.setEnabled(editMode);
+         dataCell.setEnabled(false);
          dataRow.addChild(dataCell);
 
          //1 - resource description
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(resource.getDescription());
-         dataCell.setEnabled(editMode);
+         dataCell.setEnabled(false);
          dataRow.addChild(dataCell);
 
          //2 - adjust rates

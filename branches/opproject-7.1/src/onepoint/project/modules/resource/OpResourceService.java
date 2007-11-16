@@ -1651,13 +1651,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             //0 - resource name
             XComponent dataCell = new XComponent(XComponent.DATA_CELL);
             dataCell.setStringValue(resource.getName());
-            dataCell.setEnabled(true);
+            dataCell.setEnabled(false);
             dataRow.addChild(dataCell);
 
             //1 - resource description
             dataCell = new XComponent(XComponent.DATA_CELL);
             dataCell.setStringValue(resource.getDescription());
-            dataCell.setEnabled(true);
+            dataCell.setEnabled(false);
             dataRow.addChild(dataCell);
 
             //2 - adjust rates - false

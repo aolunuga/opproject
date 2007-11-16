@@ -287,9 +287,11 @@ public class OpMappingsGenerator {
       }
 
       if (field.getIndexed() && field.getTypeID() != OpType.TEXT) {
-         buffer.append(" index=\"");
-         buffer.append(generateIndexName(prototype.getName(), field.getName()));
-         buffer.append('\"');
+         if (databaseType != OpHibernateSource.ORACLE || !field.getUnique()) {
+            buffer.append(" index=\"");
+            buffer.append(generateIndexName(prototype.getName(), field.getName()));
+            buffer.append('\"');
+         }
       }
 
       if (field.getTypeID() == OpType.TEXT) {
