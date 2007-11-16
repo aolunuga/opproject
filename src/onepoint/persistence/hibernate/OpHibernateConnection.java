@@ -101,7 +101,7 @@ public class OpHibernateConnection extends OpConnection {
       }
       catch (Exception e) {
          t.rollback();
-         logger.error("Could not execute DDL script: " + e);
+         logger.error("Could not execute DDL script: ", e);
       }
       finally {
          closeStatement(statement);
@@ -132,12 +132,12 @@ public class OpHibernateConnection extends OpConnection {
                t.commit();
             }
             catch (SQLException e) {
-               logger.warn("Skipping drop statement because: " + e.getMessage());
+               logger.warn("Skipping drop statement because: ", e);
                t.rollback();
                this.closeStatement(statement);
             }
             catch (Exception e) {
-               logger.error("Could not execute drop statement: " + e.getMessage(), e);
+               logger.error("Could not execute drop statement: ", e);
                t.rollback();
                break;
             }
@@ -173,7 +173,7 @@ public class OpHibernateConnection extends OpConnection {
          script = configuration.generateSchemaCreationScript(source.newHibernateDialect());
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not generate schema creation script: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not generate schema creation script: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       // Execute schema creation script
@@ -216,7 +216,7 @@ public class OpHibernateConnection extends OpConnection {
          logger.info("HSQLDB initialization finished");
       }
       catch (Exception e) {
-         logger.error("Cannot initialize HSQLDB connection because: " + e.getMessage(), e);
+         logger.error("Cannot initialize HSQLDB connection because: ", e);
       }
    }
 
@@ -244,7 +244,7 @@ public class OpHibernateConnection extends OpConnection {
          return prop;
       }
       catch (Exception e) {
-         logger.error("Cannot initialize HSQLDB connection because: " + e.getMessage(), e);
+         logger.error("Cannot initialize HSQLDB connection because: ", e);
       }
       return new org.hsqldb.persist.HsqlProperties();
    }
@@ -291,7 +291,7 @@ public class OpHibernateConnection extends OpConnection {
          executeDDLScript(customUpdateScripts.toArray(new String[]{}));
       }
       catch (Exception e) {
-         logger.error("Cannot update DB schema because: " + e.getMessage(), e);
+         logger.error("Cannot update DB schema because: ", e);
       }
    }
 
@@ -311,7 +311,7 @@ public class OpHibernateConnection extends OpConnection {
          softExecuteDDLScript(customDropScripts);
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not generate drop schema script: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not generate drop schema script: ", e);
       }
    }
 
@@ -328,7 +328,7 @@ public class OpHibernateConnection extends OpConnection {
          logger.debug("after session.save()");
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not save object: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not save object: ", e);
          // *** TODO: Throw OpPersistenceException
       }
    }
@@ -346,7 +346,7 @@ public class OpHibernateConnection extends OpConnection {
          object = (OpObject) (session.get(c, new Long(id)));
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not load object: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not load object: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return object;
@@ -362,7 +362,7 @@ public class OpHibernateConnection extends OpConnection {
          session.update(object);
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not update object: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not update object: ", e);
          // *** TODO: Throw OpPersistenceException
       }
    }
@@ -377,7 +377,7 @@ public class OpHibernateConnection extends OpConnection {
          session.delete(object);
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not delete object: " + e);
+         logger.error("OpHibernateConnection.persistObject(): Could not delete object: ", e);
          // *** TODO: Throw OpPersistenceException
       }
    }
@@ -388,7 +388,7 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().list();
       }
       catch (HibernateException e) {
-         logger.error("Could not execute query: " + query);
+         logger.error("Could not execute query: " + ((OpHibernateQuery) query).getQuery().getQueryString());
          logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
@@ -401,7 +401,7 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().iterate();
       }
       catch (HibernateException e) {
-         logger.error("Could not execute query: " + query);
+         logger.error("Could not execute query: " + ((OpHibernateQuery) query).getQuery().getQueryString());
          logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
@@ -414,7 +414,7 @@ public class OpHibernateConnection extends OpConnection {
          return ((OpHibernateQuery) query).getQuery().executeUpdate();
       }
       catch (HibernateException e) {
-         logger.error("Could not execute query: " + query);
+         logger.error("Could not execute query: " + ((OpHibernateQuery) query).getQuery().getQueryString());
          logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
       }
@@ -428,7 +428,7 @@ public class OpHibernateConnection extends OpConnection {
          }
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.close(): Could not close session: " + e);
+         logger.error("OpHibernateConnection.close(): Could not close session: ", e);
          // *** TODO: Throw OpPersistenceException
       }
    }
@@ -439,7 +439,7 @@ public class OpHibernateConnection extends OpConnection {
          transaction = new OpHibernateTransaction(session.beginTransaction());
       }
       catch (HibernateException e) {
-         logger.error("OpHibernateConnection.newTransaction(): Could not begin transaction: " + e);
+         logger.error("OpHibernateConnection.newTransaction(): Could not begin transaction: ", e);
          // *** TODO: Throw OpPersistenceException
       }
       return transaction;

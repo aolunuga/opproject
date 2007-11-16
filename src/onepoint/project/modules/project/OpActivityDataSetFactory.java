@@ -839,8 +839,6 @@ public abstract class OpActivityDataSetFactory {
          plan.setHolidayCalendar(workingPlanVersion.getHolidayCalendar());
       }
 
-      System.err.println("*** WORKING-P-V " + workingPlanVersion);
-
       // Prefetch activities
       List adhocTasks = getAdHocTasks(plan);
       if (plan.getActivities() != null) {
@@ -1290,9 +1288,9 @@ public abstract class OpActivityDataSetFactory {
             update = true;
             activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
             //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-           //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
             if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualPersonnelCosts() == 0) {
-                  activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
+               activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
             }
          }
          if (activity.getBaseProceeds() != OpGanttValidator.getBaseProceeds(dataRow)) {
@@ -2567,7 +2565,7 @@ public abstract class OpActivityDataSetFactory {
    /**
     * Returns <code>true</code> if the assignment specified as parameter has any work records or <code>false</code> otherwise.
     *
-    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker     - the <code>OpBroker</code> object needed to perform DB operations.
     * @param assignment - the <code>OpAssignment</code> object.
     * @return <code>true</code> if the assignment specified as parameter has any work records or <code>false</code> otherwise.
     */
@@ -2585,12 +2583,12 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Returns <code>true</code> if the project assignment specified as parameter has any hourly rate periods or
-    *    <code>false</code> otherwise.
+    * <code>false</code> otherwise.
     *
-    * @param broker     - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker            - the <code>OpBroker</code> object needed to perform DB operations.
     * @param projectAssignment - the <code>OpProjectNodeAssignment</code> object.
     * @return <code>true</code> if the project assignment specified as parameter has any hourly rate periods or
-    *    <code>false</code> otherwise.
+    *         <code>false</code> otherwise.
     */
    public static boolean hasHourlyRatesPeriods(OpBroker broker, OpProjectNodeAssignment projectAssignment) {
       if (projectAssignment.getHourlyRatesPeriods() != null) {
@@ -2607,7 +2605,7 @@ public abstract class OpActivityDataSetFactory {
    /**
     * Returns the number of subactivities for the activity specified as parameter.
     *
-    * @param broker            - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
     * @param activity - the <code>OpActivity</code> object.
     * @return the number of subactivities for the activity specified as parameter.
     */
@@ -2623,12 +2621,12 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Returns an <code>IdentityHashMap<OpActivity, List<OpActivity>></code> which contains as keys all the collection
-    *    activities and as values the corresponding subactivities for each collection.
+    * activities and as values the corresponding subactivities for each collection.
     *
     * @param activityList - the <code>List<OpActivity></code> of activities which is going to be organized into the
-    *    hierarchy.
+    *                     hierarchy.
     * @return an <code>IdentityHashMap<OpActivity, List<OpActivity>></code> which contains as keys all the collection
-    *    activities and as values the corresponding subactivities for each collection.
+    *         activities and as values the corresponding subactivities for each collection.
     */
    private static void updateRemainingCostsOnCollections(List<OpActivity> activityList) {
 
@@ -2670,11 +2668,11 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingPersonnelCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
-    * @param activity - the <code>OpActivity</code> which has its remainingPersonnelCosts set.
+    * @param activity     - the <code>OpActivity</code> which has its remainingPersonnelCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
-    *    corresponding subactivities of each collection.
+    *                     corresponding subactivities of each collection.
     * @return - the value of the remainingPersonnelCosts on the activity.
     */
    private static double updateRemainingPersonnelCosts(OpActivity activity, IdentityHashMap<OpActivity, List<OpActivity>> hierarchyMap) {
@@ -2694,7 +2692,7 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingPersonnelCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
     * @param activity     - the <code>OpActivity</code> which has its remainingPersonnelCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
@@ -2718,7 +2716,7 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingTravelCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
     * @param activity     - the <code>OpActivity</code> which has its remainingTravelCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
@@ -2742,7 +2740,7 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingMaterialCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
     * @param activity     - the <code>OpActivity</code> which has its remainingMaterialCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
@@ -2766,7 +2764,7 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingExternalCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
     * @param activity     - the <code>OpActivity</code> which has its remainingExternalCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
@@ -2790,7 +2788,7 @@ public abstract class OpActivityDataSetFactory {
 
    /**
     * Calculates the sum of the remainingMiscellaneousCosts from all the subactivities of a collection, recursively, and
-    *    sets it on the collection.
+    * sets it on the collection.
     *
     * @param activity     - the <code>OpActivity</code> which has its remainingMiscellaneousCosts set.
     * @param hierarchyMap - a <code>HashMap</code> which contains as keys all the collections and as values the
