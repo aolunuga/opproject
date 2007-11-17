@@ -253,6 +253,10 @@ public class OpWorkSlipDataSetFactory {
             if (costDataRow.getStringValue().equals(emptyWorkRecord.getAssignment().locator())) {
                existsEmptyWorkRecord = true;
                emptyWorkRecord.getCostRecords().addAll(costRecordSet);
+               //set the work record on each cost record
+               for(OpCostRecord costRecord : costRecordSet) {
+                  costRecord.setWorkRecord(emptyWorkRecord);   
+               }
                break;
             }
          }

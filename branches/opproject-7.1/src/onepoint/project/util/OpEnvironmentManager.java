@@ -132,7 +132,7 @@ public final class OpEnvironmentManager {
          if (property != null && name.equals(ONEPOINT_HOME)) {
             File onepointHome = new File(property);
             if (onepointHome.exists() && onepointHome.isDirectory()) {
-               envProps.put(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(property));
+               setOnePointHome(property);
             }
             else {
                return null;
@@ -158,7 +158,7 @@ public final class OpEnvironmentManager {
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
-      System.setProperty(XConstants.LOGGER_HOME, envProps.getProperty(ONEPOINT_HOME)+XConstants.LOGGER_FOLDER);
+      System.setProperty(XConstants.LOGGER_HOME, envProps.getProperty(ONEPOINT_HOME) + XConstants.LOGGER_FOLDER);
    }
 
    /**
