@@ -247,7 +247,7 @@ public abstract class OpWorkValidator extends XValidator {
       }
 
       //add any advanced filtering that is necessary at this point
-      advancedFilteringForActivity(resourceChoice);
+      advancedFilteringForActivity(getActivity(dataRow), resourceChoice);
 
       if (getActivity(dataRow) != null && !getActivitySet().contains(-1, getActivity(dataRow))) {
          resetRow(dataRow, getActivity(dataRow), getResource(dataRow));
@@ -305,7 +305,7 @@ public abstract class OpWorkValidator extends XValidator {
       }
 
       //add any advanced filtering that is necessary at this point
-      advancedFilteringForResource(activityChoice);
+      advancedFilteringForResource(getResource(dataRow), activityChoice);
 
       if (getResource(dataRow) != null && !getResourceSet().contains(-1, getResource(dataRow))) {
          setResource(dataRow, null);
@@ -435,22 +435,25 @@ public abstract class OpWorkValidator extends XValidator {
    /**
     * Overriden in OpWorkEffortValidator
     */
-   protected void advancedFilteringForResource(String activityChoice) {
+   protected void advancedFilteringForResource(String oldResourceChoice, String activityChoice) {
    }
 
    /**
     * Overriden in OpWorkEffortValidator
     */
-   protected void advancedFilteringForActivity(String resourceChoice) {
+   protected void advancedFilteringForActivity(String OldActivityChoice, String resourceChoice) {
    }
 
    /**
-    * Gets the progress tracked flag for this activity.
-    * The project cell must be set on this row.
-    * @param dataRow
-    * @return
+    * Returns the project row, from the validator's project set, which corresponds to the project choice on the data row
+    *    passed as parameter.
+    *
+    * @param dataRow - the <code>XComponent</code> data row containing the project choice which will be used to find the
+    *    project row.
+    * @return the project row, from the validator's project set, which corresponds to the project choice on the data row
+    *    passed as parameter.
     */
-   protected boolean isProgressTracked(XComponent dataRow) {
+   protected XComponent getProjectForRow(XComponent dataRow) {
       String projectChoice = getProject(dataRow);
       XComponent projectRow = null;
       for (int i = 0; i < getProjectSet().getChildCount(); i++) {
@@ -460,12 +463,35 @@ public abstract class OpWorkValidator extends XValidator {
             break;
          }
       }
+
+      return projectRow;
+   }
+
+   /**
+    * Gets the progress tracked flag for the project on the row passed as parameter. The project cell must be set on
+    *    this row.
+    * @param dataRow - the <code>XComponent</code> data row containing the project for which the tracking will be returned.
+    * @return the progress tracked flag for the project on the row passed as parameter.
+    */
+   protected boolean isProgressTracked(XComponent dataRow) {
+      XComponent projectRow = getProjectForRow(dataRow);
+
       if (projectRow != null) {
          XComponent dataCell = (XComponent) projectRow.getChild(PROJECT_PROGRESS_TRACKED_INDEX);
          return dataCell.getBooleanValue();
       }
+      else{
+         return getProgressTrackedFromTimeSet(dataRow);
+      }
+   }
 
-      //default value
+   /**
+    * Overriden in OpWorkEffortValidator.
+    *
+    * @param dataRow
+    * @return
+    */
+   protected boolean getProgressTrackedFromTimeSet(XComponent dataRow) {
       return true;
    }
 
