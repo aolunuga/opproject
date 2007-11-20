@@ -991,7 +991,10 @@ public abstract class OpActivityDataSetFactory {
 
       //add the adhoc tasks at the end of the project plan
       int dataRowsNr = dataSet.getChildCount();
+
+      //<FIXME author="Mihai Costin" description="The plan won't have the updated list of activities. This might result in wrong index.">
       updateAdHocTasks(plan, dataRowsNr, adhocTasks, broker);
+      //</FIXME>
 
       broker.updateObject(plan);
 

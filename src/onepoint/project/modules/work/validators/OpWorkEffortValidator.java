@@ -854,7 +854,8 @@ public class OpWorkEffortValidator extends OpWorkValidator {
             if (((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getValue() != null &&
                  ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getValue() != null &&
                  ((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getStringValue().equals(activityChoice) &&
-                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getStringValue().equals(resourceChoice)) {
+                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getStringValue().equals(resourceChoice) &&
+                 ((XComponent) row.getChild(COMPLETED_INDEX)).getValue() != null) {
                return ((XComponent) row.getChild(COMPLETED_INDEX)).getBooleanValue();
             }
          }
