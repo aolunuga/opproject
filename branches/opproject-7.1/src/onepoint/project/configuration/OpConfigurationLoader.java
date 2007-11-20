@@ -6,6 +6,7 @@ package onepoint.project.configuration;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.project.util.OpEnvironmentManager;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
 import onepoint.xml.XSchema;
@@ -68,6 +69,16 @@ public class OpConfigurationLoader extends XLoader {
          logger.error("Cannot load configuration file: " + fileName, e);
          throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
       }
+      catch (Exception e) {
+         String projectPath = OpEnvironmentManager.getOnePointHome();
+         File oldConfigFile = new File(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+         File backupConfigFile = new File(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME+".backup");
+         if (oldConfigFile.exists()) {
+            oldConfigFile.renameTo(backupConfigFile);
+         }
+
+         throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
+      }
    }
 
    /**
@@ -99,20 +110,31 @@ public class OpConfigurationLoader extends XLoader {
         throws FileNotFoundException, OpInvalidDataBaseConfigurationException {
       if (fileName != null) {
          InputStream is = new FileInputStream(fileName);
+         InputStreamReader inputStreamReader = new InputStreamReader(is);
          try {
             DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
             documentFactory.setValidating(false);
             DocumentBuilder builder = documentFactory.newDocumentBuilder();
-            Document configurationDocument = builder.parse(new InputSource(new InputStreamReader(is)));
+            Document configurationDocument = builder.parse(new InputSource(inputStreamReader));
 
             updateConfigurationFileStructure(configurationDocument);
             updateDbPasswordEncryption(configurationDocument);
 
             //write the result back to the file
             writeConfigurationFile(configurationDocument, fileName);
+            inputStreamReader.close();
             is.close();
          }
          catch (Exception e) {
+
+            try {
+               is.close();
+               inputStreamReader.close();
+            }
+            catch (IOException ex) {
+               ex.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            
             logger.error("Cannot update configuration file.", e);
             throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
          }
@@ -135,11 +157,18 @@ public class OpConfigurationLoader extends XLoader {
       Transformer t = transformerFactory.newTransformer();
       t.setOutputProperty(OutputKeys.METHOD, "xml");
 //      t.setOutputProperty(OutputKeys.INDENT, "yes");
-      StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(fileName)));
+      OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(fileName));
+      StreamResult result = new StreamResult(outputStreamWriter);
 
       // normalize document before writing
       document.normalizeDocument();
       t.transform(new DOMSource(document), result);
+      try {
+         outputStreamWriter.close();
+      }
+      catch (IOException e) {
+         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      }
    }
 
    /**
