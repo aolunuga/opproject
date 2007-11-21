@@ -45,6 +45,8 @@ public class OpRestoreContext extends XContext {
     */
    private Map<Long, OpObject> persistedObjectsMap = new HashMap<Long, OpObject>();
 
+   private Map<Long, Long> idsMap = new HashMap<Long, Long>();
+
    /**
     * List of objects which will be added to the db.
     */
@@ -110,7 +112,7 @@ public class OpRestoreContext extends XContext {
     * @return a <code>List</code> of <code>OpBackupMember</code>.
     */
    List getBackupMembers(String prototypeName) {
-      return (List) backupMembersMap.get(prototypeName);
+      return backupMembersMap.get(prototypeName);
    }
 
    /**
@@ -236,7 +238,11 @@ public class OpRestoreContext extends XContext {
     *         yet.
     */
    OpObject getRelationshipOwner(Long id) {
-      return persistedObjectsMap.get(id);
+      OpObject opObject = persistedObjectsMap.get(id);
+      if (opObject == null) {
+         opObject = this.getObjectFromDb(id);
+      }
+      return opObject;
    }
 
    /**
@@ -257,5 +263,20 @@ public class OpRestoreContext extends XContext {
          objectsToAdd.clear();
          insertCount = 0;
       }
+      for (Long activeMapId : persistedObjectsMap.keySet()) {
+         idsMap.put(activeMapId, persistedObjectsMap.get(activeMapId).getID());
+      }
+      persistedObjectsMap.clear();
+   }
+
+   private OpObject getObjectFromDb(long activeId) {
+      OpBroker broker = session.newBroker();
+      Long dbId = idsMap.get(activeId);
+      if (dbId == null) {
+         return null;
+      }
+      OpObject object = broker.getObject(OpObject.class, dbId);
+      broker.close();
+      return object;
    }
 }

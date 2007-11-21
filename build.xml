@@ -209,6 +209,7 @@
       <mkdir dir="${tests.dir}"/>
       <mkdir dir="${dist.dir}"/>
       <mkdir dir="${release.dir}"/>
+      <mkdir dir="${resources.dir}/${reports.dir}"/>      
    </target>
 
    <target name="build.express4j.jars" if="express4j.present" description="Build the express lib and copy the jars if present">
@@ -255,12 +256,11 @@
       </copy>
 
       <!--aditional resources-->
-      <if>
-         <available file="${additional.resources.dir}/${additional.resources.script}"/>
-         <then>
-            <ant antfile="${additional.resources.script}" target="${additional.resources.target}" inheritall="false" dir="${additional.resources.dir}"/>
-         </then>
-      </if>
+      <copy todir="${classes.dir}" overwrite="true">
+         <fileset dir="${resources.dir}">
+            <exclude name="${resources.dir}/${reports.dir}/**/*.*"/>
+         </fileset>
+      </copy>
 
    </target>
 
@@ -360,6 +360,11 @@
             <patternset refid="resources.pathid"/>
             <include name="**/*.jrxml"/>
          </fileset>
+      </copy>
+
+      <!-- Aditional resources -->
+      <copy todir="${reportBase}" overwrite="true">
+         <fileset dir="${resources.dir}/${reports.dir}"/>
       </copy>
       <!-- ********************************* -->
       <!-- Resource Allocation report -->

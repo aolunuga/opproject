@@ -74,7 +74,7 @@ public class OpReferenceHandler implements XNodeHandler {
          }
          try {
             if (backupMember.accessor != null) {
-              backupMember.accessor.invoke(object, value);
+               backupMember.accessor.invoke(object, value);
             }
          }
          catch (IllegalAccessException e) {
