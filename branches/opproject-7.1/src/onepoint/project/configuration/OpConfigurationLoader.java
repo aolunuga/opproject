@@ -7,6 +7,7 @@ package onepoint.project.configuration;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.project.util.OpEnvironmentManager;
+import onepoint.util.XEnvironmentManager;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
 import onepoint.xml.XSchema;
@@ -70,9 +71,10 @@ public class OpConfigurationLoader extends XLoader {
          throw new OpInvalidDataBaseConfigurationException(OpDatabaseConfiguration.DEFAULT_DB_CONFIGURATION_NAME);
       }
       catch (Exception e) {
+         logger.error("OpConfigurationLoader.loadConfiguration ", e);
          String projectPath = OpEnvironmentManager.getOnePointHome();
-         File oldConfigFile = new File(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
-         File backupConfigFile = new File(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME+".backup");
+         File oldConfigFile = new File(projectPath + XEnvironmentManager.PATH_SEPARATOR + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+         File backupConfigFile = new File(projectPath + XEnvironmentManager.PATH_SEPARATOR + OpConfigurationLoader.CONFIGURATION_FILE_NAME+".backup");
          if (oldConfigFile.exists()) {
             oldConfigFile.renameTo(backupConfigFile);
          }

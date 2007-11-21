@@ -70,7 +70,7 @@ public class OpHibernateSource extends OpSource {
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
 
-   private final static int MY_SQL_MAX_LENGHT = 255;
+   private final static int MY_SQL_MAX_LENGTH = 255;
 
    /**
     * A JDBC connection that will be the only de facto used connection when running in embeded mode.
@@ -250,9 +250,8 @@ public class OpHibernateSource extends OpSource {
    protected List<Interceptor> getInterceptors() {
       List<Interceptor> interceptors = new ArrayList<Interceptor>();
       interceptors.add(new OpTimestampInterceptor());
-      OpTextInterceptor interceptor = new OpTextInterceptor();
       if (databaseType == MYSQL_INNODB) {
-         interceptor.setMaxLength(MY_SQL_MAX_LENGHT);
+         OpTextInterceptor interceptor = new OpTextInterceptor(MY_SQL_MAX_LENGTH);
          interceptors.add(interceptor);
       }
       return interceptors;
