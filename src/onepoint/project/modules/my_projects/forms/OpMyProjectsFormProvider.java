@@ -180,7 +180,7 @@ public class OpMyProjectsFormProvider implements XFormProvider {
       OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);
 
       XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-      OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
+      OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet, false);
 
       //project locator
       dataRow.setStringValue(projectNode.locator());
