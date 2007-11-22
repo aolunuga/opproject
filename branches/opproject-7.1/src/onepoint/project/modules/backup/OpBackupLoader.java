@@ -41,6 +41,5 @@ public class OpBackupLoader extends XLoader {
       OpRestoreContext context = new OpRestoreContext(session);
       context.setVariable(OpRestoreContext.WORKING_DIRECTORY, workingDirectory);
       loadObject(input_stream, context);
-      context.commitRestoredObjects();
    }
 }

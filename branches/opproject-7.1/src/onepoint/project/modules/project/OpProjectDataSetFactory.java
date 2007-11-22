@@ -640,7 +640,7 @@ public final class OpProjectDataSetFactory {
          //for regular projects calculate the values of the cells
          else {
             XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
+            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet, false);
 
             XComponent costDataSet = new XComponent(XComponent.DATA_SET);
             OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);

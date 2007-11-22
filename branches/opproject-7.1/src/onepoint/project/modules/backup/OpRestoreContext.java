@@ -45,6 +45,9 @@ public class OpRestoreContext extends XContext {
     */
    private Map<Long, OpObject> persistedObjectsMap = new HashMap<Long, OpObject>();
 
+   /**
+    * A mapping of backupIds to dbIds, after objects have  been inserted in the db
+    */
    private Map<Long, Long> idsMap = new HashMap<Long, Long>();
 
    /**
@@ -269,6 +272,12 @@ public class OpRestoreContext extends XContext {
       persistedObjectsMap.clear();
    }
 
+   /**
+    *  Retrieves an object from the database, using the back-up ID of the object before
+    * it was inserted.
+    * @param activeId a <code>long</code> the back-up id of an object
+    * @return an <code>OpObject</code> instance.
+    */
    private OpObject getObjectFromDb(long activeId) {
       OpBroker broker = session.newBroker();
       Long dbId = idsMap.get(activeId);
@@ -278,5 +287,24 @@ public class OpRestoreContext extends XContext {
       OpObject object = broker.getObject(OpObject.class, dbId);
       broker.close();
       return object;
+   }
+
+   /**
+    * @see onepoint.xml.XContext#reset()
+    */
+   @Override
+   public void reset() {
+      super.reset();
+      
+      this.commitRestoredObjects();
+      
+      backupMembersMap.clear();
+      backupMembersMap = null;
+      persistedObjectsMap.clear();
+      persistedObjectsMap = null;
+      idsMap.clear();
+      idsMap = null;
+      objectsToAdd.clear();
+      objectsToAdd = null;
    }
 }

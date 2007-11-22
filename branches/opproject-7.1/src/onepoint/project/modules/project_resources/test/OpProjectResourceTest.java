@@ -218,7 +218,7 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
       t.commit();
 
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpProjectResourceDataSetFactory.fillEffortDataSet(broker, project, 10, dataSet);
+      OpProjectResourceDataSetFactory.fillEffortDataSet(broker, project, 10, dataSet, false);
 
       assertEquals(1 + 2 + 1 + 3, dataSet.getChildCount());
       // todo: test other infos
