@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author horia.chiorean
  */
-public final class OpPostgreSqlStatement implements OpSqlStatement {
+public final class OpPostgreSqlStatement extends OpSqlStatement {
 
    /**
     * The mapping of MySQL specific types.
@@ -100,7 +100,22 @@ public final class OpPostgreSqlStatement implements OpSqlStatement {
       return result.toString();
    }
 
-   public int getColumnType(int columnType) {
-      return columnType;
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getAlterColumnTypeStatement(String, String, int)
+    */
+   @Override
+   public List<String> getAlterTextColumnLengthStatement(String tableName, String columnName, int newLength) {
+        StringBuffer result = new StringBuffer();
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append(" ALTER COLUMN ");
+      result.append(columnName);
+      result.append(" TYPE  ");
+      String columnType = "VARCHAR(" + newLength +")";
+      result.append(columnType);
+      result.append(";");
+      List<String> resultList = new  ArrayList<String>();
+      resultList.add(result.toString());
+      return resultList;
    }
 }

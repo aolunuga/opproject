@@ -55,7 +55,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 33;
+   public static final int SCHEMA_VERSION = 34;
 
    /**
     * Db schema related constants
@@ -250,10 +250,7 @@ public class OpHibernateSource extends OpSource {
    protected List<Interceptor> getInterceptors() {
       List<Interceptor> interceptors = new ArrayList<Interceptor>();
       interceptors.add(new OpTimestampInterceptor());
-      if (databaseType == MYSQL_INNODB) {
-         OpTextInterceptor interceptor = new OpTextInterceptor(MY_SQL_MAX_LENGTH);
-         interceptors.add(interceptor);
-      }
+      interceptors.add(new OpTextInterceptor());
       return interceptors;
    }
 
@@ -267,7 +264,7 @@ public class OpHibernateSource extends OpSource {
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
          case MYSQL_INNODB:
-            return org.hibernate.dialect.MySQLInnoDBDialect.class;
+            return org.hibernate.dialect.MySQL5InnoDBDialect.class;
          case POSTGRESQL:
             return org.hibernate.dialect.PostgreSQLDialect.class;
          case ORACLE:

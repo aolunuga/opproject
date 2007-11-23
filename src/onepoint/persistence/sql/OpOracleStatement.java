@@ -15,12 +15,13 @@ import java.util.Map;
  *
  * @author horia.chiorean
  */
-public final class OpOracleStatement implements OpSqlStatement {
+public final class OpOracleStatement extends OpSqlStatement {
 
    /**
     * The mapping of Oracle specific types.
     */
    private static final Map DB_TYPES = new HashMap();
+   private static final int MAX_VARCHAR_SIZE = 32767;
 
    /**
     * Populate the types map.
@@ -109,11 +110,15 @@ public final class OpOracleStatement implements OpSqlStatement {
       return result.toString();
    }
 
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getColumnType(int)
+    */
+   @Override
    public int getColumnType(int hibernateType) {
-      switch(hibernateType) {
-         case  Types.DOUBLE :
+      switch (hibernateType) {
+         case Types.DOUBLE:
             return Types.FLOAT;
-         case Types.INTEGER :
+         case Types.INTEGER:
             return Types.DECIMAL;
          case Types.TINYINT:
             return Types.DECIMAL;
@@ -123,5 +128,34 @@ public final class OpOracleStatement implements OpSqlStatement {
             return Types.DECIMAL;
       }
       return hibernateType;
+   }
+
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getAlterColumnTypeStatement(String, String, int)
+    */
+   @Override
+   public List<String> getAlterTextColumnLengthStatement(String tableName, String columnName, int newLength) {
+      List<String> resultList = new ArrayList<String>();
+
+      StringBuffer result = new StringBuffer();
+      result.append("UPDATE ");
+      result.append(tableName);
+      result.append(" SET ");
+      result.append(columnName);
+      result.append("=null;");
+      resultList.add(result.toString());
+
+      result.delete(0, result.length());
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append("  MODIFY ");
+      result.append(columnName);
+      int length = newLength > MAX_VARCHAR_SIZE ? MAX_VARCHAR_SIZE : newLength;
+      String columnType = " VARCHAR2(" + length + ")";
+      result.append(columnType);
+      result.append(";");
+      resultList.add(result.toString());
+
+      return resultList;
    }
 }

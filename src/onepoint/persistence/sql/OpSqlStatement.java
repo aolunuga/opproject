@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author horia.chiorean
  */
-public interface OpSqlStatement {
+public abstract class OpSqlStatement {
 
    /**
     * Returns an sql statement that will change the type of a db column.
@@ -23,7 +23,7 @@ public interface OpSqlStatement {
     *
     * @see java.sql.Types                                                                                                       
     */
-   public List<String> getAlterColumnTypeStatement(String tableName, String columnName, int sqlType);
+   public abstract  List<String> getAlterColumnTypeStatement(String tableName, String columnName, int sqlType);
 
    /**
     * Returns an sql statement that will drop the given table.
@@ -31,7 +31,7 @@ public interface OpSqlStatement {
     * @param tableName table to be dropped
     * @return a <code>String</code> representing a statement used to drop a table
     */
-   public String getDropTableStatement(String tableName);
+   public abstract String getDropTableStatement(String tableName);
 
    /**
     * Returns an sql statement that will drop a foreign key constraint on the given table.
@@ -40,7 +40,7 @@ public interface OpSqlStatement {
     * @param fkConstraintName a <code>String</code> representing the name of the foreign key constraint.
     * @return a <code>String</code> representing a statement used to drop a fk.
     */
-   public String getDropFKConstraintStatement(String tableName, String fkConstraintName);
+   public abstract String getDropFKConstraintStatement(String tableName, String fkConstraintName);
 
   /**
     * Returns an sql statement that will drop an index constraint from the given table.
@@ -49,7 +49,26 @@ public interface OpSqlStatement {
     * @param indexName a <code>String</code> representing the name of the index.
     * @return a <code>String</code> representing a statement used to drop a fk.
     */
-   public String getDropIndexConstraintStatement(String tableName, String indexName);
+   public abstract String getDropIndexConstraintStatement(String tableName, String indexName);
 
-   int getColumnType(int columnType);
+   /**
+    * Returns a db-specific column type for a given SQL column type
+    * @param columnType a <code>int</code> an j
+    * @return an <code>int</code> representing the SQL for the column
+    */
+   public int getColumnType(int columnType) {
+      return columnType;
+   }
+
+   /**
+    * Returns an sql statement that will change the type of a db column.
+    *
+    * @param tableName  a <code>String</code> representing the name of the table for which the statement is executed.
+    * @param columnName a <code>String</code> representing the name of the column for which the statement is executed.
+    * @param newLength    an <code>int</code> representing new length.
+    * @return a <code>String</code> representing a statement used to change the length of a column.
+    *
+    * @see java.sql.Types                                                                                                       
+    */
+   public abstract List<String> getAlterTextColumnLengthStatement(String tableName, String columnName, int newLength);
 }

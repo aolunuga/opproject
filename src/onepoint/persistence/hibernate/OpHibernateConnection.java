@@ -287,7 +287,7 @@ public class OpHibernateConnection extends OpConnection {
          executeDDLScript(cleanHibernateUpdateScripts.toArray(new String[]{}));
 
          //finally perform the custom update
-         customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData(), dialect);
+         customUpdateScripts = customSchemaUpdater.generateUpdateSchemaScripts(connection.getMetaData());
          executeDDLScript(customUpdateScripts.toArray(new String[]{}));
       }
       catch (Exception e) {
