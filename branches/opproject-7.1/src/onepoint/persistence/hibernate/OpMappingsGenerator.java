@@ -295,8 +295,7 @@ public class OpMappingsGenerator {
       }
 
       if (field.getTypeID() == OpType.TEXT) {
-         int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
-         buffer.append(" length=\"").append(maxLen).append("\"");
+         buffer.append(" length=\"").append(OpTypeManager.MAX_TEXT_LENGTH).append("\"");
       }
 
       buffer.append("/></property>").append(NEW_LINE);

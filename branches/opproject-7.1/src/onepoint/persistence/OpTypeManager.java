@@ -13,11 +13,22 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class OpTypeManager {
+
+   /**
+    * The maximum number of characters for the Text type
+    */
+   public static final int MAX_TEXT_LENGTH = 2500;
+
+   /**
+    * The maximum number of characters for String type
+    */
+   public static final int MAX_STRING_LENGTH = 255;
+
    // Class logger.
    private static final XLog logger = XLogFactory.getServerLogger(OpTypeManager.class);
 
    private static final String CGLIB_ENHANCER_PREFIX = "$$";
-   
+
    private static Map<String, OpType> types;
    private static Map<String, OpPrototype> prototypes;
    private static Map<Integer, OpPrototype> prototypeIds;
@@ -214,10 +225,4 @@ public class OpTypeManager {
       return getPrototypeByClassName(object.getClass().getName());
    }
 
-   public static int getMaxLength(int type) {
-      if (type == OpType.TEXT) {
-         return 2500;
-      }
-      return Integer.MAX_VALUE;
-   }
 }

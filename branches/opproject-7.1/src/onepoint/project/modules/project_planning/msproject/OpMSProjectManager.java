@@ -13,7 +13,6 @@ import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpType;
 import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpActivityLoopException;
@@ -212,9 +211,8 @@ public class OpMSProjectManager {
          //misc costs
 
          String description = msTask.getNotes();
-         int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
-         if (description.length() > maxLen) {
-            description = description.substring(0, maxLen - 1);
+         if (description.length() >  OpTypeManager.MAX_TEXT_LENGTH) {
+            description = description.substring(0, OpTypeManager.MAX_TEXT_LENGTH - 1);
          }
          OpGanttValidator.setDescription(activityRow, description);
          //attachments

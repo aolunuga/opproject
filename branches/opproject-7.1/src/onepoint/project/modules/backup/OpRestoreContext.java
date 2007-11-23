@@ -46,9 +46,9 @@ public class OpRestoreContext extends XContext {
    private Map<Long, OpObject> persistedObjectsMap = new HashMap<Long, OpObject>();
 
    /**
-    * A mapping of backupIds to dbIds, after objects have  been inserted in the db
+    * A mapping of backupIds to db Locator strings , after objects have  been inserted in the db
     */
-   private Map<Long, Long> idsMap = new HashMap<Long, Long>();
+   private Map<Long, String> idToLocatorMap = new HashMap<Long, String>();
 
    /**
     * List of objects which will be added to the db.
@@ -267,24 +267,25 @@ public class OpRestoreContext extends XContext {
          insertCount = 0;
       }
       for (Long activeMapId : persistedObjectsMap.keySet()) {
-         idsMap.put(activeMapId, persistedObjectsMap.get(activeMapId).getID());
+         idToLocatorMap.put(activeMapId, persistedObjectsMap.get(activeMapId).locator());
       }
       persistedObjectsMap.clear();
    }
 
    /**
-    *  Retrieves an object from the database, using the back-up ID of the object before
+    * Retrieves an object from the database, using the back-up ID of the object before
     * it was inserted.
+    *
     * @param activeId a <code>long</code> the back-up id of an object
     * @return an <code>OpObject</code> instance.
     */
    private OpObject getObjectFromDb(long activeId) {
       OpBroker broker = session.newBroker();
-      Long dbId = idsMap.get(activeId);
-      if (dbId == null) {
+      String locator = idToLocatorMap.get(activeId);
+      if (locator == null) {
          return null;
       }
-      OpObject object = broker.getObject(OpObject.class, dbId);
+      OpObject object = broker.getObject(locator);
       broker.close();
       return object;
    }
@@ -295,15 +296,15 @@ public class OpRestoreContext extends XContext {
    @Override
    public void reset() {
       super.reset();
-      
+
       this.commitRestoredObjects();
-      
+
       backupMembersMap.clear();
       backupMembersMap = null;
       persistedObjectsMap.clear();
       persistedObjectsMap = null;
-      idsMap.clear();
-      idsMap = null;
+      idToLocatorMap.clear();
+      idToLocatorMap = null;
       objectsToAdd.clear();
       objectsToAdd = null;
    }

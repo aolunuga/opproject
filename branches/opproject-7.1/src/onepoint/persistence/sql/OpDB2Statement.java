@@ -15,12 +15,13 @@ import java.util.Map;
  *
  * @author mihai.costin
  */
-public class OpDB2Statement implements OpSqlStatement {
+public class OpDB2Statement extends OpSqlStatement {
 
    /**
     * The mapping of DB2 specific types.
     */
    private static final Map DB_TYPES = new HashMap();
+   private static final int MAX_VARCHAR_SIZE = 32672;
 
    /**
     * Populate the types map.
@@ -114,7 +115,23 @@ public class OpDB2Statement implements OpSqlStatement {
       return result.toString();
    }
 
-   public int getColumnType(int columnType) {
-      return columnType;
+   /**
+    * @see onepoint.persistence.sql.OpSqlStatement#getAlterColumnTypeStatement(String, String, int)
+    */
+   @Override
+   public List<String> getAlterTextColumnLengthStatement(String tableName, String columnName, int newLength) {
+      StringBuffer result = new StringBuffer();
+      result.append("ALTER TABLE ");
+      result.append(tableName);
+      result.append(" ALTER COLUMN ");
+      result.append(columnName);
+      result.append(" SET DATA TYPE ");
+      int length = newLength > MAX_VARCHAR_SIZE ? MAX_VARCHAR_SIZE : newLength;
+      String columnType = " VARCHAR(" + length + ")";
+      result.append(columnType);
+      result.append(";");
+      List<String> resultList = new  ArrayList<String>();
+      resultList.add(result.toString());
+      return resultList;
    }
 }
