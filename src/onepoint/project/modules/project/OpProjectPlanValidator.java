@@ -11,9 +11,15 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
+import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.settings.OpSettingsService;
+import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
+import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
+import onepoint.util.XCalendar;
 
 import java.sql.Date;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 /**
  * Class responsible for (re)validating project plans.
@@ -57,9 +63,40 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating plan for " + projectNode.getName());
+
+      //obtain the holiday calendar settings from the project plan
+      OpHolidayCalendar holidayCalendar = null;
+      if(OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
+         holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
+      }
+
+       //obtain the calendar settings from OpSettings
+      int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
+      int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
+      double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
+      double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME));
+
       OpGanttValidator validator = this.createValidator(resources);
+
+      //obtain the original calendar settings from the newly created OpGantValidator
+      XCalendar.PlanningSettings originalPlanningSettings = validator.getCalendar().getPlanningSettings();
+
+      if (holidayCalendar != null) {
+         //create a new Planning Settings object by combining the sessionPlanningSettings with the holiday calendar
+         //from the project plan
+         XCalendar.PlanningSettings updatedPlanningSettings = new XCalendar.PlanningSettings(firstWorkday, lastWorkday,
+              dayWorkTime, weekWorkTime, new TreeSet(holidayCalendar.getHolidayDates()), projectPlan.getHolidayCalendar());
+         //update the validator calendar with the values from the OpSettings and project plan
+         validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
+      }
+
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
       this.validatePlan(broker, validator, modifier, resources);
+
+      //restore the original settings of the validator
+      if (holidayCalendar != null) {
+         validator.getCalendar().setPlanningSettings(originalPlanningSettings);
+      }
 
       tx.commit();
    }
@@ -80,8 +117,39 @@ public class OpProjectPlanValidator {
       HashMap resources = OpActivityDataSetFactory.resourceMap(broker, projectNode);
 
       logger.info("Revalidating working version plan for " + projectNode.getName());
+
+      //obtain the holiday calendar settings from the project plan
+      OpHolidayCalendar holidayCalendar = null;
+      if(OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
+         holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
+      }
+
+       //obtain the calendar settings from OpSettings
+      int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
+      int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
+      double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
+      double weekWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_WEEK_WORK_TIME));
+
       OpGanttValidator validator = this.createValidator(resources);
+
+      //obtain the original calendar settings from the newly created OpGantValidator
+      XCalendar.PlanningSettings originalPlanningSettings = validator.getCalendar().getPlanningSettings();
+
+      if (holidayCalendar != null) {
+         //create a new Planning Settings object by combining the sessionPlanningSettings with the holiday calendar
+         //from the project plan
+         XCalendar.PlanningSettings updatedPlanningSettings = new XCalendar.PlanningSettings(firstWorkday, lastWorkday,
+              dayWorkTime, weekWorkTime, new TreeSet(holidayCalendar.getHolidayDates()), projectPlan.getHolidayCalendar());
+         //update the validator calendar with the values from the OpSettings and project plan
+         validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
+      }
+
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
+
+      //restore the original settings of the validator
+      if (holidayCalendar != null) {
+         validator.getCalendar().setPlanningSettings(originalPlanningSettings);
+      }
 
       if (tx != null) {
          tx.commit();

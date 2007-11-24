@@ -101,11 +101,6 @@ public class OpBackupManager {
    private static final String SLASH_STRING = "/";
 
    /**
-    * Page size used when batch-deleting
-    */
-   private static final int DELETE_PAGE_SIZE = 200;
-
-   /**
     * The path to the dir where binary files will be stored
     */
    private String binaryDirPath = null;
@@ -758,7 +753,7 @@ public class OpBackupManager {
       Collections.reverse(prototypeNames);
       //remove in reverse dependency order
       for (String prototypeName : prototypeNames) {
-         removeObjectsWithPrototype(prototypeName, null, session);
+         removeObjectsWithPrototype(prototypeName, session);
       }
    }
 
@@ -766,46 +761,53 @@ public class OpBackupManager {
     * Removes all the objects with the given prototype name from the db.
     *
     * @param prototypeName a <code>String</code> the name of a prototype.
-    * @param recursiveRelationshipName a <code>String</code> the name of an optional recursive
-    * relationship for the prototype (if there isn't one, it may be <code>null</code>)
-    * @param session a <code>OpProjectSession</code> the server session.
+    * @param session       a <code>OpProjectSession</code> the server session.
     */
-   private void removeObjectsWithPrototype(String prototypeName, String recursiveRelationshipName,
-        OpProjectSession session) {
+   private void removeObjectsWithPrototype(String prototypeName, OpProjectSession session) {
+
       logger.info("Remove objects with prototype: " + prototypeName);
-      if (recursiveRelationshipName == null) {
-         OpPrototype prototype = prototypes.get(prototypeName);
-         OpRelationship recursiveRelationship = prototype.getRecursiveRelationship();
-         if (recursiveRelationship != null) {
-            removeObjectsWithPrototype(prototypeName, recursiveRelationship.getName(), session);
+      OpPrototype prototype = prototypes.get(prototypeName);
+      OpRelationship recursiveRelationship = prototype.getRecursiveRelationship();
+      String backRelationshipName = null;
+      if (recursiveRelationship != null) {
+         OpRelationship backRelationship = recursiveRelationship.getBackRelationship();
+         if (backRelationship != null) {
+            backRelationshipName = backRelationship.getName();
          }
       }
 
-      String recursiveRelationshipCondition = (recursiveRelationshipName != null) ? " where obj." + recursiveRelationshipName + "  is not null" : "";
-      String countQueryString = "select count(obj) from " + prototypeName + " obj" + recursiveRelationshipCondition;
+      String recursiveRelationshipCondition = (backRelationshipName != null) ? " where obj." + backRelationshipName + "  is empty" : "";
 
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(countQueryString);
-      Number count = (Number) broker.iterate(query).next();
-      broker.closeAndEvict();
-
-      //<FIXME author="Horia Chiorean" description="count.intValue may not work for large recursive relationships">
-      int pageSize = recursiveRelationshipName == null ? DELETE_PAGE_SIZE : count.intValue();
-      //<FIXME>
-      for (int i = 0; i < count.longValue(); i += pageSize) {
-         broker = session.newBroker();
-         OpQuery objectsQuery = broker.newQuery("from " + prototypeName + " obj " + recursiveRelationshipCondition);
-         objectsQuery.setFetchSize(pageSize);
-         objectsQuery.setFirstResult(0);
-         objectsQuery.setMaxResults(pageSize);
+      int nrObjects = countObjectsWithPrototype(session, prototypeName);
+      while (nrObjects > 0) {
+         OpBroker broker = session.newBroker();
+         OpQuery objectsQuery = broker.newQuery("delete from " + prototypeName + " obj " + recursiveRelationshipCondition);
          OpTransaction tx = broker.newTransaction();
-         for (Iterator it = broker.iterate(objectsQuery); it.hasNext();) {
-            broker.deleteObject((OpObject) it.next());
-         }
+         broker.execute(objectsQuery);
          tx.commit();
          broker.closeAndEvict();
+         nrObjects = countObjectsWithPrototype(session, prototypeName);
       }
+
       session.cleanupSession(true);
+   }
+
+   /**
+    * Counts the number of prototypeName objects from db.
+    *
+    * @param session
+    * @param prototypeName
+    * @return
+    */
+   private int countObjectsWithPrototype(OpProjectSession session, String prototypeName) {
+      OpBroker broker = session.newBroker();
+      Long nr = 0l;
+      String countQueryString = "select count(obj) from " + prototypeName + " obj";
+      Iterator result = broker.iterate(broker.newQuery(countQueryString));
+      if (result.hasNext()) {
+         nr = (Long) result.next();
+      }
+      return nr.intValue();
    }
 
    /**
