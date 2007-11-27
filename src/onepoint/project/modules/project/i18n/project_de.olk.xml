@@ -240,7 +240,9 @@
       <resource id="ProbabilityNotValid">Der angegebene Wahrscheinlichkeit ist ungültig (0-100)</resource>      
       <resource id="PriorityNotValid">Die angegebene Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
       <resource id="DuplicateBaselineError">Nur eine Version kann als Basisversion ausgewählt werden</resource>
-      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>      
+      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>
+      <resource id="NoRightsChangingBudgetError">You need administrator privileges to change the project budget</resource>
+      <resource id="NoRightsChangingStatusError">You need administrator privileges to change the project status</resource>
    </resource-map>
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Projekte oder Portfolios löschen</resource>

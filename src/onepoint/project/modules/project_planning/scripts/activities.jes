@@ -162,7 +162,7 @@ function exportActivities(event) {
 
    request = new XMessage;
    request.setAction("PlanningService.exportActivities");
-   request.setArgument("project_id", projectId);
+   request.setArgument("project_id", project_id);
    request.setArgument("activity_set", activity_set);
    request.setArgument("file_name", fileName);
 

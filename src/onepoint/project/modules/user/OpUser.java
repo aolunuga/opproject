@@ -27,21 +27,21 @@ public class OpUser extends OpSubject {
    public static final byte DEFAULT_USER_LEVEL = CONTRIBUTOR_USER_LEVEL;
 
    /**
-     * The mapping between the user levels and the highest permission possible for each level.
-     * The structure of the map is: Key - user level
-     *                              Value - the highest permission for the level.
-     */
-    private static Map<Byte, Byte> LEVEL_PERMISSION_MAP;
+    * The mapping between the user levels and the highest permission possible for each level.
+    * The structure of the map is: Key - user level
+    * Value - the highest permission for the level.
+    */
+   private static Map<Byte, Byte> LEVEL_PERMISSION_MAP;
 
-    static {
-        LEVEL_PERMISSION_MAP = new HashMap<Byte, Byte>();
-        LEVEL_PERMISSION_MAP.put(OBSERVER_USER_LEVEL, OpPermission.OBSERVER);
-        LEVEL_PERMISSION_MAP.put(OBSERVER_CUSTOMER_USER_LEVEL, OpPermission.OBSERVER);
-        LEVEL_PERMISSION_MAP.put(CONTRIBUTOR_USER_LEVEL, OpPermission.CONTRIBUTOR);
-        LEVEL_PERMISSION_MAP.put(MANAGER_USER_LEVEL, OpPermission.ADMINISTRATOR);
-    }
+   static {
+      LEVEL_PERMISSION_MAP = new HashMap<Byte, Byte>();
+      LEVEL_PERMISSION_MAP.put(OBSERVER_USER_LEVEL, OpPermission.OBSERVER);
+      LEVEL_PERMISSION_MAP.put(OBSERVER_CUSTOMER_USER_LEVEL, OpPermission.OBSERVER);
+      LEVEL_PERMISSION_MAP.put(CONTRIBUTOR_USER_LEVEL, OpPermission.CONTRIBUTOR);
+      LEVEL_PERMISSION_MAP.put(MANAGER_USER_LEVEL, OpPermission.ADMINISTRATOR);
+   }
 
-    public final static String USER = "OpUser";
+   public final static String USER = "OpUser";
 
    public final static String PASSWORD = "Password";
    public final static String CONTACT = "Contact";
@@ -50,8 +50,6 @@ public class OpUser extends OpSubject {
    public final static String RESOURCES = "Resources";
    public final static String PREFERENCES = "Preferences";
    public final static String ACTIVITY_COMMENTS = "ActivityComments";
-//   public final static String AUTHENTICATION = "AuthenticationType";
-   
 
    // Administrator user (per site)
    public final static String ADMINISTRATOR_NAME = "Administrator";
@@ -60,10 +58,6 @@ public class OpUser extends OpSubject {
    public final static String ADMINISTRATOR_DISPLAY_NAME = "${AdministratorDisplayName}";
    public final static String ADMINISTRATOR_DESCRIPTION = "${AdministratorDescription}";
    public final static String ADMINISTRATOR_ID_QUERY = "select user.ID from OpUser as user where user.Name = '" + OpUser.ADMINISTRATOR_NAME + "'";
-
-   // *** Maybe extra property DISPLAY_NAME (configurable)?
-
-
    public final static String BLANK_PASSWORD = new OpHashProvider().calculateHash("");
 
    private String password = BLANK_PASSWORD;
@@ -92,7 +86,7 @@ public class OpUser extends OpSubject {
    public OpContact createContact() {
       contact = new OpContact();
       contact.setUser(this);
-      return (contact);
+      return contact;
    }
 
    public void setContact(OpContact contact) {
@@ -150,7 +144,7 @@ public class OpUser extends OpSubject {
    public static Byte getHighestPermission(Byte userLevel) {
       return LEVEL_PERMISSION_MAP.get(userLevel);
    }
-   
+
    /**
     * get all existing work slips of the current user.
     *
@@ -231,41 +225,43 @@ public class OpUser extends OpSubject {
          if (permissions != null) {
             for (OpPermission permission : permissions) {
                if (permission.getAccessLevel() > highestPermission) {
-                  throw new IllegalArgumentException("demote of user level not allowed");
-                  //XException(session.newError(UserServiceIfc.ERROR_MAP, OpUserError.DEMOTE_USER_ERROR));
+                  throw new IllegalArgumentException("Demote of user level not allowed");
                }
             }
          }
          this.level = level;
       }
-      else{
-         throw new IllegalArgumentException("the user level is invalid");   
+      else {
+         throw new IllegalArgumentException("The user level is invalid");
       }
    }
 
    /**
-    * @return
-    * @pre
-    * @post
+    * @return true if the level is one of the user level types
     */
    public boolean isLevelValid() {
       if (level == null) {
-         return (false);
+         return false;
       }
       return (level >= OpUser.OBSERVER_CUSTOMER_USER_LEVEL &&
            level <= OpUser.MANAGER_USER_LEVEL);
    }
 
+
+   public boolean isPermissionAllowed(byte permission) {
+      return permission <= LEVEL_PERMISSION_MAP.get(level);
+   }
+
    /**
     * Performs equality checking for the given passwords.
     *
+    * @param toCheck
     * @return boolean flag indicating passwords equality
     */
    public boolean validatePassword(String toCheck) {
       if (toCheck == null) {
-         return(password.equalsIgnoreCase(BLANK_PASSWORD));
+         return (password.equalsIgnoreCase(BLANK_PASSWORD));
       }
-//      String pwd = new String(getByteArrayValue(sr.getAttributes(), configUserMapping, OPUSER_PASSWORD));
       String[] split = splitAlgorithmAndPassword(password);
       String algorithm = split[0];
       String pwd = split[1];
@@ -273,18 +269,20 @@ public class OpUser extends OpSubject {
          try {
             pwd = new String(new BASE64Decoder().decodeBuffer(pwd));
             return pwd.equals(OpHashProvider.fromHashString(toCheck));
-         } catch (IOException exc) {
+         }
+         catch (IOException exc) {
          }
          return false;
       }
-      return password.equalsIgnoreCase(toCheck); 
+      return password.equalsIgnoreCase(toCheck);
    }
 
    /**
     * splits the given password into an {@link String} array of length 2.
-    * the second value will always contain the password (without the algorithm) 
-    * wheras the firts value will contain the algorithm used to encode this password. 
-    * If the pwd does not have an algorithm associated with it, the first value will be <code>null</code>. 
+    * the second value will always contain the password (without the algorithm)
+    * wheras the firts value will contain the algorithm used to encode this password.
+    * If the pwd does not have an algorithm associated with it, the first value will be <code>null</code>.
+    *
     * @param pwd the password like {SHA}pwd or pwd_in_hex.
     * @return an array of size two, containing the algorithm and the password.
     */
@@ -292,22 +290,20 @@ public class OpUser extends OpSubject {
       Pattern p = Pattern.compile("^\\{([^\\}]*)\\}(.*)$");
       Matcher m = p.matcher(pwd);
       String[] ret = new String[2];
-      
+
       if (m.matches()) {
          ret[0] = m.group(1);
          ret[1] = m.group(2);
       }
       else {
          ret[0] = null;
-         ret[1]= pwd;
+         ret[1] = pwd;
       }
       return ret;
    }
 
    /**
-    * @return
-    * @pre
-    * @post
+    * @return true if the password is missing/blank password
     */
    public boolean passwordIsEmpty() {
       return (validatePassword(null));
@@ -320,23 +316,14 @@ public class OpUser extends OpSubject {
    public String toString() {
       StringBuffer buffer = new StringBuffer();
       buffer.append("<OpUser>");
-//      buffer.append('\n');
-      buffer.append("<id>"+getID()+"</id>");
-//      buffer.append('\n');
-      buffer.append("<name>"+super.getName()+"</name>");
-//      buffer.append('\n');
-      buffer.append("<displayname>"+super.getDisplayName()+"</displayname>");
-//      buffer.append('\n');
+      buffer.append("<id>" + getID() + "</id>");
+      buffer.append("<name>" + super.getName() + "</name>");
+      buffer.append("<displayname>" + super.getDisplayName() + "</displayname>");
       buffer.append("<password>HIDDEN</password>");
-//      buffer.append('\n');
-      buffer.append("<source>"+ getSource()+"</source>");
-//      buffer.append('\n');
-      buffer.append("<level>"+level+"</level>");
-//      buffer.append('\n');
+      buffer.append("<source>" + getSource() + "</source>");
+      buffer.append("<level>" + level + "</level>");
       buffer.append(contact);
-//      buffer.append('\n');
       buffer.append("</OpUser>");
-      
       return buffer.toString();
    }
 

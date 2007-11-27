@@ -11,6 +11,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.server.XSession;
@@ -38,6 +39,8 @@ public class OpNewProjectFormProvider implements XFormProvider {
    private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
    private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
+   private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
+   private final static String BUDGET = "Budget";
 
    private final static String ADJUST_RATES_COLUMN = "AdjustRatesColumn";
    private final static String INTERNAL_RATES_COLUMN = "InternalRatesColumn";
@@ -75,6 +78,14 @@ public class OpNewProjectFormProvider implements XFormProvider {
          return; //TODO: Show error on page that portfolio could not be found
       }
       byte portfolioAccesssLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+
+      XComponent statusChoice = form.findComponent(PROJECT_STATUS_CHOICE);
+      XComponent budget = form.findComponent(BUDGET);
+
+      if (portfolioAccesssLevel != OpPermission.ADMINISTRATOR) {
+         statusChoice.setEnabled(false);
+         budget.setEnabled(false);
+      }
 
       XComponent readOnlyResources = form.findComponent(READ_ONLY_RESOURCES_SET);
       OpResourceDataSetFactory.fillReadOnlyResources(broker, session, readOnlyResources);

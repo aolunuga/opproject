@@ -42,6 +42,9 @@ public interface OpProjectError {
 
    public final static int CANNOT_REMOVE_PERMISSION_ERROR = 27;
 
+   public final static int NO_RIGHTS_CHANGING_BUDGET_ERROR = 28;
+   public final static int NO_RIGHTS_CHANGING_STATUS_ERROR = 29;
+
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -69,4 +72,6 @@ public interface OpProjectError {
    public final static String PRIORITY_NOT_VALID_NAME = "PriorityNotValid";
    public final static String DUPLICATE_BASELINE_ERROR_NAME = "DuplicateBaselineError";
    public final static String CANNOT_REMOVE_PERMISSION_ERROR_NAME = "CannotRemovePermissionError";
+   public final static String NO_RIGHTS_CHANGING_BUDGET_ERROR_NAME = "NoRightsChangingBudgetError";
+   public final static String NO_RIGHTS_CHANGING_STATUS_ERROR_NAME = "NoRightsChangingStatusError";
 }
