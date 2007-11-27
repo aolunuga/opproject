@@ -13,7 +13,7 @@ public class OpGroup extends OpSubject {
    public final static String USER_ASSIGNMENTS = "UserAssignments";
    public final static String SUPER_GROUP_ASSIGNMENTS = "SuperGroupAssignments";
    public final static String SUB_GROUP_ASSIGNMENTS = "SubGroupAssignments";
-   
+
    // Name and resource references of hard-wired group "everyone"
    public final static String EVERYONE_NAME = "Everyone";
    public final static String EVERYONE_DISPLAY_NAME = "${EveryoneDisplayName}";
@@ -23,8 +23,6 @@ public class OpGroup extends OpSubject {
    private Set userAssignments;
    private Set superGroupAssignments;
    private Set subGroupAssignments;
-
-   // *** Maybe add a reference to a resource pool (optimized notifications)?
 
    public void setSuperGroupAssignments(Set superGroupAssignments) {
       this.superGroupAssignments = superGroupAssignments;
@@ -46,7 +44,7 @@ public class OpGroup extends OpSubject {
       this.userAssignments = userAssignments;
    }
 
-   public Set getUserAssignments() {
+   public Set<OpUserAssignment> getUserAssignments() {
       return userAssignments;
    }
 

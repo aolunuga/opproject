@@ -127,6 +127,26 @@ public class OpProjectAdministrationService extends OpProjectService {
          logger.warn("Given portfolio locator is null. Project will be added to root portfolio");
          portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
       }
+
+      byte userAccessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+
+      if (userAccessLevel != OpPermission.ADMINISTRATOR) {
+         double budget = ((Double) project_data.get(OpProjectNode.BUDGET)).doubleValue();
+         String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+
+         if (budget != 0) {
+            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+            reply.setError(error);
+            return reply;
+         }
+
+         if (!statusLocator.equals(NULL_ID)) {
+            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+            reply.setError(error);
+            return reply;
+         }
+      }
+
       project.setSuperNode(portfolio);
 
       // Check manager access for portfolio
@@ -455,10 +475,19 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
 
+         byte projectAccesssLevel = session.effectiveAccessLevel(broker, project.getID());
          Date originalStartDate = project.getStart();
 
          try {
+            double oldBudget = project.getBudget();
             project.fillProjectNode(project_data);
+            double newBudget = project.getBudget();
+
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && (oldBudget != newBudget)) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+               reply.setError(error);
+               return reply;
+            }
          }
          catch (OpEntityException e) {
             reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
@@ -498,9 +527,21 @@ public class OpProjectAdministrationService extends OpProjectService {
          OpProjectStatus status = null;
          if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
             status = (OpProjectStatus) (broker.getObject(statusLocator));
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+
             project.setStatus(status);
          }
          else {
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && (project.getStatus() != null)) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+            
             project.setStatus(null);
          }
 

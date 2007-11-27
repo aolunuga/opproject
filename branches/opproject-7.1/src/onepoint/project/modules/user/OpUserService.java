@@ -58,9 +58,6 @@ public class OpUserService extends OpProjectService {
    // User data
    public final static String ASSIGNED_GROUPS = "assigned_groups";
 
-   // *** Where do we provide the XML-code to register the service?
-   // ==> Maybe the most consistent way it to include it in the module
-
    public final static String PASSWORD_TOKEN = "@*1XW9F4";
    private final static String NULL_PASSWORD = null;
 
@@ -70,7 +67,7 @@ public class OpUserService extends OpProjectService {
 
    // FIXME(dfreis Mar 5, 2007 11:16:13 AM)
    // should be set within constructor!
-   private OpUserServiceImpl serviceIfcImpl_ = new OpUserServiceImpl();
+   private OpUserServiceImpl serviceIfcImpl = new OpUserServiceImpl();
 
    public XMessage getHashAlgorithm(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.getHashAlgorithm()");
@@ -78,7 +75,7 @@ public class OpUserService extends OpProjectService {
       String login = (String) (request.getArgument(LOGIN));
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
-      String algo = serviceIfcImpl_.getHashAlgorithm(session, broker, login);
+      String algo = serviceIfcImpl.getHashAlgorithm(session, broker, login);
       reply.setVariable("algorithm", algo);
       broker.close();
       return reply;
@@ -96,7 +93,7 @@ public class OpUserService extends OpProjectService {
          // note: transaction is required here for ldap identification, 
          //       because ldap identification may create new user and/or group objects
          OpTransaction t = broker.newTransaction();
-         serviceIfcImpl_.signOn(session, broker, login, password);
+         serviceIfcImpl.signOn(session, broker, login, password);
 
          //initialize the calendar settings
          OpSettingsService.getService().configureServerCalendar(session);
@@ -152,7 +149,7 @@ public class OpUserService extends OpProjectService {
       }
       //get user level
       String userLevel = (String) user_data.get(USER_LEVEL);
-      Byte userLevelId = OpUser.DEFAULT_USER_LEVEL;
+      Byte userLevelId;
       try {
          userLevelId = Byte.parseByte(userLevel);
       }
@@ -174,7 +171,7 @@ public class OpUserService extends OpProjectService {
       OpTransaction t = broker.newTransaction();
 
       try {
-         serviceIfcImpl_.insertUser(session, broker, user);
+         serviceIfcImpl.insertUser(session, broker, user);
 
          // set language preference
          String language = (String) user_data.get(LANGUAGE);
@@ -183,20 +180,12 @@ public class OpUserService extends OpProjectService {
          // set assignments
          List assigned_groups = (List) (user_data.get(ASSIGNED_GROUPS));
          if ((assigned_groups != null) && (assigned_groups.size() > 0)) {
-            String choice = null;
-            OpGroup group = null;
-            for (int i = 0; i < assigned_groups.size(); i++) {
-               choice = (String) (assigned_groups.get(i));
+            String choice;
+            OpGroup group;
+            for (Object assigned_group : assigned_groups) {
+               choice = (String) assigned_group;
                group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
-
-               try {
-                  serviceIfcImpl_.assign(session, broker, user, group);
-               }
-               catch (XServiceException exc) {
-                  // only warning!
-                  reply.setError(exc.getError());
-                  reply.setArgument(WARNING, Boolean.TRUE);
-               }
+               serviceIfcImpl.assign(session, broker, user, group);
             }
          }
 
@@ -211,7 +200,7 @@ public class OpUserService extends OpProjectService {
          pref.setValue(showHours);
          broker.makePersistent(pref);
          t.commit();
-         logger.debug("   make-persistent");
+         logger.debug("make-persistent");
       }
       catch (XServiceException exc) {
          t.rollback();
@@ -242,12 +231,8 @@ public class OpUserService extends OpProjectService {
          return reply;
       }
 
-
       HashMap group_data = (HashMap) (request.getArgument(GROUP_DATA));
-
       XMessage reply = new XMessage();
-//      XError error = null;
-
       OpGroup group = new OpGroup();
       group.setName((String) (group_data.get(OpSubject.NAME)));
       group.setDisplayName(group.getName());
@@ -257,14 +242,14 @@ public class OpUserService extends OpProjectService {
       List assigned_group_id_strings = (List) group_data.get(ASSIGNED_GROUPS);
       Vector<OpGroup> super_groups = new Vector<OpGroup>();
       if (assigned_group_id_strings != null) {
-         String choice = null;
+         String choice;
          Iterator iter = assigned_group_id_strings.iterator();
          OpGroup assigned_group;
          while (iter.hasNext()) {
             choice = (String) iter.next();
             assigned_group = (OpGroup) (broker.getObject(XValidator.choiceID(choice)));
-            if (assigned_group == null) // super group not found
-            {
+            if (assigned_group == null) {
+               // super group not found
                reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
                broker.close();
                return reply;
@@ -273,7 +258,7 @@ public class OpUserService extends OpProjectService {
          }
       }
       // super_groups now contains all super groups!
-      if (!serviceIfcImpl_.isAssignable(session, broker, group, super_groups.iterator())) {
+      if (!serviceIfcImpl.isAssignable(session, broker, group, super_groups.iterator())) {
          reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
          broker.close();
          return reply;
@@ -282,46 +267,19 @@ public class OpUserService extends OpProjectService {
       // validation successfully completed
       OpTransaction t = broker.newTransaction();
       try {
-         serviceIfcImpl_.insertGroup(session, broker, group);
-         try {
-            serviceIfcImpl_.assign(session, broker, group, super_groups.iterator());
-         }
-         catch (XServiceException exc) {
-            // only warning!
-            reply.setError(exc.getError());
-            reply.setArgument(WARNING, Boolean.TRUE);
-         }
-
-//        // assign groups
-//        if ((assigned_group_id_strings != null) && (assigned_group_id_strings.size() > 0)) {
-//          Iterator iter = assigned_group_id_strings.iterator();
-//          while (iter.hasNext())
-//          {
-//            try
-//            {
-//              xxx
-//              serviceIfcImpl_.assign(group, iter);
-//            } catch (XServiceException exc)
-//            {
-//              // only warning!
-//              reply.setError(exc.getError());
-//              reply.setArgument(WARNING, Boolean.TRUE);
-//            }
-//          }
-//        }
-
+         serviceIfcImpl.insertGroup(session, broker, group);
+         serviceIfcImpl.assign(session, broker, group, super_groups.iterator());
          t.commit();
       }
       catch (XServiceException exc) {
          t.rollback();
-         reply.setError(exc.getError());//session.newError(OpOpUserServiceImplImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
+         reply.setError(exc.getError());
          return reply;
       }
       finally {
          broker.close();
       }
-      return (reply);
-      //      broker.makePersistent(group);
+      return reply;
    }
 
    public XMessage updateUser(OpProjectSession session, XMessage request) {
@@ -334,17 +292,12 @@ public class OpUserService extends OpProjectService {
       String id_string = (String) (request.getArgument(USER_ID));
       logger.debug("OpUserService.updateUser(): id = " + id_string);
       HashMap user_data = (HashMap) (request.getArgument(USER_DATA));
-
       XMessage reply = new XMessage();
-//      XError error = null;
 
       OpBroker broker = session.newBroker();
       OpTransaction t = null;
       try {
-         OpUser user = serviceIfcImpl_.getUserByIdString(session, broker, id_string);
-
-         // *** We could check if the fields have been modified (does this help or
-         // not)?
+         OpUser user = serviceIfcImpl.getUserByIdString(session, broker, id_string);
          if (user == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
             reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.USER_NOT_FOUND));
@@ -379,8 +332,6 @@ public class OpUserService extends OpProjectService {
          //user password validation
          String password = (String) (user_data.get(OpUser.PASSWORD));
          String retypedPassword = (String) user_data.get(PASSWORD_RETYPED);
-
-
          String token = new OpHashProvider().calculateHash(PASSWORD_TOKEN);
 
          // note PASSWORD_TOKEN is the default value of the password field, all other fields will display the real values of the user!
@@ -413,7 +364,7 @@ public class OpUserService extends OpProjectService {
 
          // validation successfully completed
          t = broker.newTransaction();
-         serviceIfcImpl_.updateUser(session, broker, user);
+         serviceIfcImpl.updateUser(session, broker, user);
 
          //set the language
          String language = (String) user_data.get(LANGUAGE);
@@ -435,24 +386,17 @@ public class OpUserService extends OpProjectService {
          if (updatedGroupIds != null) {
             Long groupId = null;
             OpGroup group;
-            for (int i = 0; i < updatedGroupIds.size(); i++) {
-               groupId = new Long(OpLocator.parseLocator((String) (updatedGroupIds.get(i))).getID());
+            for (Object updatedGroupId : updatedGroupIds) {
+               groupId = OpLocator.parseLocator((String) updatedGroupId).getID();
                if (!storedGroupIds.remove(groupId)) {
-                  group = serviceIfcImpl_.getGroupById(session, broker, groupId.longValue());
+                  group = serviceIfcImpl.getGroupById(session, broker, groupId);
                   if (group == null) {
                      reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.USER_NOT_FOUND));
                      reply.setArgument(WARNING, Boolean.TRUE);
                   }
                   else {
                      // Assignment not yet persistent: Create new user assignment
-                     try {
-                        serviceIfcImpl_.assign(session, broker, user, group);
-                     }
-                     catch (XServiceException exc) {
-                        // only warning!
-                        reply.setError(exc.getError());
-                        reply.setArgument(WARNING, Boolean.TRUE);
-                     }
+                     serviceIfcImpl.assign(session, broker, user, group);
                   }
                }
             }
@@ -472,14 +416,12 @@ public class OpUserService extends OpProjectService {
             Iterator result = broker.iterate(query);
             while (result.hasNext()) {
                OpUserAssignment assignment = (OpUserAssignment) result.next();
-               serviceIfcImpl_.deleteUserAssignment(session, broker, assignment);
+               serviceIfcImpl.deleteUserAssignment(session, broker, assignment);
             }
          }
-
          t.commit();
       }
       catch (XServiceException exc) {
-//        exc.printStackTrace();
          if (t != null) {
             t.rollback();
          }
@@ -489,21 +431,6 @@ public class OpUserService extends OpProjectService {
          broker.close();
       }
       return reply;
-   }
-
-   /**
-    * Gets all the permissions for the given user. Goes recursively upwards collecting permissions from groups as well.
-    *
-    * @param user user object to gather the permissions for.
-    * @return Set of permissions.
-    */
-   private Set getAllOwnedPermissions(OpUser user) {
-      Set ownedPermissions = new HashSet(user.getOwnedPermissions());
-      for (Iterator iterator = user.getAssignments().iterator(); iterator.hasNext();) {
-         OpUserAssignment assignment = (OpUserAssignment) iterator.next();
-         ownedPermissions.addAll(getAllOwnedPermissions(assignment.getGroup()));
-      }
-      return ownedPermissions;
    }
 
    /**
@@ -536,7 +463,7 @@ public class OpUserService extends OpProjectService {
       OpBroker broker = session.newBroker();
       OpTransaction t = null;
       try {
-         OpGroup group = serviceIfcImpl_.getGroupByIdString(session, broker, id_string);
+         OpGroup group = serviceIfcImpl.getGroupByIdString(session, broker, id_string);
          if (group == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
             reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.GROUP_NOT_FOUND));
@@ -555,7 +482,7 @@ public class OpUserService extends OpProjectService {
             OpGroup assigned_group;
             while (iter.hasNext()) {
                choice = (String) iter.next();
-               assigned_group = serviceIfcImpl_.getGroupByIdString(session, broker, XValidator.choiceID(choice));
+               assigned_group = serviceIfcImpl.getGroupByIdString(session, broker, XValidator.choiceID(choice));
                if (assigned_group == null) // super group not found
                {
                   reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
@@ -566,7 +493,7 @@ public class OpUserService extends OpProjectService {
             }
          }
          // super_groups now contains all super groups!
-         if (!serviceIfcImpl_.isAssignable(session, broker, group, super_groups.iterator())) {
+         if (!serviceIfcImpl.isAssignable(session, broker, group, super_groups.iterator())) {
             reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
             broker.close();
             return reply;
@@ -574,7 +501,7 @@ public class OpUserService extends OpProjectService {
 
          // validation successfully completed
          t = broker.newTransaction();
-         serviceIfcImpl_.updateGroup(session, broker, group);
+         serviceIfcImpl.updateGroup(session, broker, group);
 
          // Compare and update assignments
          Iterator storedSuperGroupAssignments = group.getSuperGroupAssignments().iterator();
@@ -591,19 +518,13 @@ public class OpUserService extends OpProjectService {
             for (int i = 0; i < assigned_groups.size(); i++) {
                groupId = new Long(OpLocator.parseLocator((String) (assigned_groups.get(i))).getID());
                if (!storedSuperGroupIds.remove(groupId)) {
-                  superGroup = serviceIfcImpl_.getGroupById(session, broker, groupId.longValue());
+                  superGroup = serviceIfcImpl.getGroupById(session, broker, groupId.longValue());
                   // Assignment not yet persistent: Create new user assignment
                   if (superGroup == null) {
                      reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
                   }
                   else {
-                     try {
-                        serviceIfcImpl_.assign(session, broker, group, superGroup);
-                     }
-                     catch (XServiceException exc) {
-                        // only warning!
-                        reply.setError(exc.getError());
-                     }
+                     serviceIfcImpl.assign(session, broker, group, superGroup);
                   }
                }
             }
@@ -624,7 +545,7 @@ public class OpUserService extends OpProjectService {
             Iterator result = broker.iterate(query);
             while (result.hasNext()) {
                assignment = (OpGroupAssignment) result.next();
-               serviceIfcImpl_.deleteGroupAssignment(session, broker, assignment);
+               serviceIfcImpl.deleteGroupAssignment(session, broker, assignment);
             }
          }
 
@@ -671,16 +592,16 @@ public class OpUserService extends OpProjectService {
             while (super_iter.hasNext() && sub_iter.hasNext()) {
                OpLocator superLocator = OpLocator.parseLocator((String) (super_iter.next()));
                OpLocator subLocator = OpLocator.parseLocator((String) (sub_iter.next()));
-               OpGroup super_group = serviceIfcImpl_.getGroupById(session, broker, superLocator.getID());
+               OpGroup super_group = serviceIfcImpl.getGroupById(session, broker, superLocator.getID());
                if (subLocator.getPrototype().getInstanceClass() == OpUser.class) {
                   // user to group
-                  OpUser user = serviceIfcImpl_.getUserById(session, broker, subLocator.getID());
-                  serviceIfcImpl_.removeUserFromGroup(session, broker, user, super_group);
+                  OpUser user = serviceIfcImpl.getUserById(session, broker, subLocator.getID());
+                  serviceIfcImpl.removeUserFromGroup(session, broker, user, super_group);
                }
                else {
                   // group to group
-                  OpGroup group = serviceIfcImpl_.getGroupById(session, broker, subLocator.getID());
-                  serviceIfcImpl_.removeGroupFromGroup(session, broker, group, super_group);
+                  OpGroup group = serviceIfcImpl.getGroupById(session, broker, subLocator.getID());
+                  serviceIfcImpl.removeGroupFromGroup(session, broker, group, super_group);
                }
             }
             t.commit();
@@ -745,7 +666,7 @@ public class OpUserService extends OpProjectService {
          OpUser user;
          while (result.hasNext()) {
             user = (OpUser) result.next();
-            serviceIfcImpl_.deleteUser(session, broker, user);
+            serviceIfcImpl.deleteUser(session, broker, user);
          }
 
          query = broker.newQuery("select subject from OpGroup as subject where subject.ID in (:subjectIds)");
@@ -754,7 +675,7 @@ public class OpUserService extends OpProjectService {
          OpGroup group;
          while (result.hasNext()) {
             group = (OpGroup) result.next();
-            serviceIfcImpl_.deleteGroup(session, broker, group);
+            serviceIfcImpl.deleteGroup(session, broker, group);
          }
          t.commit();
       }
@@ -772,13 +693,6 @@ public class OpUserService extends OpProjectService {
 
    public XMessage assignToGroup(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-
-      //only the administrator has access right
-//      if (!session.userIsAdministrator()) {
-//         XError error = session.newError(OpUserAPIImpl.ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES);
-//         reply.setError(error);
-//         return reply;
-//      }
 
       logger.debug("OpUserService.assignToGroup()");
 
@@ -800,7 +714,7 @@ public class OpUserService extends OpProjectService {
       OpTransaction t = null;
       try {
          // *** Retrieve target group
-         OpGroup targetGroup = serviceIfcImpl_.getGroupByIdString(session, broker, targetGroupLocator);
+         OpGroup targetGroup = serviceIfcImpl.getGroupByIdString(session, broker, targetGroupLocator);
          if (targetGroup == null) {
             logger.warn("ERROR: Could not find object with ID " + targetGroupLocator);
             reply.setError(session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.SUPER_GROUP_NOT_FOUND));
@@ -833,7 +747,7 @@ public class OpUserService extends OpProjectService {
                      reply.setArgument(WARNING, Boolean.TRUE);
                   }
                   else {
-                     serviceIfcImpl_.assign(session, broker, user, targetGroup);
+                     serviceIfcImpl.assign(session, broker, user, targetGroup);
                   }
 
                }
@@ -851,14 +765,14 @@ public class OpUserService extends OpProjectService {
                   }
                   else {
                      //loop check
-                     if (!serviceIfcImpl_.isAssignable(session, broker, group, targetGroup)) {
+                     if (!serviceIfcImpl.isAssignable(session, broker, group, targetGroup)) {
                         reply = new XMessage();
                         XError error = session.newError(OpUserServiceImpl.ERROR_MAP, OpUserError.LOOP_ASSIGNMENT);
                         reply.setError(error);
                         reply.setArgument(WARNING, Boolean.TRUE);
                      }
                      else {
-                        serviceIfcImpl_.assign(session, broker, group, targetGroup);
+                        serviceIfcImpl.assign(session, broker, group, targetGroup);
                      }
                   }
                }
@@ -1031,7 +945,7 @@ public class OpUserService extends OpProjectService {
     */
    public XMessage signOff(OpProjectSession session, XMessage request) {
       OpBroker broker = session.newBroker();
-      serviceIfcImpl_.signOff(session, broker);
+      serviceIfcImpl.signOff(session, broker);
       broker.close();
       return null;
    }
@@ -1041,7 +955,7 @@ public class OpUserService extends OpProjectService {
    */
    @Override
    public Object getServiceImpl() {
-      return serviceIfcImpl_;
+      return serviceIfcImpl;
    }
 
 

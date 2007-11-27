@@ -233,7 +233,9 @@
       <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
       <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
       <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
-      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>      
+      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>
+      <resource id="NoRightsChangingBudgetError">You need administrator privileges to change the project budget</resource>
+      <resource id="NoRightsChangingStatusError">You need administrator privileges to change the project status</resource>
    </resource-map>
 
    <resource-map id="project.delete">

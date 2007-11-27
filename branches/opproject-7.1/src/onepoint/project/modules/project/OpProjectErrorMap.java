@@ -38,6 +38,8 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.PRIORITY_NOT_VALID, OpProjectError.PRIORITY_NOT_VALID_NAME);
       registerErrorCode(OpProjectError.PROBABILITY_NOT_VALID, OpProjectError.PROBABILITY_NOT_VALID_NAME);     
       registerErrorCode(OpProjectError.DUPLICATE_BASELINE_ERROR, OpProjectError.DUPLICATE_BASELINE_ERROR_NAME);     
-      registerErrorCode(OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR, OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR_NAME);     
+      registerErrorCode(OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR, OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR_NAME);
+      registerErrorCode(OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR_NAME);
+      registerErrorCode(OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR_NAME);
    }
 }

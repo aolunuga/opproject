@@ -303,7 +303,8 @@ public class OpMSProjectManager {
       return msTasks;
    }
 
-   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet, XLocale xlocale)
+   public static String exportActivities(String fileName, OutputStream destinationFile, XComponent dataSet,
+        XLocale xlocale, OpProjectNode projectNode)
         throws IOException {
 
       //adjust the destination name file
@@ -352,18 +353,14 @@ public class OpMSProjectManager {
       header.setStartDate(validator.getProjectStart());
 
       //add resources on project
-      XComponent assignmentSet = validator.getAssignmentSet();
       Map resourceMap = new HashMap();
-      for (int j = 0; j < assignmentSet.getChildCount(); j++) {
-         XComponent row = (XComponent) assignmentSet.getChild(j);
-         String resouceLocator = row.getStringValue();
+      for (OpProjectNodeAssignment projectAssignment : projectNode.getAssignments()) {
+         OpResource projectResource = projectAssignment.getResource();
+         String resouceLocator = projectResource.locator();
          String resouceID = XValidator.choiceID(resouceLocator);
-         String resourceName = XValidator.choiceCaption(resouceLocator);
-         if (!resourceName.equals(OpGanttValidator.NO_RESOURCE_NAME)) {
-            Resource resource = file.addResource();
-            resource.setName(resourceName);
-            resourceMap.put(resouceID, resource);
-         }
+         Resource resource = file.addResource();
+         resource.setName(projectResource.getName());
+         resourceMap.put(resouceID, resource);
       }
 
       //add activities

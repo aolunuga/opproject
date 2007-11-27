@@ -135,26 +135,29 @@ public class OpProjectPlanningService extends OpProjectService {
 
    public XMessage exportActivities(OpProjectSession session, XMessage request) {
       String projectId = (String) request.getArgument(PROJECT_ID);
+      OpBroker broker = session.newBroker();
       XMessage response = new XMessage();
+      OpProjectNode project = null;
       if (projectId != null) {
-         OpBroker broker = session.newBroker();
-         OpProjectNode project = (OpProjectNode) broker.getObject(projectId);
+         project = (OpProjectNode) broker.getObject(projectId);
          if (project.getType() != OpProjectNode.PROJECT) {
             response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT));
             return response;
          }
-         broker.close();
       }
       XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
       String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
-         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale());
+         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale(), project);
       }
       catch (IOException e) {
          response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
          return response;
+      }
+      finally {
+         broker.close();
       }
 
       byte[] outArray = out.toByteArray();
