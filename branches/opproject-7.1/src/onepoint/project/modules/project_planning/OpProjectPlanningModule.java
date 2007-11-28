@@ -15,6 +15,7 @@ import onepoint.project.module.OpModule;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 
 import java.util.ArrayList;
@@ -195,7 +196,7 @@ public class OpProjectPlanningModule extends OpModule {
          broker.updateObject(activity);
       }
 
-      for(OpActivity activity : collectionList) {
+      for (OpActivity activity : collectionList) {
          broker.updateObject(activity);
       }
 
@@ -243,7 +244,7 @@ public class OpProjectPlanningModule extends OpModule {
       for (Long projectPlanId : projectPlanIds) {
          OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
-         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
+         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
          broker.close();
       }
    }

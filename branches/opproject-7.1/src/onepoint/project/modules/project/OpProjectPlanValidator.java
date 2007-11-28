@@ -51,12 +51,13 @@ public class OpProjectPlanValidator {
    /**
     * Validates this validator's project plan.
     *
-    * @param broker   a <code>OpBroker</code> used for persistence operations. Note that the state of this broker
-    *                 (opened/closed) is not maintained by this method and therefore must be handled elsewhere.
-    * @param modifier a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
-    *                 Can be <code>null</code>.
+    * @param broker       a <code>OpBroker</code> used for persistence operations. Note that the state of this broker
+    *                     (opened/closed) is not maintained by this method and therefore must be handled elsewhere.
+    * @param modifier     a <code>PlanModifier</code> instance, that allows a hook into the validation mechanism.
+    * @param creatorField Allows to specify a name for the "validation-creator", meaning the creator for the revalidated versions.
+    *                     If set to null, will default to session user.
     */
-   public void validateProjectPlan(OpBroker broker, PlanModifier modifier) {
+   public void validateProjectPlan(OpBroker broker, PlanModifier modifier, String creatorField) {
       OpTransaction tx = broker.newTransaction();
 
       OpProjectNode projectNode = projectPlan.getProjectNode();
@@ -66,11 +67,11 @@ public class OpProjectPlanValidator {
 
       //obtain the holiday calendar settings from the project plan
       OpHolidayCalendar holidayCalendar = null;
-      if(OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
+      if (OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
          holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
       }
 
-       //obtain the calendar settings from OpSettings
+      //obtain the calendar settings from OpSettings
       int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
       int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
       double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
@@ -90,6 +91,9 @@ public class OpProjectPlanValidator {
          validator.getCalendar().setPlanningSettings(updatedPlanningSettings);
       }
 
+      if (creatorField != null) {
+         projectPlan.setCreator(creatorField);
+      }
       this.validateWorkingVersionPlan(broker, validator, modifier, resources);
       this.validatePlan(broker, validator, modifier, resources);
 
@@ -120,11 +124,11 @@ public class OpProjectPlanValidator {
 
       //obtain the holiday calendar settings from the project plan
       OpHolidayCalendar holidayCalendar = null;
-      if(OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
+      if (OpHolidayCalendarManager.getHolidayCalendarsMap() != null) {
          holidayCalendar = (OpHolidayCalendar) OpHolidayCalendarManager.getHolidayCalendarsMap().get(projectPlan.getHolidayCalendar());
       }
 
-       //obtain the calendar settings from OpSettings
+      //obtain the calendar settings from OpSettings
       int firstWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_FIRST_WORKDAY));
       int lastWorkday = Integer.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_LAST_WORKDAY));
       double dayWorkTime = Double.valueOf(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME));
@@ -180,7 +184,7 @@ public class OpProjectPlanValidator {
    /**
     * Validates the working version of a project plan, if one exists.
     *
-    * @see onepoint.project.modules.project.OpProjectPlanValidator#validateProjectPlan(onepoint.persistence.OpBroker,onepoint.project.modules.project.OpProjectPlanValidator.PlanModifier)
+    * @see OpProjectPlanValidator#validateProjectPlan(onepoint.persistence.OpBroker, onepoint.project.modules.project.OpProjectPlanValidator.PlanModifier, String)
     */
    private void validateWorkingVersionPlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //if there is a working plan, validate it

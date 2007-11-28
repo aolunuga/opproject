@@ -52,6 +52,7 @@ public class OpUser extends OpSubject {
    public final static String ACTIVITY_COMMENTS = "ActivityComments";
 
    // Administrator user (per site)
+   public final static String SYSTEM_USER_NAME = "System";
    public final static String ADMINISTRATOR_NAME = "Administrator";
    public final static String ADMINISTRATOR_NAME_ALIAS1 = "administrator";
    public final static String ADMINISTRATOR_NAME_ALIAS2 = "ADMINISTRATOR";
