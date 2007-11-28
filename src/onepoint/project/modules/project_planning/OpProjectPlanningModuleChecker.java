@@ -13,6 +13,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 
 import java.sql.Date;
@@ -140,7 +141,7 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
       for (Long projectPlanId : projectPlanIds) {
          OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
-         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
+         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
          broker.closeAndEvict();
       }
    }

@@ -362,6 +362,7 @@ public class OpInitializer {
     * Resets the db schema by dropping the existent one and creating a new one.  It's important here to not loose consistency
     * in the hibernate hi-lo generator.
     * <FIXME author="Horia Chiorean" description="Currently this method is used only from tests">
+    *
     * @throws SQLException if the db schema cannot be droped or created.
     */
    public void resetDbSchema()
@@ -396,11 +397,6 @@ public class OpInitializer {
         throws SQLException, IOException {
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
       OpSourceManager.clearAllSources();
-      boolean  updated = this.updateDBSchema();
-
-      //check and fix modules, only if not aldready done by upgrade
-      if (!updated) {
-         OpModuleManager.checkModules();
-      }
+      this.updateDBSchema();
    }
 }
