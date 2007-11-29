@@ -103,7 +103,7 @@ public class OpPrototype extends OpType {
     *
     * @return a <code>List</code> of <code>XProptotype</code> representing the dependent prototypes.
     */
-   public List getBackupDependencies() {
+   public List<OpPrototype> getBackupDependencies() {
       if (backupDependencies == null) {
          backupDependencies = new ArrayList<OpPrototype>();
 
@@ -134,8 +134,9 @@ public class OpPrototype extends OpType {
    /**
     * Extends this prototype with the information from the parent prototype (extension means
     * copying all non-conflicting members.
+    *
     * @param parentPrototype a <code>OpPrototype</code> representing the parent
-    * prototype.
+    *                        prototype.
     */
    public void extend(OpPrototype parentPrototype) {
       Iterator<OpMember> parentMemebersIt = parentPrototype.getDeclaredMembers();
@@ -149,6 +150,7 @@ public class OpPrototype extends OpType {
 
    /**
     * Returns the recursive relationship this prototype has, or null if it doesn't have any (there shouldn't be prototypes with more than 1 recursive relationships)
+    *
     * @return a <code>OpRelationship</code> or <code>null</code>.
     */
    public OpRelationship getRecursiveRelationship() {
@@ -162,9 +164,10 @@ public class OpPrototype extends OpType {
 
    /**
     * Checks whether the protoype contains the given memeber as a declared member.
+    *
     * @param member a <code>OpMember</code> instance.
     * @return <code>true</code> if the prototype contains as a delcared member the
-    * given member.
+    *         given member.
     */
    public boolean containsDeclaredMember(OpMember member) {
       return declaredMembers.containsKey(member.getName());

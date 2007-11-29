@@ -541,7 +541,7 @@ public class OpProjectAdministrationService extends OpProjectService {
                reply.setError(error);
                return reply;
             }
-            
+
             project.setStatus(null);
          }
 
@@ -586,7 +586,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          // update project plan versions (must be done before deleting the versions)
          XComponent versionDataSet = (XComponent) request.getArgument(VERSIONS_SET);
-         updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
+         List<OpProjectPlanVersion> versionsToDelete = updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
 
          //update project assignments
          XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
@@ -627,6 +627,14 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
 
          transaction.commit();
+
+         broker.close();
+         for (OpProjectPlanVersion version : versionsToDelete) {
+            broker = session.newBroker();
+            version = (OpProjectPlanVersion) broker.getObject(OpProjectPlanVersion.class, version.getID());
+            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            broker.closeAndEvict();
+         }
 
          //if project was archived and is currently saved in the session clear it
          if (session.getVariable(OpProjectConstants.PROJECT_ID) != null) {
@@ -1090,10 +1098,11 @@ public class OpProjectAdministrationService extends OpProjectService {
     * @param projectPlan     the project plan
     * @param versionsDataSet a <code>XComponent</code> representing the client side project plan versions.
     */
-   private void updateProjectPlanVersions(OpProjectSession session, OpBroker broker, OpProjectPlan projectPlan, XComponent versionsDataSet) {
+   private List<OpProjectPlanVersion> updateProjectPlanVersions(OpProjectSession session, OpBroker broker, OpProjectPlan projectPlan, XComponent versionsDataSet) {
       Set<OpProjectPlanVersion> existingVersions = projectPlan.getVersions();
+      List<OpProjectPlanVersion> versionsToDelete = new ArrayList<OpProjectPlanVersion>();
       if (existingVersions == null || existingVersions.size() == 0) {
-         return;
+         return versionsToDelete;
       }
 
       // create a map of the existing versions
@@ -1111,9 +1120,12 @@ public class OpProjectAdministrationService extends OpProjectService {
       Collection<OpProjectPlanVersion> values = existingVersionMap.values();
       if (values.size() > 0) {
          for (OpProjectPlanVersion version : values) {
-            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            version.setProjectPlan(null);
+            projectPlan.getVersions().remove(version);
+            versionsToDelete.add(version);
          }
       }
+      return versionsToDelete;
    }
 
    /**

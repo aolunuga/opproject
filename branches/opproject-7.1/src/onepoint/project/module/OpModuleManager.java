@@ -74,41 +74,39 @@ public final class OpModuleManager {
     * Initializes the backup manager by registering all the prototypes in correct order.
     */
    private static void initializeBackupManager() {
-      List toAddLast = new ArrayList();
+      List<OpPrototype> toAddLast = new ArrayList<OpPrototype>();
       OpPrototype superPrototype = OpTypeManager.getPrototypeByClassName(OpObject.class.getName());
       Iterator it = OpTypeManager.getPrototypes();
       while (it.hasNext()) {
          OpPrototype startPoint = (OpPrototype) it.next();
          if (!(startPoint.getID() == superPrototype.getID())) {
-            registerPrototypeForBackup(superPrototype, startPoint, toAddLast);
+            registerPrototypeForBackup(superPrototype.getID(), startPoint, toAddLast);
          }
       }
-      it = toAddLast.iterator();
-      while (it.hasNext()) {
-         OpBackupManager.addPrototype((OpPrototype) it.next());
+
+      for (OpPrototype prototype : toAddLast) {
+         OpBackupManager.addPrototype(prototype);
       }
    }
 
    /**
     * Registers a prototype with the backup manager, taking into account the prototype's dependencies.
     *
-    * @param superPrototype           a <code>OpPrototype</code> representing OpObject's prototype.
+    * @param superPrototypeId         a <code>Long</code> representing OpObject's prototype id.
     * @param startPoint               a <code>OpPrototype</code> representing a start point in the back-up registration process.
     * @param lastPrototypesToRegister a <code>List</code> which acts as an acumulator and will contain at the end a list
-    *                                 of prototypes which will be registered at the end of all the others.
     */
-   private static void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List lastPrototypesToRegister) {
-      List dependencies = startPoint.getBackupDependencies();
-      for (Object dependency1 : dependencies) {
-         OpPrototype dependency = (OpPrototype) dependency1;
-         if (dependency.getID() == superPrototype.getID()) {
+   private static void registerPrototypeForBackup(int superPrototypeId, OpPrototype startPoint, List<OpPrototype> lastPrototypesToRegister) {
+      for (OpPrototype dependency : startPoint.getBackupDependencies()) {
+         if (dependency.getID() == superPrototypeId) {
             lastPrototypesToRegister.add(startPoint);
          }
          else if (!OpBackupManager.hasRegistered(dependency)) {
-            registerPrototypeForBackup(superPrototype, dependency, lastPrototypesToRegister);
+            registerPrototypeForBackup(superPrototypeId, dependency, lastPrototypesToRegister);
          }
       }
-      if (!startPoint.subTypes().hasNext() && !OpBackupManager.hasRegistered(startPoint)) {
+
+      if (!startPoint.subTypes().hasNext() && !OpBackupManager.hasRegistered(startPoint) && !lastPrototypesToRegister.contains(startPoint)) {
          OpBackupManager.addPrototype(startPoint);
       }
    }
