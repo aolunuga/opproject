@@ -13,6 +13,7 @@ import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 
@@ -40,7 +41,62 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
       fixProjectPlans(session);
       deleteWorkRecordsForDeletedActivities(session);
       deleteWorkRecordsForCollections(session);
+      resetActivityValues(session);
       revalidateAllProjects(session);
+   }
+
+   /**
+    * Resets the "planning" values of the activities (actual values are checked by work checker).
+    *
+    * @param session
+    */
+   private void resetActivityValues(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+      OpQuery query = broker.newQuery("select activity from OpActivity activity where activity.Assignments.size = 0");
+      Iterator iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         OpActivity activity = (OpActivity) iterator.next();
+         if (activity.getProjectPlan().getProgressTracked()) {
+            activity.setComplete(0);
+            activity.setRemainingEffort(activity.getBaseEffort());
+            activity.setActualEffort(0);
+         }
+         else {
+            activity.setActualEffort(0);
+            if (activity.getComplete() < 0) {
+               activity.setComplete(0);
+            }
+            if (activity.getComplete() > 100) {
+               activity.setComplete(100);
+            }
+            //update remaining based on complete for non tracked
+            double remaining = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), 0, activity.getComplete());
+            activity.setRemainingEffort(remaining);
+         }
+         broker.updateObject(activity);
+      }
+      transaction.commit();
+      broker.closeAndEvict();
+
+
+      broker = session.newBroker();
+      transaction = broker.newTransaction();
+      query = broker.newQuery("select activity from OpActivity activity where activity.Assignments.size > 0");
+      iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         OpActivity activity = (OpActivity) iterator.next();
+         if (activity.getComplete() < 0) {
+            activity.setComplete(0);
+         }
+         if (activity.getComplete() > 100) {
+            activity.setComplete(100);
+         }
+         broker.updateObject(activity);
+      }
+      transaction.commit();
+      broker.closeAndEvict();
+
    }
 
    private void deleteWorkRecordsForCollections(OpProjectSession session) {
