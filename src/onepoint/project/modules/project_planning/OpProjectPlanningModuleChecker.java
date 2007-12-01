@@ -42,7 +42,38 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
       deleteWorkRecordsForDeletedActivities(session);
       deleteWorkRecordsForCollections(session);
       resetActivityValues(session);
+      recalculateAssignmentsValues(session);
       revalidateAllProjects(session);
+   }
+
+   private void recalculateAssignmentsValues(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+      OpQuery query = broker.newQuery("select activity.ID, activity.BaseEffort from OpActivity activity inner join activity.Assignments assignment group by activity.ID, activity.BaseEffort having sum(assignment.BaseEffort)>activity.BaseEffort");
+      Iterator iterator = broker.list(query).iterator();
+      while (iterator.hasNext()) {
+         Object[] activityInfo = (Object[]) iterator.next();
+         Long id = (Long) activityInfo[0];
+         OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, id);
+         double assignmentSum = 0;
+         for (OpAssignment assignment : activity.getAssignments()) {
+            double effort = assignment.getBaseEffort();
+            assignmentSum += effort;
+         }
+         double diff = assignmentSum - activity.getBaseEffort();
+         logger.info("Found an activity with faulty assignments: " + activity.getName() + " from project " +
+              activity.getProjectPlan().getProjectNode().getName() + ". Effort differ by " + diff);
+
+         //distribute the diff by modifing the %assigned
+         double ratio = activity.getBaseEffort() / assignmentSum;
+         for (OpAssignment assignment : activity.getAssignments()) {
+            assignment.setAssigned(assignment.getAssigned() * ratio);
+            broker.updateObject(assignment);
+         }
+
+      }
+      transaction.commit();
+      broker.closeAndEvict();
    }
 
    /**

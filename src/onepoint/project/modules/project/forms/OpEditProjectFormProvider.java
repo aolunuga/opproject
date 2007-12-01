@@ -63,6 +63,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String CANCEL = "Cancel";
    private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
    private final static String RESOURCES_TABLE = "ResourcesTable";
+   private static final String VERSIONS_TABLE = "VersionsTableBox";
    private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
@@ -409,6 +410,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          Integer versionNumber = versionNumbers[i];
          versionsDataSet.addChild(rowsMap.get(versionNumber));
       }
+      form.findComponent(VERSIONS_TABLE).setEditMode(true);
    }
 
    /**
@@ -486,9 +488,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataCell.setStringValue(createdBy);
       dataRow.addChild(dataCell);
 
-      //created on - 3
+      //created on - 3 - null and disabled for the actual version
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDateValue(plan.getCreated());
       dataRow.addChild(dataCell);
 
       //<FIXME author="Mihai Costin" description="Neeed here because table column can't be extended with forms">
