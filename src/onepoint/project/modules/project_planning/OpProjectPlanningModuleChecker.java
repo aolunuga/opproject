@@ -68,6 +68,7 @@ public class OpProjectPlanningModuleChecker implements OpModuleChecker {
          double ratio = activity.getBaseEffort() / assignmentSum;
          for (OpAssignment assignment : activity.getAssignments()) {
             assignment.setAssigned(assignment.getAssigned() * ratio);
+            assignment.setBaseEffort(assignment.getBaseEffort() * ratio);
             broker.updateObject(assignment);
          }
 
