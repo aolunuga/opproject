@@ -38,7 +38,9 @@ public class OpServiceInterceptor extends XServiceInterceptor {
    public void beforeAdvice(XService service, Method method, Object[] arguments) {
       logger.debug("Applying before advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
-      exceptBrokers = new ArrayList<OpBroker>(session.getBrokerList());
+      if (session != null) {
+         exceptBrokers = new ArrayList<OpBroker>(session.getBrokerList());
+      }
    }
 
    /**
@@ -49,8 +51,8 @@ public class OpServiceInterceptor extends XServiceInterceptor {
       OpProjectSession session = this.getProjectSesssion(arguments);
       if (session != null) {
          session.cleanupSession(exceptBrokers, false);
+         exceptBrokers.clear();
       }
-      exceptBrokers.clear();
    }
 
    /**

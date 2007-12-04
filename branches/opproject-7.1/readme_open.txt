@@ -1,4 +1,4 @@
-Onepoint Project 7.1 (Update 1) Open Edition
+Onepoint Project 7.1 (Update 2) Open Edition
 
 =================================
 
