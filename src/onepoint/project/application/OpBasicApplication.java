@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OpBasicApplication extends XExpressApplication implements XExitHandler{
+public class OpBasicApplication extends XExpressApplication implements XExitHandler {
 
 
    /**
@@ -105,7 +105,7 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
 
       //Start must be called *after* overriding session class
       super.start();
-      
+
       //we want do do some cleanup...
       this.registerExitHandler(this);
 
@@ -119,7 +119,7 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
     *
     * @param initParams - a <code>Map</code> of startup parameters.
     */
-   protected void postStart(Map<String, String> initParams){
+   protected void postStart(Map<String, String> initParams) {
    }
 
    protected OpInitializer getInitializer() {
@@ -153,7 +153,7 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
          request.setArgument("login", OpUser.ADMINISTRATOR_NAME);
          request.setArgument("password", OpUser.BLANK_PASSWORD);
          request.setVariable(OpProjectConstants.CLIENT_TIMEZONE, XCalendar.CLIENT_TIMEZONE);
-         XMessage response = this.getSession().invokeMethod(request);
+         XMessage response = this.getClient().invokeMethod(request);
          XCalendar calendar = (XCalendar) response.getVariables().get(OpProjectConstants.CALENDAR);
          XDisplay.getDefaultDisplay().setCalendar(calendar);
          getDisplay().showForm(OpProjectConstants.START_FORM, new HashMap<String, String>(parameters));
@@ -168,9 +168,9 @@ public class OpBasicApplication extends XExpressApplication implements XExitHand
    protected String getProductCode() {
       return OpProjectConstants.BASIC_EDITION_CODE;
    }
-   
-   public void processExitEvent(){
-	   this.getServer().stop();
-	   OpSourceManager.closeAllSources();
+
+   public void processExitEvent() {
+      this.getServer().stop();
+      OpSourceManager.closeAllSources();
    }
 }

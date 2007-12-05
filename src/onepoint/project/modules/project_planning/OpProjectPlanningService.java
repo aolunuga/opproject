@@ -380,7 +380,8 @@ public class OpProjectPlanningService extends OpProjectService {
          externalActivitySum += assignment.getBaseProceeds();
       }
 
-      if (activity.getBasePersonnelCosts() != internalActivitySum || activity.getBaseProceeds() != externalActivitySum) {
+      if (Math.abs(activity.getBasePersonnelCosts() - internalActivitySum) > OpGanttValidator.ERROR_MARGIN ||
+           Math.abs(activity.getBaseProceeds() - externalActivitySum) > OpGanttValidator.ERROR_MARGIN) {
          changed = true;
          activity.setBasePersonnelCosts(internalActivitySum);
          activity.setBaseProceeds(externalActivitySum);
