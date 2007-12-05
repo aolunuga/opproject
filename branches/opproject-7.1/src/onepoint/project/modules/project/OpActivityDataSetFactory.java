@@ -831,8 +831,6 @@ public abstract class OpActivityDataSetFactory {
    public static void storeActivityDataSet(OpBroker broker, XComponent dataSet, HashMap resources, OpProjectPlan plan,
         OpProjectPlanVersion workingPlanVersion) {
 
-      // TODO: Maybe use "pure" IDs (Long values) for data-row values instead of locator strings (retrieve)
-
       // If a working plan version is specified exchange activity IDs in the data-set with activity version IDs
       if (workingPlanVersion != null) {
          mapActivityVersionIDs(broker, dataSet, workingPlanVersion);
