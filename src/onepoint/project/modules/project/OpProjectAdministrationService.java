@@ -1666,7 +1666,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       // Validate copied and adjusted project plan
-      validator.validateDataSet();
+      validator.validateEntireDataSet();
 
       // Store activity data-set helper updates plan start/finish values and activity template flags
       OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, new HashMap(), newProjectPlan, null);

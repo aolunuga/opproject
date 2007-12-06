@@ -6,7 +6,6 @@ package onepoint.project.modules.project_planning.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
-import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
@@ -52,7 +51,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String PROJECT_START = "ProjectStartField";
    private final static String PROJECT_FINISH = "ProjectFinishField";
    private final static String PROJECT_SETTINGS_DATA_SET = "ProjectSettingsDataSet";
-   private final static String PROJECT_TYPE_FIELD= "ProjectType";
+   private final static String PROJECT_TYPE_FIELD = "ProjectType";
 
    private final static String PROJECT_ID_FIELD = "ProjectIDField";
    private final static String PROJECT_NAME_FIELD = "ProjectName";
@@ -101,7 +100,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       logger.debug("OpActivitiesFormProvider.prepareForm()");
       long begin = new Date().getTime();
-      long  activityTime = 0;
+      long activityTime = 0;
 
       OpProjectSession session = (OpProjectSession) s;
 
@@ -283,7 +282,7 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       XComponent costsTab = form.findComponent(COSTS_TAB);
       //hide costs tab and costs column for users that have only the customer level
-      if(currentUser.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL){
+      if (currentUser.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
          costsTab.setHidden(true);
       }
 
@@ -296,9 +295,10 @@ public class OpActivitiesFormProvider implements XFormProvider {
 
       broker.close();
 
-      XValidator validator = activityDataSet.validator();
+      OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
       if (validator != null) {
          if (validateProjectPlan) {
+            validator.setCalendar(session.getCalendar());
             validator.validateEntireDataSet();
          }
       }

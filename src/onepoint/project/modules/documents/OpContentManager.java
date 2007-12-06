@@ -13,9 +13,6 @@ import onepoint.project.modules.project.OpAttachmentVersion;
 import onepoint.service.XSizeInputStream;
 
 import javax.activation.FileTypeMap;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Utility class, responsible for performing content-related operations.
@@ -28,7 +25,7 @@ public final class OpContentManager {
     * This class's logger.
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpContentManager.class);
-   private static final String SELECT_ALL_CONTENTS_QUERY_STRING = "select content from OpContent as content";
+   private static final String DELETE_ZERO_REF_CONTENTS_QUERY_STRING = "delete from OpContent as content where content.RefCount=0";
 
    /**
     * This is private class.
@@ -214,19 +211,8 @@ public final class OpContentManager {
     * @param broker a <code>OpBroker</code> object used for performing business operations.
     */
    public static void deleteZeroRefContents(OpBroker broker) {
-      List<OpContent> zeroRefContents = new ArrayList<OpContent>();
-      OpQuery query = broker.newQuery(SELECT_ALL_CONTENTS_QUERY_STRING);
-      Iterator it = broker.iterate(query);
-      while (it.hasNext()) {
-         OpContent content = (OpContent) it.next();
-         if (content.getRefCount() == 0) {
-            zeroRefContents.add(content);
-         }
-      }
-
-      for (OpContent content : zeroRefContents) {
-         broker.deleteObject(content);
-      }
+      OpQuery query = broker.newQuery(DELETE_ZERO_REF_CONTENTS_QUERY_STRING);
+      broker.execute(query);        
    }
 
    /**

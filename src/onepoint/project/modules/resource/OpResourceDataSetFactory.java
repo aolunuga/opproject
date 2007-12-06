@@ -45,7 +45,7 @@ public final class OpResourceDataSetFactory {
     private static final String GET_ASSIGNMENT_VERSION_COUNT_FOR_RESOURCE =
         "select count(assignmentVersion.ID) from OpAssignmentVersion assignmentVersion where assignmentVersion.Resource = (:resourceId)";
     private static final String GET_RESPONSIBLE_ACTIVITY_COUNT_FOR_RESOURCE =
-        "select count(respActivity.ID) from OpActivity respActivity where respActivity.ResponsibleResource = (:resourceId)";
+        "select count(respActivity.ID) from OpActivity respActivity where respActivity.ResponsibleResource = (:resourceId) and respActivity.Deleted = false";
    private static final String GET_RESPONSIBLE_ACTIVITY_VERSION_COUNT_FOR_RESOURCE =
         "select count(respActivityVers.ID) from OpActivityVersion respActivityVers where respActivityVers.ResponsibleResource = (:resourceId)";
 
