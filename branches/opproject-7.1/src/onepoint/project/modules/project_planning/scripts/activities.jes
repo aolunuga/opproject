@@ -146,7 +146,7 @@ function exportActivities(event) {
       showErrorDialog("project_planning.error", "InvalidProjectNodeTypeForExport", null, null);
       return;
    }
-   
+
    exportProject = XDisplay.getActiveForm().findComponent("ExportProjectTitle").getText();
    fileName = XDisplay.showFileDialog(exportProject, false, null, "*.mpx", true);
    if (fileName == null) {
@@ -470,7 +470,7 @@ function pasteActivities(event) {
       if (activity_data_set.getChildCount() == 0) {
          data_row = activity_data_set.newDataRow();
          activity_data_set.addChild(data_row);
-         selected_rows[0] =  data_row;
+         selected_rows[0] = data_row;
          activity_data_set.pasteFromClipboard(selected_rows, false);
          updateAllViews();
       }
@@ -578,7 +578,7 @@ function compareChoiceResources(dataCaption, editValue) {
 
 function validateActivities(event) {
    activity_data_set = XDisplay.getActiveForm().findComponent("ActivitySet");
-   activity_data_set.validate();
+   activity_data_set.validateAll();
 }
 
 function updateBaseEffortSum(event) {

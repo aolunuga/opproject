@@ -36,7 +36,7 @@ public abstract class OpActivityDataSetFactory {
    private static final String GET_HOURLY_RATES_PERIOD_COUNT_FOR_PROJECT_ASSIGNMENT =
         "select count(hourlyRates.ID) from OpHourlyRatesPeriod hourlyRates where hourlyRates.ProjectNodeAssignment = (:assignmentId)";
    private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
-        "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId)";
+        "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId) and activity.Deleted = false";
 
    public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker

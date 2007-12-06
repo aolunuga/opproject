@@ -48,7 +48,7 @@ System Requirements
 
 
 
-* MySQL 5.0.3 or later, PostgreSQL 8.2
+* MySQL 5.0.27 or later, PostgreSQL 8.2
 
 
 

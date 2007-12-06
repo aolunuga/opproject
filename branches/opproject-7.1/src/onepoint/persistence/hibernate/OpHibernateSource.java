@@ -55,7 +55,7 @@ public class OpHibernateSource extends OpSource {
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 38;
+   public static final int SCHEMA_VERSION = 39;
 
    /**
     * Db schema related constants

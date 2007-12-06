@@ -1790,39 +1790,6 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void validateGanttChart() {
-      if (XDisplay.getDefaultDisplay() != null) {
-         calendar = XDisplay.getDefaultDisplay().getCalendar();
-      }
-      List fixed_activities = updateActivityTypes(true);
-
-      //get all the collection tasks and update the values of the collection tasks
-      for (int i = 0; i < data_set.getChildCount(); i++) {
-         XComponent task = (XComponent) data_set.getChild(i);
-         if (getType(task) == COLLECTION_TASK) {
-            setComplete(task, -1);
-         }
-      }
-      for (int i = 0; i < data_set.getChildCount(); i++) {
-         XComponent task = (XComponent) data_set.getChild(i);
-         if (getType(task) == COLLECTION_TASK) {
-            if (getComplete(task) == -1) {
-               updateTaskParentValues(task);
-            }
-         }
-      }
-
-      // *** Optimizable: Directly use code from _fixedActivities() -- no Vector
-      // needed
-      XComponent activity = null;
-      for (int index = 0; index < fixed_activities.size(); index++) {
-         activity = (XComponent) (fixed_activities.get(index));
-         _validateActivity(activity, calendar, null, false, true);
-      }
-      fixed_activities.clear();
-
-   }
-
    /**
     * Updated the values for an activity that can contain tasks (collection task or scheduled task).
     *
@@ -1871,12 +1838,38 @@ public class OpGanttValidator extends XValidator {
    }
 
    public boolean validateDataSet() {
-      validateGanttChart();
+      if (XDisplay.getDefaultDisplay() != null) {
+         calendar = XDisplay.getDefaultDisplay().getCalendar();
+      }
+      List fixed_activities = updateActivityTypes(true);
+
+      //get all the collection tasks and update the values of the collection tasks
+      for (int i = 0; i < data_set.getChildCount(); i++) {
+         XComponent task = (XComponent) data_set.getChild(i);
+         if (getType(task) == COLLECTION_TASK) {
+            setComplete(task, -1);
+         }
+      }
+      for (int i = 0; i < data_set.getChildCount(); i++) {
+         XComponent task = (XComponent) data_set.getChild(i);
+         if (getType(task) == COLLECTION_TASK) {
+            if (getComplete(task) == -1) {
+               updateTaskParentValues(task);
+            }
+         }
+      }
+
+      XComponent activity;
+      for (int index = 0; index < fixed_activities.size(); index++) {
+         activity = (XComponent) (fixed_activities.get(index));
+         _validateActivity(activity, calendar, null, false, true);
+      }
+      fixed_activities.clear();
       return true;
    }
 
-   public void validateEntireDataSet() {
-      validateGanttChart();
+   public boolean validateEntireDataSet() {
+      return validateDataSet();
    }
 
    /*
@@ -6542,4 +6535,7 @@ public class OpGanttValidator extends XValidator {
       hourlyRatesDataSet = dataSet;
    }
 
+   public void setCalendar(XCalendar calendar) {
+      this.calendar = calendar;
+   }
 }

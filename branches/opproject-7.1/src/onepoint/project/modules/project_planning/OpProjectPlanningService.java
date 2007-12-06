@@ -1088,7 +1088,7 @@ public class OpProjectPlanningService extends OpProjectService {
          }
          validator.updateDuration(activityRow, OpGanttValidator.getDuration(activityRow));
       }
-      validator.validateDataSet();
+      validator.validateEntireDataSet();
       return validator.getDataSet();
    }
 
