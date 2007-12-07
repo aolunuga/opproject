@@ -11,6 +11,9 @@ import java.sql.Date;
 import java.util.*;
 
 /**
+ * Planning validator class that does the validation in an incremental way starting from a set of well defined
+ * "starting points".
+ *
  * @author mihai.costin
  */
 public class OpIncrementalValidator extends OpGanttValidator {

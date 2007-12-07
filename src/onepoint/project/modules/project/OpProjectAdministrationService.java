@@ -629,10 +629,13 @@ public class OpProjectAdministrationService extends OpProjectService {
          transaction.commit();
 
          broker.close();
+
          for (OpProjectPlanVersion version : versionsToDelete) {
             broker = session.newBroker();
+            transaction = broker.newTransaction();
             version = (OpProjectPlanVersion) broker.getObject(OpProjectPlanVersion.class, version.getID());
             OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            transaction.commit();
             broker.closeAndEvict();
          }
 
