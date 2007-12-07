@@ -197,7 +197,7 @@ public class OpProjectPlanValidator {
          if (modifier != null) {
             modifier.modifyPlan(validator);
          }
-         validator.validateDataSet();
+         validator.validateEntireDataSet();
          OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlan, resources, false);
       }
    }
