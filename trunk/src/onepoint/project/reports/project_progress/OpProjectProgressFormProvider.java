@@ -9,6 +9,7 @@ import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
@@ -120,10 +121,11 @@ public class OpProjectProgressFormProvider implements XFormProvider {
       queryBuffer.append(", activity.BasePersonnelCosts + activity.BaseTravelCosts + activity.BaseMaterialCosts + activity.BaseExternalCosts + activity.BaseMiscellaneousCosts");
       queryBuffer.append(", activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as projectPlan inner join projectPlan.Activities as activity");
-      queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false");
+      queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false and activity.Type != ?");
 
       OpQuery result = broker.newQuery(queryBuffer.toString());
       result.setLong(0, projectId);
+      result.setByte(1, OpActivity.ADHOC_TASK);
       return result;
    }
 
@@ -140,11 +142,12 @@ public class OpProjectProgressFormProvider implements XFormProvider {
       queryBuffer.append(", activityVersion.BasePersonnelCosts + activityVersion.BaseTravelCosts + activityVersion.BaseMaterialCosts + activityVersion.BaseExternalCosts + activityVersion.BaseMiscellaneousCosts");
       queryBuffer.append(", activity.ActualPersonnelCosts + activity.ActualTravelCosts + activity.ActualMaterialCosts + activity.ActualExternalCosts + activity.ActualMiscellaneousCosts");
       queryBuffer.append(" from OpProjectNode as project inner join project.Plan as projectPlan inner join projectPlan.Activities as activity inner join activity.Versions activityVersion inner join activityVersion.PlanVersion planVersion");
-      queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false and planVersion.ID = ?");
+      queryBuffer.append(" where project.Archived=false and project.ID = ? and activity.OutlineLevel = 0 and activity.Deleted = false and activity.Type != ? and planVersion.ID = ?");
 
       OpQuery result = broker.newQuery(queryBuffer.toString());
       result.setLong(0, projectId);
       result.setLong(1, baselineId);
+      result.setByte(2, OpActivity.ADHOC_TASK);
       return result;
 
    }

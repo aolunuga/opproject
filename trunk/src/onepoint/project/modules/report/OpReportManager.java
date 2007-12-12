@@ -932,7 +932,7 @@ public class OpReportManager implements XResourceInterceptor {
             XLanguageKit languageKit = OpLanguageKitFile.loadLanguageKit(buff);
             XLocaleManager.registerOverriddingLanguageKit(languageKit, true);
             buff.close();
-            logger.info("Registered language kit: " + languageKitFile.getName());
+            logger.debug("Registered language kit: " + languageKitFile.getName());
          }
          catch (IOException e) {
             logger.error("Cannot load language kit from " + languageKitFile.getAbsolutePath(), e);

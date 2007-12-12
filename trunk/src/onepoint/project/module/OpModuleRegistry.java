@@ -75,12 +75,12 @@ public class OpModuleRegistry implements Iterable<OpModule> {
     */
    public void loadModules() {
       logger.info("Loading registered modules...");
-      Map<String, OpModule> unorderedModules = new LinkedHashMap<String, OpModule>();
+      Map<String, OpModule> modules = new LinkedHashMap<String, OpModule>();
       for (OpModuleFile moduleFile : moduleFiles) {
          OpModule module = moduleFile.loadModule();
-         unorderedModules.put(module.getName(), module);
+         modules.put(module.getName(), module);
       }
-      this.addModules(unorderedModules);
+      this.addModules(modules);
       logger.info("Registered modules loaded.");
    }
 

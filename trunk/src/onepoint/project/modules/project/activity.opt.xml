@@ -21,6 +21,7 @@
    <field name="ActualTravelCosts" type="Double"/>
    <field name="RemainingTravelCosts" type="Double"/>
    <field name="ActualPersonnelCosts" type="Double"/>
+   <field name="RemainingPersonnelCosts" type="Double"/>
    <field name="ActualMaterialCosts" type="Double"/>
    <field name="RemainingMaterialCosts" type="Double"/>
    <field name="ActualExternalCosts" type="Double"/>
@@ -30,6 +31,7 @@
    <field name="RemainingEffort" type="Double"/>
    <field name="BaseProceeds" type="Double"/>
    <field name="ActualProceeds" type="Double"/>
+   <field name="RemainingProceeds" type="Double"/>
    <field name="Payment" type="Double"/>
    <field name="Deleted" type="Boolean"/>
    <field name="Expanded" type="Boolean"/>

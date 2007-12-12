@@ -20,6 +20,7 @@ function ok(event) {
    resource_set = form.findComponent("resource_set");
    versions_set = form.findComponent("versions_set");
    attachment_set = form.findComponent("attachment_set");
+   modifiedRates = form.findComponent("ModifiedRates").getBooleanValue();
 
    request = new XMessage;
    request.setAction("ProjectService.updateProject");
@@ -30,6 +31,7 @@ function ok(event) {
    request.setArgument("resource_set", resource_set);
    request.setArgument("versions_set", versions_set);
    request.setArgument("attachments_list_set", attachment_set);
+   request.setArgument("modified_rates", modifiedRates);
    response = XDisplay.getClient().invokeMethod(request);
 
    XDisplay.getActiveWindow().close();

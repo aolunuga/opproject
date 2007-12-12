@@ -8,4 +8,5 @@
    <relationship name="Preferences" type="OpPreference" collection-type="Set" back-relationship="User" inverse="true" cascade="delete"/>
    <relationship name="ActivityComments" type="OpActivityComment" collection-type="Set" back-relationship="Creator" inverse="true" cascade="delete"/>
    <relationship name="WorkSlips" type="OpWorkSlip" collection-type="Set" back-relationship="Creator" inverse="true" cascade="delete"/>
+   <relationship name="ControllingSheets" type="OpControllingSheet" collection-type="Set" back-relationship="Creator" inverse="true" cascade="delete"/>
 </prototype>

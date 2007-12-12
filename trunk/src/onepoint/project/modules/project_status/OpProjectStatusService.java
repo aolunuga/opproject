@@ -11,7 +11,6 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectStatus;
-import onepoint.service.XError;
 import onepoint.service.XMessage;
 
 import java.util.*;
@@ -37,13 +36,6 @@ public class OpProjectStatusService extends OpProjectService {
 
    public XMessage insertProjectStatus(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectStatusService.insertProjectStatus()");
-
-      if (!session.userIsAdministrator()) {
-         XMessage reply = new XMessage();
-         XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
-         reply.setError(error);
-         return reply;
-      }
 
       HashMap project_status_data = (HashMap) (request.getArgument(PROJECT_STATUS_DATA));
 
@@ -111,13 +103,6 @@ public class OpProjectStatusService extends OpProjectService {
    }
 
    public XMessage updateProjectStatus(OpProjectSession session, XMessage request) {
-      if (!session.userIsAdministrator()) {
-         XMessage reply = new XMessage();
-         XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
-         reply.setError(error);
-         return reply;
-      }
-
       String id_string = (String) (request.getArgument(PROJECT_STATUS_ID));
       logger.debug("OpProjectStatusService.updateProjectStatus(): id = " + id_string);
       HashMap project_status_data = (HashMap) (request.getArgument(PROJECT_STATUS_DATA));
@@ -172,14 +157,7 @@ public class OpProjectStatusService extends OpProjectService {
 
    public XMessage move(OpProjectSession session, XMessage request) {
       XMessage reply = new XMessage();
-
-      if (!session.userIsAdministrator()) {
-         XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
-         reply.setError(error);
-         return reply;
-      }
-
-      OpBroker broker = ((OpProjectSession) session).newBroker();
+      OpBroker broker = session.newBroker();
       List locators = (List) request.getArgument(PROJECT_STATUS_LOCATORS);
       int direction = ((Integer) request.getArgument(MOVE_DIRECTION)).intValue();
 
@@ -241,14 +219,6 @@ public class OpProjectStatusService extends OpProjectService {
 
 
    public XMessage deleteProjectStatus(OpProjectSession session, XMessage request) {
-
-      if (!session.userIsAdministrator()) {
-         XMessage reply = new XMessage();
-         XError error = session.newError(ERROR_MAP, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
-         reply.setError(error);
-         return reply;
-      }
-
       ArrayList id_strings = (ArrayList) (request.getArgument(PROJECT_STATUS_IDS));
 
       logger.debug("OpProjectStatusService.deleteProjectStatus(): project_status_ids = " + id_strings);

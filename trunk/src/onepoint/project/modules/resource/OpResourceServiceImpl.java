@@ -15,7 +15,6 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
-import onepoint.project.modules.work.OpWorkServiceImpl;
 
 /**
  * @author dfreis

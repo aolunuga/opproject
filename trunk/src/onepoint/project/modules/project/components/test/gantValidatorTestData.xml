@@ -30,7 +30,7 @@ Activity Structure [property_index, property_type]:
 21) Work Phase end - List (Date)
 22) Work Phase base efforts List (double)
 23) Resource based efforts  List (double)
-24) Priority (only for tasks)
+24) Priority (except collections)
 25) Work records map - HashMap
 26) Actual effort - double
 27) Visual resouces column index - List (String)
@@ -72,7 +72,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="1"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
@@ -105,7 +105,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="2"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
@@ -171,7 +171,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="5"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
@@ -204,7 +204,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="5"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
@@ -270,7 +270,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="7"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>
@@ -336,7 +336,7 @@ Structure:
          <data-cell enabled="true" date-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
          <data-cell enabled="true" double-list-value=""/>
-         <data-cell enabled="true"/>
+         <data-cell enabled="true" byte-value="9"/>
          <data-cell enabled="true"/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" string-list-value=""/>

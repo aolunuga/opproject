@@ -163,6 +163,9 @@ public class OpWorkModuleChecker implements OpModuleChecker {
             double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), activity.getComplete());
             activity.setRemainingEffort(remainingEffort);
          }
+         activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
+         activity.setRemainingProceeds(activity.getBaseProceeds());
+
          //this will be set by progress calculator
          activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
          activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());

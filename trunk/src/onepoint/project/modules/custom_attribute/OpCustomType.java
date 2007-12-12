@@ -17,9 +17,13 @@ import onepoint.persistence.OpObject;
  *
  */
 public class OpCustomType extends OpObject {
-
    private String prototypeName;
+   private String description;
+   private String label;
    private Set<OpCustomAttribute> customAttributes;
+   private Byte subType;
+   private String customTypeName;
+   private Byte permission;
 
    /**
     * Default constructor
@@ -31,17 +35,48 @@ public class OpCustomType extends OpObject {
     * Default constructor
     */
    public OpCustomType(Class prototype) {
-      prototypeName = prototype.getName();
+      this(prototype, null, null);
+   }
+
+   /**
+    * Default constructor
+    */
+   public OpCustomType(Class prototype, Byte subType) {
+      this(prototype, subType, null);
+   }
+
+   public OpCustomType(Class prototype, String subTypeName) {
+      this(prototype, null, subTypeName);
+   }
+
+   public OpCustomType(Class prototype, Byte subType, String customTypeName) {
+      this.prototypeName = prototype.getName();
+      this.subType = subType;
+      this.customTypeName = customTypeName;
+   }
+
+   /**
+    * Default constructor
+    */
+   public OpCustomType(Class prototype, Byte subType, String customTypeName, Byte permission) {
+      this.prototypeName = prototype.getName();
+      this.subType = subType;
+      this.customTypeName = customTypeName;
+      this.permission = permission;
    }
 
    public String getPrototypeName() {
       return prototypeName;
    }
 
-   public void getPrototypeName(String name) {
-      prototypeName = name;
+   public String getCustomTypeName() {
+      return customTypeName;
    }
 
+   //   public void getPrototypeName(String name) {
+//      prototypeName = name;
+//   }
+//
    public Class getPrototypeClass() {
       try {
          return Class.forName(prototypeName);
@@ -51,7 +86,7 @@ public class OpCustomType extends OpObject {
       }
    }
 
-   void addCustomAttribute(OpCustomAttribute customAttribute) {
+   public void addCustomAttribute(OpCustomAttribute customAttribute) {
       if (customAttribute == null) {
          throw new IllegalArgumentException("customAttribut must not be <null>");
       }
@@ -61,7 +96,7 @@ public class OpCustomType extends OpObject {
       customAttributes.add(customAttribute);
    }
    
-   void removeCustomAttribute(OpCustomAttribute customAttribute) {
+   public void removeCustomAttribute(OpCustomAttribute customAttribute) {
       if (customAttribute == null) {
          throw new IllegalArgumentException("customAttribut must not be <null>");
       }
@@ -96,6 +131,46 @@ public class OpCustomType extends OpObject {
    public void setPrototypeName(String prototypeName) {
       this.prototypeName = prototypeName;
    }
-   
+
+   private void setSubType(Byte subType) {
+      this.subType = subType;
+   }
+
+   private void setCustomTypeName(String customTypeName) {
+      this.customTypeName = customTypeName;
+   }
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public Byte getSubType() {
+      return subType;
+   }
+
+   public String getDescription() {
+      return description;
+   }
+
+   public void setDescription(String description) {
+      this.description = description;
+   }
+
+   public String getLabel() {
+      return label;
+   }
+
+   public void setLabel(String label) {
+      this.label = label;
+   }
+
+   public Byte getPermission() {
+      return permission;
+   }
+
+   private void setPermission(Byte permission) {
+      this.permission = permission;
+   }
 
 }

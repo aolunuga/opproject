@@ -1,15 +1,15 @@
-<service name="ProjectStatusService" class="onepoint.project.modules.project_status.OpProjectStatusService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="insertProjectStatus">
+<service name="ProjectStatusService" class="onepoint.project.modules.project_status.OpProjectStatusService" interceptor="onepoint.project.modules.user.OpUserServiceInterceptor">
+   <method name="insertProjectStatus" adminCheck="true">
       <parameter name="project_status_data" instance-class="java.util.HashMap" mode="input"/>
    </method>
-   <method name="updateProjectStatus">
+   <method name="updateProjectStatus" adminCheck="true">
       <parameter name="project_status_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="project_status_data" instance-class="java.util.HashMap" mode="input"/>
    </method>
-   <method name="deleteProjectStatus">
+   <method name="deleteProjectStatus" adminCheck="true">
       <parameter name="project_status_ids" instance-class="java.util.ArrayList" mode="input"/>
    </method>
-   <method name="move">
+   <method name="move" adminCheck="true">
       <parameter name="project_locators" instance-class="java.util.ArrayList" mode="input"/>
    </method>
 </service>

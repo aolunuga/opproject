@@ -6,8 +6,12 @@ package onepoint.project.modules.my_tasks.forms;
 
 import onepoint.express.XComponent;
 import onepoint.express.server.XFormProvider;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
+import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.service.server.XSession;
 
 import java.util.*;
@@ -24,6 +28,7 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
    private static final String PROJECT_TO_RESOURCE_MAP = "ProjectToResourceMap";
    private static final String DUE_DATE = "DueDate";
    private static final String PRIORITY = "Priority";
+   private static final String ALL_RESOURCES = "AllResources";
 
 
    /**
@@ -34,6 +39,9 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
       XComponent resourceDataSet = form.findComponent(RESOURCE_SET);
       XComponent projectToResource = form.findComponent(PROJECT_TO_RESOURCE_MAP);
       XComponent projectDataSet = form.findComponent(PROJECT_SET);
+
+      XComponent allResources = new XComponent(XComponent.DATA_SET);
+
       OpProjectSession session = (OpProjectSession) s;
 
       Map projectsMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
@@ -63,9 +71,23 @@ public class OpAddAdhocTaskFormProvider implements XFormProvider {
          }
       }
 
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("from OpResource");
+
+      Iterator it = broker.iterate(query);
+
+      while (it.hasNext()) {
+         OpResource resource = (OpResource) it.next();
+         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
+         allResources.addChild(dataRow);
+      }
+
+      form.findComponent(ALL_RESOURCES).setValue(allResources);
+
       //default values
       form.findComponent(DUE_DATE).setValue(null);
-      form.findComponent(PRIORITY).setIntValue(5);
+      form.findComponent(PRIORITY).setIntValue(OpGanttValidator.DEFAULT_PRIORITY);
 
    }
 }

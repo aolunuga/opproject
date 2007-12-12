@@ -50,6 +50,7 @@ public class OpProjectPlanningService extends OpProjectService {
 
    public final static String PROJECT_ID = "project_id";
    public final static String ACTIVITY_ID = "activity_id";
+   public final static String ACTIVITY_TYPE = "activity_type";
    public final static String ACTIVITY_SET = "activity_set";
    public final static String WORKING_PLAN_VERSION_ID = "working_plan_version_id";
    public final static String EDIT_MODE = "edit_mode";
@@ -135,26 +136,29 @@ public class OpProjectPlanningService extends OpProjectService {
 
    public XMessage exportActivities(OpProjectSession session, XMessage request) {
       String projectId = (String) request.getArgument(PROJECT_ID);
+      OpBroker broker = session.newBroker();
       XMessage response = new XMessage();
+      OpProjectNode project = null;
       if (projectId != null) {
-         OpBroker broker = session.newBroker();
-         OpProjectNode project = (OpProjectNode) broker.getObject(projectId);
+         project = (OpProjectNode) broker.getObject(projectId);
          if (project.getType() != OpProjectNode.PROJECT) {
             response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT));
             return response;
          }
-         broker.close();
       }
       XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
       String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
-         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale());
+         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale(), project);
       }
       catch (IOException e) {
          response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
          return response;
+      }
+      finally {
+         broker.close();
       }
 
       byte[] outArray = out.toByteArray();
@@ -377,7 +381,8 @@ public class OpProjectPlanningService extends OpProjectService {
          externalActivitySum += assignment.getBaseProceeds();
       }
 
-      if (activity.getBasePersonnelCosts() != internalActivitySum || activity.getBaseProceeds() != externalActivitySum) {
+      if (Math.abs(activity.getBasePersonnelCosts() - internalActivitySum) > OpGanttValidator.ERROR_MARGIN ||
+           Math.abs(activity.getBaseProceeds() - externalActivitySum) > OpGanttValidator.ERROR_MARGIN) {
          changed = true;
          activity.setBasePersonnelCosts(internalActivitySum);
          activity.setBaseProceeds(externalActivitySum);
@@ -1084,7 +1089,7 @@ public class OpProjectPlanningService extends OpProjectService {
          }
          validator.updateDuration(activityRow, OpGanttValidator.getDuration(activityRow));
       }
-      validator.validateDataSet();
+      validator.validateEntireDataSet();
       return validator.getDataSet();
    }
 

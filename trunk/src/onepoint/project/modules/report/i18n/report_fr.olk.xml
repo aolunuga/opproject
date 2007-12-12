@@ -1,6 +1,7 @@
 <language-kit locale="fr">
    <resource-map id="report.module">
       <resource id="QueryTool">Requêtes</resource>
+      <resource id="ReportsToolGroup">RAPPORTS</resource>
    </resource-map>
    <resource-map id="report.report">
       <resource id="ReportNavigator">NAVIGATEUR DE RAPPORT</resource>

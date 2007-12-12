@@ -1,44 +1,21 @@
-<service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="getHashAlgorithm">
-      <parameter name="login" instance-class="java.lang.String" mode="input"/>
-   </method>
-   <method name="signOn">
-      <parameter name="login" instance-class="java.lang.String" mode="input"/>
-      <parameter name="password" instance-class="java.lang.String" mode="input"/>
-   </method>
-   <method name="insertUser">
-      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
-   </method>
-   <method name="insertGroup">
-      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
-   </method>
-   <method name="updateUser">
-      <parameter name="user_id" instance-class="java.lang.String" mode="input"/>
-      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
-   </method>
-   <method name="updateGroup">
-      <parameter name="group_id" instance-class="java.lang.String" mode="input"/>
-      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
-   </method>
-   <method name="deleteSubjects">
-      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
-   </method>
-   <method name="deleteAssignments">
-      <parameter name="super_ids" instance-class="java.util.ArrayList" mode="input"/>
-      <parameter name="sub_ids" instance-class="java.util.ArrayList" mode="input"/>
-   </method>
-   <method name="checkSubjects">
-      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
-   </method>
-   <method name="assignToGroup">
+<service name="UserService" class="onepoint.project.modules.user.OpUserService" interceptor="onepoint.project.modules.user.OpUserServiceInterceptor">
+   <method name="assignToGroup" adminCheck="true">
       <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
       <parameter name="target_group_id" instance-class="java.lang.String" mode="input"/>
    </method>
-   <method name="expandGroup">
-      <parameter name="source_group_locator" instance-class="java.lang.String" mode="input"/>
-      <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
+   <method name="checkSubjects" adminCheck="true">
+      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
    </method>
-   <method name="expandFilteredGroup">
+   <method name="createAdministrator" adminCheck="false"/>
+   <method name="createEveryone" adminCheck="false"/>
+   <method name="deleteAssignments" adminCheck="true">
+      <parameter name="super_ids" instance-class="java.util.ArrayList" mode="input"/>
+      <parameter name="sub_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="deleteSubjects" adminCheck="true">
+      <parameter name="subject_ids" instance-class="java.util.ArrayList" mode="input"/>
+   </method>
+   <method name="expandFilteredGroup" adminCheck="false">
       <parameter name="source_group_locator" instance-class="java.lang.String" mode="input"/>
       <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
       <parameter name="EnableUsers" instance-class="java.lang.Boolean" mode="input"/>
@@ -46,5 +23,32 @@
       <parameter name="IncludeParentsInFilter" instance-class="java.lang.Boolean" mode="input"/>
       <parameter name="FilteredSubjectIds" instance-class="java.util.ArrayList" mode="input"/>
    </method>
-   <method name="signOff"/>
+   <method name="expandGroup" adminCheck="false">
+      <parameter name="source_group_locator" instance-class="java.lang.String" mode="input"/>
+      <parameter name="outlineLevel" instance-class="java.lang.Integer" mode="input"/>
+   </method>
+   <method name="getHashAlgorithm" adminCheck="false">
+      <parameter name="login" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="getServiceImpl" adminCheck="false"/>
+   <method name="getUsersOfLevel" adminCheck="false"/>
+   <method name="insertGroup" adminCheck="true">
+      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="insertUser" adminCheck="true">
+      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="signOff" adminCheck="false"/>
+   <method name="signOn" adminCheck="false">
+      <parameter name="login" instance-class="java.lang.String" mode="input"/>
+      <parameter name="password" instance-class="java.lang.String" mode="input"/>
+   </method>
+   <method name="updateGroup" adminCheck="true">
+      <parameter name="group_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="group_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
+   <method name="updateUser" adminCheck="true">
+      <parameter name="user_id" instance-class="java.lang.String" mode="input"/>
+      <parameter name="user_data" instance-class="java.util.HashMap" mode="input"/>
+   </method>
 </service>

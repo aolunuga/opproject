@@ -12,18 +12,13 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.project.OpAttachmentDataSetFactory;
-import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XServiceException;
 import onepoint.util.XCalendar;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author dfreis
@@ -291,8 +286,7 @@ public class OpWorkServiceImpl implements OpService {
    /**
     * @param session
     * @param broker
-    * @param workRecord
-    * @param workSlip
+    * @param workRecord   
     * @pre
     * @post
     */

@@ -41,7 +41,7 @@ public class OpWorkSlipTest extends OpTestCase {
       OpWorkSlip workSlip = new OpWorkSlip();
       workSlip.setCreator(new OpUser());
       workSlip.setDate(new Date(System.currentTimeMillis()));
-      workSlip.setRecords(workRecords);
+      workSlip.addRecords(workRecords);
       workSlip.validate();
    }
 
@@ -93,7 +93,7 @@ public class OpWorkSlipTest extends OpTestCase {
       Set<OpWorkRecord> workRecords = new HashSet<OpWorkRecord>();
       workRecords.add(workRecord);
 
-      workSlip.setRecords(workRecords);
+      workSlip.addRecords(workRecords);
       exceptionThrown = false;
       try {
          workSlip.validate();
@@ -123,7 +123,7 @@ public class OpWorkSlipTest extends OpTestCase {
       workRecord1.setActualEffort(13d);
       Set<OpWorkRecord> workRecords = new HashSet<OpWorkRecord>();
       workRecords.add(workRecord1);
-      workSlip.setRecords(workRecords);
+      workSlip.addRecords(workRecords);
       workSlip.updateTotalActualEffort();
       assertEquals(13d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
 
@@ -137,7 +137,7 @@ public class OpWorkSlipTest extends OpTestCase {
       //remove the first work record from the records set
       workRecords = new HashSet<OpWorkRecord>();
       workRecords.add(workRecord2);
-      workSlip.setRecords(workRecords);
+      workSlip.addRecords(workRecords);
       workSlip.updateTotalActualEffort();
       assertEquals(5d, workSlip.getTotalActualEffort(), DOUBLE_ERROR_MARGIN);
    }

@@ -159,4 +159,14 @@ public class OpPrototype extends OpType {
       }
       return null;
    }
+
+   /**
+    * Checks whether the protoype contains the given memeber as a declared member.
+    * @param member a <code>OpMember</code> instance.
+    * @return <code>true</code> if the prototype contains as a delcared member the
+    * given member.
+    */
+   public boolean containsDeclaredMember(OpMember member) {
+      return declaredMembers.containsKey(member.getName());
+   }
 }

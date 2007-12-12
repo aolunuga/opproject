@@ -4,6 +4,7 @@
 
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/my_tasks/scripts/add_resources_to_adhocTask.jes";
 
 import onepoint.express.XDisplay;
 import onepoint.service.XMessage;

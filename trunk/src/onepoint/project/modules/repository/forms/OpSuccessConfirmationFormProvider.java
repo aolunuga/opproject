@@ -24,6 +24,7 @@ public class OpSuccessConfirmationFormProvider implements XFormProvider {
    private static final String MULTI_USER_FIELD_ID = "MultiUser";
    private static final String DEFAULT_USER_ID = "DefaultUserName";
    private static final String DEFAULT_PASSWORD_ID = "DefaultPassword";
+   private static final String APPLICATION_START_FORM_ID = "ApplicationStartForm";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)  
@@ -34,5 +35,7 @@ public class OpSuccessConfirmationFormProvider implements XFormProvider {
       form.findComponent(MULTI_USER_FIELD_ID).setBooleanValue(OpEnvironmentManager.isMultiUser());
       form.findComponent(DEFAULT_USER_ID).setStringValue(OpUser.ADMINISTRATOR_NAME);
       form.findComponent(DEFAULT_PASSWORD_ID).setStringValue("");
+       //the application start form
+      form.findComponent(APPLICATION_START_FORM_ID).setStringValue(OpEnvironmentManager.getStartForm());
    }
 }

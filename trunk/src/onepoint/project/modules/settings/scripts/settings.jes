@@ -48,11 +48,16 @@ function save(event) {
    form = XDisplay.getActiveForm();
 
    selectedCalendarChoice = form.findComponent("HolidaysChoice").getStringValue();
-   selectedCalendarId = XValidator.choiceID(selectedCalendarChoice);
-   originalCalendarId = form.findComponent("OriginalHolidayCalendar").getStringValue();
-   if (!originalCalendarId.equals(selectedCalendarId)) {
-      dialog = XComponent.newDialog();
-      dialog.open("/modules/settings/forms/confirm_calendar_change.oxf.xml", null);
+   if (selectedCalendarChoice != null) {
+      selectedCalendarId = XValidator.choiceID(selectedCalendarChoice);
+      originalCalendarId = form.findComponent("OriginalHolidayCalendar").getStringValue();
+      if (!originalCalendarId.equals(selectedCalendarId)) {
+         dialog = XComponent.newDialog();
+         dialog.open("/modules/settings/forms/confirm_calendar_change.oxf.xml", null);
+      }
+      else {
+         saveSettings(null);
+      }
    }
    else {
       saveSettings(null);

@@ -56,6 +56,11 @@ public class OpInitializer {
    protected byte runLevel = 0;
 
    /**
+    * The start form of the application.
+    */
+   protected String startForm;
+
+   /**
     * The code of the db connection test
     */
    private static int connectionTestCode = OpConnectionManager.SUCCESS;
@@ -96,6 +101,15 @@ public class OpInitializer {
    }
 
    /**
+    * Returns the start form of the application
+    *
+    * @return <code>String</code> start form
+    */
+   public String getStartForm() {
+      return startForm;
+   }
+
+   /**
     * Performs application initilization steps.
     *
     * @param productCode a <code>String</code> representing the program code (the flavour of the application).
@@ -131,6 +145,7 @@ public class OpInitializer {
                logger.info("Initializing db configuration wizard module...");
                OpConfigurationWizardManager.loadConfigurationWizardModule();
 
+               determineStartForm();
                return initParams; //show db configuration wizard frame
             }
 
@@ -210,10 +225,12 @@ public class OpInitializer {
          catch (Exception e) {
             logger.fatal("Cannot start the application", e);
             initialized = false;
+            determineStartForm();
             return initParams;
          }
 
          initialized = true;
+         determineStartForm();
          return initParams;
       }
    }
@@ -225,9 +242,20 @@ public class OpInitializer {
    }
 
    /**
-    * Pre-initialization steps.
+    * Post-initialization steps.
     */
    protected void postInit() {
+   }
+
+   /**
+    * Determine the start form of the application based on the run level.
+    */
+   protected void determineStartForm() {
+      startForm = OpEnvironmentManager.getStartForm();
+      if (runLevel == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
+         startForm = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
+      }
+      initParams.put(OpProjectConstants.START_FORM, startForm);
    }
 
    /**
@@ -370,6 +398,7 @@ public class OpInitializer {
     * Resets the db schema by dropping the existent one and creating a new one.  It's important here to not loose consistency
     * in the hibernate hi-lo generator.
     * <FIXME author="Horia Chiorean" description="Currently this method is used only from tests">
+    *
     * @throws SQLException if the db schema cannot be droped or created.
     */
    public void resetDbSchema()
@@ -404,11 +433,6 @@ public class OpInitializer {
         throws SQLException, IOException {
       OpBackupManager.getBackupManager().restoreRepository(projectSession, filePath);
       OpSourceManager.clearAllSources();
-      boolean  updated = this.updateDBSchema();
-
-      //check and fix modules, only if not aldready done by upgrade
-      if (!updated) {
-         OpModuleManager.checkModules();
-      }
+      this.updateDBSchema();
    }
 }

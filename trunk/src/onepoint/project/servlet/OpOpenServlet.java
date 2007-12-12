@@ -311,6 +311,7 @@ public class OpOpenServlet extends XExpressServlet {
 
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       otherAppletParams.put(OpProjectConstants.RUN_LEVEL, String.valueOf(initializer.getRunLevel()));
+      otherAppletParams.put(OpProjectConstants.START_FORM, initializer.getStartForm());
 
       String parameterNames = request.getParameter(PARAMETERS_ARGUMENT);
       if (parameterNames != null) {

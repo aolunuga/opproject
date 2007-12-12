@@ -7,11 +7,13 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.modules.repository.OpRepositoryError;
 import onepoint.project.modules.repository.OpRepositoryService;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceException;
 import onepoint.service.server.XSession;
 
 import java.io.File;
@@ -198,13 +200,34 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
 
-      response = OpTestDataFactory.getRepositoryService().backup(session, new XMessage());
-      assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
+      boolean exceptionThrown = false;
+      try {
+         OpTestDataFactory.getRepositoryService().backup(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpRepositoryService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpRepositoryService, exception should have been thrown", exceptionThrown);
 
-      response = OpTestDataFactory.getRepositoryService().restore(session, new XMessage());
-      assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
+      exceptionThrown = false;
+      try {
+         OpTestDataFactory.getRepositoryService().restore(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpRepositoryService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpRepositoryService, exception should have been thrown", exceptionThrown);
 
-      response = OpTestDataFactory.getRepositoryService().reset(session, new XMessage());
-      assertError(response, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
+      exceptionThrown = false;
+      try {
+         OpTestDataFactory.getRepositoryService().reset(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpRepositoryService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpRepositoryService, exception should have been thrown", exceptionThrown);
    }
 }

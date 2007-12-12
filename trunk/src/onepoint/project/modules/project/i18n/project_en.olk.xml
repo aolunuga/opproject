@@ -3,11 +3,6 @@
    <resource-map id="project.module">
 
       <resource id="ProjectsToolGroup">PROJECTS</resource>
-      <resource id="MyToolGroup">MY</resource>
-      <resource id="ReportsToolGroup">REPORTS</resource>
-      <resource id="ResourcesToolGroup">RESOURCES</resource>
-      <resource id="SystemToolGroup">SYSTEM</resource>
-
       <resource id="ProjectsAdministrationTool">Administration</resource>
       <resource id="PlanningTool">Planning</resource>
 
@@ -236,6 +231,8 @@
       <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
       <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
       <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>
+      <resource id="NoRightsChangingBudgetError">You need administrator privileges to change the project budget</resource>
+      <resource id="NoRightsChangingStatusError">You need administrator privileges to change the project status</resource>
    </resource-map>
 
    <resource-map id="project.delete">

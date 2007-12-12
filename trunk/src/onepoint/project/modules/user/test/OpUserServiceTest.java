@@ -17,6 +17,7 @@ import onepoint.project.util.OpHashProvider;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocaleManager;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceException;
 import onepoint.util.XCalendar;
 
 import java.util.Arrays;
@@ -1462,32 +1463,81 @@ public class OpUserServiceTest extends OpBaseOpenTestCase {
 
       try {
          // check insertUser method security
-         response = userService.insertUser(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         boolean exceptionThrown = false;
+         try {
+            userService.insertUser(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.insertGroup(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check insertGroup method security
+         exceptionThrown = false;
+         try {
+            userService.insertGroup(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.updateUser(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check updateUser method security
+         exceptionThrown = false;
+         try {
+            userService.updateUser(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.updateGroup(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check updateGroup method security
+         exceptionThrown = false;
+         try {
+            userService.updateGroup(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.deleteAssignments(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check deleteAssignments method security
+         exceptionThrown = false;
+         try {
+            userService.deleteAssignments(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.deleteSubjects(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check deleteSubjects method security
+         exceptionThrown = false;
+         try {
+            userService.deleteSubjects(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
 
-         // check insertUser method security
-         response = userService.assignToGroup(session, request);
-         assertError(response, OpUserError.INSUFFICIENT_PRIVILEGES);
+         // check assignToGroup method security
+         exceptionThrown = false;
+         try {
+            userService.assignToGroup(session, request);
+         }
+         catch (XServiceException e) {
+            exceptionThrown = true;
+            assertEquals("OpUserServiceInterceptor failed for method in OpUserService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+         }
+         assertTrue("OpUserServiceInterceptor failed for method in OpUserService, exception should have been thrown", exceptionThrown);
       }
       finally {
          // log out the other user and log-in Administrator.

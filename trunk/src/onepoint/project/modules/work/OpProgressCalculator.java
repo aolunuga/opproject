@@ -117,6 +117,11 @@ public class OpProgressCalculator {
       boolean progressTracked = assignment.getProjectPlan().getProgressTracked();
       // Update activity path: Add new actual effort and remaining effort change to stored values, update complete
       OpActivity activity = assignment.getActivity();
+      double remainingMaterialCostsChange = 0;
+      double remainingTravelCostsChange = 0;
+      double remainingExternalCostsChange = 0;
+      double remainingMiscellaneousCostsChange = 0;
+      boolean hasSubActivities = true;
       while (activity != null) {
          // Add new actual effort and remaining effort change to stored actual and remaining efforts
          if (insert_mode) {
@@ -133,7 +138,18 @@ public class OpProgressCalculator {
             activity.setActualExternalCosts(activity.getActualExternalCosts() + work_record.getExternalCosts());
             activity.setActualMiscellaneousCosts(activity.getActualMiscellaneousCosts() + work_record.getMiscellaneousCosts());
 
-            setActivityRemainingCosts(activity, latestWorkRecord);
+            if (OpActivityDataSetFactory.getSubactivitiesCount(broker, activity) == 0) {
+               remainingMaterialCostsChange = activity.getRemainingMaterialCosts() - work_record.getRemMaterialCosts();
+               remainingTravelCostsChange = activity.getRemainingTravelCosts() - work_record.getRemTravelCosts();
+               remainingExternalCostsChange = activity.getRemainingExternalCosts() - work_record.getRemExternalCosts();
+               remainingMiscellaneousCostsChange = activity.getRemainingMiscellaneousCosts() - work_record.getRemMiscCosts();
+               hasSubActivities = false;
+            }
+            else {
+               hasSubActivities = true;
+            }
+            setActivityRemainingCosts(activity, latestWorkRecord, hasSubActivities, remainingMaterialCostsChange,
+                 remainingTravelCostsChange, remainingExternalCostsChange, remainingMiscellaneousCostsChange);
 
             //set the completed attribute for the adhoc tasks
             if (work_record == latestWorkRecord && activity.getType() == OpActivity.ADHOC_TASK) {
@@ -164,8 +180,25 @@ public class OpProgressCalculator {
                if (workRecords.size() > 1) {
                   secondLatest = workRecords.get(1);
                }
-               setActivityRemainingCosts(activity, secondLatest);
-               
+               if (OpActivityDataSetFactory.getSubactivitiesCount(broker, activity) == 0) {
+                  if (secondLatest != null) {
+                     remainingMaterialCostsChange = activity.getRemainingMaterialCosts() - secondLatest.getRemMaterialCosts();
+                     remainingTravelCostsChange = activity.getRemainingTravelCosts() - secondLatest.getRemTravelCosts();
+                     remainingExternalCostsChange = activity.getRemainingExternalCosts() - secondLatest.getRemExternalCosts();
+                     remainingMiscellaneousCostsChange = activity.getRemainingMiscellaneousCosts() - secondLatest.getRemMiscCosts();
+                     hasSubActivities = false;
+                  }
+                  else {
+                     remainingMaterialCostsChange = activity.getRemainingMaterialCosts() - activity.getBaseMaterialCosts();
+                     remainingTravelCostsChange = activity.getRemainingTravelCosts() - activity.getBaseTravelCosts();
+                     remainingExternalCostsChange = activity.getRemainingExternalCosts() - activity.getBaseExternalCosts();
+                     remainingMiscellaneousCostsChange = activity.getRemainingMiscellaneousCosts() - activity.getBaseMiscellaneousCosts();
+                     hasSubActivities = true;
+                  }
+               }
+               setActivityRemainingCosts(activity, secondLatest, hasSubActivities, remainingMaterialCostsChange,
+                    remainingTravelCostsChange, remainingExternalCostsChange, remainingMiscellaneousCostsChange);
+
                //set the completed attribute for the adhoc tasks
                if (activity.getType() == OpActivity.ADHOC_TASK) {
                   if (secondLatest != null && secondLatest.getCompleted()) {
@@ -322,18 +355,40 @@ public class OpProgressCalculator {
       return remainingEffortChange;
    }
 
-   private static void setActivityRemainingCosts(OpActivity activity, OpWorkRecord work_record) {
-      if (work_record == null) {
-         activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
-         activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
-         activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
-         activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+   /**
+    * Sets the remaining costs (material/travel/external/miscellaneous) on the activity.
+    *
+    * @param activity                     - the <code>OpActivity</code> object which has its remaining costs set.
+    * @param work_record                  - the <code>OpWorkRecord</code> from which the remaining costs are updated.
+    * @param hasSubActivities             - a <code>boolean</code> value indicating whether or not the activity is a collection.
+    * @param remainingMaterialCostsChange - the value with which the material costs have changed.
+    * @param remainingTravelCostsChange   - the value with which the travel costs have changed.
+    * @param remainingExternalCostsChange - the value with which the external costs have changed.
+    * @param remainingMiscellaneiousCostsChange
+    *                                     - the value with which the miscellaneous costs have changed.
+    */
+   private static void setActivityRemainingCosts(OpActivity activity, OpWorkRecord work_record, boolean hasSubActivities,
+        double remainingMaterialCostsChange, double remainingTravelCostsChange, double remainingExternalCostsChange,
+        double remainingMiscellaneiousCostsChange) {
+      if (!hasSubActivities) {
+         if (work_record == null) {
+            activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
+            activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+            activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
+            activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+         }
+         else {
+            activity.setRemainingMaterialCosts(work_record.getRemMaterialCosts());
+            activity.setRemainingTravelCosts(work_record.getRemTravelCosts());
+            activity.setRemainingExternalCosts(work_record.getRemExternalCosts());
+            activity.setRemainingMiscellaneousCosts(work_record.getRemMiscCosts());
+         }
       }
       else {
-         activity.setRemainingMaterialCosts(work_record.getRemMaterialCosts());
-         activity.setRemainingTravelCosts(work_record.getRemTravelCosts());
-         activity.setRemainingExternalCosts(work_record.getRemExternalCosts());
-         activity.setRemainingMiscellaneousCosts(work_record.getRemMiscCosts());
+         activity.setRemainingMaterialCosts(activity.getRemainingMaterialCosts() - remainingMaterialCostsChange);
+         activity.setRemainingTravelCosts(activity.getRemainingTravelCosts() - remainingTravelCostsChange);
+         activity.setRemainingExternalCosts(activity.getRemainingExternalCosts() - remainingExternalCostsChange);
+         activity.setRemainingMiscellaneousCosts(activity.getRemainingMiscellaneousCosts() - remainingMiscellaneiousCostsChange);
       }
    }
 
@@ -394,7 +449,7 @@ public class OpProgressCalculator {
    }
 
    /**
-    * Updates an assignment based on its respective work record and the tracking mode.
+    * Updates a non adhoc task assignment based on its respective work record and the tracking mode.
     *
     * @param assignment          a <code>OpAssignment</code> representing the assignment which is to be updated.
     * @param workRecordCompleted a <code>boolean</code> indicating whether the work record has been completed or not.
@@ -434,16 +489,16 @@ public class OpProgressCalculator {
 
    /**
     * Returns a <code>boolean</code> value indicating wether the assignment should be set 100% complete or 0% complete
-    *    (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
+    * (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
     *
-    * @param assignment a <code>OpAssignment</code> representing the assignment which is to be updated.
-    * @param insertMode a <code>boolean</code> indicating whether the work record is being added or deleted
-    *    (<code>true</code> for adding and <code>false</code> for deleting).
-    * @param workRecord  the <code>OpWorkRecord</code> being added or deleted.
+    * @param assignment           a <code>OpAssignment</code> representing the assignment which is to be updated.
+    * @param insertMode           a <code>boolean</code> indicating whether the work record is being added or deleted
+    *                             (<code>true</code> for adding and <code>false</code> for deleting).
+    * @param workRecord           the <code>OpWorkRecord</code> being added or deleted.
     * @param nextLatestWorkRecord the most recent <code>OpWorkRecord</code> after the work record that's being added
-    *    or deleted.
+    *                             or deleted.
     * @return a <code>boolean</code> value indicating wether the assignment should be set 100% complete or 0% complete
-    *    (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
+    *         (<code>true</code> indicates 100% completion and <code>false</code> indicates 0% completion).
     */
    private static boolean completeAdhocAssignment(OpAssignment assignment, boolean insertMode,
         OpWorkRecord workRecord, OpWorkRecord nextLatestWorkRecord) {
@@ -544,23 +599,25 @@ public class OpProgressCalculator {
       Set subActivities = collection.getSubActivities();
       for (Object subActivity : subActivities) {
          OpActivity child = (OpActivity) subActivity;
-         int type = child.getType();
-         if (type == OpActivity.MILESTONE) {
-            //decision 25.04.06 - exclude milestones from %Complete calculations
-         }
-         else if (type == OpActivity.TASK || type == OpActivity.COLLECTION_TASK) {
-            taskCount++;
-            taskSum += child.getComplete();
-         }
-         else {
-            double actualEffort = child.getActualEffort();
-            double baseEffort = child.getBaseEffort();
-            double remainingEffort = child.getRemainingEffort();
+         if (!child.getDeleted()) {
+            int type = child.getType();
+            if (type == OpActivity.MILESTONE) {
+               //decision 25.04.06 - exclude milestones from %Complete calculations
+            }
+            else if (type == OpActivity.TASK || type == OpActivity.COLLECTION_TASK) {
+               taskCount++;
+               taskSum += child.getComplete();
+            }
+            else {
+               double actualEffort = child.getActualEffort();
+               double baseEffort = child.getBaseEffort();
+               double remainingEffort = child.getRemainingEffort();
 
-            baseSum += baseEffort;
-            actualSum += actualEffort;
-            remainingSum += remainingEffort;
-            standardCount++;
+               baseSum += baseEffort;
+               actualSum += actualEffort;
+               remainingSum += remainingEffort;
+               standardCount++;
+            }
          }
       }
 

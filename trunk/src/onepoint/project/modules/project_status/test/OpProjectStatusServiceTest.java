@@ -16,11 +16,13 @@ import onepoint.project.modules.project_status.OpProjectStatusError;
 import onepoint.project.modules.project_status.OpProjectStatusService;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpUserError;
 import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceException;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -584,17 +586,45 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       logIn(DEFAULT_USER, DEFAULT_PASSWORD);
 
-      response = service.insertProjectStatus(session, new XMessage());
-      assertError(response, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
+      boolean exceptionThrown = false;
+      try {
+         service.insertProjectStatus(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
-      response = service.move(session, new XMessage());
-      assertError(response, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
+      exceptionThrown = false;
+      try {
+         service.move(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
-      response = service.deleteProjectStatus(session, new XMessage());
-      assertError(response, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
+      exceptionThrown = false;
+      try {
+         service.deleteProjectStatus(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
 
-      response = service.updateProjectStatus(session, new XMessage());
-      assertError(response, OpProjectStatusError.INSUFFICIENT_PRIVILEGES);
+      exceptionThrown = false;
+      try {
+         service.updateProjectStatus(session, new XMessage());
+      }
+      catch (XServiceException e) {
+         exceptionThrown = true;
+         assertEquals("OpUserServiceInterceptor failed for method in OpProjectStatusService", OpUserError.INSUFFICIENT_PRIVILEGES, e.getError().getCode());
+      }
+      assertTrue("OpUserServiceInterceptor failed for method in OpProjectStatusService, exception should have been thrown", exceptionThrown);
    }
 
 //                             ***** Helper Methods *****

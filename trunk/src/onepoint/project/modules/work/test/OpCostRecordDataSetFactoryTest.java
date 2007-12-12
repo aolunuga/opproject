@@ -237,7 +237,10 @@ public class OpCostRecordDataSetFactoryTest extends OpBaseOpenTestCase {
       t.commit();
       broker.close();
 
+      broker = session.newBroker();
       for (OpCostRecord costRecord : costRecords) {
+         //retreive the cost record in order to refresh its attachments list
+         costRecord = (OpCostRecord) broker.getObject(costRecord.locator());
          costRecord.setWorkRecord(workRecord);
          assertTrue(isEntityInDataSet(costRecord, dataSet));
          if (costRecord.getType() == OpCostRecord.TRAVEL_COST) {
@@ -250,6 +253,7 @@ public class OpCostRecordDataSetFactoryTest extends OpBaseOpenTestCase {
             }
          }
       }
+      broker.close();
    }
 
    /**
@@ -423,7 +427,7 @@ public class OpCostRecordDataSetFactoryTest extends OpBaseOpenTestCase {
       attachment1.setLinked(true);
       attachment1.setName("Attachment 1");
       attachment1.setLocation("http://www.google.com/");
-      attachment1.setCostRecord(costRecord1);
+      attachment1.setObject(costRecord1);
 
       broker.makePersistent(project);
       broker.makePersistent(projectPlan);

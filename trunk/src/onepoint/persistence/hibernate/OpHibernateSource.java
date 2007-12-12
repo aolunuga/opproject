@@ -7,36 +7,22 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
-import onepoint.persistence.hibernate.cache.OpOSCache;
 import org.hibernate.*;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.classic.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
-import org.hibernate.event.EventListeners;
-import org.hibernate.event.FlushEntityEvent;
-import org.hibernate.event.PostDeleteEvent;
-import org.hibernate.event.PostDeleteEventListener;
-import org.hibernate.event.PostInsertEvent;
-import org.hibernate.event.PostInsertEventListener;
-import org.hibernate.event.PostUpdateEvent;
-import org.hibernate.event.PostUpdateEventListener;
+import org.hibernate.event.*;
 import org.hibernate.event.def.DefaultFlushEntityEventListener;
 
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * This is an implementation of a data source based on Hibernate.
  */
-public class OpHibernateSource extends OpSource 
-implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventListener {
+public class OpHibernateSource extends OpSource
+     implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventListener {
    /**
     * The logger used in this class.
     */
@@ -69,7 +55,7 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
    /**
     * The latest schema version
     */
-   public static final int SCHEMA_VERSION = 33;
+   public static final int SCHEMA_VERSION = 49;
 
    /**
     * Db schema related constants
@@ -262,6 +248,7 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
    protected List<Interceptor> getInterceptors() {
       List<Interceptor> interceptors = new ArrayList<Interceptor>();
       interceptors.add(new OpTimestampInterceptor());
+      interceptors.add(new OpTextInterceptor());
       return interceptors;
    }
 
@@ -275,7 +262,7 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
          case DERBY:
             return org.hibernate.dialect.DerbyDialect.class;
          case MYSQL_INNODB:
-            return org.hibernate.dialect.MySQLInnoDBDialect.class;
+            return org.hibernate.dialect.MySQL5InnoDBDialect.class;
          case POSTGRESQL:
             return org.hibernate.dialect.PostgreSQLDialect.class;
          case ORACLE:
@@ -352,7 +339,7 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
          configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
       }
       if (cacheCapacity != null) {
-         configuration.setProperty(OpOSCache.OSCACHE_CAPACITY, cacheCapacity);
+         configuration.setProperty("cache.capacity", cacheCapacity);
       }
 
       Reader reader = new StringReader(mapping);
@@ -384,26 +371,25 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
    }
 
    /**
-    * 
     * @pre
     * @post
     */
    private void addListeners() {
       EventListeners eventListeners = getConfiguration().getEventListeners();
       PostUpdateEventListener[] postUpdateListeners = eventListeners.getPostCommitUpdateEventListeners();
-      PostUpdateEventListener[] newPostUpdateListeners = new PostUpdateEventListener[postUpdateListeners.length+1];
+      PostUpdateEventListener[] newPostUpdateListeners = new PostUpdateEventListener[postUpdateListeners.length + 1];
       System.arraycopy(postUpdateListeners, 0, newPostUpdateListeners, 0, postUpdateListeners.length);
       newPostUpdateListeners[postUpdateListeners.length] = this;
       eventListeners.setPostCommitUpdateEventListeners(newPostUpdateListeners);
-      
+
       PostDeleteEventListener[] postDeleteListeners = eventListeners.getPostCommitDeleteEventListeners();
-      PostDeleteEventListener[] newPostDeleteListeners = new PostDeleteEventListener[postDeleteListeners.length+1];
+      PostDeleteEventListener[] newPostDeleteListeners = new PostDeleteEventListener[postDeleteListeners.length + 1];
       System.arraycopy(postDeleteListeners, 0, newPostDeleteListeners, 0, postDeleteListeners.length);
       newPostDeleteListeners[postDeleteListeners.length] = this;
       eventListeners.setPostCommitDeleteEventListeners(newPostDeleteListeners);
-      
+
       PostInsertEventListener[] postInsertListeners = eventListeners.getPostCommitInsertEventListeners();
-      PostInsertEventListener[] newPostInsertListeners = new PostInsertEventListener[postInsertListeners.length+1];
+      PostInsertEventListener[] newPostInsertListeners = new PostInsertEventListener[postInsertListeners.length + 1];
       System.arraycopy(postInsertListeners, 0, newPostInsertListeners, 0, postInsertListeners.length);
       newPostInsertListeners[postInsertListeners.length] = this;
       eventListeners.setPostCommitInsertEventListeners(newPostInsertListeners);
@@ -618,12 +604,12 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
       if (listeners == null) {
          listeners = new HashMap<Class, Object>();
       }
-      
+
       Object old = listeners.put(opclass, listener);
       if (old != null) {
          HashSet set;
          if (old instanceof HashSet) {
-            set = (HashSet)old;
+            set = (HashSet) old;
          }
          else {
             set = new HashSet();
@@ -641,7 +627,7 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
       Object old = listeners.get(opclass);
       if (old != null) {
          if (old instanceof HashSet) {
-            HashSet set = (HashSet)old;
+            HashSet set = (HashSet) old;
             set.remove(listener);
             if (set.size() == 1) {
                listeners.put(opclass, set.iterator().next());
@@ -652,9 +638,10 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
          }
       }
    }
+
    /* (non-Javadoc)
-    * @see org.hibernate.event.PostUpdateEventListener#onPostUpdate(org.hibernate.event.PostUpdateEvent)
-    */
+   * @see org.hibernate.event.PostUpdateEventListener#onPostUpdate(org.hibernate.event.PostUpdateEvent)
+   */
    public void onPostUpdate(PostUpdateEvent event) {
       if (listeners == null) {
          return;
@@ -691,27 +678,26 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
       String[] propertyNames = event.getPersister().getPropertyNames();
       fireEvent(broker, obj, OpEvent.INSERT, propertyNames, null, event.getState());
    }
-   
+
    /**
     * @param broker
     * @param obj
-    * @param update
     * @param oldState
     * @param state
     * @pre
     * @post
     */
-   private OpEvent createEvent(OpBroker broker, OpObject obj, int action, 
-         String[] propetyNames, Object[] oldState, Object[] state) {
+   private OpEvent createEvent(OpBroker broker, OpObject obj, int action,
+        String[] propetyNames, Object[] oldState, Object[] state) {
       return new OpEvent(broker, obj, action, propetyNames, oldState, state);
    }
+
    /**
     * @param broker
     * @param obj
-    * @param update
     * @param oldState
     * @param state
-    * @param  
+    * @param
     * @pre
     * @post
     */
@@ -726,18 +712,18 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
          listener = listeners.get(sourceClass);
          if (listener != null) {
             if (listener instanceof HashSet) {
-               for (Object o : (HashSet)listener) {
+               for (Object o : (HashSet) listener) {
                   if (event == null) {
                      event = createEvent(broker, obj, action, propertyNames, oldState, state);
                   }
-                  ((OpEntityEventListener)o).entityChangedEvent(event);
+                  ((OpEntityEventListener) o).entityChangedEvent(event);
                }
             }
             else {
                if (event == null) {
                   event = createEvent(broker, obj, action, propertyNames, oldState, state);
                }
-               ((OpEntityEventListener)listener).entityChangedEvent(event);
+               ((OpEntityEventListener) listener).entityChangedEvent(event);
             }
          }
          if (sourceClass == OpObject.class) {
@@ -746,9 +732,10 @@ implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventList
          sourceClass = sourceClass.getSuperclass();
       }
    }
-   
+
    private class OpFlushEventListener extends DefaultFlushEntityEventListener {
-      public void onFlushEntity(FlushEntityEvent event) throws HibernateException {
+      public void onFlushEntity(FlushEntityEvent event)
+           throws HibernateException {
          if (listeners != null) {
             OpObject obj = (OpObject) event.getEntity();
             OpBroker broker = OpHibernateConnection.getBroker(event.getSession());

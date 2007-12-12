@@ -9,6 +9,7 @@ import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
 import onepoint.project.modules.project.OpActivity;
@@ -40,6 +41,7 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
    private static final String TASK_PROJECT = "ProjectChooser";
    private static final String TASK_RESOURCE = "ResourceChooser";
    private static final String ACTIVITY_LOCATOR_FIELD = "ActivityLocator";
+   private static final String ALL_RESOURCES = "AllResources";
 
    private static final String RESOURCE_MAP = "my_tasks.adhoc_tasks";
    private static final String INFO_TITLE = "InfoAdhocTitle";
@@ -60,6 +62,8 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
     * @see XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
     */
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
+
+      XComponent allResources = new XComponent(XComponent.DATA_SET);
 
       XComponent resourceDataSet = form.findComponent(RESOURCE_SET);
       XComponent projectToResource = form.findComponent(PROJECT_TO_RESOURCE_MAP);
@@ -130,7 +134,21 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
          }
          index++;
       }
-      resourcetChooser.setSelectedIndex(selectedIndex);
+
+      resourcetChooser.setStringValue(((XComponent) resourceDataSet.getChild(selectedIndex)).getStringValue());
+
+      OpQuery query = broker.newQuery("from OpResource");
+
+      Iterator it = broker.iterate(query);
+
+      while (it.hasNext()) {
+         OpResource res = (OpResource) it.next();
+         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(res.locator()+"['"+res.getName()+"']");
+         allResources.addChild(dataRow);
+      }
+
+      form.findComponent(ALL_RESOURCES).setValue(allResources);
 
       //fill attachement tab
       Set<OpAttachment> attachments = task.getAttachments();

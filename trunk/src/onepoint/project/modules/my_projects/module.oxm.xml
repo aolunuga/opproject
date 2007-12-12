@@ -3,6 +3,9 @@
    <language-kit-paths>
       <language-kit-path path="/modules/my_projects/i18n"/>
    </language-kit-paths>
+   <tool-groups>
+      <tool-group name="my" caption="${MyToolGroup}" sequence="2"/>      
+   </tool-groups>
    <tools>
       <tool name="my_projects" caption="${ProjectsTool}" group-ref="my"
             icon="/modules/my_projects/icons/my_projects_tool.png"

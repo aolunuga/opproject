@@ -14,7 +14,6 @@ import onepoint.project.modules.project.OpProjectNode;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * DataSet Factory for project costs controlling.
@@ -49,8 +48,12 @@ public final class OpProjectCostsDataSetFactory {
     * @param costNames         Map with the costs display titles.
     */
    public static void fillCostsDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set, Map costNames) {
-      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
+      //this query could be improved by filtering out milestones and deleted activities when the plan doesn't have a baseline
+      StringBuffer queryString = new StringBuffer("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ?");
+      queryString.append(" and activity.OutlineLevel <= ? order by activity.Sequence");
+      OpQuery query = broker.newQuery(queryString.toString());
       query.setID(0, project.getID());
+      query.setLong(1, max_outline_level);
       List<OpActivity> activities = broker.list(query);
 
       boolean useBaseline = false;
@@ -84,9 +87,6 @@ public final class OpProjectCostsDataSetFactory {
                continue;
             }
             if (activity.getType() == OpActivity.MILESTONE) {
-               continue;
-            }
-            if (activity.getOutlineLevel() > max_outline_level) {
                continue;
             }
          }
@@ -326,42 +326,34 @@ public final class OpProjectCostsDataSetFactory {
     * @return value of the predicted
     */
    private static double childrenSumPredictedCosts(OpActivity activity, int type) {
-      Set<OpActivity> activities = activity.getSubActivities();
-      double predicted = 0;
-
+      double predicted;
       boolean isUsingBaselineValues = activity.isUsingBaselineValues();
       activity.setIsUsingBaselineValues(false);
 
-      if (activities.isEmpty()) {
-         switch (type) {
-            case PERSONNEL_COST_INDEX:
-               predicted = activity.getActualPersonnelCosts() + activity.getRemainingPersonnelCosts();
-               break;
-            case MATERIAL_COST_INDEX:
-               predicted = activity.getActualMaterialCosts() + activity.getRemainingMaterialCosts();
-               break;
-            case TRAVEL_COST_INDEX:
-               predicted = activity.getActualTravelCosts() + activity.getRemainingTravelCosts();
-               break;
-            case EXTERNAL_COST_INDEX:
-               predicted = activity.getActualExternalCosts() + activity.getRemainingExternalCosts();
-               break;
-            case MISC_COST_INDEX:
-               predicted = activity.getActualMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts();
-               break;
-            case PROCEEDS_COST_INDEX:
-               predicted = activity.getActualProceeds() + activity.getRemainingProceeds();
-               break;
-            default: {
-               throw new IllegalArgumentException("Invalid cost type parameter");
-            }
+      switch (type) {
+         case PERSONNEL_COST_INDEX:
+            predicted = activity.getActualPersonnelCosts() + activity.getRemainingPersonnelCosts();
+            break;
+         case MATERIAL_COST_INDEX:
+            predicted = activity.getActualMaterialCosts() + activity.getRemainingMaterialCosts();
+            break;
+         case TRAVEL_COST_INDEX:
+            predicted = activity.getActualTravelCosts() + activity.getRemainingTravelCosts();
+            break;
+         case EXTERNAL_COST_INDEX:
+            predicted = activity.getActualExternalCosts() + activity.getRemainingExternalCosts();
+            break;
+         case MISC_COST_INDEX:
+            predicted = activity.getActualMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts();
+            break;
+         case PROCEEDS_COST_INDEX:
+            predicted = activity.getActualProceeds() + activity.getRemainingProceeds();
+            break;
+         default: {
+            throw new IllegalArgumentException("Invalid cost type parameter");
          }
       }
-      else {
-         for (OpActivity child : activities) {
-            predicted += childrenSumPredictedCosts(child, type);
-         }
-      }
+
       activity.setIsUsingBaselineValues(isUsingBaselineValues);
       return predicted;
    }

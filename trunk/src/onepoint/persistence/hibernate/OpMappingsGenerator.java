@@ -16,12 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class is responsible for generation of Hibernate mapping file for all loaded prototypes.
@@ -303,14 +298,15 @@ public class OpMappingsGenerator {
       }
 
       if (field.getIndexed() && field.getTypeID() != OpType.TEXT) {
-         buffer.append(" index=\"");
-         buffer.append(generateIndexName(prototype.getName(), field.getName()));
-         buffer.append('\"');
+         if (databaseType != OpHibernateSource.ORACLE || !field.getUnique()) {
+            buffer.append(" index=\"");
+            buffer.append(generateIndexName(prototype.getName(), field.getName()));
+            buffer.append('\"');
+         }
       }
 
       if (field.getTypeID() == OpType.TEXT) {
-         int maxLen = OpTypeManager.getMaxLength(OpType.TEXT);
-         buffer.append(" length=\"").append(maxLen).append("\"");
+         buffer.append(" length=\"").append(OpTypeManager.MAX_TEXT_LENGTH).append("\"");
       }
 
       buffer.append("/></property>").append(NEW_LINE);
@@ -705,7 +701,7 @@ public class OpMappingsGenerator {
 
       return new String(array);
    }
-   
+
    public static void main(String[] args) {
       if (args.length < 1) {
          System.out.println("usage java -cp lib OpHibernateSource dbtype <outfile>");
@@ -736,7 +732,7 @@ public class OpMappingsGenerator {
          dbType = OpHibernateSource.IBM_DB2;
       }
       else {
-         System.err.println("ERROR unknown dbtype '"+args[0]+"'");
+         System.err.println("ERROR unknown dbtype '" + args[0] + "'");
          System.exit(-1);
       }
       PrintStream out = System.out;
@@ -750,12 +746,12 @@ public class OpMappingsGenerator {
             out = new PrintStream(file);
          }
          catch (IOException exc) {
-            System.err.println("ERROR could not create file '"+args[1]+"', error: "+exc.getLocalizedMessage());
+            System.err.println("ERROR could not create file '" + args[1] + "', error: " + exc.getLocalizedMessage());
             System.exit(-1);
          }
       }
-      
-      
+
+
       File path;
       try {
          path = new File(OpMappingsGenerator.class.getResource("OpMappingsGenerator.class").toURI());

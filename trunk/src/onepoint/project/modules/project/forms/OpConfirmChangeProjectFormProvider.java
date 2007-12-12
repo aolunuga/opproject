@@ -16,7 +16,7 @@ import java.util.HashMap;
  *
  * @author florin.haizea
  */
-public class OpConfirmChangeProjectFormProvider implements XFormProvider{
+public class OpConfirmChangeProjectFormProvider implements XFormProvider {
 
    private final static String PROJECT_ID = "project_id";
    private final static String PROJECT_DATA = "project_data";
@@ -27,13 +27,15 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
    private final static String ATTACHMENT_SET = "attachment_set";
    protected final static String CHANGE_LABEL = "ConfirmChangeLabel";
    protected final static String CONFIRM_HR = "ConfirmChangeHR";
-   protected final static String RESOURCE_MAP = "project.change";   
+   protected final static String RESOURCE_MAP = "project.change";
+   protected final static String MODIFIED_RATES = "ModifiedRates";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
+      form.findComponent(MODIFIED_RATES).setValue(true);
       // Retrieve the parameters
-      String id= (String) (parameters.get(PROJECT_ID));
+      String id = (String) (parameters.get(PROJECT_ID));
       form.findComponent(PROJECT_ID).setValue(id);
 
       HashMap data = (HashMap) (parameters.get(PROJECT_DATA));
@@ -42,8 +44,8 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
       XComponent goalsSet = (XComponent) (parameters.get(GOALS_SET));
       XComponent formGoalsSet = form.findComponent(GOALS_SET);
       XComponent dataRow;
-      for(int i = 0; i < goalsSet.getChildCount(); i++){
-         dataRow = (XComponent)goalsSet.getChild(i);
+      for (int i = 0; i < goalsSet.getChildCount(); i++) {
+         dataRow = (XComponent) goalsSet.getChild(i);
          formGoalsSet.addChild(dataRow.copyData());
       }
 
@@ -56,24 +58,24 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider{
 
       XComponent resourceSet = (XComponent) (parameters.get(RESOURCE_SET));
       XComponent formResourceSet = form.findComponent(RESOURCE_SET);
-      for(int i = 0; i <  resourceSet.getChildCount(); i++){
-         dataRow = (XComponent)resourceSet.getChild(i);
+      for (int i = 0; i < resourceSet.getChildCount(); i++) {
+         dataRow = (XComponent) resourceSet.getChild(i);
          formResourceSet.addChild(dataRow.copyData());
          dataRow.clearDataSelection();
       }
-      
+
       XComponent versionSet = (XComponent) (parameters.get(VERSIONS_SET));
       XComponent formVersionsSet = form.findComponent(VERSIONS_SET);
-      for(int i = 0; i <  versionSet.getChildCount(); i++){
-         dataRow = (XComponent)versionSet.getChild(i);
+      for (int i = 0; i < versionSet.getChildCount(); i++) {
+         dataRow = (XComponent) versionSet.getChild(i);
          formVersionsSet.addChild(dataRow.copyData());
       }
 
       XComponent attachmentSet = (XComponent) (parameters.get(ATTACHMENT_SET));
       XComponent formAttachmentSet = form.findComponent(ATTACHMENT_SET);
-      for(int i = 0; i <  attachmentSet.getChildCount(); i++){
-         dataRow = (XComponent)attachmentSet.getChild(i);
-         formAttachmentSet.addChild(dataRow);
+      for (int i = 0; i < attachmentSet.getChildCount(); i++) {
+         dataRow = (XComponent) attachmentSet.getChild(i);
+         formAttachmentSet.addChild(dataRow.copyData());
       }
 
       //set confirm message (available/hr)

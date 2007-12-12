@@ -2,6 +2,7 @@
    
    <resource-map id="my_projects.module">
       <resource id="ProjectsTool">Projects</resource>
+      <resource id="MyToolGroup">MY</resource>
    </resource-map>
 
    <resource-map id="my_projects.my_projects">

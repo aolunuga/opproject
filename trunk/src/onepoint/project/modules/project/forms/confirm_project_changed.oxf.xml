@@ -2,6 +2,7 @@
    <panel y="0" layout="border">
       <data-field id="project_id"/>
       <data-field id="project_data"/>
+      <data-field id="ModifiedRates"/>
       <data-set id="goals_set"/>
       <data-set id="to_dos_set"/>
       <data-set id="resource_set"/>

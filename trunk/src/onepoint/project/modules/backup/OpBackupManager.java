@@ -22,9 +22,6 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.hibernate.HibernateException;
-import org.hibernate.exception.ConstraintViolationException;
-
 /**
  * Class that backs-up and restores the application repository.
  *
@@ -118,8 +115,6 @@ public class OpBackupManager {
     */
    private String binaryDirName = null;
 
-   private LinkedList<OpPrototype> deleteOrder = new LinkedList<OpPrototype>();
-
    /**
     * There should be only 1 instance of this class.
     */
@@ -153,7 +148,8 @@ public class OpBackupManager {
       }
       it = toAddLast.iterator();
       while (it.hasNext()) {
-         addPrototype((OpPrototype) it.next());
+         OpPrototype pt = (OpPrototype) it.next();
+         addPrototype(pt);
       }
    }
 
@@ -512,7 +508,7 @@ public class OpBackupManager {
                   continue;
                }
 
-               logger.info("value accessor is "+member.accessor.getName()+", on type "+object.getClass().getName());
+               logger.info("value accessor is " + member.accessor.getName() + ", on type " + object.getClass().getName());
                Object value = member.accessor.invoke(object);
                if (member.relationship) {
                   this.writeRelationshipMember(writer, value);
@@ -673,7 +669,7 @@ public class OpBackupManager {
       fileName = fileName.substring(0, fileName.indexOf('.'));
       this.binaryDirName = fileName + BINARY_DIR_NAME_SUFFIX;
       this.binaryDirPath = workingDir + SLASH_STRING + this.binaryDirName;
-      logger.info("backing up to "+path);
+      logger.info("backing up to " + path);
       this.backupRepository(session, new BufferedOutputStream(new FileOutputStream(path, false)));
    }
 
@@ -780,20 +776,21 @@ public class OpBackupManager {
     */
    public void removeAllObjects(OpProjectSession session) {
       logger.info("Removing all objects from the db ");
-      for (OpPrototype delete : deleteOrder) {
-         logger.info("deleting all objects of type: "+delete.getName());
-         removeObjectsWithPrototype(delete.getName(), null, session);
-      }  
-
+      List<String> prototypeNames = new ArrayList<String>(prototypes.keySet());
+      Collections.reverse(prototypeNames);
+      //remove in reverse dependency order
+      for (String prototypeName : prototypeNames) {
+         removeObjectsWithPrototype(prototypeName, null, session);
+      }
    }
 
    /**
     * Removes all the objects with the given prototype name from the db.
     *
-    * @param prototypeName a <code>String</code> the name of a prototype.
+    * @param prototypeName             a <code>String</code> the name of a prototype.
     * @param recursiveRelationshipName a <code>String</code> the name of an optional recursive
-    * relationship for the prototype (if there isn't one, it may be <code>null</code>)
-    * @param session a <code>OpProjectSession</code> the server session.
+    *                                  relationship for the prototype (if there isn't one, it may be <code>null</code>)
+    * @param session                   a <code>OpProjectSession</code> the server session.
     */
    private void removeObjectsWithPrototype(String prototypeName, String recursiveRelationshipName,
         OpProjectSession session) {
@@ -945,7 +942,7 @@ public class OpBackupManager {
          return prototype.getInstanceClass().getMethod("has" + member.getName());
       }
       catch (NoSuchMethodException e) {
-         logger.error("no accessor method found for field "+member.getName()+", within class "+prototype.getInstanceClass().getName());
+         logger.error("no accessor method found for field " + member.getName() + ", within class " + prototype.getInstanceClass().getName());
       }
       return null;
    }
@@ -966,7 +963,7 @@ public class OpBackupManager {
          return null;
       }
    }
-   
+
    /**
     * Registers a prototype with the backup manager, taking into account the prototype's dependencies.
     *
@@ -976,28 +973,26 @@ public class OpBackupManager {
     *                                 of prototypes which will be registered at the end of all the others.
     */
    private void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List<OpPrototype> lastPrototypesToRegister) {
-       // FIXME(dfreis Oct 23, 2007 9:44:40 AM) wont work see also my comment on OPP-80
-       // note lastPrototypesToRegister is a hack only!
+      // FIXME(dfreis Oct 23, 2007 9:44:40 AM) wont work see also my comment on OPP-80
+      // note lastPrototypesToRegister is a hack only!
 
       List dependencies = startPoint.getBackupDependencies();
-      logger.debug("start point is: "+startPoint.getName());
+      logger.debug("start point is: " + startPoint.getName());
       for (Object dependency1 : dependencies) {
          OpPrototype dependency = (OpPrototype) dependency1;
          if (dependency.getID() == superPrototype.getID()) {
             if (!lastPrototypesToRegister.contains(startPoint)) {
                lastPrototypesToRegister.add(startPoint);
-               deleteOrder.add(0, startPoint); // reverse order
             }
          }
          else if (!OpBackupManager.hasRegistered(dependency)) {
-            logger.debug("dependency is: "+dependency.getName());
+            logger.debug("dependency is: " + dependency.getName());
             registerPrototypeForBackup(superPrototype, dependency, lastPrototypesToRegister);
          }
       }
       if (!startPoint.subTypes().hasNext() && !OpBackupManager.hasRegistered(startPoint)) {
          if (!lastPrototypesToRegister.contains(startPoint)) {
             addPrototype(startPoint);
-            deleteOrder.add(0, startPoint);
          }
       }
    }

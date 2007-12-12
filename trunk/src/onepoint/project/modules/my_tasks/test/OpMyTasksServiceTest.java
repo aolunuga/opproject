@@ -117,7 +117,7 @@ public class OpMyTasksServiceTest extends OpBaseOpenTestCase {
       OpActivity activity = dataFactory.getActivityByName(ACTIVITY_NAME);
       assertNotNull(activity);
       assertEquals(5, activity.getPriority());
-      assertEquals(OpActivity.ADHOC_TASK, activity.getType());
+      assertEquals(OpActivity.ADHOC_TASK, activity.getType().byteValue());
       assertEquals(1, activity.getAssignments().size());
       assertEquals(duedate, activity.getFinish());
       assertEquals(planId, activity.getProjectPlan().locator());

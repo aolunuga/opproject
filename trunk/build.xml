@@ -3,12 +3,6 @@
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
 
-   <taskdef name="retroweaver" classname="net.sourceforge.retroweaver.ant.RetroWeaverTask">
-      <classpath>
-         <pathelement location="${lib.dir}/retroweaver-all-2.0.jar"/>
-      </classpath>
-   </taskdef>
-
   <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
     <classpath>
        <fileset dir="${lib.dir}" includes="*.jar" />
@@ -54,6 +48,7 @@
       <include name="${rootpackage.dir}/persistence/**/*.properties"/>
       <include name="${rootpackage.dir}/project/**/*.class"/>
       <include name="${rootpackage.dir}/project/**/*.xml"/>
+      <include name="${rootpackage.dir}/project/**/*.xsd"/>
       <include name="${rootpackage.dir}/project/**/*.properties"/>
       <include name="${rootpackage.dir}/project/**/*.gif"/>
       <include name="${rootpackage.dir}/project/**/*.png"/>
@@ -140,7 +135,6 @@
       <exclude name="*ant-contrib*.jar"/>
       <exclude name="*commons-cli*.jar"/> <!-- at the moment only used within ldap, but may be of general perpose -->
       <exclude name="*jsr173*.jar"/>
-      <exclude name="*retroweaver-all*.jar"/>
       <exclude name="*ws-commons-util*.jar"/> <!-- used for sending reports (icomedias) -->
       <exclude name="*xmlrpc-*.jar"/> <!-- for xmlrpc only -->
    </patternset>
@@ -165,7 +159,6 @@
       <exclude name="*junit*.*"/>
       <exclude name="*jarbundler*.*"/>
       <exclude name="*jcookie*.*"/>
-      <exclude name="*retroweaver-all*.*"/>
       <exclude name="svn*.*"/>
       <exclude name="*sqljdbc*.*"/>
    </patternset>
@@ -215,6 +208,7 @@
       <mkdir dir="${tests.dir}"/>
       <mkdir dir="${dist.dir}"/>
       <mkdir dir="${release.dir}"/>
+      <mkdir dir="${resources.dir}/${reports.dir}"/>
    </target>
 
    <target name="build.express4j.jars" if="express4j.present" description="Build the express lib and copy the jars if present">
@@ -261,12 +255,11 @@
       </copy>
 
       <!--aditional resources-->
-      <if>
-         <available file="${additional.resources.dir}/${additional.resources.script}"/>
-         <then>
-            <ant antfile="${additional.resources.script}" target="${additional.resources.target}" inheritall="false" dir="${additional.resources.dir}"/>
-         </then>
-      </if>
+      <copy todir="${classes.dir}" overwrite="true">
+         <fileset dir="${resources.dir}">
+            <exclude name="${resources.dir}/${reports.dir}/**/*.*"/>
+         </fileset>
+      </copy>
 
    </target>
 
@@ -288,7 +281,6 @@
              deprecation="${deprecation}">
          <patternset refid="compile.pathid"/>
       </javac>
-      <retroweaver srcdir="${build.dir}"/>
       <javac srcdir="${src.dir}" destdir="${client.classes.dir}"
              classpathref="op.classpath" debug="${debug}"
              target="${jdk.client.target}" source="${jdk.client.source}"
@@ -376,6 +368,11 @@
             <patternset refid="resources.pathid"/>
             <include name="**/*.jrxml"/>
          </fileset>
+      </copy>
+
+      <!-- Aditional resources -->
+      <copy todir="${reportBase}" overwrite="true">
+         <fileset dir="${resources.dir}/${reports.dir}"/>
       </copy>
       <!-- ********************************* -->
       <!-- Resource Allocation report -->
@@ -716,6 +713,9 @@ fi
          <fileset dir="${src.dir}/onepoint/project/test">
             <include name="**/*.xml"/>
          </fileset>
+         <fileset dir="${src.dir}/onepoint/project/configuration">
+            <include name="configuration.xsd"/>
+         </fileset>      	
       </copy>
    </target>
 
@@ -723,7 +723,8 @@ fi
    <target name="build.tests" depends="build,copy.resources,copy.test.resources" description="Compiles the test source code">
       <javac srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.tests.classpath" debug="${debug}"
-             target="${jdk.target}" deprecation="${deprecation}">
+             target="${jdk.target}" source="${jdk.source}"
+             deprecation="${deprecation}">
          <patternset refid="tests.compile.pathid"/>
       </javac>
    </target>

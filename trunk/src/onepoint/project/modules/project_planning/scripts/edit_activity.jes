@@ -6,6 +6,7 @@
 require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/project_planning/scripts/attachments.jes";
 require "onepoint/project/modules/project_planning/scripts/comments.jes";
+require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
 
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
@@ -191,6 +192,16 @@ function ok(event) {
    // ==> Leave the "fill-it-all" code in activities.jes
 
    form = XDisplay.getActiveForm();
+   responsibleResource = form.findComponent("ResponsibleResource");
+   responsibleSet = form.findComponent("ResponsibleResourceSet");
+   stringValue = responsibleResource.getStringValue();
+
+   if (stringValue == null) {
+       
+      noResponsible = responsibleSet.getChild(0).getStringValue();
+      responsibleResource.setStringValue(noResponsible);
+   }
+
    //the project edit mode
    edit_mode = form.findComponent("EditModeField").getBooleanValue();
    if (edit_mode){
@@ -462,4 +473,15 @@ function addComment(event) {
 
 function cancel(event) {
    XDisplay.getActiveWindow().close();
+}
+function addResponsibleResource(event) {
+   responsibleResourceSet = XDisplay.getActiveForm().findComponent("ExcludedResources").getValue();
+
+   i = 0;
+   while (i < responsibleResourceSet.getChildCount()) {
+      resource_ids[i] = XValidator.choiceID(responsibleResourceSet.getChild(i).getStringValue());
+      i++;
+   }
+
+   openResourceChooser("ProjectContentFrame", "addResponsableResourceOk", resource_ids, false, false, true, null);
 }

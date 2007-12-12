@@ -25,4 +25,5 @@
    <relationship name="WorkSlip" type="OpWorkSlip" back-relationship="Records"/>
    <relationship name="CostRecords" type="OpCostRecord" collection-type="Set" back-relationship="WorkRecord" inverse="true" cascade="all"/>
    <relationship name="TimeRecords" type="OpTimeRecord" collection-type="Set" back-relationship="WorkRecord" inverse="true" cascade="all"/>
+   <relationship name="ControllingRecord" type="OpControllingRecord" back-relationship="WorkRecords"/>
 </prototype>

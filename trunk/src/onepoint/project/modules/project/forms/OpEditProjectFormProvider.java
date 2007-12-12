@@ -62,11 +62,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String GOALS_TOOLS_PANEL = "GoalsToolPanel";
    private final static String CANCEL = "Cancel";
    private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
+   private static final String VERSIONS_TABLE = "VersionsTableBox";
    private final static String RESOURCES_TABLE = "ResourcesTable";
    private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
    private final static String REMOVE_VERSION_BUTTON = "RemoveVersionButton";
    private final static String VERSION_DATA_SET = "VersionsSet";
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
+   private final static String MODIFIED_RATES = "ModifiedRates";
 
    private final static String ADD_DOCUMENT_BUTTON = "AddDocumentButton";
    private final static String ADD_URL_BUTTON = "AddURLButton";
@@ -80,6 +82,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
 
+      form.findComponent(MODIFIED_RATES).setBooleanValue(false);
       // Find project in database
       String id_string = (String) (parameters.get(OpProjectAdministrationService.PROJECT_ID));
       OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
@@ -207,10 +210,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private void fillPermissions(OpProjectSession session, OpBroker broker, XComponent form,
         OpProjectNode project, boolean editMode) {
 
-         byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-         XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
-              OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
+      byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
+      XComponent permissionSet = form.findComponent(PERMISSION_SET);
+      OpPermissionDataSetFactory.retrievePermissionSet(session, broker, project.getPermissions(), permissionSet,
+           OpProjectModule.PROJECT_ACCESS_LEVELS, session.getLocale());
       if (OpEnvironmentManager.isMultiUser()) {
          OpPermissionDataSetFactory.administratePermissionTab(form, editMode, accessLevel);
       }
@@ -412,6 +415,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          Integer versionNumber = versionNumbers[i];
          versionsDataSet.addChild(rowsMap.get(versionNumber));
       }
+      form.findComponent(VERSIONS_TABLE).setEditMode(true);
    }
 
    /**
@@ -489,9 +493,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataCell.setStringValue(createdBy);
       dataRow.addChild(dataCell);
 
-      //created on - 3
+      //created on - 3 - null and disabled for the actual version
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setDateValue(plan.getCreated());
       dataRow.addChild(dataCell);
 
       //<FIXME author="Mihai Costin" description="Neeed here because table column can't be extended with forms">
@@ -590,13 +593,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
          //0 - resource name
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(resource.getName());
-         dataCell.setEnabled(editMode);
+         dataCell.setEnabled(false);
          dataRow.addChild(dataCell);
 
          //1 - resource description
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setStringValue(resource.getDescription());
-         dataCell.setEnabled(editMode);
+         dataCell.setEnabled(false);
          dataRow.addChild(dataCell);
 
          //2 - adjust rates

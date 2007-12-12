@@ -7,19 +7,10 @@ package onepoint.persistence;
 import onepoint.project.modules.custom_attribute.OpCustomAttribute;
 import onepoint.project.modules.custom_attribute.OpCustomTypeManager;
 import onepoint.project.modules.custom_attribute.OpCustomValuePage;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.user.OpLock;
 
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class OpObject {
 
@@ -27,7 +18,7 @@ public class OpObject {
    public final static String MODIFIED = "Modified";
    public final static String ID = "ID";
    
-   public static final int CUSTOM_VALUES_SIZE = 10; 
+   public static final int CUSTOM_VALUES_SIZE = 10;
 
    private Timestamp created;
    private Timestamp modified;
@@ -287,8 +278,16 @@ public class OpObject {
     * @post
     */
    private OpCustomAttribute getCustomAttribute(String name) {
+      Byte subType = null;
+      String customTypeName = null;
+      if (this instanceof OpSubTypable) {
+         subType = ((OpSubTypable) this).getType();
+      }
+      if (this instanceof OpCustomSubTypable) {
+         customTypeName = ((OpCustomSubTypable) this).getCustomTypeName();
+      }
       if (customTypeMap == null) {
-         customTypeMap = OpCustomTypeManager.getInstance().getCustomAttributesMap(this.getClass());
+         customTypeMap = OpCustomTypeManager.getInstance().getCustomAttributesMap(this.getClass(), subType, customTypeName);
       }
       OpCustomAttribute ret = null;
       if (customTypeMap != null) {
@@ -297,14 +296,25 @@ public class OpObject {
       if (ret == null) {
          // try parent classes
          Class type = this.getClass();
-         while (type != OpObject.class) {
-            type = type.getSuperclass();
-            Map<String, OpCustomAttribute> map = OpCustomTypeManager.getInstance().getCustomAttributesMap(type);
-            if (map != null) {
-               ret = map.get(name);
+         while (true) {
+            if (subType != null) {
+               if (customTypeName != null) {
+                  customTypeName = null;
+               }
+               else {
+                  subType = null;
+               }
             }
-            if (ret != null) {
-               return ret;
+            else{
+               if (type == OpObject.class) {
+                  break;
+               }
+               type = type.getSuperclass();
+            }
+            
+            OpCustomAttribute value = OpCustomTypeManager.getInstance().getCustomAttribute(type, subType, customTypeName, name);
+            if (value != null) {
+               return value;
             }
          }
          throw new IllegalArgumentException("no custom attribute found for name '"+name+"' within '"+this.getClass().getName()+"'");

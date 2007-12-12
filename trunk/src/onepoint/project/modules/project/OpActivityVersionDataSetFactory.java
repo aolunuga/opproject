@@ -31,6 +31,8 @@ public abstract class OpActivityVersionDataSetFactory {
 
    private static final String GET_SUBACTIVITY_VERSION_COUNT_FOR_ACTIVITY_VERSION =
         "select count(activityVersion.ID) from OpActivityVersion activityVersion where activityVersion.SuperActivityVersion = (:activityVersionId)";
+   private static final String GET_ATTACHMENT_VERSIONS_FOR_PLAN_VERSION =
+        "select attachmentVersion from OpAttachmentVersion attachmentVersion where attachmentVersion.ActivityVersion.PlanVersion.ID = (:planVersionId)";
 
    public static void retrieveActivityVersionDataSet(OpBroker broker, OpProjectPlanVersion planVersion,
         XComponent dataSet, boolean editable) {
@@ -543,9 +545,9 @@ public abstract class OpActivityVersionDataSetFactory {
               .getWorkPeriodVersions().iterator());
       }
       List reusableAttachmentVersions = null;
-      if (planVersion.getAttachmentVersions() != null) {
-         reusableAttachmentVersions = updateOrDeleteAttachmentVersions(broker, dataSet, planVersion
-              .getAttachmentVersions().iterator());
+      if (getAttachmentVersionsFromPlanVersion(planVersion).hasNext()) {
+         reusableAttachmentVersions = updateOrDeleteAttachmentVersions(broker, dataSet,
+              getAttachmentVersionsFromPlanVersion(planVersion));
       }
       List reusableDependencyVersions = null;
       if (planVersion.getDependencyVersions() != null) {
@@ -1169,7 +1171,6 @@ public abstract class OpActivityVersionDataSetFactory {
          else {
             attachment = new OpAttachmentVersion();
          }
-         attachment.setPlanVersion(planVersion);
          attachment.setActivityVersion(activityVersion);
          attachment.setLinked(OpProjectConstants.LINKED_ATTACHMENT_DESCRIPTOR.equals(attachmentElement.get(0)));
          attachment.setName((String) attachmentElement.get(2));
@@ -1333,18 +1334,17 @@ public abstract class OpActivityVersionDataSetFactory {
          }
 
          // Copy attachments and increment ref-count of reused content objects
-         Iterator attachments = projectPlan.getActivityAttachments().iterator();
+         Iterator attachments = OpActivityDataSetFactory.getAttachmentsFromProjectPlan(projectPlan);
          OpAttachment attachment = null;
          OpAttachmentVersion attachmentVersion = null;
          OpContent content = null;
          while (attachments.hasNext()) {
             attachment = (OpAttachment) attachments.next();
-            if (attachment.getActivity().getType() == OpActivity.ADHOC_TASK) {
+            if (((OpActivity) attachment.getObject()).getType() == OpActivity.ADHOC_TASK) {
                continue;
             }
             attachmentVersion = new OpAttachmentVersion();
-            attachmentVersion.setPlanVersion(planVersion);
-            Long activityId = attachment.getActivity().getID();
+            Long activityId = ((OpActivity) attachment.getObject()).getID();
             attachmentVersion.setActivityVersion((OpActivityVersion) activityVersionMap.get(activityId));
             attachmentVersion.setName(attachment.getName());
             attachmentVersion.setLinked(attachment.getLinked());
@@ -1469,11 +1469,9 @@ public abstract class OpActivityVersionDataSetFactory {
 
       // Decrease ref-count of reused content objects (attachments) and delete project plan (uses cascading)
       // Get all attachments, decrease ref-counts and delete content is ref-count is zero
-      Iterator attachments = planVersion.getAttachmentVersions().iterator();
-      OpAttachmentVersion attachment = null;
+      List<OpAttachmentVersion> attachmentList = getAttachmentVersionsFromPlanVersion(broker, planVersion);
       OpContent content = null;
-      while (attachments.hasNext()) {
-         attachment = (OpAttachmentVersion) attachments.next();
+      for (OpAttachmentVersion attachment : attachmentList) {
          if (attachment.getContent() != null) {
             // Decrease ref-count of reused content object; delete if ref-count is zero
             content = attachment.getContent();
@@ -1483,7 +1481,6 @@ public abstract class OpActivityVersionDataSetFactory {
 
       // Finally, delete project plan version object
       broker.deleteObject(planVersion);
-
    }
 
    /**
@@ -1564,5 +1561,42 @@ public abstract class OpActivityVersionDataSetFactory {
          return counter.intValue();
       }
       return 0;
+   }
+
+   /**
+    * Returns a <code>List</code> of attachment versions which are set on the activity versions belonging to the
+    *    <code>OpProjectPlanVersion</code> passed as parameter.
+    *
+    * @param planVersion - the <code>OpProjectPlanVersion</code> for which the attachment versions are returned.
+    * @return a <code>List</code> of attachment versions which are set on the activity versions belonging to the
+    *    <code>OpProjectPlanVersion</code> passed as parameter.
+    */
+   public static List<OpAttachmentVersion> getAttachmentVersionsFromPlanVersion(OpBroker broker, OpProjectPlanVersion planVersion) {
+      OpQuery query = broker.newQuery(GET_ATTACHMENT_VERSIONS_FOR_PLAN_VERSION);
+      query.setLong("planVersionId", planVersion.getID());
+      return broker.list(query);
+   }
+
+   /**
+    * Returns an <code>Iterator</code> over the collection of attachment versions which are set on the activity versions
+    *    belonging to the <code>OpProjectPlanVersion</code> passed as parameter.
+    *    (Note: this method loads all the activity versions belonging to the project plan version and all their
+    *    attachment versions. Use only when these objects are already loaded.)
+    *
+    * @param planVersion - the <code>OpProjectPlanVersion</code> for which the attachment versions are returned.
+    * @return an <code>Iterator</code> over the collection of attachment versions which are set on the activity versions
+    *          belonging to the <code>OpProjectPlanVersion</code> passed as parameter.
+    */
+   private static Iterator<OpAttachmentVersion> getAttachmentVersionsFromPlanVersion(OpProjectPlanVersion planVersion) {
+      Map<String, OpAttachmentVersion> attachmentMap = new HashMap<String, OpAttachmentVersion>();
+      for (OpActivityVersion activityVersion : planVersion.getActivityVersions()) {
+         for (OpAttachmentVersion attachmentVersion : activityVersion.getAttachmentVersions()) {
+            if (attachmentMap.get(attachmentVersion.locator()) == null) {
+               attachmentMap.put(attachmentVersion.locator(), attachmentVersion);
+            }
+         }
+      }
+
+      return attachmentMap.values().iterator();
    }
 }

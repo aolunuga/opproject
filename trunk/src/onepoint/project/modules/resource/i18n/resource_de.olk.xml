@@ -1,6 +1,7 @@
 <language-kit locale="de">
    <resource-map id="resource.module">
       <resource id="AdministrationTool">Verwaltung</resource>
+      <resource id="ResourcesToolGroup">RESSOURCEN</resource>
    </resource-map>
    <resource-map id="resource.resources">
       <resource id="NewPool">Neuer Pool</resource>

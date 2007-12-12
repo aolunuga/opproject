@@ -4,9 +4,11 @@
 
 // Open activity details script
 
-require "onepoint/project/modules/project_planning/scripts/add_resource.jes";
+require
+"onepoint/project/modules/project_planning/scripts/add_resource.jes";
 
-import onepoint.project.modules.project.components.OpGanttValidator;
+import
+onepoint.project.modules.project.components.OpGanttValidator;
 
 function isTemplatePlan() {
    dataSet = XDisplay.getActiveForm().findComponent("ProjectSettingsDataSet");
@@ -155,7 +157,7 @@ function editActivity(event) {
    }
 }
 
-function addAlwaysDisableFields(disabledFieldsIds){
+function addAlwaysDisableFields(disabledFieldsIds) {
    size = disabledFieldsIds.size();
    if (size == 0) {
       index = 0;
@@ -183,13 +185,13 @@ function setDurationValue(duration_field, duration) {
          durationUnit = durationColumn.getDisplayUnit();
       }
       //if the parent form has an activity table but the table has no duration column: show the duration in days
-      else{
+      else {
          //DAYS
          durationUnit = Byte.parseByte("2");
       }
    }
-   //if the parent form doesn't have the activity table always show the duration in days 
-   else{
+   //if the parent form doesn't have the activity table always show the duration in days
+   else {
       //DAYS
       durationUnit = Byte.parseByte("2");
    }
@@ -219,6 +221,7 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       // Create dialog and load form
       dialog = XComponent.newDialog();
       parameters.activity_id = selected_rows[0].getStringValue();
+      parameters.activity_type = selected_rows[0].getChild(1).getValue();
       dialog_form = dialog.loadForm(getEditDialogForm(), parameters);
       if (edit_mode) {
          titleComponentId = "Edit" + titleComponentId;
@@ -346,11 +349,17 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       //priority
       data_cell = data_row.getChild(23);
       field_id = "Priority";
-      if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
-         priority_field = dialog_form.findComponent(field_id);
+      field_label = "PriorityLabel";
+      priority_field = dialog_form.findComponent(field_id);
+      priority_label = dialog_form.findComponent(field_label);
+      if (data_cell.getValue() != null) {
          priority = data_cell.getByteValue().toInt();
          priority_field.setIntValue(priority);
          setFieldEditMode(edit_mode, priority_field, disabledFieldsIds);
+      }
+      else {
+         priority_field.setVisible(false);
+         priority_label.setVisible(false);
       }
 
       //mandatory (from attributes)
@@ -378,7 +387,8 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       if (assignmentsSet != null) {
          while (i < assignmentsSet.getChildCount()) {
             dataRow = assignmentsSet.getChild(i);
-            responsibleSet.addChild(dataRow);
+            newRow = dataRow.copyData();
+            responsibleSet.addChild(newRow);
             i++;
          }
       }
@@ -503,7 +513,7 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          setButtonVisibleMode(edit_mode, add_icon_button);
          remove_icon_button = dialog_form.findComponent("PredecessorRemoveIcon");
          setButtonVisibleMode(edit_mode, remove_icon_button);
-       }
+      }
 
       //costs tab
       if (!shouldHideTab("CostsTab", hiddenTabsIds, dialog_form)) {

@@ -84,11 +84,6 @@ public class OpRepositoryService extends OpProjectService {
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage backup(OpProjectSession projectSession, XMessage request) {
-      //only admin can perform operation
-      if (!projectSession.userIsAdministrator()) {
-         return createErrorMessage(projectSession, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
-      }
-
       File backupFile = getBackupFile(request);
       if (backupFile == null) {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
@@ -168,11 +163,6 @@ public class OpRepositoryService extends OpProjectService {
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage restore(OpProjectSession projectSession, XMessage request) {
-      //only admin can perform operation
-      if (!projectSession.userIsAdministrator()) {
-         return createErrorMessage(projectSession, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
-      }
-
       File restoreFile = new File((String) request.getArgument(RESTORE_FILE_PARAMENTER));
       if (!restoreFile.exists() || restoreFile.isDirectory()) {
          return createErrorMessage(projectSession, OpRepositoryError.RESTORE_ERROR_CODE);
@@ -201,11 +191,6 @@ public class OpRepositoryService extends OpProjectService {
     * @return a <code>XMessage</code> representing the server reponse.
     */
    public XMessage reset(OpProjectSession projectSession, XMessage request) {
-      //only admin can perform operation
-      if (!projectSession.userIsAdministrator()) {
-         return createErrorMessage(projectSession, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
-      }
-
       XMessage reply = validateAdminPassword(projectSession, request);
       if (reply != null) {
          return reply;

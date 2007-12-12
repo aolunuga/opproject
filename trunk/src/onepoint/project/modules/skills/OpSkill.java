@@ -6,12 +6,13 @@ package onepoint.project.modules.skills;
 
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpSubTypable;
 import onepoint.service.server.XServiceException;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class OpSkill extends OpObject {
+public class OpSkill extends OpObject implements OpSubTypable {
 
 //   public final static String SKILL_CATEGORY = "OpResourcePool";
 
@@ -21,7 +22,7 @@ public class OpSkill extends OpObject {
 
    public static final byte SKILL_TYPE = 1;
    public static final byte CATEGORY_TYPE = 2;
-
+   
    public final static String SUB_SKILLS = "SubSkills";
 
    // Root resource pool
@@ -37,6 +38,8 @@ public class OpSkill extends OpObject {
    private OpSkill superCategory;
    private Set<OpSkillRating> ratings;
 
+   private boolean active = true;
+   
    /**
     * 
     */
@@ -59,7 +62,7 @@ public class OpSkill extends OpObject {
       return subSkills;
    }
 
-   public byte getType() {
+   public Byte getType() {
       return type;
    }
    
@@ -128,4 +131,21 @@ public class OpSkill extends OpObject {
       }
       this.ratings.add(rating);
    }
+
+   /**
+    * Gets the value of the active flag.
+    * @return a <code>boolean</code> indicating whether the category is active or not.
+    */
+   public boolean getActive() {
+      return active;
+   }
+
+   /**
+    * Sets the value of the active flag.
+    * @param active a <code>boolean</code> indicating whether the category is active or not.
+    */
+   public void setActive(boolean active) {
+      this.active = active;
+   }
+
 }

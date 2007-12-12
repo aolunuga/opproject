@@ -151,6 +151,17 @@ public class OpBaseTestCase extends OpTestCase {
    public static void assertError(XMessage message, int errorCode) {
       assertNotNull("XMessage is null, expected to contain an error!", message);
       XError error = message.getError();
+      assertError(error, errorCode);
+   }
+      
+   /**
+    * @param error
+    * @param errorCode
+    * @return
+    * @pre
+    * @post
+    */
+   public static void assertError(XError error, int errorCode) {
       assertNotNull("Error message should have been returned", error);
       int foundErrorCode = error.getCode();
       // do not check error code in case DUMMY code was used.
@@ -158,7 +169,6 @@ public class OpBaseTestCase extends OpTestCase {
       assertNotNull("Error should contain an error name.", error.getName());
       assertNotNull("Error should contain an error message.", error.getName());
    }
-
 
    /**
     * Deletes all the objects of the given prototype. 

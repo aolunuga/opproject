@@ -73,7 +73,7 @@ public final class OpProjectDataSetFactory {
    private static final String GET_LOCK_COUNT_FOR_PROJECT_NODE =
         "select count(lock.ID) from OpLock lock where lock.Target = (:project)";
    private static final String GET_ACTIVITY_COUNT_FOR_PROJECT_PLAN =
-        "select count(activity.ID) from OpActivity activity where activity.ProjectPlan = (:projectPlanId)";
+        "select count(activity.ID) from OpActivity activity where activity.ProjectPlan = (:projectPlanId) and activity.Deleted = false";
    private static final String GET_PLAN_VERSION_COUNT_FOR_PROJECT_PLAN =
         "select count(planVersion.ID) from OpProjectPlanVersion planVersion where planVersion.ProjectPlan = (:projectPlanId)";
    private static final String GET_PROJECT_COUNT_FOR_PROJECT_STATUS =
@@ -640,7 +640,7 @@ public final class OpProjectDataSetFactory {
          //for regular projects calculate the values of the cells
          else {
             XComponent effortDataSet = new XComponent(XComponent.DATA_SET);
-            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet);
+            OpProjectResourceDataSetFactory.fillEffortDataSet(broker, projectNode, 0, effortDataSet, false);
 
             XComponent costDataSet = new XComponent(XComponent.DATA_SET);
             OpProjectCostsDataSetFactory.fillCostsDataSet(broker, projectNode, 0, costDataSet, null);

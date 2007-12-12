@@ -6,13 +6,9 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpRelationship;
-import onepoint.persistence.OpTypeManager;
+import onepoint.persistence.*;
 import onepoint.persistence.sql.OpSqlStatement;
 import onepoint.persistence.sql.OpSqlStatementFactory;
-import org.hibernate.dialect.Dialect;
 import org.hibernate.type.NullableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
@@ -64,9 +60,14 @@ public final class OpHibernateSchemaUpdater {
    private static final List EXCLUDE_INDEX_NAMES = Arrays.asList("PRIMARY");
 
    /**
-    * A map of table metadata.
+    * A map of table type related metadata.
     */
-   private Map<String, Map> tableMetaData = new HashMap<String, Map>();
+   private Map<String, Map> typeMetaData = new HashMap<String, Map>();
+
+   /**
+    * A map of table length related metadata
+    */
+   private Map<String, Integer> lengthMetaData = new HashMap<String, Integer>();
 
    /**
     * DB dependent sql statement.
@@ -101,10 +102,9 @@ public final class OpHibernateSchemaUpdater {
     * Creates the list of SQL instructions that update the existing database, to match the current entity structure.
     *
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
-    * @param dialect
     * @return a <code>List</code> of <code>String</code> representing db information.
     */
-   public List<String> generateUpdateSchemaScripts(DatabaseMetaData dbMetaData, Dialect dialect) {
+   public List<String> generateUpdateSchemaScripts(DatabaseMetaData dbMetaData) {
       //add the hi/lo generator statement
       List<String> updateStatements = new ArrayList<String>();
       try {
@@ -114,7 +114,7 @@ public final class OpHibernateSchemaUpdater {
          Iterator it = OpTypeManager.getPrototypes();
          while (it.hasNext()) {
             OpPrototype prototype = (OpPrototype) it.next();
-            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype, dbMetaData, dialect));
+            updateStatements.addAll(generateUpdateTableColumnsScripts(prototype, dbMetaData));
          }
 
          //drop old tables
@@ -328,9 +328,11 @@ public final class OpHibernateSchemaUpdater {
          while (rs1.next()) {
             String columnName = rs1.getString("COLUMN_NAME");
             Short columnType = new Short(rs1.getShort("DATA_TYPE"));
+            Integer columnLength = rs1.getInt("COLUMN_SIZE");
+            this.lengthMetaData.put(columnName,  columnLength);
             tableColumnsMetaData.put(columnName, columnType);
          }
-         this.tableMetaData.put(tableName, tableColumnsMetaData);
+         this.typeMetaData.put(tableName, tableColumnsMetaData);
       }
    }
 
@@ -339,66 +341,98 @@ public final class OpHibernateSchemaUpdater {
     *
     * @param prototype  a <code>OpPrototype</code> representing a prototype registered by the application.
     * @param dbMetaData a <code>DatabaseMetaData</code> object, containing information about the db.
-    * @param dialect
     * @return a <code>List</code> of <code>String</code> representing a list of SQL statements.
     */
-   private List<String> generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData, Dialect dialect) {
+   private List<String> generateUpdateTableColumnsScripts(OpPrototype prototype, DatabaseMetaData dbMetaData) {
       List<String> result = new ArrayList<String>();
       if (statement != null) {
 
          Iterator membersIt = prototype.getMembers();
          while (membersIt.hasNext()) {
             OpMember member = (OpMember) membersIt.next();
-            //relationships are not taken into account
-            if (member instanceof OpRelationship) {
+            //relationships are not taken into account and only declared members are taken into account
+            if (member instanceof OpRelationship ||  !prototype.containsDeclaredMember(member)) {
                continue;
             }
-            //find out the sql type for our current registered prototype
-            String hibernateTypeName = OpMappingsGenerator.getHibernateTypeName(member.getTypeID());
-            if (hibernateTypeName == null) {
-               logger.info("Cannot get hibernate type for OpType.id:" + member.getTypeID());
-               continue;
-            }
-            Type hibernateType = TypeFactory.basic(hibernateTypeName);
-            //only upgrade for primitive types
-            if (!(hibernateType instanceof NullableType)) {
-               continue;
-            }
-            int hibernateSqlType = ((NullableType) hibernateType).sqlType();
-
-            //now find out what we have in the db
-            String tableName = OpMappingsGenerator.generateTableName(prototype.getName());
-            Map columnMetaData = this.tableMetaData.get(tableName);
-            if (columnMetaData == null) {
-               logger.info("No metadata found for table:" + tableName);
-               continue;
-            }
-            String columnName = OpMappingsGenerator.generateColumnName(member.getName());
-            Short columnType = (Short) columnMetaData.get(columnName);
-            if (columnType == null) {
-               logger.info("No metadata found for column:" + columnName);
-               continue;
-            }
-
-            //<FIXME author="Mihai Costin" description="The dialect should help us here instead of the manual mapping done in getColumnType">
-            if (columnType != statement.getColumnType(hibernateSqlType) && columnType != Types.OTHER) {
-            //</FIXME>
-               
-               //drop al fk constraints for this column before changing it's type
-               List<String> dropFkConstraints = generateDropFKConstraints(tableName, columnName, dbMetaData);
-               for (String fkConstraint : dropFkConstraints) {
-                  logger.info("Adding drop FK statement: " + fkConstraint);
-                  result.add(fkConstraint);
-               }
-
-               List<String> sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
-               logger.info("Adding update statement: " + sqlStatement);
-               result.addAll(sqlStatement);
-
-            }
+            result.addAll(checkTypeChanges(prototype.getName(), dbMetaData, member));
+            result.addAll(checkLengthChanges(prototype.getName(), member));
          }
-
       }
       return result;
    }
+
+   /**
+    * Checks if there are any type changes between the existent db and the current objects.
+    * @param prototypeName a <code>String</code> the name of a prototype
+    * @param dbMetaData a <code>DatabaseMetaData</code> object.
+    * @param member  a <code>OpMember</code> from the prototype.
+    * @return a <code>List(String)</code> list of statements
+    */
+   private  List<String> checkTypeChanges(String prototypeName, DatabaseMetaData dbMetaData, OpMember member) {
+      List<String> result = new ArrayList<String>();
+      //find out the sql type for our current registered prototype
+      String hibernateTypeName = OpMappingsGenerator.getHibernateTypeName(member.getTypeID());
+      if (hibernateTypeName == null) {
+         logger.info("Cannot get hibernate type for OpType.id:" + member.getTypeID());
+         return result;
+      }
+      Type hibernateType = TypeFactory.basic(hibernateTypeName);
+      //only upgrade for primitive types
+      if (!(hibernateType instanceof NullableType)) {
+         return result;
+      }
+      int hibernateSqlType = ((NullableType) hibernateType).sqlType();
+
+      //now find out what we have in the db
+      String tableName = OpMappingsGenerator.generateTableName(prototypeName);
+      Map columnMetaData = this.typeMetaData.get(tableName);
+      if (columnMetaData == null) {
+         logger.info("No metadata found for table:" + tableName);
+         return result;
+      }
+      String columnName = OpMappingsGenerator.generateColumnName(member.getName());
+      Short columnType = (Short) columnMetaData.get(columnName);
+      if (columnType == null) {
+         logger.info("No metadata found for column:" + columnName);
+         return result;
+      }
+
+      //<FIXME author="Mihai Costin" description="The dialect should help us here instead of the manual mapping done in getColumnType">
+      if (columnType != statement.getColumnType(hibernateSqlType) && columnType != Types.OTHER) {
+      //</FIXME>
+
+         //drop al fk constraints for this column before changing it's type
+         List<String> dropFkConstraints = generateDropFKConstraints(tableName, columnName, dbMetaData);
+         for (String fkConstraint : dropFkConstraints) {
+            logger.info("Adding drop FK statement: " + fkConstraint);
+            result.add(fkConstraint);
+         }
+
+         List<String> sqlStatement = statement.getAlterColumnTypeStatement(tableName, columnName, hibernateSqlType);
+         logger.info("Adding update statement: " + sqlStatement);
+         result.addAll(sqlStatement);
+      }
+      return result;
+   }
+
+   /**
+    * Checks if there are any type changes between the existent db and the current objects.
+    * @param prototypeName a <code>String</code> the name of a prototype
+    * @param member  a <code>OpMember</code> from the prototype.
+    * @return a <code>List(String)</code> list of statements
+    */
+   private  List<String> checkLengthChanges(String prototypeName,  OpMember member) {
+      List<String> result = new ArrayList<String>();
+      if (member.getTypeID() == OpType.TEXT) {
+         String tableName = OpMappingsGenerator.generateTableName(prototypeName);
+         String columnName = OpMappingsGenerator.generateColumnName(member.getName());
+         Integer currentLength = this.lengthMetaData.get(columnName);
+         if (currentLength < OpTypeManager.MAX_TEXT_LENGTH) {
+            logger.warn("Column " + columnName + " of table " + tableName + " has a length of " + currentLength + ". Upgrading length to " + OpTypeManager.MAX_TEXT_LENGTH);
+            result.addAll(this.statement.getAlterTextColumnLengthStatement(tableName, columnName, OpTypeManager.MAX_TEXT_LENGTH));
+         }
+      }
+      return result;
+   }
+
 }

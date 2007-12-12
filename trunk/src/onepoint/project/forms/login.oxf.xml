@@ -1,6 +1,7 @@
 <form layout="border" provider-class="onepoint.project.forms.OpLoginFormProvider" resource-map-ref="main.login"
       default-button-ref="okButton" start-focus-ref="Login" script="/scripts/login.jes" on-show="showForm">
    <data-set id="UserDataSet"/>
+   <data-field id="StartForm"/>
    <panel layout="border" style-ref="login-background-panel-default">
       <panel layout="border" icon="/icons/login.png" flexible="false">
          <panel layout="table" width="5" style-ref="login-panel-default">

@@ -4,6 +4,7 @@
 
 package onepoint.project.util;
 
+import onepoint.express.util.XConstants;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.util.XEnvironmentManager;
@@ -56,6 +57,11 @@ public final class OpEnvironmentManager {
    private static final Map PRODUCT_CODES_MAP = new HashMap();
 
    /**
+    * A map of [productCode, String] pairs, indicating which start form should be used for each type of application.
+    */
+   private static final Map CODE_START_FORM_MAP = new HashMap();
+
+   /**
     * Initialize the product codes map
     */
    static {
@@ -65,6 +71,13 @@ public final class OpEnvironmentManager {
       PRODUCT_CODES_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, Boolean.TRUE);
       PRODUCT_CODES_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, Boolean.TRUE);
+
+      CODE_START_FORM_MAP.put(OpProjectConstants.BASIC_EDITION_CODE, "/forms/start.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "/team/forms/start.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.OPEN_EDITION_CODE, "/forms/login.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.TEAM_EDITION_CODE, "/team/forms/login.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.ON_DEMAND_EDITION_CODE, "/team/forms/login.oxf.xml");
+      CODE_START_FORM_MAP.put(OpProjectConstants.NETWORK_EDITION_CODE, "/team/forms/login.oxf.xml");
    }
 
    /**
@@ -158,6 +171,7 @@ public final class OpEnvironmentManager {
     */
    public static void setOnePointHome(String onepointHome) {
       envProps.setProperty(ONEPOINT_HOME, XEnvironmentManager.convertPathToSlash(onepointHome));
+      System.setProperty(XConstants.LOGGER_HOME, envProps.getProperty(ONEPOINT_HOME)+XConstants.LOGGER_FOLDER);
    }
 
    /**
@@ -248,6 +262,15 @@ public final class OpEnvironmentManager {
     */
    public static String getProductCode() {
       return productCode;
+   }
+
+   /**
+    * Returns the path of the start form of the application based on the product code.
+    *
+    * @return start form path.
+    */
+   public static String getStartForm() {
+      return (String) CODE_START_FORM_MAP.get(getProductCode());
    }
 
    /**

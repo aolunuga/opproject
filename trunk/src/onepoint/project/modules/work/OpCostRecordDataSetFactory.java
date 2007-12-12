@@ -8,7 +8,10 @@ import onepoint.express.XValidator;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.validators.OpWorkCostValidator;
 import onepoint.resource.XLanguageResourceMap;
@@ -274,14 +277,9 @@ public class OpCostRecordDataSetFactory {
       //set the attachments
       List<List> attachmentList = ((XComponent) dataRow.getChild(OpWorkCostValidator.ATTACHMENT_INDEX)).getListValue();
       if (attachmentList != null && !attachmentList.isEmpty()) {
-         Set<OpAttachment> attachments = new HashSet<OpAttachment>();
          for (List attachmentElement : attachmentList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null, null);
-            if (attachment != null) {
-               attachments.add(attachment);
-            }
+            OpActivityDataSetFactory.createAttachment(broker, costRecord, attachmentElement, null);            
          }
-         costRecord.setAttachments(attachments);
       }
       return costRecord;
    }

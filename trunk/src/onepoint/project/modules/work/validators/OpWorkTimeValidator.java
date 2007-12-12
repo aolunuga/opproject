@@ -35,7 +35,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
    private static final String INTERVALS_OVERLAP_EXCEPTION = "IntervalsOverlapException";
    private static final String EFFORT_DATA_SET = "WorkEffortRecordSet";
 
-   private XComponent hoursDataSet;
+   private OpWorkEffortValidator hoursValidator;
 
    /**
     * Validates the data set.
@@ -385,23 +385,32 @@ public class OpWorkTimeValidator extends OpWorkValidator {
       setValue(dataRow, ACTIVITY_NAME_INDEX, value);
    }
 
-   /**
-    * Gets the hours effort data set.
-    *
-    * @return Hours effort data set.
-    */
-   private XComponent getHoursDataSet() {
-      if (hoursDataSet == null) {
+   public OpWorkEffortValidator getHoursValidator() {
+      //if the hours validator was previously set just return it
+      if (hoursValidator != null) {
+         return hoursValidator;
+      }
+      //if it was not set get it from the form's effort dataset
+      else {
          XComponent form = data_set.getForm();
+         XComponent hoursDataSet = null;
          if (form != null) {
             hoursDataSet = form.findComponent(EFFORT_DATA_SET);
          }
-         if (hoursDataSet == null) {
-            hoursDataSet = new XComponent(XComponent.DATA_SET);
+         if (hoursDataSet != null) {
+            hoursValidator = (OpWorkEffortValidator) hoursDataSet.validator();
          }
+
+         if (hoursValidator == null) {
+            throw new IllegalStateException("Illegal state between the time dataset, hours dataset and their validators in WorkSlips");
+         }
+         return hoursValidator;
       }
-      return hoursDataSet;
    }
+
+   public void setHoursValidator(OpWorkEffortValidator hoursValidator) {
+      this.hoursValidator = hoursValidator;
+   }  
 
    /**
     * Iterates the time data set and for each row with assignment value set it calculates the actual effort.
@@ -424,8 +433,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
       }
 
       //update values from the hours data set
-      XComponent hours = getHoursDataSet();
-      OpWorkEffortValidator hoursValidator = (OpWorkEffortValidator) hours.validator();
+      XComponent hours = getHoursValidator().getDataSet();
 
       for (int i = 0; i < hours.getChildCount(); i++) {
          XComponent hourRow = (XComponent) hours.getChild(i);
@@ -435,13 +443,13 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             if (newEffort != null) {
                //update with the new activity
                Double actualEffort = new Double(newEffort.doubleValue() / XCalendar.MINUTES_PER_HOUR);
-               hoursValidator.setDataCellValue(hourRow, OpWorkEffortValidator.ACTUAL_EFFORT_INDEX, actualEffort);
+               getHoursValidator().setDataCellValue(hourRow, OpWorkEffortValidator.ACTUAL_EFFORT_INDEX, actualEffort);
                //remove entry from map
                efforts.remove(locator);
             }
             else {
                //remove it if it's not a milestone
-               Byte type = hoursValidator.getActivityType(hourRow);
+               Byte type = getHoursValidator().getActivityType(hourRow);
                if (type != null && type.byteValue() != OpGanttValidator.MILESTONE) {
                   hours.removeChild(hourRow);
                }
@@ -464,28 +472,28 @@ public class OpWorkTimeValidator extends OpWorkValidator {
 
          if (timeRow != null) {
             Integer effort = (Integer) entry.getValue();
-            XComponent hourRow = hoursValidator.newDataRow();
+            XComponent hourRow = getHoursValidator().newDataRow();
             hourRow.setValue(entry.getKey());
 
-            hoursValidator.setProject(hourRow, this.getProject(timeRow));
+            getHoursValidator().setProject(hourRow, this.getProject(timeRow));
             String resourceChoice = this.getResource(timeRow);
-            hoursValidator.setResource(hourRow, resourceChoice);
+            getHoursValidator().setResource(hourRow, resourceChoice);
             String activityChoice = this.getActivity(timeRow);
-            hoursValidator.setActivity(hourRow, activityChoice);
+            getHoursValidator().setActivity(hourRow, activityChoice);
             Byte type = getActivityTypeForChoice(activityChoice);
-            hoursValidator.setActivityType(hourRow, type);
-            hoursValidator.enableRowForActivityType(hourRow, type.byteValue(), isProgressTracked(timeRow));
-            hoursValidator.updateEffortCells(activityChoice, resourceChoice, hourRow, isProgressTracked(hourRow), getAssignmentMap());
+            getHoursValidator().setActivityType(hourRow, type);
+            getHoursValidator().enableRowForActivityType(hourRow, type.byteValue(), isProgressTracked(timeRow));
+            getHoursValidator().updateEffortCells(activityChoice, resourceChoice, hourRow, isProgressTracked(hourRow), getAssignmentMap());
 
             Double actualEffort = new Double(effort.doubleValue() / XCalendar.MINUTES_PER_HOUR);
-            hoursValidator.setActualEffort(hourRow, actualEffort);
+            getHoursValidator().setActualEffort(hourRow, actualEffort);
             if (isProgressTracked(hourRow)) {
                Double originalRemaining = (Double) ((XComponent) hourRow.getChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX)).getValue();
                double remainingValue = originalRemaining.doubleValue() - actualEffort.doubleValue();
                if (remainingValue < 0) {
                   remainingValue = 0;
                }
-               hoursValidator.setRemainingEffort(hourRow, new Double(remainingValue));
+               getHoursValidator().setRemainingEffort(hourRow, new Double(remainingValue));
             }
 
             hourRow.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
@@ -493,7 +501,7 @@ public class OpWorkTimeValidator extends OpWorkValidator {
             hourRow.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
             hourRow.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
 
-            hoursValidator.setEnabled(hourRow, false);
+            getHoursValidator().setEnabled(hourRow, false);
             hours.addDataRow(hourRow);
          }
       }

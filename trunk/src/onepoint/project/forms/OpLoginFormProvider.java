@@ -10,9 +10,6 @@ import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
-import onepoint.service.XMessage;
-import onepoint.service.server.XService;
-import onepoint.service.server.XServiceManager;
 import onepoint.service.server.XSession;
 
 import java.util.HashMap;
@@ -27,14 +24,15 @@ public class OpLoginFormProvider implements XFormProvider {
    /**
     * Request parameter names.
     */
+   protected static final String ERROR_LABEL_ID = "ErrorLabel";
    private static final String SESSION_EXPIRED = "sessionExpired";
-   private static final String ERROR_LABEL_ID = "ErrorLabel";
    private static final String LOGIN_FIELD = "Login";
    private static final String PASSWORD_FIELD = "Password";
    private static final String OK_BUTTON = "okButton";
    private static final String REMEMBER_CHECK_BOX = "Remember";
    private static final String ERROR_MAP = "main.error";
    private static final String SESSION_EXPIRED_ERROR = "${SessionExpired}";
+   protected static final String START_FORM = "StartForm";
 
 
    /**
@@ -44,6 +42,9 @@ public class OpLoginFormProvider implements XFormProvider {
 
       OpProjectSession projectSession = (OpProjectSession) session;
       String localeId = projectSession.getLocale().getID();
+
+      //set the start form
+      setStartForm(form);
 
       //check the run level
       String errorText = OpRunLevelErrorFormProvider.getErrorResourceFromRunLevel(parameters, localeId, "main.levels");
@@ -58,12 +59,7 @@ public class OpLoginFormProvider implements XFormProvider {
          checkSessionExpired(parameters, localeId, form);
 
          //check license
-         if(checkLicenseErrors(form, session)){
-            disableFields(form);
-         }
-         else{
-            checkLicenseWarnings(form, session);
-         }
+         checkLicense(form, session);
 
          //mark the session as valid (in case it was invalidated)
          session.validate();
@@ -71,46 +67,12 @@ public class OpLoginFormProvider implements XFormProvider {
    }
 
    /**
-    * Checks the if the license has errors.
+    * Checks if the license has errors and/or warnings.
     *
     * @param form    a <code>XComponent(FORM)</code> representing the login form.
     * @param session a <code>XSession</code> representing the server session.
     */
-   private boolean checkLicenseErrors(XComponent form, XSession session) {
-      boolean errorOccured = false;
-      XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
-      XService service = XServiceManager.getService(OpProjectConstants.LICENSE_SERVICE_NAME);
-      if (service != null) {
-         XMessage response = service.invokeMethod(session, "checkLicenseErrors", new XMessage());
-         if (response != null) {
-            if (response.getError() != null) {
-               errorLabel.setText(response.getError().getMessage());
-               errorLabel.setVisible(true);
-               errorOccured = true;
-            }
-         }
-      }
-      return errorOccured;
-   }
-
-   /**
-    * Checks if the license has any warnings.
-    *
-    * @param form    a <code>XComponent(FORM)</code> representing the login form.
-    * @param session a <code>XSession</code> representing the server session.
-    */
-   private void checkLicenseWarnings(XComponent form, XSession session) {
-      XComponent errorLabel = form.findComponent(ERROR_LABEL_ID);
-      XService service = XServiceManager.getService(OpProjectConstants.LICENSE_SERVICE_NAME);
-      if (service != null) {
-         XMessage response = service.invokeMethod(session, "checkLicenseWarnings", new XMessage());
-         if (response != null) {
-            if (response.getError() != null) {
-               errorLabel.setText(response.getError().getMessage());
-               errorLabel.setVisible(true);
-            }
-         }
-      }
+   protected void checkLicense(XComponent form, XSession session) {
    }
 
    /**
@@ -133,10 +95,14 @@ public class OpLoginFormProvider implements XFormProvider {
    /**
     *  Disables login fields.
     */
-   private void disableFields(XComponent form) {
+   protected void disableFields(XComponent form) {
       form.findComponent(LOGIN_FIELD).setEnabled(false);
       form.findComponent(PASSWORD_FIELD).setEnabled(false);
       form.findComponent(OK_BUTTON).setVisible(false);
       form.findComponent(REMEMBER_CHECK_BOX).setVisible(false);
+   }
+
+   protected void setStartForm(XComponent form) {
+      form.findComponent(START_FORM).setStringValue(OpProjectConstants.OPEN_START_FORM);
    }
 }

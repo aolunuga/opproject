@@ -31,26 +31,29 @@ public class OpServiceInterceptor extends XServiceInterceptor {
     */
    private List<OpBroker> exceptBrokers = null;
 
-
    /**
     * @see onepoint.service.server.XServiceInterceptor#beforeAdvice(onepoint.service.server.XService,java.lang.reflect.Method,Object[])
     */
+   @Override
    public void beforeAdvice(XService service, Method method, Object[] arguments) {
-      logger.info("Applying before advice...");
+      logger.debug("Applying before advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
-      exceptBrokers = new ArrayList<OpBroker>(session.getBrokerList());
+      if (session != null) {
+         exceptBrokers = new ArrayList<OpBroker>(session.getBrokerList());
+      }
    }
 
    /**
     * @see onepoint.service.server.XServiceInterceptor#afterAdvice(onepoint.service.server.XService,java.lang.reflect.Method,Object[])
     */
+   @Override
    public void afterAdvice(XService service, Method method, Object[] arguments) {
-      logger.info("Applying after advice...");
+      logger.debug("Applying after advice...");
       OpProjectSession session = this.getProjectSesssion(arguments);
       if (session != null) {
          session.cleanupSession(exceptBrokers, false);
+         exceptBrokers.clear();
       }
-      exceptBrokers.clear();
    }
 
    /**
@@ -60,7 +63,7 @@ public class OpServiceInterceptor extends XServiceInterceptor {
     * @return a <code>OpProjectSession</code> instance representing the session with which the service method was called,
     *         or <code>null</code> if there isn't any.
     */
-   private OpProjectSession getProjectSesssion(Object[] arguments) {
+   protected OpProjectSession getProjectSesssion(Object[] arguments) {
       for (int i = 0; i < arguments.length; i++) {
          Object argument = arguments[i];
          if (argument instanceof OpProjectSession) {

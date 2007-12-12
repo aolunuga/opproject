@@ -49,7 +49,7 @@ public class OpWorkRecordTest extends OpTestCase {
       OpTimeRecord timeRecord = new OpTimeRecord();
 
       //no time record is associated with the work record
-      workRecord.setTimeRecords(timeRecords);
+      workRecord.addTimeRecords(timeRecords);
       workRecord.validate();
 
       //i)start - end: 22 - 29
@@ -168,7 +168,7 @@ public class OpWorkRecordTest extends OpTestCase {
        workRecord.setMiscellaneousCosts(0d);
 
        Set<OpTimeRecord> timeRecords = new HashSet<OpTimeRecord>();
-       workRecord.setTimeRecords(timeRecords);
+       workRecord.addTimeRecords(timeRecords);
        OpTimeRecord timeRecord1 = new OpTimeRecord();
        OpTimeRecord timeRecord2 = new OpTimeRecord();
 

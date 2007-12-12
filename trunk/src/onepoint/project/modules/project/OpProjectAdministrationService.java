@@ -64,6 +64,7 @@ public class OpProjectAdministrationService extends OpProjectService {
    private final static String PROJECT_ROW_PARAMETER = "project_row";
    private final static String TYPES_PARAMETER = "project_types";
    private final static String TABULAR_PARAMETER = "tabular";
+   private final static String MODIFIED_RATES = "modified_rates";
 
    public final static int ADJUST_RATES_COLUMN_INDEX = 2;
    public final static int INTERNAL_PROJECT_RATE_COLUMN_INDEX = 3;
@@ -127,6 +128,25 @@ public class OpProjectAdministrationService extends OpProjectService {
          logger.warn("Given portfolio locator is null. Project will be added to root portfolio");
          portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
       }
+
+      byte userAccessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+
+      if (userAccessLevel != OpPermission.ADMINISTRATOR) {
+         double budget = ((Double) project_data.get(OpProjectNode.BUDGET)).doubleValue();
+         String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+
+         if (budget != 0) {
+            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+            reply.setError(error);
+            return reply;
+         }
+
+         if (!statusLocator.equals(NULL_ID)) {
+            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+            reply.setError(error);
+            return reply;
+         }
+      }
       project.setSuperNode(portfolio);
 
       // Check manager access for portfolio
@@ -150,7 +170,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       //insert project attachments
       XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
       List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
-      insertAttachments(broker, project, attachmentsList);
+      List<OpAttachment> attachmentList = insertAttachments(broker, project, attachmentsList);
 
       broker.makePersistent(project);
 
@@ -214,7 +234,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          return reply;
       }
       //copy the permissions from the projects to the attachments belonging to the project
-      for (OpAttachment attachment : project.getAttachments()) {
+      for (OpAttachment attachment : attachmentList) {
          result = OpPermissionDataSetFactory.storePermissionSet(broker, session, attachment, permission_set);
          if (result != null) {
             reply.setError(result);
@@ -314,23 +334,20 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Inserts the attachments related to the project passed as a parameter.
     *
-    * @param broker
+    * @param broker          - the <code>OpBroker</code> needed to perform the DB operations
     * @param project         - the project for which the attachments are inserted
     * @param attachmentsList - the <code>List</code> containing the information about the project attachments
+    * @return the <code>List</code> of newly inserted attachments.
     */
-   private void insertAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
-
-      //set the attachments
+   private List<OpAttachment> insertAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
+      List<OpAttachment> attachmentList = new ArrayList<OpAttachment>();
       if (attachmentsList != null && !attachmentsList.isEmpty()) {
-         Set<OpAttachment> attachments = new HashSet<OpAttachment>();
          for (List attachmentElement : attachmentsList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null, project);
-            if (attachment != null) {
-               attachments.add(attachment);
-            }
+            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, project, attachmentElement, null);
+            attachmentList.add(attachment);
          }
-         project.setAttachments(attachments);
       }
+      return attachmentList;
    }
 
    /**
@@ -455,10 +472,19 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
 
+         byte projectAccesssLevel = session.effectiveAccessLevel(broker, project.getID());
          Date originalStartDate = project.getStart();
 
          try {
+            double oldBudget = project.getBudget();
             project.fillProjectNode(project_data);
+            double newBudget = project.getBudget();
+
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && (oldBudget != newBudget)) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+               reply.setError(error);
+               return reply;
+            }
          }
          catch (OpEntityException e) {
             reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
@@ -499,9 +525,20 @@ public class OpProjectAdministrationService extends OpProjectService {
          OpProjectStatus oldStatus = project.getStatus();
          if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
             status = (OpProjectStatus) (broker.getObject(statusLocator));
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
             project.setStatus(status);
          }
          else {
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && (project.getStatus() != null)) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+
             project.setStatus(null);
          }
 
@@ -546,7 +583,7 @@ public class OpProjectAdministrationService extends OpProjectService {
 
          // update project plan versions (must be done before deleting the versions)
          XComponent versionDataSet = (XComponent) request.getArgument(VERSIONS_SET);
-         updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
+         List<OpProjectPlanVersion> versionsToDelete = updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
 
          //update project assignments
          XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
@@ -581,11 +618,16 @@ public class OpProjectAdministrationService extends OpProjectService {
          XCalendar xCalendar = session.getCalendar();
          //update personnel & actual costs
          updatePersonnelCostsForWorkingVersion(broker, xCalendar, project);
-         updateActualCosts(broker, project);
+
+         //update the actual costs only if there were some modifications on the resource rates or hourly rates
+         if ((Boolean) request.getArgument(MODIFIED_RATES)) {
+            updateActualCosts(broker, project);
+         }
 
          transaction.commit();
+
          //delete unused status if it is inactive and it is no longer refered by another project
-         if (oldStatus != null && ! oldStatus.getActive()) {
+         if (oldStatus != null && !oldStatus.getActive()) {
             oldStatus = (OpProjectStatus) broker.getObject(OpProjectStatus.class, oldStatus.getID());
             if (oldStatus.getProjects().size() == 0) {
 
@@ -599,6 +641,16 @@ public class OpProjectAdministrationService extends OpProjectService {
                statusService.deleteProjectStatus(session, requestDelete);
 
             }
+         }
+
+         broker.close();
+         for (OpProjectPlanVersion version : versionsToDelete) {
+            broker = session.newBroker();
+            transaction = broker.newTransaction();            
+            version = (OpProjectPlanVersion) broker.getObject(OpProjectPlanVersion.class, version.getID());
+            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            transaction.commit();
+            broker.closeAndEvict();
          }
 
          //if project was archived and is currently saved in the session clear it
@@ -856,14 +908,10 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       //create new attachments from the client's attachment list
       if (attachmentsList != null && !attachmentsList.isEmpty()) {
-         Set<OpAttachment> attachments = new HashSet<OpAttachment>();
          for (List attachmentElement : attachmentsList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, null, null, attachmentElement, null, project);
-            if (attachment != null) {
-               attachments.add(attachment);
-            }
+            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, project, attachmentElement, null);
+            OpPermissionDataSetFactory.updatePermissions(broker, project, attachment);
          }
-         project.setAttachments(attachments);
       }
 
       //delete all contents with reference count = 0
@@ -1063,10 +1111,11 @@ public class OpProjectAdministrationService extends OpProjectService {
     * @param projectPlan     the project plan
     * @param versionsDataSet a <code>XComponent</code> representing the client side project plan versions.
     */
-   private void updateProjectPlanVersions(OpProjectSession session, OpBroker broker, OpProjectPlan projectPlan, XComponent versionsDataSet) {
+   private List<OpProjectPlanVersion> updateProjectPlanVersions(OpProjectSession session, OpBroker broker, OpProjectPlan projectPlan, XComponent versionsDataSet) {
       Set<OpProjectPlanVersion> existingVersions = projectPlan.getVersions();
+      List<OpProjectPlanVersion> versionsToDelete = new ArrayList<OpProjectPlanVersion>();
       if (existingVersions == null || existingVersions.size() == 0) {
-         return;
+         return versionsToDelete;
       }
 
       // create a map of the existing versions
@@ -1084,10 +1133,14 @@ public class OpProjectAdministrationService extends OpProjectService {
       Collection<OpProjectPlanVersion> values = existingVersionMap.values();
       if (values.size() > 0) {
          for (OpProjectPlanVersion version : values) {
-            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, version);
+            version.setProjectPlan(null);
+            projectPlan.getVersions().remove(version);
+            versionsToDelete.add(version);
          }
       }
+      return versionsToDelete;
    }
+
 
    /**
     * Updates the map of existing project versions.
@@ -1613,6 +1666,7 @@ public class OpProjectAdministrationService extends OpProjectService {
             Date newActivityStart = new Date(date.getTime());
             OpGanttValidator.setStart(dataRow, newActivityStart);
             OpGanttValidator.setResources(dataRow, new ArrayList());
+            OpGanttValidator.setResponsibleResource(dataRow, null);
             OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseStarts(dataRow, new ArrayList());
@@ -1626,7 +1680,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       // Validate copied and adjusted project plan
-      validator.validateDataSet();
+      validator.validateEntireDataSet();
 
       // Store activity data-set helper updates plan start/finish values and activity template flags
       OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, new HashMap(), newProjectPlan, null);

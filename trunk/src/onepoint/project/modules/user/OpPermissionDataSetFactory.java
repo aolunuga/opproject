@@ -56,16 +56,6 @@ public class OpPermissionDataSetFactory {
    public static XComponent defaultPermissionRows(OpProjectSession session, OpBroker broker, XComponent permissionSet) {
       // Reload user and everyone objects in case it was detached
       OpUser user = session.user(broker);
-      // TODO: I18n name of group everyone
-      // (Note: We could maybe solve this by using a language-resource ${Everyone} in the display name)
-      // *** ATTENTION: This would also solve our problem w/the naming of the root project folder and resource pool
-      // ==> Use language resources ${RootProjectFolder} and ${RootPool}
-      // TODO: Group everyone is not editable (at least not its properties), only membership
-      // (Probably hard-code in edit-resource form-provider)
-      // TODO: Check for correct schema *AND* required objects on startup
-      // (Note: Auto-create required objects on startup rather than when creating schema -- more reliable/failsafe)
-      // TODO: Should membership to group everyone be implicit or explicit (most probably explicit)?
-      // Default permissions are user: ADMINISTRATOR; Everyone: OBSERVER
       XComponent permissionRow = new XComponent();
       XComponent permissionCell = new XComponent();
       permissionCell.setByteValue(OpPermission.ADMINISTRATOR);
@@ -225,24 +215,25 @@ public class OpPermissionDataSetFactory {
                permissionRow.setOutlineLevel(1);
                subject = permission.getSubject();
                //<FIXME author="Jochen Mersmann" description="the try-block is a grace-case if you imported data from the team-edition, where this might happen. In the end, for the OE/PE we should not even touch this code" />
-               try{ 
-	               //don't use subject instance of OpGroup because of Hibernate's "proxy problem" when using polymorphic collections
-	               if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
-	                  iconIndex = GROUP_ICON_INDEX;
-	               }
-	               else {
-	                  iconIndex = USER_ICON_INDEX;
-	               }
-	               permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
-	               // Disable system-managed permissions (not editable by the user)
-	               permissionRow.setEnabled(!permission.getSystemManaged());
-	               if (subject.getID() == session.administrator(broker).getID()) {
-	                  imutableFlag.setBooleanValue(true);
-	               }
-	               permissionRow.addChild(imutableFlag);
-	               permissionSet.addChild(permissionRow);
-               } catch (NullPointerException npe){
-            	   logger.info("did not have a user in permission for rolename '" +roleName +"'. Most propably imported team-data into single-user version");
+               try {
+                  //don't use subject instance of OpGroup because of Hibernate's "proxy problem" when using polymorphic collections
+                  if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
+                     iconIndex = GROUP_ICON_INDEX;
+                  }
+                  else {
+                     iconIndex = USER_ICON_INDEX;
+                  }
+                  permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
+                  // Disable system-managed permissions (not editable by the user)
+                  permissionRow.setEnabled(!permission.getSystemManaged());
+                  if (subject.getID() == session.administrator(broker).getID()) {
+                     imutableFlag.setBooleanValue(true);
+                  }
+                  permissionRow.addChild(imutableFlag);
+                  permissionSet.addChild(permissionRow);
+               }
+               catch (NullPointerException npe) {
+                  logger.info("did not have a user in permission for rolename '" + roleName + "'. Most propably imported team-data into single-user version");
                }
             }
          }

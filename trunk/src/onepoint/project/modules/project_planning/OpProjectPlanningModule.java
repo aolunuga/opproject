@@ -15,6 +15,7 @@ import onepoint.project.module.OpModule;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.settings.OpSettings;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 
 import java.util.ArrayList;
@@ -154,6 +155,96 @@ public class OpProjectPlanningModule extends OpModule {
       broker.close();
    }
 
+   /**
+    * Added 2 new fields on OpActivity: remainingPersonnelCosts & remainingProceeds.
+    *
+    * @param session project session
+    */
+   public void upgradeToVersion33(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+      List<OpActivity> collectionList = new ArrayList<OpActivity>();
+
+      //set the collection's remaining personnel costs and remaining proceeds to 0
+      OpQuery query = broker.newQuery("from OpActivity activity where not exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+      Iterator<OpActivity> result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpActivity activity = result.next();
+         activity.setRemainingPersonnelCosts(0d);
+         activity.setRemainingProceeds(0d);
+         collectionList.add(activity);
+      }
+
+      query = broker.newQuery("from OpActivity activity where exists (select assignment.ID from OpAssignment assignment where assignment.Activity.ID = activity.ID)");
+      result = broker.iterate(query);
+
+      while (result.hasNext()) {
+         OpActivity activity = result.next();
+         activity.setRemainingPersonnelCosts(0d);
+         activity.setRemainingProceeds(0d);
+         double totalRemainingPersonnelCosts = 0;
+         double totalRemainingProceeds = 0;
+
+         //update the remaining personnel costs and remaining proceeds on the activity and its parents
+         for (OpAssignment assignment : activity.getAssignments()) {
+            totalRemainingPersonnelCosts -= assignment.getRemainingPersonnelCosts();
+            totalRemainingProceeds -= assignment.getRemainingProceeds();
+         }
+         activity.updateRemainingPersonnelCosts(totalRemainingPersonnelCosts);
+         activity.updateRemainingProceeds(totalRemainingProceeds);
+         broker.updateObject(activity);
+      }
+
+      for (OpActivity activity : collectionList) {
+         broker.updateObject(activity);
+      }
+
+      tx.commit();
+      broker.close();
+   }
+
+   /**
+    * Added priorities for activities (except collection, collection tasks and scheduled tasks). All other activities
+    *    which had no priority will now have a default one.
+    *
+    * @param session - the project session.
+    */
+   public void upgradeToVersion48(OpProjectSession session) {
+      List<Byte> acceptedTypes = new ArrayList<Byte>();
+      acceptedTypes.add(new Byte(OpActivity.STANDARD));
+      acceptedTypes.add(new Byte(OpActivity.MILESTONE));
+      acceptedTypes.add(new Byte(OpActivity.TASK));
+
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+
+      //set the priority default value on all activities which are not collections and for which this field is null
+      OpQuery query = broker.newQuery("from OpActivity activity where activity.Type in (:types) and activity.Priority = (:noPriority)");
+      query.setCollection("types", acceptedTypes);
+      query.setInteger("noPriority", 0);
+      Iterator<OpActivity> result = broker.iterate(query);
+      while (result.hasNext()) {
+         OpActivity activity = result.next();
+         activity.setPriority(OpActivity.DEFAULT_PRIORITY);
+         broker.updateObject(activity);
+      }
+
+      //get all activities versions belonging to working plan versions and update their priorities to the default value
+      query = broker.newQuery("from OpActivityVersion activityVersion where activityVersion.PlanVersion.VersionNumber = (:workingVersionNumber) and activityVersion.Type in (:types) and activityVersion.Priority = (:noPriority)");
+      query.setInteger("workingVersionNumber", OpProjectPlan.WORKING_VERSION_NUMBER);
+      query.setCollection("types", acceptedTypes);
+      query.setInteger("noPriority", 0);
+      Iterator<OpActivityVersion> resultVersion = broker.iterate(query);
+      while (resultVersion.hasNext()) {
+         OpActivityVersion activityVersion = resultVersion.next();
+         activityVersion.setPriority(OpActivity.DEFAULT_PRIORITY);
+         broker.updateObject(activityVersion);
+      }
+
+      tx.commit();
+      broker.close();
+   }
 
    /**
     * Updates the actual proceeds of all activity, activity assignments and work records,
@@ -195,7 +286,7 @@ public class OpProjectPlanningModule extends OpModule {
       for (Long projectPlanId : projectPlanIds) {
          OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
-         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null);
+         new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
          broker.close();
       }
    }

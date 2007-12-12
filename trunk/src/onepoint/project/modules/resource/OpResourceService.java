@@ -200,6 +200,12 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             return reply;
          }
 
+         //update skill rating
+         reply = insertSkillRatings(session, broker, resource_data, resource);
+         if (reply.getError() != null) {
+            return reply;
+         }
+
          XComponent permission_set = (XComponent) resource_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
          XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, resource, permission_set);
          if (result != null) {
@@ -870,8 +876,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       return reply;
    }
 
-   //method which allows insertion of advanced hourly rate periods functionality
    protected XMessage updateSkillRatings(OpProjectSession session, OpBroker broker, Map resource_data, OpResource resource) {
+      //the reply message
+      XMessage reply = new XMessage();
+      return reply;
+   }
+
+   protected XMessage insertSkillRatings(OpProjectSession session, OpBroker broker, Map resource_data, OpResource resource) {
       //the reply message
       XMessage reply = new XMessage();
       return reply;
@@ -1666,13 +1677,13 @@ public class OpResourceService extends onepoint.project.OpProjectService {
             //0 - resource name
             XComponent dataCell = new XComponent(XComponent.DATA_CELL);
             dataCell.setStringValue(resource.getName());
-            dataCell.setEnabled(true);
+            dataCell.setEnabled(false);
             dataRow.addChild(dataCell);
 
             //1 - resource description
             dataCell = new XComponent(XComponent.DATA_CELL);
             dataCell.setStringValue(resource.getDescription());
-            dataCell.setEnabled(true);
+            dataCell.setEnabled(false);
             dataRow.addChild(dataCell);
 
             //2 - adjust rates - false
@@ -1725,9 +1736,10 @@ public class OpResourceService extends onepoint.project.OpProjectService {
       xMessage.setArgument(EXTERNAL_RATE, ratesList.get(OpResource.EXTERNAL_RATE_INDEX));
       return xMessage;
    }
+
    /* (non-Javadoc)
-    * @see onepoint.project.OpProjectService#getServiceImpl()
-    */
+   * @see onepoint.project.OpProjectService#getServiceImpl()
+   */
    @Override
    public Object getServiceImpl() {
       return serviceImpl;

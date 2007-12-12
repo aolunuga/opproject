@@ -6,6 +6,7 @@ package onepoint.project.modules.work;
 
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpSubTypable;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAttachment;
 
@@ -17,7 +18,7 @@ import java.util.Set;
  *
  * @author horia.chiorean
  */
-public class OpCostRecord extends OpObject {
+public class OpCostRecord extends OpObject implements OpSubTypable {
 
    public final static String COST_RECORD = "OpCostRecord";
 
@@ -166,9 +167,6 @@ public class OpCostRecord extends OpObject {
     */
    public void setAttachments(Set<OpAttachment> attachments) {
       this.attachments = attachments;
-      for (OpAttachment attachment : attachments) {
-         attachment.setCostRecord(this);
-      }
    }
 
    /**
