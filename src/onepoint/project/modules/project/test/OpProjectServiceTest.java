@@ -18,6 +18,7 @@ import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
+import onepoint.project.modules.user.OpUserService;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.OpWorkSlip;
@@ -40,9 +41,13 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
    private static final String PORTOFOLIO_NAME = "portofolio";
    private static final String STATUS_NAME = "prj_status";
    private static final String DESCRIPTION = "A test project status";
+   private static final String PROJECT_STATUS_DATA = "project_status_data";
 
    private static final String RES_NAME = "res";
    private static final String RES_DESCR = "descr";
+
+   private static final String USER_NAME = "userName";
+   private static final String USER_PASSWORD = "userPassword";
 
    private OpProjectStatusService projectStatusService;
    private OpProjectStatusTestDataFactory projectStatusDataFactory;
@@ -55,6 +60,8 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
    private String resId2;
    private XComponent dataRowRes1;
    private XComponent dataRowRes2;
+   private OpUserTestDataFactory userDataFactory;
+   private OpUserService userService;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -65,6 +72,8 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
         throws Exception {
       super.setUp();
 
+      userService = OpTestDataFactory.getUserService();
+      userDataFactory = new OpUserTestDataFactory(session);
       projectStatusService = OpTestDataFactory.getProjectStatusService();
       projectStatusDataFactory = new OpProjectStatusTestDataFactory(session);
       service = OpTestDataFactory.getProjectService();
@@ -193,7 +202,7 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertNotNull(portfolio);
       String id = portfolio.locator();
       broker.close();
-      
+
       request = OpProjectTestDataFactory.updatePortofolioMsg(id, "New" + PORTOFOLIO_NAME, "new description", null);
       response = service.updatePortfolio(session, request);
       assertNoError(response);
@@ -302,10 +311,251 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       XMessage response = service.insertProject(session, request);
       assertNoError(response);
       OpBroker broker = session.newBroker();
-      OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);      
+      OpProjectNode project = dataFactory.getProjectByName(broker, PRJ_NAME);
       assertEquals(date, project.getStart());
       broker.close();
    }
+
+   public void testInsertProjectWithBudgetSetError()
+        throws Exception {
+      XMessage request;
+      XMessage response;
+
+      // create a user
+      createUser(USER_NAME, USER_PASSWORD);
+      OpUser user = userDataFactory.getUserByName(session.newBroker(), USER_NAME);
+      assertNotNull(user);
+
+      // create a portfolio
+      XComponent set = new XComponent(XComponent.DATA_SET);
+      XComponent permissionDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent userDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent permissionDataCell = new XComponent(XComponent.DATA_CELL);
+
+      permissionDataCell.setByteValue(OpPermission.MANAGER);
+      permissionDataRow.addChild(permissionDataCell);
+      permissionDataRow.setOutlineLevel(0);
+
+      userDataRow.setStringValue(OpLocator.locatorString(user));
+      userDataRow.setOutlineLevel(1);
+
+      set.addChild(permissionDataRow);
+      set.addChild(userDataRow);
+
+      request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, "portofolio description", null, set);
+      response = service.insertPortfolio(session, request);
+      assertNoError(response);
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(session.newBroker(), PORTOFOLIO_NAME);
+      assertNotNull(portfolio);
+
+      // signOff the administrator
+      response = OpTestDataFactory.getUserService().signOff(session, new XMessage());
+      assertNoError(response);
+
+      // signOn the user
+      request = new XMessage();
+      request.setArgument(OpUserService.LOGIN, USER_NAME);
+      request.setArgument(OpUserService.PASSWORD, USER_PASSWORD);
+      response = OpTestDataFactory.getUserService().signOn(session, request);
+      assertNoError(response);
+
+      // creates a project
+      Date date = Date.valueOf("2007-06-06");
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 1000d, null,
+           OpLocator.locatorString(portfolio), Boolean.FALSE, Boolean.TRUE, null, null, null);
+
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+
+   }
+
+   public void testInsertProjectWithStatusSetError()
+        throws Exception {
+      XMessage request;
+      XMessage response;
+
+      // create a user
+      createUser(USER_NAME, USER_PASSWORD);
+      OpUser user = userDataFactory.getUserByName(session.newBroker(), USER_NAME);
+      assertNotNull(user);
+
+      // create a portfolio
+      XComponent set = new XComponent(XComponent.DATA_SET);
+      XComponent permissionDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent userDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent permissionDataCell = new XComponent(XComponent.DATA_CELL);
+
+      permissionDataCell.setByteValue(OpPermission.MANAGER);
+      permissionDataRow.addChild(permissionDataCell);
+      permissionDataRow.setOutlineLevel(0);
+
+      userDataRow.setStringValue(OpLocator.locatorString(user));
+      userDataRow.setOutlineLevel(1);
+
+      set.addChild(permissionDataRow);
+      set.addChild(userDataRow);
+
+      request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, "portofolio description", null, set);
+      response = service.insertPortfolio(session, request);
+      assertNoError(response);
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(session.newBroker(), PORTOFOLIO_NAME);
+      assertNotNull(portfolio);
+
+      // creates a project status
+      Date date = Date.valueOf("2007-06-06");
+      HashMap statusData = new HashMap();
+      statusData.put(OpProjectStatus.NAME, STATUS_NAME);
+      statusData.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+      statusData.put(OpProjectStatus.COLOR, new Integer(10));
+
+      request = new XMessage();
+      request.setArgument(PROJECT_STATUS_DATA, statusData);
+      response = projectStatusService.insertProjectStatus(session, request);
+
+      assertNoError(response);
+
+      // signOff the administrator
+      response = OpTestDataFactory.getUserService().signOff(session, new XMessage());
+      assertNoError(response);
+
+      // signOn the user
+      request = new XMessage();
+      request.setArgument(OpUserService.LOGIN, USER_NAME);
+      request.setArgument(OpUserService.PASSWORD, USER_PASSWORD);
+      response = OpTestDataFactory.getUserService().signOn(session, request);
+      assertNoError(response);
+
+      OpProjectStatus status = projectStatusDataFactory.getProjectStatusByName(STATUS_NAME);
+      assertNotNull(status);
+
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 0d, OpLocator.locatorString(status),
+           OpLocator.locatorString(portfolio), Boolean.FALSE, Boolean.TRUE, null, null, null);
+
+      response = service.insertProject(session, request);
+      assertError(response, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+
+   }
+
+   public void testInsertProjectWithBudgetSet()
+        throws Exception {
+      XMessage request;
+      XMessage response;
+
+      // create a user
+      createUser(USER_NAME, USER_PASSWORD);
+      OpUser user = userDataFactory.getUserByName(session.newBroker(), USER_NAME);
+      assertNotNull(user);
+
+      // create a portfolio
+      XComponent set = new XComponent(XComponent.DATA_SET);
+      XComponent permissionDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent userDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent permissionDataCell = new XComponent(XComponent.DATA_CELL);
+
+      permissionDataCell.setByteValue(OpPermission.ADMINISTRATOR);
+      permissionDataRow.addChild(permissionDataCell);
+      permissionDataRow.setOutlineLevel(0);
+
+      userDataRow.setStringValue(OpLocator.locatorString(user));
+      userDataRow.setOutlineLevel(1);
+
+      set.addChild(permissionDataRow);
+      set.addChild(userDataRow);
+
+      request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, "portofolio description", null, set);
+      response = service.insertPortfolio(session, request);
+      assertNoError(response);
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(session.newBroker(), PORTOFOLIO_NAME);
+      assertNotNull(portfolio);
+
+      // signOff the administrator
+      response = OpTestDataFactory.getUserService().signOff(session, new XMessage());
+      assertNoError(response);
+
+      // signOn the user
+      request = new XMessage();
+      request.setArgument(OpUserService.LOGIN, USER_NAME);
+      request.setArgument(OpUserService.PASSWORD, USER_PASSWORD);
+      response = OpTestDataFactory.getUserService().signOn(session, request);
+      assertNoError(response);
+
+      // creates a project
+      Date date = Date.valueOf("2007-06-06");
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 1000d, null,
+           OpLocator.locatorString(portfolio), Boolean.FALSE, Boolean.FALSE, null, null, null);
+
+      response = service.insertProject(session, request);
+      assertNoError(response);
+
+   }
+
+   public void testInsertProjectWithStatusSet()
+        throws Exception {
+      XMessage request;
+      XMessage response;
+
+      // create a user
+      createUser(USER_NAME, USER_PASSWORD);
+      OpUser user = userDataFactory.getUserByName(session.newBroker(), USER_NAME);
+      assertNotNull(user);
+
+      // create a portfolio
+      XComponent set = new XComponent(XComponent.DATA_SET);
+      XComponent permissionDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent userDataRow = new XComponent(XComponent.DATA_ROW);
+      XComponent permissionDataCell = new XComponent(XComponent.DATA_CELL);
+
+      permissionDataCell.setByteValue(OpPermission.ADMINISTRATOR);
+      permissionDataRow.addChild(permissionDataCell);
+      permissionDataRow.setOutlineLevel(0);
+
+      userDataRow.setStringValue(OpLocator.locatorString(user));
+      userDataRow.setOutlineLevel(1);
+
+      set.addChild(permissionDataRow);
+      set.addChild(userDataRow);
+
+      request = OpProjectTestDataFactory.createPortofolioMsg(PORTOFOLIO_NAME, "portofolio description", null, set);
+      response = service.insertPortfolio(session, request);
+      assertNoError(response);
+      OpProjectNode portfolio = dataFactory.getPortofolioByName(session.newBroker(), PORTOFOLIO_NAME);
+      assertNotNull(portfolio);
+
+      // creates a project status
+      Date date = Date.valueOf("2007-06-06");
+      HashMap statusData = new HashMap();
+      statusData.put(OpProjectStatus.NAME, STATUS_NAME);
+      statusData.put(OpProjectStatus.DESCRIPTION, DESCRIPTION);
+      statusData.put(OpProjectStatus.COLOR, new Integer(10));
+
+      request = new XMessage();
+      request.setArgument(PROJECT_STATUS_DATA, statusData);
+      response = projectStatusService.insertProjectStatus(session, request);
+
+      assertNoError(response);
+
+      // signOff the administrator
+      response = OpTestDataFactory.getUserService().signOff(session, new XMessage());
+      assertNoError(response);
+
+      // signOn the user
+      request = new XMessage();
+      request.setArgument(OpUserService.LOGIN, USER_NAME);
+      request.setArgument(OpUserService.PASSWORD, USER_PASSWORD);
+      response = OpTestDataFactory.getUserService().signOn(session, request);
+      assertNoError(response);
+
+      OpProjectStatus status = projectStatusDataFactory.getProjectStatusByName(STATUS_NAME);
+      assertNotNull(status);
+
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, date, 0d, OpLocator.locatorString(status),
+           OpLocator.locatorString(portfolio), Boolean.FALSE, Boolean.TRUE, null, null, null);
+
+      response = service.insertProject(session, request);
+      assertNoError(response);
+
+   }
+
 
    /**
     * Test project creation errors
@@ -354,36 +604,36 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
       String goodId = dataFactory.getProjectId(PRJ_NAME + 1);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, null, null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, null, null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_MISSING);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, "", null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, "", null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_MISSING);
 
-      request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, null, null, 0d, null, null, null, null, null, null, null);
+      request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, null, null, 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.START_DATE_MISSING);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() - 1000), 0d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() - 1000), 0d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.END_DATE_INCORRECT);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), -1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), -1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.BUDGET_INCORRECT);
 
       String id = OpLocator.locatorString(OpProjectNode.PROJECT_NODE, -1);
       request = OpProjectTestDataFactory.updateProjectMsg(id, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NOT_FOUND);
 
       request = OpProjectTestDataFactory.updateProjectMsg(goodId, PRJ_NAME, new Date(System.currentTimeMillis()),
-           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null);
+           new Date(System.currentTimeMillis() + 1000), 1d, null, null, null, null, null, null, null, false);
       response = service.updateProject(session, request);
       assertError(response, OpProjectError.PROJECT_NAME_ALREADY_USED);
    }
@@ -434,14 +684,15 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
 
       assertEquals(date, project.getStart());
+      broker.close();
 
       //create the second project
-      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME+1, date, 100d, null, null);
+      request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME + 1, date, 100d, null, null);
       response = service.insertProject(session, request);
 
       assertNoError(response);
 
-      String secondProjectLocator = dataFactory.getProjectId(PRJ_NAME+1);
+      String secondProjectLocator = dataFactory.getProjectId(PRJ_NAME + 1);
       broker = session.newBroker();
       OpProjectNode secondProject = (OpProjectNode) broker.getObject(secondProjectLocator);
 
@@ -466,9 +717,9 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertNoError(response);
 
       //update project to another project status
-      XComponent emptyDataSet =  new XComponent(XComponent.DATA_SET);
+      XComponent emptyDataSet = new XComponent(XComponent.DATA_SET);
       request = OpProjectTestDataFactory.updateProjectMsg(projectLocator, project.getName(), project.getStart(),
-           null, project.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet);
+           null, project.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet, false);
       response = service.updateProject(session, request);
       assertNoError(response);
 
@@ -479,7 +730,7 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
 
       //update secondProject to another project status
       request = OpProjectTestDataFactory.updateProjectMsg(secondProjectLocator, secondProject.getName(), secondProject.getStart(),
-           null, secondProject.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet);
+           null, secondProject.getBudget(), null, null, null, null, emptyDataSet, emptyDataSet, emptyDataSet, false);
       response = service.updateProject(session, request);
       assertNoError(response);
 
@@ -712,7 +963,7 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       resources1.addChild(dataRowRes1);
 
       XComponent resources2 = new XComponent(XComponent.DATA_SET);
-      resources2.addChild(dataRowRes1);
+      resources2.addChild(dataRowRes1.copyData());
       resources2.addChild(dataRowRes2);
 
       XComponent permissions = OpTestDataFactory.createPermissionSet(OpPermission.ADMINISTRATOR, adminId, OpUser.ADMINISTRATOR_NAME);
@@ -774,11 +1025,11 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
       assertTrue(portofolio.getSubNodes().isEmpty());
 
       request = OpProjectTestDataFactory.moveProjectsMsg(portofolio.locator(), ids);
-      broker.close();      
+      broker.close();
       response = service.moveProjectNode(session, request);
       assertNoError(response);
 
-      broker = session.newBroker(); 
+      broker = session.newBroker();
       portofolio = dataFactory.getPortofolioById(broker, portofolio.locator());
       assertEquals(3, portofolio.getSubNodes().size());
       broker.close();
@@ -808,6 +1059,18 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
    }
 
    // ******** Helper Methods *********
+
+   private void createUser(String userName, String password) {
+      XMessage request = new XMessage();
+      XMessage response;
+
+      //create user
+      Map userData = OpUserTestDataFactory.createUserData(userName, password, OpUser.MANAGER_USER_LEVEL);
+
+      request.setArgument(OpUserService.USER_DATA, userData);
+      response = userService.insertUser(session, request);
+      assertNoError(response);
+   }
 
    /**
     * Cleans the database
@@ -862,6 +1125,12 @@ public class OpProjectServiceTest extends OpBaseOpenTestCase {
             continue;
          }
          broker.deleteObject(pool);
+      }
+
+      List statusList = projectStatusDataFactory.getAllProjectsStatus();
+      for (Object aStatusList : statusList) {
+         OpProjectStatus status = (OpProjectStatus) aStatusList;
+         broker.deleteObject(status);
       }
 
       transaction.commit();

@@ -6,6 +6,7 @@
    <data-field id="MultiUser"/>
    <data-field id="DefaultUserName"/>
    <data-field id="DefaultPassword"/>
+   <data-field id="ApplicationStartForm"/>
    <panel y="0" layout="border">
       <label y="0" id="SuccessConfirmationMessage"/>
       <panel y="1" width="3" layout="table">

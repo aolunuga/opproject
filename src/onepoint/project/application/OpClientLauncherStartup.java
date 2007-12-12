@@ -65,8 +65,10 @@ public class OpClientLauncherStartup {
       application.getServer().setSessionClass(OpProjectSession.class);
 
       // Start must be called *after* overriding session class
+      //<FIXME author="Haizea Florin" description="for now it functions only with the open version of the login page">
       application.start(configuration.getHost(), configuration.getPort(), configuration.getPath(), configuration.getSecure(),
-           OpProjectConstants.DEFAULT_START_FORM);
+           OpEnvironmentManager.getStartForm());
+      //<FIXME>
 
       // Request for run level
       XMessage request = new XMessage();
@@ -84,7 +86,9 @@ public class OpClientLauncherStartup {
          // the params used for loading the login.oxf.xml form
          HashMap params = new HashMap(1);
          params.put(OpProjectConstants.RUN_LEVEL, runLevel);
-         application.getDisplay().showForm(OpProjectConstants.DEFAULT_START_FORM, params);
+         //<FIXME author="Haizea Florin" description="for now it functions only with the open version of the login page">
+         application.getDisplay().showForm(OpEnvironmentManager.getStartForm(), params);
+         //<FIXME>
       }
    }
 

@@ -15,4 +15,5 @@
    <relationship name="Activity" type="OpActivity" back-relationship="Assignments"/>
    <relationship name="WorkRecords" type="OpWorkRecord" collection-type="Set" back-relationship="Assignment" inverse="true"/>
    <relationship name="WorkMonths" type="OpWorkMonth" collection-type="Set" back-relationship="Assignment" inverse="true" cascade="all"/>
+   <relationship name="ControllingRecords" type="OpControllingRecord" collection-type="Set" back-relationship="Assignment" inverse="true"/>
 </prototype>

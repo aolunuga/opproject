@@ -22,7 +22,6 @@ public class OpProjectPlan extends OpObject {
    public final static String PROGRESS_TRACKED = "ProgressTracked";
    public final static String NODE = "ProjectNode";
    public final static String ACTIVITIES = "Activities";
-   public final static String ACTIVITY_ATTACHMENTS = "ActivityAttachments";
    public final static String ACTIVITY_ASSIGNMENTS = "ActivityAssignments";
    public final static String WORK_PERIODS = "WorkPeriods";
    public final static String DEPENDENCIES = "Dependencies";
@@ -42,7 +41,6 @@ public class OpProjectPlan extends OpObject {
    private String holidayCalendar = null;
    private OpProjectNode projectNode;
    private Set<OpActivity> activities;
-   private Set<OpAttachment> activityAttachments;
    private Set<OpAssignment> activityAssignments;
    private Set<OpWorkPeriod> workPeriods;
    private Set<OpDependency> dependencies;
@@ -126,14 +124,6 @@ public class OpProjectPlan extends OpObject {
 
    public Set<OpActivity> getActivities() {
       return activities;
-   }
-
-   public void setActivityAttachments(Set<OpAttachment> activityAttachments) {
-      this.activityAttachments = activityAttachments;
-   }
-
-   public Set<OpAttachment> getActivityAttachments() {
-      return activityAttachments;
    }
 
    public void setActivityAssignments(Set<OpAssignment> activityAssignments) {

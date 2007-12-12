@@ -15,14 +15,11 @@ public class OpAttachmentVersion extends OpObject {
    public final static String LINKED = "Linked";
    public final static String LOCATION = "Location";
    public final static String CONTENT = "Content";
-   public final static String PLAN_VERSION = "PlanVersion";
-   public final static String ACTIVITY_VERSION = "ActivityVersion";
 
    private String name;
    private boolean linked;
    private String location;
    private OpContent content;
-   private OpProjectPlanVersion planVersion;
    private OpActivityVersion activityVersion;
 
    public void setName(String name) {
@@ -55,14 +52,6 @@ public class OpAttachmentVersion extends OpObject {
 
    public OpContent getContent() {
       return content;
-   }
-
-   public void setPlanVersion(OpProjectPlanVersion planVersion) {
-      this.planVersion = planVersion;
-   }
-   
-   public OpProjectPlanVersion getPlanVersion() {
-      return planVersion;
    }
 
    public void setActivityVersion(OpActivityVersion activityVersion) {

@@ -5,6 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.work.OpCostRecord;
 
@@ -16,14 +17,11 @@ public class OpAttachment extends OpObject {
    public final static String LINKED = "Linked";
    public final static String LOCATION = "Location";
    public final static String CONTENT = "Content";
-   public final static String PROJECT_PLAN = "ProjectPlan";
-   public final static String ACTIVITY = "Activity";
 
    private String name;
    private boolean linked;
    private String location;
    private OpContent content;
-   private OpProjectPlan projectPlan;
    private OpActivity activity;
    private OpCostRecord costRecord;
    private OpProjectNode projectNode;
@@ -59,36 +57,65 @@ public class OpAttachment extends OpObject {
    public OpContent getContent() {
       return content;
    }
-   
-   public void setProjectPlan(OpProjectPlan projectPlan) {
-      this.projectPlan = projectPlan;
-   }
-   
-   public OpProjectPlan getProjectPlan() {
-      return projectPlan;
+
+   /**
+    * Returns the <code>OpObject</code> (which is either an <code>OpActivity</code>, a <code>OpProjectNode</code> or
+    *    an <code>OpCostRecord</code> object)to which the <code>OpAttachment</code> is associated.
+    *
+    * @return the <code>OpObject</code> (which is either an <code>OpActivity</code>, a <code>OpProjectNode</code> or
+    *         an <code>OpCostRecord</code> object)to which the <code>OpAttachment</code> is associated.
+    */
+
+   public OpObject getObject() {
+      if (getActivity() != null) {
+         return getActivity();
+      }
+      if (getProjectNode() != null) {
+         return getProjectNode();
+      }
+      return getCostRecord();
    }
 
-   public void setActivity(OpActivity activity) {
+   /**
+    * Sets an <code>OpObject</code> (which is either an <code>OpActivity</code>, a <code>OpProjectNode</code> or
+    * a <code>OpCostRecord</code>) on the attachment.
+    *
+    * @param object - the <code>OpActivity</code>, <code>OpProjectNode</code> or <code>OpCostRecord</code> object
+    *               which will be set on the attachment.
+    */
+   public void setObject(OpObject object) {
+      if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpActivity.ACTIVITY)) {
+         setActivity((OpActivity) object);
+      }
+      if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpProjectNode.PROJECT_NODE)) {
+         setProjectNode((OpProjectNode) object);
+      }
+      if (OpTypeManager.getPrototypeForObject(object).getName().equals(OpCostRecord.COST_RECORD)) {
+         setCostRecord((OpCostRecord) object);
+      }
+   }
+
+   private void setActivity(OpActivity activity) {
       this.activity = activity;
    }
 
-   public OpActivity getActivity() {
+   private OpActivity getActivity() {
       return activity;
    }
 
-   public OpCostRecord getCostRecord() {
+   private OpCostRecord getCostRecord() {
       return costRecord;
    }
 
-   public void setCostRecord(OpCostRecord costRecord) {
+   private void setCostRecord(OpCostRecord costRecord) {
       this.costRecord = costRecord;
    }
 
-    public OpProjectNode getProjectNode() {
+   private OpProjectNode getProjectNode() {
       return projectNode;
    }
 
-   public void setProjectNode(OpProjectNode projectNode) {
+   private void setProjectNode(OpProjectNode projectNode) {
       this.projectNode = projectNode;
    }
 }

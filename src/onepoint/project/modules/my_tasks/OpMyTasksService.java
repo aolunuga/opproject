@@ -12,6 +12,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
@@ -75,12 +76,12 @@ public class OpMyTasksService extends OpProjectService {
         adhocTaks.setDescription((String) arguments.get(DESCRIPTION));
         adhocTaks.setFinish((Date) arguments.get(DUEDATE));
         adhocTaks.setProjectPlan(project == null ? null : project.getPlan());
-        try {
-          adhocTaks.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
-        } catch (IllegalArgumentException exc)
-        {
-          reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
-          return(reply);
+        if (arguments.get(PRIORITY) != null) {
+           adhocTaks.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
+        }
+        else {
+           reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
+           return (reply);
         }
 
         OpAssignment assignment = new OpAssignment();
@@ -92,18 +93,20 @@ public class OpMyTasksService extends OpProjectService {
         adhocTaks.setAssignments(assignments);
         
         XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
-        adhocTaks.setAttachments(new HashSet());
+        adhocTaks.setAttachments(new HashSet<OpAttachment>());
         updateAttachments(session, broker, adhocTaks, attachmentSet);
 
         serviceImpl.insertAdhocTask(session, broker, adhocTaks);
         transaction.commit();
-      } catch (XServiceException exc) {
-        exc.append(reply);
-        if (transaction != null)
-           transaction.rollback();
-        return(reply);
-      } finally {
-        broker.close();
+      }
+      catch (XServiceException exc) {
+         exc.append(reply);
+         if (transaction != null) {
+            transaction.rollback();
+         }
+      }
+      finally {
+         broker.close();
       }
       return reply;
    }
@@ -130,7 +133,13 @@ public class OpMyTasksService extends OpProjectService {
 
         activity.setName((String) arguments.get(NAME));
         activity.setDescription((String) arguments.get(DESCRIPTION));
-        activity.setPriority(((Integer)arguments.get(PRIORITY)).byteValue());
+        if (arguments.get(PRIORITY) != null) {
+           activity.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
+        }
+        else {
+           reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
+           return (reply);
+        }
         activity.setFinish((Date) arguments.get(DUEDATE));
 
         String projectLocator = (String) arguments.get(PROJECT);
@@ -144,9 +153,16 @@ public class OpMyTasksService extends OpProjectService {
         OpAssignment assignment;
         if (assignments.hasNext()) {
           assignment = (OpAssignment) assignments.next();
-          resource = (OpResource) broker.getObject(resourceLocator);
-          assignment.setResource(resource);
-//          broker.updateObject(assignment);
+          if (resourceLocator != null && resourceLocator.length() > 0) {
+             resource = (OpResource) broker.getObject(XValidator.choiceID(resourceLocator));
+             resource = (OpResource) broker.getObject(resourceLocator);
+             assignment.setResource(resource);
+             broker.updateObject(assignment);
+          }
+          else {
+             reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE));
+             return (reply);
+          }
         }
 
         //update attachments
@@ -156,23 +172,25 @@ public class OpMyTasksService extends OpProjectService {
         serviceImpl.updateAdhocTask(session, broker, activity);
         
         transaction.commit();
-      } catch (XServiceException exc) {
-        exc.append(reply);
-        if (transaction != null) {
-          transaction.rollback();
-        }
-      } finally {
-        broker.close();
+      }
+      catch (XServiceException exc) {
+         exc.append(reply);
+         if (transaction != null) {
+            transaction.rollback();
+         }
+      }
+      finally {
+         broker.close();
       }
       return reply;
    }
 
    private void updateAttachments(OpProjectSession session, OpBroker broker, OpActivity activity, XComponent attachmentSet) {
 
-      Set existingSet = activity.getAttachments();
+      Set<OpAttachment> existingSet = activity.getAttachments();
 
       //remove deleted attachments
-      Map attachmentsRowMap = new HashMap();
+      Map<String, XComponent> attachmentsRowMap = new HashMap<String, XComponent>();
       for (int i = 0; i < attachmentSet.getChildCount(); i++) {
          XComponent row = (XComponent) attachmentSet.getChild(i);
          String choice = ((XComponent) row.getChild(1)).getStringValue();
@@ -186,8 +204,7 @@ public class OpMyTasksService extends OpProjectService {
       }
 
       // remove non existing attachments
-      for (Iterator iterator = existingSet.iterator(); iterator.hasNext();) {
-         OpAttachment attachment = (OpAttachment) iterator.next();
+      for (OpAttachment attachment : existingSet) {
          if (!attachmentsRowMap.keySet().contains(attachment.locator())) {
            serviceImpl.deleteAttachment(session, broker, attachment);
          }
@@ -196,9 +213,8 @@ public class OpMyTasksService extends OpProjectService {
          }
       }
 
-      for (Iterator iterator = attachmentsRowMap.keySet().iterator(); iterator.hasNext();) {
-         String rowKey = (String) iterator.next();
-         XComponent row = (XComponent) attachmentsRowMap.get(rowKey);
+      for (String rowKey : attachmentsRowMap.keySet()) {
+         XComponent row = attachmentsRowMap.get(rowKey);
          ArrayList attachmentElement = new ArrayList();
          String descriptor = ((XComponent) row.getChild(0)).getStringValue();
          attachmentElement.add(descriptor);
@@ -212,7 +228,8 @@ public class OpMyTasksService extends OpProjectService {
          if (row.getChildCount() > 4) {
             attachmentElement.add(((XComponent) row.getChild(4)).getValue()); //content
          }
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
+         OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
       }
    }
 
@@ -225,24 +242,25 @@ public class OpMyTasksService extends OpProjectService {
     */
    public XMessage deleteAdhocTask(OpProjectSession session, XMessage request) {
      XMessage reply = new XMessage();
-     List selectedRows = (List) request.getArgument(ADHOC_DATA);
+     List<XComponent> selectedRows = (List<XComponent>) request.getArgument(ADHOC_DATA);
      if (selectedRows != null) {
        OpBroker broker = session.newBroker();
        OpTransaction transaction = broker.newTransaction();
        try
        {
-         for (int i = 0; i < selectedRows.size(); i++) {
-           XComponent row = (XComponent) selectedRows.get(i);
+         for (XComponent row : selectedRows) {
            String locator = row.getStringValue();
            OpActivity activity = (OpActivity) broker.getObject(locator);
            serviceImpl.deleteAdhocTask(session, broker, activity);
          }
          transaction.commit();
-       } catch (XServiceException exc) {
-         exc.append(reply);
-         transaction.rollback();
-       } finally {
-         broker.close();
+       }
+       catch (XServiceException exc) {
+          exc.append(reply);
+          transaction.rollback();
+       }
+       finally {
+          broker.close();
        }
      }
      return reply;
@@ -255,5 +273,4 @@ public class OpMyTasksService extends OpProjectService {
     public Object getServiceImpl() {
        return serviceImpl;
     }
-
 }

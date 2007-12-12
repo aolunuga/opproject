@@ -37,4 +37,8 @@ public class OpSkillRating extends OpObject {
    public void setSkill(OpSkill skill) {
       this.skill = skill;
    }
+//   @Override
+//   public String toString() {
+//      return "<OpSkillReating>"+skill.getName()+", "+resource.getName()+", "+rating+"</OpSkillReating>";
+//   }
 }

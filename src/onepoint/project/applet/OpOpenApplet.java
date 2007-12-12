@@ -63,6 +63,10 @@ public class OpOpenApplet extends XExpressApplet {
       if (runLevel != null) {
          parameters.put(OpProjectConstants.RUN_LEVEL, runLevel);
       }
+      String startForm = getParameter(OpProjectConstants.START_FORM);
+      if(startForm != null) {
+         parameters.put(OpProjectConstants.START_FORM, startForm);
+      }
       return parameters;
    }
 
@@ -70,20 +74,10 @@ public class OpOpenApplet extends XExpressApplet {
     * @see onepoint.express.XViewer#showStartForm(java.util.Map)
     */
    public void showStartForm(Map parameters) {
-      String runLevel = (String) parameters.get(OpProjectConstants.RUN_LEVEL);
-      String formLocation = OpProjectConstants.DEFAULT_START_FORM;
-      if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL) {
-         formLocation = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
-      }
-      else {
-         if (runLevel != null && Byte.parseByte(runLevel) == OpProjectConstants.SUCCESS_RUN_LEVEL) {
-            boolean success = autoLogin();
-            if (success) {
-               formLocation = OpProjectConstants.START_FORM;
-            }
-         }
-      }
-      getDisplay().showForm(formLocation, parameters);
+      String startForm = (String) parameters.get(OpProjectConstants.START_FORM);
+      if (startForm != null) {
+         getDisplay().showForm(startForm, parameters);
+      }      
    }
 
    /**

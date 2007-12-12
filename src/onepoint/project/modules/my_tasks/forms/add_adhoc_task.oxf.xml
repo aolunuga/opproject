@@ -7,6 +7,8 @@
    <data-set id="ProjectSet"/>
    <data-field id="ProjectToResourceMap"/>
 
+   <data-field id="AllResources"/>
+
    <panel layout="border">
 
       <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
@@ -25,8 +27,9 @@
             <choice-field x="2" y="4" width="3" id="ProjectChooser" data-set-ref="ProjectSet"
                           on-value-changed="projectChooserChanged" selected-index="0"/>
             <label x="0" y="5" width="2" text="${Resource}"/>
-            <choice-field x="2" y="5" width="3" id="ResourceChooser" data-set-ref="ResourceSet"
-                          selected-index="0"/>
+            
+             <action-button x="2" y="5" width="3" id="ResourceChooser" edit-mode="false" on-button-pressed="addResource"
+                        left-icon="/icons/remove.png" right-icon="/icons/choose_project.png"/>
          </tab>
 
          <tab text="${Attachments}" layout="border" id="AttachmentsTab">

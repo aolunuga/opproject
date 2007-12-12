@@ -5,8 +5,10 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project_controlling.OpControllingSheet;
 
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 public class OpProjectPlanVersion extends OpObject {
@@ -20,10 +22,10 @@ public class OpProjectPlanVersion extends OpObject {
    public final static String TEMPLATE = "Template";
    public final static String PROJECT_PLAN = "ProjectPlan";
    public final static String ACTIVITY_VERSIONS = "ActivityVersions";
-   public final static String ATTACHMENT_VERSIONS = "AttachmentVersions";
    public final static String ASSIGNMENT_VERSIONS = "AssignmentVersions";
    public final static String WORK_PERIOD_VERSIONS = "WorkPeriodVersions";
    public final static String DEPENDENCY_VERSIONS = "DependencyVersions";
+   public final static String CONTROLLING_SHEETS = "ControllingSheets";
 
    private int versionNumber;
    private String comment;
@@ -34,11 +36,11 @@ public class OpProjectPlanVersion extends OpObject {
    private OpProjectPlan projectPlan;
    private String creator;
    private String holidayCalendar = null;
-   private Set<OpActivityVersion> activityVersions;
-   private Set attachmentVersions;
+   private Set<OpActivityVersion> activityVersions = new HashSet<OpActivityVersion>();
    private Set assignmentVersions;
    private Set workPeriodVersions;
    private Set dependencyVersions;
+   private Set<OpControllingSheet> controllingSheets;
 
    public void setVersionNumber(int versionNumber) {
       this.versionNumber = versionNumber;
@@ -121,15 +123,7 @@ public class OpProjectPlanVersion extends OpObject {
    public Set<OpActivityVersion> getActivityVersions() {
       return activityVersions;
    }
-
-   public void setAttachmentVersions(Set attachmentVersions) {
-      this.attachmentVersions = attachmentVersions;
-   }
-
-   public Set getAttachmentVersions() {
-      return attachmentVersions;
-   }
-
+  
    public void setAssignmentVersions(Set assignmentVersions) {
       this.assignmentVersions = assignmentVersions;
    }
@@ -168,5 +162,13 @@ public class OpProjectPlanVersion extends OpObject {
     */
    private void setBaselineInternal(Boolean baseline) {
       this.baseline = (baseline != null) ? baseline : Boolean.FALSE;
+   }
+
+   public Set<OpControllingSheet> getControllingSheets() {
+      return controllingSheets;
+   }
+
+   public void setControllingSheets(Set<OpControllingSheet> controllingSheets) {
+      this.controllingSheets = controllingSheets;
    }
 }

@@ -46,6 +46,11 @@ public class OpRestoreContext extends XContext {
    private Map<Long, OpObject> persistedObjectsMap = new HashMap<Long, OpObject>();
 
    /**
+    * A mapping of backupIds to db Locator strings , after objects have  been inserted in the db
+    */
+   private Map<Long, String> idToLocatorMap = new HashMap<Long, String>();
+
+   /**
     * List of objects which will be added to the db.
     */
    private List<OpObject> objectsToAdd = new ArrayList<OpObject>();
@@ -110,7 +115,7 @@ public class OpRestoreContext extends XContext {
     * @return a <code>List</code> of <code>OpBackupMember</code>.
     */
    List getBackupMembers(String prototypeName) {
-      return (List) backupMembersMap.get(prototypeName);
+      return backupMembersMap.get(prototypeName);
    }
 
    /**
@@ -236,7 +241,11 @@ public class OpRestoreContext extends XContext {
     *         yet.
     */
    OpObject getRelationshipOwner(Long id) {
-      return persistedObjectsMap.get(id);
+      OpObject opObject = persistedObjectsMap.get(id);
+      if (opObject == null) {
+         opObject = this.getObjectFromDb(id);
+      }
+      return opObject;
    }
 
    /**
@@ -257,5 +266,46 @@ public class OpRestoreContext extends XContext {
          objectsToAdd.clear();
          insertCount = 0;
       }
+      for (Long activeMapId : persistedObjectsMap.keySet()) {
+         idToLocatorMap.put(activeMapId, persistedObjectsMap.get(activeMapId).locator());
+      }
+      persistedObjectsMap.clear();
+   }
+
+   /**
+    * Retrieves an object from the database, using the back-up ID of the object before
+    * it was inserted.
+    *
+    * @param activeId a <code>long</code> the back-up id of an object
+    * @return an <code>OpObject</code> instance.
+    */
+   private OpObject getObjectFromDb(long activeId) {
+      OpBroker broker = session.newBroker();
+      String locator = idToLocatorMap.get(activeId);
+      if (locator == null) {
+         return null;
+      }
+      OpObject object = broker.getObject(locator);
+      broker.close();
+      return object;
+   }
+
+   /**
+    * @see onepoint.xml.XContext#reset()
+    */
+   @Override
+   public void reset() {
+      super.reset();
+
+      this.commitRestoredObjects();
+
+      backupMembersMap.clear();
+      backupMembersMap = null;
+      persistedObjectsMap.clear();
+      persistedObjectsMap = null;
+      idToLocatorMap.clear();
+      idToLocatorMap = null;
+      objectsToAdd.clear();
+      objectsToAdd = null;
    }
 }

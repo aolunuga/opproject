@@ -5,6 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project_controlling.OpControllingRecord;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkRecord;
 
@@ -47,6 +48,7 @@ public class OpAssignment extends OpObject {
    private Set<OpWorkMonth> workMonths;
    private Double remainingProceeds;
    private Double remainingPersonnelCosts;
+   private Set<OpControllingRecord> controllingRecords;
 
    public void setAssigned(double assigned) {
       this.assigned = assigned;
@@ -285,5 +287,13 @@ public class OpAssignment extends OpObject {
          reusableWorkMonth.setAssignment(null);
          workMonths.remove(reusableWorkMonth);
       }
+   }
+
+   public Set<OpControllingRecord> getControllingRecords() {
+      return controllingRecords;
+   }
+
+   public void setControllingRecords(Set<OpControllingRecord> controllingRecords) {
+      this.controllingRecords = controllingRecords;
    }
 }

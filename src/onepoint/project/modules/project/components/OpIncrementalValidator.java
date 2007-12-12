@@ -11,6 +11,9 @@ import java.sql.Date;
 import java.util.*;
 
 /**
+ * Planning validator class that does the validation in an incremental way starting from a set of well defined
+ * "starting points".
+ *
  * @author mihai.costin
  */
 public class OpIncrementalValidator extends OpGanttValidator {
@@ -181,6 +184,11 @@ public class OpIncrementalValidator extends OpGanttValidator {
                startPoints.add(data_row);
 
                validateDataSet();
+
+               if (getType(data_row) == TASK) {
+                  //effort stays the same.
+                  updateBaseEffort(data_row, getBaseEffort(data_row));
+               }
 
                if (taskWarning) {
                   throw new XValidationException(TASK_EXTRA_RESOURCE_EXCEPTION);
@@ -376,7 +384,12 @@ public class OpIncrementalValidator extends OpGanttValidator {
       if (startPoints == null) {
          startPoints = getIndependentActivities();
       }
-      if (!startPoints.isEmpty()) {
+      validateStartPoints(false);
+      return true;
+   }
+
+   private void validateStartPoints(boolean validateAllStartPoints) {
+      if (startPoints != null && !startPoints.isEmpty()) {
          //update the types upwards from the start points
          for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
             XComponent activity = (XComponent) iterator.next();
@@ -388,22 +401,51 @@ public class OpIncrementalValidator extends OpGanttValidator {
             updateCollectionTreeValues((XComponent) iterator.next());
          }
 
-         validateGanttChart();
+         //expand start points (collection will be replaced by all its children)
+         expandStartPoints();
+
+         //transform data set into graph
+         graph = OpActivityGraphFactory.createBaseGraph(data_set);
+
+         if (!validateAllStartPoints) {
+            //consider only start points that don't have predecessors in the start point array
+            for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
+               XComponent dataRow = (XComponent) iterator.next();
+               OpGraphNode node = graph.getNodeForKey(dataRow.getIndex());
+               if (node != null) {
+                  List preds = node.getPredecessors();
+                  for (Iterator predIterator = preds.iterator(); predIterator.hasNext();) {
+                     OpGraphNode pred = (OpGraphNode) predIterator.next();
+                     XComponent predDataRow = (XComponent) pred.getComponents().get(0);
+                     if (startPoints.contains(predDataRow)) {
+                        iterator.remove();
+                        break;
+                     }
+                  }
+               }
+            }
+         }
+
+         //start validation for all start points
+         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
+            XComponent activity = (XComponent) iterator.next();
+            validateActivity(activity);
+         }
+         startPoints = null;
       }
-      startPoints = null;
-      return true;
    }
 
    /**
     * Validates the entire data-set, by setting the start-points to all the activities in the data-set.
     */
-   public void validateEntireDataSet() {
+   public boolean validateEntireDataSet() {
       startPoints = new HashSet();
       for (int i = 0; i < data_set.getChildCount(); i++) {
          XComponent activityRow = (XComponent) data_set.getChild(i);
          startPoints.add(activityRow);
       }
-      this.validateDataSet();
+      this.validateStartPoints(true);
+      return true;
    }
 
    /**
@@ -445,46 +487,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
          }
       }
       return dataRowSuccessors;
-   }
-
-   /**
-    * Validates the activities using the start points - startPoints
-    */
-   protected void validateGanttChart() {
-      if (startPoints == null) {
-         super.validateGanttChart();
-      }
-      else {
-
-         //expand start points (collection will be replaced by all its children)
-         expandStartPoints();
-
-         //transform data set into graph
-         graph = OpActivityGraphFactory.createBaseGraph(data_set);
-
-         //consider only start points that don't have predecessors in the start point array
-         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-            XComponent dataRow = (XComponent) iterator.next();
-            OpGraphNode node = graph.getNodeForKey(dataRow.getIndex());
-            if (node != null) {
-               List preds = node.getPredecessors();
-               for (Iterator predIterator = preds.iterator(); predIterator.hasNext();) {
-                  OpGraphNode pred = (OpGraphNode) predIterator.next();
-                  XComponent predDataRow = (XComponent) pred.getComponents().get(0);
-                  if (startPoints.contains(predDataRow)) {
-                     iterator.remove();
-                     break;
-                  }
-               }
-            }
-         }
-
-         //start validation for all start points
-         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-            XComponent activity = (XComponent) iterator.next();
-            validateActivity(activity);
-         }
-      }
    }
 
    /**

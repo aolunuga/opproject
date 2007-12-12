@@ -96,7 +96,7 @@ public class OpActivityVersion extends OpObject {
    private Set workPeriodVersions;
    private Set successorVersions;
    private Set predecessorVersions;
-   private Set attachmentVersions;
+   private Set<OpAttachmentVersion> attachmentVersions;
    private OpResource responsibleResource;
 
    public void setName(String name) {
@@ -323,11 +323,11 @@ public class OpActivityVersion extends OpObject {
       return predecessorVersions;
    }
 
-   public void setAttachmentVersions(Set attachmentVersions) {
+   public void setAttachmentVersions(Set<OpAttachmentVersion> attachmentVersions) {
       this.attachmentVersions = attachmentVersions;
    }
 
-   public Set getAttachmentVersions() {
+   public Set<OpAttachmentVersion> getAttachmentVersions() {
       return attachmentVersions;
    }
 

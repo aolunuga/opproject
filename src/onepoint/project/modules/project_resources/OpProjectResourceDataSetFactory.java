@@ -32,15 +32,17 @@ public final class OpProjectResourceDataSetFactory {
     *
     * @param broker            Instance to use for db operations.
     * @param project           ProjectNode to get the effort information for.
-    * @param max_outline_level Detail level. In the resulting data set will be added only those activities that have
-    *                          outline level < max_outline_level
-    * @param data_set          DataSet to be filled up with the info.
+    * @param maxOutlineLevel Detail level. In the resulting data set will be added only those activities that have
+*                          outline level < maxOutlineLevel
+    * @param dataSet          DataSet to be filled up with the info.
+    * @param retrieveAllActivities a <code>boolean</code> whether to retrieve all the
+    * activities or use the maxOutlineLevel parameter as a filter.
+    * <FIXME author="Horia Chiorean" description="This method should be refactored. It violates SRP amongst other things">
     */
-   public static void fillEffortDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set) {
+   public static void fillEffortDataSet(OpBroker broker, OpProjectNode project,
+        int maxOutlineLevel, XComponent dataSet, boolean retrieveAllActivities) {
 
-      OpQuery query = broker.newQuery("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
-      query.setID(0, project.getID());
-      List<OpActivity> activities = broker.list(query);
+      List<OpActivity> activities = retrieveActivities(broker, project.getID(), maxOutlineLevel, retrieveAllActivities);
 
       double predicted;
       Iterator assignments;
@@ -79,10 +81,19 @@ public final class OpProjectResourceDataSetFactory {
             }
          }
 
-         if (activity.getOutlineLevel() <= max_outline_level) {
-            // Add previous visible activity with summarized values and reset both
+         // Add previous visible activity with summarized values and reset both
+         if (retrieveAllActivities) {
+            if (activity.getOutlineLevel() <= maxOutlineLevel) {
+               if (previous_visible_activity != null) {
+                  addActivityToEffortDataSet(dataSet, previous_visible_activity, resource_summaries);
+               }
+               resource_summaries.clear();
+               previous_visible_activity = activity;
+            }
+         }
+         else {
             if (previous_visible_activity != null) {
-               addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
+               addActivityToEffortDataSet(dataSet, previous_visible_activity, resource_summaries);
             }
             resource_summaries.clear();
             previous_visible_activity = activity;
@@ -129,7 +140,7 @@ public final class OpProjectResourceDataSetFactory {
 
       // Add last visible activity
       if (previous_visible_activity != null) {
-         addActivityToEffortDataSet(data_set, previous_visible_activity, resource_summaries);
+         addActivityToEffortDataSet(dataSet, previous_visible_activity, resource_summaries);
       }
 
       if (useBaseline) {
@@ -137,8 +148,34 @@ public final class OpProjectResourceDataSetFactory {
             activity.setIsUsingBaselineValues(false);
          }
       }
+   }
 
-
+   /**
+    * Retrives activities which are to be used for building the effort data-set.
+    * @param broker a <code>OpBroker</code> used for persistence operations.
+    * @param projectId a <code>long</code> the id of a project
+    * @param maxOutlineLevel an <code>int</code> the outline level of the activities which
+    * should be retrived.
+    * @param retrieveAllActivities  a <code>boolean</code> whether to retrieve all the
+    * activities or not from the db. If not, the maxOutlineLevel parameter is used.
+    * @return a <code>List</code> of <code>OpActivity</code>.
+    */
+   private static List<OpActivity> retrieveActivities(OpBroker broker, long projectId,
+        int maxOutlineLevel, boolean retrieveAllActivities) {
+      OpQuery query = null;
+      if (!retrieveAllActivities) {
+         StringBuffer queryString = new StringBuffer("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? ");
+         queryString.append(" and activity.OutlineLevel <= ? order by activity.Sequence");
+         query = broker.newQuery(queryString.toString());
+         query.setID(0, projectId);
+         query.setInteger(1, maxOutlineLevel);
+      }
+      else {
+         StringBuffer queryString = new StringBuffer("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ? order by activity.Sequence");
+         query = broker.newQuery(queryString.toString());
+         query.setID(0, projectId);
+      }
+      return broker.list(query);
    }
 
    /**

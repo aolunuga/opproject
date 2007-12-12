@@ -116,8 +116,11 @@ function invokeReportRequest(request, queryForm) {
    //                                                |-- "fields", Map
    //                                                |-- "resourceMapId", String
 
-   subReportData = queryForm.invokeFunction("getSubreportData");
-   request.setArgument("subReportData", subReportData);
+   subreportFunctionName = "getSubreportData";
+   if (queryForm.hasFunction(subreportFunctionName)) {
+      subReportData = queryForm.invokeFunction(subreportFunctionName);
+      request.setArgument("subReportData", subReportData);
+   }
 
    response = XDisplay.getClient().invokeMethod(request);
    return response;

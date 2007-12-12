@@ -21,10 +21,7 @@ import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <FIXME author="Horia Chiorean" description="Refactor the form provider into smaller methods for each setting !">
@@ -297,8 +294,10 @@ public class OpSettingsFormProvider implements XFormProvider {
          dataRow = new XComponent(XComponent.DATA_ROW);
          dataRow.setStringValue(XValidator.choice(OpSettings.CALENDAR_HOLIDAYS_LOCATION_DEFAULT, localizer.localize(SELECT_CALENDAR)));
          holidaysDataSet.addChild(dataRow);
-         for (int i = 0; i < sorterDataSet.getChildCount(); i++) {
-            dataRow = (XComponent) sorterDataSet.getChild(i);
+         List rows = sorterDataSet.asList();
+         for (int i = 0; i < rows.size(); i++) {
+            dataRow = (XComponent) rows.get(i);
+            sorterDataSet.removeChild(dataRow);
             dataRow.removeChild(0); //remove extra sorting-criteria
             holidaysDataSet.addChild(dataRow);
             String id = XValidator.choiceID(dataRow.getStringValue());

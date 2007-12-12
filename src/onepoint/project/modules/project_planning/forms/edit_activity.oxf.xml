@@ -1,9 +1,9 @@
 <form layout="border" width="750" height="470" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
-       error-label-ref = "ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes" provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
+      error-label-ref="ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes" provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
    <panel layout="border">
 
       <data-set id="ActivityCategoryDataSet"/>
-	    <data-set id="ResponsibleResourceSet"/>
+      <data-set id="ResponsibleResourceSet"/>
       <data-set id="AssignmentSet"/>
 
       <data-set id="ResourceAvailability"/>
@@ -20,28 +20,31 @@
       <data-field id="NotEqualEffortsException" text="${NotEqualEffortsErrorMessage}"/>
       <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
       <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
-      
-      <label id ="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>
-      <label id ="EditCollectionDialogTitle" text="${EditCollectionActivity}" visible="false"/>
-      <label id ="EditMilestoneDialogTitle" text="${EditMilestoneActivity}" visible="false"/>
-      <label id ="EditTaskDialogTitle" text="${EditTaskActivity}" visible="false"/>
-      <label id ="EditCollectionTaskDialogTitle" text="${EditCollectionTaskActivity}" visible="false"/>
-      <label id ="EditScheduledTaskTitle" text="${EditScheduledTaskTitle}" visible="false"/>
 
-      <label id ="InfoStandardDialogTitle" text="${InfoStandardActivity}" visible="false"/>
-      <label id ="InfoCollectionDialogTitle" text="${InfoCollectionActivity}" visible="false"/>
-      <label id ="InfoMilestoneDialogTitle" text="${InfoMilestoneActivity}" visible="false"/>
-      <label id ="InfoTaskDialogTitle" text="${InfoTaskActivity}" visible="false"/>
-      <label id ="InfoCollectionTaskDialogTitle" text="${InfoCollectionTaskActivity}" visible="false"/>
-      <label id ="InfoScheduledTaskTitle" text="${InfoScheduledTaskTitle}" visible="false"/>
+      <label id="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>
+      <label id="EditCollectionDialogTitle" text="${EditCollectionActivity}" visible="false"/>
+      <label id="EditMilestoneDialogTitle" text="${EditMilestoneActivity}" visible="false"/>
+      <label id="EditTaskDialogTitle" text="${EditTaskActivity}" visible="false"/>
+      <label id="EditCollectionTaskDialogTitle" text="${EditCollectionTaskActivity}" visible="false"/>
+      <label id="EditScheduledTaskTitle" text="${EditScheduledTaskTitle}" visible="false"/>
+
+      <label id="InfoStandardDialogTitle" text="${InfoStandardActivity}" visible="false"/>
+      <label id="InfoCollectionDialogTitle" text="${InfoCollectionActivity}" visible="false"/>
+      <label id="InfoMilestoneDialogTitle" text="${InfoMilestoneActivity}" visible="false"/>
+      <label id="InfoTaskDialogTitle" text="${InfoTaskActivity}" visible="false"/>
+      <label id="InfoCollectionTaskDialogTitle" text="${InfoCollectionTaskActivity}" visible="false"/>
+      <label id="InfoScheduledTaskTitle" text="${InfoScheduledTaskTitle}" visible="false"/>
       <label y="-1" id="ValidationErrorLabel" visible="false" style-ref="label-error-default"/>
+
+      <data-field id="ExcludedResources"/>
+
       <tab-box>
 
          <tab text="${General}" layout="table" id="GeneralTab">
             <label x="0" y="0" width="2" text="${Name}" id="NameLabel"/>
             <text-field x="2" y="0" width="3" id="Name"/>
             <!-- next one should be a text area; ideally even w/basic formatting options -->
-            <label x="0" y="1" width="2" text="${Description}" id="DescriptionLabel" />
+            <label x="0" y="1" width="2" text="${Description}" id="DescriptionLabel"/>
             <text-box x="2" y="1" width="3" id="Description"/>
             <label x="0" y="2" width="2" text="${Start}" id="StartLabel"/>
             <date-field x="2" y="2" width="3" id="Start"/>
@@ -49,15 +52,15 @@
             <date-field x="2" y="3" width="3" id="End"/>
             <label x="0" y="4" width="2" text="${Duration}" id="DurationLabel"/>
             <double-field x="2" y="4" width="3" id="Duration"/>
-            <label x="0" y="5" width="2" text="${Effort}" id="BaseEffortLabel" />
+            <label x="0" y="5" width="2" text="${Effort}" id="BaseEffortLabel"/>
             <double-field x="2" y="5" width="3" id="BaseEffort"/>
             <label x="0" y="6" width="2" text="${PercentageFinished}" id="CompleteLabel"/>
             <double-field x="2" y="6" width="3" id="Complete" decimals="0"/>
             <label x="0" y="7" width="2" text="${Category}" id="CategoryLabel"/>
             <choice-field x="2" y="7" width="3" data-set-ref="ActivityCategoryDataSet" id="Category"/>
             <label x="0" y="8" width="2" text="${Priority}" id="PriorityLabel"/>
-            <int-field x="2" y="8" width="3" id="Priority"/>
-      			<check-box x="2" y="9" width="3" id="Mandatory" text="${Mandatory}" enabled="false"/>
+            <int-field x="2" y="8" width="3" id="Priority" upper-limit="9" lower-limit="1"/>
+            <check-box x="2" y="9" width="3" id="Mandatory" text="${Mandatory}" enabled="false"/>
             <label x="0" y="10" width="2" text="${Payment}" id="PaymentLabel" visible="false"/>
             <double-field x="2" y="10" width="3" id="Payment" decimals="2" visible="false"/>
          </tab>
@@ -65,15 +68,18 @@
          <tab text="${Resources}" layout="border" id="ResourcesTab">
             <panel layout="table" y="-1">
                <label x="0" y="0" width="2" text="${ResponsibleResource}" id="ResponsibleResourceLabel"/>
-               <choice-field x="2" y="0" width="3" data-set-ref="ResponsibleResourceSet" id="ResponsibleResource"/>
+
+               <action-button x="2" y="0" width="3" id="ResponsibleResource" edit-mode="false" on-button-pressed="addResponsibleResource"
+                        left-icon="/icons/remove.png" right-icon="/icons/choose_project.png"/>
+
             </panel>
             <table-box id="AssignmentTable" data-set-ref="AssignmentSet">
                <table-column id="ResourceColumn" text="${Resource}" width="120" data-column-index="0"
                              value-type="Choice"/>
                <table-column text="${HoursAssigned}" width="80" data-column-index="2" value-type="Double"
-                             sortable="true"/>
+                             sortable="true" decimals="2"/>
                <table-column text="${PercentageAssigned}" width="80" data-column-index="1" value-type="Double"
-                             sortable="true"/>
+                             sortable="true" decimals="2"/>
                <!-- Note: Maybe max/min-values might make sense for table-cells -->
                <!-- This way, we could allow availability within global availability -->
                <!-- Attention: Even percentages could be specified this way (0-100) -->
@@ -130,7 +136,7 @@
             <panel y="1" layout="flow" direction="east">
                <button style-ref="icon-button-default" icon="/modules/project_planning/icons/document.png" on-button-pressed="addDocumentAttachment" id="AddDocumentButton" tooltip="${AddDocumentAttachmentTooltip}"/>
                <button style-ref="icon-button-default" icon="/modules/project_planning/icons/url.png" on-button-pressed="addURLAttachment" id="AddURLButton" tooltip="${AddLinkAttachmentTooltip}"/>
-               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id ="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>
+               <button style-ref="icon-button-default" icon="/icons/minus_s.png" on-button-pressed="removeAttachments" id="RemoveAttachmentButton" tooltip="${RemoveAttachmentTooltip}"/>
                <button style-ref="icon-button-default" icon="/icons/info_s.png" on-button-pressed="viewAttachment" id="ViewAttachmentButton" tooltip="${ViewAttachmentTooltip}"/>
             </panel>
          </tab>
@@ -149,11 +155,11 @@
       </tab-box>
 
       <panel y="1" layout="flow" direction="west">
-	  <panel layout="border">
-      <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
-      <button x="1" id="cancelButton" text="${Cancel}" on-button-pressed="cancel"/>
-	  </panel>
-   </panel>
+         <panel layout="border">
+            <button x="0" id="okButton" text="${OK}" on-button-pressed="ok"/>
+            <button x="1" id="cancelButton" text="${Cancel}" on-button-pressed="cancel"/>
+         </panel>
+      </panel>
 
    </panel>
 </form>

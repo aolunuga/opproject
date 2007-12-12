@@ -82,6 +82,9 @@ public class OpGanttValidator extends XValidator {
    public final static byte SCHEDULED_TASK = 5;
    public final static byte ADHOC_TASK = 6;
 
+   //Default Priority Value
+   public final static byte DEFAULT_PRIORITY = 5;
+
    // Calculation modes
    public static final String CALCULATION_MODE = "CalculationMode";
    public static final byte EFFORT_BASED = 1;
@@ -1321,12 +1324,10 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_MATERIAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(false);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(false);
-            activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(true);
             // Clear not-relevant values (or do this during or after validation?)
             setBaseEffort(activity, 0.0d);
             setDuration(activity, 0.0d);
-            setPriority(activity, null);
             setWorkPhaseStarts(activity, new ArrayList());
             setWorkPhaseFinishes(activity, new ArrayList());
             setWorkPhaseBaseEfforts(activity, new ArrayList());
@@ -1344,6 +1345,10 @@ public class OpGanttValidator extends XValidator {
             else {
                setComplete(activity, 0);
             }
+            if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
+               activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
+               setPriority(activity, new Byte(DEFAULT_PRIORITY));
+            }
             List efforts = getResourceBaseEfforts(activity);
             for (int i = 0; i < efforts.size(); i++) {
                efforts.set(i, new Double(0));
@@ -1360,9 +1365,11 @@ public class OpGanttValidator extends XValidator {
             activity.getChild(BASE_MATERIAL_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(BASE_EXTERNAL_COSTS_COLUMN_INDEX).setEnabled(true);
             activity.getChild(BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX).setEnabled(true);
-            activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(false);
             activity.getChild(PAYMENT_COLUMN_INDEX).setEnabled(false);
-            setPriority(activity, null);
+            if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
+               activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
+               setPriority(activity, new Byte(DEFAULT_PRIORITY));
+            }
             if (activity.expandable()) {
                activity.expanded(true, false);
             }
@@ -1457,8 +1464,9 @@ public class OpGanttValidator extends XValidator {
             //break all the links
             breakAllLinks(activity);
 
-            if (oldType != TASK) {
-               setPriority(activity, new Byte((byte) 5));
+            if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
+               activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
+               setPriority(activity, new Byte(DEFAULT_PRIORITY));
             }
             if (getComplete(activity) == 100) {
                setComplete(activity, 100);
@@ -1790,39 +1798,6 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void validateGanttChart() {
-      if (XDisplay.getDefaultDisplay() != null) {
-         calendar = XDisplay.getDefaultDisplay().getCalendar();
-      }
-      List fixed_activities = updateActivityTypes(true);
-
-      //get all the collection tasks and update the values of the collection tasks
-      for (int i = 0; i < data_set.getChildCount(); i++) {
-         XComponent task = (XComponent) data_set.getChild(i);
-         if (getType(task) == COLLECTION_TASK) {
-            setComplete(task, -1);
-         }
-      }
-      for (int i = 0; i < data_set.getChildCount(); i++) {
-         XComponent task = (XComponent) data_set.getChild(i);
-         if (getType(task) == COLLECTION_TASK) {
-            if (getComplete(task) == -1) {
-               updateTaskParentValues(task);
-            }
-         }
-      }
-
-      // *** Optimizable: Directly use code from _fixedActivities() -- no Vector
-      // needed
-      XComponent activity = null;
-      for (int index = 0; index < fixed_activities.size(); index++) {
-         activity = (XComponent) (fixed_activities.get(index));
-         _validateActivity(activity, calendar, null, false, true);
-      }
-      fixed_activities.clear();
-
-   }
-
    /**
     * Updated the values for an activity that can contain tasks (collection task or scheduled task).
     *
@@ -1871,12 +1846,38 @@ public class OpGanttValidator extends XValidator {
    }
 
    public boolean validateDataSet() {
-      validateGanttChart();
+      if (XDisplay.getDefaultDisplay() != null) {
+         calendar = XDisplay.getDefaultDisplay().getCalendar();
+      }
+      List fixed_activities = updateActivityTypes(true);
+
+      //get all the collection tasks and update the values of the collection tasks
+      for (int i = 0; i < data_set.getChildCount(); i++) {
+         XComponent task = (XComponent) data_set.getChild(i);
+         if (getType(task) == COLLECTION_TASK) {
+            setComplete(task, -1);
+         }
+      }
+      for (int i = 0; i < data_set.getChildCount(); i++) {
+         XComponent task = (XComponent) data_set.getChild(i);
+         if (getType(task) == COLLECTION_TASK) {
+            if (getComplete(task) == -1) {
+               updateTaskParentValues(task);
+            }
+         }
+      }
+
+      XComponent activity;
+      for (int index = 0; index < fixed_activities.size(); index++) {
+         activity = (XComponent) (fixed_activities.get(index));
+         _validateActivity(activity, calendar, null, false, true);
+      }
+      fixed_activities.clear();
       return true;
    }
 
-   public void validateEntireDataSet() {
-      validateGanttChart();
+   public boolean validateEntireDataSet() {
+      return validateDataSet();
    }
 
    /*
@@ -2018,8 +2019,8 @@ public class OpGanttValidator extends XValidator {
 
       // Priority (23)
       data_cell = new XComponent(XComponent.DATA_CELL);
-      data_cell.setEnabled(false);
-      data_cell.setValue(null);
+      data_cell.setEnabled(true);
+      data_cell.setByteValue(DEFAULT_PRIORITY);
       data_row.addChild(data_cell);
 
       // Work records map (24) - for a new activity is always empty
@@ -6542,4 +6543,7 @@ public class OpGanttValidator extends XValidator {
       hourlyRatesDataSet = dataSet;
    }
 
+   public void setCalendar(XCalendar calendar) {
+      this.calendar = calendar;
+   }
 }

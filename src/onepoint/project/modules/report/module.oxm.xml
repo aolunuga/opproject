@@ -9,6 +9,9 @@
    <language-kit-paths>
       <language-kit-path path="/modules/report/i18n"/>
    </language-kit-paths>
+   <tool-groups>
+      <tool-group name="reports" caption="${ReportsToolGroup}"  sequence="3"/>
+   </tool-groups>
    <tools>
       <tool name="report" caption="${QueryTool}" group-ref="reports" icon="/modules/report/icons/report_tool.png" start-form="/modules/report/forms/report.oxf.xml"/>
    </tools>

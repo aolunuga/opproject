@@ -9,6 +9,7 @@
    <module-file file-name="/modules/project_dates/module.oxm.xml"/>
    <module-file file-name="/modules/project_resources/module.oxm.xml"/>
    <module-file file-name="/modules/project_costs/module.oxm.xml"/>
+   <module-file file-name="/modules/project_controlling/module.oxm.xml"/>
    <module-file file-name="/modules/settings/module.oxm.xml"/>   
    <module-file file-name="/modules/documents/module.oxm.xml"/>
    <module-file file-name="/modules/report/module.oxm.xml"/>   

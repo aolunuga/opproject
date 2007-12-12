@@ -2,6 +2,8 @@ package onepoint.project.modules.work.validators;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidationException;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.util.XCalendar;
 
@@ -40,6 +42,11 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    //indexes used for the list of completed assignments
    private static final int LIST_ACTIVITY_INDEX = 0;
    private static final int LIST_RESOURCE_INDEX = 1;
+
+   private static final String TIME_DATA_SET = "WorkTimeRecordSet";
+   private OpWorkTimeValidator timeValidator;
+
+   private static final XLog logger = XLogFactory.getClientLogger(OpWorkEffortValidator.class);
 
    /**
     * Validates the data set.
@@ -474,6 +481,27 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       return ((Boolean) getValue(row, ENABLED_INDEX)).booleanValue();
    }
 
+   public OpWorkTimeValidator getTimeValidator() {
+      if(timeValidator != null) {
+         return timeValidator;
+      }
+      else {
+         XComponent form = data_set.getForm();
+         XComponent timeDataSet = null;
+         if (form != null) {
+            timeDataSet = form.findComponent(TIME_DATA_SET);
+         }
+         if (timeDataSet != null) {
+            timeValidator = (OpWorkTimeValidator) timeDataSet.validator();
+         }
+        return timeValidator;
+      }
+   }
+
+   public void setTimeValidator(OpWorkTimeValidator timeValidator) {
+      this.timeValidator = timeValidator;
+   }
+
    /**
     * Removes an array of data rows from the underlying data set.
     *
@@ -773,7 +801,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
     *
     * @param resourceChoice - the locator of the resource ()
     */
-   protected void advancedFilteringForActivity(String resourceChoice) {
+   protected void advancedFilteringForActivity(String oldActivityChoice, String resourceChoice) {
       List completedAssignmentMaps = getAllCompletedAssignments();
       Map activityResourceMap = (Map) completedAssignmentMaps.get(LIST_ACTIVITY_INDEX);
 
@@ -782,7 +810,10 @@ public class OpWorkEffortValidator extends OpWorkValidator {
          row = (XComponent) getActivitySet().getChild(i);
          if ((!row.getFiltered() && areAllActivityAssignmentsCompleted(row.getStringValue(), activityResourceMap))
               || (!row.getFiltered() && isCompletedAssignment(resourceChoice, row.getStringValue()))) {
-            row.setFiltered(true);
+            //if the filtered activity is already set on the data row do not filter it
+            if (oldActivityChoice == null || !oldActivityChoice.equals(row.getValue())) {
+               row.setFiltered(true);
+            }
          }
       }
    }
@@ -790,7 +821,7 @@ public class OpWorkEffortValidator extends OpWorkValidator {
    /**
     * Filters out the resources that have all their assignments completed.
     */
-   protected void advancedFilteringForResource(String activityChoice) {
+   protected void advancedFilteringForResource(String oldResourceChoice, String activityChoice) {
       List completedAssignmentMaps = getAllCompletedAssignments();
       Map resourceActivityMap = (Map) completedAssignmentMaps.get(LIST_RESOURCE_INDEX);
 
@@ -799,7 +830,10 @@ public class OpWorkEffortValidator extends OpWorkValidator {
          row = (XComponent) getResourceSet().getChild(i);
          if ((!row.getFiltered() && areAllResourceAssignmentsCompleted(row.getStringValue(), resourceActivityMap))
               || (!row.getFiltered() && isCompletedAssignment(row.getStringValue(), activityChoice))) {
-            row.setFiltered(true);
+            //if the filtered resource is already set on the data row do not filter it
+            if (oldResourceChoice == null || !oldResourceChoice.equals(row.getValue())) {
+               row.setFiltered(true);
+            }
          }
       }
    }
@@ -820,7 +854,8 @@ public class OpWorkEffortValidator extends OpWorkValidator {
             if (((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getValue() != null &&
                  ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getValue() != null &&
                  ((XComponent) row.getChild(ACTIVITY_NAME_INDEX)).getStringValue().equals(activityChoice) &&
-                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getStringValue().equals(resourceChoice)) {
+                 ((XComponent) row.getChild(RESOURCE_NAME_INDEX)).getStringValue().equals(resourceChoice) &&
+                 ((XComponent) row.getChild(COMPLETED_INDEX)).getValue() != null) {
                return ((XComponent) row.getChild(COMPLETED_INDEX)).getBooleanValue();
             }
          }
@@ -836,4 +871,20 @@ public class OpWorkEffortValidator extends OpWorkValidator {
       super.addEmptyRow(row);
    }
 
+   /**
+    * Gets the progress tracked flag for the project on the row passed as parameter. The search will be done in the
+    *    project set from the time tab. The project cell must be set on this row.
+    *
+    * @param dataRow - the <code>XComponent</code> data row containing the project for which the tracking will be returned.
+    * @return the progress tracked flag for the project on the row passed as parameter. The search will be done in the
+    *    project set from the time tab.
+    *
+    */
+   protected boolean getProgressTrackedFromTimeSet(XComponent dataRow) {
+      if(getTimeValidator() != null) {
+         return getTimeValidator().isProgressTracked(dataRow);
+      }
+      logger.warn("Illegal state between the time dataset, hours dataset and their validators in WorkSlips");
+      return true;
+   }   
 }

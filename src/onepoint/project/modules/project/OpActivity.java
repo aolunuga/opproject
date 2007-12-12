@@ -5,15 +5,17 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpSubTypable;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class OpActivity extends OpObject {
+public class OpActivity extends OpObject implements OpSubTypable {
 
    public final static String ACTIVITY = "OpActivity";
 
@@ -66,6 +68,9 @@ public class OpActivity extends OpObject {
    public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
    public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
+   //Default priority value
+   public final static byte DEFAULT_PRIORITY = OpGanttValidator.DEFAULT_PRIORITY;
+
    // Activity attributes
    public final static int MANDATORY = OpGanttValidator.MANDATORY;
    public final static int LINKED = OpGanttValidator.LINKED;
@@ -98,6 +103,7 @@ public class OpActivity extends OpObject {
    private double actualTravelCosts;
    private double remainingTravelCosts;
    private double actualPersonnelCosts;
+   private Double remainingPersonnelCosts = 0d;
    private double actualMaterialCosts;
    private double remainingMaterialCosts;
    private double actualExternalCosts;
@@ -107,6 +113,7 @@ public class OpActivity extends OpObject {
    private double remainingEffort; // Person hours
    private double baseProceeds;
    private double actualProceeds;
+   private Double remainingProceeds = 0d;
    private double payment;
    private boolean deleted;
    private boolean expanded;
@@ -119,7 +126,7 @@ public class OpActivity extends OpObject {
    private Set<OpWorkPeriod> workPeriods;
    private Set<OpDependency> successorDependencies;
    private Set<OpDependency> predecessorDependencies;
-   private Set<OpAttachment> attachments;
+   private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
    private Set<OpActivityVersion> versions;
    private Set<OpActivityComment> comments;
    private boolean usesBaseline;
@@ -155,7 +162,7 @@ public class OpActivity extends OpObject {
       this.type = type;
    }
 
-   public byte getType() {
+   public Byte getType() {
       return type;
    }
 
@@ -163,6 +170,11 @@ public class OpActivity extends OpObject {
       this.attributes = attributes;
    }
 
+   /**
+    * Gets the attributes of this activity.
+    *
+    * @return each bit in the returned number represents the pressence of an attribute.
+    */
    public int getAttributes() {
       return attributes;
    }
@@ -548,8 +560,7 @@ public class OpActivity extends OpObject {
 
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param baseProceeds
     */
    private void setBaseProceedsInternal(Double baseProceeds) {
       this.baseProceeds = (baseProceeds != null) ? baseProceeds : 0;
@@ -562,11 +573,10 @@ public class OpActivity extends OpObject {
    public void setActualProceeds(Double actualProceeds) {
       setActualProceedsInternal(actualProceeds);
    }
-   
+
    /**
     * called internally by hibernate
     * @param actualProceeds
-    * @see OpPropertyAccessor
     */
    private void setActualProceedsInternal(Double actualProceeds) {
       this.actualProceeds = (actualProceeds != null) ? actualProceeds : 0;
@@ -582,8 +592,7 @@ public class OpActivity extends OpObject {
 
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param payment
     */
 
    private void setPaymentInternal(Double payment) {
@@ -599,8 +608,7 @@ public class OpActivity extends OpObject {
    }
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param remainingTravelCosts
     */
 
    private void setRemainingTravelCostsInternal(Double remainingTravelCosts) {
@@ -617,8 +625,7 @@ public class OpActivity extends OpObject {
 
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param remainingMaterialCosts
     */
    private void setRemainingMaterialCostsInternal(Double remainingMaterialCosts) {
       this.remainingMaterialCosts = remainingMaterialCosts != null ? remainingMaterialCosts : 0;
@@ -634,8 +641,7 @@ public class OpActivity extends OpObject {
 
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param remainingExternalCosts
     */
 
    private void setRemainingExternalCostsInternal(Double remainingExternalCosts) {
@@ -652,8 +658,7 @@ public class OpActivity extends OpObject {
 
    /**
     * called internally by hibernate
-    * @param actualProceeds
-    * @see OpPropertyAccessor
+    * @param remainingMiscellaneousCosts
     */
 
    private void setRemainingMiscellaneousCostsInternal(Double remainingMiscellaneousCosts) {
@@ -758,20 +763,53 @@ public class OpActivity extends OpObject {
    }
 
 
-   public double getRemainingProceeds() {
-      double proceeds = 0;
-      for (OpAssignment assignment : getAssignments()) {
-         proceeds += assignment.getRemainingProceeds();
-      }
-      return proceeds;
+   public Double getRemainingProceeds() {
+      return remainingProceeds;
    }
 
-   public double getRemainingPersonnelCosts() {
-      double personnel = 0;
-      for (OpAssignment assignment : getAssignments()) {
-         personnel += assignment.getRemainingPersonnelCosts();
+   public void setRemainingProceeds(Double remainingProceeds) {
+      this.remainingProceeds = remainingProceeds != null ? remainingProceeds : 0;
+   }
+
+   public Double getRemainingPersonnelCosts() {
+      return remainingPersonnelCosts;
+   }
+
+   public void setRemainingPersonnelCosts(Double remainingPersonnelCosts) {
+      this.remainingPersonnelCosts = remainingPersonnelCosts != null ? remainingPersonnelCosts : 0;
+   }
+
+   /**
+    * Updates the remaining personnel costs on the activity and its super activities.
+    *
+    * @param remainingPersonnelCostsChange - the <code>double</code> value with which the remaining personnel costs was
+    *                                      changed.
+    */
+   public void updateRemainingPersonnelCosts(double remainingPersonnelCostsChange) {
+      this.remainingPersonnelCosts = this.remainingPersonnelCosts - remainingPersonnelCostsChange;
+      if (superActivity != null) {
+         superActivity.updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
       }
-      return personnel;
+   }
+
+   /**
+    * Updates the remaining proceeds on the activity and its super activities.
+    *
+    * @param remainingProceedsChange - the <code>double</code> value with which the remaining proceeds was changed.
+    */
+   public void updateRemainingProceeds(double remainingProceedsChange) {
+      this.remainingProceeds = this.remainingProceeds - remainingProceedsChange;
+      if (superActivity != null) {
+         superActivity.updateRemainingProceeds(remainingProceedsChange);
+      }
+   }
+
+   public boolean hasAttachments() {
+      return (attributes & HAS_ATTACHMENTS) == HAS_ATTACHMENTS;
+   }
+
+   public boolean hasComments() {
+      return (attributes & HAS_COMMENTS) == HAS_COMMENTS;
    }
 
 }

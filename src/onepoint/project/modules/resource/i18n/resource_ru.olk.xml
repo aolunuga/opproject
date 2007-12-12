@@ -1,6 +1,7 @@
 <language-kit locale="ru">
    <resource-map id="resource.module">
       <resource id="AdministrationTool">Управление ресурсами</resource>
+      <resource id="ResourcesToolGroup">Ресурсы</resource>
    </resource-map>
    <resource-map id="resource.resources">
       <resource id="NewPool">Новый Пул</resource>

@@ -10,6 +10,9 @@
    <language-kit-paths>
       <language-kit-path path="/modules/resource/i18n"/>
    </language-kit-paths>
+   <tool-groups>
+      <tool-group name="resources" caption="${ResourcesToolGroup}" sequence="4"/>
+   </tool-groups>
    <tools>
       <tool name="resource" caption="${AdministrationTool}" group-ref="resources" icon="/modules/resource/icons/resource_tool.png" start-form="/modules/resource/forms/resources.oxf.xml"/>
    </tools>

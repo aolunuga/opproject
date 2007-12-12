@@ -16,6 +16,7 @@ import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.resource.test.OpResourceTestDataFactory;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.test.OpBaseOpenTestCase;
@@ -259,7 +260,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          // use an invalid Content ID - null
          List attachmentElement = generateAttachElements(null);
 
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
          t.commit();
          broker.close();
 
@@ -297,7 +298,8 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          OpTransaction t = broker.newTransaction();
          OpActivity activity = createActivity(plan, broker);
          List attachmentElement = generateAttachElements(contentId);
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
+         OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
          broker.close();
 
@@ -345,7 +347,8 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
 
          List attachmentElement = generateAttachElements(contentId);
 
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null, null);
+         OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, null);
+         OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
          broker.close();
 
@@ -356,7 +359,7 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          OpQuery query = broker.newQuery("from " + OpAttachment.ATTACHMENT);
          List list = broker.list(query);
          assertEquals(1, list.size());
-         OpAttachment attachment = (OpAttachment) list.get(0);
+         attachment = (OpAttachment) list.get(0);
 
          OpContent content = (OpContent) broker.getObject(contentId);
          assertEquals(1, content.getRefCount());
@@ -364,7 +367,8 @@ public class OpActivityDataSetFactoryTest extends OpBaseOpenTestCase {
          attachmentElement = generateAttachElements(contentId);
          List<OpAttachment> reuselist = new ArrayList<OpAttachment>();
          reuselist.add(attachment);
-         OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, reuselist, null);
+         attachment = OpActivityDataSetFactory.createAttachment(broker, activity, attachmentElement, reuselist);
+         OpPermissionDataSetFactory.updatePermissions(broker, activity.getProjectPlan().getProjectNode(), attachment);
          t.commit();
          broker.close();
 

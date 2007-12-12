@@ -1,6 +1,7 @@
 <language-kit locale="fr">
    <resource-map id="settings.module">
       <resource id="SettingsTool">Paramétres</resource>
+      <resource id="SystemToolGroup">SYSTÈME</resource>
    </resource-map>
    <resource-map id="settings.settings">
       <resource id="Settings">Parametres</resource>

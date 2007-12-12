@@ -1,6 +1,7 @@
 <language-kit locale="ru">
    <resource-map id="settings.module">
       <resource id="SettingsTool">Настройки общие</resource>
+       <resource id="SystemToolGroup">Системные</resource>
    </resource-map>
    <resource-map id="settings.settings">
       <resource id="Settings">Настройки общие</resource>

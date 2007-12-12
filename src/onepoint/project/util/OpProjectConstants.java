@@ -12,12 +12,13 @@ package onepoint.project.util;
 public interface OpProjectConstants {
 
    public static final String RUN_LEVEL = "runLevel";
+   public static final String START_FORM = "startForm";
    public static final String GET_RUN_LEVEL_ACTION = "GetRunLevel";
    public static final byte CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL = 0;
    public static final String CONFIGURATION_WIZARD_FORM = "/modules/configuration_wizard/forms/configuration_wizard.oxf.xml";
    public static final String STANDALONE_CONFIGURATION_WIZARD_FORM = "/modules/configuration_wizard/forms/standalone_configuration_wizard.oxf.xml";
-   public static final String DEFAULT_START_FORM = "/forms/login.oxf.xml";
-   public static final String START_FORM = "/forms/start.oxf.xml";
+   public static final String OPEN_START_FORM = "/forms/start.oxf.xml";
+   public static final String TEAM_START_FORM = "/team/forms/start.oxf.xml";
    public static final String CHILDREN = "children";
    public static final String DUMMY_ROW_ID = "DummyChildId";
    public static final String REFRESH_PARAM = "refresh";
@@ -86,9 +87,5 @@ public interface OpProjectConstants {
    public static final byte CONTRIBUTOR_USER_LEVEL = 1;
    public static final byte MANAGER_USER_LEVEL = 2;
 
-   /**
-    * License service name
-    */
-   public static final String LICENSE_SERVICE_NAME = "LicenseService";
    public static String OP_OBJECT_TABLE_NAME = "op_object";
 }

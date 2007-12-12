@@ -941,7 +941,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       Date finish = new Date(getCalendarWithExactDaySet(2007, 6, 25).getTimeInMillis());
 
       validator.setProjectStart(start);
-      validator.validateDataSet();
+      validator.validateEntireDataSet();
       validator.setProjectFinish(null);
       validator.setProjectPlanFinish(finish);
 
@@ -1114,8 +1114,8 @@ public class OpGanttValidatorTest extends OpTestCase {
       XComponent firstActivity = (XComponent) validator.getDataSet().getChild(0);
       //remove the link between the first activity and the second activity
       XComponent secondActivity = (XComponent) validator.getDataSet().getChild(1);
-      validator.setDataCellValue(firstActivity,OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
-      validator.setDataCellValue(secondActivity,OpGanttValidator.PREDECESSORS_COLUMN_INDEX, new ArrayList());
+      validator.setDataCellValue(firstActivity, OpGanttValidator.SUCCESSORS_COLUMN_INDEX, new ArrayList());
+      validator.setDataCellValue(secondActivity, OpGanttValidator.PREDECESSORS_COLUMN_INDEX, new ArrayList());
 
       //set the activity's start to 6/10/2007 and it's finish to 6/25/2007
       Date start = new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis());
@@ -1470,7 +1470,7 @@ public class OpGanttValidatorTest extends OpTestCase {
       assertNotNull("The work phase end is not correct ", OpGanttValidator.getWorkPhaseFinishes(dataRow));
       assertNotNull("The work phase effort is not correct ", OpGanttValidator.getWorkPhaseBaseEfforts(dataRow));
       assertNotNull("The ressource based effort is not correct ", OpGanttValidator.getResourceBaseEfforts(dataRow));
-      assertNull("Priority is not correct ", OpGanttValidator.getPriority(dataRow));
+      assertEquals("Priority is not correct ", OpGanttValidator.DEFAULT_PRIORITY, OpGanttValidator.getPriority(dataRow).byteValue());
       assertNotNull("Work records map is not correct ", OpGanttValidator.getWorkRecords(dataRow));
       assertEquals("Actual effort is not correct ", 0.0d, OpGanttValidator.getActualEffort(dataRow), 0);
    }

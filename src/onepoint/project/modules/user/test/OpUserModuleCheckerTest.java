@@ -407,7 +407,7 @@ public class OpUserModuleCheckerTest extends OpBaseOpenTestCase {
       project.setType(OpProjectNode.PROJECT);
 
       OpAttachment attachment = new OpAttachment();
-      attachment.setProjectNode(project);
+      attachment.setObject(project);
 
       broker.makePersistent(project);
       broker.makePersistent(attachment);

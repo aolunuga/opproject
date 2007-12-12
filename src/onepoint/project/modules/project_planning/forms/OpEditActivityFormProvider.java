@@ -14,12 +14,10 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityComment;
-import onepoint.project.modules.project.OpActivityVersion;
-import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
+import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
 import onepoint.project.modules.user.OpSubjectDataSetFactory;
@@ -31,8 +29,10 @@ import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class OpEditActivityFormProvider implements XFormProvider {
 
@@ -48,6 +48,7 @@ public class OpEditActivityFormProvider implements XFormProvider {
    private final static String ADD_COMMENT_BUTTON = "AddCommentButton";
    private final static String ACTIVITY_ID_FIELD = "ActivityIDField";
    private final static String HAS_COMMENTS_FIELD = "HasCommentsField";
+   private final static String EXCLUDED_RESOURCES = "ExcludedResources";
 
    //action that should be performed when a comment is removed
    private static final String REMOVE_COMMENT_ACTION = "removeComment";
@@ -73,6 +74,8 @@ public class OpEditActivityFormProvider implements XFormProvider {
       OpBroker broker = session.newBroker();
       OpUser currentUser = session.user(broker);
 
+      activityType = (Byte) parameters.get(OpProjectPlanningService.ACTIVITY_TYPE);
+      
       // Check for activity ID (get activity if activity is a version)
       String activityLocator = (String) parameters.get(OpProjectPlanningService.ACTIVITY_ID);
       OpActivity activity = null;
@@ -80,12 +83,10 @@ public class OpEditActivityFormProvider implements XFormProvider {
          OpObject object = broker.getObject(activityLocator);
          if (object instanceof OpActivity) {
             activity = (OpActivity) object;
-            activityType = activity.getType();
          }
          else if (object instanceof OpActivityVersion) {
             OpActivityVersion activityVersion = (OpActivityVersion) object;
             activity = activityVersion.getActivity();
-            activityType = (activity != null) ? activity.getType() : activityVersion.getType();
          }
          // Store resolved activity locator in data-field
          if (activity != null) {
@@ -97,6 +98,38 @@ public class OpEditActivityFormProvider implements XFormProvider {
       String currentProjectId = (String) session.getVariable(OpProjectConstants.PROJECT_ID);
       if (currentProjectId != null) {
          OpProjectNode project = (OpProjectNode) broker.getObject(currentProjectId);
+
+         XComponent projectResources = new XComponent(XComponent.DATA_SET);
+         XComponent excludedResources = new XComponent(XComponent.DATA_SET);
+         List<Long> projectResourcesList = new ArrayList<Long>();
+
+         OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, projectResources);
+
+         for (int i = 0; i < projectResources.getChildCount(); i++) {
+            XComponent d = (XComponent) projectResources.getChild(i);
+            projectResourcesList.add(OpLocator.parseLocator(XValidator.choiceID(d.getStringValue())).getID());
+         }
+
+         OpQuery query = null;
+         if (projectResourcesList.size() != 0) {
+            query = broker.newQuery("from OpResource resource where resource.ID not in (:resourceIds)");
+            query.setCollection("resourceIds", projectResourcesList);
+         }
+         else {
+            query = broker.newQuery("from OpResource");
+         }
+
+         Iterator it = broker.iterate(query);
+
+         while (it.hasNext()) {
+            OpResource resource = (OpResource) it.next();
+            XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setStringValue(resource.locator()+"['"+resource.getName()+"']");
+            excludedResources.addChild(dataRow);
+         }
+
+         form.findComponent(EXCLUDED_RESOURCES).setValue(excludedResources);
+
          if (!project.getPlan().getProgressTracked()) {
             form.findComponent(COMPLETE).setEnabled(true);
          }

@@ -7,6 +7,7 @@ package onepoint.project.modules.work;
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project_controlling.OpControllingRecord;
 import onepoint.util.XCalendar;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class OpWorkRecord extends OpObject {
    public final static String COMMENT = "Comment";
    public final static String ASSIGNMENT = "Assignment";
    public final static String WORK_SLIP = "WorkSlip";
+   public final static String CONTROLLING_RECORDS = "ControllingRecords";
 
    private double actualEffort = 0; // Additional actual effort in hours
    private double remainingEffort = 0; // Estimated remaining effort in hours
@@ -47,6 +49,7 @@ public class OpWorkRecord extends OpObject {
    private OpWorkSlip workSlip;
    private Set<OpCostRecord> costRecords = new HashSet<OpCostRecord>();
    private Set<OpTimeRecord> timeRecords = new HashSet<OpTimeRecord>();
+   private OpControllingRecord controllingRecord;
 
    public void setActualEffort(double actualEffort) {
       this.actualEffort = actualEffort;
@@ -232,6 +235,16 @@ public class OpWorkRecord extends OpObject {
 
    public void setCostRecords(Set<OpCostRecord> costRecords) {
       this.costRecords = costRecords;
+   }
+
+   /**
+    * Sets the cost record set on the <code>OpWorkRecord</code> entity and sets the work record on each
+    * <code>OpCostRecord</code> entity in the set.
+    *
+    * @param costRecords - the <code>Set<OpCostRecord></code> of cost records which will be set on the work record.
+    */
+   public void addCostRecords(Set<OpCostRecord> costRecords) {
+      this.costRecords = costRecords;
       for (OpCostRecord cost : costRecords) {
          cost.setWorkRecord(this);
       }
@@ -243,9 +256,27 @@ public class OpWorkRecord extends OpObject {
 
    public void setTimeRecords(Set<OpTimeRecord> timeRecords) {
       this.timeRecords = timeRecords;
+   }
+
+   /**
+    * Sets the time record set on the <code>OpWorkRecord</code> entity and sets the work record on each
+    * <code>OpTimeRecord</code> entity in the set.
+    *
+    * @param timeRecords - the <code>Set<OpTimeRecord></code> of time records which will be set on the work record.
+    */
+   public void addTimeRecords(Set<OpTimeRecord> timeRecords) {
+      this.timeRecords = timeRecords;
       for (OpTimeRecord time : timeRecords) {
          time.setWorkRecord(this);
       }
+   }
+
+   public OpControllingRecord getControllingRecord() {
+      return controllingRecord;
+   }
+
+   public void setControllingRecord(OpControllingRecord controllingRecord) {
+      this.controllingRecord = controllingRecord;
    }
 
    /**

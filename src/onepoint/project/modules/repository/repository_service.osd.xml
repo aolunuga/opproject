@@ -1,6 +1,6 @@
-<service name="RepositoryService" class="onepoint.project.modules.repository.OpRepositoryService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="backup"/>
-   <method name="restore"/>
-   <method name="reset"/>
-   <method name="validateAdminPassword"/>
+<service name="RepositoryService" class="onepoint.project.modules.repository.OpRepositoryService" interceptor="onepoint.project.modules.user.OpUserServiceInterceptor">
+   <method name="backup" adminCheck="true"/>
+   <method name="restore" adminCheck="true"/>
+   <method name="reset" adminCheck="true"/>
+   <method name="validateAdminPassword" adminCheck="false"/>
 </service>

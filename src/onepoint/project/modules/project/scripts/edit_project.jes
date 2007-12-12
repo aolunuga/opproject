@@ -59,6 +59,7 @@ function ok_edit(event) {
    if (choice != null) {
       project_data.Status = XValidator.choiceID(choice);
    }
+   modifiedRates = form.findComponent("ModifiedRates").getBooleanValue();
 
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
    to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
@@ -110,6 +111,7 @@ function ok_edit(event) {
    request.setArgument("resource_set", assigned_resource_set);
    request.setArgument("versions_set", versions_set);
    request.setArgument("attachments_list_set", attachmentListDataSet);
+   request.setArgument("modified_rates", modifiedRates);
    response = XDisplay.getClient().invokeMethod(request);
 
    if (handleError(form, response, "ErrorLabel") == true) {

@@ -55,7 +55,7 @@ public class OpProjectResourcesFormProvider implements XFormProvider {
          int max_outline_level = getMaxOutlineLevel(form, session);
          // Create dynamic resource summaries for collection-activities
          // (Note: Value of collection-activities have been set on check-in/work-calculator)
-         OpProjectResourceDataSetFactory.fillEffortDataSet(broker, project, max_outline_level, data_set);
+         OpProjectResourceDataSetFactory.fillEffortDataSet(broker, project, max_outline_level, data_set, true);
       }
       broker.close();
       updateFooterData(form);

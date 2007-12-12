@@ -75,87 +75,83 @@ public class OpUserServiceImpl implements OpService {
 //             + " inner join activity.Assignments as assignment"
 //             + " where assignment.Resource.ID in (:resourceIds)"
 //             + " and activity.SuperActivity = null" // no parent
-////   + " and activity.ProjectPlan.ID :project" 
+////   + " and activity.ProjectPlan.ID :project"
 //             + " and activity.Deleted = false"
 //             + " order by activity.Sequence";
 
-  private static final String USER_ASSIGNMENT = 
-     "select assignment from OpUserAssignment as assignment" +
-     " where assignment.User.ID = ? and assignment.Group.ID = ?";
+   private static final String USER_ASSIGNMENT =
+        "select assignment from OpUserAssignment as assignment" +
+             " where assignment.User.ID = ? and assignment.Group.ID = ?";
 
-//  private static final String GROUP_ASSIGNMENT = 
+//  private static final String GROUP_ASSIGNMENT =
 //     "select assignment from OpGroupAssignment as assignment" +
 //     " where assignment.SubGroup.ID = ? and assignment.SuperGroup.ID = ?";
 
-  
-  /**
-   * the ldap service to use for ldap identification, may be <code>null</code>.
-   */
-  private OpLdapService ldapService = null;
 
-  /**
-   * flag indicating that no update was done before, set to false after first update. 
-   */
-  private boolean initialUpdate = true;
-     
-  /**
-   * Default Constructor
-   */
-  public OpUserServiceImpl() {
-     super();
-     // estimating that ldap is enabled, during first load of ldap this will be set
-     ldapService = getLDAPService();
-  }
+   /**
+    * the ldap service to use for ldap identification, may be <code>null</code>.
+    */
+   private OpLdapService ldapService = null;
 
-/**
-   * Assigns the given {@link OpUser user} to the given {@link Iterator groups}.
-   *
-   * @param session the session within any operation will be performed.
-   * @param broker the broker to perform any operation.
-   * @param user the user that is to be assigned to the groups.
-   * @param groups the groups to assign the user to.
-   * @throws XServiceException {@link OpUserError#USER_NOT_FOUND}
-   * if {@link OpUser user} is null.
-   * @throws XServiceException {@link OpUserError#SUPER_GROUP_NOT_FOUND}
-   * if {@link OpGroup group} is null.
-   * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
-   * if user is not administrator.
-   */
+   /**
+    * flag indicating that no update was done before, set to false after first update.
+    */
+   private boolean initialUpdate = true;
 
-  public final void assign(final OpProjectSession session, final OpBroker broker,
+   /**
+    * Default Constructor
+    */
+   public OpUserServiceImpl() {
+      super();
+      // estimating that ldap is enabled, during first load of ldap this will be set
+      ldapService = getLDAPService();
+   }
+
+   /**
+    * Assigns the given {@link OpUser user} to the given {@link Iterator groups}.
+    *
+    * @param session the session within any operation will be performed.
+    * @param broker  the broker to perform any operation.
+    * @param user    the user that is to be assigned to the groups.
+    * @param groups  the groups to assign the user to.
+    * @throws XServiceException {@link OpUserError#USER_NOT_FOUND}
+    *                           if {@link OpUser user} is null.
+    * @throws XServiceException {@link OpUserError#SUPER_GROUP_NOT_FOUND}
+    *                           if {@link OpGroup group} is null.
+    * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
+    *                           if user is not administrator.
+    */
+   public final void assign(final OpProjectSession session, final OpBroker broker,
         final OpUser user, final Iterator<OpGroup> groups)
-    throws XServiceException {
-     while (groups.hasNext())
-     {
-       assign(session, broker, user, groups.next());
-     }
-  }
+        throws XServiceException {
+      while (groups.hasNext()) {
+         assign(session, broker, user, groups.next());
+      }
+   }
 
-  /**
-   * Assigns the given {@link Iterator users} to the given {@link OpGroup group}.
-   *
-   * @param session the session within any operation will be performed.
-   * @param broker the broker to perform any operation.
-   * @param users the users that are to be assigned to a group.
-   * @param group the group to assign the users to.
-   * @throws XServiceException {@link OpUserError#USER_NOT_FOUND}
-   * if {@link OpUser user} is null.
-   * @throws XServiceException {@link OpUserError#SUPER_GROUP_NOT_FOUND}
-   * if {@link OpGroup group} is null.
-   * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
-   * if user is not administrator.
-   */
-
-  public final void assign(final OpProjectSession session, final OpBroker broker,
+   /**
+    * Assigns the given {@link Iterator users} to the given {@link OpGroup group}.
+    *
+    * @param session the session within any operation will be performed.
+    * @param broker  the broker to perform any operation.
+    * @param users   the users that are to be assigned to a group.
+    * @param group   the group to assign the users to.
+    * @throws XServiceException {@link OpUserError#USER_NOT_FOUND}
+    *                           if {@link OpUser user} is null.
+    * @throws XServiceException {@link OpUserError#SUPER_GROUP_NOT_FOUND}
+    *                           if {@link OpGroup group} is null.
+    * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
+    *                           if user is not administrator.
+    */
+   public final void assign(final OpProjectSession session, final OpBroker broker,
         final Iterator<OpUser> users, final OpGroup group)
-    throws XServiceException {
-     while (users.hasNext())
-     {
-        OpUser user = users.next();
-        assign(session, broker, user, group);
-     }
-  }
-  
+        throws XServiceException {
+      while (users.hasNext()) {
+         OpUser user = users.next();
+         assign(session, broker, user, group);
+      }
+   }
+
    /**
     * Assigns the given {@link OpUser user} to the given {@link OpGroup group}.
     *
@@ -170,7 +166,6 @@ public class OpUserServiceImpl implements OpService {
     * @throws XServiceException {@link OpUserError#INSUFFICIENT_PRIVILEGES}
     *                           if user is not administrator.
     */
-
    public final void assign(final OpProjectSession session, final OpBroker broker,
         final OpUser user, final OpGroup group)
         throws XServiceException {
@@ -185,21 +180,45 @@ public class OpUserServiceImpl implements OpService {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
       }
 
-    // check if an assignment already exists
-    OpQuery query = broker.newQuery(USER_ASSIGNMENT);
-    query.setLong(0, user.getID());
-    query.setLong(1, group.getID());
-    Iterator result = broker.iterate(query);
-    if (result.hasNext()) {
-       // found an assignment
-       return;
-    }
+      for (OpPermission permission : getAllOwnedPermissions(group)) {
+         if (!user.isPermissionAllowed(permission.getAccessLevel())) {
+            throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PERMISSION_LEVEL_ERROR));
+         }
+      }
 
-    OpUserAssignment assignment = new OpUserAssignment();
-    assignment.setUser(user);
-    assignment.setGroup(group);
-    broker.makePersistent(assignment);
-  }
+      // check if an assignment already exists
+      OpQuery query = broker.newQuery(USER_ASSIGNMENT);
+      query.setLong(0, user.getID());
+      query.setLong(1, group.getID());
+      Iterator result = broker.iterate(query);
+      if (result.hasNext()) {
+         // found an assignment
+         return;
+      }
+
+      OpUserAssignment assignment = new OpUserAssignment();
+      assignment.setUser(user);
+      assignment.setGroup(group);
+      broker.makePersistent(assignment);
+   }
+
+
+   /**
+    * Gets all the permissions for the given group.
+    * Goes recursively upwards collecting permissions from groups.
+    *
+    * @param group group object to gather the permissions for.
+    * @return Set of permissions.
+    */
+   private Set<OpPermission> getAllOwnedPermissions(OpGroup group) {
+      Set<OpPermission> ownedPermissions = new HashSet<OpPermission>(group.getOwnedPermissions());
+      for (Object o : group.getSuperGroupAssignments()) {
+         OpGroupAssignment assignment = (OpGroupAssignment) o;
+         ownedPermissions.addAll(getAllOwnedPermissions(assignment.getSuperGroup()));
+      }
+      return ownedPermissions;
+   }
+
 
    /**
     * Returns an iterator over all groups that do not have a parent
@@ -209,7 +228,6 @@ public class OpUserServiceImpl implements OpService {
     * @param broker  the broker to use.
     * @return an iterator over all root groups.
     */
-
    public final Iterator<OpGroup> getRootGroups(
         final OpProjectSession session, final OpBroker broker) {
 
@@ -263,8 +281,8 @@ public class OpUserServiceImpl implements OpService {
     * @return an iterator over all children.
     * @throws XServiceException in case of whatever error.
     */
-   public Iterator<OpSubject> getSubSubjects(OpProjectSession session, OpBroker broker, OpGroup group, 
-         int type, OpFilter filter)
+   public Iterator<OpSubject> getSubSubjects(OpProjectSession session, OpBroker broker, OpGroup group,
+        int type, OpFilter filter)
         throws XServiceException {
       LinkedList<OpSubject> matches = new LinkedList<OpSubject>();
       OpQuery query;
@@ -319,7 +337,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       //configuration doesn't allow empty password fields
-      if ((!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD)).booleanValue()) &&
+      if ((!Boolean.valueOf(OpSettingsService.getService().get(OpSettings.ALLOW_EMPTY_PASSWORD))) &&
            (user.passwordIsEmpty())) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISSING));
       }
@@ -371,10 +389,11 @@ public class OpUserServiceImpl implements OpService {
 
    /**
     * Returns the name of the algorithm used to identify the user.
+    *
     * @param session  the session within any operation will be performed.
     * @param broker   the broker to perform any operation.
     * @param username the username to get the algorithm for identification for.
-    * @return the encryption algorithm used to identify the given username. 
+    * @return the encryption algorithm used to identify the given username.
     * @pre
     * @post
     */
@@ -388,13 +407,15 @@ public class OpUserServiceImpl implements OpService {
            username.equals(OpUser.ADMINISTRATOR_NAME_ALIAS2)) {
          return OpHashProvider.INTERNAL;
       }
-      
+
       if (ldapService != null && ldapService.isEnabled()) {
          try {
             return ldapService.getHashAlgorithm(session, broker, username);
-         } catch (TimeLimitExceededException exc) {
+         }
+         catch (TimeLimitExceededException exc) {
             // try internal algorithm
-         } catch (NamingException exc) {
+         }
+         catch (NamingException exc) {
             logger.warn(exc);
             throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
          }
@@ -411,12 +432,12 @@ public class OpUserServiceImpl implements OpService {
          Pattern p = Pattern.compile("^\\{([^\\}]*)\\}.*$");
          Matcher m = p.matcher(pwd);
          if (m.matches()) {
-            return(m.group(1));
+            return (m.group(1));
          }
       }
-      return OpHashProvider.INTERNAL;   
+      return OpHashProvider.INTERNAL;
    }
-   
+
    /**
     * identifies this session with the given username and password.
     *
@@ -472,8 +493,7 @@ public class OpUserServiceImpl implements OpService {
                if (values[0] == null) { // pwd has to be base 64 encoded
                   password = new OpHashProvider().calculateHash(password);
                }
-               try
-               {
+               try {
                   if (user != null) { // existing user
                      ldapService.updateUser(session, broker, user, password);
                   }
@@ -485,14 +505,16 @@ public class OpUserServiceImpl implements OpService {
                   session.authenticateUser(broker, realUser);
                }
                authenticateUser(session, broker, user);
-               return user;                
-            } catch (TimeLimitExceededException exc) {
+               return user;
+            }
+            catch (TimeLimitExceededException exc) {
                if (user == null) {
                   logger.debug("ldap timeout for user logIn");
                   throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
                }
                // try internal signon
-            } catch (NamingException exc) {
+            }
+            catch (NamingException exc) {
                logger.warn(exc);
                throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
             }
@@ -504,41 +526,41 @@ public class OpUserServiceImpl implements OpService {
             throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
          }
          authenticateUser(session, broker, user);
-         return user;                
+         return user;
       }
       throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
    }
 
-  /**
-   * @param session
-   * @param broker
-   * @param user
-   * @pre
-   * @post
-   */
-  private void authenticateUser(OpProjectSession session, OpBroker broker, OpUser user) {
-     session.authenticateUser(broker, user);
+   /**
+    * @param session
+    * @param broker
+    * @param user
+    * @pre
+    * @post
+    */
+   private void authenticateUser(OpProjectSession session, OpBroker broker, OpUser user) {
+      session.authenticateUser(broker, user);
 
-     XLocale user_locale = null;
-     if ((user != null) && (user.getPreferences() != null)) {
-        Iterator preferences = user.getPreferences().iterator();
-        OpPreference preference = null;
-        while (preferences.hasNext()) {
-           preference = (OpPreference) preferences.next();
-           if (preference.getName().equals(OpPreference.LOCALE)) {
-              // Set user locale
-              user_locale = XLocaleManager.findLocale(preference.getValue());
-           }
-        }
-     }
+      XLocale user_locale = null;
+      if ((user != null) && (user.getPreferences() != null)) {
+         Iterator preferences = user.getPreferences().iterator();
+         OpPreference preference = null;
+         while (preferences.hasNext()) {
+            preference = (OpPreference) preferences.next();
+            if (preference.getName().equals(OpPreference.LOCALE)) {
+               // Set user locale
+               user_locale = XLocaleManager.findLocale(preference.getValue());
+            }
+         }
+      }
 
-     // Fallback: Global locale setting in the database
-     if (user_locale == null) {
-        logger.info("Cannot determine user locale. Using global locale");
-        user_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
-     }
-     session.setLocale(user_locale);
-  }
+      // Fallback: Global locale setting in the database
+      if (user_locale == null) {
+         logger.info("Cannot determine user locale. Using global locale");
+         user_locale = XLocaleManager.findLocale(OpSettingsService.getService().get(OpSettings.USER_LOCALE));
+      }
+      session.setLocale(user_locale);
+   }
 
    /**
     * signs of the currently signed on user.
@@ -556,40 +578,41 @@ public class OpUserServiceImpl implements OpService {
    }
 
    /**
-   * Returns the ldap service.
-   * @return the ldap service.
-   */
-  private OpLdapService getLDAPService() {
-     try {
-        ldapService = (OpLdapService) Class.forName(
-        "onepoint.project.team.ldap.OpLdapServiceImpl").newInstance();
-        //ldapService.setShadowAllUsersMode(true);
-        ldapService.init();
-        return ldapService;
-     }
-     catch (ClassNotFoundException exc) {
-        logger.debug(exc);
-     }
-     catch (InstantiationException exc) {
-        logger.debug(exc);
-     }
-     catch (IllegalAccessException exc) {
-        logger.debug(exc);
-     }
-     catch (NamingException exc) {
-        logger.debug(exc);
-     }
-     catch (NoClassDefFoundError exc) {
-        logger.warn(exc.getMessage()+", please make sure you run tomcat with >= jre 1.5");
-        logger.debug(exc);
-     }
-     catch (Exception exc) {
-        exc.printStackTrace();
-        logger.debug(exc);
-     }
-     return null;
-     //     return (OpLdapService) XServiceManager.getService("LDAPService");  
-  }
+    * Returns the ldap service.
+    *
+    * @return the ldap service.
+    */
+   private OpLdapService getLDAPService() {
+      try {
+         ldapService = (OpLdapService) Class.forName(
+              "onepoint.project.team.ldap.OpLdapServiceImpl").newInstance();
+         //ldapService.setShadowAllUsersMode(true);
+         ldapService.init();
+         return ldapService;
+      }
+      catch (ClassNotFoundException exc) {
+         logger.debug(exc);
+      }
+      catch (InstantiationException exc) {
+         logger.debug(exc);
+      }
+      catch (IllegalAccessException exc) {
+         logger.debug(exc);
+      }
+      catch (NamingException exc) {
+         logger.debug(exc);
+      }
+      catch (NoClassDefFoundError exc) {
+         logger.warn(exc.getMessage() + ", please make sure you run tomcat with >= jre 1.5");
+         logger.debug(exc);
+      }
+      catch (Exception exc) {
+         exc.printStackTrace();
+         logger.debug(exc);
+      }
+      return null;
+      //     return (OpLdapService) XServiceManager.getService("LDAPService");
+   }
 
    /**
     * Returns the username of the user that is currently signed on, or <code>null</code> if no user is currently signed on.
@@ -651,7 +674,7 @@ public class OpUserServiceImpl implements OpService {
       }
 
       try {
-//      broker.updateObject(group);    
+//      broker.updateObject(group);
          broker.getConnection().flush();
       }
       catch (ConstraintViolationException exc) { // name not unique!
@@ -695,7 +718,7 @@ public class OpUserServiceImpl implements OpService {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INVALID_USER_LEVEL));
       }
       try {
-//      broker.updateObject(user);    
+//      broker.updateObject(user);
 //      broker.updateObject(contact);
          broker.getConnection().flush();
       }
@@ -706,11 +729,12 @@ public class OpUserServiceImpl implements OpService {
    }
 
    /**
-    * Returns the OnePoint user for the given id. 
+    * Returns the OnePoint user for the given id.
+    *
     * @param session the session within any operation will be performed.
     * @param broker  the broker to perform any operation.
-    * @param id the id of the user to get.
-    * @return the OnePoint user for the given id. 
+    * @param id      the id of the user to get.
+    * @return the OnePoint user for the given id.
     */
    public OpUser getUserById(OpProjectSession session, OpBroker broker, long id) {
       return ((OpUser) broker.getObject(OpUser.class, id));
@@ -718,6 +742,7 @@ public class OpUserServiceImpl implements OpService {
 
    /**
     * Assigns the given group to the given superGroup.
+    *
     * @param session    the session within any operation will be performed.
     * @param broker     the broker to perform any operation.
     * @param group      the group to assign to its super group.
@@ -736,6 +761,15 @@ public class OpUserServiceImpl implements OpService {
 
       if (!isAssignable(session, broker, group, superGroup)) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.LOOP_ASSIGNMENT));
+      }
+
+      for (OpPermission permission : getAllOwnedPermissions(superGroup)) {
+         for (OpUserAssignment userAssignement : group.getUserAssignments()) {
+            OpUser user = userAssignement.getUser();
+            if (!user.isPermissionAllowed(permission.getAccessLevel())) {
+               throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PERMISSION_LEVEL_ERROR));
+            }
+         }
       }
 
       OpGroupAssignment assignment = new OpGroupAssignment();
@@ -858,8 +892,8 @@ public class OpUserServiceImpl implements OpService {
    }
 
    /**
-    * @param session the session within any operation will be performed.
-    * @param broker the broker to perform any operation.
+    * @param session     the session within any operation will be performed.
+    * @param broker      the broker to perform any operation.
     * @param assignments
     * @pre session and broker must be valid
     * @post
@@ -924,9 +958,10 @@ public class OpUserServiceImpl implements OpService {
       }
       broker.deleteObject(assignment);
    }
+
    /**
-    * @param session the session within any operation will be performed.
-    * @param broker the broker to perform any operation.
+    * @param session     the session within any operation will be performed.
+    * @param broker      the broker to perform any operation.
     * @param assignments
     * @pre session and broker must be valid
     * @post
@@ -939,7 +974,7 @@ public class OpUserServiceImpl implements OpService {
          broker.deleteObject(assignments.next());
       }
    }
-   
+
    /**
     * @param session the session within any operation will be performed.
     * @param broker  the broker to perform any operation.
@@ -953,7 +988,7 @@ public class OpUserServiceImpl implements OpService {
       if (!session.userIsAdministrator()) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
       }
-      logger.info("deleting user "+user.getName());
+      logger.info("deleting user " + user.getName());
       Set res = user.getResources();
       for (Iterator iterator = res.iterator(); iterator.hasNext();) {
          OpResource resource = (OpResource) iterator.next();
@@ -984,7 +1019,7 @@ public class OpUserServiceImpl implements OpService {
    */
    public String getName() {
       return SERVICE_NAME;
-  }
+   }
 
 
 }

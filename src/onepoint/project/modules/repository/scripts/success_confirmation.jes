@@ -9,15 +9,12 @@ import onepoint.service.XMessage;
 function ok(event) {
    form = XDisplay.getActiveForm();
    multiUser = form.findComponent("MultiUser").getBooleanValue();
+   startForm = form.findComponent("ApplicationStartForm").getStringValue();  
    if (!multiUser) {
       defaultUserName = form.findComponent("DefaultUserName").getStringValue();
       defaultPassword = form.findComponent("DefaultPassword").getStringValue();
       authenticate(defaultUserName, defaultPassword, false);
-      //show login form
-      XDisplay.getDefaultDisplay().showForm("/forms/start.oxf.xml", null);
    }
-   else {
-      //redirect to login
-      XDisplay.getDefaultDisplay().showForm("/forms/login.oxf.xml", null);
-   }
+   //redirect to start form
+   XDisplay.getDefaultDisplay().showForm(startForm, null);
 }

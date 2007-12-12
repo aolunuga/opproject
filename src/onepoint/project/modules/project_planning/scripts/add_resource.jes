@@ -100,7 +100,6 @@ function ok(event) {
          responsibleResource = firstRow.getChild(0).getStringValue();
          if (chooserValue == noResponsible) {
             resourceChooser.setStringValue(responsibleResource);
-            resourceChooser.getChild(0).setStringValue(responsibleResource);
          }
 
          // Update assigned user list

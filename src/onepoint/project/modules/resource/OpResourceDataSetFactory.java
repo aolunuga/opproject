@@ -6,6 +6,7 @@ package onepoint.project.modules.resource;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.express.XView;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
@@ -44,9 +45,10 @@ public final class OpResourceDataSetFactory {
    private static final String GET_ASSIGNMENT_VERSION_COUNT_FOR_RESOURCE =
         "select count(assignmentVersion.ID) from OpAssignmentVersion assignmentVersion where assignmentVersion.Resource = (:resourceId)";
    private static final String GET_RESPONSIBLE_ACTIVITY_COUNT_FOR_RESOURCE =
-        "select count(respActivity.ID) from OpActivity respActivity where respActivity.ResponsibleResource = (:resourceId)";
+        "select count(respActivity.ID) from OpActivity respActivity where respActivity.ResponsibleResource = (:resourceId) and respActivity.Deleted = false";
    private static final String GET_RESPONSIBLE_ACTIVITY_VERSION_COUNT_FOR_RESOURCE =
         "select count(respActivityVers.ID) from OpActivityVersion respActivityVers where respActivityVers.ResponsibleResource = (:resourceId)";
+
 
    /**
     * Utility class.
@@ -91,10 +93,12 @@ public final class OpResourceDataSetFactory {
       addSubPoolRows(session, dataSet, localizer, -1, 0, poolColumnsSelector, resourceColumnsSelector, filteredLocators);
 
       XComponent resultDataSet = new XComponent(XComponent.DATA_SET);
-      for (int i = 0; i < dataSet.getChildCount(); i++) {
-         XComponent row = (XComponent) dataSet.getChild(i);
+      List<XComponent> dataRows = dataSet.asList();
+      for (Object dataRow : dataRows) {
+         XComponent row = (XComponent) dataRow;
          if (row.getOutlineLevel() == 0) {
             int size = row.getSubRows().size();
+            dataSet.removeChild(row);
             resultDataSet.addChild(row);
             if (size > 0) {
                row.setExpanded(true);
@@ -102,7 +106,7 @@ public final class OpResourceDataSetFactory {
                dataCell.setBooleanValue(true);
                row.addChild(dataCell);
                String locatorString = row.getStringValue();
-               OpLocator locator = OpLocator.parseLocator((String) (locatorString));
+               OpLocator locator = OpLocator.parseLocator(locatorString);
                //add level 1 rows
                addSubPoolRows(session, resultDataSet, localizer, locator.getID(), 1, poolColumnsSelector, resourceColumnsSelector, filteredLocators);
             }
@@ -110,9 +114,12 @@ public final class OpResourceDataSetFactory {
       }
       //set the result
       dataSet.removeAllChildren();
+      XView children[] = new XView[resultDataSet.getChildCount()];
       for (int i = 0; i < resultDataSet.getChildCount(); i++) {
-         dataSet.addChild(resultDataSet.getChild(i));
+         children[i] = resultDataSet.getChild(i);
       }
+      resultDataSet.removeAllChildren();
+      dataSet.addAllChildren(children);
    }
 
 
@@ -417,8 +424,8 @@ public final class OpResourceDataSetFactory {
 
    /**
     * Creates a <code>Map</code> with information regarding the availability of each resource in the database.
-    *    The structure of the map: Key - the locator (String) of the resource.
-    *                              Value - the availability (Double) of the resource.
+    * The structure of the map: Key - the locator (String) of the resource.
+    * Value - the availability (Double) of the resource.
     *
     * @param broker - broker to use for db access.
     * @return a <code>Map</code> with information regarding the availability of each resource in the database.
@@ -437,7 +444,7 @@ public final class OpResourceDataSetFactory {
    /**
     * Returns <code>true</code> if the resource specified as parameter has any activity assignments or <code>false</code> otherwise.
     *
-    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
     * @param resource - the <code>OpResource</code> object.
     * @return <code>true</code> if the resource specified as parameter has any activity assignments or <code>false</code> otherwise.
     */
@@ -474,12 +481,12 @@ public final class OpResourceDataSetFactory {
 
    /**
     * Returns <code>true</code> if the resource specified as parameter has any responsible activities or
-    *    <code>false</code> otherwise.
+    * <code>false</code> otherwise.
     *
     * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
     * @param resource - the <code>OpResource</code> object.
     * @return <code>true</code> if the resource specified as parameter has any responsible activities or
-    *    <code>false</code> otherwise.
+    *         <code>false</code> otherwise.
     */
    public static boolean hasResponsibleActivities(OpBroker broker, OpResource resource) {
       if (resource.getResponsibleActivities() != null) {
@@ -495,12 +502,12 @@ public final class OpResourceDataSetFactory {
 
    /**
     * Returns <code>true</code> if the resource specified as parameter has any responsible activity versions
-    *    or <code>false</code> otherwise.
+    * or <code>false</code> otherwise.
     *
     * @param broker   - the <code>OpBroker</code> object needed to perform DB operations.
     * @param resource - the <code>OpResource</code> object.
-    * @return  <code>true</code> if the resource specified as parameter has any responsible activity versions
-    *    or <code>false</code> otherwise.
+    * @return <code>true</code> if the resource specified as parameter has any responsible activity versions
+    *         or <code>false</code> otherwise.
     */
    public static boolean hasResponsibleActivityVersions(OpBroker broker, OpResource resource) {
       if (resource.getResponsibleActivityVersions() != null) {

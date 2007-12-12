@@ -9,6 +9,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpEntityException;
+import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
@@ -44,6 +45,7 @@ public class OpWorkService extends OpProjectService {
    public final static OpWorkErrorMap ERROR_MAP = new OpWorkErrorMap();
 
    private OpWorkServiceImpl serviceImpl = new OpWorkServiceImpl();
+   private static final String GET_ATTACHMENTS_FROM_WORK_SLIP = "select attachment from OpWorkSlip workSlip inner join workSlip.Records workRecord inner join workRecord.CostRecords costRecord inner join costRecord.Attachments attachment where workSlip.ID = ? and attachment.Linked = false";
 
    public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
 
@@ -58,20 +60,21 @@ public class OpWorkService extends OpProjectService {
       Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>();
 
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      int errorCode = createWorkRecords(broker, effortSet, timeSet, costSet, workRecordsToAdd, start);
-
-      // if no works records are valid throw an exception
-      if (workRecordsToAdd.isEmpty() && errorCode != 0) {
-         XMessage reply = new XMessage();
-         reply.setError(session.newError(ERROR_MAP, errorCode));
-         return reply;
-      }
-
+      OpTransaction t = null;
       try {
+         t = broker.newTransaction();
+         int errorCode = createWorkRecords(broker, effortSet, timeSet, costSet, workRecordsToAdd, start);
+
+         // if no works records are valid throw an exception
+         if (workRecordsToAdd.isEmpty() && errorCode != 0) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, errorCode));
+            return reply;
+         }
+
          OpWorkSlip workSlip = new OpWorkSlip();
          workSlip.setDate(start);
-         workSlip.setRecords(workRecordsToAdd);
+         workSlip.addRecords(workRecordsToAdd);
          workSlip.updateTotalActualEffort();
 
          // note: second one is required in order to correct OpProgressCalculator only! (would be better to notify OpProgressCalculator on any changes - PropertyChangeEvent?)
@@ -180,19 +183,14 @@ public class OpWorkService extends OpProjectService {
 
          t = broker.newTransaction();
 
-         //<FIXME author="Haizea Florin" description="find a better method to update the contents of the attachments">
-         for (OpWorkRecord workRecord : workSlip.getRecords()) {
-            for (OpCostRecord costRecord : workRecord.getCostRecords()) {
-               for (OpAttachment attachment : costRecord.getAttachments()) {
-                  if (!attachment.getLinked()) {
-                     OpContentManager.updateContent(attachment.getContent(), broker, false, false);
-                     attachment.setContent(null);
-                  }
-               }
-            }
-         }
-         //<FIXME>
          //update the contents for all the attachments that belong to the work record
+         OpQuery query = broker.newQuery(GET_ATTACHMENTS_FROM_WORK_SLIP);
+         query.setLong(0, workSlip.getID());
+         List<OpAttachment> result = broker.list(query);
+         for (OpAttachment attachment : result) {
+            OpContentManager.updateContent(attachment.getContent(), broker, false, false);
+            attachment.setContent(null);
+         }
 
          //remove all work records from the work slip
          serviceImpl.deleteWorkRecords(broker, workSlip, session.getCalendar());
@@ -205,7 +203,7 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
-         workSlip.setRecords(workRecordsToAdd);
+         workSlip.addRecords(workRecordsToAdd);
          workSlip.updateTotalActualEffort();
          serviceImpl.insertMyWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 

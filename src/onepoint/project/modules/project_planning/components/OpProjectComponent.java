@@ -43,7 +43,7 @@ public class OpProjectComponent extends XComponent {
    public final static byte UTILIZATION_ROW = 10;
    public final static byte UTILIZATION_HEADER = 11;
 
-  public final static Integer TEXT_LEFT = new Integer(256); // GanttBox
+   public final static Integer TEXT_LEFT = new Integer(256); // GanttBox
    public final static Integer TEXT_RIGHT = new Integer(257); // GanttBox
    public final static Integer TIME_SCALE = new Integer(258); // GanttChart
    public final static Integer ACTIVITY_TYPE = new Integer(259); // Gantt
@@ -116,7 +116,7 @@ public class OpProjectComponent extends XComponent {
    public static final Integer ON_ACTIVITY_SELECT = new Integer(309);
 
    /**
-    *   Show costs property
+    * Show costs property
     */
    public final static Integer SHOW_COSTS = new Integer(310);
 
@@ -204,7 +204,7 @@ public class OpProjectComponent extends XComponent {
    private static final String DETAILS_RESOURCE_NAMES = "ResourceNames";
    private static final String DETAILS_CATEGORY = "Category";
    private static final String DETAILS_PROCEEDS = "ProceedsCosts";
-   private static final String DETAILS_PROCEEDS_LABEL= "ProceedsCostsLabel";
+   private static final String DETAILS_PROCEEDS_LABEL = "ProceedsCostsLabel";
 
    static {
       // Default Gantt chart style
@@ -1880,7 +1880,7 @@ public class OpProjectComponent extends XComponent {
 
    /**
     * Synchronize selection between data and UI. This method uses the gantt box component to synchronize
-    *    the selection.
+    * the selection.
     */
    protected void syncBoxUISelection() {
       //data-selected component will request focus
@@ -1892,8 +1892,8 @@ public class OpProjectComponent extends XComponent {
          if (dataRow != null && dataRow.getSelected()) {
             activity.requestFocus();
          }
-         else{
-            if(dataRow != null && !dataRow.getSelected()) {
+         else {
+            if (dataRow != null && !dataRow.getSelected()) {
                activity.setSelected(false);
             }
          }
@@ -1902,7 +1902,7 @@ public class OpProjectComponent extends XComponent {
 
    /**
     * Synchronize selection between data and UI. This method uses the gantt activity component to synchronize
-    *    the selection.
+    * the selection.
     */
    protected void syncActivityUISelection() {
       OpProjectComponent box = (OpProjectComponent) this.getContext();
@@ -1914,7 +1914,7 @@ public class OpProjectComponent extends XComponent {
             activity.setSelected(true);
          }
          else {
-            if(dataRow != null && !dataRow.getSelected()) {
+            if (dataRow != null && !dataRow.getSelected()) {
                activity.setSelected(false);
             }
          }
@@ -1925,7 +1925,6 @@ public class OpProjectComponent extends XComponent {
       getContext().getDataSetComponent().clearDataSelection();
       syncActivityUISelection();
    }
-
 
 
    /**
@@ -3602,7 +3601,7 @@ public class OpProjectComponent extends XComponent {
          for (int i = 0; i < getChildCount(); i++) {
             activity = (OpProjectComponent) getChild(i);
             dataRow = activity.getDataRow();
-            if(dataRow != null && dataRow.getParent() == null) {
+            if (dataRow != null && dataRow.getParent() == null) {
                activity.setDataRow(null);
             }
          }
@@ -5016,6 +5015,12 @@ public class OpProjectComponent extends XComponent {
       // fill up the form
       fillUpDetails(form);
       //show tool tip form
+      if (form != null) {
+         XView parent = form.getParent();
+         if (parent != null) {
+            parent.removeChild(form);
+         }
+      }
       showToolTipFormForComponent(mouseX, mouseY, form);
    }
 
@@ -5505,7 +5510,7 @@ public class OpProjectComponent extends XComponent {
    }
 
    public void setShowCosts(boolean showCosts) {
-      this.setProperty(SHOW_COSTS,  Boolean.valueOf(showCosts));
+      this.setProperty(SHOW_COSTS, Boolean.valueOf(showCosts));
    }
 
 

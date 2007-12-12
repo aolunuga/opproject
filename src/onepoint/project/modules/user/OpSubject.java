@@ -23,7 +23,7 @@ public class OpSubject extends OpObject {
    private String name;
    private String displayName;
    private String description;
-   private Set ownedPermissions;
+   private Set<OpPermission> ownedPermissions;
    private Byte source = INTERNAL;
 
    public void setName(String name) {
@@ -50,11 +50,11 @@ public class OpSubject extends OpObject {
       return description;
    }
 
-   public void setOwnedPermissions(Set ownedPermissions) {
+   public void setOwnedPermissions(Set<OpPermission> ownedPermissions) {
       this.ownedPermissions = ownedPermissions;
    }
 
-   public Set getOwnedPermissions() {
+   public Set<OpPermission> getOwnedPermissions() {
       return ownedPermissions;
    }
 

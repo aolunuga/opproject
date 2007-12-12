@@ -252,8 +252,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         OpProjectPlan plan = (OpProjectPlan) broker.getObject(locator);
         // just to inialize the collection
         plan.getActivities().size();
-        plan.getActivityAssignments().size();
-        plan.getActivityAttachments().size();
+        plan.getActivityAssignments().size();       
         plan.getDependencies().size();
         plan.getDynamicResources().size();
         plan.getLocks().size();
@@ -301,8 +300,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
       OpProjectPlanVersion planVersion = (OpProjectPlanVersion) broker.getObject(locator);
       // just to inialize the collection
       planVersion.getActivityVersions().size();
-      planVersion.getAssignmentVersions().size();
-      planVersion.getAttachmentVersions().size();
+      planVersion.getAssignmentVersions().size();      
       planVersion.getDependencyVersions().size();
       planVersion.getDynamicResources().size();
       planVersion.getLocks().size();
@@ -423,18 +421,19 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
    }
 
    public static XMessage updateProjectMsg(String id, String name, Date date, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos) {
-        return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos));
+                                            Boolean calcMode, Boolean prgTrk, XComponent resouces, Object[][] goals, Object[][] todos, boolean modifiedRates) {
+        return updateProjectMsg(id, name, date, null, budget, status, portfolio, calcMode, prgTrk, resouces, createDataSet(goals), createDataSet(todos), modifiedRates);
     }
 
    public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos) {
+                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, boolean modifiedRates) {
       XComponent attachmentSet = createEmptyAttachmentDataSet();
-      return updateProjectMsg(id, name, startDate, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, attachmentSet);
+      return updateProjectMsg(id, name, startDate, finishDate, budget, status, portfolio, calcMode, prgTrk, resources, goals, todos, attachmentSet, modifiedRates);
    }
 
     public static XMessage updateProjectMsg(String id, String name, Date startDate, Date finishDate, double budget, String status, String portfolio,
-                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, XComponent attachmetSet) {
+                                            Boolean calcMode, Boolean prgTrk, XComponent resources, XComponent goals, XComponent todos, XComponent attachmetSet,
+                                            boolean modifiedRates) {
         HashMap args = new HashMap();
         args.put(OpProjectNode.TYPE, OpProjectNode.PROJECT);
         args.put(OpProjectNode.NAME, name);
@@ -458,6 +457,7 @@ public class OpProjectTestDataFactory extends OpTestDataFactory {
         request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmetSet);
         request.setArgument("resource_set", resources);
         request.setArgument("versions_set", new XComponent(XComponent.DATA_SET));
+        request.setArgument("modified_rates", modifiedRates);
         return request;
     }
 

@@ -6,13 +6,14 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpSubTypable;
 
 import java.sql.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class OpProjectNode extends OpObject {
+public class OpProjectNode extends OpObject implements OpSubTypable {
 
    public final static String PROJECT_NODE = "OpProjectNode";
 
@@ -83,7 +84,7 @@ public class OpProjectNode extends OpObject {
       this.type = type;
    }
 
-   public byte getType() {
+   public Byte getType() {
       return type;
    }
 
@@ -193,11 +194,8 @@ public class OpProjectNode extends OpObject {
 
    public void setAttachments(Set<OpAttachment> attachments) {
       this.attachments = attachments;
-      for (OpAttachment attachment : attachments) {
-         attachment.setProjectNode(this);
-      }
    }
-
+   
    public Set<OpAttachment> getAttachments() {
       return attachments;
    }

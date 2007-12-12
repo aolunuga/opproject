@@ -8,6 +8,7 @@
    <data-field id="CurrentVersionNumber"/>
    <data-field id="Today"/>
    <data-field id="EndOfYear"/>
+   <data-field id="ModifiedRates"/>
 
    <panel y="0" layout="border">
    <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>

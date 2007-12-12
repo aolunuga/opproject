@@ -65,7 +65,7 @@
          <xsd:element name="database-driver" type="xsd:string" default="com.mysql.jdbc.Driver"/>
          <xsd:element name="database-url" type="xsd:string" default="jdbc:mysql://localhost:3306/oppMessageQueue"/>
          <xsd:element name="database-login" type="xsd:string" default="oppmq"/>
-         <xsd:element name="database-password" type="OpConfigDatabasePassword" default="oppmq"/>
+         <xsd:element name="database-password" type="OpConfigDatabasePassword" default=""/>
          <xsd:element name="database-path" type="xsd:string" minOccurs="0"/>
          <xsd:element name="update-schedule" type="OpScheduleConfig" maxOccurs="unbounded"/>         
       </xsd:sequence>

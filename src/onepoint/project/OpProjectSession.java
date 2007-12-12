@@ -362,9 +362,7 @@ public class OpProjectSession extends XExpressSession {
          queryString.append(sortQuery);
          OpQuery query = broker.newQuery(queryString.toString());
          query.setCollection("objectIds", objectIds);
-         // <FIXME author="Lucian Furtos" description="This is memory ineficient. Using broker.iterate(qeury) fails to load one-to-one relations for project nodes.">
-         Iterator result = broker.list(query).iterator();
-         // </FIXME>
+         Iterator result = broker.iterate(query);
          OpObject object;
          while (result.hasNext()) {
             object = (OpObject) result.next();
@@ -378,7 +376,7 @@ public class OpProjectSession extends XExpressSession {
          if (groupByString.length() > 0) {
             groupByString = "," + groupByString;
          }
-         StringBuffer queryBuffer = new StringBuffer("select accessibleObject");
+         StringBuffer queryBuffer = new StringBuffer("select accessibleObject.ID");
          queryBuffer.append(", max(permission.AccessLevel)");
          queryBuffer.append(" from ");
          queryBuffer.append(entityName);
@@ -399,7 +397,8 @@ public class OpProjectSession extends XExpressSession {
          OpObject object = null;
          while (result.hasNext()) {
             record = (Object[]) result.next();
-            object = (OpObject) record[0];
+            long id = ((Long) record[0]);
+            object = broker.getObject(OpObject.class, id);
             object.setEffectiveAccessLevel((Byte) record[1]);
             accessibleObjectMap.put(object.getID(), object);
             accessibleObjects.add(object);
