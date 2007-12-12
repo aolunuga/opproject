@@ -9,13 +9,12 @@ import onepoint.express.server.XFormProvider;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
-import onepoint.project.OpInitializer;
-import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.report.OpReport;
 import onepoint.project.modules.repository.OpRepositoryErrorMap;
+import onepoint.project.modules.repository.OpRepositoryService;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourcePool;
 import onepoint.project.modules.user.OpGroup;
@@ -24,10 +23,10 @@ import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
-import onepoint.util.XEnvironmentManager;
 
-import java.io.File;
 import java.util.HashMap;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Form provider for the repository main form.
@@ -91,7 +90,7 @@ public class OpRepositoryFormProvider implements XFormProvider {
       }
 
       //create (if necessary) the backup directory
-      String rootBackupDirectory = createRootBackupPath();
+      String rootBackupDirectory = createRootBackupPath(projectSession);
       if (rootBackupDirectory == null) {
          form.findComponent(BACKUP_BUTTON_ID).setEnabled(false);
          form.findComponent(RESTORE_BUTTON_ID).setEnabled(false);
@@ -151,32 +150,17 @@ public class OpRepositoryFormProvider implements XFormProvider {
     *
     * @return a <code>String</code> representing the path to the root directory, or null if an error occurred.
     */
-   private String createRootBackupPath() {
-      String fullBackupRootPath;
-      try {
-         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
-         String backupDirectoryName = XEnvironmentManager.convertPathToSlash(initializer.getConfiguration().getBackupPath());
-         File absoluteDirectory = new File(backupDirectoryName);
-         if (absoluteDirectory.exists() && absoluteDirectory.isDirectory() && absoluteDirectory.isAbsolute()) {
-            fullBackupRootPath = absoluteDirectory.getCanonicalPath();
+   private String createRootBackupPath(OpProjectSession projectSession) {
+      String rootBackupDirectory = null;
+      File rootBackupFolder = OpRepositoryService.getService().getBackupFolder(projectSession);
+      if (rootBackupFolder != null) {
+         try {
+            rootBackupDirectory = rootBackupFolder.getCanonicalPath();
          }
-         else {
-            String parentDir = OpEnvironmentManager.getDataFolderPath();
-            File backupDir = new File(parentDir, backupDirectoryName);
-            if (!backupDir.exists() || !backupDir.isDirectory()) {
-               boolean dirCreated = backupDir.mkdir();
-               if (!dirCreated) {
-                  logger.error("Cannot create directory " + backupDir.getAbsolutePath() + " to store backup files");
-                  return null;
-               }
-            }
-            fullBackupRootPath = backupDir.getCanonicalPath();
+         catch (IOException e) {
+            logger.error("Could not get cannonical path of the back-up folder: " + rootBackupFolder);
          }
       }
-      catch (Exception e) {
-         logger.error("Cannot perform backup because:" + e.getMessage(), e);
-         return null;
-      }
-      return fullBackupRootPath;
+      return rootBackupDirectory;
    }
 }

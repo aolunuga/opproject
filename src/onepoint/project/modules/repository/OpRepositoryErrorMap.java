@@ -15,7 +15,7 @@ public class OpRepositoryErrorMap extends XErrorMap {
 
    public final static String RESOURCE_MAP_ID = "repository.error";
 
-   OpRepositoryErrorMap() {
+   protected OpRepositoryErrorMap() {
       super(RESOURCE_MAP_ID);
       registerErrorCode(OpRepositoryError.BACKUP_ERROR_CODE, OpRepositoryError.BACKUP_ERROR_NAME);
       registerErrorCode(OpRepositoryError.RESTORE_ERROR_CODE, OpRepositoryError.RESTORE_ERROR_NAME);

@@ -455,6 +455,9 @@ public class OpMappingsGenerator {
       buffer.append("\" table=\"");
       String table_name = generateTableName(prototype.getName());
       buffer.append(table_name);
+      if (prototype.getBatchSize() != null) {
+         buffer.append(" \" batch-size=\"").append(prototype.getBatchSize());
+      }
       buffer.append("\">").append(NEW_LINE);
 
       // Add hard-coded join-key for column of property "ID"

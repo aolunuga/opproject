@@ -4,7 +4,7 @@
    <data-field id="BackupDirRootPath"/>
    <panel layout="border" style-ref="compact-panel-default">
       <panel layout="border" style-ref="tool-panel-default" y="-1">
-         <tool-bar>
+         <tool-bar id="ToolBar">
             <tool-button id="Backup" text="${Backup}" icon="/modules/repository/icons/tb_db_backup.png"
                          disabled-icon="/modules/repository/icons/tb_db_backup_disabled.png"
                          on-button-pressed="backup" tooltip="${BackupTooltip}"/>

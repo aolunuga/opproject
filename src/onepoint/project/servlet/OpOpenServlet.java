@@ -464,8 +464,8 @@ public class OpOpenServlet extends XExpressServlet {
       if (fileName == null || fileName.length() == 0) {
          fileName = "NewFile";
       }
-      if (fileName.indexOf(PATH_SEPARATOR) != -1) {
-         fileName = fileName.substring(fileName.lastIndexOf(PATH_SEPARATOR) + 1);
+      if (fileName.indexOf(File.separator) != -1) {
+         fileName = fileName.substring(fileName.lastIndexOf(File.separator) + 1);
       }
       fileName = fileName.replaceAll("[^-._a-zA-Z0-9]", "_");
 
@@ -581,7 +581,7 @@ public class OpOpenServlet extends XExpressServlet {
          response.setArgument(OpProjectConstants.RUN_LEVEL, Byte.toString(initializer.getRunLevel()));
          return response;
       }
-      OpProjectSession.setSession((OpProjectSession)session);
+      OpProjectSession.setSession((OpProjectSession) session);
       try {
          XMessage response = super.processRequest(request, sessionExpired, http_request, http_response, session);
          addAutoLoginCookie(request, response, http_response);
@@ -721,47 +721,79 @@ public class OpOpenServlet extends XExpressServlet {
       LinkedHashMap<String, Long> sizes = (LinkedHashMap<String, Long>) message.getArgument(XConstants.FILE_SIZE_ARGUMENT);
       Map<String, String> names = (Map<String, String>) message.getArgument(XConstants.FILE_NAME_ARGUMENT);
       Map<String, String> references = (Map<String, String>) message.getArgument(XConstants.FILE_REF_ARGUMENT);
+      // check if the uplaoded file should pe inserted in a content or copied to a local file
+      boolean streamToFile = false;
+      if (message.getArgumentsMap().containsKey(XConstants.STREAM_TO_FILE)) {
+         streamToFile = (Boolean) message.getArgument(XConstants.STREAM_TO_FILE);
+      }
 
       if (sizes != null && !sizes.isEmpty()) {
-         this.checkAttachmentSizes(sizes.values());
-         Map<String, String> contents = new HashMap<String, String>();
+         if (streamToFile) {
+            Map<String, File> files = new HashMap<String, File>();
 
-         // Get the session context ('true': create new session if necessary)
-         OpProjectSession session = (OpProjectSession) getSession(request);
-         OpBroker broker = session.newBroker();
+            for (Map.Entry<String, Long> entry : sizes.entrySet()) {
+               String id = entry.getKey();
+               long size = entry.getValue();
+               String name = names != null ? names.get(id) : null;
 
-         for (Map.Entry<String, Long> entry : sizes.entrySet()) {
-            String id = entry.getKey();
-            long size = entry.getValue();
-            String name = names != null ? names.get(id) : null;
-            String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
+               InputStream fis = new XSizeInputStream(stream, size, true);
+               File newFile = new File(XEnvironmentManager.TMP_DIR, name);
+               OutputStream fos = new FileOutputStream(newFile);
+               XIOHelper.copy(fis, fos);
+               fos.flush();
+               fos.close();
 
-            OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
-
-            OpTransaction t = broker.newTransaction();
-            broker.makePersistent(content);
-            t.commit();
-
-            // adds the same OpContent locator for each content that refer teh same file.
-            Set<String> refs = getRefIds(id, references);
-            for (String refId : refs) {
-               contents.put(refId, content.locator());
+               // use the same new file for each uploaded file that has the same source
+               Set<String> refs = getRefIds(id, references);
+               for (String refId : refs) {
+                  files.put(refId, newFile);
+               }
             }
-         }
-         broker.close();
 
-         message.insertObjectsIntoArguments(contents);
+            message.insertObjectsIntoArguments(files);
+         }
+         else {
+            this.checkAttachmentSizes(sizes.values());
+            Map<String, String> contents = new HashMap<String, String>();
+
+            // Get the session context ('true': create new session if necessary)
+            OpProjectSession session = (OpProjectSession) getSession(request);
+            OpBroker broker = session.newBroker();
+
+            for (Map.Entry<String, Long> entry : sizes.entrySet()) {
+               String id = entry.getKey();
+               long size = entry.getValue();
+               String name = names != null ? names.get(id) : null;
+               String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
+
+               OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
+
+               OpTransaction t = broker.newTransaction();
+               broker.makePersistent(content);
+               t.commit();
+
+               // adds the same OpContent locator for each content that refer teh same file.
+               Set<String> refs = getRefIds(id, references);
+               for (String refId : refs) {
+                  contents.put(refId, content.locator());
+               }
+            }
+            broker.close();
+
+            message.insertObjectsIntoArguments(contents);
+         }
       }
    }
 
    /**
     * Checks if any attachments has a size larger than the configured application size, and
     * throws an exception if it does.
+    *
     * @param attachmentSizes a <code>Collection(Long)</code> the attachment sizes in bytes.
     * @throws IOException if any of the attachment sizes is larget than the configured size.
     */
    private void checkAttachmentSizes(Collection<Long> attachmentSizes)
-         throws IOException {
+        throws IOException {
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       long maxSizeBytes = initializer.getMaxAttachmentSizeBytes();
       for (Long attachmentSize : attachmentSizes) {

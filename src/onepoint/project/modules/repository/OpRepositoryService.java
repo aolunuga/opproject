@@ -17,6 +17,8 @@ import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
+import onepoint.service.server.XServiceManager;
+import onepoint.util.XEnvironmentManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,11 @@ import java.text.SimpleDateFormat;
  * @author horia.chiorean
  */
 public class OpRepositoryService extends OpProjectService {
+
+   /**
+    * Repository service name
+    */
+   private static final String REPOSITORY_SERVICE_NAME = "RepositoryService";
 
    /**
     * The name of the request parameter which contains the value of the back dir
@@ -77,6 +84,15 @@ public class OpRepositoryService extends OpProjectService {
    public static final String ADMIN_PASSWORD_PARAMETER = "adminPassword";
 
    /**
+    * Gets the registered instance of this service.
+    *
+    * @return The registered instance of this service.
+    */
+   public static OpRepositoryService getService() {
+      return (OpRepositoryService) XServiceManager.getService(REPOSITORY_SERVICE_NAME);
+   }
+
+   /**
     * Backs up a repository.
     *
     * @param projectSession a <code>OpProjectSession</code> representing the server session.
@@ -89,7 +105,7 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.INSUFICIENT_PERMISSIONS_ERROR_CODE);
       }
 
-      File backupFile = getBackupFile(request);
+      File backupFile = getBackupFile(projectSession);
       if (backupFile == null) {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
@@ -117,17 +133,13 @@ public class OpRepositoryService extends OpProjectService {
     * @param request a <code>XMessage</code> representing the server request.
     * @return a <code>File</code> objects or null if the backup folder can't be created.
     */
-   private File getBackupFile(XMessage request) {
-      File fullBackupRootPath = new File((String) request.getArgument(BACKUP_DIR_ROOT_PATH_PARAM));
+   private File getBackupFile(OpProjectSession session) {
+      File backupDir = getBackupFolder(session);
       //make sure it exists
-      if (!fullBackupRootPath.exists()) {
-         boolean pathCreated = fullBackupRootPath.mkdir();
-         if (!pathCreated) {
-            logger.error("Cannot create backup folder");
-            return null;
-         }
+      if (backupDir == null) {
+         return null;
       }
-      return new File(fullBackupRootPath + createBackupFilename());
+      return new File(backupDir, createBackupFilename());
    }
 
    /**
@@ -136,10 +148,8 @@ public class OpRepositoryService extends OpProjectService {
     * @return a <code>String</code> representing the name of the backup file.
     */
    private String createBackupFilename() {
-      StringBuffer fileNameBuffer = new StringBuffer(File.separator);
-      fileNameBuffer.append(BACKUP_FILE_PREFIX);
-
       Date currentDate = new Date(System.currentTimeMillis());
+      StringBuffer fileNameBuffer = new StringBuffer(BACKUP_FILE_PREFIX);
       fileNameBuffer.append(BACKUP_DATEFORMAT.format(currentDate));
       fileNameBuffer.append(BACKUP_FILE_EXTENSION);
       return fileNameBuffer.toString();
@@ -256,4 +266,40 @@ public class OpRepositoryService extends OpProjectService {
       broker.close();
       return reply;
    }
+
+   /**
+    * Returns the directory where backup files will be stored. If it doesn't exist it will be created.
+    *
+    * @param session the session attached to the current user.
+    * @return a <code>File</code> representing the back-up directory, or <code>null</code> if an error occurred.
+    */
+   public File getBackupFolder(OpProjectSession session) {
+      File backupDir;
+      try {
+         OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
+         String backupDirectoryName = XEnvironmentManager.convertPathToSlash(initializer.getConfiguration().getBackupPath());
+         backupDir = new File(backupDirectoryName);
+         if (backupDir.exists() && backupDir.isDirectory() && backupDir.isAbsolute()) {
+            backupDir = backupDir.getCanonicalFile();
+         }
+         else {
+            String parentDir = OpEnvironmentManager.getDataFolderPath();
+            backupDir = new File(parentDir, backupDirectoryName);
+            if (!backupDir.exists() || !backupDir.isDirectory()) {
+               boolean dirCreated = backupDir.mkdirs();
+               if (!dirCreated) {
+                  logger.error("Cannot create directory " + backupDir.getAbsolutePath() + " to store backup files");
+                  return null;
+               }
+            }
+            backupDir = backupDir.getCanonicalFile();
+         }
+      }
+      catch (Exception e) {
+         logger.error("Cannot perform backup because:" + e.getMessage(), e);
+         return null;
+      }
+      return backupDir;
+   }
+
 }
