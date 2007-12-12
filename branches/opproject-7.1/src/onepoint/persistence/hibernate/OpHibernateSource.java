@@ -70,8 +70,6 @@ public class OpHibernateSource extends OpSource {
    // A set of default properties to be used by hibernate.
    private static Properties defaultHibernateConfigProperties = null;
 
-   private final static int MY_SQL_MAX_LENGTH = 255;
-
    /**
     * A JDBC connection that will be the only de facto used connection when running in embeded mode.
     */
@@ -296,52 +294,56 @@ public class OpHibernateSource extends OpSource {
     * Initializes a set of default properties for the hibernate configuration. Some of these properties can be overriden
     * by using the configuration.oxc.xml file.
     */
-   private void initDefaultConfigurationSettings() {
-      configuration = new Configuration();
-      if (defaultHibernateConfigProperties == null) {
-         InputStream input = OpHibernateSource.class.getResourceAsStream("hibernate.properties");
-         defaultHibernateConfigProperties = new Properties();
-         try {
-            defaultHibernateConfigProperties.load(input);
+   private void buildConfiguration()
+        throws IOException, HibernateException {
+      // Consider that the configuration is identified uniq by database URL and login/user name.
+      String configurationName = url + login;
+
+      // try to retrieve first the configuration from cache.
+      OpHibernateConfigurationCache cache = OpHibernateConfigurationCache.getInstance();
+      configuration = cache.getConfiguration(configurationName);
+
+      if (configuration == null) {
+         configuration = new Configuration();
+         if (defaultHibernateConfigProperties == null) {
+            InputStream input = OpHibernateSource.class.getResourceAsStream("hibernate.properties");
+            defaultHibernateConfigProperties = new Properties();
+            try {
+               defaultHibernateConfigProperties.load(input);
+            }
+            catch (IOException e) {
+               logger.error("Cannot load hibernate default properties", e);
+            }
          }
-         catch (IOException e) {
-            logger.error("Cannot load hibernate default properties", e);
+         Properties configurationProperties = new Properties();
+         configurationProperties.putAll(defaultHibernateConfigProperties);
+         configuration.setProperties(configurationProperties);
+         // Build Hibernate configuration and session factory
+         configuration.setProperty("hibernate.connection.driver_class", driverClassName);
+         configuration.setProperty("hibernate.connection.url", url);
+         configuration.setProperty("hibernate.connection.username", login);
+         configuration.setProperty("hibernate.connection.password", password);
+         configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
+
+         //Important: the following setting is critical for MySQL to store all dates in GMT
+         if (databaseType == MYSQL_INNODB) {
+            configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
+            configuration.setProperty("hibernate.connection.useJDBCCompliantTimezoneShift", Boolean.TRUE.toString());
          }
-      }
-      Properties configurationProperties = new Properties();
-      configurationProperties.putAll(defaultHibernateConfigProperties);
-      configuration.setProperties(configurationProperties);
-   }
 
-   public void open() {
-      initDefaultConfigurationSettings();
-      // Build Hibernate configuration and session factory
-      configuration.setProperty("hibernate.connection.driver_class", driverClassName);
-      configuration.setProperty("hibernate.connection.url", url);
-      configuration.setProperty("hibernate.connection.username", login);
-      configuration.setProperty("hibernate.connection.password", password);
-      configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
+         //connection pool configuration override
+         if (connectionPoolMinSize != null) {
+            configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
+         }
+         if (connectionPoolMaxSize != null) {
+            configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
+         }
+         if (cacheCapacity != null) {
+            configuration.setProperty(OpOSCache.OSCACHE_CAPACITY, cacheCapacity);
+         }
 
-      //Important: the following setting is critical for MySQL to store all dates in GMT
-      if (databaseType == MYSQL_INNODB) {
-         configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
-         configuration.setProperty("hibernate.connection.useJDBCCompliantTimezoneShift", Boolean.TRUE.toString());
-      }
-
-      //connection pool configuration override
-      if (connectionPoolMinSize != null) {
-         configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
-      }
-      if (connectionPoolMaxSize != null) {
-         configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
-      }
-      if (cacheCapacity != null) {
-         configuration.setProperty(OpOSCache.OSCACHE_CAPACITY, cacheCapacity);
-      }
-
-      Reader reader = new StringReader(mapping);
-      ByteArrayOutputStream byte_out = new ByteArrayOutputStream();
-      try {
+         Reader reader = new StringReader(mapping);
+         ByteArrayOutputStream byte_out = new ByteArrayOutputStream();
          OutputStreamWriter writer = new OutputStreamWriter(byte_out, "UTF-8");
          char[] buffer = new char[512];
          int chars_read = 0;
@@ -353,7 +355,19 @@ public class OpHibernateSource extends OpSource {
          }
          while (chars_read != -1);
          writer.flush();
+
+         // add mappings
          configuration.addInputStream(new ByteArrayInputStream(byte_out.toByteArray()));
+
+         // add this configuration to cache
+         cache.addConfiguration(configurationName, configuration);
+      }
+   }
+
+   public void open() {
+      try {
+         buildConfiguration();
+
          logger.debug("***before sf");
          sessionFactory = configuration.buildSessionFactory();
          logger.debug("***after sf");

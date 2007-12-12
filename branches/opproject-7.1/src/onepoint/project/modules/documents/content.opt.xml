@@ -1,4 +1,4 @@
-<prototype name="OpContent" instance-class="onepoint.project.modules.documents.OpContent" super-type="OpObject">
+<prototype name="OpContent" instance-class="onepoint.project.modules.documents.OpContent" super-type="OpObject" batch-size="0">
    <field name="RefCount" type="Integer"/>
    <field name="MediaType" type="String"/>
    <field name="Size" type="Long"/>

@@ -126,6 +126,15 @@ public class OpProjectSession extends XExpressSession {
       validate();
    }
 
+   /**
+    * The name of the data source.
+    *
+    * @return name of the data source.
+    */
+   public String getSourceName() {
+      return sourceName;
+   }
+
    public long getUserID() {
       return userId;
    }

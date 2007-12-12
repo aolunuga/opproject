@@ -1,5 +1,5 @@
 <prototype name="OpDocument" instance-class="onepoint.project.modules.documents.OpDocument" super-type="OpObject">
    <field name="Name" type="String" mandatory="true" unique="true"/>
-   <relationship name="Content" type="OpContent" />
+   <relationship name="Content" type="OpContent" back-relationship="Documents"/>
    <relationship name="Creator" type="OpUser" />
 </prototype>
