@@ -43,17 +43,24 @@ public final class OpProjectCostsDataSetFactory {
     *
     * @param broker            Broker instance to use for db operations.
     * @param project           Project to get the cost information for.
-    * @param max_outline_level Detail level. Activities with outline level > max_outline_level won't be added to the result.
+    * @param max_outline_level Detail level. Activities with outline level > max_outline_level won't be added to the
+    *                          result. If the value is <code>Integer.MAX_VALUE</code>, this search criteria will be ignored.
     * @param data_set          Cost data set to be filled up.
     * @param costNames         Map with the costs display titles.
     */
    public static void fillCostsDataSet(OpBroker broker, OpProjectNode project, int max_outline_level, XComponent data_set, Map costNames) {
       //this query could be improved by filtering out milestones and deleted activities when the plan doesn't have a baseline
       StringBuffer queryString = new StringBuffer("from OpActivity as activity where activity.ProjectPlan.ProjectNode.ID = ?");
-      queryString.append(" and activity.OutlineLevel <= ? order by activity.Sequence");
+      if (max_outline_level != Integer.MAX_VALUE) {
+         queryString.append(" and activity.OutlineLevel <= ?");
+      }
+      queryString.append(" order by activity.Sequence");
+
       OpQuery query = broker.newQuery(queryString.toString());
       query.setID(0, project.getID());
-      query.setLong(1, max_outline_level);
+      if (max_outline_level != Integer.MAX_VALUE) {
+         query.setLong(1, max_outline_level);
+      }
       List<OpActivity> activities = broker.list(query);
 
       boolean useBaseline = false;

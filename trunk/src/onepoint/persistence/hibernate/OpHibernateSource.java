@@ -290,76 +290,87 @@ public class OpHibernateSource extends OpSource
       return dialect;
    }
 
-   /**
-    * Initializes a set of default properties for the hibernate configuration. Some of these properties can be overriden
-    * by using the configuration.oxc.xml file.
-    */
-   private void initDefaultConfigurationSettings() {
-      configuration = new Configuration();
-      if (defaultHibernateConfigProperties == null) {
-         InputStream input = OpHibernateSource.class.getResourceAsStream("hibernate.properties");
-         defaultHibernateConfigProperties = new Properties();
-         try {
-            defaultHibernateConfigProperties.load(input);
-         }
-         catch (IOException e) {
-            logger.error("Cannot load hibernate default properties", e);
-         }
-      }
-      Properties configurationProperties = new Properties();
-      configurationProperties.putAll(defaultHibernateConfigProperties);
-      configuration.setProperties(configurationProperties);
-      // replace default flush listener with ours to enable thread local for sessions
-      // FIXME(dfreis Oct 31, 2007 1:05:10 PM) this seems to be the best way, so we should replace
-      //       the other (added) listeners within addListeners() if there is time...
-      configuration.setListener("flush-entity", new OpFlushEventListener());
-      addListeners();
-   }
-
    public void open() {
-      initDefaultConfigurationSettings();
-      // Build Hibernate configuration and session factory
-      configuration.setProperty("hibernate.connection.driver_class", driverClassName);
-      configuration.setProperty("hibernate.connection.url", url);
-      configuration.setProperty("hibernate.connection.username", login);
-      configuration.setProperty("hibernate.connection.password", password);
-      configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
-
-      //Important: the following setting is critical for MySQL to store all dates in GMT
-      if (databaseType == MYSQL_INNODB) {
-         configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
-         configuration.setProperty("hibernate.connection.useJDBCCompliantTimezoneShift", Boolean.TRUE.toString());
-      }
-
-      //connection pool configuration override
-      if (connectionPoolMinSize != null) {
-         configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
-      }
-      if (connectionPoolMaxSize != null) {
-         configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
-      }
-      if (cacheCapacity != null) {
-         configuration.setProperty("cache.capacity", cacheCapacity);
-      }
-
-      Reader reader = new StringReader(mapping);
-      ByteArrayOutputStream byte_out = new ByteArrayOutputStream();
       try {
-         OutputStreamWriter writer = new OutputStreamWriter(byte_out, "UTF-8");
-         char[] buffer = new char[512];
-         int chars_read = 0;
-         do {
-            chars_read = reader.read(buffer, 0, buffer.length);
-            if (chars_read > 0) {
-               writer.write(buffer, 0, chars_read);
+         // Consider that the configuration is identified uniq by database URL and login/user name.
+         String configurationName = url + login;
+
+         // try to retrieve first the configuration from cache.
+         OpHibernateCache cache = OpHibernateCache.getInstance();
+         configuration = cache.getConfiguration(configurationName);
+
+         if (configuration == null) {
+            configuration = new Configuration();
+            if (defaultHibernateConfigProperties == null) {
+               InputStream input = OpHibernateSource.class.getResourceAsStream("hibernate.properties");
+               defaultHibernateConfigProperties = new Properties();
+               try {
+                  defaultHibernateConfigProperties.load(input);
+               }
+               catch (IOException e) {
+                  logger.error("Cannot load hibernate default properties", e);
+               }
             }
+            Properties configurationProperties = new Properties();
+            configurationProperties.putAll(defaultHibernateConfigProperties);
+            configuration.setProperties(configurationProperties);
+            // replace default flush listener with ours to enable thread local for sessions
+            // FIXME(dfreis Oct 31, 2007 1:05:10 PM) this seems to be the best way, so we should replace
+            //       the other (added) listeners within addListeners() if there is time...
+            configuration.setListener("flush-entity", new OpFlushEventListener());
+            addListeners();
+            // Build Hibernate configuration and session factory
+            configuration.setProperty("hibernate.connection.driver_class", driverClassName);
+            configuration.setProperty("hibernate.connection.url", url);
+            configuration.setProperty("hibernate.connection.username", login);
+            configuration.setProperty("hibernate.connection.password", password);
+            configuration.setProperty("hibernate.dialect", hibernateDialectClass().getName());
+
+            //Important: the following setting is critical for MySQL to store all dates in GMT
+            if (databaseType == MYSQL_INNODB) {
+               configuration.setProperty("hibernate.connection.useGmtMillisForDatetimes", Boolean.TRUE.toString());
+               configuration.setProperty("hibernate.connection.useJDBCCompliantTimezoneShift", Boolean.TRUE.toString());
+            }
+
+            //connection pool configuration override
+            if (connectionPoolMinSize != null) {
+               configuration.setProperty("hibernate.c3p0.min_size", connectionPoolMinSize);
+            }
+            if (connectionPoolMaxSize != null) {
+               configuration.setProperty("hibernate.c3p0.max_size", connectionPoolMaxSize);
+            }
+            if (cacheCapacity != null) {
+               configuration.setProperty("cache.capacity", cacheCapacity);
+            }
+
+            Reader reader = new StringReader(mapping);
+            ByteArrayOutputStream byte_out = new ByteArrayOutputStream();
+            OutputStreamWriter writer = new OutputStreamWriter(byte_out, "UTF-8");
+            char[] buffer = new char[512];
+            int chars_read;
+            do {
+               chars_read = reader.read(buffer, 0, buffer.length);
+               if (chars_read > 0) {
+                  writer.write(buffer, 0, chars_read);
+               }
+            }
+            while (chars_read != -1);
+            writer.flush();
+
+            // add mappings
+            configuration.addInputStream(new ByteArrayInputStream(byte_out.toByteArray()));
+
+            // add this configuration to cache
+            cache.addConfiguration(configurationName, configuration);
          }
-         while (chars_read != -1);
-         writer.flush();
-         configuration.addInputStream(new ByteArrayInputStream(byte_out.toByteArray()));
-         logger.debug("***before sf");
-         sessionFactory = configuration.buildSessionFactory();
-         logger.debug("***after sf");
+
+         // try to retrieve first the session factory from cache.
+         sessionFactory = cache.getSessionFactory(configurationName);
+         if (sessionFactory == null) {
+            sessionFactory = configuration.buildSessionFactory();
+            // add this session factory to cache
+            cache.addSessionFactory(configurationName, sessionFactory);
+         }
       }
       catch (HibernateException e) {
          logger.error("OpHibernateSource.open(): Could not create session factory: " + e);
