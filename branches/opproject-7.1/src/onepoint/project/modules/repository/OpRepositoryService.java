@@ -14,6 +14,7 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
+import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -191,6 +192,10 @@ public class OpRepositoryService extends OpProjectService {
       try {
          OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
          initializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
+
+         //apply settings
+         OpSettingsService.getService().loadSettings(projectSession);
+
          //invalidate all server sessions except the current one
          projectSession.getServer().invalidateAllSessions(projectSession.getID());
          //clear everything from the current session
