@@ -456,7 +456,7 @@ public class OpMappingsGenerator {
       String table_name = generateTableName(prototype.getName());
       buffer.append(table_name);
       if (prototype.getBatchSize() != null) {
-         buffer.append(" \" batch-size=\"").append(prototype.getBatchSize());
+         buffer.append("\" batch-size=\"").append(prototype.getBatchSize());
       }
       buffer.append("\">").append(NEW_LINE);
 
