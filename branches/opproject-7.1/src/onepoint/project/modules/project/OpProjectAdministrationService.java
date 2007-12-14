@@ -1628,9 +1628,11 @@ public class OpProjectAdministrationService extends OpProjectService {
       List<Integer> gaps = new ArrayList<Integer>();
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          XComponent dataRow = (XComponent) dataSet.getChild(i);
-         Date activityStart = OpGanttValidator.getStart(dataRow);
-         int gap = calendar.getWorkingDaysFromInterval(start, activityStart).size() - 1;
-         gaps.add(gap);
+         if (!isTaskActivity(dataRow)) {
+            Date activityStart = OpGanttValidator.getStart(dataRow);
+            int gap = calendar.getWorkingDaysFromInterval(start, activityStart).size() - 1;
+            gaps.add(gap);
+         }
       }
 
       // Initialize GANTT validator
@@ -1643,8 +1645,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       XComponent dataRow;
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
-         if ((OpGanttValidator.getType(dataRow) != OpGanttValidator.TASK) && (OpGanttValidator.getType(dataRow) != OpGanttValidator.COLLECTION_TASK)) {
-
+         if (!isTaskActivity(dataRow)) {
             //keep the same working days gap
             Date date = new Date(newStart.getTime());
             int gap = gaps.get(i);
@@ -1654,18 +1655,21 @@ public class OpProjectAdministrationService extends OpProjectService {
             }
             Date newActivityStart = new Date(date.getTime());
             OpGanttValidator.setStart(dataRow, newActivityStart);
-            OpGanttValidator.setResources(dataRow, new ArrayList());
-            OpGanttValidator.setResponsibleResource(dataRow, null);
-            OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseBaseEfforts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseStarts(dataRow, new ArrayList());
             OpGanttValidator.setWorkPhaseFinishes(dataRow, new ArrayList());
          }
+
+         OpGanttValidator.setResources(dataRow, new ArrayList());
+         OpGanttValidator.setResponsibleResource(dataRow, null);
+         OpGanttValidator.setResourceBaseEfforts(dataRow, new ArrayList());
          OpGanttValidator.setComplete(dataRow, 0);
          OpGanttValidator.setActualEffort(dataRow, 0);
 
          //duration must stay the same
-         validator.updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
+         if (!isTaskActivity(dataRow)) {
+            validator.updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
+         }
       }
 
       // Validate copied and adjusted project plan
@@ -1673,6 +1677,10 @@ public class OpProjectAdministrationService extends OpProjectService {
 
       // Store activity data-set helper updates plan start/finish values and activity template flags
       OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, new HashMap(), newProjectPlan, null);
+   }
+
+   private static boolean isTaskActivity(XComponent dataRow) {
+      return (OpGanttValidator.getType(dataRow) == OpGanttValidator.TASK) || (OpGanttValidator.getType(dataRow) == OpGanttValidator.COLLECTION_TASK);
    }
 
    /**
