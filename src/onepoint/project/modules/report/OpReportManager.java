@@ -373,6 +373,10 @@ public class OpReportManager implements XResourceInterceptor {
       return localizedName;
    }
 
+   public String getEnFileName(String reportName) {
+      return (String) getAttributeForReport(reportName, MANIFESTFILE_MANDATORY_DEFAULTLANGUAGE, jasperReports);
+   }
+
    /**
     * Gives the localized Name of the requested JasperReport. The locale is derived from the current session
     *
