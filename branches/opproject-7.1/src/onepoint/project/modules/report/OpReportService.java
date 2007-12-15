@@ -97,7 +97,7 @@ public class OpReportService extends OpProjectService {
    private static final String SECURE = "Secure";
 
    private static final String FILENAME = "Filename";
-   
+
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
       XMessage response;
@@ -135,7 +135,7 @@ public class OpReportService extends OpProjectService {
          }
 
          StringBuffer pathBuffer = new StringBuffer(SAVED_REPORTS_PATH);
-         String filename = xrm.getLocalizedJasperFileName(name);
+         String filename = xrm.getEnFileName(name);
          if (filename == null || filename.length() == 0) {
             throw new IOException("Invalid report name.");
          }
@@ -185,7 +185,7 @@ public class OpReportService extends OpProjectService {
       XMessage response;
       String name = (String) (request.getArgument(NAME));
       String reportName = getReportName(name);
-      
+
       // Read format of the report to be generated.
       List formats = (List) (request.getArgument(FORMATS));
       String format = REPORT_TYPE_PDF; // define default format to PDF
@@ -206,14 +206,14 @@ public class OpReportService extends OpProjectService {
          response = new XMessage();
          XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
          response.setError(error);
-         return response;         
+         return response;
       }
 
       OpReportManager xrm = OpReportManager.getReportManager(session);
 
       OpBroker broker = session.newBroker();
       OpTransaction tx = broker.newTransaction();
-      String fileSuffix = "."+format.toLowerCase();
+      String fileSuffix = "." + format.toLowerCase();
 
       try {
          //create the content
@@ -224,7 +224,7 @@ public class OpReportService extends OpProjectService {
 
          // get all required params
          SimpleDateFormat sdf = new SimpleDateFormat(UTC_TIME_FORMAT);
-         sdf.setTimeZone(TimeZone.getTimeZone("GMT:00"));  
+         sdf.setTimeZone(TimeZone.getTimeZone("GMT:00"));
          String creationDate = sdf.format(new Date());
          OpUser user = session.user(broker);
          String creator = "";
@@ -233,7 +233,7 @@ public class OpReportService extends OpProjectService {
             localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
             creator = localizer.localize(user.getDisplayName());
          }
-         //get the resource map for the report         
+         //get the resource map for the report
          String title = xrm.getLocalizedJasperFileName(name, session.getLocale().getID());
          if (title == null) {
             title = xrm.getLocalizedJasperFileName(name);
@@ -247,22 +247,22 @@ public class OpReportService extends OpProjectService {
          filePost.addRequestHeader(FILENAME, name);
 
          //Title, Created, Creator, shared-secret
-         String encriptionData = title+"\n"+creationDate+"\n"+creator+"\n"+sharedSecret.getValue()+"\n";
+         String encriptionData = title + "\n" + creationDate + "\n" + creator + "\n" + sharedSecret.getValue() + "\n";
          String secureHash = new OpHashProvider().calculateHash(encriptionData, sharedSecret.getEncoding());
          filePost.addRequestHeader(SECURE, secureHash);
-         
+
          filePost.setRequestEntity(
-               new ByteArrayRequestEntity(byteOut.toByteArray(), "application/pdf")
-             );
+              new ByteArrayRequestEntity(byteOut.toByteArray(), "application/pdf")
+         );
          HttpClient client = new HttpClient();
          int status = client.executeMethod(filePost);
          if (status != HttpStatus.SC_OK) {
-            logger.error("sendReport to url: "+rf.getWorkflowTargetUrl()+" returned status code: "+status);
+            logger.error("sendReport to url: " + rf.getWorkflowTargetUrl() + " returned status code: " + status);
             response = new XMessage();
             XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
             response.setError(error);
-            return response;         
-        }
+            return response;
+         }
          tx.commit();
          response = new XMessage();
          response.setArgument(REPORT_NAME, name);
@@ -273,14 +273,14 @@ public class OpReportService extends OpProjectService {
          response = new XMessage();
          XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
          response.setError(error);
-         return response;         
+         return response;
       }
       catch (IOException exc) {
          logger.error("Cannot send report into db", exc);
          response = new XMessage();
          XError error = session.newError(ERROR_MAP, OpReportError.SEND_REPORT_EXCEPTION);
          response.setError(error);
-         return response;         
+         return response;
       }
       finally {
          broker.close();
