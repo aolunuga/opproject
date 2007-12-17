@@ -64,6 +64,7 @@ public class OpOpenApplet extends XExpressApplet {
          parameters.put(OpProjectConstants.RUN_LEVEL, runLevel);
       }
       String startForm = getParameter(OpProjectConstants.START_FORM);
+      getClient().setVariable(OpProjectConstants.START_FORM, startForm);
       if(startForm != null) {
          parameters.put(OpProjectConstants.START_FORM, startForm);
       }
@@ -77,7 +78,16 @@ public class OpOpenApplet extends XExpressApplet {
       String startForm = (String) parameters.get(OpProjectConstants.START_FORM);
       if (startForm != null) {
          getDisplay().showForm(startForm, parameters);
-      }      
+      }
+      else {
+         if(getClient().getVariable(OpProjectConstants.START_FORM) != null) {
+            startForm = (String) getClient().getVariable(OpProjectConstants.START_FORM);
+            getDisplay().showForm(startForm, parameters);
+         }
+         else {
+            throw new UnsupportedOperationException("No start form defined");
+         }
+      }
    }
 
    /**

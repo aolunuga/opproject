@@ -642,15 +642,10 @@ public class OpUserServiceImpl implements OpService {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
       }
 
-      OpQuery userAssignmentQuery = broker.newQuery("select assignment from OpUserAssignment as assignment where assignment.User.ID = ? and assignment.Group.ID = ?");
+      OpQuery userAssignmentQuery = broker.newQuery("delete from OpUserAssignment as assignment where assignment.User.ID = ? and assignment.Group.ID = ?");
       userAssignmentQuery.setLong(0, user.getID());
       userAssignmentQuery.setLong(1, group.getID());
-
-      Iterator result = broker.iterate(userAssignmentQuery);
-      while (result.hasNext()) {
-         OpUserAssignment assignment = (OpUserAssignment) result.next();
-         broker.deleteObject(assignment);
-      }
+      broker.execute(userAssignmentQuery);
    }
 
    /**
@@ -792,15 +787,11 @@ public class OpUserServiceImpl implements OpService {
       if (!session.userIsAdministrator()) {
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.INSUFFICIENT_PRIVILEGES));
       }
-      OpQuery groupAssignmentQuery = broker.newQuery("select assignment from OpGroupAssignment as assignment where assignment.SubGroup.ID = ? and assignment.SuperGroup.ID = ?");
+
+      OpQuery groupAssignmentQuery = broker.newQuery("delete from OpGroupAssignment as assignment where assignment.SubGroup.ID = ? and assignment.SuperGroup.ID = ?");
       groupAssignmentQuery.setLong(0, group.getID());
       groupAssignmentQuery.setLong(1, super_group.getID());
-
-      Iterator result = broker.iterate(groupAssignmentQuery);
-      while (result.hasNext()) {
-         OpGroupAssignment assignment = (OpGroupAssignment) result.next();
-         broker.deleteObject(assignment);
-      }
+      broker.execute(groupAssignmentQuery);
    }
 
    /**

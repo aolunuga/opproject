@@ -376,6 +376,9 @@ public class OpOpenServlet extends XExpressServlet {
       OpTransaction t = broker.newTransaction();
 
       try {
+         //set the stream member of the OpContent class to lazy=false so that it is loaded
+         OpContent.setStreamLazy(false);
+
          OpContent cnt = (OpContent) broker.getObject(contentId);
          if (cnt != null) {
             //check access level
@@ -420,6 +423,9 @@ public class OpOpenServlet extends XExpressServlet {
          }
       }
       finally {
+         //reset the lazy loading of the stream member from OpContent
+         OpContent.setStreamLazy(true);
+         
          session.deleteUnreferedContents();
          t.commit();
          broker.close();

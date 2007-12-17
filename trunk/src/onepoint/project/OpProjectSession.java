@@ -23,6 +23,7 @@ import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
+import onepoint.service.server.XSession;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -124,6 +125,15 @@ public class OpProjectSession extends XExpressSession {
 
       //mark the session as valid
       validate();
+   }
+
+   /**
+    * The name of the data source.
+    *
+    * @return name of the data source.
+    */
+   public String getSourceName() {
+      return sourceName;
    }
 
    public long getUserID() {
@@ -656,5 +666,22 @@ public class OpProjectSession extends XExpressSession {
    public void loadSettings() {
       OpSettingsService.getService().loadSettings(this);
       OpSettingsService.getService().configureServerCalendar(this);
+   }
+
+   /**
+    * The list of all the project sessions belonging to the same site and to the same server as the current session
+    *    (INCLUDING the id of the current session).
+    *
+    * @return the list of all the project sessions belonging to the same site and to the same server as the current
+    *    session (INCLUDING the id of the current session).
+    */
+   public List<Integer> getIdsOfSessionsFromSameSite() {
+      List<Integer> idsList = new ArrayList<Integer>();
+      for(XSession session : getServer().getAllSessions()) {
+         if(session instanceof OpProjectSession && ((OpProjectSession) session).getSourceName().equals(getSourceName())) {
+            idsList.add(session.getID());
+         }
+      }
+      return idsList;
    }
 }

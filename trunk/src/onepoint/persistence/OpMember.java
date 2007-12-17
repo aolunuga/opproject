@@ -12,8 +12,13 @@ public abstract class OpMember {
 	private int typeId; // Resolved on-register (OpPrototype)
 	private String collectionTypeName;
 	private int collectionTypeId; // Resolved on-register (OpPrototype)
+   /**
+    * Indicates whether lazy mode should be used for this memeber.
+    * Can be one of the following: "true" or "false". Defaults= is to true.
+    */
+   private String lazy = "true";
 
-	public OpMember() {}
+   public OpMember() {}
 
 	public final void setName(String name) {
 		this.name = name;
@@ -65,4 +70,23 @@ public abstract class OpMember {
 		return collectionTypeId;
 	}
 
+   /**
+    * Gets the value of the lazy mode.
+    *
+    * @return a <code>String</code> representing the value of the lazy mode. Default is to "true"
+    */
+   public String getLazy() {
+      return lazy;
+   }
+
+   /**
+    * Sets the value of the lazy mode.
+    *
+    * @param lazy a <code>String</code> representing the value of the lazy mode.
+    */
+   public void setLazy(String lazy) {
+      if (lazy.equalsIgnoreCase("true") || lazy.equalsIgnoreCase("false")) {
+         this.lazy = lazy.toLowerCase();
+      }
+   }
 }

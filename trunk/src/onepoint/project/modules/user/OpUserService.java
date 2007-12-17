@@ -54,6 +54,10 @@ public class OpUserService extends OpProjectService {
    private final static String FILTERED_SUBJECT_IDS = "FilteredSubjectIds";
    private final static String INCLUDE_PARENTS_IN_FILTER = "IncludeParentsInFilter";
 
+   /**
+    * the map containing all error types.
+    */
+   public static final OpUserErrorMap ERROR_MAP = new OpUserErrorMap();
 
    // User data
    public final static String ASSIGNED_GROUPS = "assigned_groups";
@@ -88,25 +92,30 @@ public class OpUserService extends OpProjectService {
       String password = (String) (request.getArgument(PASSWORD));
 
       XMessage reply = new XMessage();
-      OpBroker broker = session.newBroker();
-      try {
-         // note: transaction is required here for ldap identification,
-         //       because ldap identification may create new user and/or group objects
-         OpTransaction t = broker.newTransaction();
-         serviceIfcImpl.signOn(session, broker, login, password);
+      if (session.getServer().isSiteValid(session.getSourceName())) {
+         OpBroker broker = session.newBroker();
+         try {
+            // note: transaction is required here for ldap identification,
+            //       because ldap identification may create new user and/or group objects
+            OpTransaction t = broker.newTransaction();
+            serviceIfcImpl.signOn(session, broker, login, password);
 
-         //initialize the calendar settings
-         OpSettingsService.getService().configureServerCalendar(session);
+            //initialize the calendar settings
+            OpSettingsService.getService().configureServerCalendar(session);
 
-         //send the calendar to the client
-         reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
-         t.commit();
+            //send the calendar to the client
+            reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
+            t.commit();
+         }
+         catch (XServiceException exc) {
+            exc.append(reply);
+         }
+
+         broker.close();
       }
-      catch (XServiceException exc) {
-         exc.append(reply);
+      else {
+         reply.setError(session.newError(ERROR_MAP, OpUserError.SITE_IS_INVALID));
       }
-
-      broker.close();
       return reply;
    }
 

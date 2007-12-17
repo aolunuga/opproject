@@ -22,7 +22,7 @@ public class OpCacheEventListenerFactory extends CacheEventListenerFactory {
     * @return an <code>OpCacheEventListener</code> object which monitors all cache operations regarding a specific type
     *    of objects.
     */
-   @Override   
+   @Override
    public OpCacheEventListener createCacheEventListener(Properties properties) {
       return new OpCacheEventListener();
    }

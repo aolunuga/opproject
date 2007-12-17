@@ -39,6 +39,9 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
+
+      //set the stream member of the OpContent class to lazy=false so that it is loaded
+      OpContent.setStreamLazy(false);
    }
 
    /**
@@ -48,6 +51,9 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
     */
    protected void tearDown()
         throws Exception {
+      //reset the lazy loading of the stream member from OpContent
+      OpContent.setStreamLazy(true);
+
       clean();
       super.tearDown();
    }
@@ -85,6 +91,47 @@ public class OpDocumentsTest extends OpBaseOpenTestCase {
       long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
       assertEquals(ONE_MB, count);
       broker.close();
+   }
+
+   /**
+    * Tests the creation of OpContent.
+    *
+    * @throws Exception if anything fails.
+    */
+   public void testCreateLazyLoadedContent()
+        throws Exception {
+      //set the stream member of the OpContent class to lazy=true so that it is NOT loaded
+      OpContent.setStreamLazy(true);
+
+      String mimeType = BINARY_MIME_TYPE;
+
+      // save content
+      createContent(generateInputStream(ONE_MB), mimeType, ONE_MB);
+
+      // load content
+      OpBroker broker = session.newBroker();
+
+      OpQuery query = broker.newQuery("from " + OpContent.CONTENT);
+      List list = broker.list(query);
+
+      assertNotNull(list);
+      assertEquals(1, list.size());
+      OpContent actual = (OpContent) list.get(0);
+      assertEquals(mimeType, actual.getMediaType());
+      assertEquals(ONE_MB, actual.getSize());
+      assertEquals(1, actual.getRefCount());
+      XSizeInputStream actualStream = actual.getStream();
+      assertNotNull(actualStream);
+      assertEquals(ONE_MB, actualStream.getSize());
+      assertNotNull(actualStream.getInputStream());
+
+      long count = XIOHelper.copy(actualStream, generateFakeOutputStream());
+      //the stream is empty
+      assertEquals(0, count);
+      broker.close();
+
+      //set the stream member of the OpContent class to lazy=false so that it is loaded
+      OpContent.setStreamLazy(false);
    }
 
    /**

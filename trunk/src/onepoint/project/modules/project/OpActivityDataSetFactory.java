@@ -2264,6 +2264,7 @@ public abstract class OpActivityDataSetFactory {
       double internalSum = 0;
       double externalSum = 0;
       byte workingDays = 0;
+      long totalWorkingDays = 0;
       List<OpWorkMonth> newWorkMonths = new ArrayList<OpWorkMonth>();
 
       while (!date.after(finish)) {
@@ -2300,6 +2301,7 @@ public abstract class OpActivityDataSetFactory {
             newWorkMonths.add(workMonth);
 
             //reset counters
+            totalWorkingDays += workingDays;
             workingDays = 0;
             internalSum = 0;
             externalSum = 0;
@@ -2314,11 +2316,43 @@ public abstract class OpActivityDataSetFactory {
          }
       }
 
+      //tasks need a recalculation of work months, because of their "nature"  (0 duration, start & end != null, effort >=0)
+      if (assignment.getActivity().getType() == OpActivity.TASK) {
+         updateWorkMonthsForTask(totalWorkingDays, assignment.getBaseEffort(),
+              workHoursPerDay, newWorkMonths);
+      }
+
       updateWorkMonthBaseValues(broker, assignment, newWorkMonths, reusableWorkMonths);
 
       updateRemainingValues(broker, xCalendar, assignment);
 
       broker.updateObject(assignment);
+   }
+
+   /**
+    * Updates the work months for a task - because resources assigned on tasks are always
+    * 100%, they have to be treated specially.
+    * @param totalWorkingDays a <code>long</code> the sum of all the working days of
+    * all the work months
+    * @param assignmentEffort a <code>double</code> the value of the assignment's base
+    * effort.
+    * @param workHoursPerDay a <code>double</code> the number of working hours per
+    * day
+    * @param workMonths a <code>List(OpWorkMonth)</code> the calculated workmonths.
+    */
+   private static void updateWorkMonthsForTask(long totalWorkingDays, double assignmentEffort,
+        double workHoursPerDay, List<OpWorkMonth> workMonths) {
+      for (OpWorkMonth workMonth : workMonths) {
+         //for a task, disitribute base effort on the number of working days for each work month
+         double latestEffort = totalWorkingDays <= 0 ? 0 : workMonth.getWorkingDays() / totalWorkingDays * assignmentEffort;
+         workMonth.setLatestEffort(latestEffort);
+
+         //for a task, to determine the costs find the proportion with which the already calculated costs have to be modified - they were calculated using working hours per day
+         double effortPerDay = workMonth.getWorkingDays() <= 0 ? 0 : latestEffort / workMonth.getWorkingDays();
+         double perDayProportion = effortPerDay / workHoursPerDay;
+         workMonth.setLatestPersonnelCosts(workMonth.getLatestPersonnelCosts() * perDayProportion);
+         workMonth.setLatestProceeds(workMonth.getLatestProceeds() * perDayProportion);
+      }
    }
 
    /**
@@ -2509,8 +2543,15 @@ public abstract class OpActivityDataSetFactory {
       double remainingProceedsChange = oldRemainingProceeds - assignment.getRemainingProceeds();
 
       //update the remaining personnel costs & remaining proceeds on the activity and its superactivities
-      assignment.getActivity().updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
-      assignment.getActivity().updateRemainingProceeds(remainingProceedsChange);
+      activity.updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
+      activity.updateRemainingProceeds(remainingProceedsChange);
+      broker.updateObject(activity);
+
+      //update activity hierarchy
+      while (activity.getSuperActivity() != null) {
+         activity = activity.getSuperActivity();
+         broker.updateObject(activity);
+      }
 
       broker.updateObject(assignment);
    }

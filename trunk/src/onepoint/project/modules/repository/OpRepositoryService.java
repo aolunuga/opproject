@@ -14,7 +14,6 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
-import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * Service class for the repository module.
@@ -90,6 +90,14 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
 
+      //get the all the ids from the sessions belonging to the current site.
+      List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
+
+      //invalidate all server sessions
+      projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
+      //invalidate the entire site
+      projectSession.getServer().invalidateSite(projectSession.getSourceName());
+
       try {
          boolean fileCreated = backupFile.createNewFile();
          if (!fileCreated) {
@@ -104,6 +112,10 @@ public class OpRepositoryService extends OpProjectService {
       catch (IOException e) {
          logger.error("Cannot backup repository to: '" + backupFile.getAbsolutePath() + "', because:" + e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
+      }
+      finally {
+         //revalidate the site
+         projectSession.getServer().validateSite(projectSession.getSourceName());
       }
    }
 
@@ -170,20 +182,26 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
+         //get the all the ids from the sessions belonging to the current site.
+         List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
+
+         //invalidate all server sessions belonging to this site except the current one
+         projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
+         projectSession.getServer().invalidateSite(projectSession.getSourceName());
+
          OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
          initializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
 
-         //apply settings
-         OpSettingsService.getService().loadSettings(projectSession);
-
-         //invalidate all server sessions except the current one
-         projectSession.getServer().invalidateAllSessions(projectSession.getID());
          //clear everything from the current session
          projectSession.clearSession();
       }
       catch (Exception e) {
          logger.error("Cannot restore repository because:" + e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.RESTORE_ERROR_CODE);
+      }
+      finally {
+         //revalidate the site
+         projectSession.getServer().validateSite(projectSession.getSourceName());
       }
       return null;
    }
@@ -202,6 +220,14 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
+         //get the all the ids from the sessions belonging to the current site.
+         List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
+
+         //invalidate all server sessions
+         projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
+         //invalidate the entire site
+         projectSession.getServer().invalidateSite(projectSession.getSourceName());
+
          logger.info("Stopping modules");
          OpModuleManager.stop();
 
@@ -212,15 +238,16 @@ public class OpRepositoryService extends OpProjectService {
          logger.info("Starting modules");
          OpModuleManager.start();
 
-         //invalidate all server sessions
-         projectSession.getServer().invalidateAllSessions(projectSession.getID());
-
          //clear this session
          projectSession.clearSession();
       }
       catch (Exception e) {
          logger.error("An error occured during reset:" + e.getMessage(), e);
          return createErrorMessage(projectSession, OpRepositoryError.RESET_ERROR_CODE);
+      }
+      finally {
+         //revalidate the site
+         projectSession.getServer().validateSite(projectSession.getSourceName());
       }
       return null;
    }
