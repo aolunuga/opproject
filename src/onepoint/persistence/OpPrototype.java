@@ -14,6 +14,7 @@ public class OpPrototype extends OpType {
    private Map<String, OpMember> declaredMembers;
    private Map<String, OpMember> members; // Resolved on-register
    private int size; // Calculated on-register
+   private Integer batchSize = null;
 
    /**
     * List of prototypes this prototypes depends on for backup.
@@ -168,5 +169,23 @@ public class OpPrototype extends OpType {
     */
    public boolean containsDeclaredMember(OpMember member) {
       return declaredMembers.containsKey(member.getName());
+   }
+
+   /**
+    * Gets the batch-size for the prototype.
+    *
+    * @return a <code>Integer</code> the batch size of the prototype
+    */
+   public Integer getBatchSize() {
+      return batchSize;
+   }
+
+   /**
+    * Sets the batch size for the prototype
+    *
+    * @param batchSize an <code>Integer</code> the batch-size of the prototype.
+    */
+   public void setBatchSize(Integer batchSize) {
+      this.batchSize = batchSize;
    }
 }

@@ -70,6 +70,10 @@ public class OpFieldHandler implements XNodeHandler {
       if ((value != null) && (value instanceof String)) {
          field.setInsert(Boolean.valueOf((String) value));
       }
+      value = attributes.get("lazy");
+      if ((value != null) && (value instanceof String)) {
+         field.setLazy((String) value);
+      }
 
       return field;
    }

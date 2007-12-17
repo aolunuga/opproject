@@ -198,4 +198,32 @@ public class OpBroker {
       return default_source;
    }
 
+   /**
+    * Used for testing if a given object is of a given type.
+    * Throws an <code>UnsupportedOperationException</code> if the broker on witch we call the method is closed. 
+    *
+    * @param id represents the object id
+    * @param objectType represents the type to witch we want to compare the object type
+    * @return returns <code>true</code> if the object with the specified id is of type <code>objectType</code> otherwise
+    * it returns <code>false</code>
+    */
+   public boolean isOfType(Long id, String objectType) {
+      if (!this.isValid()) {
+         throw new UnsupportedOperationException();
+      }
+      StringBuffer buffer = new StringBuffer("select obj.ID from ");
+      buffer.append(objectType);
+      buffer.append(" obj where obj.ID = :objID");
+      OpQuery query = this.newQuery(buffer.toString());
+      query.setLong("objID", id);
+
+      Iterator it = this.iterate(query);
+
+      if (it != null) {
+         return it.hasNext();
+      }
+
+      return false;
+   }
+
 }

@@ -5,13 +5,15 @@
 package onepoint.project.modules.documents;
 
 import onepoint.persistence.OpObject;
+import onepoint.persistence.OpPrototype;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpAttachmentVersion;
 import onepoint.service.XSizeInputStream;
 
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
-import java.io.*;
 
 public class OpContent extends OpObject {
 
@@ -155,5 +157,27 @@ public class OpContent extends OpObject {
 
    public void setAttachmentVersions(Set<OpAttachmentVersion> attachmentVersions) {
       this.attachmentVersions = attachmentVersions;
+   }
+
+   /**
+    * Sets the stream member of the <code>OpContent</code> object to be loaded lazy or not depending on the parameter.
+    *
+    * @param lazy - a <code>boolean</code> value indicating whether the stream membet of the <code>OpContent</code>
+    *    object will be loaded lazy or not.
+    */
+   public static void setStreamLazy(boolean lazy) {
+      OpPrototype prototype = OpTypeManager.getPrototypeByClassName(OpContent.class.getName());
+      prototype.getMember(STREAM).setLazy(lazy ? "true" : "false");
+   }
+
+   /**
+    * Determines if the stream member of the <code>OpContent</code> object is to be loaded lazy or not.
+    *
+    * @return <code>true</code> if the stream member of the <code>OpContent</code> object is to be loaded lazy or
+    *    <code>false</code> otherwise.
+    */
+   public static boolean isStreamLazy() {
+      OpPrototype prototype = OpTypeManager.getPrototypeByClassName(OpContent.class.getName());
+      return prototype.getMember(STREAM).getLazy().equals("true");
    }
 }

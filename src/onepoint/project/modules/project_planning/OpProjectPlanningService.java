@@ -720,6 +720,8 @@ public class OpProjectPlanningService extends OpProjectService {
       }
 
       try {
+         //set the stream member of the OpContent class to lazy=false so that it is loaded
+         OpContent.setStreamLazy(false);
 
          // <FIXME author="Horia Chiorean" description="This code is here because we can have either OpAttachment or
          // OpAttachmentVersion">
@@ -751,6 +753,10 @@ public class OpProjectPlanningService extends OpProjectService {
       catch (InvocationTargetException e) {
          logger.error("Cannot access attachment", e);
       }
+      finally {
+         //reset the lazy loading of the stream member from OpContent
+         OpContent.setStreamLazy(true);
+      }
       return null;
    }
 
@@ -779,6 +785,9 @@ public class OpProjectPlanningService extends OpProjectService {
          response.setArgument(CONTENT_ID, contentId);
       }
       else {
+         //set the stream member of the OpContent class to lazy=false so that it is loaded
+         OpContent.setStreamLazy(false);
+
          OpBroker broker = s.newBroker();
          OpTransaction t = broker.newTransaction();
 
@@ -788,6 +797,9 @@ public class OpProjectPlanningService extends OpProjectService {
          broker.close();
          response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
          s.deleteUnreferedContents(); // delete temporary contents (generated only for view mode)
+
+         //reset the lazy loading of the stream member from OpContent
+         OpContent.setStreamLazy(true);
       }
 
       return response;

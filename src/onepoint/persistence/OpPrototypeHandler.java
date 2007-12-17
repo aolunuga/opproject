@@ -25,9 +25,11 @@ public class OpPrototypeHandler implements XNodeHandler {
       }
       value = attributes.get("super-type");
       if ((value != null) && (value instanceof String)) {
-         if ((value != null) && (value instanceof String)) {
-            prototype.setSuperTypeName((String) value);
-         }
+         prototype.setSuperTypeName((String) value);
+      }
+      value = attributes.get("batch-size");
+      if ((value != null) && (value instanceof String)) {
+         prototype.setBatchSize(Integer.valueOf((String) value));
       }
       return prototype;
    }
@@ -38,8 +40,10 @@ public class OpPrototypeHandler implements XNodeHandler {
       }
    }
 
-   public void addNodeContent(XContext context, Object node, String content) {}
+   public void addNodeContent(XContext context, Object node, String content) {      
+   }
 
-   public void nodeFinished(XContext context, String name, Object node, Object parent) {}
+   public void nodeFinished(XContext context, String name, Object node, Object parent) {
+   }
 
 }

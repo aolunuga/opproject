@@ -52,7 +52,7 @@ public class OpCacheEventListener implements CacheEventListener {
    public void notifyRemoveAll(Ehcache cache){
    }
 
-   public void dispose() {          
+   public void dispose() {
    }
 
    @Override

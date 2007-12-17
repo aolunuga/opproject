@@ -74,6 +74,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String ADD_URL_BUTTON = "AddURLButton";
    private final static String REMOVE_ATTACHMENT_BUTTON = "RemoveAttachmentButton";
    private final static String ATTACHMENTS_TOOL_PANEL = "AttachmentsToolPanel";
+   private final static Integer SORT_DATA_CELL_INDEX = 0;
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession,onepoint.express.XComponent,java.util.HashMap)
@@ -661,6 +662,8 @@ public class OpEditProjectFormProvider implements XFormProvider {
             dataRow = (XComponent) dataSet.getChild(i);
             originalDataSet.addChild(dataRow.copyData());
          }
+
+         dataSet.sort(SORT_DATA_CELL_INDEX);
       }
       form.findComponent(RESOURCES_TABLE).setEditMode(editMode);
       form.findComponent(RESOURCE_TOOL_PANEL).setVisible(editMode);

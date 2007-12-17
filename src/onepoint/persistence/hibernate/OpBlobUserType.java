@@ -6,6 +6,7 @@ package onepoint.persistence.hibernate;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.project.modules.documents.OpContent;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XSizeInputStream;
 import onepoint.util.XEnvironmentManager;
@@ -95,7 +96,10 @@ public class OpBlobUserType implements UserType {
     */
    public Object nullSafeGet(ResultSet resultSet, String[] strings, Object object)
         throws HibernateException, SQLException {
-      InputStream is = resultSet.getBinaryStream(strings[0]);
+      InputStream is = null;
+      if(!OpContent.isStreamLazy()) {
+         is = resultSet.getBinaryStream(strings[0]);
+      }
 
       if (is == null) {
          is = new ByteArrayInputStream(new byte[0]); // return an empty but not null stream
