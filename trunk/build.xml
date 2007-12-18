@@ -3,11 +3,11 @@
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
 
-  <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
-    <classpath>
-       <fileset dir="${lib.dir}" includes="*.jar" />
-    </classpath>
-  </taskdef>
+   <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+      <classpath>
+         <fileset dir="${lib.dir}" includes="*.jar"/>
+      </classpath>
+   </taskdef>
 
    <taskdef resource="net/sf/antcontrib/antlib.xml">
       <classpath>
@@ -55,7 +55,7 @@
       <include name="${rootpackage.dir}/project/**/*.ico"/>
       <include name="${rootpackage.dir}/project/**/*.jasper"/>
       <include name="${rootpackage.dir}/project/**/*.jes"/>
-      <include name="${rootpackage.dir}/project/configuration/generated/**/*.ser" />
+      <include name="${rootpackage.dir}/project/configuration/generated/**/*.ser"/>
       <exclude name="${rootpackage.dir}/**/test/**"/>
       <exclude name="${rootpackage.dir}/project/reports/**/*.*"/>
    </patternset>
@@ -133,10 +133,13 @@
       <exclude name="svn*.*"/>
       <exclude name="*_client*.*"/>
       <exclude name="*ant-contrib*.jar"/>
-      <exclude name="*commons-cli*.jar"/> <!-- at the moment only used within ldap, but may be of general perpose -->
+      <exclude name="*commons-cli*.jar"/>
+      <!-- at the moment only used within ldap, but may be of general perpose -->
       <exclude name="*jsr173*.jar"/>
-      <exclude name="*ws-commons-util*.jar"/> <!-- used for sending reports (icomedias) -->
-      <exclude name="*xmlrpc-*.jar"/> <!-- for xmlrpc only -->
+      <exclude name="*ws-commons-util*.jar"/>
+      <!-- used for sending reports (icomedias) -->
+      <exclude name="*xmlrpc-*.jar"/>
+      <!-- for xmlrpc only -->
    </patternset>
 
    <patternset id="standalone.lib.pathid">
@@ -265,11 +268,11 @@
 
    <!-- Generates all jaxb classes from the configuration schema -->
    <target name="generate.schema">
-      <mkdir dir="${src.dir}/onepoint/project/configuration/generated" />
+      <mkdir dir="${src.dir}/onepoint/project/configuration/generated"/>
       <xjc schema="${src.dir}/onepoint/project/configuration/configuration.xsd"
            target="${src.dir}"
            package="onepoint.project.configuration.generated">
-         <produces dir="${src.dir}/onepoint/project/configuration/generated" includes="* impl/*" />
+         <produces dir="${src.dir}/onepoint/project/configuration/generated" includes="* impl/*"/>
       </xjc>
    </target>
 
@@ -294,7 +297,7 @@
          <fileset dir="${lib.dir}">
             <patternset refid="webapp.lib.pathid"/>
             <exclude name="*_client*.jar"/>
-         </fileset> 
+         </fileset>
       </path>
       <pathconvert pathsep=" " dirsep="/" property="basic.lib.path.manifest">
          <path refid="basic.lib.path"/>
@@ -307,13 +310,13 @@
          <fileset dir="${classes.dir}">
             <patternset refid="project.standalone.pathid"/>
             <include name="*.properties"/>
-         </fileset> 
+         </fileset>
          <manifest>
             <attribute name="Built-By" value="Onepoint Software GmbH"/>
-            <attribute name="Build-Date" value = "${build.date}"/>
+            <attribute name="Build-Date" value="${build.date}"/>
             <attribute name="Main-Class" value="onepoint.project.application.OpBasicSplasher"/>
-            <attribute name="Class-Path" value="${basic.lib.path.manifest}" />
-    
+            <attribute name="Class-Path" value="${basic.lib.path.manifest}"/>
+
             <section name="Implementation">
                <attribute name="Implementation-Title" value="${opproject.launchername} Basic Edition"/>
                <attribute name="Implementation-Version" value="${version}"/>
@@ -327,7 +330,7 @@
    <target name="build.open.jar" depends="build" description="builds the open app jar file">
       <manifest file="${manifest}">
          <attribute name="Built-By" value="Onepoint Software GmbH"/>
-         <attribute name="Build-Date" value = "${build.date}"/>
+         <attribute name="Build-Date" value="${build.date}"/>
          <section name="Implementation">
             <attribute name="Implementation-Title" value="${opproject.launchername} Open"/>
             <attribute name="Implementation-Version" value="${version}"/>
@@ -489,7 +492,7 @@
       </copy>
 
       <!-- failonerror for tutorials is because of SourceForge -->
-      <copy file="${tutorial.basic.file}"  todir="${dist.basic.dir}/${dist.main.folder}" failonerror="false"/>
+      <copy file="${tutorial.basic.file}" todir="${dist.basic.dir}/${dist.main.folder}" failonerror="false"/>
       <copy file="${readme.basic.file}" tofile="${dist.basic.dir}/${dist.main.folder}/readme.txt"/>
       <copy file="${license.file}" todir="${dist.basic.dir}/${dist.main.folder}"/>
 
@@ -522,7 +525,7 @@
             <patternset refid="client.jars"/>
          </fileset>
       </move>
-    
+
       <!-- expand properties within web.xml file -->
       <loadfile property="web.xml.content" srcFile="${webxml.file}">
          <filterchain>
@@ -530,8 +533,8 @@
          </filterchain>
       </loadfile>
       <echo message="${web.xml.content}" file="${build.dir}/web.xml"/>
-   
-      <!--build war file-->    
+
+      <!--build war file-->
       <war destfile="${build.dir}/${warname}" webxml="${build.dir}/web.xml" manifest="${manifest}">
          <fileset dir="${build.dir}" includes="${applet}/**/*"/>
          <fileset dir="${build.dir}" includes="${webimages}/**/*"/>
@@ -577,7 +580,7 @@
 
    <target name="release" depends="generate.Linux.distribution.basic, generate.Windows.distribution.basic"
            description="Packages the project sources into a release archive.">
-      
+
       <!--src release-->
       <zip zipfile="${release.dir}/${release.root.filename}-src.zip">
          <zipfileset dir="${src.dir}" prefix="${zip.root.dir}/${src.dir}"/>
@@ -609,12 +612,12 @@
            depends="dist.standalone"
            description="Generates basic linux distribution">
       <echo file="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}" append="false">#!/bin/bash
-JAR=${project.basic.jarname}
-if [ -e "$JAVA_HOME" ]; then
- $JAVA_HOME/bin/java -jar $JAR
-else 
- java -jar $JAR
-fi
+         JAR=${project.basic.jarname}
+         if [ -e "$JAVA_HOME" ]; then
+         $JAVA_HOME/bin/java -Xmx192m -jar $JAR
+         else
+         java -Xmx192m -jar $JAR
+         fi
       </echo>
       <tar destfile="${dist.dir}/${basic.name}-linux.tar">
          <tarfileset dir="${dist.basic.dir}">
@@ -642,8 +645,8 @@ fi
          <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
                  outfile="${dist.basic.dir}/${executable.file.tmp}" customProcName="false"
                  dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
-            <jre minVersion="1.4.0"/>
-            <versionInfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
+            <jre minVersion="1.5.0" maxheapsize="192"/>
+            <versioninfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
                          copyright="Onepoint Software GmbH" productVersion="${version.mayor}.${version.minor}.0.0" txtProductVersion="${version}"
                          productName="Onepoint Projects" companyName="Onepoint Software GmbH"
                          internalName="onepoint" originalFilename="${executable.file}"/>
@@ -666,7 +669,7 @@ fi
                   version="${version}"
                   jvmversion="1.5+"
                   vmoptions="-Xmx192m"
-   	              stubfile="${opproject.launchername}"
+                  stubfile="${opproject.launchername}"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">
             <include name="${project.basic.jarname}"/>
@@ -675,7 +678,7 @@ fi
          <!--jars from lib will be included in the application bundle-->
          <jarfileset dir="${dist.basic.dir}/${dist.main.folder}/lib">
             <patternset includes="*.*"/>
-         </jarfileset>         
+         </jarfileset>
       </jarbundler>
    </target>
 
@@ -715,7 +718,7 @@ fi
          </fileset>
          <fileset dir="${src.dir}/onepoint/project/configuration">
             <include name="configuration.xsd"/>
-         </fileset>      	
+         </fileset>
       </copy>
    </target>
 
@@ -755,6 +758,6 @@ fi
    <target name="create.fail.dir" if="junit_test_failed">
       <mkdir dir="testFailed"/>
    </target>
-   
+
 
 </project>
