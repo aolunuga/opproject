@@ -154,7 +154,7 @@ public class OpGanttValidator extends XValidator {
    private List undo;
    private boolean continuousAction;
    private List redo;
-   public static final int MAX_UNDO = 10;
+   public static final int MAX_UNDO = 5;
 
    public OpGanttValidator() {
       calendar = XCalendar.getDefaultCalendar();

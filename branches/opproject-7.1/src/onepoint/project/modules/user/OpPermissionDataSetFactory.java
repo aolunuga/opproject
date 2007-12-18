@@ -8,7 +8,10 @@ import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
@@ -214,28 +217,23 @@ public class OpPermissionDataSetFactory {
                permissionRow = new XComponent(XComponent.DATA_ROW);
                permissionRow.setOutlineLevel(1);
                subject = permission.getSubject();
-               //<FIXME author="Jochen Mersmann" description="the try-block is a grace-case if you imported data from the team-edition, where this might happen. In the end, for the OE/PE we should not even touch this code" />
-               try {
-                  //don't use subject instance of OpGroup because of Hibernate's "proxy problem" when using polymorphic collections
-                  if (OpTypeManager.getPrototypeForObject(subject).getName().equals(OpGroup.GROUP)) {
-                     iconIndex = GROUP_ICON_INDEX;
-                  }
-                  else {
-                     iconIndex = USER_ICON_INDEX;
-                  }
-                  permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
-                  // Disable system-managed permissions (not editable by the user)
-                  permissionRow.setEnabled(!permission.getSystemManaged());
-                  if (subject.getID() == session.administrator(broker).getID()) {
-                     imutableFlag.setBooleanValue(true);
-                  }
-                  permissionRow.addChild(imutableFlag);
-                  permissionSet.addChild(permissionRow);
+               //don't use subject instance of OpGroup because of Hibernate's "proxy problem" when using polymorphic collections
+               if (broker.isOfType(subject.getID(), OpGroup.GROUP)) {
+                  iconIndex = GROUP_ICON_INDEX;
                }
-               catch (NullPointerException npe) {
-                  logger.info("did not have a user in permission for rolename '" + roleName + "'. Most propably imported team-data into single-user version");
+               else if (broker.isOfType(subject.getID(), OpUser.USER)) {
+                  iconIndex = USER_ICON_INDEX;
                }
-            }
+               permissionRow.setStringValue(XValidator.choice(subject.locator(), objectLocalizer.localize(subject.getDisplayName()), iconIndex));
+               // Disable system-managed permissions (not editable by the user)
+               permissionRow.setEnabled(!permission.getSystemManaged());
+               if (subject.getID() == session.administrator(broker).getID()) {
+                  imutableFlag.setBooleanValue(true);
+               }
+               permissionRow.addChild(imutableFlag);
+               permissionSet.addChild(permissionRow);
+
+            }         
          }
       }
    }
