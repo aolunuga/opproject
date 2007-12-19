@@ -24,8 +24,14 @@ import java.util.List;
  */
 public class OpUserModuleChecker implements OpModuleChecker {
 
+   /**
+    * This class's logger
+    */
    private static final XLog logger = XLogFactory.getServerLogger(OpUserModuleChecker.class);
 
+   /**
+    * @see onepoint.project.module.OpModuleChecker#check(onepoint.project.OpProjectSession)
+    */
    public void check(OpProjectSession session) {
       assignAdministratorPermission(session);
    }

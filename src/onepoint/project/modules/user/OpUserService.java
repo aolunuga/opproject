@@ -7,6 +7,7 @@ package onepoint.project.modules.user;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.XView;
+import onepoint.express.util.XConstants;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -106,6 +107,10 @@ public class OpUserService extends OpProjectService {
             //send the calendar to the client
             reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
             t.commit();
+
+            //send client-side error messages
+            reply.setVariable(XConstants.ERROR_FILE_NOT_FOUND, session.newError(ERROR_MAP, OpUserError.FILE_NOT_FOUND));
+            reply.setVariable(XConstants.ERROR_OUT_OF_MEMORY, session.newError(ERROR_MAP, OpUserError.OUT_OF_MEMORY));
          }
          catch (XServiceException exc) {
             exc.append(reply);

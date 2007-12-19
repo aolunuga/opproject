@@ -36,7 +36,7 @@ public abstract class OpActivityDataSetFactory {
    private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
         "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId) and activity.Deleted = false";
 
-   public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
+   public static synchronized HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
            .newQuery("select assignment.Resource from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ? order by assignment.Resource.Name asc");
       query.setLong(0, projectNode.getID());
@@ -60,7 +60,7 @@ public abstract class OpActivityDataSetFactory {
     * @param dataSet Hourly rates data set.
     */
    //<FIXME author="Haizea Florin" description="This is not the proper way to use this method">
-   public static void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
+   public static synchronized  void fillHourlyRatesDataSet(OpProjectNode project, XComponent dataSet) {
       OpProjectAdministrationService service = (OpProjectAdministrationService) XServiceManager.getService(OpProjectAdministrationService.SERVICE_NAME);
       service.fillHourlyRatesDataSet(project, dataSet);
    }
@@ -826,7 +826,7 @@ public abstract class OpActivityDataSetFactory {
 
    }
 
-   public static void storeActivityDataSet(OpBroker broker, XComponent dataSet, HashMap resources, OpProjectPlan plan,
+   public static synchronized void storeActivityDataSet(OpBroker broker, XComponent dataSet, HashMap resources, OpProjectPlan plan,
         OpProjectPlanVersion workingPlanVersion) {
 
       // TODO: Maybe use "pure" IDs (Long values) for data-row values instead of locator strings (retrieve)

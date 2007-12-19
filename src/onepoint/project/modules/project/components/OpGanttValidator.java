@@ -138,6 +138,7 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
+   public final static String INVALID_PAYMENT_EXCEPTION = "InvalidPaymentException";
 
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -2520,6 +2521,10 @@ public class OpGanttValidator extends XValidator {
             break;
          case PAYMENT_COLUMN_INDEX: {
             if (value != null) {
+               double paymentValue = ((Double) value).doubleValue();
+               if (paymentValue < 0) {
+                  throw new XValidationException(INVALID_PAYMENT_EXCEPTION);   
+               }
                setPayment(data_row, ((Double) value).doubleValue());
             }
          }

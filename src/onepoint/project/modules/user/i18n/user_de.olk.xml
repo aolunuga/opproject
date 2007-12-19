@@ -149,5 +149,7 @@
       <resource id="PermissionLevelError">Die Benutzer-Ebene ist zu niedrig, um dieses Recht zu gewährleisten</resource>
       <resource id="AdminPermissionError">Sie können die Rechte des Administrator-Benutzers nicht verändern</resource>
       <resource id="InvalidSiteError">The sites database is down for the moment. Please try again in a minute.</resource>
+      <resource id="OutOfMemory">Der HTTP-Client unterstützt kein Streaming. Dateien, die größer als der Java HEAP sind, können nicht geladen werden.</resource>
+      <resource id="FileNotFound">Eine oder mehrere Dateien, die für das Hochladen ausgewählt wurden, konnten nicht gefunden oder geöffnet werden.</resource>
    </resource-map>
 </language-kit>

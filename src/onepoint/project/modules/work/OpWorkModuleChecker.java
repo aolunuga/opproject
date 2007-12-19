@@ -11,11 +11,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
-import onepoint.project.module.OpModuleChecker;
-import onepoint.project.modules.project.OpActivity;
-import onepoint.project.modules.project.OpActivityDataSetFactory;
-import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
@@ -27,15 +23,23 @@ import java.util.List;
  * Checker class associated to the work module.
  *
  * @author mihai.costin
+ * @author horia.chiorean
  */
-public class OpWorkModuleChecker implements OpModuleChecker {
+public class OpWorkModuleChecker extends OpProjectModuleChecker {
 
+   /**
+    * This class's logger
+    */
    private static final XLog logger = XLogFactory.getServerLogger(OpWorkModule.class);
 
+   @Override
    public void check(OpProjectSession session) {
       logger.info("Checking module Work...");
-      resetWorkValues(session);
-      resetWorkMonths(session);
+      for (Iterator it = super.getProjectsOfType(session, OpProjectNode.PROJECT).iterator(); it.hasNext(); ) {
+         Long projectId = (Long) it.next();
+         resetWorkValues(session, projectId);
+         resetWorkMonths(session, projectId);
+      }
    }
 
 
@@ -43,22 +47,25 @@ public class OpWorkModuleChecker implements OpModuleChecker {
     * Takes care of the values on activities and assignments given by work records.
     *
     * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    * @param projectId a <code>long</code> the id of a project.
     */
-   private void resetWorkValues(OpProjectSession session) {
-      resetAssignments(session);
-      resetActivities(session);
-      applyWorkRecords(session);
+   private void resetWorkValues(OpProjectSession session, long projectId) {
+      resetAssignments(session, projectId);
+      resetActivities(session, projectId);
+      applyWorkRecords(session, projectId);
    }
 
    /**
     * Recalculates the values for all the work months.
     *
     * @param session project session
+    * @param projectId a <code>long</code> the id of a project.
     */
-   private void resetWorkMonths(OpProjectSession session) {
+   private void resetWorkMonths(OpProjectSession session, long projectId) {
       OpBroker broker = session.newBroker();
-      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type");
+      OpQuery allProjectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type = :type and projectNode.ID=:id");
       allProjectsQuery.setParameter("type", OpProjectNode.PROJECT);
+      allProjectsQuery.setParameter("id", projectId);
       OpTransaction tx = broker.newTransaction();
       Iterator<OpProjectNode> projectsIt = broker.iterate(allProjectsQuery);
       while (projectsIt.hasNext()) {
@@ -76,15 +83,36 @@ public class OpWorkModuleChecker implements OpModuleChecker {
     * This method must be called only after resetting the values on assignments and activities.
     *
     * @param session project session
+    * @param projectId a <code>long</code> the id of a project
     */
-   private void applyWorkRecords(OpProjectSession session) {
+   private void applyWorkRecords(OpProjectSession session, long projectId) {
+      OpBroker broker = session.newBroker();
+      OpQuery query = broker.newQuery("select activity.ID from OpActivity activity where activity.ProjectPlan.ProjectNode.ID=? and activity.Deleted=false");
+      query.setLong(0, projectId);
+      List<Long> activityIds = broker.list(query);
+      broker.closeAndEvict();
+      for (Iterator it = activityIds.iterator(); it.hasNext(); ) {
+         Long activityId = (Long) it.next();
+         this.applyWorkRecordsForActivity(session, activityId);
+      }
+   }
+
+   /**
+    * Applies all the found work records in the db on the associated assignments.
+    * This method must be called only after resetting the values on assignments and activities.
+    *
+    * @param session project session
+    * @param activityId a <code>long</code> the id of an activity
+    */
+   private void applyWorkRecordsForActivity(OpProjectSession session, long activityId) {
       OpBroker broker;
       OpTransaction transaction;
       OpQuery query;
 
       broker = session.newBroker();
       transaction = broker.newTransaction();
-      query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord");
+      query = broker.newQuery("select workRecord.ID from OpWorkRecord workRecord where workRecord.Assignment.Activity.ID=?");
+      query.setLong(0, activityId);
       List<Long> workRecordsId = broker.list(query);
       List<OpWorkRecord> workRecords = new ArrayList<OpWorkRecord>();
       logger.info("Found " + workRecordsId.size() + " work records to upgrade.");
@@ -130,8 +158,9 @@ public class OpWorkModuleChecker implements OpModuleChecker {
     * Reset the values on all the activities (actual and remaining).
     *
     * @param session project session.
+    * @param projectId a <code>long</code> the id of a project.
     */
-   private void resetActivities(OpProjectSession session) {
+   private void resetActivities(OpProjectSession session, long projectId) {
       OpBroker broker;
       OpTransaction transaction;
       OpQuery query;
@@ -140,7 +169,8 @@ public class OpWorkModuleChecker implements OpModuleChecker {
       //reset activities
       broker = session.newBroker();
       transaction = broker.newTransaction();
-      query = broker.newQuery("select activity.ID from OpActivity activity where activity.Deleted = false");
+      query = broker.newQuery("select activity.ID from OpActivity activity where activity.Deleted = false and activity.ProjectPlan.ProjectNode.ID=?");
+      query.setLong(0, projectId);
       result = broker.iterate(query);
       while (result.hasNext()) {
          long id = (Long) result.next();
@@ -180,12 +210,14 @@ public class OpWorkModuleChecker implements OpModuleChecker {
     * Resets the values on all the assignments (actual and remaining).
     *
     * @param session project session
+    * @param projectId a <code>long</code> the id of a project.
     */
-   private void resetAssignments(OpProjectSession session) {
+   private void resetAssignments(OpProjectSession session, long projectId) {
       OpBroker broker = session.newBroker();
       OpTransaction transaction = broker.newTransaction();
       //reset assignments
-      OpQuery query = broker.newQuery("select assignment.ID from OpAssignment assignment");
+      OpQuery query = broker.newQuery("select assignment.ID from OpAssignment assignment where assignment.Activity.ProjectPlan.ProjectNode.ID=?");
+      query.setLong(0, projectId);
       Iterator result = broker.iterate(query);
       while (result.hasNext()) {
          long id = (Long) result.next();
@@ -215,6 +247,4 @@ public class OpWorkModuleChecker implements OpModuleChecker {
       transaction.commit();
       broker.closeAndEvict();
    }
-
-
 }

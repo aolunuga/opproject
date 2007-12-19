@@ -4,7 +4,7 @@
 
 package onepoint.project.modules.user;
 
-public abstract class OpUserError {
+public interface OpUserError {
 
    // Error codes
    public final static int PASSWORD_MISMATCH = 1;
@@ -31,12 +31,16 @@ public abstract class OpUserError {
    public final static int LOOP_ASSIGNMENT = 17;
    public final static int INVALID_USER_LEVEL = 18;
 
-   public final static int SUPER_GROUP_NOT_FOUND = 19;   
+   public final static int SUPER_GROUP_NOT_FOUND = 19;
    public final static int DEMOTE_USER_ERROR = 20;
    public final static int PERMISSION_LEVEL_ERROR = 21;
    public final static int ADMIN_PERMISSION_ERROR = 22;
 
    public final static int SITE_IS_INVALID = 23;
+
+   public final static int OUT_OF_MEMORY = 24;
+   public final static int FILE_NOT_FOUND = 25;
+
 
    // Error names
    public final static String PASSWORD_MISMATCH_NAME = "PasswordMismatch";
@@ -68,5 +72,8 @@ public abstract class OpUserError {
    public final static String PERMISSION_LEVEL_ERROR_NAME = "PermissionLevelError";
    public final static String ADMIN_PERMISSION_ERROR_NAME = "AdminPermissionError";
    public final static String SITE_IS_INVALID_NAME = "InvalidSiteError";
+
+   public static final String OUT_OF_MEMORY_NAME = "OutOfMemory";
+   public static final String FILE_NOT_FOUND_NAME = "FileNotFound";
 
 }

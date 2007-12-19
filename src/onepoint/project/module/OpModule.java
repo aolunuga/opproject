@@ -352,6 +352,10 @@ public abstract class OpModule {
       }
    }
 
+   /**
+    * Checks this module using the given server session on the same thread as the caller.
+    * @param session a <code>OpProjectSession</code> the server session
+    */
    public void check(OpProjectSession session) {
       for (OpModuleChecker moduleChecker : getCheckerList()) {
          moduleChecker.check(session);

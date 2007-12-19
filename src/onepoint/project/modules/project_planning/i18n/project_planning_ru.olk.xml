@@ -94,6 +94,7 @@
       <resource id="WorkRecordsExistErrorMessage">По данной задаче уже внесен табель</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="InvalidPaymentErrorMessage">Entered payment value is not valid</resource>
 
       <resource id="ImportProjectTitle">Импорт плана проекта</resource>
       <resource id="ExportProjectTitle">Экспорт плана проекта</resource>
@@ -186,6 +187,7 @@
       <resource id="WorkRecordsExistErrorMessage">По данному ресурсу уже внесен табель</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid</resource>
+      <resource id="InvalidPaymentErrorMessage">Entered payment value is not valid</resource>
 
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>

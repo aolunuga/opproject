@@ -2,7 +2,7 @@
       start-focus-ref="Name" default-button-ref="okButton" text="${EditAdhocTitle}"
       provider-class="onepoint.project.modules.my_tasks.forms.OpEditAdhocTaskFormProvider"
       script="/modules/my_tasks/scripts/edit_adhocTask.jes"
-      error-label-ref="ErrorLabel">
+      on-unload="clearContents" error-label-ref="ErrorLabel">
 
    <data-set id="ResourceSet"/>
    <data-set id="ProjectSet"/>

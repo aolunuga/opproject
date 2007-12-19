@@ -452,7 +452,7 @@ public abstract class OpActivityVersionDataSetFactory {
 
    }
 
-   public static void storeActivityVersionDataSet(OpBroker broker, XComponent dataSet, OpProjectPlanVersion planVersion,
+   public synchronized  static void storeActivityVersionDataSet(OpBroker broker, XComponent dataSet, OpProjectPlanVersion planVersion,
         HashMap resources, boolean fromProjectPlan) {
 
       logger.debug("STORE-ACTIVITY-VERSION-DATA-SET " + dataSet.getChildCount());

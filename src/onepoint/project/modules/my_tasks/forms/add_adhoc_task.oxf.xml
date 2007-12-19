@@ -1,7 +1,7 @@
 <form id="NewAdhocForm" width="600" height="330" layout="border" resource-map-ref="my_tasks.adhoc_tasks"
       start-focus-ref="Name" default-button-ref="okButton" text="${NewAdhocTitle}"
       provider-class="onepoint.project.modules.my_tasks.forms.OpAddAdhocTaskFormProvider"
-      script="/modules/my_tasks/scripts/add_adhocTask.jes">
+      on-unload="clearContents" script="/modules/my_tasks/scripts/add_adhocTask.jes">
 
    <data-set id="ResourceSet"/>
    <data-set id="ProjectSet"/>

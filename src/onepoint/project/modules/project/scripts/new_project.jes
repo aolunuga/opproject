@@ -9,6 +9,7 @@ require "onepoint/project/modules/user/scripts/permissions_tab.jes";
 require "onepoint/project/modules/resource/scripts/open_resource_chooser.jes";
 require "onepoint/project/modules/project/scripts/project_helper.jes";
 require "onepoint/project/modules/project_planning/scripts/attachments.jes";
+require "onepoint/project/modules/documents/scripts/documents.jes";
 
 import onepoint.express.XValidator;
 import onepoint.express.XDisplay;
@@ -70,8 +71,19 @@ function ok(event) {
       XDisplay.findFrame("MainFrame").refreshForm();
       // Refresh project navigation frame
    }
+   else {
+      //in case of an error obtain the modified attachment list from the response and put  these values on the
+      //attachment set (files were replaced by content ids)
+      responseAttachmentSet = response.getArgument("attachmentSet");
+      if (responseAttachmentSet != null) {
+         form.findComponent("AttachmentListDataSet").removeAllChildren();
+         responseAttachmentList = responseAttachmentSet.getChild(0).getChild(0).getValue();
+         updateAttachmentsSetFromList(responseAttachmentList);
+      }
+   }
 }
 
 function cancel(event) {
+   clearContents(event);
    XDisplay.getActiveWindow().close();
 }
