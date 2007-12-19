@@ -10,7 +10,6 @@ import onepoint.project.configuration.OpConfiguration;
 import onepoint.project.configuration.OpConfigurationLoader;
 import onepoint.project.configuration.OpInvalidDataBaseConfigurationException;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
-import onepoint.project.modules.documents.OpDocumentsService;
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.preferences.OpPreferencesService;
 import onepoint.project.modules.project.OpProjectAdministrationService;
@@ -260,12 +259,4 @@ public abstract class OpTestDataFactory {
       return (OpResourceUtilizationService) XServiceManager.getService(RESOURCE_UTILIZATION_SERVICE_NAME);
    }
 
-   /**
-    * Return the Documents Service instance
-    *
-    * @return an instance of <code>OpDocumentsService</code>
-    */
-   public static OpDocumentsService getDocumentsService() {
-      return (OpDocumentsService) XServiceManager.getService(DOCUMENTS_SERVICE_NAME);
-   }
 }

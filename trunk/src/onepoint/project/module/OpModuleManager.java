@@ -6,19 +6,18 @@ package onepoint.project.module;
 
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpSourceManager;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.util.OpEnvironmentManager;
-import onepoint.service.server.XService;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 public final class OpModuleManager {
 
@@ -69,8 +68,6 @@ public final class OpModuleManager {
       OpTypeManager.lock();
       //<FIXME>
    }
-
-
 
 
    public static void start() {
@@ -145,6 +142,7 @@ public final class OpModuleManager {
     * Checks the integrity of the modules and fixes the possible module errors.
     */
    public static void checkModules() {
+      long currentTime = System.currentTimeMillis();
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
       for (OpSource source : allSources) {
          OpProjectSession session = new OpProjectSession(source.getName());
@@ -156,8 +154,8 @@ public final class OpModuleManager {
          }
          session.close();
       }
+      logger.info("Total checking time: " + (System.currentTimeMillis() - currentTime) / 1000 + " sec");
    }
-
 
    public static OpModuleRegistry getModuleRegistry() {
       return moduleRegistry;

@@ -127,3 +127,17 @@ function getAttachments() {
    return att_array;
 }
 
+function updateAttachmentsSetFromList(list) {
+   form = XDisplay.getActiveForm();
+   att = form.findComponent("AttachmentSet");
+   i = 0;
+   while (i < list.size()) {
+      elementList = list.get(i);
+      dataRow = att.getChild(i);
+      //set the content id (the last element in the list) on the data row (the last cell of the data row)
+      dataCell = dataRow.getChild(dataRow.getChildCount() - 1);
+      dataCell.setValue(elementList.get(elementList.size() - 1));
+      i++;
+   }
+}
+

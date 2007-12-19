@@ -15,7 +15,7 @@ import onepoint.project.OpProjectSession;
 public interface OpModuleChecker {
 
    /**
-    * Checks the associated module values
+    * Checks the associated module values, in a single thread.
     *
     * @param session project session
     */

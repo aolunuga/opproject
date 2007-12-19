@@ -9,11 +9,14 @@ import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
+import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.backup.OpBackupManager;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 public class OpProjectModule extends OpModule {
 
@@ -161,15 +164,14 @@ public class OpProjectModule extends OpModule {
          //set the version number on the project plan
          int versions = OpProjectDataSetFactory.getPlanVersionsCount(broker, plan);
          if (plan.hasWorkingVersion()) {
-           versions--;
-         }         
+            versions--;
+         }
          plan.setVersionNumber(versions);
          broker.updateObject(plan);
       }
       tx.commit();
       broker.close();
    }
-
 
 
    /**
@@ -191,4 +193,14 @@ public class OpProjectModule extends OpModule {
       }
       return false;
    }
+
+   /**
+    * @see onepoint.project.module.OpModule#getCheckerList()
+    */
+   public List<OpModuleChecker> getCheckerList() {
+      List<OpModuleChecker> checkers = new ArrayList<OpModuleChecker>();
+      checkers.add(new OpProjectModuleChecker());
+      return checkers;
+   }
+
 }

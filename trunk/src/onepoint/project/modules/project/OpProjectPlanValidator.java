@@ -15,11 +15,13 @@ import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendar;
 import onepoint.project.modules.settings.holiday_calendar.OpHolidayCalendarManager;
+import onepoint.project.modules.user.OpUser;
+import onepoint.project.OpProjectSession;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Class responsible for (re)validating project plans.
@@ -210,6 +212,11 @@ public class OpProjectPlanValidator {
     */
    public OpIncrementalValidator createValidator(HashMap resources) {
       OpIncrementalValidator validator = new OpIncrementalValidator();
+
+      //copy the calendar (create a new instance)
+      XCalendar oldCalendar = validator.getCalendar();
+      validator.setCalendar(oldCalendar.copyInstance());
+      
       OpProjectNode projectNode = projectPlan.getProjectNode();
 
       Date startDate = (projectNode.getType() == OpProjectNode.TEMPLATE) ? projectPlan.getStart() : projectNode.getStart();
@@ -233,6 +240,60 @@ public class OpProjectPlanValidator {
    }
 
    /**
+    * Revalidates a list of project plans, given their ids, each project plan in its own separate
+    * thread.
+    * @param session a <code>OpProjectSession</code> the server session
+    * @param projectPlanIds a <code>List(long)</code> the list of project plan ids.
+    */
+   public static void revalidateProjectPlans(OpProjectSession session, List<Long> projectPlanIds) {
+      //this should not exceed the connection pool size !
+      int queSize = 5;
+      List<PlanValidatorTask> validationTasks = new ArrayList<PlanValidatorTask>(queSize);
+      ExecutorService executorService = Executors.newFixedThreadPool(queSize);
+      Iterator<Long> it = projectPlanIds.iterator();
+      while (it.hasNext()) {
+         long projectPlanId = it.next();
+         it.remove();
+         OpBroker broker = session.newBroker();
+         OpProjectPlan projectPlan = broker.getObject(OpProjectPlan.class, projectPlanId);
+         PlanValidatorTask validationTask = new OpProjectPlanValidator(projectPlan).new PlanValidatorTask(broker);
+         if (validationTasks.size() < queSize) {
+            validationTasks.add(validationTask);
+         }
+         else {
+            executeValidationTasks(validationTasks, executorService);
+            validationTasks.clear();
+         }
+      }
+      if (!validationTasks.isEmpty()) {
+         executeValidationTasks(validationTasks, executorService);
+      }
+      executorService.shutdown();
+   }
+
+   /**
+    * Starts a separate thread which will perform a project plan validation, based on the list
+    * of tasks to execute.
+    * @param validationTasks a <code>List(PlanValidatorTask)</code>.
+    * @param executorService  a <code>ExecutorService</code> which will start each thread.
+    */
+   private static void executeValidationTasks(List<PlanValidatorTask> validationTasks,
+        ExecutorService executorService) {
+      List<Future<?>> results = new ArrayList<Future<?>>();
+      for (PlanValidatorTask newValidationTask : validationTasks) {
+         results.add(executorService.submit(newValidationTask));
+      }
+      for (Future<?> future : results) {
+         try {
+            future.get(1000 * 60 * 10, TimeUnit.MILLISECONDS);
+         }
+         catch (Exception e) {
+            logger.error("Could not revalidate project because: ", e);
+         }
+      }
+   }
+
+   /**
     * Hook interface that allows a client of <code>ProjectPlanValidator</code> to perform custom operations on a project
     * plan before the project plan is validated an written in the db.
     */
@@ -244,5 +305,31 @@ public class OpProjectPlanValidator {
        * @param validator a <code>OpGanttValidator</code> that contains an in-memory representation of the project plan.
        */
       public void modifyPlan(OpGanttValidator validator);
+   }
+
+   /**
+    * Inner class, representing a validation task, which will be run from a separate thread.
+    */
+   private class PlanValidatorTask implements Runnable {
+      /**
+       * A  broker to perform db operations.
+       */
+      private OpBroker broker = null;
+
+      /**
+       * Creates a new validation task instance.
+       * @param broker a <code>OpBroker</code> used for db operations.
+       */
+      private PlanValidatorTask(OpBroker broker) {
+         this.broker = broker;
+      }
+
+      /**
+       * @see Runnable#run()
+       */
+      public void run() {
+         OpProjectPlanValidator.this.validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
+         broker.closeAndEvict();
+      }
    }
 }

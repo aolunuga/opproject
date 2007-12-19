@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO: Document HERE!!!
+ * Test-classe for repository services.
  *
  * @author lucian.furtos
  */
@@ -31,8 +31,9 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
 
    private static final String DEFAULT_USER = "tester";
    private static final String DEFAULT_PASSWORD = "pass";
-   private static final String BACKUP_ROOT_DIR = System.getProperty("java.io.tmpdir");
    private static final String BACKUP_CONTENT_PREFIX = "backup-";
+
+   private File backupFolder;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -42,6 +43,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    protected void setUp()
         throws Exception {
       super.setUp();
+      backupFolder = OpTestDataFactory.getRepositoryService().getBackupFolder(session);
    }
 
    /**
@@ -59,7 +61,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       OpBroker broker = session.newBroker();
       OpUser user = usrData.getUserByName(broker, DEFAULT_USER);
       if (user != null) {
-         List ids = new ArrayList();
+         List<String> ids = new ArrayList<String>();
          ids.add(user.locator());
          XMessage request = new XMessage();
          request.setArgument(OpUserService.SUBJECT_IDS, ids);
@@ -74,8 +76,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
     * Delete all back-up files from file system.
     */
    private void cleanUp() {
-      File rootDir = new File(BACKUP_ROOT_DIR);
-      File[] backupFiles = rootDir.listFiles(new FileFilter() {
+      File[] backupFiles = backupFolder.listFiles(new FileFilter() {
 
          /**
           * Tests whether or not the specified abstract pathname should be
@@ -91,8 +92,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
          }
       });
 
-      for (int i = 0; i < backupFiles.length; i++) {
-         File backupFile = backupFiles[i];
+      for (File backupFile : backupFiles) {
          if (backupFile.isFile()) {
             backupFile.delete();
          }
@@ -109,8 +109,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
     */
    private void deleteFolder(File folder) {
       File[] children = folder.listFiles();
-      for (int i = 0; i < children.length; i++) {
-         File child = children[i];
+      for (File child : children) {
          if (child.isFile()) {
             child.delete();
          }
@@ -124,24 +123,12 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
 
    public void testBackUp()
         throws Exception {
-      XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, BACKUP_ROOT_DIR);
-
-      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
+      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, new XMessage());
       assertNoError(response);
 
       String fileName = (String) response.getArgument(OpRepositoryService.BACKUP_FILENAME_PARAMETER);
-      assertTrue(new File(BACKUP_ROOT_DIR, fileName).exists());
+      assertTrue(new File(backupFolder, fileName).exists());
       //todo: test data from XML
-   }
-
-   public void testBackUpErrors()
-        throws Exception {
-      XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, "/");
-
-      XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
-      assertError(response, OpRepositoryError.BACKUP_ERROR_CODE);
    }
 
    /**
@@ -151,11 +138,10 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    public void testRestoreFromCurrentState()
         throws Exception {
       XMessage request = new XMessage();
-      request.setArgument(OpRepositoryService.BACKUP_DIR_ROOT_PATH_PARAM, BACKUP_ROOT_DIR);
       XMessage response = OpTestDataFactory.getRepositoryService().backup(session, request);
       assertNoError(response);
       String fileName = (String) response.getArgument(OpRepositoryService.BACKUP_FILENAME_PARAMETER);
-      File file = new File(BACKUP_ROOT_DIR, fileName);
+      File file = new File(backupFolder, fileName);
       assertTrue(file.exists());
 
       XSession newSession = server.newSession();
@@ -164,7 +150,6 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
       request = new XMessage();
       request.setArgument("restoreFile", file.getCanonicalPath());
       response = OpTestDataFactory.getRepositoryService().restore(session, request);
-      
       assertNoError(response);
       assertFalse(newSession.isValid());
    }
@@ -172,7 +157,7 @@ public class OpRepositoryServiceTest extends OpBaseOpenTestCase {
    public void testRestoreError()
         throws Exception {
       XMessage request = new XMessage();
-      request.setArgument("restoreFile", BACKUP_ROOT_DIR);
+      request.setArgument("restoreFile", backupFolder.getAbsolutePath());
       XMessage response = OpTestDataFactory.getRepositoryService().restore(session, request);
       assertError(response, OpRepositoryError.RESTORE_ERROR_CODE);
 

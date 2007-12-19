@@ -3,6 +3,8 @@
  */
 package onepoint.project.modules.documents;
 
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.service.XMessage;
@@ -15,33 +17,17 @@ import onepoint.service.XMessage;
 public class OpDocumentsService extends OpProjectService {
 
    /**
-    * This service's error map
-    */
-   private static final OpDocumentErrorMap ERROR_MAP = new OpDocumentErrorMap();
-
-   /**
-    * Returns to the client the message for exceeding the attachment limit.
+    * Deletes all <code>OpContent</code> objects that have no reference to them.
     *
-    * @param session a <code>OpProjectSession</code> object representing the current session.
-    * @param request a <code>XMessage</code> representing the current request.
-    * @return a response in the form of a <code>XMessage</code> object.
+    * @param session - the current <code>OpProjectSession</code>.
+    * @param request a <code>XMessage</code> - the request.
+    * @return a <code>XMessage</code> reply
     */
-   public XMessage displayOutOfMemory(OpProjectSession session, XMessage request) {
-      XMessage reply = new XMessage();
-      reply.setError(session.newError(ERROR_MAP, OpDocumentError.OUT_OF_MEMORY));
-      return reply;
-   }
-
-   /**
-    * Returns to the client the message attachment file not found.
-    *
-    * @param session a <code>OpProjectSession</code> object representing the current session.
-    * @param request a <code>XMessage</code> representing the current request.
-    * @return a response in the form of a <code>XMessage</code> object.
-    */
-   public XMessage displayFileNotFound(OpProjectSession session, XMessage request) {
-      XMessage reply = new XMessage();
-      reply.setError(session.newError(ERROR_MAP, OpDocumentError.FILE_NOT_FOUND));
-      return reply;
+   public void deleteZeroRefContents(OpProjectSession session, XMessage request) {
+      OpBroker broker = session.newBroker();
+      OpTransaction transaction = broker.newTransaction();
+      OpContentManager.deleteZeroRefContents(broker);
+      transaction.commit();
+      broker.close();
    }
 }

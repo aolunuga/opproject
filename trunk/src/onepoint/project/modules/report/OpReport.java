@@ -7,12 +7,12 @@ package onepoint.project.modules.report;
 import onepoint.project.modules.documents.OpDocument;
 
 /**
- * Entity representing the a report.
+ * Entity representing a report.
  *
  * @author horia.chiorean
  */
 public class OpReport extends OpDocument {
-   
+
    public final static String REPORT = "OpReport";
 
    /**
@@ -22,6 +22,7 @@ public class OpReport extends OpDocument {
 
    /**
     * Gets the type of the report.
+    *
     * @return a <code>OpReportType</code> object.
     */
    public OpReportType getType() {
@@ -30,6 +31,7 @@ public class OpReport extends OpDocument {
 
    /**
     * Sets the type of the report.
+    *
     * @param type a <code>OpReportType</code> object.
     */
    public void setType(OpReportType type) {

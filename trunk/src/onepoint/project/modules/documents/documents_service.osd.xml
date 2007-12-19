@@ -1,6 +1,4 @@
 <service name="DocumentsService" class="onepoint.project.modules.documents.OpDocumentsService" interceptor="onepoint.project.OpServiceInterceptor">
-   <method name="displayOutOfMemory">
-   </method>
-   <method name="displayFileNotFound">
-   </method>
+   <method name="deleteZeroRefContents">
+   </method>   
 </service>

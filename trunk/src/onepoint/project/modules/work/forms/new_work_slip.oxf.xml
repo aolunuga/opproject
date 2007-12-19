@@ -2,7 +2,7 @@
       resource-map-ref="work.new_work_slip"
       provider-class="onepoint.project.modules.work.forms.OpNewWorkSlipFormProvider"
       script="/modules/work/scripts/new_work_slip.jes"
-      error-label-ref="ErrorLabel"
+      error-label-ref="ErrorLabel" on-unload="clearContents"
       default-button-ref="okButton">
    <!-- Maybe have a white background (border element w/white background) for the user data -->
 

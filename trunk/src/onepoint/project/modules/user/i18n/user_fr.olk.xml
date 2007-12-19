@@ -26,13 +26,13 @@
       <resource id="PasswordRetyped">Resaisir le Mot de Passe</resource>
       <resource id="Description">Description</resource>
       <resource id="UserLanguage">Langue</resource>
-      
+
       <resource id="Contact">Contact</resource>
       <resource id="EMail">Email</resource>
       <resource id="Phone">Téléphone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
-      
+
       <resource id="Groups">Groupes</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
@@ -60,10 +60,10 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
-  <resource-map id="user.Info">
+   <resource-map id="user.Info">
       <resource id="InfoUser">Information Utilisateur</resource>
       <resource id="InfoGroup">Information Groupe</resource>
-  </resource-map>  
+   </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">Nouveau Utilisateur</resource>
       <resource id="General">Généralités</resource>
@@ -106,8 +106,8 @@
       <resource id="InfoTooltip">Voir les informations pour l'utilisateur ou groupe choisi</resource>
       <resource id="DeleteTooltip">Supprimer les utilisateurs et groupes choisis</resource>
       <resource id="AssignToGroupTooltip">Ajouter les utilisateurs et groupes choisis � un groupe</resource>
-				
-	</resource-map>
+
+   </resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Choisir un utilisateur ou un groupe</resource>
       <resource id="OK">OK</resource>
@@ -124,7 +124,7 @@
       <resource id="AdministratorDescription">L'administrateur a des droits partout</resource>
       <resource id="EveryoneDisplayName">Tout le monde</resource>
       <resource id="EveryoneDescription">Tout les utilisateurs sont d'office dans ce groupe</resource>
-   </resource-map>  
+   </resource-map>
    <resource-map id="user.error">
       <resource id="PasswordMismatch">Le Mot de passe est invalide</resource>
       <resource id="UserUnknown">Le nom de l'utilisateur est inconu</resource>
@@ -148,5 +148,7 @@
       <resource id="PermissionLevelError">Le niveau utilisateur est trop bas pour mettre ce droit</resource>
       <resource id="AdminPermissionError">Vous ne pouvez pas modifier les droits de l'administrateur</resource>
       <resource id="InvalidSiteError">The sites database is down for the moment. Please try again in a minute.</resource>
+      <resource id="OutOfMemory">The HTTP client doesn't support streaming. You cannot upload files larger than the HEAP size.</resource>
+      <resource id="FileNotFound">One or more of the files selected for upload could not be found or opened.</resource>
    </resource-map>
 </language-kit>

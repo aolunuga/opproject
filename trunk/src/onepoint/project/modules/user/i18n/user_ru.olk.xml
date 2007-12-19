@@ -26,13 +26,13 @@
       <resource id="PasswordRetyped">Повтор пароля</resource>
       <resource id="Description">Описание</resource>
       <resource id="UserLanguage">Язык</resource>
-      
+
       <resource id="Contact">Contact</resource>
       <resource id="EMail">Email</resource>
       <resource id="Phone">Phone</resource>
       <resource id="Mobile">Mobile</resource>
       <resource id="Fax">Fax</resource>
-      
+
       <resource id="Groups">Группы</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
@@ -60,10 +60,10 @@
       <resource id="OK">OK</resource>
       <resource id="Cancel">Отмена</resource>
    </resource-map>
-  <resource-map id="user.Info">
+   <resource-map id="user.Info">
       <resource id="InfoUser">Свойства пользователя</resource>
       <resource id="InfoGroup">Свойства группы</resource>
-  </resource-map>  
+   </resource-map>
    <resource-map id="user.new_user">
       <resource id="NewUser">Новый пользователь</resource>
       <resource id="General">Основные</resource>
@@ -106,7 +106,7 @@
       <resource id="InfoTooltip">Показать мета-данные для указанного пользователя или группы</resource>
       <resource id="DeleteTooltip">Удалить указанного пользователя или группу</resource>
       <resource id="AssignToGroupTooltip">Добавить указанного пользователя или группу в другую группу</resource>
-				
+
    </resource-map>
    <resource-map id="user.SubjectChooser">
       <resource id="SelectSubject">Укажите пользователя или группу</resource>
@@ -148,5 +148,7 @@
       <resource id="PermissionLevelError">The user's level is too low in order to support this permission</resource>
       <resource id="AdminPermissionError">You cannot change the permission of the administrator user</resource>
       <resource id="InvalidSiteError">The sites database is down for the moment. Please try again in a minute.</resource>
+      <resource id="OutOfMemory">The HTTP client doesn't support streaming. You cannot upload files larger than the HEAP size.</resource>
+      <resource id="FileNotFound">One or more of the files selected for upload could not be found or opened.</resource>
    </resource-map>
 </language-kit>

@@ -9,7 +9,7 @@ import onepoint.error.XErrorMap;
 public class OpUserErrorMap extends XErrorMap {
 
    public final static String RESOURCE_MAP_ID = "user.error";
-   
+
    OpUserErrorMap() {
       super(RESOURCE_MAP_ID);
       registerErrorCode(OpUserError.GROUP_NOT_EMPTY, OpUserError.GROUP_NOT_EMPTY_NAME);
@@ -35,6 +35,10 @@ public class OpUserErrorMap extends XErrorMap {
       registerErrorCode(OpUserError.ADMIN_PERMISSION_ERROR, OpUserError.ADMIN_PERMISSION_ERROR_NAME);
       registerErrorCode(OpUserError.PERMISSION_LEVEL_ERROR, OpUserError.PERMISSION_LEVEL_ERROR_NAME);
       registerErrorCode(OpUserError.SITE_IS_INVALID, OpUserError.SITE_IS_INVALID_NAME);
+
+      registerErrorCode(OpUserError.OUT_OF_MEMORY, OpUserError.OUT_OF_MEMORY_NAME);
+      registerErrorCode(OpUserError.FILE_NOT_FOUND, OpUserError.FILE_NOT_FOUND_NAME);
+
    }
 
 }

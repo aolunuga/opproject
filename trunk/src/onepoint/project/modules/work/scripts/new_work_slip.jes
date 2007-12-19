@@ -8,6 +8,7 @@ require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/work/scripts/work_time.jes";
 require "onepoint/project/modules/work/scripts/work_effort.jes";
 require "onepoint/project/modules/work/scripts/work_cost.jes";
+require "onepoint/project/modules/documents/scripts/documents.jes";
 
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
@@ -41,6 +42,14 @@ function ok(event) {
         XDisplay.getActiveWindow().close();
         XDisplay.findFrame("MainFrame").refreshForm();
    }
+   else {
+      //in case of an error update the attachment set with the values obtained from
+      //the response (files were replaced by content ids)
+      responseAttachmentSet = response.getArgument("attachmentSet");
+      if (responseAttachmentSet != null) {
+         form.findComponent("WorkCostRecordSet").copyAllChildren(responseAttachmentSet);
+      }
+   }
 }
 
 function manageAttachments(event) {
@@ -63,6 +72,7 @@ function manageAttachments(event) {
 }
 
 function cancel(event) {
+   clearContents(event);
    XDisplay.getActiveWindow().close();
 }
 

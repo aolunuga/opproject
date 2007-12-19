@@ -1,6 +1,0 @@
-<language-kit locale="de">
-   <resource-map id="documents.error">
-      <resource id="OutOfMemory">Der HTTP-Client unterstützt kein Streaming.  Dateien, die größer als der Java HEAP sind, können nicht geladen werden.</resource>
-      <resource id="FileNotFound">Eine oder mehrere Dateien, die für das Hochladen ausgewählt wurden, konnten nicht gefunden oder geöffnet werden.</resource>
-   </resource-map>
-</language-kit>

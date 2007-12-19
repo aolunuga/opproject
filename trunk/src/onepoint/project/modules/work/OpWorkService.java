@@ -54,7 +54,9 @@ public class OpWorkService extends OpProjectService {
 
       XComponent effortSet = (XComponent) (request.getArgument(EFFORT_RECORD_SET_ARGUMENT));
       XComponent timeSet = (XComponent) (request.getArgument(TIME_RECORD_SET_ARGUMENT));
-      XComponent costSet = (XComponent) (request.getArgument(COSTS_RECORD_SET_ARGUMENT));
+      //create a copy of the costSet because the original one (the one from the request) is needed to keep the
+      //content ids in case of an error
+      XComponent costSet = ((XComponent) (request.getArgument(COSTS_RECORD_SET_ARGUMENT))).copyData();
 
       // hashset should be ArraySet
       Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>();
@@ -162,7 +164,9 @@ public class OpWorkService extends OpProjectService {
       String workSlipId = (String) (request.getArgument(WORK_SLIP_ID));
       XComponent effortRecordSet = (XComponent) (request.getArgument(EFFORT_RECORD_SET_ARGUMENT));
       XComponent timeRecordSet = (XComponent) (request.getArgument(TIME_RECORD_SET_ARGUMENT));
-      XComponent costsRecordSet = (XComponent) (request.getArgument(COSTS_RECORD_SET_ARGUMENT));
+      //create a copy of the costSet because the original one (the one from the request) is needed to keep the
+      //content ids in case of an error
+      XComponent costsRecordSet = ((XComponent) (request.getArgument(COSTS_RECORD_SET_ARGUMENT))).copyData();
 
       // TODO: Error handling (parameters set)?
       OpBroker broker = session.newBroker();

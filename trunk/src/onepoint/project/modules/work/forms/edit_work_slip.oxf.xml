@@ -1,7 +1,7 @@
 <form id="EditWorkSlipForm" layout="border" width="900" height="540" text="${EditWorkSlip}" resource-map-ref="work.edit_work_slip"
       provider-class="onepoint.project.modules.work.forms.OpEditWorkSlipFormProvider"
       script="/modules/work/scripts/edit_work_slip.jes"
-      error-label-ref="ErrorLabel"
+      error-label-ref="ErrorLabel" on-unload="clearContents"
       default-button-ref="okButton">
    <!-- Maybe have a white background (border element w/white background) for the user data -->
 
