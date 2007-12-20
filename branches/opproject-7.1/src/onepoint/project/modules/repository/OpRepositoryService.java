@@ -131,7 +131,7 @@ public class OpRepositoryService extends OpProjectService {
    /**
     * Gets the file where the backup will be stored.
     *
-    * @param request a <code>XMessage</code> representing the server request.
+    * @param session a <code>OpProjectSession</code> representing the current session.
     * @return a <code>File</code> objects or null if the backup folder can't be created.
     */
    private File getBackupFile(OpProjectSession session) {
