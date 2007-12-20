@@ -2460,7 +2460,7 @@ public abstract class OpActivityDataSetFactory {
       double actualEffort = assignment.getActualEffort();
       Set<OpWorkMonth> workMonths = assignment.getWorkMonths();
 
-      if (actualEffort == 0) {
+      if (!OpActivityDataSetFactory.hasWorkRecords(broker, assignment)) {
          for (OpWorkMonth workMonth : workMonths) {
             workMonth.setRemainingPersonnel(workMonth.getLatestPersonnelCosts());
             workMonth.setRemainingProceeds(workMonth.getLatestProceeds());

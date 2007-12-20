@@ -392,28 +392,28 @@ public class OpWorkRecord extends OpObject {
       }
       switch (type) {
          case OpCostRecord.MATERIAL_COST: {
-            if (sum == 0) {
+            if (costRecords.isEmpty()) {
                sum = this.getAssignment().getActivity().getRemainingMaterialCosts();
             }
             this.remMaterialCosts = sum;
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
-            if (sum == 0) {
+            if (costRecords.isEmpty()) {
                sum = this.getAssignment().getActivity().getRemainingExternalCosts();
             }
             this.remExternalCosts = sum;
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
-            if (sum == 0) {
+            if (costRecords.isEmpty()) {
                sum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
             }
             this.remMiscCosts = sum;
             break;
          }
          case OpCostRecord.TRAVEL_COST: {
-            if (sum == 0) {
+            if (costRecords.isEmpty()) {
                sum = this.getAssignment().getActivity().getRemainingTravelCosts();
             }
             this.remTravelCosts = sum;

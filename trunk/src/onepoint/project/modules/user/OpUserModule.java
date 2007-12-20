@@ -37,7 +37,7 @@ public class OpUserModule extends OpModule {
       OpBackupManager.addSystemObjectIDQuery(OpUser.ADMINISTRATOR_NAME, OpUser.ADMINISTRATOR_ID_QUERY);
       OpBackupManager.addSystemObjectIDQuery(OpGroup.EVERYONE_NAME, OpGroup.EVERYONE_ID_QUERY);
 
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -50,7 +50,7 @@ public class OpUserModule extends OpModule {
       updateSystemObjectsName(session, broker);
       updateSubjectsSourceFlag(broker);
       t.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -98,7 +98,7 @@ public class OpUserModule extends OpModule {
          broker.updateObject(user);
       }
       transaction.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 

@@ -82,7 +82,7 @@ public class OpResourceModule extends OpModule {
       updateRootPoolName(broker);
       updateResourceHourlyRates(broker);
       updatePoolHourlyRates(broker);
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**

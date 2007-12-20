@@ -80,7 +80,7 @@ public class OpProjectPlanningModule extends OpModule {
          }
          projectPlans.add(projectPlan.getID());
       }
-      broker.close();
+      broker.closeAndEvict();
 
       //recalculate the project plans
       revalidateProjectPlans(session, projectPlans);
@@ -100,7 +100,7 @@ public class OpProjectPlanningModule extends OpModule {
          OpProjectPlan projectPlan = (OpProjectPlan) iterator.next();
          updateProceeds(projectPlan, broker);
       }
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -132,7 +132,7 @@ public class OpProjectPlanningModule extends OpModule {
          broker.updateObject(projectPlan);
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -152,7 +152,7 @@ public class OpProjectPlanningModule extends OpModule {
          OpProjectPlanValidator validator = new OpProjectPlanValidator(projectPlan);
          validator.validateProjectPlanWorkingVersion(broker, null, true);
       }
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -201,7 +201,7 @@ public class OpProjectPlanningModule extends OpModule {
       }
 
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -243,7 +243,7 @@ public class OpProjectPlanningModule extends OpModule {
       }
 
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -287,7 +287,7 @@ public class OpProjectPlanningModule extends OpModule {
          OpBroker broker = session.newBroker();
          OpProjectPlan projectPlan = (OpProjectPlan) broker.getObject(OpProjectPlan.class, projectPlanId);
          new OpProjectPlanValidator(projectPlan).validateProjectPlan(broker, null, OpUser.SYSTEM_USER_NAME);
-         broker.close();
+         broker.closeAndEvict();
       }
    }
 
@@ -320,7 +320,7 @@ public class OpProjectPlanningModule extends OpModule {
          broker.updateObject(task);
       }
       t.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -352,7 +352,7 @@ public class OpProjectPlanningModule extends OpModule {
          broker.updateObject(taskVersion);
       }
       t.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -413,7 +413,7 @@ public class OpProjectPlanningModule extends OpModule {
          }
       }
       t.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -474,7 +474,7 @@ public class OpProjectPlanningModule extends OpModule {
          }
       }
       t.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 

@@ -151,6 +151,8 @@ public final class OpModuleManager {
          while (modulesIt.hasNext()) {
             OpModule module = modulesIt.next();
             module.check(session);
+            //just a hint, but profiling shows it helps
+            System.gc();
          }
          session.close();
       }

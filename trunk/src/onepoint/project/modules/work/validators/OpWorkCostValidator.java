@@ -65,7 +65,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
          if (getValue(row, COST_TYPE_INDEX) == null) {
             throw new XValidationException(COST_TYPE_EXCEPTION);
          }
-         if (getValue(row, ACTUAL_COST_INDEX) == null || ((Double) getValue(row, ACTUAL_COST_INDEX)).doubleValue() <= 0) {
+         if (getValue(row, ACTUAL_COST_INDEX) == null || ((Double) getValue(row, ACTUAL_COST_INDEX)).doubleValue() < 0) {
             throw new XValidationException(ACTUAL_COST_EXCEPTION);
          }
          if ((getValue(row, REMAINING_COST_INDEX) == null || ((Double) getValue(row, REMAINING_COST_INDEX)).doubleValue() < 0)
@@ -313,7 +313,7 @@ public class OpWorkCostValidator extends OpWorkValidator {
                activityChoice = getActivity(dataRow);
                //get the type of the activity
                activityType = getActivityType(cell);
-               if (getCostType(dataRow) != null && activityType != OpGanttValidator.ADHOC_TASK) {
+               if (getCostType(dataRow) != null && activityChoice != null && activityType != OpGanttValidator.ADHOC_TASK) {
                   byte costType = getCostType(dataRow).byteValue();
                   if (!getRemainingCostModifiedByUser(activityChoice, costType)) {
                      //update the remaining cost for all rows with the same activity and the same cost type
