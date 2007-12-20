@@ -46,7 +46,7 @@ public class OpUserModuleChecker implements OpModuleChecker {
 
       OpQuery query = broker.newQuery("select obj.ID from OpObject obj inner join obj.Permissions permission where permission.Subject.Name='" + OpUser.ADMINISTRATOR_NAME + "'");
       List objectWithPermissions = broker.list(query);
-      broker.close();
+      broker.closeAndEvict();
 
       addPermissionsForPrototype(session, objectWithPermissions, "OpResource");
       addPermissionsForPrototype(session, objectWithPermissions, "OpResourcePool");

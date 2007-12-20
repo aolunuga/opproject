@@ -66,7 +66,7 @@ public class OpProjectModule extends OpModule {
    public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
       updateRootPortfolioName(broker);
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -88,7 +88,7 @@ public class OpProjectModule extends OpModule {
          broker.updateObject(project);
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -109,7 +109,7 @@ public class OpProjectModule extends OpModule {
          }
       }
       transaction.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 
@@ -139,7 +139,7 @@ public class OpProjectModule extends OpModule {
          broker.updateObject(planVersion);
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 
@@ -170,7 +170,7 @@ public class OpProjectModule extends OpModule {
          broker.updateObject(plan);
       }
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 

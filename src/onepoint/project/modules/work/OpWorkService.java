@@ -211,9 +211,6 @@ public class OpWorkService extends OpProjectService {
          workSlip.updateTotalActualEffort();
          serviceImpl.insertMyWorkRecords(session, broker, workRecordsToAdd.iterator(), workSlip);
 
-         //delete all contents with reference count = 0
-         OpContentManager.deleteZeroRefContents(broker);
-
          //validate work record set
          try {
             workSlip.validate();
@@ -224,6 +221,11 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
+         t.commit();
+
+         t = broker.newTransaction();
+         //delete all contents with reference count = 0
+         OpContentManager.deleteZeroRefContents(broker);
          t.commit();
 
          logger.info("/OpWorkService.editWorkSlip()");

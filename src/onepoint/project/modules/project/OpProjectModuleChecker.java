@@ -69,7 +69,7 @@ public class OpProjectModuleChecker implements OpModuleChecker {
       while (it.hasNext()) {
          result.add((Long) it.next());
       }
-      broker.close();
+      broker.closeAndEvict();
       return result;
    }
 }

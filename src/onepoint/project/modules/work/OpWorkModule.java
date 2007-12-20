@@ -35,7 +35,7 @@ public class OpWorkModule extends OpModule {
       this.upgradeWorkRecordsCosts(broker);
       this.upgradeActivityRemainingCosts(broker);
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
    /**
@@ -48,7 +48,7 @@ public class OpWorkModule extends OpModule {
       OpTransaction tx = broker.newTransaction();
       this.upgradeWorkSlipTotalActualEffort(broker);
       tx.commit();
-      broker.close();
+      broker.closeAndEvict();
    }
 
 
