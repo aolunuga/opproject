@@ -134,7 +134,7 @@ public class OpConfigurationLoader extends XLoader {
                inputStreamReader.close();
             }
             catch (IOException ex) {
-               ex.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+               logger.error(e);
             }
             
             logger.error("Cannot update configuration file.", e);
@@ -180,7 +180,7 @@ public class OpConfigurationLoader extends XLoader {
          outputStreamWriter.close();
       }
       catch (IOException e) {
-         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        logger.error(e);
       }
    }
 
