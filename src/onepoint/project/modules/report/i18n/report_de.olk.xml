@@ -34,5 +34,6 @@
       <resource id="CreateReportException">Beim Erstellen des Berichts ist ein Fehler aufgetreten</resource>
       <resource id="SaveReportException">Beim Speichern des Berichts ist ein Fehler aufgetreten</resource>
       <resource id="SendReportException">Beim Versenden des Berichtes ist ein Fehler aufgetreten</resource>
+      <resource id="InvalidProject">Bitte ein Projekt auswählen</resource>
    </resource-map>
 </language-kit>

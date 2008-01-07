@@ -139,6 +139,7 @@
       <resource id="ResponsibleActivitiesExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge im Projektplan verantwortlich ist</resource>
       <resource id="ResponsibleActivityVersionsExistError">Die Ressource kann aus dem Projekt nicht entfernt werden, da sie noch für Vorgänge in Versionen des Projektplans verantwortlich ist</resource>
       <resource id="InvalidUserLevelError">Der verantwortliche Benutzer hat nicht die passende Benutzerebene</resource>
+      <resource id="WorkRecordsExistError">Cannot change the responsible user because he has already entered work records for this resource</resource>      
    </resource-map>
    <resource-map id="resource.delete">
       <resource id="ConfirmDelete">Ressourcen oder Pools löschen</resource>

@@ -19,6 +19,7 @@ public class OpReportErrorMap extends XErrorMap {
       registerErrorCode(OpReportError.INVALID_REPORT_FORMAT, OpReportError.INVALID_REPORT_FORMAT_NAME);
       registerErrorCode(OpReportError.CREATE_REPORT_EXCEPTION, OpReportError.CREATE_REPORT_EXCEPTION_NAME);
       registerErrorCode(OpReportError.SAVE_REPORT_EXCEPTION, OpReportError.SAVE_REPORT_EXCEPTION_NAME);
+      registerErrorCode(OpReportError.INVALID_PROJECT, OpReportError.INVALID_PROJECT_NAME);
    }
 
 }

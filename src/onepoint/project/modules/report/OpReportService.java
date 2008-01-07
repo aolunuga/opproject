@@ -62,6 +62,7 @@ public class OpReportService extends OpProjectService {
    public static final String REPORT_TYPE_XLS = "XLS";
    public static final String REPORT_TYPE_CSV = "CSV";
 
+   public final static String PROJECT_CHOICE = "projectChoice";
    public final static String NAME = "name";
    public final static String JARFILE = "jarfile";
    public final static String PARAMETERS = "parameters";
@@ -97,6 +98,16 @@ public class OpReportService extends OpProjectService {
    private static final String SECURE = "Secure";
 
    private static final String FILENAME = "Filename";
+
+   private static List<String> PROJECT_REPORTS = new ArrayList<String>();
+
+   /**
+    * Initialize the list of reports which need a project
+    */
+   static {
+      PROJECT_REPORTS.add("projectprogress");
+      PROJECT_REPORTS.add("resourceallocation");
+   }
 
    public XMessage createReport(OpProjectSession session, XMessage request) {
       logger.debug("OpReportService.createReport()");
@@ -298,6 +309,7 @@ public class OpReportService extends OpProjectService {
       XMessage response;
       String name = (String) (request.getArgument(NAME));
       String reportName = getReportName(name);
+      String projectChoice = (String) (request.getArgument(PROJECT_CHOICE));
 
       // Read format of the report to be generated.
       List formats = (List) (request.getArgument(FORMATS));
@@ -312,6 +324,14 @@ public class OpReportService extends OpProjectService {
             response.setError(error);
             return response;
          }
+      }
+
+      // check if the report type requires a project and if the project choice exists
+      if (PROJECT_REPORTS.contains(reportName) && projectChoice == null) {
+         response = new XMessage();
+         XError error = session.newError(ERROR_MAP, OpReportError.INVALID_PROJECT);
+         response.setError(error);
+         return response;
       }
 
       OpReportManager xrm = OpReportManager.getReportManager(session);
@@ -348,6 +368,7 @@ public class OpReportService extends OpProjectService {
          response.setArgument(CONTENT_ID, contentLocator);
          response.setArgument(REPORT_TYPE_ID, reportTypeLocator);
          response.setArgument(REPORT_NAME, name);
+         response.setArgument(PROJECT_CHOICE, projectChoice);
          return response;
       }
       catch (OpReportException e) {

@@ -37,6 +37,7 @@ public class OpResourceErrorMap extends XErrorMap {
       registerErrorCode(OpResourceError.RESPONSIBLE_ACTIVITIES_EXIST_ERROR, OpResourceError.RESPONSIBLE_ACTIVITIES_EXIST_ERROR_NAME);
       registerErrorCode(OpResourceError.RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR, OpResourceError.RESPONSIBLE_ACTIVITY_VERSIONS_EXIST_ERROR_NAME);      
       registerErrorCode(OpResourceError.INVALID_USER_LEVEL_ERROR, OpResourceError.INVALID_USER_LEVEL_ERROR_NAME);      
+      registerErrorCode(OpResourceError.WORK_RECORDS_EXIST_ERROR, OpResourceError.WORK_RECORDS_EXIST_ERROR_NAME);      
    }
 
 }
