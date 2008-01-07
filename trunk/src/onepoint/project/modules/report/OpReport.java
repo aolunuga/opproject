@@ -5,6 +5,7 @@
 package onepoint.project.modules.report;
 
 import onepoint.project.modules.documents.OpDocument;
+import onepoint.project.modules.project.OpProjectNode;
 
 /**
  * Entity representing a report.
@@ -19,6 +20,11 @@ public class OpReport extends OpDocument {
     * The type of the report.
     */
    private OpReportType type = null;
+
+   /**
+    * The <code>OpProjectNode</code> on which the report is defined.
+    */
+   private OpProjectNode project = null;
 
    /**
     * Gets the type of the report.
@@ -38,4 +44,21 @@ public class OpReport extends OpDocument {
       this.type = type;
    }
 
+   /**
+    * Gets the <code>OpProjectNode</code> for which on which the report is defined.
+    *
+    * @return a <code>OpProjectNode</code> object.
+    */
+   public OpProjectNode getProject() {
+      return project;
+   }
+
+   /**
+    * Sets the <code>OpProjectNode</code> on which the report is defined.
+    *
+    * @param project a <code>OpProjectNode</code> object.
+    */
+   public void setProject(OpProjectNode project) {
+      this.project = project;
+   }
 }

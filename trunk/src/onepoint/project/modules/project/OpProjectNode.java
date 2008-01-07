@@ -7,6 +7,7 @@ package onepoint.project.modules.project;
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpSubTypable;
+import onepoint.project.modules.report.OpReport;
 
 import java.sql.Date;
 import java.util.HashSet;
@@ -71,6 +72,7 @@ public class OpProjectNode extends OpObject implements OpSubTypable {
    private Set<OpToDo> toDos;
    private OpProjectStatus status;
    private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
+   private Set<OpReport> reports  = new HashSet<OpReport>();
 
    public void setName(String name) {
       this.name = name;
@@ -198,6 +200,24 @@ public class OpProjectNode extends OpObject implements OpSubTypable {
    
    public Set<OpAttachment> getAttachments() {
       return attachments;
+   }
+
+   /**
+    * Sets the <code>Set</code> of archived reports defined on this project.
+    *
+    * @param reports - the <code>Set</code> of reports.
+    */
+   public void setReports(Set<OpReport> reports) {
+      this.reports = reports;
+   }
+
+   /**
+    * Gets the <code>Set</code> of reports defined on this project.
+    *
+    * @return a <code>Set</code> containing the reports defined on this project.
+    */
+   public Set<OpReport> getReports() {
+      return reports;
    }
 
    /**

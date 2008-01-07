@@ -22,6 +22,7 @@ public final class OpReportError {
    public static final int CREATE_REPORT_EXCEPTION = 6;
    public static final int SAVE_REPORT_EXCEPTION = 7;
    public static final int SEND_REPORT_EXCEPTION = 8;
+   public static final int INVALID_PROJECT = 9;
 
    public static final String VALUE_CONVERSION_EXCEPTION_NAME = "ValueConversionException";
    public static final String COULD_NOT_EXECUTE_REPORT_SQL_NAME = "CouldNotExecuteReportSQL";
@@ -31,5 +32,6 @@ public final class OpReportError {
    public static final String CREATE_REPORT_EXCEPTION_NAME = "CreateReportException";
    public static final String SAVE_REPORT_EXCEPTION_NAME = "SaveReportException";
    public static final String SEND_REPORT_EXCEPTION_NAME = "SendReportException";
+   public static final String INVALID_PROJECT_NAME = "InvalidProject";
 
 }

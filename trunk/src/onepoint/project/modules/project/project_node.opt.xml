@@ -18,4 +18,5 @@
    <relationship name="ToDos" type="OpToDo" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="delete"/>
    <relationship name="Status" type="OpProjectStatus" back-relationship="Projects"/>
    <relationship name="Attachments" type="OpAttachment" collection-type="Set" back-relationship="ProjectNode" inverse="true" cascade="all"/>
+   <relationship name="Reports" type="OpReport" collection-type="Set" back-relationship="Project" inverse="true"/>
 </prototype>

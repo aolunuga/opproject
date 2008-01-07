@@ -463,60 +463,9 @@ public class OpResourceService extends onepoint.project.OpProjectService {
 
          transaction = broker.newTransaction();
 
-         // *** TODO: Currently a work-around (should use choice instead of ID)
-         String user_locator = (String) (resource_data.get("UserID"));
-         if ((user_locator != null) && (user_locator.length() > 0)) {
-            OpUser user = (OpUser) (broker.getObject(user_locator));
-            Iterator assignments = resource.getProjectNodeAssignments().iterator();
-            //user has no responsible user -> for all the resource's project assignments add a contributor permission entry
-            if (resource.getUser() == null) {
-               //set up the new responsible user for the resource
-               resource.setUser(user);
-               while (assignments.hasNext()) {
-                  OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
-                  OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
-               }
-            }
-            else {
-               OpUser oldResponsibleUser = resource.getUser();
-               if (oldResponsibleUser.getID() != user.getID()) { //responsible user has been changed
-                  //list of resource ids for which the resource's old user is responsible
-                  query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");
-                  query.setLong("userId", oldResponsibleUser.getID());
-                  List resourceIds = broker.list(query);
-
-                  //set up the new responsible user for the resource
-                  resource.setUser(user);
-
-                  while (assignments.hasNext()) {
-                     OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
-                     query = broker.newQuery("select count(assignment) from OpProjectNodeAssignment as assignment where assignment.Resource.ID in (:resourceIds) and assignment.ProjectNode.ID  = :projectId");
-                     query.setLong("projectId", assignment.getProjectNode().getID());
-                     query.setCollection("resourceIds", resourceIds);
-                     Number counter = (Number) broker.iterate(query).next();
-                     // at least one project assignment exist for the resources the old user was responsible
-                     if (counter.intValue() > 1) {
-                        OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
-                     }
-                     else {//update the permision subject for the persisted assignment projectNode
-                        query = broker.newQuery("select permission from OpPermission permission where permission.Object.ID = :projectId " +
-                             "and permission.Subject.ID = :subjectId and permission.AccessLevel = :accessLevel and permission.SystemManaged = :systemManaged");
-                        query.setLong("projectId", assignment.getProjectNode().getID());
-                        query.setLong("subjectId", oldResponsibleUser.getID());
-                        query.setByte("accessLevel", OpPermission.CONTRIBUTOR);
-                        query.setBoolean("systemManaged", true);
-                        List permissions = broker.list(query);
-                        for (Object permission : permissions) {
-                           broker.deleteObject((OpPermission) permission);
-                           OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
-                        }
-                     }
-                  }
-               }
-            }
-         }
-         else {
-            resource.setUser(null);
+         reply = this.updateResourceResponsibleUser(resource_data, broker, session, resource);
+         if (reply != null && reply.getError() != null) {
+            return reply;
          }
 
          resource.validate();
@@ -584,6 +533,87 @@ public class OpResourceService extends onepoint.project.OpProjectService {
          finalizeSession(transaction, broker);
       }
       return reply;
+   }
+
+   /**
+    * Updates the responsible user of an existing resource.
+    *
+    * @param resourceData a <code>Map</code> of requrest parameters and values.
+    * @param broker       a <code>OpBroker</code> used for business operations.
+    * @param resource     a <code>OpResource</code> an existing resource.
+    */
+   private XMessage updateResourceResponsibleUser(Map resourceData, OpBroker broker,
+        OpProjectSession session, OpResource resource) {
+      String userLocator = (String) (resourceData.get("UserID"));
+      //no user parameter on request data
+      if (userLocator == null || userLocator.trim().length() == 0) {
+         resource.setUser(null);
+         broker.updateObject(resource);
+         return null;
+      }
+
+      if ((userLocator != null) && (userLocator.length() > 0)) {
+         OpUser user = (OpUser) (broker.getObject(userLocator));
+         Iterator assignments = resource.getProjectNodeAssignments().iterator();
+         //user has no responsible user -> for all the resource's project assignments add a contributor permission entry
+         if (resource.getUser() == null) {
+            //set up the new responsible user for the resource
+            resource.setUser(user);
+            broker.updateObject(resource);
+            while (assignments.hasNext()) {
+               OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
+               OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+            }
+            return null;
+         }
+         OpUser oldResponsibleUser = resource.getUser();
+         if (oldResponsibleUser.getID() != user.getID()) { //responsible user has been changed
+            //check if there isn't any work entered for the resource and the old user
+            OpQuery query = broker.newQuery("select count(workRecord.ID) from OpWorkRecord workRecord where workRecord.WorkSlip.Creator.ID=? and workRecord.Assignment.Resource.ID=?");
+            query.setLong(0, oldResponsibleUser.getID());
+            query.setLong(1, resource.getID());
+            Number workRecords = (Number) broker.iterate(query).next();
+            if (workRecords.intValue() > 0) {
+               XMessage reply = new XMessage();
+               reply.setError(session.newError(ERROR_MAP, OpResourceError.WORK_RECORDS_EXIST_ERROR));
+               return reply;
+            }
+
+            //list of resource ids for which the resource's old user is responsible
+            query = broker.newQuery("select resource.ID from OpUser user inner join user.Resources resource where user.ID = :userId ");
+            query.setLong("userId", oldResponsibleUser.getID());
+            List resourceIds = broker.list(query);
+
+            //set up the new responsible user for the resource
+            resource.setUser(user);
+
+            while (assignments.hasNext()) {
+               OpProjectNodeAssignment assignment = (OpProjectNodeAssignment) assignments.next();
+               query = broker.newQuery("select count(assignment) from OpProjectNodeAssignment as assignment where assignment.Resource.ID in (:resourceIds) and assignment.ProjectNode.ID  = :projectId");
+               query.setLong("projectId", assignment.getProjectNode().getID());
+               query.setCollection("resourceIds", resourceIds);
+               Number counter = (Number) broker.iterate(query).next();
+               // at least one project assignment exist for the resources the old user was responsible
+               if (counter.intValue() > 1) {
+                  OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+               }
+               else {//update the permision subject for the persisted assignment projectNode
+                  query = broker.newQuery("select permission from OpPermission permission where permission.Object.ID = :projectId " +
+                       "and permission.Subject.ID = :subjectId and permission.AccessLevel = :accessLevel and permission.SystemManaged = :systemManaged");
+                  query.setLong("projectId", assignment.getProjectNode().getID());
+                  query.setLong("subjectId", oldResponsibleUser.getID());
+                  query.setByte("accessLevel", OpPermission.CONTRIBUTOR);
+                  query.setBoolean("systemManaged", true);
+                  List permissions = broker.list(query);
+                  for (Object permission : permissions) {
+                     broker.deleteObject((OpPermission) permission);
+                     OpProjectAdministrationService.insertContributorPermission(broker, assignment.getProjectNode(), resource);
+                  }
+               }
+            }
+         }
+      }
+      return null;
    }
 
    /**

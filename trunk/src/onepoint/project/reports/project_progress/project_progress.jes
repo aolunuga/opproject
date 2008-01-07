@@ -53,6 +53,7 @@ function createRequest() {
       request.setArgument("name", name);
       request.setArgument("parameters", parameters);
       request.setArgument("formats", formats);
+      request.setArgument("projectChoice", choice);
 
       return request;
    }
