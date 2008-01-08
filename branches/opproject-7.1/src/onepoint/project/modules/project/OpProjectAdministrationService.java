@@ -527,22 +527,21 @@ public class OpProjectAdministrationService extends OpProjectService {
          OpProjectStatus status = null;
          if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
             status = (OpProjectStatus) (broker.getObject(statusLocator));
+         }
+         else {
+            status = null;
+         }
+         if ((status == null && project.getStatus() != null) ||
+              (status != null && project.getStatus() == null) ||
+              (status != null && project.getStatus() != null && project.getStatus().getID() != status.getID())) {
+
+            //check access level
             if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
                error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
                reply.setError(error);
                return reply;
             }
-
             project.setStatus(status);
-         }
-         else {
-            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && (project.getStatus() != null)) {
-               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
-               reply.setError(error);
-               return reply;
-            }
-
-            project.setStatus(null);
          }
 
          OpProjectPlan projectPlan = project.getPlan();
