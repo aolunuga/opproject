@@ -264,24 +264,32 @@ public class OpOpenServlet extends XExpressServlet {
     * @param sout    a <code>ServletOutputStream</code> where the output will be written.
     * @param request a <code>HttpServletRequest</code> representing the current request.
     */
-   private void generateAppletPage(ServletOutputStream sout, HttpServletRequest request) {
+   protected void generateAppletPage(ServletOutputStream sout, HttpServletRequest request) {
       PrintStream out = new PrintStream(sout);
       out.println("<html>");
-      out.println("<head>");
-      out.println("<title>" + htmlTitle + "</title>");
-      //out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
-      out.println(getIconString(request));
-      out.println("</head>");
+      this.generatePageHeader(request, out);
       out.println("<body bgcolor=\"#ffffff\" onResize=\"resize()\"onLoad=\"resize()\" topmargin=\"0\" leftmargin=\"0\" marginwidth=\"0\" marginheight=\"0\">");
 
       Map<Integer, Object> appletParameters = this.createAppletParameters(request);
       this.generateAppletJS(out, appletParameters);
-      out.println("</applet>");
       out.println("</body>");
       out.println("</html>");
 
       out.flush();
       out.close();
+   }
+
+   /**
+    * Generates the header of the applet page.
+    * @param request a <code>HttpServletRequest</code> the client HTTP request.
+    * @param out a <code>PrintStream</code> used to write the response onto.
+    */
+   protected void generatePageHeader(HttpServletRequest request, PrintStream out) {
+      out.println("<head>");
+      out.println("<title>" + htmlTitle + "</title>");
+      //out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+      out.println(getIconString(request));
+      out.println("</head>");
    }
 
    /**
