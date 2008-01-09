@@ -124,23 +124,22 @@ public class OpInitializer {
          OpEnvironmentManager.setProductCode(productCode);
 
          logger.info("Application initialization started");
-         runLevel = 0;
+         runLevel = OpProjectConstants.CONFIGURATION_WIZARD_REQUIRED_RUN_LEVEL;
          initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
          try {
+            //initialize i18n files
             initLanguageResources();
 
-            // Read configuration file
-            OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
-            String projectPath = OpEnvironmentManager.getOnePointHome();
-
+            //perform the pre-initialization (if necessary)
             preInit();
 
+            //load the configuration file
             try {
-               this.configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+               loadConfigurationFile();
             }
             catch (OpInvalidDataBaseConfigurationException e) {
-               logger.error("Could not load configuration file " + projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+               logger.error("Could not load configuration file " + OpEnvironmentManager.getOnePointHome() + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
                //prepare the db wizard
                logger.info("Initializing db configuration wizard module...");
                OpConfigurationWizardManager.loadConfigurationWizardModule();
@@ -149,40 +148,14 @@ public class OpInitializer {
                return initParams; //show db configuration wizard frame
             }
 
-            //check attachment size
-            if (this.configuration.getMaxAttachmentSize() > OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE) {
-               logger.info("Values higher than " + OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
-            }
-
-            // initialize logging facility
-            String logFile = configuration.getLogFile();
-            if (logFile != null && !new File(logFile).isAbsolute()) {
-               logFile = projectPath + "/" + logFile;
-            }
-            XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
-
-            //get the db connection parameters
-            OpDatabaseConfiguration dbConfig = configuration.getDatabaseConfigurations().iterator().next();
-            String databaseUrl = dbConfig.getDatabaseUrl();
-            String databaseDriver = dbConfig.getDatabaseDriver();
-            String databasePassword = dbConfig.getDatabasePassword();
-            String databaseLogin = dbConfig.getDatabaseLogin();
-            int databaseType = dbConfig.getDatabaseType();
-
-            //test the db connection
-            int testResult = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
-            connectionTestCode = testResult;
-            if (testResult != OpConnectionManager.SUCCESS) {
-               logger.info("Something is wrong with the db connection parameters. Opening configuration wizard...");
+            //initialize the database connection
+            OpDatabaseConfiguration dbConfig = initDatabaseConnection();
+            if (dbConfig == null) {
+               logger.error("Something is wrong with the db connection parameters. Opening configuration wizard...");
                OpConfigurationWizardManager.loadConfigurationWizardModule();
+               determineStartForm();
                return initParams;
             }
-
-            // set smtp host for OpMailer
-            OpMailer.setSMTPHostName(configuration.getSMTPServer());
-
-            //set the debugging level for scripts
-            XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
 
             logger.info("Configuration loaded; Application is configured");
             runLevel = 1;
@@ -194,7 +167,8 @@ public class OpInitializer {
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
             // Load and register default source
-            registerDataSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType);
+            registerDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
+                 dbConfig.getDatabaseLogin(), dbConfig.getDatabasePassword(), dbConfig.getDatabaseType());
             logger.info("Access to database is OK");
             runLevel = 3;
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
@@ -256,6 +230,64 @@ public class OpInitializer {
          startForm = OpProjectConstants.CONFIGURATION_WIZARD_FORM;
       }
       initParams.put(OpProjectConstants.START_FORM, startForm);
+   }
+
+   /**
+    * Loads the configuration file which will be used by the initializer.
+    *
+    * @throws OpInvalidDataBaseConfigurationException if the configuration file cannot be loaded.
+    */
+   protected void loadConfigurationFile()
+        throws OpInvalidDataBaseConfigurationException {
+      // Read configuration file
+      OpConfigurationLoader configurationLoader = new OpConfigurationLoader();
+      String projectPath = OpEnvironmentManager.getOnePointHome();
+      this.configuration = configurationLoader.loadConfiguration(projectPath + "/" + OpConfigurationLoader.CONFIGURATION_FILE_NAME);
+
+      //check attachment size
+      if (this.configuration.getMaxAttachmentSize() > OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE) {
+         logger.warn("Values higher than " + OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
+      }
+
+      // initialize logging facility
+      String logFile = configuration.getLogFile();
+      if (logFile != null && !new File(logFile).isAbsolute()) {
+         logFile = projectPath + "/" + logFile;
+      }
+      XLogFactory.initializeLogging(logFile, configuration.getLogLevel());
+
+      // set smtp host for OpMailer
+      OpMailer.setSMTPHostName(configuration.getSMTPServer());
+
+      //set the debugging level for scripts
+      XExpressSession.setSourceDebugging(configuration.getSourceDebugging());
+   }
+
+   /**
+    * Initializes the database connection, based on the configuration settings.
+    * @return a <code>OpDatabaseConfiguration</code> object if the settings are correct
+    * or <code>null</code> if the settings are incorrect and/or a connection to the db
+    * could not be established.
+    */
+   protected OpDatabaseConfiguration initDatabaseConnection() {
+      //get the db connection parameters
+      //<FIXME author="Horia Chiorean" description="What happens for multiple DBs ?">
+      OpDatabaseConfiguration dbConfig = configuration.getDatabaseConfigurations().iterator().next();
+      //<FIXME>
+      String databaseUrl = dbConfig.getDatabaseUrl();
+      String databaseDriver = dbConfig.getDatabaseDriver();
+      String databasePassword = dbConfig.getDatabasePassword();
+      String databaseLogin = dbConfig.getDatabaseLogin();
+      int databaseType = dbConfig.getDatabaseType();
+
+      //test the db connection
+      connectionTestCode = OpConnectionManager.testConnection(databaseDriver, databaseUrl, databaseLogin, databasePassword, databaseType);
+      if (connectionTestCode == OpConnectionManager.SUCCESS) {
+         return dbConfig;
+      }
+      else {
+         return null;
+      }
    }
 
    /**
@@ -326,6 +358,8 @@ public class OpInitializer {
 
    /**
     * Updates the db schema if necessary.
+    *
+    * @return <code>true</code> if the update was successfull.
     */
    private boolean updateDBSchema() {
       Collection<OpSource> allSources = OpSourceManager.getAllSources();
