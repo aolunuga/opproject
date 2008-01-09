@@ -136,7 +136,7 @@ public class OpInitializer {
 
             //check attachment size
             if (this.configuration.getMaxAttachmentSize() > OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE) {
-               logger.info("Values higher than " + OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
+               logger.warn("Values higher than " + OpConfiguration.DEFAULT_MAX_ATTACHMENT_SIZE + " MB for attachments may lead to OutOfMemoryExceptions and thus cause loss of data or corrupt the whole project");
             }
 
             // initialize logging facility
