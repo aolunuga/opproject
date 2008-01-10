@@ -203,4 +203,21 @@ public class OpDatabaseConfiguration {
    public void setDatabasePath(String databasePath) {
       this.databasePath = databasePath;
    }
+
+   @Override
+   public String toString() {
+      StringBuffer result = new StringBuffer("[DatabaseConnection[");
+      result.append("DRIVER=" + databaseDriver);
+      String separator = ";";
+      result.append(separator);
+      result.append("URL=" + databaseUrl);
+      result.append(separator);
+      result.append("PATH=" + databasePath);
+      result.append(separator);
+      result.append("USER=" + databaseLogin);
+      result.append(separator);
+      result.append("PASS=" + databasePassword);
+      result.append("]]");
+      return result.toString();
+   }
 }
