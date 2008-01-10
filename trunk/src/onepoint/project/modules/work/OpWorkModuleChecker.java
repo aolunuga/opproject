@@ -35,7 +35,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    @Override
    public void check(OpProjectSession session) {
       logger.info("Checking module Work...");
-      for (Iterator it = super.getProjectsOfType(session, OpProjectNode.PROJECT).iterator(); it.hasNext(); ) {
+      for (Iterator it = super.getProjectsOfType(session, OpProjectNode.PROJECT).iterator(); it.hasNext();) {
          Long projectId = (Long) it.next();
          resetWorkValues(session, projectId);
          resetWorkMonths(session, projectId);
@@ -46,7 +46,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    /**
     * Takes care of the values on activities and assignments given by work records.
     *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    * @param session   a <code>OpProjectSession</code> used during the upgrade procedure.
     * @param projectId a <code>long</code> the id of a project.
     */
    private void resetWorkValues(OpProjectSession session, long projectId) {
@@ -58,7 +58,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    /**
     * Recalculates the values for all the work months.
     *
-    * @param session project session
+    * @param session   project session
     * @param projectId a <code>long</code> the id of a project.
     */
    private void resetWorkMonths(OpProjectSession session, long projectId) {
@@ -82,7 +82,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
     * Applies all the found work records in the db on the associated assignments.
     * This method must be called only after resetting the values on assignments and activities.
     *
-    * @param session project session
+    * @param session   project session
     * @param projectId a <code>long</code> the id of a project
     */
    private void applyWorkRecords(OpProjectSession session, long projectId) {
@@ -91,7 +91,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
       query.setLong(0, projectId);
       List<Long> activityIds = broker.list(query);
       broker.closeAndEvict();
-      for (Iterator it = activityIds.iterator(); it.hasNext(); ) {
+      for (Iterator it = activityIds.iterator(); it.hasNext();) {
          Long activityId = (Long) it.next();
          this.applyWorkRecordsForActivity(session, activityId);
       }
@@ -101,7 +101,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
     * Applies all the found work records in the db on the associated assignments.
     * This method must be called only after resetting the values on assignments and activities.
     *
-    * @param session project session
+    * @param session    project session
     * @param activityId a <code>long</code> the id of an activity
     */
    private void applyWorkRecordsForActivity(OpProjectSession session, long activityId) {
@@ -141,6 +141,18 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
          workRecord.setPersonnelCosts(workRecord.getActualEffort() * resource.getHourlyRate());
          workRecord.setActualProceeds(workRecord.getActualEffort() * resource.getExternalRate());
 
+         //update work record costs based on cost records values!
+         workRecord.calculateActualCostsOfType(OpCostRecord.TRAVEL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.MATERIAL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.EXTERNAL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
+         //update remaining costs -- this will set on the work record the remaining costs provided by the user
+         // or the ones from the activity if none are provided
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.TRAVEL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.MATERIAL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.EXTERNAL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
+
          workRecords.add(workRecord);
          broker.updateObject(workRecord);
       }
@@ -157,7 +169,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    /**
     * Reset the values on all the activities (actual and remaining).
     *
-    * @param session project session.
+    * @param session   project session.
     * @param projectId a <code>long</code> the id of a project.
     */
    private void resetActivities(OpProjectSession session, long projectId) {
@@ -209,7 +221,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
    /**
     * Resets the values on all the assignments (actual and remaining).
     *
-    * @param session project session
+    * @param session   project session
     * @param projectId a <code>long</code> the id of a project.
     */
    private void resetAssignments(OpProjectSession session, long projectId) {

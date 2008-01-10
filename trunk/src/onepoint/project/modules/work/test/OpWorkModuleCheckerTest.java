@@ -85,16 +85,16 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
          Date activity1Start = new Date(getCalendarWithExactDaySet(2007, 10, 12).getTimeInMillis());
          Date activity1Finish = new Date(getCalendarWithExactDaySet(2007, 10, 14).getTimeInMillis());
          activity1Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 1, OpActivity.STANDARD, activity1Start, activity1Finish);
-         activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);      
+         activity2Locator = insertActivity(PROJECT_NAME, ACTIVITY_NAME + 2, OpActivity.STANDARD, activity1Start, activity1Finish);
       }
       finally {
          broker.close();
       }
-   }  
+   }
 
    /**
     * Test the resetting of actual and remaining values on the activities, assignments and work records when the
-    *    project tracking is on.
+    * project tracking is on.
     *
     * @throws Exception if the test fails
     */
@@ -188,6 +188,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       //set the values on the work records
       for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
          workRecord.setRemainingEffort(14d);
+         //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
          workRecord.setExternalCosts(5d);
          workRecord.setMaterialCosts(8d);
          workRecord.setMiscellaneousCosts(10d);
@@ -237,10 +238,10 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       activity1 = (OpActivity) broker.getObject(activity1Locator);
       assertEquals(14d, activity1.getRemainingEffort());
-      assertEquals(25d, activity1.getRemainingExternalCosts());
-      assertEquals(23d, activity1.getRemainingMaterialCosts());
-      assertEquals(22d, activity1.getRemainingMiscellaneousCosts());
-      assertEquals(21d, activity1.getRemainingTravelCosts());
+      assertEquals(30d, activity1.getRemainingExternalCosts());
+      assertEquals(31d, activity1.getRemainingMaterialCosts());
+      assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
+      assertEquals(33d, activity1.getRemainingTravelCosts());
 
       activity2 = (OpActivity) broker.getObject(activity2Locator);
       assertEquals(19d, activity2.getRemainingEffort());
@@ -253,10 +254,10 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       //the values on work record 1 were not changed
       for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
          assertEquals(20d, workRecord.getPersonnelCosts());
-         assertEquals(25d, workRecord.getRemExternalCosts());
-         assertEquals(23d, workRecord.getRemMaterialCosts());
-         assertEquals(22d, workRecord.getRemMiscCosts());
-         assertEquals(21d, workRecord.getRemTravelCosts());
+         assertEquals(30d, workRecord.getRemExternalCosts());
+         assertEquals(31d, workRecord.getRemMaterialCosts());
+         assertEquals(32d, workRecord.getRemMiscCosts());
+         assertEquals(33d, workRecord.getRemTravelCosts());
       }
 
       //the remaining costs on work record 2 were changed because they were negative
@@ -339,6 +340,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
       //set the values on the work record belonging to assignment1
       for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
          workRecord.setRemainingEffort(18d);
+         //<FIXME author="Mihai Costin" description="This will have no effect if no cost records are created!">
          workRecord.setExternalCosts(5d);
          workRecord.setMaterialCosts(8d);
          workRecord.setMiscellaneousCosts(10d);
@@ -372,20 +374,20 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       activity1 = (OpActivity) broker.getObject(activity1Locator);
       assertEquals(18d, activity1.getRemainingEffort());
-      assertEquals(25d, activity1.getRemainingExternalCosts());
-      assertEquals(23d, activity1.getRemainingMaterialCosts());
-      assertEquals(22d, activity1.getRemainingMiscellaneousCosts());
-      assertEquals(21d, activity1.getRemainingTravelCosts());
+      assertEquals(30d, activity1.getRemainingExternalCosts());
+      assertEquals(31d, activity1.getRemainingMaterialCosts());
+      assertEquals(32d, activity1.getRemainingMiscellaneousCosts());
+      assertEquals(33d, activity1.getRemainingTravelCosts());
 
       //the values on work record 1 were not changed
       for (OpWorkRecord workRecord : assignment1.getWorkRecords()) {
          assertEquals(12d, workRecord.getPersonnelCosts());
-         assertEquals(25d, workRecord.getRemExternalCosts());
-         assertEquals(23d, workRecord.getRemMaterialCosts());
-         assertEquals(22d, workRecord.getRemMiscCosts());
-         assertEquals(21d, workRecord.getRemTravelCosts());
+         assertEquals(30d, workRecord.getRemExternalCosts());
+         assertEquals(31d, workRecord.getRemMaterialCosts());
+         assertEquals(32d, workRecord.getRemMiscCosts());
+         assertEquals(33d, workRecord.getRemTravelCosts());
       }
-   
+
       broker.close();
    }
 
@@ -405,7 +407,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       //insert a work month for the assignment
       insertWorkMonth(assignment1Locator);
-     
+
       OpBroker broker = session.newBroker();
       OpTransaction t = broker.newTransaction();
 
@@ -535,7 +537,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
       for (OpResource resource : resourceFactory.getAllResources(broker)) {
          broker.deleteObject(resource);
-      }     
+      }
 
       transaction.commit();
       broker.close();
@@ -579,11 +581,11 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
    /**
     * Inserts an <code>OpAssignment</code> object in the DB. The assignment's activity, resource and project plan are
-    *    specified by their locators.
+    * specified by their locators.
     *
     * @param projectPlanLocator - the locator of the project plan for which the assignment is inserted.
-    * @param resourceLocator - the locator of the resource for which the assignment is inserted.
-    * @param activityLocator - the locator of the activity for which the assignment is inserted.
+    * @param resourceLocator    - the locator of the resource for which the assignment is inserted.
+    * @param activityLocator    - the locator of the activity for which the assignment is inserted.
     * @return - the locator of the newly inserted assignment.
     */
    private String insertAssignment(String projectPlanLocator, String resourceLocator, String activityLocator) {
@@ -617,9 +619,10 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
    /**
     * Inserts an <code>OpWorkRecord</code> object in the DB for the assignment specified by the assignmentLocator
-    *    parameter.
+    * parameter.
+    *
     * @param assignmentLocator - the locator of the assignment for which the work record is inserted.
-    * @param actualEffort - the value of the actual effort on the assignment.
+    * @param actualEffort      - the value of the actual effort on the assignment.
     */
    private void insertWorkRecord(String assignmentLocator, Double actualEffort) {
       OpBroker broker = session.newBroker();
@@ -640,7 +643,7 @@ public class OpWorkModuleCheckerTest extends OpBaseOpenTestCase {
 
    /**
     * Inserts an <code>OpWorkMonth</code> object in the DB for the assignment specified by the assignmentLocator
-    *    parameter.
+    * parameter.
     *
     * @param assignmentLocator - the locator of the assignment for which the work record is inserted.
     */

@@ -427,9 +427,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
          }
 
          //start validation for all start points
+         HashSet visited = new HashSet();
          for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
             XComponent activity = (XComponent) iterator.next();
-            validateActivity(activity);
+            validateActivity(activity, visited);
          }
          startPoints = null;
       }
@@ -538,7 +539,11 @@ public class OpIncrementalValidator extends OpGanttValidator {
     *
     * @param dataRow - activity to validate
     */
-   private void validateActivity(XComponent dataRow) {
+   private void validateActivity(XComponent dataRow, HashSet visited) {
+      if (visited.contains(dataRow)) {
+         return;
+      }
+      visited.add(dataRow);
 
       OpGraphNode node = graph.getNodeForKey(dataRow.getIndex());
       List preds = new ArrayList();
@@ -609,7 +614,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
          List successors = node.getSuccessors();
          for (Iterator iterator = successors.iterator(); iterator.hasNext();) {
             OpGraphNode succNode = (OpGraphNode) iterator.next();
-            validateActivity((XComponent) succNode.getComponents().get(0));
+            validateActivity((XComponent) succNode.getComponents().get(0), visited);
          }
       }
    }
