@@ -113,6 +113,18 @@ public class OpWorkModuleChecker implements OpModuleChecker {
          workRecord.setPersonnelCosts(workRecord.getActualEffort() * resource.getHourlyRate());
          workRecord.setActualProceeds(workRecord.getActualEffort() * resource.getExternalRate());
 
+         //update work record costs based on cost records values!
+         workRecord.calculateActualCostsOfType(OpCostRecord.TRAVEL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.MATERIAL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.EXTERNAL_COST);
+         workRecord.calculateActualCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
+         //update remaining costs -- this will set on the work record the remaining costs provided by the user
+         // or the ones from the activity if none are provided
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.TRAVEL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.MATERIAL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.EXTERNAL_COST);
+         workRecord.calculateRemainingCostsOfType(OpCostRecord.MISCELLANEOUS_COST);
+
          workRecords.add(workRecord);
          broker.updateObject(workRecord);
       }
