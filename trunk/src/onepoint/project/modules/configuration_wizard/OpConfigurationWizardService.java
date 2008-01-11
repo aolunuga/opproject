@@ -154,10 +154,8 @@ public class OpConfigurationWizardService extends OpProjectService {
       response.setArgument(OpProjectConstants.INIT_PARAMS, initParams);
 
       if (Byte.parseByte(initParams.get(OpProjectConstants.RUN_LEVEL)) == OpProjectConstants.SUCCESS_RUN_LEVEL) {
-         //<FIXME author="Horia Chiorean" description="Fix this for multi-site">
          //set the source for the current session
          session.init(OpSource.DEFAULT_SOURCE_NAME);
-         //<FIXME>
       }
       else {
          return response;
