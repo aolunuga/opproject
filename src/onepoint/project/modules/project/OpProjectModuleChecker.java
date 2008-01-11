@@ -31,13 +31,37 @@ public class OpProjectModuleChecker implements OpModuleChecker {
       while (it.hasNext()) {
          long projectId = it.next();
          cleanUpAssignments(session, projectId);
+         fixAssignmentsProject(session, projectId);
       }
    }
+
+
+   /**
+    * Makes sure that all the existing assignments have the same project plan as the activity
+    *
+    * @param session   a <code>OpProjectSession</code> used during the upgrade procedure.
+    * @param projectId a <code>long</code> the id of a project
+    */
+   private void fixAssignmentsProject(OpProjectSession session, long projectId) {
+      OpBroker broker = session.newBroker();
+      OpQuery assignmentsQuery = broker.newQuery("from OpAssignment assignment where assignment.ProjectPlan != assignment.Activity.ProjectPlan and assignment.ProjectPlan.ProjectNode.ID=?");
+      assignmentsQuery.setLong(0, projectId);
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpAssignment> assignmentsIt = broker.iterate(assignmentsQuery);
+      while (assignmentsIt.hasNext()) {
+         OpAssignment assignment = assignmentsIt.next();
+         assignment.setProjectPlan(assignment.getActivity().getProjectPlan());
+         broker.updateObject(assignment);
+      }
+      tx.commit();
+      broker.closeAndEvict();
+   }
+
 
    /**
     * Deletes all the "orphan" assignment versions (not liked to an activity version)
     *
-    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    * @param session   a <code>OpProjectSession</code> used during the upgrade procedure.
     * @param projectId a <code>long</code> the id of a project
     */
    private void cleanUpAssignments(OpProjectSession session, long projectId) {
@@ -56,7 +80,8 @@ public class OpProjectModuleChecker implements OpModuleChecker {
 
    /**
     * Returns a list of ids of project which have a certain type.
-    * @param session a <code>OpProjectSession</code> the server session.
+    *
+    * @param session      a <code>OpProjectSession</code> the server session.
     * @param projectyType a <code>byte</code> the type of a project.
     * @return a <code>List(long)</code> which is a list of ids.
     */

@@ -67,6 +67,16 @@ public class OpSourceManager {
    }
 
    /**
+    * Checks whether the source manager contains a source with the given name.
+    * @param sourceName a <code>String</code> representing the name of a source.
+    * @return <code>true</code> if this source manager has registered a source with
+    * the given name, <code>false</code> otherwise.
+    */
+   public static boolean containsSource(String sourceName) {
+      return sources.keySet().contains(sourceName);
+   }
+
+   /**
     * Closes the given Source and unregisters it.
     *
     * @param sourceName name of the source to be retrieved.

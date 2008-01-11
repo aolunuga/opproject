@@ -58,15 +58,14 @@ public class OpProjectSession extends XExpressSession {
     */
    public OpProjectSession() {
       //TODO - calin.pavel - this line should be changed when multiple databases will be supported.
-      //<FIXME author="Horia Chiorean" description="For the case when the configuration wizard appears, there are no sources !">
-      if (!OpSourceManager.getAllSources().isEmpty()) {
-         this.init((OpSourceManager.getAllSources().iterator().next()).getName());
+      //for the configuration wizard, there are no sources initially
+      if (OpSourceManager.containsSource(OpSource.DEFAULT_SOURCE_NAME)) {
+         this.init(OpSource.DEFAULT_SOURCE_NAME);
       }
       else {
          super.setLocale(XLocaleManager.getDefaultLocale());
          super.setLocalizerParameters(OpSettingsService.getI18NParametersMap());
       }
-      //<FIXME>
    }
 
    /**
