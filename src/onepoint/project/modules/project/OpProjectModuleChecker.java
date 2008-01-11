@@ -23,6 +23,26 @@ public class OpProjectModuleChecker implements OpModuleChecker {
 
    public void check(OpProjectSession session) {
       cleanUpAssignments(session);
+      fixAssignmentsProject(session);
+   }
+
+   /**
+    * Makes sure that all the existing assignments have the same project plan as
+    *
+    * @param session
+    */
+   private void fixAssignmentsProject(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpQuery assignmentsQuery = broker.newQuery("from OpAssignment assignment where assignment.ProjectPlan != assignment.Activity.ProjectPlan");
+      OpTransaction tx = broker.newTransaction();
+      Iterator<OpAssignment> assignmentsIt = broker.iterate(assignmentsQuery);
+      while (assignmentsIt.hasNext()) {
+         OpAssignment assignment = assignmentsIt.next();
+         assignment.setProjectPlan(assignment.getActivity().getProjectPlan());
+         broker.updateObject(assignment);
+      }
+      tx.commit();
+      broker.closeAndEvict();
    }
 
    /**

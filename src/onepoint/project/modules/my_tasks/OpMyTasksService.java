@@ -40,7 +40,7 @@ public class OpMyTasksService extends OpProjectService {
 
    // FIXME(dfreis Mar 5, 2007 11:16:13 AM)
    // should be set within constructor!
-   private OpMyTasksServiceImpl serviceImpl =  new OpMyTasksServiceImpl();
+   private OpMyTasksServiceImpl serviceImpl = new OpMyTasksServiceImpl();
 
    /**
     * Adds a new ad-hoc tasks based on the given information.
@@ -56,47 +56,46 @@ public class OpMyTasksService extends OpProjectService {
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
       OpTransaction transaction = null;
-      try
-      {
-        OpProjectNode project = null;
-        String project_locator = (String) arguments.get(PROJECT);
-        if (project_locator != null && project_locator.length() > 0) {
-          project = (OpProjectNode) broker.getObject(XValidator.choiceID(project_locator));
-        }
-        OpResource resource = null;
-        String resource_locator = (String) arguments.get(RESOURCE);
-        if (resource_locator != null && resource_locator.length() > 0) {
-          resource = (OpResource) broker.getObject(XValidator.choiceID(resource_locator));
-        }
+      try {
+         OpProjectNode project = null;
+         String project_locator = (String) arguments.get(PROJECT);
+         if (project_locator != null && project_locator.length() > 0) {
+            project = (OpProjectNode) broker.getObject(XValidator.choiceID(project_locator));
+         }
+         OpResource resource = null;
+         String resource_locator = (String) arguments.get(RESOURCE);
+         if (resource_locator != null && resource_locator.length() > 0) {
+            resource = (OpResource) broker.getObject(XValidator.choiceID(resource_locator));
+         }
 
-        transaction = broker.newTransaction();
-        OpActivity adhocTaks = new OpActivity(OpActivity.ADHOC_TASK);
-        adhocTaks.setName((String) arguments.get(NAME));
-        adhocTaks.setDescription((String) arguments.get(DESCRIPTION));
-        adhocTaks.setFinish((Date) arguments.get(DUEDATE));
-        adhocTaks.setProjectPlan(project == null ? null : project.getPlan());
-        if (arguments.get(PRIORITY) != null) {
-           adhocTaks.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
-        }
-        else {
-           reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
-           return (reply);
-        }
+         transaction = broker.newTransaction();
+         OpActivity adhocTaks = new OpActivity(OpActivity.ADHOC_TASK);
+         adhocTaks.setName((String) arguments.get(NAME));
+         adhocTaks.setDescription((String) arguments.get(DESCRIPTION));
+         adhocTaks.setFinish((Date) arguments.get(DUEDATE));
+         adhocTaks.setProjectPlan(project == null ? null : project.getPlan());
+         if (arguments.get(PRIORITY) != null) {
+            adhocTaks.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
+         }
+         else {
+            reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
+            return (reply);
+         }
 
-        OpAssignment assignment = new OpAssignment();
-        assignment.setActivity(adhocTaks);
-        assignment.setResource(resource);
-        assignment.setProjectPlan(adhocTaks.getProjectPlan());
-        HashSet<OpAssignment> assignments = new HashSet<OpAssignment>();
-        assignments.add(assignment);
-        adhocTaks.setAssignments(assignments);
+         OpAssignment assignment = new OpAssignment();
+         assignment.setActivity(adhocTaks);
+         assignment.setResource(resource);
+         assignment.setProjectPlan(adhocTaks.getProjectPlan());
+         HashSet<OpAssignment> assignments = new HashSet<OpAssignment>();
+         assignments.add(assignment);
+         adhocTaks.setAssignments(assignments);
 
-        XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
-        adhocTaks.setAttachments(new HashSet<OpAttachment>());
-        updateAttachments(session, broker, adhocTaks, attachmentSet);
+         XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
+         adhocTaks.setAttachments(new HashSet<OpAttachment>());
+         updateAttachments(session, broker, adhocTaks, attachmentSet);
 
-        serviceImpl.insertAdhocTask(session, broker, adhocTaks);
-        transaction.commit();
+         serviceImpl.insertAdhocTask(session, broker, adhocTaks);
+         transaction.commit();
       }
       catch (XServiceException exc) {
          exc.append(reply);
@@ -105,7 +104,7 @@ public class OpMyTasksService extends OpProjectService {
          }
       }
       finally {
-        broker.close();
+         broker.close();
       }
       return reply;
    }
@@ -125,45 +124,46 @@ public class OpMyTasksService extends OpProjectService {
       OpBroker broker = session.newBroker();
       OpTransaction transaction = null;
       XMessage reply = new XMessage();
-      try
-      {
-        OpActivity activity = serviceImpl.getTaskByIdString(session, broker, locator);
-        transaction = broker.newTransaction();
+      try {
+         OpActivity activity = serviceImpl.getTaskByIdString(session, broker, locator);
+         transaction = broker.newTransaction();
 
-        activity.setName((String) arguments.get(NAME));
-        activity.setDescription((String) arguments.get(DESCRIPTION));
-        if (arguments.get(PRIORITY) != null) {
-           activity.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
-        }
-        else {
-           reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
-           return (reply);
-        }
-        activity.setFinish((Date) arguments.get(DUEDATE));
+         activity.setName((String) arguments.get(NAME));
+         activity.setDescription((String) arguments.get(DESCRIPTION));
+         if (arguments.get(PRIORITY) != null) {
+            activity.setPriority(((Integer) arguments.get(PRIORITY)).byteValue());
+         }
+         else {
+            reply.setError(session.newError(OpMyTasksServiceImpl.ERROR_MAP, OpMyTasksError.INVALID_PRIORITY_ERROR_CODE));
+            return (reply);
+         }
+         activity.setFinish((Date) arguments.get(DUEDATE));
 
-        String projectLocator = (String) arguments.get(PROJECT);
-        OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
-        activity.setProjectPlan(project.getPlan());
+         String projectLocator = (String) arguments.get(PROJECT);
+         OpProjectNode project = (OpProjectNode) broker.getObject(projectLocator);
+         activity.setProjectPlan(project.getPlan());
 
-        // set resource to first assignment ??!!
-        String resourceLocator = (String) arguments.get(RESOURCE);
-        Iterator assignments = activity.getAssignments().iterator();
-        OpResource resource;
-        OpAssignment assignment;
-        if (assignments.hasNext()) {
-          assignment = (OpAssignment) assignments.next();
-          resource = (OpResource) broker.getObject(resourceLocator);
-          assignment.setResource(resource);
-          broker.updateObject(assignment);
-        }
+         String resourceLocator = (String) arguments.get(RESOURCE);
+         Iterator assignments = activity.getAssignments().iterator();
+         //TODO author="Mihai Costin" description="If the activity has more that one assignment, delete the rest.
+         // If no assignment is found return error. Adhoc tasks must have ONE assignment"
+         OpResource resource;
+         OpAssignment assignment;
+         if (assignments.hasNext()) {
+            assignment = (OpAssignment) assignments.next();
+            resource = (OpResource) broker.getObject(resourceLocator);
+            assignment.setResource(resource);
+            assignment.setProjectPlan(project.getPlan());
+            broker.updateObject(assignment);
+         }
 
-        //update attachments
-        XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
-        updateAttachments(session, broker, activity, attachmentSet);
+         //update attachments
+         XComponent attachmentSet = (XComponent) arguments.get(ATTACHMENT_SET);
+         updateAttachments(session, broker, activity, attachmentSet);
 
-        serviceImpl.updateAdhocTask(session, broker, activity);
+         serviceImpl.updateAdhocTask(session, broker, activity);
 
-        transaction.commit();
+         transaction.commit();
       }
       catch (XServiceException exc) {
          exc.append(reply);
@@ -198,7 +198,7 @@ public class OpMyTasksService extends OpProjectService {
       // remove non existing attachments
       for (OpAttachment attachment : existingSet) {
          if (!attachmentsRowMap.keySet().contains(attachment.locator())) {
-           serviceImpl.deleteAttachment(session, broker, attachment);
+            serviceImpl.deleteAttachment(session, broker, attachment);
          }
          else {
             attachmentsRowMap.remove(attachment.locator());
@@ -232,36 +232,35 @@ public class OpMyTasksService extends OpProjectService {
     * @return a response in the form of a <code>XMessage</code> object.
     */
    public XMessage deleteAdhocTask(OpProjectSession session, XMessage request) {
-     XMessage reply = new XMessage();
-     List<XComponent> selectedRows = (List<XComponent>) request.getArgument(ADHOC_DATA);
-     if (selectedRows != null) {
-       OpBroker broker = session.newBroker();
-       OpTransaction transaction = broker.newTransaction();
-       try
-       {
-         for (XComponent row : selectedRows) {
-           String locator = row.getStringValue();
-           OpActivity activity = (OpActivity) broker.getObject(locator);
-           serviceImpl.deleteAdhocTask(session, broker, activity);
+      XMessage reply = new XMessage();
+      List<XComponent> selectedRows = (List<XComponent>) request.getArgument(ADHOC_DATA);
+      if (selectedRows != null) {
+         OpBroker broker = session.newBroker();
+         OpTransaction transaction = broker.newTransaction();
+         try {
+            for (XComponent row : selectedRows) {
+               String locator = row.getStringValue();
+               OpActivity activity = (OpActivity) broker.getObject(locator);
+               serviceImpl.deleteAdhocTask(session, broker, activity);
+            }
+            transaction.commit();
          }
-         transaction.commit();
-       }
-       catch (XServiceException exc) {
-          exc.append(reply);
-          transaction.rollback();
-       }
-       finally {
-          broker.close();
-       }
-     }
-     return reply;
+         catch (XServiceException exc) {
+            exc.append(reply);
+            transaction.rollback();
+         }
+         finally {
+            broker.close();
+         }
+      }
+      return reply;
    }
-   
+
    /* (non-Javadoc)
     * @see onepoint.project.OpProjectService#getServiceImpl()
     */
-    @Override
-    public Object getServiceImpl() {
-       return serviceImpl;
-    }
+   @Override
+   public Object getServiceImpl() {
+      return serviceImpl;
+   }
 }
