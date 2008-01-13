@@ -27,9 +27,9 @@ public class OpProjectModuleChecker implements OpModuleChecker {
    }
 
    /**
-    * Makes sure that all the existing assignments have the same project plan as
+    * Makes sure that all the existing assignments have the same project plan as the activity
     *
-    * @param session
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
     */
    private void fixAssignmentsProject(OpProjectSession session) {
       OpBroker broker = session.newBroker();

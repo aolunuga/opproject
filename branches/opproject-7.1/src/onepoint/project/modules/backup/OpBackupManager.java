@@ -778,36 +778,43 @@ public class OpBackupManager {
 
       String recursiveRelationshipCondition = (backRelationshipName != null) ? " where obj." + backRelationshipName + "  is empty" : "";
 
-      int nrObjects = countObjectsWithPrototype(session, prototypeName);
-      while (nrObjects > 0) {
+      List objectIds = getObjectsWithPrototype(session, prototypeName);
+      while (objectIds.size() > 0) {
          OpBroker broker = session.newBroker();
-         OpQuery objectsQuery = broker.newQuery("delete from " + prototypeName + " obj " + recursiveRelationshipCondition);
+         String whereClause = recursiveRelationshipCondition == null || recursiveRelationshipCondition.length() == 0 ?
+              " where " : recursiveRelationshipCondition + " and ";
+         whereClause += " obj.id in (:objectIDs)";
+
+         OpQuery objectsQuery = broker.newQuery("delete from OpObject obj " + whereClause);
+         objectsQuery.setCollection("objectIDs", objectIds);
+
          OpTransaction tx = broker.newTransaction();
          broker.execute(objectsQuery);
          tx.commit();
          broker.closeAndEvict();
-         nrObjects = countObjectsWithPrototype(session, prototypeName);
+         objectIds = getObjectsWithPrototype(session, prototypeName);
       }
 
       session.cleanupSession(true);
    }
 
    /**
-    * Counts the number of prototypeName objects from db.
+    * Get the identifiers of the objects for a given prototype.
     *
-    * @param session
-    * @param prototypeName
-    * @return
+    * @param session       session to use
+    * @param prototypeName prototype for which to get the ids
+    * @return a <code>List<Long></code> of object identifiers
     */
-   private int countObjectsWithPrototype(OpProjectSession session, String prototypeName) {
+   private List getObjectsWithPrototype(OpProjectSession session, String prototypeName) {
       OpBroker broker = session.newBroker();
-      Long nr = 0l;
-      String countQueryString = "select count(obj) from " + prototypeName + " obj";
-      Iterator result = broker.iterate(broker.newQuery(countQueryString));
-      if (result.hasNext()) {
-         nr = (Long) result.next();
+      List<Long> results = new ArrayList<Long>();
+      String queryString = "select obj.id from " + prototypeName + " obj";
+      Iterator result = broker.iterate(broker.newQuery(queryString));
+      while (result.hasNext()) {
+         results.add((Long) result.next());
       }
-      return nr.intValue();
+
+      return results;
    }
 
    /**
