@@ -40,6 +40,11 @@ import java.util.*;
 public class OpOpenServlet extends XExpressServlet {
 
    /**
+    * Path separator
+    */
+   protected static final String PATH_SEPARATOR = "/";
+
+   /**
     * Application constants.
     */
    private final static String WEBPAGEICON = "opp_windows.ico";
@@ -85,7 +90,6 @@ public class OpOpenServlet extends XExpressServlet {
    private static final String TEXT_HTML_CONTENT_TYPE = "text/html";
 
    private String projectHome = null;
-   private static final String PATH_SEPARATOR = "/";
 
    /**
     * Initializes the path considered to be the home of the application.
@@ -313,7 +317,7 @@ public class OpOpenServlet extends XExpressServlet {
       Map<String, String> otherAppletParams = new HashMap<String, String>();
       otherAppletParams.put("host", request.getServerName());
       otherAppletParams.put("port", String.valueOf(request.getServerPort()));
-      otherAppletParams.put("path", PATH_SEPARATOR + servletContextPath + request.getServletPath());
+      otherAppletParams.put("path", generatePath(request));
       otherAppletParams.put("secure-service", secureService);
       otherAppletParams.put("session-timeout", sessionTimeoutSecs);
 
@@ -343,6 +347,16 @@ public class OpOpenServlet extends XExpressServlet {
       }
       appletParams.put(OTHER_PARAMETERS_INDEX, otherAppletParams);
       return appletParams;
+   }
+
+   /**
+    * Generates a string which will represent the URL to which the client will issue requests
+    * when performing any operation.
+    * @param request a <code>HttpServletRequest</code>.
+    * @return a <code>String</code> representing a request URL.
+    */
+   protected String generatePath(HttpServletRequest request) {
+      return PATH_SEPARATOR + servletContextPath + request.getServletPath();
    }
 
    protected String getAppletClassName() {

@@ -67,6 +67,16 @@ public class OpSourceManager {
    }
 
    /**
+    * Checks whether the source manager contains a source with the given name.
+    * @param sourceName a <code>String</code> representing the name of a source.
+    * @return <code>true</code> if this source manager has registered a source with
+    * the given name, <code>false</code> otherwise.
+    */
+   public static boolean containsSource(String sourceName) {
+      return sources.keySet().contains(sourceName);
+   }
+
+   /**
     * Closes the given Source and unregisters it.
     *
     * @param sourceName name of the source to be retrieved.
@@ -106,12 +116,4 @@ public class OpSourceManager {
    public static Collection<OpSource> getAllSources() {
       return sources.values();
    }
-
-   // Where to mount data sources (in sessions or here, more globally)?
-   // ==> Maybe both: Global for everyone and just have to be opened in a session?!
-   // ==> Master/default-source should be defined here
-
-   // ==> We could mimik Unix here: Only "root/system" is allowed to mount/unmount
-   // (in a session, but it is "remembered" persistently in the broker)
-
 }
