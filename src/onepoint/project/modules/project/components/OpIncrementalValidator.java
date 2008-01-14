@@ -411,11 +411,16 @@ public class OpIncrementalValidator extends OpGanttValidator {
          for (int i = 0; i < data_set.getChildCount(); i++) {
             XComponent activity = (XComponent) data_set.getChild(i);
             OpGraphNode node = graph.getNodeForKey(activity.getIndex());
-            entries.add(node);
+            if (node != null) {
+               List pred = node.getPredecessors();
+               if ((pred != null) && (pred.isEmpty())) {
+                  entries.add(node);
+               }
+            }
          }
 
          List ordered = topologicOrder(entries);
-//         print(ordered);
+         //print(ordered);
          for (Iterator iterator = ordered.iterator(); iterator.hasNext();) {
             validateActivity((OpGraphNode) iterator.next());
          }
@@ -476,7 +481,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
       return dataRowSuccessors;
    }
 
-
    /**
     * Updates the type of the activities from the given activity upwards (parent relation)
     *
@@ -513,30 +517,42 @@ public class OpIncrementalValidator extends OpGanttValidator {
          Iterator it = startPoints.iterator();
          OpGraphNode node = (OpGraphNode) it.next();
          it.remove();
-         list.add(node);
-         ListIterator succIt = node.getSuccessors().listIterator();
-         while (succIt.hasNext()) {
-            int succInt = succIt.nextIndex();
-            OpGraphNode succ = (OpGraphNode) succIt.next();
-            HashSet removedList = (HashSet) removed.get(node);
-            if (removedList == null) {
-               removedList = new HashSet();
-               removed.put(node, removedList);
-            }
-            removedList.add(new Integer(succInt));
-            Iterator predIter = succ.getPredecessors().iterator();
-            boolean noMorePred = false;
-            while (predIter.hasNext()) {
-               removedList = (HashSet) removed.get(predIter.next());
-               if (removedList != null) {
-                  if (removedList.contains(new Integer(succInt))) {
-                     noMorePred = true;
-                     break;
+         if (node != null) {
+            list.add(node);
+            List succList = node.getSuccessors();
+            if (succList != null) {
+               HashSet removedList = (HashSet) removed.get(node);
+               if (removedList == null) {
+                  removedList = new HashSet();
+                  removed.put(node, removedList);
+               }
+               ListIterator succIt = succList.listIterator();
+               while (succIt.hasNext()) {
+//                  int succInt = succIt.nextIndex();
+                  OpGraphNode succ = (OpGraphNode) succIt.next();
+                  // mark edge from node to succ as removed 
+                  if (removedList.add(succ)) {
+                     // get all other pred of succ and check if all of this edges are marked as removed
+                     boolean noMorePred = false;
+                     Iterator predIter = succ.getPredecessors().iterator();
+                     while (predIter.hasNext()) {
+                        HashSet predRemovedList = (HashSet) removed.get(predIter.next());
+                        if (predRemovedList != null) {
+                           noMorePred = predRemovedList.contains(succ);
+                           if (!noMorePred) {
+                              break;
+                           }
+                        }
+                        else {
+                           noMorePred = false;
+                           break;
+                        }
+                     }
+                     if (noMorePred) {
+                        startPoints.add(succ);
+                     }
                   }
                }
-            }
-            if (noMorePred) {
-               startPoints.add(succ);
             }
          }
       }
@@ -557,11 +573,11 @@ public class OpIncrementalValidator extends OpGanttValidator {
          preds = node.getPredecessors();
       }
 
-      for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
-         OpGraphNode pred = (OpGraphNode) iterator.next();
-         XComponent predDataRow = (XComponent) pred.getComponents().get(0);
-         if (!isCollectionType(dataRow)) {
-            //get the last end date from predecessors ( end = maxend(preds) )
+      if (!isCollectionType(dataRow)) {
+         //get the last end date from predecessors ( end = maxend(preds) )
+         for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
+            OpGraphNode pred = (OpGraphNode) iterator.next();
+            XComponent predDataRow = (XComponent) pred.getComponents().get(0);
             Date predEnd = OpGanttValidator.getEnd(predDataRow);
             if (end == null) {
                end = predEnd;
@@ -604,19 +620,19 @@ public class OpIncrementalValidator extends OpGanttValidator {
       }
    }
 
-//   /**
-//    * @param ordered
-//    * @pre
-//    * @post
-//    */
-//   
+   /**
+    * @param ordered
+    * @pre
+    * @post
+    */
+   
 //   private void print(Collection ordered) {
 //      System.out.print("order: ");      
 //      Iterator it = ordered.iterator();
 //      while (it.hasNext()) {
 //         OpGraphNode node = (OpGraphNode) it.next();
 //         
-//         System.out.print(OpGanttValidator.getName((XComponent) node.getComponents().get(0))+",");
+//         System.out.print(OpGanttValidator.getName((XComponent) node.getComponents().get(0))+"("+node.getId()+"),");
 //      }
 //      System.out.println();
 //   }
