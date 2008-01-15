@@ -148,5 +148,6 @@
       <resource id="UserDemoteError">Dieser Benutzer kann nicht zum Standard-Benutzer zurückgestuft werden: Es existieren noch Manager-Rechte in der Datenbank</resource>
       <resource id="PermissionLevelError">Die Benutzer-Ebene ist zu niedrig, um dieses Recht zu gewährleisten</resource>
       <resource id="AdminPermissionError">Sie können die Rechte des Administrator-Benutzers nicht verändern</resource>
+      <resource id="InvalidSiteError">The sites database is down for the moment. Please try again in a minute.</resource>
    </resource-map>
 </language-kit>

@@ -23,6 +23,7 @@ import onepoint.resource.XLocaleManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.XSizeInputStream;
+import onepoint.service.server.XSession;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -405,7 +406,7 @@ public class OpProjectSession extends XExpressSession {
          OpObject object = null;
          while (result.hasNext()) {
             record = (Object[]) result.next();
-            long id = ((Long) record[0]); 
+            long id = ((Long) record[0]);
             object = broker.getObject(OpObject.class, id);
             object.setEffectiveAccessLevel((Byte) record[1]);
             accessibleObjectMap.put(object.getID(), object);
@@ -484,8 +485,8 @@ public class OpProjectSession extends XExpressSession {
    }
 
    /**
-    * @see onepoint.service.server.XSession#cleanupSession(boolean)
     * @param clearCache
+    * @see onepoint.service.server.XSession#cleanupSession(boolean)
     */
    public void cleanupSession(boolean clearCache) {
       super.cleanupSession(clearCache);
@@ -664,5 +665,22 @@ public class OpProjectSession extends XExpressSession {
    public void loadSettings() {
       OpSettingsService.getService().loadSettings(this);
       OpSettingsService.getService().configureServerCalendar(this);
+   }
+
+   /**
+    * The list of all the project sessions belonging to the same site and to the same server as the current session
+    * (INCLUDING the id of the current session).
+    *
+    * @return the list of all the project sessions belonging to the same site and to the same server as the current
+    *         session (INCLUDING the id of the current session).
+    */
+   public List<Integer> getIdsOfSessionsFromSameSite() {
+      List<Integer> idsList = new ArrayList<Integer>();
+      for (XSession session : getServer().getAllSessions()) {
+         if (session instanceof OpProjectSession && ((OpProjectSession) session).getSourceName().equals(getSourceName())) {
+            idsList.add(session.getID());
+         }
+      }
+      return idsList;
    }
 }
