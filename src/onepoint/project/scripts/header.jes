@@ -60,6 +60,28 @@ function showAbout(event) {
    dialog.openInNewThread("/forms/about.oxf.xml", parameters);
 }
 
+function systemSettings(event) {
+//   client = XDisplay.findFrame(getClient();
+   dockFrame = XDisplay.findFrame("DockFrame");
+   category = dockFrame.currentForm().findComponent("category");
+//   mainFrame.showForm("adminForm")
+   button = XDisplay.getActiveForm().findComponent("systemSettings_button");
+   if (button.getSelected()) {
+      button.setSelected(false);
+      parameters.category = "default";
+   }
+   else {
+      button.setSelected(true);
+      parameters.category = "system";
+   }
+   // select 1st component
+   naviBox = dockFrame.currentForm().findComponent("NavigationBox");
+   naviBox.deselectNavigationItems();
+   naviBox.selectNavigationItem(0,0);
+   dockFrame.refreshForm(parameters);
+//   naviBox.repaint();
+}
+
 function bandwidthInfo(info) {
    XDisplay.setWaitingCursor();
    client = XDisplay.getClient();

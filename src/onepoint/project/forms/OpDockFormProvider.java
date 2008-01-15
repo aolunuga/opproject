@@ -11,6 +11,7 @@ import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpTool;
 import onepoint.project.module.OpToolGroup;
+import onepoint.project.module.OpToolHandler;
 import onepoint.project.module.OpToolManager;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
@@ -41,6 +42,8 @@ public class OpDockFormProvider implements XFormProvider {
    private static final String PROJECT_COSTS_TOOL_NAME = "project_costs";
    private static final String RESOURCES_TOOL_GROUP_NAME = "resources";
    private static final String REPORTS_TOOL_GROUP_NAME = "reports";
+   private static final String CATEGORY_NAME = "category";
+   private static final String DEFAULT_CATEGORY = "default";
 
    /**
     * @see onepoint.express.server.XFormProvider#prepareForm(onepoint.service.server.XSession, onepoint.express.XComponent, java.util.HashMap)
@@ -48,9 +51,19 @@ public class OpDockFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       XComponent navigationBox = form.findComponent(NAVIGATION_BOX);
-
+      String category = (String) parameters.get(CATEGORY_NAME);
+      XComponent categoryComp = form.findComponent(CATEGORY_NAME);
+      if (category != null) {
+         categoryComp.setStringValue(category);
+      }
+      else {
+         category = categoryComp.getStringValue();
+         if (category == null) {
+            category = DEFAULT_CATEGORY;
+         }
+      }
       //add the tool groups
-      Map navigationGroupMap = addToolGroups(session, navigationBox);
+      Map<String, XComponent> navigationGroupMap = addToolGroups(session, navigationBox, category);
 
       //add the tools to each tool group.
       addTools(session, navigationGroupMap);
@@ -61,7 +74,7 @@ public class OpDockFormProvider implements XFormProvider {
     * @param session a <code>OpProjectSession</code> representing the server session.
     * @param navigationGroupMap a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
-   private void addTools(OpProjectSession session, Map navigationGroupMap) {
+   private void addTools(OpProjectSession session, Map<String, XComponent> navigationGroupMap) {
       List<List<OpTool>> toolLists = removeToolsWithHigherLevels(session);
 
       for (List<OpTool> toolList : toolLists) {
@@ -173,11 +186,31 @@ public class OpDockFormProvider implements XFormProvider {
          localizer.setResourceMap(resourceMap);
          navigationItem.setText(localizer.localize(tool.getCaption()));
       }
-      navigationItem.setStringValue(tool.getStartForm());
+      // properties ar added as "?key=value&key2=value2..."
+      Map<String, String> startParams = tool.getStartParams();
+      StringBuffer params = new StringBuffer();
+      if (startParams != null && !startParams.isEmpty()) {
+         boolean first = true;
+         for (Map.Entry<String, String> entry : startParams.entrySet()) {
+            if (first) {
+               first = false;
+               params.append(OpToolHandler.PARAM_DELIM);
+            }
+            else {
+               params.append(OpToolHandler.ARRAY_DELIM);               
+            }
+            params.append(entry.getKey());
+            params.append(OpToolHandler.KEY_VALUE_DELIM);
+            params.append(entry.getValue());
+         }
+      }
+
+      navigationItem.setStringValue(tool.getStartForm()+params.toString());
       navigationItem.setIcon(tool.getIcon());
       navigationItem.setOnButtonPressed(NAVIGATION_BOX + "_onButtonPressed");
       navigationItem.setSelected(tool.isSelected());
-
+      
+      
       return navigationItem;
    }
 
@@ -185,14 +218,18 @@ public class OpDockFormProvider implements XFormProvider {
     * Adds the application registered tool groups, creates UI components for each and adds them to the navigation box.
     * @param session a <code>OpProjectSession</code> representing an application session.
     * @param navigationBox a <code>XComponent(NAVIGATION_BOX)</code> representing the navigation box.
+    * @param category 
     * @return a <code>Map</code> of [String, XComponent(NAVIGATION_GROUP)] pairs.
     */
-   private Map addToolGroups(OpProjectSession session, XComponent navigationBox) {
+   private Map<String, XComponent> addToolGroups(OpProjectSession session, XComponent navigationBox, String category) {
       Map navigationGroupMap = new HashMap();
       List<List<OpToolGroup>> groupLists = removeToolGroupsWithHigherLevels(session);
 
        for (List<OpToolGroup> groupList : groupLists) {
          for (OpToolGroup group : groupList) {
+            if (category == null || !category.equals(group.getCategory())) {
+               continue;
+            }
             if (group.isAdministratorOnly() && !session.userIsAdministrator()) {
                continue;
             }

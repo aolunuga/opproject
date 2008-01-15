@@ -17,6 +17,7 @@ import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpAttachment;
 import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.work.forms.OpWorkSlipsFormProvider;
 import onepoint.service.XMessage;
 import onepoint.service.server.XServiceException;
 
@@ -35,6 +36,9 @@ public class OpWorkService extends OpProjectService {
    public final static String TIME_RECORD_SET_ARGUMENT = "time_record_set";
    public final static String COSTS_RECORD_SET_ARGUMENT = "costs_record_set";
 
+   private static final String WORK_SLIPS_ARGUMENT = "work_slip_set";
+   private static final String WORK_SLIP_STATE_ARGUMENT = "work_slip_state";
+
    public final static String ATTACHMENT_LIST = "attachmentsList";
    public final static String COST_ROW_INDEX = "costRowIndex";
 
@@ -46,6 +50,7 @@ public class OpWorkService extends OpProjectService {
 
    private OpWorkServiceImpl serviceImpl = new OpWorkServiceImpl();
    private static final String GET_ATTACHMENTS_FROM_WORK_SLIP = "select attachment from OpWorkSlip workSlip inner join workSlip.Records workRecord inner join workRecord.CostRecords costRecord inner join costRecord.Attachments attachment where workSlip.ID = ? and attachment.Linked = false";
+
 
    public XMessage insertWorkSlip(OpProjectSession session, XMessage request) {
 
@@ -182,6 +187,13 @@ public class OpWorkService extends OpProjectService {
             return reply;
          }
 
+         // Check, whether our state changed...
+         if (workSlip.getState() != OpWorkSlip.STATE_EDITABLE) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_NOT_EDITABLE));
+            return reply;
+         }
+
          // HashSet should be ArraySet
          Set<OpWorkRecord> workRecordsToAdd = new HashSet<OpWorkRecord>();
 
@@ -250,7 +262,11 @@ public class OpWorkService extends OpProjectService {
 
       LinkedList<OpWorkSlip> to_delete = new LinkedList<OpWorkSlip>();
       for (Object id_string : id_strings) {
-         to_delete.add(serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string));
+         OpWorkSlip ws = serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string);
+         // TODO: change this to return an error???
+         if (ws != null && ws.getState() == OpWorkSlip.STATE_EDITABLE) {
+            to_delete.add(serviceImpl.getMyWorkSlipByIdString(session, broker, (String) id_string));
+         }
       }
 
       try {
@@ -268,6 +284,59 @@ public class OpWorkService extends OpProjectService {
       }
 
       logger.info("/OpWorkService.deleteWorkSlip()");
+      return null;
+   }
+
+   public XMessage changeWorkSlipState(OpProjectSession session, XMessage request)
+         throws XServiceException {
+      List workSlipSet= (List) request.getArgument(WORK_SLIPS_ARGUMENT);
+      String newState = (String) request.getArgument(WORK_SLIP_STATE_ARGUMENT);
+      logger.debug("OpWorkService.changeWorkSlipState() " + workSlipSet.size() + " -> " + newState);
+
+      int newStateNum = (Integer) OpWorkSlipsFormProvider.workSlipStatesReversed
+            .get(newState);
+      
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      try {
+         int numWorkSlipsControlled = 0;
+         for (int i = 0; i < workSlipSet.size(); i++) {
+            // TODO: use in-query to improve performance...
+            String wsLocator = ((XComponent) workSlipSet.get(i))
+                  .getStringValue();
+
+            OpWorkSlip slip = (OpWorkSlip) broker.getObject(wsLocator);
+            boolean crExists = false;
+            if (newStateNum == OpWorkSlip.STATE_EDITABLE) {
+               for (OpWorkRecord wr: slip.getRecords()) {
+                  if (wr.getControllingRecord() != null) {
+                     crExists = true;
+                     break;
+                  }
+               }
+            }
+            if (crExists) {
+               numWorkSlipsControlled++;
+            }
+            else {
+               if (newStateNum != slip.getState()) {
+                  slip.setState(newStateNum);
+               }
+            }
+         }
+         
+         // look, if we should issue any errors...
+         if (numWorkSlipsControlled > 0) {
+            XMessage reply = new XMessage();
+            reply.setError(session.newError(ERROR_MAP, OpWorkError.WORK_SLIP_IS_CONTROLLED));
+            return reply;
+         }
+         
+         t.commit();
+      }
+      finally {
+         finalizeSession(t, broker);
+      }
       return null;
    }
 

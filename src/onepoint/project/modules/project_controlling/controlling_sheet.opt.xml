@@ -3,8 +3,10 @@
    <field name="Date" type="Date" indexed="true"/>
    <field name="TotalEffortControlled" type="Double"/>
    <field name="State" type="Integer"/>
+   <field name="Comment" type="Text"/>
+   <field name="Rating" type="Integer" default="0"/>
    
    <relationship name="PlanVersion" type="OpProjectPlanVersion" back-relationship="ControllingSheets"/>
    <relationship name="Creator" type="OpUser" back-relationship="ControllingSheets"/>
-   <relationship name="Records" type="OpControllingRecord" collection-type="Set" back-relationship="ControllingSheet" inverse="true" cascade="all"/>
+   <relationship name="Records" type="OpControllingRecord" collection-type="Set" back-relationship="ControllingSheet" inverse="true" cascade="delete"/>
 </prototype>

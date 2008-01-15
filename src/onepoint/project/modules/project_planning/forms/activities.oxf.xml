@@ -223,10 +223,11 @@
                   <table-column text="" sortable="true" width="20" value-type="Index"/>
                   <table-column text="${Activity}" width="180" sortable="true" data-column-index="0" decimals="2"/>
                   <table-column text="${Personnel}" width="80" sortable="true" data-column-index="11" value-type="Double" decimals="2" on-value-changed="updatePersonnelSum"/>
+                  <table-column text="${Billable}" width="80" sortable="true" data-column-index="31" value-type="Double" decimals="2"/>
                   <table-column text="${Travel}" width="80" sortable="true" data-column-index="12" value-type="Double" decimals="2" on-value-changed="updateTravelSum"/>
                   <table-column text="${Material}" width="80" sortable="true" data-column-index="13" value-type="Double" decimals="2" on-value-changed="updateMaterialSum"/>
                   <table-column text="${External}" width="80" sortable="true" data-column-index="14" value-type="Double" decimals="2" on-value-changed="updateExternalSum"/>
-                  <table-column text="${Misc}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2" on-value-changed="updateMiscSum"/>
+                  <table-column text="${Misc}" width="80" sortable="true" data-column-index="15" value-type="Double" decimals="2"/>
                   <table-column text="${Proceeds}" width="80" sortable="true" data-column-index="30" value-type="Double" decimals="2" on-value-changed="updateProceedsSum"/>
                </table-box>
                <panel id="CostTableToolBar" y="1" layout="flow" direction="east" visible="false">

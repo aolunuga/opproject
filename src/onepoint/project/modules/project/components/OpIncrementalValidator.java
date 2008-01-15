@@ -6,6 +6,8 @@ package onepoint.project.modules.project.components;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidationException;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 
 import java.sql.Date;
 import java.util.*;
@@ -17,6 +19,7 @@ import java.util.*;
  * @author mihai.costin
  */
 public class OpIncrementalValidator extends OpGanttValidator {
+   private static final XLog logger = XLogFactory.getServerLogger(OpIncrementalValidator.class);
 
    private Set startPoints;
    private OpGraph graph;
@@ -401,36 +404,25 @@ public class OpIncrementalValidator extends OpGanttValidator {
             updateCollectionTreeValues((XComponent) iterator.next());
          }
 
-         //expand start points (collection will be replaced by all its children)
-         expandStartPoints();
-
          //transform data set into graph
          graph = OpActivityGraphFactory.createBaseGraph(data_set);
 
-         if (!validateAllStartPoints) {
-            //consider only start points that don't have predecessors in the start point array
-            for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-               XComponent dataRow = (XComponent) iterator.next();
-               OpGraphNode node = graph.getNodeForKey(dataRow.getIndex());
-               if (node != null) {
-                  List preds = node.getPredecessors();
-                  for (Iterator predIterator = preds.iterator(); predIterator.hasNext();) {
-                     OpGraphNode pred = (OpGraphNode) predIterator.next();
-                     XComponent predDataRow = (XComponent) pred.getComponents().get(0);
-                     if (startPoints.contains(predDataRow)) {
-                        iterator.remove();
-                        break;
-                     }
-                  }
+         Set entries = new HashSet();
+         for (int i = 0; i < data_set.getChildCount(); i++) {
+            XComponent activity = (XComponent) data_set.getChild(i);
+            OpGraphNode node = graph.getNodeForKey(activity.getIndex());
+            if (node != null) {
+               List pred = node.getPredecessors();
+               if ((pred != null) && (pred.isEmpty())) {
+                  entries.add(node);
                }
             }
          }
 
-         //start validation for all start points
-         HashSet visited = new HashSet();
-         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-            XComponent activity = (XComponent) iterator.next();
-            validateActivity(activity, visited);
+         List ordered = topologicOrder(entries);
+         //print(ordered);
+         for (Iterator iterator = ordered.iterator(); iterator.hasNext();) {
+            validateActivity((OpGraphNode) iterator.next());
          }
          startPoints = null;
       }
@@ -473,7 +465,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
     * @return a list of <code>XComponent</code> with all the successors from the validation point of view
     */
    private Set getAllValidationSuccessors(XComponent data_row) {
-
       Set dataRowSuccessors = new HashSet();
       OpGraph graph = OpActivityGraphFactory.createBaseGraph(data_set);
       int index = data_row.getIndex();
@@ -491,33 +482,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
    }
 
    /**
-    * Replaces all collection from the startPoint list with their children.
-    * Will keep only standard and milestones in start points lists
-    */
-   private void expandStartPoints() {
-      Set newStarts;
-      boolean expand = true;
-      while (expand) {
-         expand = false;
-         newStarts = new HashSet();
-         for (Iterator iterator = startPoints.iterator(); iterator.hasNext();) {
-            XComponent activity = (XComponent) iterator.next();
-            List children = subActivities(activity);
-            if (children.size() != 0) {
-               newStarts.addAll(children);
-               expand = true;
-            }
-            else {
-               if (getType(activity) == STANDARD || getType(activity) == MILESTONE || getType(activity) == SCHEDULED_TASK) {
-                  newStarts.add(activity);
-               }
-            }
-         }
-         startPoints = newStarts;
-      }
-   }
-
-   /**
     * Updates the type of the activities from the given activity upwards (parent relation)
     *
     * @param activity a <code>XComponent(DATA_ROW)</code> representing a client activity.
@@ -532,6 +496,68 @@ public class OpIncrementalValidator extends OpGanttValidator {
       }
    }
 
+// L : Empty list where we put the sorted elements
+// Q : Set of all nodes with no incoming edges
+// while Q is non-empty do
+//     remove a node n from Q
+//     insert n into L
+//     for each node m with an edge e from n to m do
+//         remove edge e from the graph
+//         if m has no other incoming edges then
+//             insert m into Q
+// if graph has edges then
+//     output error message (graph has a cycle)
+// else 
+//     output message (proposed topologically sorted order: L)
+
+   private List topologicOrder(Set startPoints) {
+      HashMap removed = new HashMap();
+      LinkedList list = new LinkedList();
+      while (!startPoints.isEmpty()) {
+         Iterator it = startPoints.iterator();
+         OpGraphNode node = (OpGraphNode) it.next();
+         it.remove();
+         if (node != null) {
+            list.add(node);
+            List succList = node.getSuccessors();
+            if (succList != null) {
+               HashSet removedList = (HashSet) removed.get(node);
+               if (removedList == null) {
+                  removedList = new HashSet();
+                  removed.put(node, removedList);
+               }
+               ListIterator succIt = succList.listIterator();
+               while (succIt.hasNext()) {
+//                  int succInt = succIt.nextIndex();
+                  OpGraphNode succ = (OpGraphNode) succIt.next();
+                  // mark edge from node to succ as removed 
+                  if (removedList.add(succ)) {
+                     // get all other pred of succ and check if all of this edges are marked as removed
+                     boolean noMorePred = false;
+                     Iterator predIter = succ.getPredecessors().iterator();
+                     while (predIter.hasNext()) {
+                        HashSet predRemovedList = (HashSet) removed.get(predIter.next());
+                        if (predRemovedList != null) {
+                           noMorePred = predRemovedList.contains(succ);
+                           if (!noMorePred) {
+                              break;
+                           }
+                        }
+                        else {
+                           noMorePred = false;
+                           break;
+                        }
+                     }
+                     if (noMorePred) {
+                        startPoints.add(succ);
+                     }
+                  }
+               }
+            }
+         }
+      }
+      return list;
+   }
 
    /**
     * Set start as max of all its predecessors (next work day after it) - duration stays the same.
@@ -539,26 +565,18 @@ public class OpIncrementalValidator extends OpGanttValidator {
     *
     * @param dataRow - activity to validate
     */
-   private void validateActivity(XComponent dataRow, HashSet visited) {
-      if (visited.contains(dataRow)) {
-         return;
-      }
-      visited.add(dataRow);
-
-      OpGraphNode node = graph.getNodeForKey(dataRow.getIndex());
+   private void validateActivity(OpGraphNode node) {
+      XComponent dataRow = (XComponent) node.getComponents().get(0);
       List preds = new ArrayList();
       Date end = null;
-      boolean validateSuccessors = true;
       if (node != null) {
          preds = node.getPredecessors();
       }
-
 
       if (!isCollectionType(dataRow)) {
          //get the last end date from predecessors ( end = maxend(preds) )
          for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
             OpGraphNode pred = (OpGraphNode) iterator.next();
-            //just one component/node
             XComponent predDataRow = (XComponent) pred.getComponents().get(0);
             Date predEnd = OpGanttValidator.getEnd(predDataRow);
             if (end == null) {
@@ -576,12 +594,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
                //move the activity
                OpGanttValidator.setStart(dataRow, start);
             }
-            else {
-               //no change in the start date - stop validation (unless it is a start point)
-               if (!startPoints.contains(dataRow)) {
-                  validateSuccessors = false;
-               }
-            }
          }
 
          //check for the project start
@@ -589,12 +601,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
          if (start != null) {
             if (!calendar.isWorkDay(start)) {
                start = calendar.nextWorkDay(start);
-               validateSuccessors = true;
                OpGanttValidator.setStart(dataRow, start);
             }
             if (getWorkingProjectStart() != null) {
                if (start.before(getWorkingProjectStart())) {
-                  validateSuccessors = true;
                   OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
                }
             }
@@ -608,16 +618,24 @@ public class OpIncrementalValidator extends OpGanttValidator {
       if (node != null) {
          updateCollectionDates(superActivity(dataRow));
       }
-
-      //validate all successors
-      if (validateSuccessors && node != null) {
-         List successors = node.getSuccessors();
-         for (Iterator iterator = successors.iterator(); iterator.hasNext();) {
-            OpGraphNode succNode = (OpGraphNode) iterator.next();
-            validateActivity((XComponent) succNode.getComponents().get(0), visited);
-         }
-      }
    }
+
+   /**
+    * @param ordered
+    * @pre
+    * @post
+    */
+   
+//   private void print(Collection ordered) {
+//      System.out.print("order: ");      
+//      Iterator it = ordered.iterator();
+//      while (it.hasNext()) {
+//         OpGraphNode node = (OpGraphNode) it.next();
+//         
+//         System.out.print(OpGanttValidator.getName((XComponent) node.getComponents().get(0))+"("+node.getId()+"),");
+//      }
+//      System.out.println();
+//   }
 
    /**
     * Updates the start/end of the collections starting from an initial activity.

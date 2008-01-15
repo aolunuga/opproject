@@ -34,6 +34,8 @@ public abstract class OpWorkError {
    public final static int REMAINING_COSTS_NOT_VALID = 21;
    public final static int COST_TYPE_NOT_VALID = 22;
    public final static int TIME_RECORDS_OVERLAP = 23;
+   public final static int WORK_SLIP_NOT_EDITABLE = 24;
+   public final static int WORK_SLIP_IS_CONTROLLED = 25;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";
@@ -57,4 +59,6 @@ public abstract class OpWorkError {
    public final static String REMAINING_COSTS_NOT_VALID_NAME = "RemainingCostsNotValid";
    public final static String COST_TYPE_NOT_VALID_NAME = "CostTypeNotValid";
    public final static String TIME_RECORDS_OVERLAP_NAME = "TimeRecordsOverlap";
+   public final static String WORK_SLIP_NOT_EDITABLE_NAME = "WorkSlipNotEditable";
+   public final static String WORK_SLIP_IS_CONTROLLED_NAME = "WorkSlipIsControlled";
 }

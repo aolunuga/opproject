@@ -4,6 +4,8 @@
 
 // Controller script for work_slips.oxf.xml
 
+require "onepoint/project/scripts/error.jes";
+
 import onepoint.service.XMessage;
 import onepoint.express.XDisplay;
 import onepoint.express.XComponent;
@@ -21,7 +23,12 @@ function edit(event) {
       selected_rows = data_set.selectedRows();
       if (selected_rows.size() > 0) {
          parameters.WorkSlipID = selected_rows[0].getStringValue();
-         parameters.edit_mode = true;
+         if (selected_rows[0].getChild(3).getStringValue() == "editable") {
+            parameters.edit_mode = true;
+         }
+         else {
+            parameters.edit_mode = false;
+         }
          dialog = XComponent.newDialog();
          dialog.open("/modules/work/forms/edit_work_slip.oxf.xml", parameters);
       }
@@ -40,11 +47,44 @@ function delete(event)
 }
 
 function selectionChanged(event) {
+   Console.println("Selection changed");
    form = XDisplay.getActiveForm();
    infoButton = form.findComponent("InfoWorkSlip");
    infoButton.setEnabled(true);
    deleteButton = form.findComponent("DeleteWorkSlip");
    deleteButton.setEnabled(true);
+   
+   // enable those buttons...
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+
+   editableSelected = false;
+   lockedSelected = false;
+   approvedSelected = false;
+   
+   i = 0;
+   while (i < selected_rows.size()) {
+      state = selected_rows[i].getChild(3).getStringValue();
+      Console.println("Selection changed: row:" + i + " state:" + state);
+      state = XValidator.choiceID(state);
+      
+      if (state == "editable") {
+        editableSelected = true;
+      }
+      if (state == "locked") {
+        lockedSelected = true;
+      }
+      if (state == "approved") {
+        approvedSelected = true;
+      }
+      i++;
+   }
+   lockButton = form.findComponent("LockWorkSlip");
+   lockButton.setEnabled(editableSelected);
+
+   lockButton = form.findComponent("UnlockWorkSlip");
+   lockButton.setEnabled(lockedSelected || approvedSelected);
+
    form.repaint();
 }
 
@@ -59,4 +99,53 @@ function filterChanged(event) {
    XDisplay.findFrame("MainFrame").refreshForm(parameters);
 }
 
+function lock(event) {
+   Console.println("lock");
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+   
+   request = new XMessage;
+   request.setAction("WorkService.changeWorkSlipState");
+   request.setArgument("work_slip_set", selected_rows);
+   request.setArgument("work_slip_state", "locked");
 
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleResponse(response, "MainFrame", "")) {
+     XDisplay.findFrame("MainFrame").refreshForm(parameters);
+   }
+}
+
+function unlock(event) {
+   Console.println("unlock");
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+
+   request = new XMessage;
+   request.setAction("WorkService.changeWorkSlipState");
+   request.setArgument("work_slip_set", selected_rows);
+   request.setArgument("work_slip_state", "editable");
+
+   response = XDisplay.getClient().invokeMethod(request);
+
+   if (handleResponse(response, "MainFrame", "")) {
+     XDisplay.findFrame("MainFrame").refreshForm(parameters);
+   }
+}
+
+function changeWorkSlipState(event)
+{
+   Console.println("changeWorkSlipState");
+   data_set = XDisplay.getActiveForm().findComponent("WorkSlipSet");
+   selected_rows = data_set.selectedRows();
+   if (selected_rows.size() > 0) {
+			request = new XMessage;
+			request.setAction("WorkService.changeWorkSlipState");
+			request.setArgument("work_slip_id", selected_rows[0].getStringValue());
+      state_choice_id = XValidator.choiceID(selected_rows[0].getChild(3).getStringValue());
+      request.setArgument("work_slip_state", state_choice_id);
+      Console.println("new State: " + state_choice_id);
+
+			response = XDisplay.getClient().invokeMethod(request);
+   }
+}

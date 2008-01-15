@@ -58,6 +58,7 @@ public class OpActivity extends OpObject implements OpSubTypable {
    public final static String VERSIONS = "Versions";
    public final static String COMMENTS = "Comments";
    public final static String RESPONSIBLE_RESOURCE = "ResponsibleResource";
+   public final static String EFFORT_BILLABLE = "EffortBillable";
 
    // Activity types
    public final static byte STANDARD = OpGanttValidator.STANDARD;
@@ -118,6 +119,7 @@ public class OpActivity extends OpObject implements OpSubTypable {
    private boolean deleted;
    private boolean expanded;
    private boolean template;
+   private Double effortBillable; // 100% default (PERCENT, you're right...)
    private OpProjectPlan projectPlan;
    private OpActivity superActivity;
    private OpResource responsibleResource;
@@ -810,6 +812,14 @@ public class OpActivity extends OpObject implements OpSubTypable {
 
    public boolean hasComments() {
       return (attributes & HAS_COMMENTS) == HAS_COMMENTS;
+   }
+
+   public Double getEffortBillable() {
+      return effortBillable;
+   }
+
+   public void setEffortBillable(Double billable) {
+      this.effortBillable = billable;
    }
 
 }

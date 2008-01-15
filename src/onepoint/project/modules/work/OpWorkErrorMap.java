@@ -33,6 +33,8 @@ public class OpWorkErrorMap extends XErrorMap {
       registerErrorCode(OpWorkError.REMAINING_COSTS_NOT_VALID, OpWorkError.REMAINING_COSTS_NOT_VALID_NAME);
       registerErrorCode(OpWorkError.COST_TYPE_NOT_VALID, OpWorkError.COST_TYPE_NOT_VALID_NAME);
       registerErrorCode(OpWorkError.TIME_RECORDS_OVERLAP, OpWorkError.TIME_RECORDS_OVERLAP_NAME);
+      registerErrorCode(OpWorkError.WORK_SLIP_NOT_EDITABLE, OpWorkError.WORK_SLIP_NOT_EDITABLE_NAME);
+      registerErrorCode(OpWorkError.WORK_SLIP_IS_CONTROLLED, OpWorkError.WORK_SLIP_IS_CONTROLLED_NAME);
    }
 
 }

@@ -5,6 +5,6 @@
    <field name="CustomTypeName" type="String" indexed="true" />
    <field name="Description" type="String" />
    <field name="Label" type="String" />
-   <field name="Permission" type="Byte" />
-   <relationship name="CustomAttributes" type="OpCustomAttribute" collection-type="Set" back-relationship="CustomType" inverse="true" cascade="all" />
+   <field name="Deleted" type="Boolean" indexed="true" />
+   <relationship name="CustomAttributes" type="OpCustomAttribute" collection-type="Set" back-relationship="CustomType" inverse="true" order-by="Sequence asc" />
 </prototype>

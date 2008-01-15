@@ -25,6 +25,7 @@ public class OpSettingsErrorMap extends XErrorMap {
         registerErrorCode(OpSettingsError.MILESTONE_CONTROLING_INCORRECT, OpSettingsError.MILESTONE_CONTROLING_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.FIRST_WORK_DAY_INCORRECT, OpSettingsError.FIRST_WORK_DAY_INCORRECT_NAME);
         registerErrorCode(OpSettingsError.INVALID_PULSE_VALUE, OpSettingsError.INVALID_PULSE_VALUE_NAME);
+        registerErrorCode(OpSettingsError.WORKSLIP_CONTROLLING_INCORRECT, OpSettingsError.WORKSLIP_CONTROLLING_INCORRECT_NAME);
      }
 
 }

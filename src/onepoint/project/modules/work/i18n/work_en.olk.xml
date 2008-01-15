@@ -20,7 +20,12 @@
       <resource id="PreviousMonth">Previous Month</resource>
       <resource id="CurrentYear">Current Year</resource>
       <resource id="All">All</resource>
+      
+      <resource id="Lock">Lock</resource>
+      <resource id="Unlock">Unlock</resource>
 
+      <resource id="State">State</resource>
+      
    </resource-map>
    <resource-map id="work.new_work_slip">
       <resource id="NewWorkSlip">New Work Slip</resource>
@@ -178,6 +183,9 @@
       <resource id="ActualCostsNotValid">Incorrect Actual Costs</resource>
       <resource id="RemainingCostsNotValid">Incorrect Remaining Costs</resource>
       <resource id="CostTypeNotValid">Incorrect Cost Type</resource>
+      
+      <resource id="WorkSlipNotEditable">Cannot edit Work Slip</resource>
+      <resource id="WorkSlipIsControlled">Work slip is controlled so editing is not possible</resource>
    </resource-map>
    <resource-map id="work.delete">
       <resource id="ConfirmDelete">Delete Work Slips</resource>

@@ -11,7 +11,10 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
+import onepoint.project.modules.project.OpProjectStatus;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.modules.work.OpWorkSlipDataSetFactory;
@@ -27,6 +30,7 @@ import java.util.*;
 public class OpWorkSlipsFormProvider implements XFormProvider {
 
    public final static String WORK_SLIP_SET = "WorkSlipSet";
+   public final static String WORK_SLIP_STATE_SET = "WorkSlipStateSet";
 
    public final static int NUMBER_COLUMN_INDEX = 0;
    public final static int RESOURCE_COLUMN_INDEX = 1;
@@ -39,12 +43,32 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
    private final static String NEW_WORK_SLIP_BUTTON = "NewWorkSlip";
    private final static String INFO_WORK_SLIP_BUTTON = "InfoWorkSlip";
    private final static String DELETE_WORK_SLIP_BUTTON = "DeleteWorkSlip";
+   private final static String LOCK_WORK_SLIP_BUTTON = "LockWorkSlip";
+   private final static String UNLOCK_WORK_SLIP_BUTTON = "UnlockWorkSlip";
 
    private final static String PERIOD_CHOICE_ID = "period_choice_id";
    private final static String PERIOD_CHOICE_FIELD = "PeriodChooser";
    private final static String PERIOD_STARTING_WITH_CURRENT_MONTH = "current";
    private final static String PERIOD_STARTING_WITH_PREVIOUS_MONTH = "previous";
    private final static String PERIOD_STARTING_WITH_CURRENT_YEAR = "year";
+   
+   private final static String STATE_EDITABLE = "editable";
+   private final static String STATE_LOCKED = "locked";
+   private final static String STATE_APPROVED = "approved";
+   
+   public final static HashMap workSlipStates = new HashMap();
+   public final static HashMap workSlipStatesReversed = new HashMap();
+   
+   
+   static {
+      workSlipStates.put(new Integer(0), STATE_EDITABLE);
+      workSlipStates.put(new Integer(1), STATE_LOCKED);
+      workSlipStates.put(new Integer(2), STATE_APPROVED);
+      
+      workSlipStatesReversed.put(STATE_EDITABLE, new Integer(0));
+      workSlipStatesReversed.put(STATE_LOCKED, new Integer(1));
+      workSlipStatesReversed.put(STATE_APPROVED, new Integer(2));
+   }
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -100,16 +124,28 @@ public class OpWorkSlipsFormProvider implements XFormProvider {
          data_row = new XComponent(XComponent.DATA_ROW);
          data_row.setStringValue(work_slip.locator());
          data_set.addChild(data_row);
+         // #0
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setIntValue(work_slip.getNumber());
          data_row.addChild(data_cell);
+         // #1
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setValue(work_slip.getDate());
          data_row.addChild(data_cell);
+         // #2
          data_cell = new XComponent(XComponent.DATA_CELL);
          data_cell.setValue(work_slip.getTotalActualEffort());
          data_row.addChild(data_cell);
+         // #3
+         data_cell = new XComponent(XComponent.DATA_CELL);
+         data_cell.setValue(workSlipStates.get(new Integer(work_slip.getState())));
+         data_row.addChild(data_cell);
       }
+
+      XComponent lockWorkSlipButton = form.findComponent(LOCK_WORK_SLIP_BUTTON);
+      lockWorkSlipButton.setEnabled(false);
+      XComponent unlockWorkSlipButton = form.findComponent(UNLOCK_WORK_SLIP_BUTTON);
+      unlockWorkSlipButton.setEnabled(false);
 
       //new work slip button enabled by default
       XComponent newWorkSlipButton = form.findComponent(NEW_WORK_SLIP_BUTTON);

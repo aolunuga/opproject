@@ -20,6 +20,7 @@
    <field name="Payment" type="Double"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>
+   <field name="EffortBillable" type="Double"/>
    <relationship name="Category" type="OpActivityCategory" back-relationship="ActivityVersions"/>
    <relationship name="Activity" type="OpActivity" back-relationship="Versions"/>
    <relationship name="SuperActivityVersion" type="OpActivityVersion" back-relationship="SubActivityVersions" recursive="true"/>

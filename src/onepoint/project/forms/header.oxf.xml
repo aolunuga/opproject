@@ -13,8 +13,14 @@
       <label x="-1" style-ref="label-inverse-default" icon="/icons/opp_header_logo.png"/>
       <panel x="0" layout="border">
          <label x="0" id="UserDisplayName" style-ref="label-inverse-default" flexible="true"/>
-         <button style-ref="header-button-default" x="1" id="VersionButton" icon="/icons/about.png"
-                 on-button-pressed="showAbout"/>
+         <panel x="1" layout="border">
+            <toggle-bar selection="multiple" int-value="0" visible="true" stateful="true">
+            <toggle-button x="-1" style-ref="header-button-default" id="systemSettings_button" icon="/icons/admin_s.png"
+                           on-button-pressed="systemSettings" tooltip="${SystemSettingsToolTip}$"/>
+            </toggle-bar>
+            <button style-ref="header-button-default" x="1" id="VersionButton" icon="/icons/about.png"
+                   on-button-pressed="showAbout"/>
+         </panel>
       </panel>
       <button id="signOff_button" style-ref="header-button-default" x="1" text="${SignOff}"
               on-button-pressed="signOff"/>

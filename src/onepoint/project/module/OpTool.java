@@ -4,6 +4,9 @@
 
 package onepoint.project.module;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class OpTool {
 
    private String name;
@@ -11,6 +14,7 @@ public class OpTool {
    private String caption;
    private String icon;
    private String startForm;
+   private Map<String, String> startParams;
    private String groupRef;
    private OpToolGroup group;
    private OpModule module;
@@ -58,6 +62,23 @@ public class OpTool {
       return startForm;
    }
 
+   /**
+    * @param substring
+    * @param substring2
+    * @pre
+    * @post
+    */
+   final public void addStartParam(String key, String value) {
+      if (startParams == null) {
+         startParams = new HashMap<String, String>();
+      }
+      startParams.put(key, value);
+   }
+
+   final public Map<String, String> getStartParams() {
+      return startParams;
+   }
+   
    final public void setGroupRef(String group_ref) {
       groupRef = group_ref;
       group = null;

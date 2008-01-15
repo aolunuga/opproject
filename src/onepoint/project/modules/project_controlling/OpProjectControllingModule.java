@@ -10,4 +10,5 @@ import onepoint.project.module.OpModule;
  * Advanced module class, for the "closed" project costs modules.
  */
 public class OpProjectControllingModule extends OpModule {
+   
 }

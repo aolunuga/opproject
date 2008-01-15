@@ -9,6 +9,7 @@ import onepoint.express.XDisplay;
 
 function NavigationBox_onButtonPressed(event) {
    form_location = event.event_source.getStringValue();
+   
    main_frame = XDisplay.findFrame("MainFrame");
    main_frame.showForm(form_location);
 }
@@ -47,4 +48,9 @@ function showForm(event) {
    form = dockFrame.getChild(0);
    box = form.findComponent("NavigationBox");
    box.requestFocus();
+
+   // show first selected item within main frame
+   main_frame = XDisplay.findFrame("MainFrame");
+   items = box.getSelectedNavigationItems();
+   main_frame.showFormForced(items[0].getStringValue());
 }

@@ -86,17 +86,20 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String RESOURCES_HOURLY_RATES_DATA_SET = "ResourcesHourlyRates";
 
    private final static String ACTIVITY_LIST_FOOTER_DATA_SET = "ActivityListFooter";
-   private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
-   private final static int FOOTER_BASE_EFFORT_INDEX = 7;
-   private final static int FOOTER_PERSONNEL_INDEX = 2;
-   private final static int FOOTER_TRAVEL_INDEX = 3;
-   private final static int FOOTER_MATERIAL_INDEX = 4;
-   private final static int FOOTER_EXTERNAL_INDEX = 5;
-   private final static int FOOTER_MISC_INDEX = 6;
-   private final static int FOOTER_PROCEEDS_INDEX = 7;
    private final static int ACTIVITY_TABLE_COLUMNS = 11;
-   private final static int COST_TABLE_COLUMNS = 8;
+   private final static int FOOTER_BASE_EFFORT_INDEX = 7;
 
+   private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
+   private final static int COST_TABLE_COLUMNS = 9;
+
+   private final static int FOOTER_PERSONNEL_INDEX = 2;
+   private final static int FOOTER_BILLABLE_INDEX = 3;
+   private final static int FOOTER_TRAVEL_INDEX = 4;
+   private final static int FOOTER_MATERIAL_INDEX = 5;
+   private final static int FOOTER_EXTERNAL_INDEX = 6;
+   private final static int FOOTER_MISC_INDEX = 7;
+   private final static int FOOTER_PROCEEDS_INDEX = 8;
+   
    private final static String COSTS_TAB = "CostsProjectionTab";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
@@ -318,62 +321,61 @@ public class OpActivitiesFormProvider implements XFormProvider {
       XComponent listFooterDataSet = form.findComponent(ACTIVITY_LIST_FOOTER_DATA_SET);
       XComponent costsFooterDataSet = form.findComponent(ACTIVITY_COST_FOOTER_DATA_SET);
       //add the right nr of cells for each data set
-      XComponent row = new XComponent(XComponent.DATA_ROW);
+      XComponent listFooterRow = new XComponent(XComponent.DATA_ROW);
       for (int i = 0; i < ACTIVITY_TABLE_COLUMNS; i++) {
-         row.addChild(new XComponent(XComponent.DATA_CELL));
+         listFooterRow.addChild(new XComponent(XComponent.DATA_CELL));
       }
-      ((XComponent) row.getChild(2)).setStringValue(form.findComponent(TOTAL_STRING).getText());
-      listFooterDataSet.addChild(row);
-
-      row = new XComponent(XComponent.DATA_ROW);
-      for (int i = 0; i < COST_TABLE_COLUMNS; i++) {
-         row.addChild(new XComponent(XComponent.DATA_CELL));
-      }
-      ((XComponent) row.getChild(1)).setStringValue(form.findComponent(TOTAL_STRING).getText());
-      costsFooterDataSet.addChild(row);
 
       //update effort sum
       double sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_EFFORT_COLUMN_INDEX, 0);
-      row = (XComponent) listFooterDataSet.getChild(0);
-      XComponent footerCell = (XComponent) row.getChild(FOOTER_BASE_EFFORT_INDEX);
+      XComponent footerCell = (XComponent) listFooterRow.getChild(FOOTER_BASE_EFFORT_INDEX);
       footerCell.setValue(sum);
 
+      ((XComponent) listFooterRow.getChild(2)).setStringValue(form.findComponent(TOTAL_STRING).getText());
+      listFooterDataSet.addChild(listFooterRow);
+
+      XComponent costsFooterRow = new XComponent(XComponent.DATA_ROW);
+      costsFooterRow = new XComponent(XComponent.DATA_ROW);
+      for (int i = 0; i < COST_TABLE_COLUMNS; i++) {
+         costsFooterRow.addChild(new XComponent(XComponent.DATA_CELL));
+      }
       //update cost sums
       //personnel costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_PERSONNEL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_PERSONNEL_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_PERSONNEL_INDEX);
       footerCell.setValue(sum);
+
+      //billable effort
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_BILLABLE_INDEX);
+      footerCell.setEnabled(false);
 
       //travel costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_TRAVEL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_TRAVEL_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_TRAVEL_INDEX);
       footerCell.setValue(sum);
 
       //material costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_MATERIAL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_MATERIAL_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_MATERIAL_INDEX);
       footerCell.setValue(sum);
 
       //external costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_EXTERNAL_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_EXTERNAL_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_EXTERNAL_INDEX);
       footerCell.setValue(sum);
 
       //misc costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_MISCELLANEOUS_COSTS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_MISC_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_MISC_INDEX);
       footerCell.setValue(sum);
 
       //proceeds costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_PROCEEDS_COLUMN_INDEX, 0);
-      row = (XComponent) costsFooterDataSet.getChild(0);
-      footerCell = (XComponent) row.getChild(FOOTER_PROCEEDS_INDEX);
+      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_PROCEEDS_INDEX);
       footerCell.setValue(sum);
+
+      ((XComponent) costsFooterRow.getChild(1)).setStringValue(form.findComponent(TOTAL_STRING).getText());
+      costsFooterDataSet.addChild(costsFooterRow);
    }
 
    protected void addCategories(XComponent form, OpBroker broker) {

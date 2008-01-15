@@ -550,6 +550,7 @@ public class OpOpenServlet extends XExpressServlet {
       buffer.append("	if (ie) {\n");
       buffer.append(" strArr.push(\"<object name=\\\"").append(name).append("\\\" classid=\\\"clsid:8AD9C840-044E-11D1-B3E9-00805F499D93\\\" width=\\\"100%\\\" height=\\\"100%\\\"\");\n");
       buffer.append(" strArr.push(\" id=\\\"").append(id).append("\\\"\");\n");
+      buffer.append(" strArr.push(\" name=\\\"").append(id).append("\\\"\");\n");
       buffer.append("	strArr.push(\" codebase=\\\"http://java.sun.com/products/plugin/autodl/jinstall-1_4_2-windows-i586.cab#Version=1,4,2,0\\\">\");\n");
       buffer.append(" 	strArr.push(\"<param name=\\\"codebase\\\" value=\\\"").append(codebase).append("\\\">\");\n");
       buffer.append(" strArr.push(\"<param name=\\\"code\\\" value=\\\"").append(code).append("\\\">\");\n");
@@ -569,6 +570,7 @@ public class OpOpenServlet extends XExpressServlet {
       buffer.append(codebase).append("\\\" code=\\\"").append(code).append("\\\" archive=\\\"").append(archive);
       buffer.append("\\\" width=\\\"100%\\\" height=\\\"100%\\\" mayscript=\\\"true\\\" name=\\\"").append(name).append("\\\" \");\n");
       buffer.append(" strArr.push(\" id=\\\"").append(id).append("\\\"\");\n");
+      buffer.append(" strArr.push(\" name=\\\"").append(id).append("\\\"\");\n");
       for (String paramName : otherParams.keySet()) {
          String paramValue = otherParams.get(paramName);
          buffer.append(" strArr.push(\"").append(paramName).append("=\\\"").append(paramValue).append("\\\"\");\n");
@@ -782,36 +784,36 @@ public class OpOpenServlet extends XExpressServlet {
             message.insertObjectsIntoArguments(files);
          }
          else {
-            this.checkAttachmentSizes(sizes.values());
-            Map<String, String> contents = new HashMap<String, String>();
+         this.checkAttachmentSizes(sizes.values());
+         Map<String, String> contents = new HashMap<String, String>();
 
-            // Get the session context ('true': create new session if necessary)
-            OpProjectSession session = (OpProjectSession) getSession(request);
-            OpBroker broker = session.newBroker();
+         // Get the session context ('true': create new session if necessary)
+         OpProjectSession session = (OpProjectSession) getSession(request);
+         OpBroker broker = session.newBroker();
 
-            for (Map.Entry<String, Long> entry : sizes.entrySet()) {
-               String id = entry.getKey();
-               long size = entry.getValue();
-               String name = names != null ? names.get(id) : null;
-               String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
+         for (Map.Entry<String, Long> entry : sizes.entrySet()) {
+            String id = entry.getKey();
+            long size = entry.getValue();
+            String name = names != null ? names.get(id) : null;
+            String mimeType = OpContentManager.getFileMimeType(name != null ? name : "");
 
-               OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
+            OpContent content = OpContentManager.newContent(new XSizeInputStream(stream, size, true), mimeType, 0);
 
-               OpTransaction t = broker.newTransaction();
-               broker.makePersistent(content);
-               t.commit();
+            OpTransaction t = broker.newTransaction();
+            broker.makePersistent(content);
+            t.commit();
 
-               // adds the same OpContent locator for each content that refer teh same file.
-               Set<String> refs = getRefIds(id, references);
-               for (String refId : refs) {
-                  contents.put(refId, content.locator());
-               }
+            // adds the same OpContent locator for each content that refer teh same file.
+            Set<String> refs = getRefIds(id, references);
+            for (String refId : refs) {
+               contents.put(refId, content.locator());
             }
-            broker.close();
-
-            message.insertObjectsIntoArguments(contents);
          }
+         broker.close();
+
+         message.insertObjectsIntoArguments(contents);
       }
+   }
    }
 
    /**
@@ -822,7 +824,7 @@ public class OpOpenServlet extends XExpressServlet {
     * @throws IOException if any of the attachment sizes is larget than the configured size.
     */
    private void checkAttachmentSizes(Collection<Long> attachmentSizes)
-        throws IOException {
+         throws IOException {
       OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
       long maxSizeBytes = initializer.getMaxAttachmentSizeBytes();
       for (Long attachmentSize : attachmentSizes) {

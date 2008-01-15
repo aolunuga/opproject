@@ -80,6 +80,7 @@ function editActivity(event) {
          disabledFieldsIds[10] = "ProceedsCosts";
 
          hiddenFieldsIds[0] = "Priority";
+         hiddenFieldsIds[1] = "EffortBillable";
 
          hiddenTabsIds[0] = "ResourcesTab";
 
@@ -92,6 +93,7 @@ function editActivity(event) {
          hiddenFieldsIds[0] = "Priority";
          hiddenFieldsIds[1] = "Duration";
          hiddenFieldsIds[2] = "BaseEffort";
+         hiddenFieldsIds[3] = "EffortBillable";
 
          hiddenTabsIds[0] = "CostsTab";
 
@@ -565,6 +567,15 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          //proceeds costs
          data_cell = data_row.getChild(30);
          field_id = "ProceedsCosts";
+         if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+            proceeds_costs_field = dialog_form.findComponent(field_id);
+            proceeds_costs_field.setDoubleValue(data_cell.getDoubleValue());
+            setFieldEditMode(edit_mode, proceeds_costs_field, disabledFieldsIds);
+         }
+
+         //effort billable
+         data_cell = data_row.getChild(31);
+         field_id = "EffortBillable";
          if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
             proceeds_costs_field = dialog_form.findComponent(field_id);
             proceeds_costs_field.setDoubleValue(data_cell.getDoubleValue());

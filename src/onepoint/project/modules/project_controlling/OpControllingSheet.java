@@ -19,9 +19,15 @@ public class OpControllingSheet extends OpObject {
    public final static String CREATOR = "Creator";
    public final static String ROWS = "Rows";
    
+   public final static int STATE_EDITABLE = 0;
+   public final static int STATE_LOCKED = 1;
+   public final static int STATE_APPROVED = 2;
+   
    private Date date;
    private Double totalEffortControlled;
    private int state;
+   private String comment;
+   private int rating;
    private OpProjectPlanVersion planVersion;
    private OpUser creator;
    private Set<OpControllingRecord> records;
@@ -44,6 +50,18 @@ public class OpControllingSheet extends OpObject {
    public void setState(int state) {
       this.state = state;
    }
+   public String getComment() {
+      return comment;
+   }
+   public void setComment(String comment) {
+      this.comment = comment;
+   }
+   public int getRating() {
+      return rating;
+   }
+   public void setRating(int rating) {
+      this.rating = rating;
+   }
    public OpProjectPlanVersion getPlanVersion() {
       return planVersion;
    }
@@ -60,6 +78,9 @@ public class OpControllingSheet extends OpObject {
       return records;
    }
    public void setRecords(Set<OpControllingRecord> records) {
+      this.records = records;
+   }
+   public void setRecordsAndCalculate(Set<OpControllingRecord> records) {
       if (this.records != null)
          for (OpControllingRecord cr: this.records) {
             cr.setControllingSheet(null);
@@ -69,7 +90,7 @@ public class OpControllingSheet extends OpObject {
       if (records != null)
          for (OpControllingRecord cr : records) {
             cr.setControllingSheet(this);
-            totalEffortControlled += cr.getRecordEffortSubTotal() + cr.getRowEffortDifference();
+            totalEffortControlled += cr.getRowEffortBilled();
          }
    }
 }

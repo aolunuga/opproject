@@ -13,6 +13,12 @@
          <data-row string-value="all['${All}']"/>
       </data-set>
 
+      <data-set id="WorkSlipStateSet">
+         <data-row string-value="editable['${Editable}']"/>
+         <data-row string-value="locked['${Locked}']"/>
+         <data-row string-value="approved['${Approved}']"/>
+      </data-set>
+
       <panel layout="border" style-ref="tool-panel-default" y="-1">
          <tool-bar>
             <tool-button text="${NewWorkSlip}" id="NewWorkSlip" icon="/modules/work/icons/new_work_slip.png"
@@ -23,6 +29,12 @@
             <tool-button text="${Delete}" id="DeleteWorkSlip" icon="/icons/delete.png"
                          disabled-icon="/icons/delete_disabled.png" on-button-pressed="delete"
                          tooltip="${DeleteTooltip}"/>
+            <tool-button text="${Lock}" id="LockWorkSlip" icon="/modules/work/icons/lock.png"
+                         disabled-icon="/modules/work/icons/lock_disabled.png" on-button-pressed="lock"
+                         tooltip="${LockTooltip}"/>
+            <tool-button text="${Unlock}" id="UnlockWorkSlip" icon="/modules/work/icons/unlock.png"
+                         disabled-icon="/modules/work/icons/unlock_disabled.png" on-button-pressed="unlock"
+                         tooltip="${UnlockTooltip}"/>
          </tool-bar>
          <panel x="1" layout="border" style-ref="compact-panel-default">
             <panel layout="table" flexible="false">
@@ -35,10 +47,11 @@
       </panel>
 
       <table-box id="WorkSlipTable" y="0" data-set-ref="WorkSlipSet" flexible="true" on-double-click="edit"
-                 on-row-select="selectionChanged">
+                 on-row-select="selectionChanged" edit-mode="true">
          <table-column width="30" text="${Number}" data-column-index="0" value-type="Int" sortable="true"/>
-         <table-column width="210" text="${Date}" data-column-index="1" value-type="Date" sortable="true"/>
-         <table-column width="210" text="${TotalEffort}" data-column-index="2" value-type="Double" sortable="true"/>
+         <table-column width="150" text="${Date}" data-column-index="1" value-type="Date" sortable="true"/>
+         <table-column width="150" text="${TotalEffort}" data-column-index="2" value-type="Double" sortable="true"/>
+         <table-column width="80" text="${State}" data-column-index="3"  value-type="String" sortable="true" edit-mode="false"/>
       </table-box>
 
       <status-bar y="1"/>
