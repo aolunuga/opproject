@@ -1,7 +1,7 @@
 <language-kit locale="de">
    <resource-map id="settings.module">
       <resource id="SettingsTool">Einstellungen</resource>
-      <resource id="SystemToolGroup">SYSTEM</resource>
+      <resource id="SystemToolGroup">ADMINISTRIEREN</resource>
    </resource-map>
    <resource-map id="settings.settings">
       <resource id="Settings">Einstellungen</resource>

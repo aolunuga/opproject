@@ -23,12 +23,19 @@ public class OpWorkSlip extends OpObject {
    public final static String RECORDS = "Records";
    public final static String TOTAL_ACTUAL_EFFORT = "TotalActualEffort";
    public final static String CREATOR = "Creator";
+   public final static String STATE = "State";
 
+   public final static int STATE_EDITABLE = 0;
+   public final static int STATE_LOCKED = 1;
+   public final static int STATE_APPROVED = 2;
+   
+   
    private int number = -1;
    private Date date;
    private OpUser creator;
    private Double totalActualEffort;
    private Set<OpWorkRecord> records = new HashSet<OpWorkRecord>();
+   private int state = STATE_EDITABLE;
 
    /**
     * 
@@ -92,6 +99,14 @@ public class OpWorkSlip extends OpObject {
 
    public Set<OpWorkRecord> getRecords() {
       return records;
+   }
+
+   public int getState() {
+      return state;
+   }
+
+   public void setState(int state) {
+      this.state = state;
    }
 
    public String toString() {

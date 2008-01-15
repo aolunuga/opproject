@@ -45,6 +45,7 @@ Activity Structure [property_index, property_type]:
 29) Project
 30) Payment - double
 30) Proceeeds - double
+31) % billable
 Structure:
 
 0 -> 1 -> 2(c)
@@ -87,6 +88,7 @@ Structure:
          <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
       </data-row>
       <data-row outline-level="1">
          <data-cell enabled="true" string-value="Activity1"/>
@@ -120,6 +122,7 @@ Structure:
          <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
       </data-row>
       <data-row outline-level="1">
          <data-cell enabled="true" string-value="Activity2"/>
@@ -153,6 +156,7 @@ Structure:
          <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
       </data-row>
       <data-row outline-level="0">
          <data-cell enabled="true" string-value="Milestone"/>
@@ -186,6 +190,7 @@ Structure:
          <data-cell enabled="true" string-list-value=""/>
          <data-cell enabled="true" double-value="0.0"/>
          <data-cell enabled="true" double-value="0.0"/>
+         <data-cell enabled="true" double-value="100.0"/>
       </data-row>
    </data-set>
 </form>

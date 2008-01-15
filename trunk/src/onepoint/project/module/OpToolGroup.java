@@ -11,6 +11,7 @@ public class OpToolGroup {
    private String caption;
    private OpModule module;
    private boolean administratorOnly = false;
+   private String category = "default";
    private Byte level;
 
    final public void setName(String name) {
@@ -51,6 +52,14 @@ public class OpToolGroup {
 
    public void setAdministratorOnly(boolean administratorOnly) {
       this.administratorOnly = administratorOnly;
+   }
+
+   public final String getCategory() {
+      return category;
+   }
+
+   public final void setCategory(String category) {
+      this.category = category;
    }
 
    final public void setLevel(Byte level) {

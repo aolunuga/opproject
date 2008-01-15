@@ -51,6 +51,19 @@ public class OpWorkModule extends OpModule {
       broker.closeAndEvict();
    }
 
+   /**
+    * Upgrades the module to version 50 (internal schema version) via reflection.
+    *
+    * @param session a <code>OpProjectSession</code> used during the upgrade procedure.
+    */
+   public void upgradeToVersion50(OpProjectSession session) {
+      OpBroker broker = session.newBroker();
+      OpTransaction tx = broker.newTransaction();
+      this.upgradeWorkSlipState(broker);
+      tx.commit();
+      broker.close();
+   }
+
 
 
    /**
@@ -89,6 +102,21 @@ public class OpWorkModule extends OpModule {
          this.updateMaterialCosts(workRecord, broker);
          this.updateExternalCosts(workRecord, broker);
          this.updateMiscellaneousCosts(workRecord, broker);
+      }
+   }
+
+   /**
+    * Upgrades the states for all the existent work records.
+    *
+    * @param broker a <code>OpBroker</code> used for persistence operations.
+    */
+   private void upgradeWorkSlipState(OpBroker broker) {
+      String workSlipQuery = "select workSlip from OpWorkSlip workSlip where State is null";
+      OpQuery query = broker.newQuery(workSlipQuery);
+      Iterator wsIt = broker.iterate(query);
+      while (wsIt.hasNext()) {
+         OpWorkSlip workRecord = (OpWorkSlip) wsIt.next();
+         workRecord.setState(OpWorkSlip.STATE_EDITABLE);
       }
    }
 

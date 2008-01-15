@@ -325,6 +325,7 @@ public class OpMappingsGenerator {
       String cascadeMode = relationship.getCascadeMode();
       String fetch = relationship.getFetch();
       String lazy = relationship.getLazy();
+      String orderBy = relationship.getOrderBy();
       OpRelationship back_relationship = relationship.getBackRelationship();
       OpPrototype target_prototype = OpTypeManager.getPrototypeByID(relationship.getTypeID());
       if (relationship.getCollectionTypeID() != OpType.SET) {
@@ -387,6 +388,9 @@ public class OpMappingsGenerator {
             if (relationship.getInverse()) {
                buffer.append("\" inverse=\"true");
             }
+            if (orderBy != null) {
+               buffer.append("\" order-by=\"").append(generateColumnName(orderBy));
+            }
             buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
@@ -425,6 +429,9 @@ public class OpMappingsGenerator {
             column_name = generateJoinColumnName(target_prototype.getName(), back_relationship.getName());
             buffer.append("\" table=\"");
             buffer.append(join_table_name);
+            if (orderBy != null) {
+               buffer.append("\" order-by=\"").append(generateColumnName(orderBy));
+            }
             buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
@@ -754,25 +761,14 @@ public class OpMappingsGenerator {
          }
       }
 
-
-      File path;
-      try {
-         path = new File(OpMappingsGenerator.class.getResource("OpMappingsGenerator.class").toURI());
-      }
-      catch (URISyntaxException exc) {
-         exc.printStackTrace();
-         path = new File("onepoint/project");
-      }
-      path = path.getParentFile().getParentFile().getParentFile().getParentFile();
-      path = new File(path, "onepoint/project/test");
-      OpEnvironmentManager.setOnePointHome(path.getPath());
+      OpEnvironmentManager.setOnePointHome(System.getProperty("user.dir"));
       XResourceBroker.setResourcePath("onepoint/project");
       // initialize factory
       OpInitializerFactory factory = OpInitializerFactory.getInstance();
       factory.setInitializer(OpInitializer.class);
 
       OpInitializer initializer = factory.getInitializer();
-      initializer.init(OpProjectConstants.TEAM_EDITION_CODE);//OPEN_EDITION_CODE);
+      initializer.init(OpProjectConstants.OPEN_EDITION_CODE);
       OpMappingsGenerator generator = new OpMappingsGenerator(dbType);
       generator.init(OpTypeManager.getPrototypes());
       String mapping = generator.generateMappings();

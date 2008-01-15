@@ -19,6 +19,7 @@ public class OpSettingsError {
    public final static int MILESTONE_CONTROLING_INCORRECT = 7;
    public final static int FIRST_WORK_DAY_INCORRECT = 8;
    public final static int INVALID_PULSE_VALUE = 9;
+   public final static int WORKSLIP_CONTROLLING_INCORRECT = 10;
 
 
    // Error names
@@ -31,5 +32,6 @@ public class OpSettingsError {
    public final static String MILESTONE_CONTROLING_INCORRECT_NAME = "MilestoneControlingIncorrect";
    public final static String FIRST_WORK_DAY_INCORRECT_NAME = "FirstWorkDayIncorrect";
    public final static String INVALID_PULSE_VALUE_NAME = "InvalidPulseValue";
+   public final static String WORKSLIP_CONTROLLING_INCORRECT_NAME = "WorkSlipControllingIncorrect";
 
 }

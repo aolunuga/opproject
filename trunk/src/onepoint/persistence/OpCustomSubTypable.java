@@ -13,7 +13,7 @@ package onepoint.persistence;
  */
 public interface OpCustomSubTypable {
    
-   public final static String TYPE = "CustomTypeName";
+   public final static String CUSTOM_TYPE_NAME = "CustomTypeName";
    
    public String getCustomTypeName();
 

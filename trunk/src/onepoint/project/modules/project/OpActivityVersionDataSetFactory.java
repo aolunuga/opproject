@@ -225,7 +225,7 @@ public abstract class OpActivityVersionDataSetFactory {
       OpProjectPlanVersion planVersion = activityVersion.getPlanVersion();
       OpProjectPlan projectPlan = planVersion.getProjectPlan();
       boolean tracking = projectPlan.getProgressTracked();
-      dataCell.setEnabled(editable & !tracking && !isCollection);
+      dataCell.setEnabled(editable && !tracking && !isCollection);
 
       // Start (4)
       dataCell = new XComponent(XComponent.DATA_CELL);
@@ -401,6 +401,17 @@ public abstract class OpActivityVersionDataSetFactory {
       //Base Proceeds (30)
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(activityVersion.getBaseProceeds());
+      dataRow.addChild(dataCell);
+
+      //Effort Billable (31)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      if (activityVersion.getEffortBillable() != null) {
+         dataCell.setDoubleValue(activityVersion.getEffortBillable());
+      }
+      else {
+         dataCell.setDoubleValue(100);
+      }
+      dataCell.setEnabled(editable && !isCollection);
       dataRow.addChild(dataCell);
 
       OpGanttValidator.updateAttachmentAttribute(dataRow);
@@ -681,6 +692,7 @@ public abstract class OpActivityVersionDataSetFactory {
          activityVersion.setAttributes(OpGanttValidator.getAttributes(dataRow));
          byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
          activityVersion.setPriority(priority);
+         activityVersion.setEffortBillable(OpGanttValidator.getEffortBillable(dataRow));
 
          //only milestone can have payments
          if (activityVersion.getType() == OpGanttValidator.MILESTONE) {
@@ -857,6 +869,12 @@ public abstract class OpActivityVersionDataSetFactory {
          if (activityVersion.getPayment() != OpGanttValidator.getPayment(dataRow)) {
             update = true;
             activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
+         }
+         if (activityVersion.getEffortBillable() == null
+               || activityVersion.getEffortBillable().doubleValue() != OpGanttValidator
+                     .getEffortBillable(dataRow)) {
+            update = true;
+            activityVersion.setEffortBillable(new Double(OpGanttValidator.getEffortBillable(dataRow)));
          }
          if (update) {
             broker.updateObject(activityVersion);

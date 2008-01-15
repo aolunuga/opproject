@@ -616,31 +616,31 @@ function updatePersonnelSum(event) {
 function updateTravelSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 3);
+   updateCostSum(mainIndex, 4);
 }
 
 function updateMaterialSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 4);
+   updateCostSum(mainIndex, 5);
 }
 
 function updateExternalSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 5);
+   updateCostSum(mainIndex, 6);
 }
 
 function updateMiscSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 6);
+   updateCostSum(mainIndex, 7);
 }
 
 function updateProceedsSum(event) {
    dataCell = event.event_source;
    mainIndex = dataCell.getIndex();
-   updateCostSum(mainIndex, 7);
+   updateCostSum(mainIndex, 8);
 }
 
 function updateCostSum(mainIndex, footerIndex) {

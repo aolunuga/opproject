@@ -425,6 +425,16 @@ function ok(event) {
          }
       }
 
+      // Update Effort Billable
+      priority_field = form.findComponent("EffortBillable");
+      if (priority_field.getVisible() == true) {
+         effortBillable = priority_field.getDoubleValue();
+         if (!activity_set.setDataCellValue(activity_row, 31, effortBillable, form)){
+            validator.setContinuousAction(false);
+            return;
+         }
+      }
+
       // Update mandatory
       mandatory_field = form.findComponent("Mandatory");
       if (mandatory_field.getEnabled() == true) {

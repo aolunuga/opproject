@@ -3,6 +3,7 @@
    <field name="Number" type="Integer"/>
    <field name="Date" type="Date" indexed="true"/>
    <field name="TotalActualEffort" type="Double"/>
+   <field name="State" type="Integer" default="0"/>
    <relationship name="Creator" type="OpUser" back-relationship="WorkSlips"/>
    <relationship name="Records" type="OpWorkRecord" collection-type="Set" back-relationship="WorkSlip" inverse="true" cascade="all"/>
 </prototype>

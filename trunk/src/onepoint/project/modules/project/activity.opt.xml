@@ -36,6 +36,7 @@
    <field name="Deleted" type="Boolean"/>
    <field name="Expanded" type="Boolean"/>
    <field name="Template" type="Boolean"/>
+   <field name="EffortBillable" type="Double"/>
    <relationship name="ProjectPlan" type="OpProjectPlan" back-relationship="Activities"/>
    <relationship name="Category" type="OpActivityCategory" back-relationship="Activities"/>
    <relationship name="Assignments" type="OpAssignment" collection-type="Set" back-relationship="Activity" inverse="true" cascade="delete"/>

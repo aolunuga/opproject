@@ -9,7 +9,7 @@
       <language-kit-path path="/modules/settings/i18n"/>
    </language-kit-paths>
    <tool-groups>
-      <tool-group name="system" caption="${SystemToolGroup}" administrator-only="true" sequence="5"/>
+      <tool-group name="system" caption="${SystemToolGroup}" category="system" administrator-only="true" sequence="1"/>
    </tool-groups>
    <tools>
       <tool name="settings" caption="${SettingsTool}" group-ref="system" icon="/modules/settings/icons/settings_tool.png" start-form="/modules/settings/forms/settings.oxf.xml" sequence="20"/>

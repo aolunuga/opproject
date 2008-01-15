@@ -6,6 +6,8 @@ package onepoint.project.applet;
 
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
+import onepoint.express.XExtendedComponent;
+import onepoint.express.XView;
 import onepoint.express.applet.XExpressApplet;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.modules.work.components.OpWorkProxy;
@@ -17,6 +19,7 @@ import onepoint.util.XCalendar;
 import onepoint.util.XCookieManager;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,6 +72,41 @@ public class OpOpenApplet extends XExpressApplet {
          parameters.put(OpProjectConstants.START_FORM, startForm);
       }
       return parameters;
+   }
+
+   /**
+    * @see onepoint.express.XViewer#showStartForm(java.util.Map)
+    */
+   public void showForm(String location) {
+      getDisplay().showForm(location);
+   }
+
+
+   /**
+    * @see onepoint.express.XViewer#showStartForm(java.util.Map)
+    */
+   public void showForm(String location, Map parameters) {
+      getDisplay().showForm(location, parameters);
+   }
+
+   public void showMainForm(int group, int pos) {
+      showMainForm(group, pos, null);
+   }
+   
+   private void showMainForm(int group, int pos, String mainLocation) {
+      XComponent dockFrame = XDisplay.findFrame("DockFrame");
+      XComponent form = (XComponent)dockFrame.getChild(0);
+      XExtendedComponent box = (XExtendedComponent) form.findComponent("NavigationBox");
+      box.requestFocus();
+
+      // show first selected item within main frame
+      XComponent main_frame = XDisplay.findFrame("MainFrame");
+      if (mainLocation != null) {
+         main_frame.showForm(mainLocation);
+      }
+      box.deselectNavigationItems();
+      box.selectNavigationItem(group, pos);
+      dockFrame.refreshForm();
    }
 
    /**

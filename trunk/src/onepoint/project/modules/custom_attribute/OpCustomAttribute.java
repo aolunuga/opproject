@@ -16,15 +16,28 @@ import onepoint.persistence.OpObject;
  *
  */
 public class OpCustomAttribute extends OpObject {
- 
    private String name;
+   private String description;
+   private String label;
    private int type;
    private boolean unique = false;
    private boolean mandatory = false;
    private int position = -1;
+   private int sequence;
    private OpCustomType customType;
    private boolean deleted = false;
+   private Byte minRole = null;
    
+   /** constants for forms */
+   public static final String NAME = "Name";
+   public static final String DESCRIPTION = "Description";
+   public static final String LABEL = "Label";
+   public static final String TYPE = "Type";
+   public static final String ROLE = "Role";
+   public static final String MANDATORY = "Mandatory";
+   public static final String UNIQUE = "Unique";
+   public final static String SEQUENCE = "Sequence";
+
    public static final Class[] CLASS_TYPES = 
    { Boolean.class, Long.class, Double.class, Date.class, String.class };
 
@@ -78,19 +91,17 @@ public class OpCustomAttribute extends OpObject {
       }
       this.type = type;
    }
-
-   public void setTypeFromClass(Class classType) {
-      int type = -1;
+   public static int getTypeFromClass(Class classType) {
       for (int count = 0; count < CLASS_TYPES.length; count++) {
          if (CLASS_TYPES[count] == classType) {
-            type = count;
-            break;
+            return count;
          }
       }
-      if (type < 0) {
-         throw new IllegalArgumentException("unsupported class type '"+classType.getName()+"'");
-      }
-      this.type = type;
+      throw new IllegalArgumentException("unsupported class type '"+classType.getName()+"'");
+   }
+
+   public void setTypeFromClass(Class classType) {
+      this.type = getTypeFromClass(classType);
    }
 
    
@@ -100,7 +111,7 @@ public class OpCustomAttribute extends OpObject {
    
    public void setPosition(int position) {
       if (position < 0) {
-         throw new IllegalArgumentException("position must be > 0");
+         throw new IllegalArgumentException("position must be >= 0");
       }
       // FIXME(dfreis Oct 8, 2007 7:28:32 PM) only until we implement multiple pages
       if (position > 9) {
@@ -108,6 +119,18 @@ public class OpCustomAttribute extends OpObject {
       }
       this.position  = position;
    }
+
+   public void setSequence(int sequence) {
+      if (sequence < 0) {
+         throw new IllegalArgumentException("sequence must be >= 0, sequence was: "+sequence);
+      }
+      this.sequence = sequence;
+   }
+
+   public int getSequence() {
+      return sequence;
+   }
+
    public Class getTypeAsClass() {
       return CLASS_TYPES[type];
    }
@@ -148,5 +171,29 @@ public class OpCustomAttribute extends OpObject {
     */
    public void setDeleted(boolean deleted) {
       this.deleted = deleted; 
+   }
+
+   public Byte getMinRole() {
+      return minRole;
+   }
+
+   public void setMinRole(Byte minRole) {
+      this.minRole = minRole;
+   }
+
+   public String getDescription() {
+      return description;
+   }
+
+   public void setDescription(String description) {
+      this.description = description;
+   }
+
+   public String getLabel() {
+      return label;
+   }
+
+   public void setLabel(String label) {
+      this.label = label;
    }
 }

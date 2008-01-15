@@ -29,6 +29,11 @@ public class OpRelationship extends OpMember {
     */
    private String fetch = null;
 
+   /**
+    * sort order for collection, syntax is <code>column_name asc|desc</code>.
+    */
+   private String orderBy;
+
    public OpRelationship() {
       // Default relationship-type is 'association'
       relationshipType = ASSOCIATION;
@@ -108,4 +113,22 @@ public class OpRelationship extends OpMember {
       if(fetch.equalsIgnoreCase("subselect") || fetch.equalsIgnoreCase("join"))
          this.fetch = fetch.toLowerCase();
    }
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public String getOrderBy() {
+      return orderBy;
+   }
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public void setOrderBy(String orderBy) {
+      this.orderBy = orderBy;
+   }
+
 }

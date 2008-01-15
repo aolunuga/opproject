@@ -16,6 +16,7 @@ public class OpToolGroupHandler implements XNodeHandler {
    public final static String CAPTION = "caption";
    public final static String SEQUENCE = "sequence";
    public final static String ADMINISTRATOR_ONLY = "administrator-only";
+   public final static String CATEGORY = "category";
    public final static String LEVEL = "level";
 
    public Object newNode(XContext context, String name, HashMap attributes) {
@@ -35,6 +36,10 @@ public class OpToolGroupHandler implements XNodeHandler {
       value = attributes.get(ADMINISTRATOR_ONLY);
       if ((value != null) && (value instanceof String)) {
          group.setAdministratorOnly(Boolean.valueOf((String) value).booleanValue());
+      }
+      value = attributes.get(CATEGORY);
+      if ((value != null) && (value instanceof String)) {
+         group.setCategory((String) value);
       }
       value = attributes.get(LEVEL);
       if((value != null) && (value instanceof String)) {

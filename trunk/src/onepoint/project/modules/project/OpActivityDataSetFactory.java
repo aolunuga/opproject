@@ -775,6 +775,17 @@ public abstract class OpActivityDataSetFactory {
       dataCell.setDoubleValue(activity.getBaseProceeds());
       dataRow.addChild(dataCell);
 
+      // Effort Billable (31)
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      if (activity.getEffortBillable() != null) {
+         dataCell.setDoubleValue(activity.getEffortBillable());
+      }
+      else {
+         dataCell.setDoubleValue(100);
+      }
+      dataCell.setEnabled(editable && !isCollection);
+      dataRow.addChild(dataCell);
+
       OpGanttValidator.updateAttachmentAttribute(dataRow);
    }
 
@@ -1141,6 +1152,7 @@ public abstract class OpActivityDataSetFactory {
          activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
          activity.setActualMiscellaneousCosts(0);
          activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+         activity.setEffortBillable(OpGanttValidator.getEffortBillable(dataRow));
          broker.makePersistent(activity);
 
       }
@@ -1349,6 +1361,12 @@ public abstract class OpActivityDataSetFactory {
          if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
             update = true;
             activity.setPayment(OpGanttValidator.getPayment(dataRow));
+         }
+         if (activity.getEffortBillable() == null
+               || activity.getEffortBillable().doubleValue() != OpGanttValidator
+                     .getEffortBillable(dataRow)) {
+            update = true;
+            activity.setEffortBillable(new Double(OpGanttValidator.getEffortBillable(dataRow)));
          }
          if (update) {
             broker.updateObject(activity);

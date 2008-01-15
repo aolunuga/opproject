@@ -18,6 +18,7 @@
       <resource id="ClearImageCache">Effacer le cache image</resource>
       <resource id="GetBandwidthInfo">Voir l'information sur la bande passante</resource>
       <resource id="SignOff">Se déconnecter</resource>
+      <resource id="SystemSettingsToolTip">System Settings</resource>      
       <resource id="Quit">Quitter</resource>      
    </resource-map>
    <resource-map id="main.dock">

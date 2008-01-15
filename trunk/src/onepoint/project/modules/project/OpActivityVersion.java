@@ -87,6 +87,7 @@ public class OpActivityVersion extends OpObject {
    private double payment;
    private boolean expanded;
    private boolean template;
+   private Double effortBillable;
    private OpActivityCategory category;
    private OpActivity activity;
    private OpActivityVersion superActivityVersion;
@@ -249,6 +250,14 @@ public class OpActivityVersion extends OpObject {
 
    public boolean getTemplate() {
       return template;
+   }
+
+   public Double getEffortBillable() {
+      return effortBillable;
+   }
+
+   public void setEffortBillable(Double effortBillable) {
+      this.effortBillable = effortBillable;
    }
 
    public void setCategory(OpActivityCategory category) {

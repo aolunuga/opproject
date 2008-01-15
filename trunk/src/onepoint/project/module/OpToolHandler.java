@@ -19,11 +19,15 @@ public class OpToolHandler implements XNodeHandler {
    private final static String CAPTION = "caption";
    private final static String ICON = "icon";
    private final static String START_FORM = "start-form";
+   private final static String START_PARAMS = "start-params";
    private final static String GROUP_REF = "group-ref";
    private final static String SEQUENCE = "sequence";
    private final static String MULTI_USER = "multi-user-only";
    private final static String SELECTED = "selected";
    private final static String LEVEL = "level";
+   public static final String PARAM_DELIM = "?";
+   public static final String ARRAY_DELIM = "&";
+   public static final String KEY_VALUE_DELIM = "=";
 
    /**
     * The mapping between the user level names and the byte code of each level.
@@ -61,6 +65,17 @@ public class OpToolHandler implements XNodeHandler {
       value = attributes.get(START_FORM);
       if ((value != null) && (value instanceof String)) {
          tool.setStartForm((String) value);
+      }
+      value = attributes.get(START_PARAMS);
+      if ((value != null) && (value instanceof String)) {
+         String[] pairs = ((String) value).split(ARRAY_DELIM);
+         for (int pos = 0; pos < pairs.length; pos++) {
+            int keyValDel = pairs[pos].indexOf(KEY_VALUE_DELIM);
+            if (keyValDel > 0) {
+               tool.addStartParam(pairs[pos].substring(0, keyValDel), 
+                     pairs[pos].substring(keyValDel+KEY_VALUE_DELIM.length()));
+            }
+         }
       }
       value = attributes.get(GROUP_REF);
       if ((value != null) && (value instanceof String)) {

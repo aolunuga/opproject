@@ -11,4 +11,8 @@
    <method name="deleteWorkSlips">
       <parameter name="work_slip_ids" instance-class="java.util.ArrayList" mode="input"/>
    </method>
+   <method name="changeWorkSlipState">
+      <parameter name="work_slip_set" instance-class="onepoint.express.XComponent" mode="input"/>
+      <parameter name="work_slip_state" instance-class="java.lang.String" mode="input"/>
+   </method>
 </service>

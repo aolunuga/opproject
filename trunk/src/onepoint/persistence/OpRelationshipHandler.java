@@ -86,6 +86,11 @@ public class OpRelationshipHandler implements XNodeHandler {
       if ((value != null) && (value instanceof String)) {
          relationship.setLazy((String) value);
       }
+      value = attributes.get("order-by");
+      if ((value != null) && (value instanceof String)) {
+         relationship.setOrderBy((String) value);
+      }
+
       return relationship;
    }
 

@@ -23,7 +23,7 @@ public class OpCustomType extends OpObject {
    private Set<OpCustomAttribute> customAttributes;
    private Byte subType;
    private String customTypeName;
-   private Byte permission;
+   private boolean deleted = false;
 
    /**
     * Default constructor
@@ -45,24 +45,14 @@ public class OpCustomType extends OpObject {
       this(prototype, subType, null);
    }
 
-   public OpCustomType(Class prototype, String subTypeName) {
-      this(prototype, null, subTypeName);
+   public OpCustomType(Class prototype, String customTypeName) {
+      this(prototype, null, customTypeName);
    }
 
    public OpCustomType(Class prototype, Byte subType, String customTypeName) {
       this.prototypeName = prototype.getName();
       this.subType = subType;
       this.customTypeName = customTypeName;
-   }
-
-   /**
-    * Default constructor
-    */
-   public OpCustomType(Class prototype, Byte subType, String customTypeName, Byte permission) {
-      this.prototypeName = prototype.getName();
-      this.subType = subType;
-      this.customTypeName = customTypeName;
-      this.permission = permission;
    }
 
    public String getPrototypeName() {
@@ -136,7 +126,7 @@ public class OpCustomType extends OpObject {
       this.subType = subType;
    }
 
-   private void setCustomTypeName(String customTypeName) {
+   public void setCustomTypeName(String customTypeName) {
       this.customTypeName = customTypeName;
    }
 
@@ -164,13 +154,18 @@ public class OpCustomType extends OpObject {
    public void setLabel(String label) {
       this.label = label;
    }
-
-   public Byte getPermission() {
-      return permission;
+   
+   public boolean isDeleted() {
+      return deleted;
    }
 
-   private void setPermission(Byte permission) {
-      this.permission = permission;
+   /**
+    * @param b
+    * @pre
+    * @post
+    */
+   public void setDeleted(boolean deleted) {
+      this.deleted = deleted; 
    }
 
 }

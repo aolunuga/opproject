@@ -65,6 +65,7 @@ public class OpGanttValidator extends XValidator {
    public final static int RESPONSIBLE_RESOURCE_COLUMN_INDEX = 27;
    public final static int PAYMENT_COLUMN_INDEX = 29;
    public final static int BASE_PROCEEDS_COLUMN_INDEX = 30;
+   public final static int BASE_BILLABLE_COLUMN_INDEX = 31;
 
    // Assignment set column indexes
    private final static int AVAILABLE_COLUMN_INDEX = 0;
@@ -247,7 +248,23 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static double getBaseProceeds(XComponent data_row) {
-      return ((XComponent) (data_row.getChild(BASE_PROCEEDS_COLUMN_INDEX))).getDoubleValue();
+      return ((XComponent) (data_row.getChild(BASE_PROCEEDS_COLUMN_INDEX)))
+            .getDoubleValue();
+   }
+
+   public static void setEffortBillable(XComponent data_row, double billable) {
+      ((XComponent) (data_row.getChild(BASE_BILLABLE_COLUMN_INDEX))).setDoubleValue(billable);
+   }
+
+   public static void clearEffortBillable(XComponent data_row) {
+      ((XComponent) (data_row.getChild(BASE_BILLABLE_COLUMN_INDEX))).setValue(null);
+   }
+
+   public static double getEffortBillable(XComponent data_row) {
+      if (((XComponent) (data_row.getChild(BASE_BILLABLE_COLUMN_INDEX))).hasValue(Double.class))
+         return ((XComponent) (data_row.getChild(BASE_BILLABLE_COLUMN_INDEX))).getDoubleValue();
+      else
+         return 100;
    }
 
    /**
@@ -2066,6 +2083,12 @@ public class OpGanttValidator extends XValidator {
       data_cell.setDoubleValue(0);
       data_row.addChild(data_cell);
 
+      // Effort Billable (31)
+      data_cell = new XComponent(XComponent.DATA_CELL);
+      data_cell.setEnabled(true);
+      data_cell.setDoubleValue(100);
+      data_row.addChild(data_cell);
+
       // Must be done at the end: Might potentially need full data-row
       // TODO: Duration of new activities should be configurable
       double duration = 5 * calendar.getWorkHoursPerDay();
@@ -2160,6 +2183,7 @@ public class OpGanttValidator extends XValidator {
       setBaseMiscellaneousCosts(previousChild, 0);
       setBasePersonnelCosts(previousChild, 0);
       setBaseTravelCosts(previousChild, 0);
+      clearEffortBillable(previousChild);
    }
 
    /**
@@ -2382,6 +2406,24 @@ public class OpGanttValidator extends XValidator {
                }
                else if ((complete >= 0) && (complete <= 100)) {
                   setComplete(data_row, complete);
+               }
+               updateCollectionTreeValues(data_row);
+            }
+            break;
+
+         case BASE_BILLABLE_COLUMN_INDEX:
+            // Change percentage range (0-100)
+            if (value != null) {
+               double billable = ((Double) value).doubleValue();
+               byte type = OpGanttValidator.getType(data_row);
+
+               addToUndo();
+
+               if ((type == OpGanttValidator.TASK || type == OpGanttValidator.MILESTONE) && billable < 100) {
+                  setEffortBillable(data_row, 0);
+               }
+               else if ((billable >= 0) && (billable <= 100)) {
+                  setEffortBillable(data_row, billable);
                }
                updateCollectionTreeValues(data_row);
             }

@@ -135,7 +135,6 @@
       <exclude name="*ant-contrib*.jar"/>
       <exclude name="*commons-cli*.jar"/>
       <!-- at the moment only used within ldap, but may be of general perpose -->
-      <exclude name="*jsr173*.jar"/>
       <exclude name="*ws-commons-util*.jar"/>
       <!-- used for sending reports (icomedias) -->
       <exclude name="*xmlrpc-*.jar"/>

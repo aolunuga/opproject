@@ -21,7 +21,7 @@ public class OpControllingRecord extends OpObject {
    public final static String RECORDS = "WorkRecords";
    
    private double recordEffortSubTotal = 0;
-   private double rowEffortDifference = 0;
+   private double rowEffortBilled = 0;
    private boolean closeAssignment = false;
    private OpControllingSheet controllingSheet;
    private Set<OpWorkRecord> workRecords;
@@ -34,11 +34,11 @@ public class OpControllingRecord extends OpObject {
    public void setRecordEffortSubTotal(Double totalEffortControlled) {
       this.recordEffortSubTotal = totalEffortControlled;
    }
-   public Double getRowEffortDifference() {
-      return rowEffortDifference;
+   public Double getRowEffortBilled() {
+      return rowEffortBilled;
    }
-   public void setRowEffortDifference(Double rowEffortDifference) {
-      this.rowEffortDifference = rowEffortDifference;
+   public void setRowEffortBilled(Double rowEffortBilled) {
+      this.rowEffortBilled = rowEffortBilled;
    }
    public boolean isCloseAssignment() {
       return closeAssignment;

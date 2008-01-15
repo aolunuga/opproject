@@ -20,6 +20,11 @@
       <resource id="PreviousMonth">Letzter Monat</resource>
       <resource id="CurrentYear">Dieses Jahr</resource>
       <resource id="All">Alle</resource>
+      
+      <resource id="Lock">Sperren</resource>
+      <resource id="Unlock">Freigeben</resource>
+
+      <resource id="State">Status</resource>
 
    </resource-map>
    <resource-map id="work.new_work_slip">
@@ -179,6 +184,9 @@
       <resource id="ActualCostsNotValid">Die Ist-Kosten sind nicht korrekt</resource>
       <resource id="RemainingCostsNotValid">Die Rest-Kosten sind nicht korrekt</resource>
       <resource id="CostTypeNotValid">Die Kostenart ist nicht gültig</resource>
+
+      <resource id="WorkSlipNotEditable">Arbeitszettel kann nicht bearbeitet werden</resource>
+      <resource id="WorkSlipIsControlled">Teile des Arbeitszettels sind bereits abgenommen - Bearbeiten ist nicht möglich</resource>
    </resource-map>
    <resource-map id="work.delete">
       <resource id="ConfirmDelete">Arbeitszettel löschen</resource>

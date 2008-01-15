@@ -4,6 +4,7 @@
 
 package onepoint.project.modules.project;
 
+import onepoint.persistence.OpCustomSubTypable;
 import onepoint.persistence.OpEntityException;
 import onepoint.persistence.OpObject;
 import onepoint.persistence.OpSubTypable;
@@ -14,7 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class OpProjectNode extends OpObject implements OpSubTypable {
+public class OpProjectNode extends OpObject implements OpSubTypable, OpCustomSubTypable {
 
    public final static String PROJECT_NODE = "OpProjectNode";
 
@@ -55,6 +56,7 @@ public class OpProjectNode extends OpObject implements OpSubTypable {
 
    private String name;
    private byte type;
+   private String customTypeName;
    private String description;
    private Date start;
    private Date finish;
@@ -84,6 +86,17 @@ public class OpProjectNode extends OpObject implements OpSubTypable {
 
    public void setType(byte type) {
       this.type = type;
+   }
+
+   private void setCustomTypeName(String customTypeName) {
+      this.customTypeName = customTypeName;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomSubTypable#getCustomTypeName()
+    */
+   public String getCustomTypeName() {
+      return customTypeName;
    }
 
    public Byte getType() {
@@ -402,5 +415,4 @@ public class OpProjectNode extends OpObject implements OpSubTypable {
          throw new OpEntityException(OpProjectError.PORTFOLIO_NAME_MISSING);
       }
    }
-
 }
