@@ -1,0 +1,21 @@
+<language-kit locale="de">
+   <resource-map id="project_checklist.module">
+      <resource id="ProjectChecklistTool">Checkliste</resource>
+   </resource-map>
+
+   <resource-map id="project_checklist.project_checklist">
+      <resource id="Save">Speichern</resource>
+      <resource id="Revert">Verwerfen</resource>
+      <resource id="SaveTooltip">Speichern</resource>
+      <resource id="RevertTooltip">Verwerfen</resource>
+      <resource id="Subject">Betreff</resource>
+      <resource id="Priority">Priorität</resource>
+      <resource id="DueTo">Fällig am</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Abbrechen</resource>
+   </resource-map>
+
+   <resource-map id="project_checklist.error">
+      <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind außerhalb des gültigen Wertebereichs (1-9)</resource>
+   </resource-map>
+</language-kit>

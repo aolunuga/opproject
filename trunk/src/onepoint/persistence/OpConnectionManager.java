@@ -42,6 +42,7 @@ public final class OpConnectionManager {
    private static final String INVALID_CONNECTION_STRING_SQLSTATE = "08001";
    private static final String EXEC_PHASE_ERRORS_SQLSTATE_ORCL = "72000";    // SQL execute phase errors
    private static final String EXEC_PHASE_ERRORS_SQLSTATE_MSSQL = "S0001";    // SQL execute phase errors
+   private static final String EXEC_PHASE_ERRORS_SQLSTATE_POSTGRESQL = "42704";    // SQL execute phase errors
 
    private static final Map<Integer, Map<String, Integer>> EXCEPTIONAL_SQLSTATES;
 
@@ -52,9 +53,13 @@ public final class OpConnectionManager {
       Map<String, Integer> msSqlSqlstates = new HashMap<String, Integer>();
       msSqlSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_MSSQL, INVALID_CREDENTIALS_EXCEPTION);
 
+      Map<String, Integer> postgersSqlstates = new HashMap<String, Integer>();
+      postgersSqlstates.put(EXEC_PHASE_ERRORS_SQLSTATE_POSTGRESQL, INVALID_CREDENTIALS_EXCEPTION);
+
       EXCEPTIONAL_SQLSTATES = new HashMap<Integer, Map<String, Integer>>();
       EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.ORACLE, oracleSqlstates);
       EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.MSSQL, msSqlSqlstates);
+      EXCEPTIONAL_SQLSTATES.put(OpHibernateSource.POSTGRESQL, postgersSqlstates);
    }
 
    /**

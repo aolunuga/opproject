@@ -453,7 +453,7 @@ public class OpProjectStatusServiceTest extends OpBaseOpenTestCase {
       request = new XMessage();
       request.setArgument(OpProjectAdministrationService.PROJECT_DATA, args);
       request.setArgument(OpProjectAdministrationService.GOALS_SET, new XComponent(XComponent.DATA_SET));
-      request.setArgument(OpProjectAdministrationService.TO_DOS_SET, new XComponent(XComponent.DATA_SET));
+      request.setArgument("to_dos_set", new XComponent(XComponent.DATA_SET));
       
       XComponent attachmentDataSet = OpProjectTestDataFactory.createEmptyAttachmentDataSet();
       request.setArgument(OpProjectAdministrationService.ATTACHMENTS_LIST_SET, attachmentDataSet);

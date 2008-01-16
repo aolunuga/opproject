@@ -1,0 +1,2 @@
+<service name="ProjectChecklistService" class="onepoint.project.modules.project_checklist.OpProjectChecklistService" interceptor="onepoint.project.OpServiceInterceptor">
+</service>

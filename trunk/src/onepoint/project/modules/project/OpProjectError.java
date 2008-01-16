@@ -28,7 +28,6 @@ public interface OpProjectError {
 
    public final static int PROJECT_LOCKED_ERROR = 18;
    public final static int GOAL_PRIORITY_ERROR = 19;
-   public final static int TODO_PRIORITY_ERROR = 20;
 
    public final static int LOOP_ASSIGNMENT_ERROR = 21;
 
@@ -64,7 +63,6 @@ public interface OpProjectError {
    public final static String WORKRECORDS_STILL_EXIST_WARNING_NAME = "WorkRecordsStillExistWarning";
    public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
    public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
-   public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
    public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
    public final static String INTERNAL_RATE_NOT_VALID_NAME = "InternalRateNotValid";
    public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";

@@ -38,7 +38,6 @@ function ok(event) {
    }
 
    goals_set = XDisplay.getActiveForm().findComponent("GoalsSet");
-   to_dos_set = XDisplay.getActiveForm().findComponent("ToDosSet");
 
    assigned_resource_set = XDisplay.getActiveForm().findComponent("AssignedResourceDataSet");
    attachmentList = getAttachments();
@@ -49,7 +48,6 @@ function ok(event) {
    request.setAction("ProjectService.insertProject");
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
-   request.setArgument("to_dos_set", to_dos_set);
    request.setArgument("resource_set", assigned_resource_set);
 
    //put the list of attachments into a XComponent so that the file can be replaced with it's path

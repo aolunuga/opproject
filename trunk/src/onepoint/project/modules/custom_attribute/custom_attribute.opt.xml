@@ -9,5 +9,5 @@
    <field name="Position" type="Integer" indexed="true" />
    <field name="Sequence" type="Integer" ordered="true"/>
    <field name="MinRole" type="Byte" />
-   <relationship name="CustomType" type="OpCustomType" back-relationship="CustomAttribute"/>
+   <relationship name="CustomType" type="OpCustomType" back-relationship="CustomAttributes"/>
 </prototype>

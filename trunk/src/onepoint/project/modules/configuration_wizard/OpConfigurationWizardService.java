@@ -273,11 +273,15 @@ public class OpConfigurationWizardService extends OpProjectService {
             Node child = children.item(i);
 
             NamedNodeMap attributes = child.getAttributes();
-            Node attr = attributes.getNamedItem(OpConfigurationValuesHandler.NAME_ATTRIBUTE);
-            String attributeValue = attr.getNodeValue();
+            if (attributes != null) {
+               Node attr = attributes.getNamedItem(OpConfigurationValuesHandler.NAME_ATTRIBUTE);
+               if (attr != null) {
+                  String attributeValue = attr.getNodeValue();
 
-            if (OpConfigurationValuesHandler.DATABASE.equals(child.getNodeName()) && dataBaseConfigName.equals(attributeValue)) {
-               dataBaseConfig = (Element) child; // found correct  
+                  if (OpConfigurationValuesHandler.DATABASE.equals(child.getNodeName()) && dataBaseConfigName.equals(attributeValue)) {
+                     dataBaseConfig = (Element) child; // found correct
+                  }
+               }
             }
          }
          if (dataBaseConfig == null) {

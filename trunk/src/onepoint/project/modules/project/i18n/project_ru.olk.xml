@@ -93,9 +93,6 @@
       <resource id="Subject">Описание цели</resource>
       <resource id="Priority">Приоритет</resource>
 
-      <resource id="Tasks">To Dos</resource>
-      <resource id="DueTo">Due</resource>
-
       <resource id="Resources">Ресурсы</resource>
       <resource id="Resource">Resource</resource>
       <resource id="AdjustRates">Adjust Rates</resource>
@@ -136,9 +133,6 @@
       <resource id="Goals">Цели</resource>
       <resource id="Subject">Описание цели</resource>
       <resource id="Priority">Приоритет</resource>
-
-      <resource id="Tasks">To Dos</resource>
-      <resource id="DueTo">Due</resource>
 
       <resource id="Versions">Версии</resource>
       <resource id="Version">Версия</resource>
@@ -221,7 +215,6 @@
       <resource id="ActivityAssignmentsExistError">Ресурс не может быть удален из проекта, так как он уже назначен на некоторые задачи</resource>
       <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
-      <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
       <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
       <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>

@@ -93,9 +93,6 @@
       <resource id="Subject">Subject</resource>
       <resource id="Priority">Priority</resource>
 
-      <resource id="Tasks">To Dos</resource>
-      <resource id="DueTo">Due on</resource>
-
       <resource id="Resources">Resources</resource>
       <resource id="Resource">Resource</resource>
       <resource id="AdjustRates">Adjust Rates</resource>
@@ -139,9 +136,6 @@
       <resource id="Goals">Goals</resource>
       <resource id="Subject">Subject</resource>
       <resource id="Priority">Priority</resource>
-
-      <resource id="Tasks">To Dos</resource>
-      <resource id="DueTo">Due</resource>
 
       <resource id="Versions">Versions</resource>
       <resource id="Version">Version</resource>
@@ -223,7 +217,6 @@
       <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
       <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
       <resource id="GoalPriorityError">Some of the goal priorities are invalid (1-9)</resource>
-      <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
       <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
       <resource id="InternalRateNotValid">The entered internal hourly rate is not valid</resource>
       <resource id="ExternalRateNotValid">The entered external hourly rate is not valid</resource>

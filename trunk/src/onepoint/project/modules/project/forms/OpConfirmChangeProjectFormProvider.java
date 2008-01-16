@@ -21,7 +21,6 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider {
    private final static String PROJECT_ID = "project_id";
    private final static String PROJECT_DATA = "project_data";
    private final static String GOALS_SET = "goals_set";
-   private final static String TO_DOS_SET = "to_dos_set";
    private final static String RESOURCE_SET = "resource_set";
    private final static String VERSIONS_SET = "versions_set";
    private final static String ATTACHMENT_SET = "attachment_set";
@@ -47,13 +46,6 @@ public class OpConfirmChangeProjectFormProvider implements XFormProvider {
       for (int i = 0; i < goalsSet.getChildCount(); i++) {
          dataRow = (XComponent) goalsSet.getChild(i);
          formGoalsSet.addChild(dataRow.copyData());
-      }
-
-      XComponent toDosSet = (XComponent) (parameters.get(TO_DOS_SET));
-      XComponent formToDosSet = form.findComponent(TO_DOS_SET);
-      for (int i = 0; i < toDosSet.getChildCount(); i++) {
-         dataRow = (XComponent) toDosSet.getChild(i);
-         formToDosSet.addChild(dataRow.copyData());
       }
 
       XComponent resourceSet = (XComponent) (parameters.get(RESOURCE_SET));

@@ -30,7 +30,6 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_ERROR,OpProjectError.WORKRECORDS_STILL_EXIST_ERR0R_NAME);
       registerErrorCode(OpProjectError.WORKRECORDS_STILL_EXIST_WARNING,OpProjectError.WORKRECORDS_STILL_EXIST_WARNING_NAME);
       registerErrorCode(OpProjectError.PROJECT_LOCKED_ERROR, OpProjectError.PROJECT_LOCKED_ERROR_NAME);
-      registerErrorCode(OpProjectError.TODO_PRIORITY_ERROR, OpProjectError.TODO_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.GOAL_PRIORITY_ERROR, OpProjectError.GOAL_PRIORITY_ERROR_NAME);
       registerErrorCode(OpProjectError.LOOP_ASSIGNMENT_ERROR, OpProjectError.LOOP_ASSIGNMENT_ERROR_NAME);
       registerErrorCode(OpProjectError.INTERNAL_RATE_NOT_VALID, OpProjectError.INTERNAL_RATE_NOT_VALID_NAME);

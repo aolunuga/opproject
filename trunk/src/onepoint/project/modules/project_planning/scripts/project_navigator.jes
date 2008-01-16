@@ -23,6 +23,8 @@ function changeProject(event) {
       contentFrame = XDisplay.findFrame("ProjectContentFrame");
       form = contentFrame.currentForm();
       activitiesFormId = "ActivitiesForm";
+      // form from project_checklist
+      toDosFormId = "ProjectChecklistForm";
       // only update project status if user selected a project or template (not a portfolio)
       if (descriptor.equals("p") || descriptor.equals("t")) {
          if (form.getID() != null) {
@@ -36,6 +38,12 @@ function changeProject(event) {
                arguments[0] = event;
                form.invokeFunction("autoSave", arguments);
             }
+
+            if (form.getID().equals(toDosFormId)) {
+               event.sourceForm = form;
+               arguments[0] = event;
+               form.invokeFunction("saveToDos", arguments);
+            }
          }
          Console.println("==> PROJECT NAVIGATOR refresh content form");
          contentFrame.refreshForm(parameters);
@@ -45,6 +53,9 @@ function changeProject(event) {
          if (form.getID() != null) {
             if (form.getID().equals(activitiesFormId)) {
                disableActivitiesFormToolbar(form);
+            }
+            if (form.getID().equals(toDosFormId)) {
+               disableContent(form);
             }
          }
       }
@@ -123,3 +134,25 @@ function disableImportExportButtons(form) {
    form.findComponent("ExportButton").setEnabled(false);
    form.repaint();
 }
+
+// disable the content from project_checklist.oxf.xml form
+function disableContent(form) {
+   form.findComponent("SaveButton").setEnabled(false);
+   form.findComponent("RevertButton").setEnabled(false);
+   form.findComponent("ToDosTableBox").setEnabled(false);
+   form.findComponent("ToDosTableBox").setEditMode(false);
+   form.findComponent("PlusButton").setEnabled(false);
+   form.findComponent("MinusButton").setEnabled(false);
+
+   //hide all todos
+   toDosSet = form.findComponent("ToDosSet");
+   i = 0;
+   while (i < toDosSet.getChildCount()) {
+      dataRow = toDosSet.getChild(i);
+      dataRow.setFiltered(true);
+      i++;
+   }
+   form.findComponent("ToDosTableBox").update();
+   form.repaint();
+}
+

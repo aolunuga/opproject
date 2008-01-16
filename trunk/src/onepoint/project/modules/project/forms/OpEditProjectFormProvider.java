@@ -41,7 +41,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String EDIT_MODE = "EditMode";
    private final static String ORIGINAL_START_DATE = "OriginalStartDate";
    private final static String GOALS_SET = "GoalsSet";
-   private final static String TO_DOS_SET = "ToDosSet";
    private final static String PERMISSION_SET = "PermissionSet";
    private final static String ATTACHMENTS_SET = "AttachmentSet";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
@@ -56,12 +55,10 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String FORM_WORKING_VERSION_NUMBER = "WorkingVersionNumber";
    private final static String FORM_CURRENT_VERSION_NUMBER = "CurrentVersionNumber";
    private final static String GOALS_TABLE_BOX = "GoalsTableBox";
-   private final static String TODOS_TABLE_BOX = "ToDosTableBox";
    private final static String TODAY_DATE_FIELD = "Today";
    private final static String END_OF_YEAR_DATE_FIELD = "EndOfYear";
    private final static String GOALS_TOOLS_PANEL = "GoalsToolPanel";
    private final static String CANCEL = "Cancel";
-   private final static String TAKS_TOOL_PANEL = "TasksToolPanel";
    private static final String VERSIONS_TABLE = "VersionsTableBox";
    private final static String RESOURCES_TABLE = "ResourcesTable";
    private final static String RESOURCE_TOOL_PANEL = "ResourcesToolPanel";
@@ -182,9 +179,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       //goals
       this.fillGoals(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
-
-      //to dos
-      this.fillToDos(form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
 
       //fill the version of the project
       this.fillProjectPlanVersions(form, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER) && isAdministrator, project, session, broker);
@@ -527,47 +521,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
       form.findComponent(ADD_URL_BUTTON).setEnabled(editMode);
       form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(editMode);
       form.findComponent(ATTACHMENTS_TOOL_PANEL).setVisible(editMode);
-   }
-
-   /**
-    * Fills the goals for the edited project.
-    *
-    * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
-    * @param project  a <code>OpProjectNode</code> representing the project being edited.
-    * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
-    */
-   private void fillToDos(XComponent form, OpProjectNode project, boolean editMode) {
-      XComponent dataSet = form.findComponent(TO_DOS_SET);
-      XComponent dataRow;
-      XComponent dataCell;
-
-      for (OpToDo toDo : project.getToDos()) {
-         dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(toDo.locator());
-         dataSet.addChild(dataRow);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setBooleanValue(toDo.getCompleted());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setStringValue(toDo.getName());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setIntValue(toDo.getPriority());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-         dataCell = new XComponent(XComponent.DATA_CELL);
-         dataCell.setDateValue(toDo.getDue());
-         dataCell.setEnabled(true);
-         dataRow.addChild(dataCell);
-      }
-      //sort to dos data set based on to do's name (data cell with index 1)
-      dataSet.sort(1);
-
-      form.findComponent(TAKS_TOOL_PANEL).setVisible(editMode);
-      form.findComponent(TODOS_TABLE_BOX).setEnabled(editMode);
-      form.findComponent(TODOS_TABLE_BOX).setEditMode(editMode);
    }
 
    /**
