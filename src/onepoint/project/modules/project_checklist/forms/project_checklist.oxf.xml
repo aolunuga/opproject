@@ -1,0 +1,40 @@
+<form id="ProjectChecklistForm" layout="border" resource-map-ref="project_checklist.project_checklist"
+      provider-class="onepoint.project.modules.project_checklist.forms.OpProjectChecklistFormProvider"
+      script="/modules/project_checklist/scripts/project_checklist.jes" on-unload="saveToDos">
+
+   <data-field id="ProjectId"/>
+   <data-set id="ToDosSet"/>
+
+   <panel y="0" flexible="true" layout="border" style-ref="layout-panel-default">
+      <panel layout="border" style-ref="tool-panel-default" y="-1">
+         <tool-bar>
+            <tool-button id="SaveButton" enabled="true" text="${Save}" icon="/icons/save.png"
+                         disabled-icon="/icons/save_disabled.png" on-button-pressed="saveToDos"
+                         tooltip="${SaveTooltip}"/>
+
+            <tool-button id="RevertButton" enabled="true" text="${Revert}" icon="/modules/project_checklist/icons/revert.png"
+                         disabled-icon="/modules/project_checklist/icons/revert_disabled.png" on-button-pressed="revertToDos"
+                         tooltip="${RevertTooltip}"/>
+         </tool-bar>
+      </panel>
+
+      <panel y="0" layout="border" style-ref="layout-panel-default">
+         <label y="-1" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
+         <table-box y="0" id="ToDosTableBox" data-set-ref="ToDosSet" flexible="true">
+            <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
+            <table-column text="${Subject}" width="300" data-column-index="1" value-type="String" sortable="true"/>
+            <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true" upper-limit="9" lower-limit="1"/>
+            <table-column text="${DueTo}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
+         </table-box>
+
+         <panel id="TasksToolPanel" y="1" layout="flow" direction="east">
+            <button id="PlusButton" style-ref="icon-button-default" icon="/icons/plus_s.png"
+                    disabled-icon="/icons/plus_s_disabled.png" on-button-pressed="addToDo"/>
+            <button id="MinusButton" style-ref="icon-button-default" icon="/icons/minus_s.png"
+                    disabled-icon="/icons/minus_s_disabled.png" on-button-pressed="removeToDos"/>
+         </panel>
+      </panel>
+      <status-bar y="1"/>
+   </panel>
+
+</form>

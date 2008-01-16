@@ -13,6 +13,7 @@ import onepoint.project.modules.configuration_wizard.OpConfigurationWizardServic
 import onepoint.project.modules.my_tasks.OpMyTasksService;
 import onepoint.project.modules.preferences.OpPreferencesService;
 import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project_checklist.OpProjectChecklistService;
 import onepoint.project.modules.project_planning.OpProjectPlanningService;
 import onepoint.project.modules.project_status.OpProjectStatusService;
 import onepoint.project.modules.report.OpReportService;
@@ -86,6 +87,8 @@ public abstract class OpTestDataFactory {
    // Name of the documents service.
    public static final String DOCUMENTS_SERVICE_NAME = "DocumentsService";
 
+   // Name of the project checklist service
+   public static final String PROJECT_CHECKLIST_SERVICE_NAME = "ProjectChecklistService";
 
    /**
     * Creates a new data factory with the given session
@@ -257,6 +260,15 @@ public abstract class OpTestDataFactory {
     */
    public static OpResourceUtilizationService getResourceUtilizationService() {
       return (OpResourceUtilizationService) XServiceManager.getService(RESOURCE_UTILIZATION_SERVICE_NAME);
+   }
+
+   /**
+    * Return the Project Checklist Service instance
+    *
+    * @return an instance of <code>OpProjectChecklistService</code>
+    */
+   public static OpProjectChecklistService getProjectChecklistService() {
+      return (OpProjectChecklistService) XServiceManager.getService(PROJECT_CHECKLIST_SERVICE_NAME);
    }
 
 }

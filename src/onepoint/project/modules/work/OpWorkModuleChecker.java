@@ -200,6 +200,7 @@ public class OpWorkModuleChecker extends OpProjectModuleChecker {
          //remaining values
          if (activity.getProjectPlan().getProgressTracked()) {
             activity.setRemainingEffort(activity.getBaseEffort());
+            activity.setComplete(0.0);
          }
          else {
             double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), activity.getComplete());

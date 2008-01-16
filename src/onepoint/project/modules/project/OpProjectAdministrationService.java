@@ -45,7 +45,6 @@ public class OpProjectAdministrationService extends OpProjectService {
    public final static String PORTFOLIO_ID = "portfolio_id";
    public final static String PORTFOLIO_IDS = "portfolio_ids";
    public final static String GOALS_SET = "goals_set";
-   public final static String TO_DOS_SET = "to_dos_set";
    public final static String ATTACHMENTS_LIST_SET = "attachments_list_set";
    public final static String EDIT_MODE = "edit_mode";
    public final static String NULL_ID = "null";
@@ -224,14 +223,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          return reply;
       }
 
-      // Insert to dos
-      XComponent toDosDataSet = (XComponent) (request.getArgument(TO_DOS_SET));
-      reply = insertToDos(session, broker, project, toDosDataSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
-
       //insert project assignments
       XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
       reply = insertProjectAssignments(session, broker, project, assignedResourcesSet);
@@ -300,47 +291,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          }
 
          broker.makePersistent(goal);
-      }
-      return reply;
-   }
-
-   /**
-    * Inserts the to dos related to the project passed as a parameter. In case of an error returns
-    * an <code>XMessage</code> object containing the error code
-    *
-    * @param session
-    * @param broker
-    * @param project      - the project for which the to dos are inserted
-    * @param toDosDataSet - the clients data set containing the information about the project to dos
-    * @return - an <code>XMessage</code> object containing the error code in case of an error
-    */
-   private XMessage insertToDos(OpProjectSession session, OpBroker broker,
-        OpProjectNode project, XComponent toDosDataSet) {
-      //the reply message
-      XMessage reply = new XMessage();
-      OpToDo toDo;
-      XComponent data_row;
-      XComponent data_cell;
-
-      for (int i = 0; i < toDosDataSet.getChildCount(); i++) {
-         data_row = (XComponent) (toDosDataSet.getChild(i));
-         toDo = new OpToDo();
-         toDo.setProjectNode(project);
-         data_cell = (XComponent) (data_row.getChild(0));
-         toDo.setCompleted(data_cell.getBooleanValue());
-         data_cell = (XComponent) (data_row.getChild(1));
-         toDo.setName(data_cell.getStringValue());
-         data_cell = (XComponent) (data_row.getChild(2));
-         if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
-            reply.setError(session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR));
-            return reply;
-         }
-         else {
-            toDo.setPriority((byte) data_cell.getIntValue());
-         }
-         data_cell = (XComponent) (data_row.getChild(3));
-         toDo.setDue(data_cell.getDateValue());
-         broker.makePersistent(toDo);
       }
       return reply;
    }
@@ -583,13 +533,6 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
 
-         // Update current to dos
-         XComponent toDosDataSet = (XComponent) (request.getArgument(TO_DOS_SET));
-         reply = updateToDos(session, broker, project, toDosDataSet);
-         if (reply.getError() != null) {
-            return reply;
-         }
-
          //Update attachments
          XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
          List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
@@ -804,97 +747,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          goal = (OpGoal) (goal_map.get((String) (locators.next())));
          goal_set.remove(goal);
          broker.deleteObject(goal);
-      }
-      return reply;
-   }
-
-   private XMessage updateToDos(OpProjectSession session, OpBroker broker,
-        OpProjectNode project, XComponent toDosDataSet) {
-      //the reply message
-      XMessage reply = new XMessage();
-
-      Map<String, OpToDo> to_do_map = new HashMap<String, OpToDo>();
-      Iterator to_dos = project.getToDos().iterator();
-      OpToDo to_do;
-      while (to_dos.hasNext()) {
-         to_do = (OpToDo) (to_dos.next());
-         to_do_map.put(to_do.locator(), to_do);
-      }
-
-      XComponent data_row;
-      XComponent data_cell;
-      boolean updated;
-
-      for (int i = 0; i < toDosDataSet.getChildCount(); i++) {
-         data_row = (XComponent) (toDosDataSet.getChild(i));
-         to_do = (OpToDo) (to_do_map.remove(data_row.getStringValue()));
-         if (to_do != null) {
-            // Compare values and update to do if values have changed
-            updated = false;
-            // completed data cell
-            data_cell = (XComponent) (data_row.getChild(0));
-            if (to_do.getCompleted() != data_cell.getBooleanValue()) {
-               to_do.setCompleted(data_cell.getBooleanValue());
-               updated = true;
-            }
-            data_cell = (XComponent) (data_row.getChild(1));
-            if ((to_do.getName() != null && !to_do.getName().equals(data_cell.getStringValue())) ||
-                 (to_do.getName() == null && data_cell.getStringValue() != null)) {
-               to_do.setName(data_cell.getStringValue());
-               updated = true;
-            }
-            data_cell = (XComponent) (data_row.getChild(2));
-            if (to_do.getPriority() != data_cell.getIntValue()) {
-               if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
-                  reply.setError(session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR));
-                  return reply;
-               }
-               else {
-                  to_do.setPriority((byte) data_cell.getIntValue());
-                  updated = true;
-               }
-            }
-            data_cell = (XComponent) (data_row.getChild(3));
-            if (to_do.getDue() != data_cell.getDateValue()) {
-               if ((to_do.getDue() == null) || (data_cell.getDateValue() == null)
-                    || (!to_do.getDue().equals(data_cell.getDateValue()))) {
-                  to_do.setDue(data_cell.getDateValue());
-                  updated = true;
-               }
-            }
-            if (updated) {
-               broker.updateObject(to_do);
-            }
-         }
-         else {
-            // Insert new to do
-            to_do = new OpToDo();
-            to_do.setProjectNode(project);
-            data_cell = (XComponent) (data_row.getChild(0));
-            to_do.setCompleted(data_cell.getBooleanValue());
-            data_cell = (XComponent) (data_row.getChild(1));
-            to_do.setName(data_cell.getStringValue());
-            data_cell = (XComponent) (data_row.getChild(2));
-            if (data_cell.getIntValue() < 1 || data_cell.getIntValue() > 9) {
-               reply.setError(session.newError(ERROR_MAP, OpProjectError.TODO_PRIORITY_ERROR));
-               return reply;
-            }
-            else {
-               to_do.setPriority((byte) data_cell.getIntValue());
-
-            }
-            data_cell = (XComponent) (data_row.getChild(3));
-            to_do.setDue(data_cell.getDateValue());
-            broker.makePersistent(to_do);
-         }
-      }
-      // Remove outdated to dos from set and delete them
-      Iterator locators = to_do_map.keySet().iterator();
-      Set to_do_set = project.getToDos();
-      while (locators.hasNext()) {
-         to_do = (OpToDo) (to_do_map.get((String) (locators.next())));
-         to_do_set.remove(to_do);
-         broker.deleteObject(to_do);
       }
       return reply;
    }

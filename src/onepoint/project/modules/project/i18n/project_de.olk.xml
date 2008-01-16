@@ -93,9 +93,6 @@
       <resource id="Subject">Betreff</resource>
       <resource id="Priority">Priorität</resource>
 
-      <resource id="Tasks">Aufgaben</resource>
-      <resource id="DueTo">Fällig am</resource>
-
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="AdjustRates">Stundensätze anpassen</resource>
@@ -139,9 +136,6 @@
       <resource id="Goals">Ziele</resource>
       <resource id="Subject">Betreff</resource>
       <resource id="Priority">Priorität</resource>
-
-      <resource id="Tasks">Aufgaben</resource>
-      <resource id="DueTo">Fällig am</resource>
 
       <resource id="Permissions">Berechtigungen</resource>
 
@@ -228,7 +222,6 @@
       <resource id="ActivityAssignmentsExistError">Die Ressource kann nicht aus dem Projekt entfernt werden, da sie noch in Vorgängen verwendet wird</resource>
       <resource id="ProjectLockedError">Das Projekt kann nicht verändert werden, da eine Arbeitskopie existiert</resource>
       <resource id="GoalPriorityError">Einige Prioritäten der Ziele sind außerhalb des gültigen Wertebereichs (1-9)</resource>
-      <resource id="TodoPriorityError">Einige Prioritäten der Aufgaben sind außerhalb des gültigen Wertebereichs (1-9)</resource>
       <resource id="LoopAssignment">Diese Zuweisung würde eine Schleife erzeugen</resource>
       <resource id="InternalRateNotValid">Der angegebene interne Stundensatz ist ungültig</resource>
       <resource id="ExternalRateNotValid">Der angegebene externe Stundensatz ist ungültig</resource>      

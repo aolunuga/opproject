@@ -20,4 +20,5 @@
    <module-file file-name="/modules/project_status/module.oxm.xml"/>
    <module-file file-name="/modules/repository/module.oxm.xml"/>
    <module-file file-name="/modules/skills/module.oxm.xml"/>
+   <module-file file-name="/modules/project_checklist/module.oxm.xml"/>
 </module-registry>

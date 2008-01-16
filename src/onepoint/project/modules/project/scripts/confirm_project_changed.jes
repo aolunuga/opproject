@@ -16,7 +16,6 @@ function ok(event) {
    project_id = form.findComponent("project_id").getValue();
    project_data = form.findComponent("project_data").getValue();
    goals_set = form.findComponent("goals_set");
-   to_dos_set = form.findComponent("to_dos_set");
    resource_set = form.findComponent("resource_set");
    versions_set = form.findComponent("versions_set");
    attachment_set = form.findComponent("attachment_set");
@@ -27,7 +26,6 @@ function ok(event) {
    request.setArgument("project_id", project_id);
    request.setArgument("project_data", project_data);
    request.setArgument("goals_set", goals_set);
-   request.setArgument("to_dos_set", to_dos_set);
    request.setArgument("resource_set", resource_set);
    request.setArgument("versions_set", versions_set);
    request.setArgument("attachments_list_set", attachment_set);

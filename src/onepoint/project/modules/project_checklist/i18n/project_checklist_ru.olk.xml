@@ -1,0 +1,21 @@
+<language-kit locale="ru">
+   <resource-map id="project_checklist.module">
+      <resource id="ProjectChecklistTool">Checklist</resource>
+   </resource-map>
+
+   <resource-map id="project_checklist.project_checklist">
+      <resource id="Save">Save</resource>
+      <resource id="Revert">Revert</resource>
+      <resource id="SaveTooltip">Save</resource>
+      <resource id="RevertTooltip">Revert</resource>
+      <resource id="Subject">Subject</resource>
+      <resource id="Priority">Priority</resource>
+      <resource id="DueTo">Due on</resource>
+      <resource id="OK">OK</resource>
+      <resource id="Cancel">Cancel</resource>
+   </resource-map>
+
+   <resource-map id="project_checklist.error">
+      <resource id="TodoPriorityError">Some of the to do priorities are invalid (1-9)</resource>
+   </resource-map>
+</language-kit>

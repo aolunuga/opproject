@@ -256,7 +256,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       Date startDate = new Date(getCalendarWithExactDaySet(2007, 6, 1).getTimeInMillis());
 
       XMessage request = OpProjectTestDataFactory.createProjectMsg(PRJ_NAME, startDate, 1000d, null, null,
-           Boolean.FALSE, Boolean.TRUE, resources, null, null);
+           Boolean.FALSE, Boolean.TRUE, resources, null);
       XMessage response = OpTestDataFactory.getProjectService().insertProject(session, request);
       assertNoError(response);
 

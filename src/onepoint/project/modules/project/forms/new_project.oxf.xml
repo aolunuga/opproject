@@ -55,22 +55,7 @@
                <icon-button icon-type="MinusSign" on-button-pressed="removeGoals"/>
                <!-- maybe in addition: Up- and down-arrows -->
             </panel>
-         </tab>
-
-         <!-- To Do tab - 2 -->
-         <tab text="${Tasks}" layout="border" id="TasksTab">
-            <data-set id="ToDosSet"/>
-            <table-box y="0" id="ToDosTableBox" data-set-ref="ToDosSet" flexible="true">
-               <table-column text="" width="20" data-column-index="0" value-type="Boolean" sortable="true"/>
-               <table-column text="${Subject}" width="300" data-column-index="1" value-type="String" sortable="true"/>
-               <table-column text="${Priority}" width="60" data-column-index="2" value-type="Int" sortable="true" upper-limit="9" lower-limit="1"/>
-               <table-column text="${DueTo}" width="70" data-column-index="3" value-type="Date" sortable="true"/>
-            </table-box>
-            <panel id="TasksToolPanel" y="1" layout="flow" direction="east">
-               <icon-button icon-type="PlusSign" on-button-pressed="addToDo"/>
-               <icon-button icon-type="MinusSign" on-button-pressed="removeToDos"/>
-            </panel>
-         </tab>
+         </tab>      
 
          <!-- Attachments tab - 3 -->
          <tab text="${Attachments}" layout="border" id="AttachmentsTab">
