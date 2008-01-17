@@ -235,7 +235,8 @@ public class OpInitializer {
    /**
     * Loads the configuration file which will be used by the initializer.
     *
-    * @throws OpInvalidDataBaseConfigurationException if the configuration file cannot be loaded.
+    * @throws OpInvalidDataBaseConfigurationException
+    *          if the configuration file cannot be loaded.
     */
    protected void loadConfigurationFile()
         throws OpInvalidDataBaseConfigurationException {
@@ -265,9 +266,10 @@ public class OpInitializer {
 
    /**
     * Initializes the database connection, based on the configuration settings.
+    *
     * @return a <code>OpDatabaseConfiguration</code> object if the settings are correct
-    * or <code>null</code> if the settings are incorrect and/or a connection to the db
-    * could not be established.
+    *         or <code>null</code> if the settings are incorrect and/or a connection to the db
+    *         could not be established.
     */
    protected OpDatabaseConfiguration initDatabaseConnection() {
       //get the db connection parameters
@@ -299,7 +301,7 @@ public class OpInitializer {
     * @param databasePassword database user password
     * @param databaseType     database type
     */
-   private void registerDataSources(String databaseUrl, String databaseDriver,
+   protected void registerDataSources(String databaseUrl, String databaseDriver,
         String databaseLogin, String databasePassword, int databaseType) {
 
       // close all existing data sources.

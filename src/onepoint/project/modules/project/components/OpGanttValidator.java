@@ -1391,6 +1391,7 @@ public class OpGanttValidator extends XValidator {
             if (activity.expandable()) {
                activity.expanded(true, false);
             }
+            resetComplete(activity);
             break;
          case SCHEDULED_TASK:
             activity.getChild(START_COLUMN_INDEX).setEnabled(true);
@@ -1481,6 +1482,7 @@ public class OpGanttValidator extends XValidator {
             setResourceBaseEfforts(activity, resourcesEfforts);
             //break all the links
             breakAllLinks(activity);
+            resetComplete(activity);
 
             if (getPriority(activity) == null || !activity.getChild(PRIORITY_COLUMN_INDEX).getEnabled()) {
                activity.getChild(PRIORITY_COLUMN_INDEX).setEnabled(true);
@@ -1495,6 +1497,15 @@ public class OpGanttValidator extends XValidator {
             break;
       }
    }
+
+      private void resetComplete(XComponent activity) {
+      Boolean trackingSetting = getProgressTracked();
+      if (trackingSetting == null || trackingSetting.booleanValue()) {
+            if (getResources(activity).isEmpty() && getComplete(activity) != 0) {
+               setComplete(activity, 0);
+            }
+         }
+      }
 
    /**
     * Breaks all the links from and to this activity (successors and predecessors)

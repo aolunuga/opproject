@@ -67,6 +67,16 @@ public class OpSourceManager {
    }
 
    /**
+    * Returns the default source
+    *
+    * @return an <code>OpSource</code> instance or <code>null</code> if the default
+    * source hasn't been registered.
+    */
+   public static OpSource getDefaultSource() {
+      return sources.get(OpSource.DEFAULT_SOURCE_NAME);
+   }
+
+   /**
     * Checks whether the source manager contains a source with the given name.
     * @param sourceName a <code>String</code> representing the name of a source.
     * @return <code>true</code> if this source manager has registered a source with
