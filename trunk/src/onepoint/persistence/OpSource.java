@@ -9,17 +9,21 @@ package onepoint.persistence;
  * <FIXME author="Horia Chiorean" description="This class shouldn't exist. We are only using hibernate...and this leads to confusion and *ugly* code">
  */
 public abstract class OpSource {
-   // source name.
+
+   /**
+    * Defines the name used to register default source
+    */
+   public static final String DEFAULT_SOURCE_NAME = "admin";
+
+   /**
+    * Source name.
+    */
    private String name;
 
    /**
     * Inidicates whether this source should be embeded or not.
     */
    private boolean embeded = false;
-   /**
-    * Defines the name used to register default source
-    */
-   public static final String DEFAULT_SOURCE_NAME = "default_source";
 
 
    /**
