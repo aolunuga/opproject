@@ -36,8 +36,6 @@ public interface OpUserError {
    public final static int PERMISSION_LEVEL_ERROR = 21;
    public final static int ADMIN_PERMISSION_ERROR = 22;
 
-   public final static int SITE_IS_INVALID = 23;
-
    public final static int OUT_OF_MEMORY = 24;
    public final static int FILE_NOT_FOUND = 25;
 
@@ -71,7 +69,6 @@ public interface OpUserError {
    public final static String DEMOTE_USER_ERROR_NAME = "UserDemoteError";
    public final static String PERMISSION_LEVEL_ERROR_NAME = "PermissionLevelError";
    public final static String ADMIN_PERMISSION_ERROR_NAME = "AdminPermissionError";
-   public final static String SITE_IS_INVALID_NAME = "InvalidSiteError";
 
    public static final String OUT_OF_MEMORY_NAME = "OutOfMemory";
    public static final String FILE_NOT_FOUND_NAME = "FileNotFound";

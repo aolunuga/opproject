@@ -107,13 +107,8 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
 
-      //get the all the ids from the sessions belonging to the current site.
-      List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
-
-      //invalidate all server sessions
-      projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
-      //invalidate the entire site
-      projectSession.getServer().invalidateSite(projectSession.getSourceName());
+      //invalidate the server sessions
+      this.invalidateSessions(projectSession);
 
       try {
          boolean fileCreated = backupFile.createNewFile();
@@ -131,9 +126,25 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
       finally {
-         //revalidate the site
-         projectSession.getServer().validateSite(projectSession.getSourceName());
+         revalidateSession(projectSession);
       }
+   }
+
+   /**
+    * Revalidates a previously invalidated session.
+    * @param activeSession a <code>OpProjectSession</code> which has been invalidated.
+    */
+   protected void revalidateSession(OpProjectSession activeSession) {
+      activeSession.validate();
+   }
+
+   /**
+    * Invalidates all the servers sessions of the server of the given session.
+    * @param activeSession a <code>OpProjectSession</code> a server session.
+    */
+   protected void invalidateSessions(OpProjectSession activeSession) {
+      List<Integer> idsList = activeSession.getIdsOfSessionsWithSameSource();
+      activeSession.getServer().invalidateAllSessions(activeSession.getID(), idsList);
    }
 
    /**
@@ -193,12 +204,8 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
-         //get the all the ids from the sessions belonging to the current site.
-         List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
-
-         //invalidate all server sessions belonging to this site except the current one
-         projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
-         projectSession.getServer().invalidateSite(projectSession.getSourceName());
+         //invalidate all session
+         this.invalidateSessions(projectSession);
 
          OpInitializer initializer = OpInitializerFactory.getInstance().getInitializer();
          initializer.restoreSchemaFromFile(restoreFile.getCanonicalPath(), projectSession);
@@ -214,8 +221,8 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.RESTORE_ERROR_CODE);
       }
       finally {
-         //revalidate the site
-         projectSession.getServer().validateSite(projectSession.getSourceName());
+         revalidateSession(projectSession);
+
       }
       return null;
    }
@@ -234,13 +241,8 @@ public class OpRepositoryService extends OpProjectService {
       }
 
       try {
-         //get the all the ids from the sessions belonging to the current site.
-         List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
-
-         //invalidate all server sessions
-         projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
-         //invalidate the entire site
-         projectSession.getServer().invalidateSite(projectSession.getSourceName());
+         //invalidate sessions
+         this.invalidateSessions(projectSession);
 
          logger.info("Stopping modules");
          OpModuleManager.stop();
@@ -260,8 +262,7 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.RESET_ERROR_CODE);
       }
       finally {
-         //revalidate the site
-         projectSession.getServer().validateSite(projectSession.getSourceName());
+         revalidateSession(projectSession);
       }
       return null;
    }

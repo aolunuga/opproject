@@ -167,7 +167,7 @@ public class OpInitializer {
             initParams.put(OpProjectConstants.RUN_LEVEL, Byte.toString(runLevel));
 
             // Load and register default source
-            registerDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
+            registerDefaultDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
                  dbConfig.getDatabaseLogin(), dbConfig.getDatabasePassword(), dbConfig.getDatabaseType());
             logger.info("Access to database is OK");
             runLevel = 3;
@@ -175,6 +175,10 @@ public class OpInitializer {
 
             //if db schema doesn't exist, create it
             createEmptySchema();
+
+            //register additional datasources, only after the schema has been created
+            registerAdditionalDataSources(dbConfig.getDatabaseUrl(), dbConfig.getDatabaseDriver(),
+                 dbConfig.getDatabaseLogin(), dbConfig.getDatabasePassword(), dbConfig.getDatabaseType());
 
             logger.info("Repository status is OK");
             runLevel = 4;
@@ -189,8 +193,6 @@ public class OpInitializer {
 
             //Start registered modules
             OpModuleManager.start();
-
-            postInit();
 
             logger.info("Registered modules started; Application started");
             runLevel = OpProjectConstants.SUCCESS_RUN_LEVEL;
@@ -213,12 +215,6 @@ public class OpInitializer {
     * Pre-initialization steps.
     */
    protected void preInit() {
-   }
-
-   /**
-    * Post-initialization steps.
-    */
-   protected void postInit() {
    }
 
    /**
@@ -293,7 +289,7 @@ public class OpInitializer {
    }
 
    /**
-    * Register datasources.
+    * Registers the default datasources.
     *
     * @param databaseUrl      databse URL
     * @param databaseDriver   database driver class
@@ -301,20 +297,37 @@ public class OpInitializer {
     * @param databasePassword database user password
     * @param databaseType     database type
     */
-   protected void registerDataSources(String databaseUrl, String databaseDriver,
+   private void registerDefaultDataSources(String databaseUrl, String databaseDriver,
         String databaseLogin, String databasePassword, int databaseType) {
 
       // close all existing data sources.
       OpSourceManager.closeAllSources();
 
-      for (OpSource dataSource : createSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
+      for (OpSource dataSource : createDefaultSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
          OpSourceManager.registerSource(dataSource);
          dataSource.open();
       }
    }
 
    /**
-    * Creates a new instance of <code>OpHibernateSource</code> with the given parameters.
+    * Registers the default datasources.
+    *
+    * @param databaseUrl      databse URL
+    * @param databaseDriver   database driver class
+    * @param databaseLogin    database user
+    * @param databasePassword database user password
+    * @param databaseType     database type
+    */
+   private void registerAdditionalDataSources(String databaseUrl, String databaseDriver,
+        String databaseLogin, String databasePassword, int databaseType) {
+      for (OpSource dataSource : createAdditionalSources(databaseUrl, databaseDriver, databaseLogin, databasePassword, databaseType)) {
+         OpSourceManager.registerSource(dataSource);
+         dataSource.open();
+      }
+   }
+
+   /**
+    * Creates the additonal sources with the given parameters.
     *
     * @param databaseUrl      connection databse URL
     * @param databaseDriver   database JDBC driver class
@@ -323,7 +336,22 @@ public class OpInitializer {
     * @param databaseType     database type.
     * @return a <code>OpSource</code> instance.
     */
-   protected Set<OpSource> createSources(String databaseUrl, String databaseDriver, String databaseLogin,
+   protected Set<OpSource> createAdditionalSources(String databaseUrl, String databaseDriver,
+        String databaseLogin, String databasePassword, int databaseType) {
+      return Collections.EMPTY_SET;
+   }
+
+   /**
+    * Creates the default sources with the given parameters.
+    *
+    * @param databaseUrl      connection databse URL
+    * @param databaseDriver   database JDBC driver class
+    * @param databasePassword connection user password
+    * @param databaseLogin    connection user
+    * @param databaseType     database type.
+    * @return a <code>OpSource</code> instance.
+    */
+   protected Set<OpSource> createDefaultSources(String databaseUrl, String databaseDriver, String databaseLogin,
         String databasePassword, int databaseType) {
       Set<OpSource> sources = new HashSet<OpSource>(1);
       sources.add(new OpHibernateSource(OpSource.DEFAULT_SOURCE_NAME, databaseUrl, databaseDriver,

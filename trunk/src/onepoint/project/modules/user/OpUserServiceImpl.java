@@ -9,6 +9,7 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpFilter;
 import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.ldap.OpLdapService;
@@ -442,7 +443,6 @@ public class OpUserServiceImpl implements OpService {
     * identifies this session with the given username and password.
     *
     * @param session  the session within any operation will be performed.
-    * @param broker   the broker to perform any operation.
     * @param username the username
     * @param password the password in encrypted form.
     * @return true if signOn went OK, false otherwise.
@@ -450,85 +450,109 @@ public class OpUserServiceImpl implements OpService {
     * @pre session and broker must be valid
     * @post session is identified with the given username and password if signOn went OK.
     */
-   public OpUser signOn(OpProjectSession session, OpBroker broker, String username, String password)
+   public synchronized OpUser signOn(OpProjectSession session, String username, String password)
         throws XServiceException {
+      OpBroker broker = null;
+      OpTransaction t = null;
 
-      //don't perform any query because the login name doesn't exist
-      if (username == null) {
+      try {
+         broker = session.newBroker();
+
+         //don't perform any query because the login name doesn't exist
+         if (username == null) {
+            throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
+         }
+
+         if (username.equals(OpUser.ADMINISTRATOR_NAME_ALIAS1) ||
+              username.equals(OpUser.ADMINISTRATOR_NAME_ALIAS2)) {
+            username = OpUser.ADMINISTRATOR_NAME;
+         }
+         OpQuery query = broker.newQuery("select user from OpUser as user where user.Name = ?");
+         query.setString(0, username);
+         logger.debug("...before find: login = " + username + "; pwd " + password);
+         Iterator users = broker.iterate(query);
+         logger.debug("...after find");
+         OpUser user = null;
+         if (users.hasNext()) {
+            user = (OpUser) (users.next());
+            logger.debug("### Found user for signOn: " + user.getName() + " (" + user.getDisplayName() + ")");
+         }
+
+         if (ldapService != null && ldapService.isEnabled()) {
+            // note: transaction is required here for ldap identification,
+            //       because ldap identification may create new user and/or group objects
+            t = broker.newTransaction();
+
+            if (initialUpdate) { // call initial update
+               initialUpdate = false;
+               ldapService.initialUpdate(session.getServer());
+            }
+
+            if ((user == null) || (user.getSource() == OpUser.LDAP)) {
+               try {
+                  if (!ldapService.signOn(session, broker, username, password)) {
+                     logger.debug("==> ldap Passwords do not match: Access denied");
+                     throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
+                  }
+                  // signOn went OK -> update user
+                  // temporary sign on as administrator
+                  OpUser realUser = session.user(broker);
+                  session.authenticateUser(broker, session.administrator(broker));
+                  String[] values = OpUser.splitAlgorithmAndPassword(password);
+                  if (values[0] == null) { // pwd has to be base 64 encoded
+                     password = new OpHashProvider().calculateHash(password);
+                  }
+                  try {
+                     if (user != null) { // existing user
+                        ldapService.updateUser(session, broker, user, password);
+                     }
+                     else {
+                        user = ldapService.addUser(session, broker, username, password);
+                     }
+                  }
+                  finally {
+                     session.authenticateUser(broker, realUser);
+                  }
+                  authenticateUser(session, broker, user);
+               }
+               catch (TimeLimitExceededException exc) {
+                  if (user == null) {
+                     logger.debug("ldap timeout for user logIn");
+                     throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
+                  }
+                  // try internal signon
+               }
+               catch (NamingException exc) {
+                  logger.warn(exc);
+                  throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
+               }
+            }
+            t.commit();
+            //initialize the calendar settings
+            OpSettingsService.getService().configureServerCalendar(session);
+            return user;
+         }
+
+         if (user != null) { // try internal login
+            if (!user.validatePassword(password)) {
+               logger.debug("==> Passwords do not match: Access denied");
+               throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
+            }
+            authenticateUser(session, broker, user);
+            //initialize the calendar settings
+            OpSettingsService.getService().configureServerCalendar(session);
+            return user;
+         }
          throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
       }
-
-      if (username.equals(OpUser.ADMINISTRATOR_NAME_ALIAS1) ||
-           username.equals(OpUser.ADMINISTRATOR_NAME_ALIAS2)) {
-         username = OpUser.ADMINISTRATOR_NAME;
-      }
-      OpQuery query = broker.newQuery("select user from OpUser as user where user.Name = ?");
-      query.setString(0, username);
-      logger.debug("...before find: login = " + username + "; pwd " + password);
-      Iterator users = broker.iterate(query);
-      logger.debug("...after find");
-      OpUser user = null;
-      if (users.hasNext()) {
-         user = (OpUser) (users.next());
-         logger.debug("### Found user for signOn: " + user.getName() + " (" + user.getDisplayName() + ")");
-      }
-
-      if (ldapService != null && ldapService.isEnabled()) {
-         if (initialUpdate) { // call initial update
-            initialUpdate = false;
-            ldapService.initialUpdate(session.getServer());
+      finally {
+         if (t != null) {
+            t.rollbackIfNecessary();
          }
-
-         if ((user == null) || (user.getSource() == OpUser.LDAP)) {
-            try {
-               if (!ldapService.signOn(session, broker, username, password)) {
-                  logger.debug("==> ldap Passwords do not match: Access denied");
-                  throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
-               }
-               // signOn went OK -> update user
-               // temporary sign on as administrator
-               OpUser realUser = session.user(broker);
-               session.authenticateUser(broker, session.administrator(broker));
-               String[] values = OpUser.splitAlgorithmAndPassword(password);
-               if (values[0] == null) { // pwd has to be base 64 encoded
-                  password = new OpHashProvider().calculateHash(password);
-               }
-               try {
-                  if (user != null) { // existing user
-                     ldapService.updateUser(session, broker, user, password);
-                  }
-                  else {
-                     user = ldapService.addUser(session, broker, username, password);
-                  }
-               }
-               finally {
-                  session.authenticateUser(broker, realUser);
-               }
-               authenticateUser(session, broker, user);
-               return user;
-            }
-            catch (TimeLimitExceededException exc) {
-               if (user == null) {
-                  logger.debug("ldap timeout for user logIn");
-                  throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
-               }
-               // try internal signon
-            }
-            catch (NamingException exc) {
-               logger.warn(exc);
-               throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
-            }
+         if (broker != null) {
+            broker.close();
          }
       }
-      if (user != null) { // try internal login
-         if (!user.validatePassword(password)) {
-            logger.debug("==> Passwords do not match: Access denied");
-            throw new XServiceException(session.newError(ERROR_MAP, OpUserError.PASSWORD_MISMATCH));
-         }
-         authenticateUser(session, broker, user);
-         return user;
-      }
-      throw new XServiceException(session.newError(ERROR_MAP, OpUserError.USER_UNKNOWN));
    }
 
    /**
@@ -566,11 +590,10 @@ public class OpUserServiceImpl implements OpService {
     * signs of the currently signed on user.
     *
     * @param session the session within any operation will be performed.
-    * @param broker  the broker to perform any operation.
     * @pre session and broker must be valid
     * @post none
     */
-   public void signOff(OpProjectSession session, OpBroker broker) {
+   public synchronized void signOff(OpProjectSession session) {
       session.clearSession();
       XResourceCache.clearCache();
       //restore the locale to the system locale (issue OPP-19)

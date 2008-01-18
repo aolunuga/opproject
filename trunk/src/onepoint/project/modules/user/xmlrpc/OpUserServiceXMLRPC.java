@@ -1,16 +1,11 @@
 /*
  * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */ 
+ */
 
 /**
- * 
+ *
  */
-package onepoint.project.xml_rpc.onepoint.project.modules.user;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.xmlrpc.XmlRpcException;
+package onepoint.project.modules.user.xmlrpc;
 
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
@@ -21,10 +16,14 @@ import onepoint.project.modules.user.OpUserServiceImpl;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
+import org.apache.xmlrpc.XmlRpcException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Xml-Rpc service implementation corresponding to the OpUserService.
- * 
+ *
  * @author dfreis
  */
 public class OpUserServiceXMLRPC {
@@ -33,82 +32,83 @@ public class OpUserServiceXMLRPC {
     * the underlaying OpUserService
     */
    private OpUserServiceImpl impl;
-   
+
    /**
     * Default constructor setting up the underlying OpUserService.
     */
-   public OpUserServiceXMLRPC() {     
+   public OpUserServiceXMLRPC() {
       XService xservice = XServiceManager.getService(OpUserServiceImpl.SERVICE_NAME);
       if (xservice == null) {
-         throw new IllegalStateException("required service '"+OpUserServiceImpl.SERVICE_NAME+"' not found");
+         throw new IllegalStateException("required service '" + OpUserServiceImpl.SERVICE_NAME + "' not found");
       }
       impl = (OpUserServiceImpl) xservice.getServiceImpl();
       if (impl == null) {
          throw new IllegalStateException("required service impl for 'UserService' not found");
       }
    }
-   
+
    /**
     * Signs on the given username with the given password.
+    *
     * @param username
     * @param password
     * @return true (void methods don't work with xml-rpc)
     * @throws XmlRpcException
     */
-   public boolean signOn(String username, String password) throws XmlRpcException {
+   public boolean signOn(String username, String password)
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
-      OpBroker broker = session.newBroker();
       try {
-         impl.signOn(session, broker, username, password);
-      } catch (XServiceException exc) {
-         throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
+         impl.signOn(session, username, password);
       }
-      finally {
-         broker.close();
+      catch (XServiceException exc) {
+         throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       return true;
    }
 
    /**
     * Sign off the currently signed on user.
+    *
     * @return true (void methods don't work with xml-rpc)
     */
-   public boolean signOff() throws XmlRpcException {
+   public boolean signOff()
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
-      OpBroker broker = session.newBroker();
       try {
-         impl.signOff(session, broker);
-      } catch (XServiceException exc) {
-         throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
+         impl.signOff(session);
       }
-      finally {
-         broker.close();
+      catch (XServiceException exc) {
+         throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       return true;
    }
 
    /**
     * Returns all information associated to the currently signed on user.
+    *
     * @return a map containing all user information.
     * @throws XmlRpcException
     */
-   public Map<String, Object> getSignedOnUserData() throws XmlRpcException
-   {
+   public Map<String, Object> getSignedOnUserData()
+        throws XmlRpcException {
       OpProjectSession session = OpProjectSession.getSession();
       OpBroker broker = session.newBroker();
-      
+
       try {
-         return(getUserData(impl.signedOnAs(session, broker)));
-      } catch (XServiceException exc) {
+         return (getUserData(impl.signedOnAs(session, broker)));
+      }
+      catch (XServiceException exc) {
          throw new XmlRpcException(exc.getError().getCode(), exc.getLocalizedMessage(), exc);
       }
       finally {
          broker.close();
-      }      
+      }
    }
 
    /**
     * Returns all information associated to the currently signed on user.
+    *
     * @return a map containing all user information.
     */
    public static Map<String, Object> getUserData(OpUser user) {
@@ -131,7 +131,7 @@ public class OpUserServiceXMLRPC {
       ret.put(OpSubject.DESCRIPTION, value);
       Byte level = user.getLevel();
       if (level == null) {
-         level = new Byte((byte)0);
+         level = new Byte((byte) 0);
       }
       ret.put("level", new Integer(level));
       value = contact.getFirstName();
