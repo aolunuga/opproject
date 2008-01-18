@@ -70,9 +70,22 @@ public class OpUserService extends OpProjectService {
 
    private final static String USERS_QUERY = "select count(user) from OpUser as user where user.Level=? and user.Name != '" + OpUser.ADMINISTRATOR_NAME + "'";
 
-   // FIXME(dfreis Mar 5, 2007 11:16:13 AM)
-   // should be set within constructor!
-   private OpUserServiceImpl serviceIfcImpl = new OpUserServiceImpl();
+   private OpUserServiceImpl serviceIfcImpl = null;
+
+   /**
+    * Creates a new server instance.
+    */
+   public OpUserService() {
+      serviceIfcImpl = createServiceImpl();
+   }
+
+   /**
+    * Creates a new service implementation instance.
+    * @return a <code>OpUserServiceImpl</code> instance.
+    */
+   protected OpUserServiceImpl createServiceImpl() {
+      return new OpUserServiceImpl();
+   }
 
    public XMessage getHashAlgorithm(OpProjectSession session, XMessage request) {
       logger.debug("OpUserService.getHashAlgorithm()");
@@ -93,34 +106,20 @@ public class OpUserService extends OpProjectService {
       String password = (String) (request.getArgument(PASSWORD));
 
       XMessage reply = new XMessage();
-      if (session.getServer().isSiteValid(session.getSourceName())) {
-         OpBroker broker = session.newBroker();
-         try {
-            // note: transaction is required here for ldap identification,
-            //       because ldap identification may create new user and/or group objects
-            OpTransaction t = broker.newTransaction();
-            serviceIfcImpl.signOn(session, broker, login, password);
+      try {
+         serviceIfcImpl.signOn(session,  login, password);
 
-            //initialize the calendar settings
-            OpSettingsService.getService().configureServerCalendar(session);
+         //send the calendar to the client
+         reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
 
-            //send the calendar to the client
-            reply.setVariable(OpProjectConstants.CALENDAR, session.getCalendar());
-            t.commit();
-
-            //send client-side error messages
-            reply.setVariable(XConstants.ERROR_FILE_NOT_FOUND, session.newError(ERROR_MAP, OpUserError.FILE_NOT_FOUND));
-            reply.setVariable(XConstants.ERROR_OUT_OF_MEMORY, session.newError(ERROR_MAP, OpUserError.OUT_OF_MEMORY));
-         }
-         catch (XServiceException exc) {
-            exc.append(reply);
-         }
-
-         broker.close();
+         //send client-side error messages
+         reply.setVariable(XConstants.ERROR_FILE_NOT_FOUND, session.newError(ERROR_MAP, OpUserError.FILE_NOT_FOUND));
+         reply.setVariable(XConstants.ERROR_OUT_OF_MEMORY, session.newError(ERROR_MAP, OpUserError.OUT_OF_MEMORY));
       }
-      else {
-         reply.setError(session.newError(ERROR_MAP, OpUserError.SITE_IS_INVALID));
+      catch (XServiceException exc) {
+         exc.append(reply);
       }
+
       return reply;
    }
 
@@ -920,9 +919,7 @@ public class OpUserService extends OpProjectService {
     * @return an <code>XMessage</code> representing the response.
     */
    public XMessage signOff(OpProjectSession session, XMessage request) {
-      OpBroker broker = session.newBroker();
-      serviceIfcImpl.signOff(session, broker);
-      broker.close();
+      serviceIfcImpl.signOff(session);
       return null;
    }
 

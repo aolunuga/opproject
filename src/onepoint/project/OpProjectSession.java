@@ -674,7 +674,7 @@ public class OpProjectSession extends XExpressSession {
     * @return the list of all the project sessions belonging to the same site and to the same server as the current
     *    session (INCLUDING the id of the current session).
     */
-   public List<Integer> getIdsOfSessionsFromSameSite() {
+   public List<Integer> getIdsOfSessionsWithSameSource() {
       List<Integer> idsList = new ArrayList<Integer>();
       for(XSession session : getServer().getAllSessions()) {
          if(session instanceof OpProjectSession && ((OpProjectSession) session).getSourceName().equals(getSourceName())) {

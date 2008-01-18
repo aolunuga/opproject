@@ -33,7 +33,7 @@ public class OpModuleFile {
    private void loadExtendedModules(OpModule module, OpModuleLoader moduleLoader) {
       OpModule startModule = module;
       while (startModule.getExtendedModule() != null) {
-         String extendedModulePath = module.getExtendedModule();
+         String extendedModulePath = startModule.getExtendedModule();
          extendedModulePath =  OpProjectConstants.PROJECT_PACKAGE + extendedModulePath;
          OpModule parentModule = moduleLoader.loadModule(extendedModulePath);
          module.extend(parentModule);

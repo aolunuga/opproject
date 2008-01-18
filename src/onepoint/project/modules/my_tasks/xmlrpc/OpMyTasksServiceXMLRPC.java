@@ -5,30 +5,38 @@
 /**
  *
  */
-package onepoint.project.xml_rpc.onepoint.project.modules.my_tasks;
+package onepoint.project.modules.my_tasks.xmlrpc;
 
 import onepoint.persistence.OpBroker;
-import onepoint.persistence.OpMember;
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpPrototype;
-import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectSession;
-import onepoint.project.module.OpModuleRegistry;
-import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityCategory;
+import onepoint.project.modules.project.OpActivityComment;
+import onepoint.project.modules.project.OpActivityVersion;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAttachment;
+import onepoint.project.modules.project.OpDependency;
+import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project.OpProjectAdministrationServiceImpl;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpWorkPeriod;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.work.OpWorkRecord;
-import onepoint.project.modules.work.OpWorkSlip;
 import onepoint.project.xml_rpc.OpXMLRPCUtil;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
 import org.apache.xmlrpc.XmlRpcException;
 
-import java.lang.reflect.Method;
 import java.sql.Date;
-import java.util.*;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Xml-Rpc service implementation corresponding to the OpMyTasksServiceSMLRPC
