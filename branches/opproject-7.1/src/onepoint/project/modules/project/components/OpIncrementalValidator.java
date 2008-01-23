@@ -19,7 +19,7 @@ import java.util.*;
  * @author mihai.costin
  */
 public class OpIncrementalValidator extends OpGanttValidator {
-   private static final XLog logger = XLogFactory.getServerLogger(OpIncrementalValidator.class);
+   private static final XLog logger = XLogFactory.getClientLogger(OpIncrementalValidator.class);
 
    private Set startPoints;
    private OpGraph graph;
