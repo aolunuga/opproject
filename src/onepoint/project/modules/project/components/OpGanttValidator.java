@@ -5745,12 +5745,17 @@ public class OpGanttValidator extends XValidator {
     */
    public void undo() {
       if (undo != null && undo.size() > 0) {
-
-         if (redo == null) {
-            redo = new ArrayList();
+         
+         // redo only, if undo tracking is enabled...
+         // FIXME: this is for the OPP-456, OPP-459 workaround
+         if (!continuousAction) {
+            if (redo == null) {
+               redo = new ArrayList();
+            }
+            addToStack(data_set, redo);
+            enableRedo(true);
          }
-         addToStack(data_set, redo);
-         enableRedo(true);
+         // /FIXME
 
          data_set.removeAllChildren();
          List dataList = (List) undo.remove(undo.size() - 1);
