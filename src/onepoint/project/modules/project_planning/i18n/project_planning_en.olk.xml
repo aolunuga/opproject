@@ -94,6 +94,7 @@
       <resource id="WorkRecordsExistErrorMessage">There are work slips referencing this activity</resource>
       <resource id="TaskExtraResourceErrorMessage">Only a single resource allowed per task</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="BaseEffortBelowActualErrorMessage">The planned effort should not be less than the actual effort.</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
       <resource id="ExportProjectTitle">Export Project Plan</resource>
@@ -186,6 +187,7 @@
       <resource id="WorkRecordsExistErrorMessage">There are work slips for this resource assignment</resource>
       <resource id="NotEqualEffortsErrorMessage">The sum of individual efforts of the resources is different from the base effort on the activity</resource>
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
+      <resource id="BaseEffortBelowActualErrorMessage">The planned effort should not be less than the actual effort.</resource>
 
       <resource id="NoCategory">(None)</resource>
       <resource id="NoResource">(None)</resource>

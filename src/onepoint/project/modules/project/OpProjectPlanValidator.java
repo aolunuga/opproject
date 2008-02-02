@@ -9,6 +9,7 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTransactionLock;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.settings.OpSettings;
@@ -171,14 +172,21 @@ public class OpProjectPlanValidator {
     */
    private void validatePlan(OpBroker broker, OpGanttValidator validator, PlanModifier modifier, HashMap resources) {
       //always update the project plan
-      XComponent dataSet = new XComponent(XComponent.DATA_SET);
-      OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, true);
-      validator.setDataSet(dataSet);
-      if (modifier != null) {
-         modifier.modifyPlan(validator);
+      String projectNodeLocator = projectPlan.getProjectNode().locator();
+      OpTransactionLock.getInstance().writeLock(projectNodeLocator);
+      try {
+         XComponent dataSet = new XComponent(XComponent.DATA_SET);
+         OpActivityDataSetFactory.retrieveActivityDataSet(broker, projectPlan, dataSet, true);
+         validator.setDataSet(dataSet);
+         if (modifier != null) {
+            modifier.modifyPlan(validator);
+         }
+         validator.validateEntireDataSet();
+         OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resources, projectPlan, null);
       }
-      validator.validateEntireDataSet();
-      OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resources, projectPlan, null);
+      finally {
+         OpTransactionLock.getInstance().unlock(projectNodeLocator);
+      }
    }
 
    /**

@@ -80,6 +80,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     */
    public static final String SERVICE_NAME = "ProjectService";
 
+   private static final String UNEXPANDED_NODES = "unexpandedNodes";
 
    public XMessage insertProject(OpProjectSession session, XMessage request) {
 
@@ -2187,5 +2188,34 @@ public class OpProjectAdministrationService extends OpProjectService {
          rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getExternalRate());
       }
       return rates;
+   }
+
+   /**
+    * Returns a <code>XMessage</code> containing a <code>Map<String, List<XComponent>></code>. The map contains for each
+    *    entry (which is a project locator) a list of data rows. The data rows represent all the projects located in the
+    *    subtree (from the whole project hierarchy) for which the project is the root.
+    *
+    * @param projectSession - the <code>OpProjectSession</code> object.
+    * @param request        - the <code>XMessage</code> containing the project locators for which the subprojects are retreived.
+    * @return a <code>XMessage</code> containing a <code>Map<String, List<XComponent>></code>. The map contains for each
+    *         entry (which is a project locator) a list of data rows. The data rows represent all the projects located in the
+    *         subtree (from the whole project hierarchy) for which the project is the root.
+    */
+   public XMessage loadAllRows(OpProjectSession projectSession, XMessage request) {
+      Map<String, Integer> unexpandedProjectNodes = (Map<String, Integer>) request.getArgument(UNEXPANDED_NODES);
+      Map<String, List<XComponent>> nodesMap = new HashMap<String, List<XComponent>>();
+      OpLocator locator;
+      if (unexpandedProjectNodes != null && !unexpandedProjectNodes.keySet().isEmpty()) {
+         for (String projectLocator : unexpandedProjectNodes.keySet()) {
+            locator = OpLocator.parseLocator(projectLocator);
+            List<XComponent> rowsList = OpProjectDataSetFactory.getAllSubprojects(projectSession, locator.getID(),
+                 unexpandedProjectNodes.get(projectLocator));
+            nodesMap.put(projectLocator, rowsList);
+         }
+      }
+
+      XMessage reply = new XMessage();
+      reply.setArgument(UNEXPANDED_NODES, nodesMap);
+      return reply;
    }
 }

@@ -364,24 +364,42 @@ public final class OpProjectDataSetFactory {
    }
 
    /**
-    * Retrieves all projects from the db and fills the <code>XComponent</code> data set passed as paramenter with
-    *    the data belonging to these projects.
+    * Returns all the projects located in the subtree (from the whole project hierarchy) for which the project (whose
+    *    id is passed as parameter) is the root.
     *
-    * @param session     a <code>OpProjectSession</code> representing the server session.
+    * @param session      - the <code>OpProjectSession</code> object.
+    * @param projectId    - the id of the project whose subprojects are loaded.
+    * @param outlineLevel - the outline level of the project.
+    * @return all the projects located in the subtree (from the whole project hierarchy) for which the project (whose
+    *         id is passed as parameter) is the root.
     */
-   public static void retrieveAllProjects(OpProjectSession session, XComponent projectsDataSet) {
-      ArrayList<String> projectsLocators = retrieveArchivedProjects(session, false);
+   public static List<XComponent> getAllSubprojects(OpProjectSession session, Long projectId, Integer outlineLevel) {
+      // Localizer is used in order to localize name and description of root project portfolio
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
+
+      List<XComponent> subProjectRows = new ArrayList<XComponent>();
       OpBroker broker = session.newBroker();
+      Map projectNodes = getProjectNodes(ALL_TYPES, broker, projectId);
+      OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
+      Iterator it = session.accessibleObjects(broker, projectNodes.keySet(), OpPermission.OBSERVER, order);
+      while (it.hasNext()) {
+         OpProjectNode projectNode = (OpProjectNode) it.next();
+         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, true, outlineLevel + 1);
+         subProjectRows.add(dataRow);
 
-      for(String locator : projectsLocators) {
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(locator);
+         long childCount = ((Number) projectNodes.get(new Long(projectNode.getID()))).longValue();
+         if (childCount > 0) {
+            List<XComponent> nodeChildren = getAllSubprojects(session, projectNode.getID(), outlineLevel + 1);
+            subProjectRows.addAll(nodeChildren);
 
-         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, true, 0);
-         projectsDataSet.addChild(dataRow);
+            //mark the data row as expanded (because it has children)
+            XComponent expandedDataCell = new XComponent(XComponent.DATA_CELL);
+            expandedDataCell.setBooleanValue(true);
+            dataRow.addChild(expandedDataCell);
+         }
       }
-      broker.close();
+      return subProjectRows;
    }
 
    /**

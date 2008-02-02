@@ -17,6 +17,7 @@
    <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
    <data-field id="TaskExtraResourceException" text="${TaskExtraResourceErrorMessage}"/>
    <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
+   <data-field id="BaseEffortBelowActualException" text="${BaseEffortBelowActualErrorMessage}"/>
 
    <data-field id="ImportProjectTitle" text="${ImportProjectTitle}"/>
    <data-field id="ExportProjectTitle" text="${ExportProjectTitle}"/>
@@ -27,6 +28,7 @@
    <data-field id="Total" text="${Total}"/>
    <data-field id="ShowResourceHours"/>
    <data-field id="ResourceAvailability"/>
+   
    <data-set id="ProjectNameSet"/>
    <data-set id="AssignmentSet" on-choice-editor-compare="compareChoiceResources"/>
    <data-set id="ProjectSettingsDataSet"/>
