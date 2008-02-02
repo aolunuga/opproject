@@ -535,58 +535,66 @@ public class OpProjectPlanningService extends OpProjectService {
             broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
-         OpLock lock = project.getLocks().iterator().next();
-         checkLock(session, broker, lock);
-
-         t = broker.newTransaction();
-
-         // The project will always have a plan attached
-         OpProjectPlan projectPlan = project.getPlan();
-         if (projectPlan.getVersionNumber() < 0) {
-            //first time the project is checked in => the actual version, so no project version has to be created
-            projectPlan.incrementVersionNumber();
-         }
-         else {
-            OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
-         }
-         projectPlan.setCreator(session.user(broker).getDisplayName());
-         broker.updateObject(projectPlan);
-
-         // Check if working plan version ID is correct (if it is set)
-         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
-         if (workingPlanVersionLocator != null) {
-            if ((workingPlanVersion != null)
-                 && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
-               // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-               return null;
+         
+         // transaction lock...
+         OpTransactionLock.getInstance().writeLock(project.locator());
+         try {
+            OpLock lock = project.getLocks().iterator().next();
+            checkLock(session, broker, lock);
+   
+            t = broker.newTransaction();
+   
+            // The project will always have a plan attached
+            OpProjectPlan projectPlan = project.getPlan();
+            if (projectPlan.getVersionNumber() < 0) {
+               //first time the project is checked in => the actual version, so no project version has to be created
+               projectPlan.incrementVersionNumber();
             }
-         }
-
-         // Update project plan from client data-set ONLY if working plan version LOCATOR is set
-         // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
-         HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
-         if (workingPlanVersionLocator != null) {
-            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
-         }
-         else {
-            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
-            //update holiday calendar id
-            projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+            else {
+               OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
+            }
+            projectPlan.setCreator(session.user(broker).getDisplayName());
             broker.updateObject(projectPlan);
+   
+            // Check if working plan version ID is correct (if it is set)
+            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
+            if (workingPlanVersionLocator != null) {
+               if ((workingPlanVersion != null)
+                    && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
+                  // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
+                  return null;
+               }
+            }
+   
+            // Update project plan from client data-set ONLY if working plan version LOCATOR is set
+            // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
+            HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
+            if (workingPlanVersionLocator != null) {
+               OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
+            }
+            else {
+               OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
+               //update holiday calendar id
+               projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+               broker.updateObject(projectPlan);
+            }
+   
+            // Delete working version (note: There is not necessarily a working version)
+            if (workingPlanVersion != null) {
+               OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
+            }
+   
+            // 4. Finally, delete lock
+            broker.deleteObject(lock);
+      
+            // Send email notification to all project participants on project plan check-in
+            sendProjectNotification(session, project.getName(), resourceMap);
+   
+            t.commit();
          }
-
-         // Delete working version (note: There is not necessarily a working version)
-         if (workingPlanVersion != null) {
-            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
+         finally {
+            OpTransactionLock.getInstance().unlock(project.locator());
          }
-
-         // 4. Finally, delete lock
-         broker.deleteObject(lock);
-
-         // Send email notification to all project participants on project plan check-in
-         sendProjectNotification(session, project.getName(), resourceMap);
-
-         t.commit();
          broker.close();
          return null;
       }

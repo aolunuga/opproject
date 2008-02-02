@@ -11,6 +11,7 @@ package onepoint.project.modules.work;
 
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransactionLock;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.util.XCalendar;
@@ -80,14 +81,23 @@ public class OpProgressCalculator {
     * @param calendar    Calendar used for updating costs
     */
    private static void applyWorkRecord(OpBroker broker, OpWorkRecord work_record, boolean insert_mode, XCalendar calendar) {
-      double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
-      updateActivity(broker, work_record, insert_mode, remainingEffortChange);
-      //update cost values on work months
-
-      //<FIXME author="Mihai Costin" description="Only the remaining values should be updated here... removed because of OPP-218">
-      //OpActivityDataSetFactory.updateRemainingValues(broker, calendar, work_record.getAssignment());
-      OpActivityDataSetFactory.updateWorkMonths(broker, work_record.getAssignment(), calendar);
-      //</FIXME>
+      // find the project-node for this workrecord because we need an anker for our transaction lock
+      // which is high enough in the hierarchy to also lock checkin, checkout, (and maybe backup, restore)...
+      OpProjectNode n = work_record.getAssignment().getActivity().getProjectPlan().getProjectNode();
+      OpTransactionLock.getInstance().writeLock(n.locator());
+      try {      
+         double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
+         updateActivity(broker, work_record, insert_mode, remainingEffortChange);
+         //update cost values on work months
+   
+         //<FIXME author="Mihai Costin" description="Only the remaining values should be updated here... removed because of OPP-218">
+         //OpActivityDataSetFactory.updateRemainingValues(broker, calendar, work_record.getAssignment());
+         OpActivityDataSetFactory.updateWorkMonths(broker, work_record.getAssignment(), calendar);
+         //</FIXME>
+      }
+      finally {
+         OpTransactionLock.getInstance().unlock(n.locator());
+      }
    }
 
    /**
