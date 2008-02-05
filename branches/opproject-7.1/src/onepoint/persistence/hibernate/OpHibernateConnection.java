@@ -7,6 +7,7 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -23,6 +24,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 
 /**
  * This class represents an implementation of a <code>OpConnection</code> for Hibernate persistance.
@@ -39,15 +41,23 @@ public class OpHibernateConnection extends OpConnection {
     */
    private Session session;
 
+   private static WeakHashMap<Session, OpBroker> sessionToBrokerMap = new WeakHashMap<Session, OpBroker>();
+
    /**
     * Creates a new instance.
     *
-    * @param source  data source to use
+    * @param broker  data source to use
     * @param session hibernate session to use
     */
-   public OpHibernateConnection(OpSource source, Session session) {
-      super(source);
+   public OpHibernateConnection(OpBroker broker, Session session) {
+      super(broker.getSource());
       this.session = session;
+      sessionToBrokerMap.put(session, broker);
+      logger.debug("Session to broker map contains now " + sessionToBrokerMap.size() + " entries!");
+   }
+
+   protected static OpBroker getBroker(Session session) {
+      return sessionToBrokerMap.get(session);
    }
 
    /**
@@ -423,6 +433,7 @@ public class OpHibernateConnection extends OpConnection {
 
    public void close() {
       try {
+         sessionToBrokerMap.remove(session);
          if (session != null) {
             session.close();
          }
@@ -455,6 +466,19 @@ public class OpHibernateConnection extends OpConnection {
 
    public final Connection getJDBCConnection() {
       return session.connection();
+   }
+
+
+   @Override
+   public void setReadOnlyMode(boolean readOnly) {
+      OpHibernateSource source = ((OpHibernateSource) getSource());
+      source.setReadOnlyMode(readOnly);
+   }
+
+   @Override
+   public boolean isReadOnlyMode() {
+      OpHibernateSource source = ((OpHibernateSource) getSource());
+      return source.isReadOnlyMode();
    }
 
    /**

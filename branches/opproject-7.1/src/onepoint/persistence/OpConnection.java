@@ -81,4 +81,19 @@ public abstract class OpConnection {
    public abstract void setFlushMode(int flushMode);
 
    public abstract int getFlushMode();
+
+   /**
+    * @param readOnly
+    * @pre
+    * @post
+    */
+   public abstract void setReadOnlyMode(boolean readOnly);
+
+   /**
+    * @return
+    * @pre
+    * @post
+    */
+   public abstract boolean isReadOnlyMode();
+
 }

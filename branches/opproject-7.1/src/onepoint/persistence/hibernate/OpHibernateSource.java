@@ -12,10 +12,28 @@ import org.hibernate.*;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServerDialect;
+import org.hibernate.engine.EntityEntry;
+import org.hibernate.event.EventListeners;
+import org.hibernate.event.FlushEntityEvent;
+import org.hibernate.event.PostDeleteEvent;
+import org.hibernate.event.PostDeleteEventListener;
+import org.hibernate.event.PostInsertEvent;
+import org.hibernate.event.PostInsertEventListener;
+import org.hibernate.event.PostUpdateEvent;
+import org.hibernate.event.PostUpdateEventListener;
+import org.hibernate.event.PreDeleteEvent;
+import org.hibernate.event.PreDeleteEventListener;
+import org.hibernate.event.PreInsertEvent;
+import org.hibernate.event.PreInsertEventListener;
+import org.hibernate.event.PreUpdateEvent;
+import org.hibernate.event.PreUpdateEventListener;
+import org.hibernate.event.def.DefaultFlushEntityEventListener;
 
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -25,12 +43,21 @@ import java.util.Properties;
  *
  * @author lucian.furtos
  */
-public class OpHibernateSource extends OpSource {
+public class OpHibernateSource extends OpSource 
+   implements PostUpdateEventListener, PostDeleteEventListener, PostInsertEventListener, 
+              PreUpdateEventListener, PreDeleteEventListener, PreInsertEventListener {
 
    /**
     * The logger used in this class.
     */
    private static final XLog logger = XLogFactory.getServerLogger(OpHibernateSource.class);
+
+   private static final Object READ_ONLY_MUTEX = new Object();
+
+   /**
+    * the read only or read write mode.
+    */
+   private boolean readOnlyMode = false; 
 
    /**
     * Constant that defines
@@ -94,6 +121,7 @@ public class OpHibernateSource extends OpSource {
    protected String connectionPoolMaxSize;
    protected String cacheCapacity;
 
+   private HashMap<Class, Object> listeners;
 
    /**
     * Creates a new instance with the provided information. In case that choosen database is HSQLDB, embeded mode will
@@ -205,8 +233,8 @@ public class OpHibernateSource extends OpSource {
     *
     * @return new connection
     */
-   public OpConnection newConnection() {
-      return new OpHibernateConnection(this, getSession());
+   public OpConnection newConnection(OpBroker broker) {
+      return new OpHibernateConnection(broker, getSession());
    }
 
    /**
@@ -316,6 +344,11 @@ public class OpHibernateSource extends OpSource {
             Properties configurationProperties = new Properties();
             configurationProperties.putAll(defaultHibernateConfigProperties);
             configuration.setProperties(configurationProperties);
+            // replace default flush listener with ours to enable thread local for sessions
+            // FIXME(dfreis Oct 31, 2007 1:05:10 PM) this seems to be the best way, so we should replace
+            //       the other (added) listeners within addListeners() if there is time...
+            configuration.setListener("flush-entity", new OpFlushEventListener());
+            addListeners();
             // Build Hibernate configuration and session factory
             configuration.setProperty("hibernate.connection.driver_class", driverClassName);
             configuration.setProperty("hibernate.connection.url", url);
@@ -376,6 +409,49 @@ public class OpHibernateSource extends OpSource {
       catch (IOException e) {
          logger.error("Cannot write hibernate configuration file", e);
       }
+   }
+
+   /**
+    * @pre
+    * @post
+    */
+   private void addListeners() {
+      EventListeners eventListeners = getConfiguration().getEventListeners();
+      PreUpdateEventListener[] preUpdateListeners = eventListeners.getPreUpdateEventListeners();
+      PreUpdateEventListener[] newPreUpdateListeners = new PreUpdateEventListener[preUpdateListeners.length + 1];
+      System.arraycopy(preUpdateListeners, 0, newPreUpdateListeners, 0, preUpdateListeners.length);
+      newPreUpdateListeners[preUpdateListeners.length] = this;
+      eventListeners.setPreUpdateEventListeners(newPreUpdateListeners);
+
+      PreInsertEventListener[] preInsertListeners = eventListeners.getPreInsertEventListeners();
+      PreInsertEventListener[] newPreInsertListeners = new PreInsertEventListener[preInsertListeners.length + 1];
+      System.arraycopy(preInsertListeners, 0, newPreInsertListeners, 0, preInsertListeners.length);
+      newPreInsertListeners[preInsertListeners.length] = this;
+      eventListeners.setPreInsertEventListeners(newPreInsertListeners);
+
+      PreDeleteEventListener[] preDeleteListeners = eventListeners.getPreDeleteEventListeners();
+      PreDeleteEventListener[] newPreDeleteListeners = new PreDeleteEventListener[preDeleteListeners.length + 1];
+      System.arraycopy(preDeleteListeners, 0, newPreDeleteListeners, 0, preDeleteListeners.length);
+      newPreDeleteListeners[preDeleteListeners.length] = this;
+      eventListeners.setPreDeleteEventListeners(newPreDeleteListeners);
+
+      PostUpdateEventListener[] postUpdateListeners = eventListeners.getPostCommitUpdateEventListeners();
+      PostUpdateEventListener[] newPostUpdateListeners = new PostUpdateEventListener[postUpdateListeners.length + 1];
+      System.arraycopy(postUpdateListeners, 0, newPostUpdateListeners, 0, postUpdateListeners.length);
+      newPostUpdateListeners[postUpdateListeners.length] = this;
+      eventListeners.setPostCommitUpdateEventListeners(newPostUpdateListeners);
+
+      PostDeleteEventListener[] postDeleteListeners = eventListeners.getPostCommitDeleteEventListeners();
+      PostDeleteEventListener[] newPostDeleteListeners = new PostDeleteEventListener[postDeleteListeners.length + 1];
+      System.arraycopy(postDeleteListeners, 0, newPostDeleteListeners, 0, postDeleteListeners.length);
+      newPostDeleteListeners[postDeleteListeners.length] = this;
+      eventListeners.setPostCommitDeleteEventListeners(newPostDeleteListeners);
+
+      PostInsertEventListener[] postInsertListeners = eventListeners.getPostCommitInsertEventListeners();
+      PostInsertEventListener[] newPostInsertListeners = new PostInsertEventListener[postInsertListeners.length + 1];
+      System.arraycopy(postInsertListeners, 0, newPostInsertListeners, 0, postInsertListeners.length);
+      newPostInsertListeners[postInsertListeners.length] = this;
+      eventListeners.setPostCommitInsertEventListeners(newPostInsertListeners);
    }
 
    /**
@@ -582,4 +658,171 @@ public class OpHibernateSource extends OpSource {
          sessionFactory.evict(prototype.getInstanceClass());
       }
    }
+   
+   public void setReadOnlyMode(boolean readOnly) {
+      synchronized (READ_ONLY_MUTEX) {
+         readOnlyMode = readOnly;
+      }
+   }
+
+   public boolean isReadOnlyMode() {
+      synchronized (READ_ONLY_MUTEX) {
+         return readOnlyMode;
+      }
+   }
+
+   /* (non-Javadoc)
+    * @see org.hibernate.event.PreUpdateEventListener#onPreUpdate(org.hibernate.event.PreUpdateEvent)
+    */
+   public boolean onPreUpdate(PreUpdateEvent event) {
+      if (isReadOnlyMode()) {
+         throw new IllegalStateException("in read only mode");
+      }
+      return false;
+//      return isReadOnlyMode();
+//      if (listeners == null) {
+//      return false;
+//      }
+//      OpObject obj = (OpObject) event.getEntity();
+//      OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+//      String[] propertyNames = event.getPersister().getPropertyNames();
+//      fireEvent(broker, obj, OpEvent.UPDATE, propertyNames, event.getOldState(), event.getState());
+   }
+
+   /* (non-Javadoc)
+    * @see org.hibernate.event.PreDeleteEventListener#onPreDelete(org.hibernate.event.PreDeleteEvent)
+    */
+   public boolean onPreDelete(PreDeleteEvent event) {
+      if (isReadOnlyMode()) {
+         throw new IllegalStateException("in read only mode");
+      }
+      return false;
+//      return isReadOnlyMode();
+   }
+
+   /* (non-Javadoc)
+    * @see org.hibernate.event.PreDeleteEventListener#onPreDelete(org.hibernate.event.PreDeleteEvent)
+    */
+   public boolean onPreInsert(PreInsertEvent event) {
+      if (isReadOnlyMode()) {
+         throw new IllegalStateException("in read only mode");
+      }
+      return false;
+   }
+
+   /* (non-Javadoc)
+    * @see org.hibernate.event.PostUpdateEventListener#onPostUpdate(org.hibernate.event.PostUpdateEvent)
+    */
+    public void onPostUpdate(PostUpdateEvent event) {
+       if (listeners == null) {
+          return;
+       }
+       OpObject obj = (OpObject) event.getEntity();
+       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+       String[] propertyNames = event.getPersister().getPropertyNames();
+       fireEvent(broker, obj, OpEvent.UPDATE, propertyNames, event.getOldState(), event.getState());
+    }
+
+
+    /* (non-Javadoc)
+     * @see org.hibernate.event.PostDeleteEventListener#onPostDelete(org.hibernate.event.PostDeleteEvent)
+     */
+    public void onPostDelete(PostDeleteEvent event) {
+       if (listeners == null) {
+          return;
+       }
+       OpObject obj = (OpObject) event.getEntity();
+       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+       String[] propertyNames = event.getPersister().getPropertyNames();
+       fireEvent(broker, obj, OpEvent.DELETE, propertyNames, event.getDeletedState(), null);
+    }
+
+    /* (non-Javadoc)
+     * @see org.hibernate.event.PostInsertEventListener#onPostInsert(org.hibernate.event.PostInsertEvent)
+     */
+    public void onPostInsert(PostInsertEvent event) {
+       if (listeners == null) {
+          return;
+       }
+       OpObject obj = (OpObject) event.getEntity();
+       OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+       String[] propertyNames = event.getPersister().getPropertyNames();
+       fireEvent(broker, obj, OpEvent.INSERT, propertyNames, null, event.getState());
+    }
+
+    /**
+     * @param broker
+     * @param obj
+     * @param oldState
+     * @param state
+     * @pre
+     * @post
+     */
+    private OpEvent createEvent(OpBroker broker, OpObject obj, int action,
+         String[] propetyNames, Object[] oldState, Object[] state) {
+       return new OpEvent(broker, obj, action, propetyNames, oldState, state);
+    }
+
+    /**
+     * @param broker
+     * @param obj
+     * @param oldState
+     * @param state
+     * @param
+     * @pre
+     * @post
+     */
+    private void fireEvent(OpBroker broker, OpObject obj, int action, String[] propertyNames, Object[] oldState, Object[] state) {
+       if (listeners == null) {
+          return;
+       }
+       Object listener;
+       OpEvent event = null;
+       Class sourceClass = obj.getClass();
+       while (sourceClass != null) {
+          listener = listeners.get(sourceClass);
+          if (listener != null) {
+             if (listener instanceof HashSet) {
+                for (Object o : (HashSet) listener) {
+                   if (event == null) {
+                      event = createEvent(broker, obj, action, propertyNames, oldState, state);
+                   }
+                   ((OpEntityEventListener) o).entityChangedEvent(event);
+                }
+             }
+             else {
+                if (event == null) {
+                   event = createEvent(broker, obj, action, propertyNames, oldState, state);
+                }
+                ((OpEntityEventListener) listener).entityChangedEvent(event);
+             }
+          }
+          if (sourceClass == OpObject.class) {
+             break; // stop at OpObject
+          }
+          sourceClass = sourceClass.getSuperclass();
+       }
+    }
+
+    private class OpFlushEventListener extends DefaultFlushEntityEventListener {
+       public void onFlushEntity(FlushEntityEvent event)
+            throws HibernateException {
+          final EntityEntry entry = event.getEntityEntry();
+          final OpObject entity = (OpObject) event.getEntity();
+          final boolean mightBeDirty = entry.requiresDirtyCheck(entity);
+          if (listeners != null) {
+             OpObject obj = (OpObject) event.getEntity();
+             OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+             String[] propertyNames = event.getEntityEntry().getPersister().getPropertyNames();
+             fireEvent(broker, obj, OpEvent.PRE_FLUSH, propertyNames, event.getDatabaseSnapshot(), event.getPropertyValues());
+          }
+          super.onFlushEntity(event);
+          if (listeners != null) {
+             OpObject obj = (OpObject) event.getEntity();
+             OpBroker broker = OpHibernateConnection.getBroker(event.getSession());
+             String[] propertyNames = event.getEntityEntry().getPersister().getPropertyNames();
+             fireEvent(broker, obj, OpEvent.POST_FLUSH, propertyNames, event.getDatabaseSnapshot(), event.getPropertyValues());
+          }
+       }
+    }
 }

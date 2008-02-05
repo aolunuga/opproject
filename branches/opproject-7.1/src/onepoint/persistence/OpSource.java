@@ -66,10 +66,11 @@ public abstract class OpSource {
 
    /**
     * Creates a new connection.
+    * @param opBroker 
     *
     * @return new connection
     */
-   public abstract OpConnection newConnection();
+   public abstract OpConnection newConnection(OpBroker opBroker);
 
    /**
     * Checks whether a table exists or not in the db schema.
