@@ -4,10 +4,16 @@
 
 package onepoint.persistence.hibernate;
 
+import onepoint.error.XLocalizableException;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpPersistenceException;
 import onepoint.persistence.OpTransaction;
+import onepoint.project.modules.user.OpUserError;
+import onepoint.project.modules.user.OpUserService;
+import onepoint.service.XError;
+import onepoint.service.server.XServiceException;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Transaction;
 
@@ -26,6 +32,14 @@ public final class OpHibernateTransaction implements OpTransaction {
          transaction.commit();
       }
       catch (HibernateException e) {
+         logger.error("OpHibernateTransaction.commit(): Could not commit transaction: ", e);
+         throw new OpPersistenceException(e);
+      }
+      catch (IllegalStateException e) {
+         logger.error("OpHibernateTransaction.commit(): Could not commit transaction: ", e);
+         throw new XLocalizableException(OpUserService.ERROR_MAP, OpUserError.SITE_IS_INVALID);
+      }
+      catch (RuntimeException e) {
          logger.error("OpHibernateTransaction.commit(): Could not commit transaction: ", e);
          throw new OpPersistenceException(e);
       }

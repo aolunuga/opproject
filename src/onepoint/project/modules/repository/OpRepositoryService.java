@@ -14,7 +14,6 @@ import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModuleManager;
 import onepoint.project.modules.backup.OpBackupManager;
-import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
@@ -112,32 +111,32 @@ public class OpRepositoryService extends OpProjectService {
          return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
 
-      //get the all the ids from the sessions belonging to the current site.
-      List<Integer> idsList = projectSession.getIdsOfSessionsFromSameSite();
-
-      //invalidate all server sessions
-      projectSession.getServer().invalidateAllSessions(projectSession.getID(), idsList);
-      //invalidate the entire site
-      projectSession.getServer().invalidateSite(projectSession.getSourceName());
-
+      OpBroker broker = projectSession.newBroker();
+      // FIXME(dfreis Feb 1, 2008 6:55:32 AM) should use this broker for all operations!
       try {
-         boolean fileCreated = backupFile.createNewFile();
-         if (!fileCreated) {
-            logger.error("Cannot create backup file");
+         // set read only mode: no more flush possible! 
+         broker.setReadOnlyMode(true);
+
+         try {
+            boolean fileCreated = backupFile.createNewFile();
+            if (!fileCreated) {
+               logger.error("Cannot create backup file");
+               return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
+            }
+            OpBackupManager.getBackupManager().backupRepository(projectSession, backupFile.getCanonicalPath());
+            XMessage response = new XMessage();
+            response.setArgument(BACKUP_FILENAME_PARAMETER, backupFile.getName());
+            return response;
+         }
+         catch (IOException e) {
+            logger.error("Cannot backup repository to: '" + backupFile.getAbsolutePath() + "', because:" + e.getMessage(), e);
             return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
          }
-         OpBackupManager.getBackupManager().backupRepository(projectSession, backupFile.getCanonicalPath());
-         XMessage response = new XMessage();
-         response.setArgument(BACKUP_FILENAME_PARAMETER, backupFile.getName());
-         return response;
-      }
-      catch (IOException e) {
-         logger.error("Cannot backup repository to: '" + backupFile.getAbsolutePath() + "', because:" + e.getMessage(), e);
-         return createErrorMessage(projectSession, OpRepositoryError.BACKUP_ERROR_CODE);
       }
       finally {
-         //revalidate the site
-         projectSession.getServer().validateSite(projectSession.getSourceName());
+         broker.setReadOnlyMode(false);
+         broker.close();
+         projectSession.cleanupSession(true);
       }
    }
 

@@ -254,7 +254,7 @@ public class OpBackupManager {
          // Create Java array for caching member information
          OpBackupMember[] backupMembers = new OpBackupMember[prototype.getSize()];
 
-         Iterator members = prototype.getMembers();
+         Iterator members = prototype.getMembers().iterator();
          int i = 0;
          while (members.hasNext()) {
             OpMember member = (OpMember) members.next();
@@ -594,7 +594,7 @@ public class OpBackupManager {
     */
    private void exportObjects(OpProjectSession session, XDocumentWriter writer, String prototypeName,
         OpBackupMember[] members, Map systemIdMap)
-        throws IOException {
+   throws IOException {
       logger.info("Backing up ******** " + prototypeName + " ********");
       Map<String, String> attributes = new HashMap<String, String>();
       attributes.put(TYPE, prototypeName);
@@ -622,7 +622,7 @@ public class OpBackupManager {
 
       exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
       writer.writeEndElement(OBJECTS);
-      session.cleanupSession(true);
+//      session.cleanupSession(true);
    }
 
    /**
@@ -782,7 +782,7 @@ public class OpBackupManager {
       while (objectIds.size() > 0) {
          OpBroker broker = session.newBroker();
          String whereClause = recursiveRelationshipCondition == null || recursiveRelationshipCondition.length() == 0 ?
-              " where " : recursiveRelationshipCondition + " and ";
+               " where " : recursiveRelationshipCondition + " and ";
          whereClause += " obj.id in (:objectIDs)";
 
          OpQuery objectsQuery = broker.newQuery("delete from OpObject obj " + whereClause);

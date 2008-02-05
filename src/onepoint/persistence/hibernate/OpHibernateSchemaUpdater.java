@@ -347,7 +347,7 @@ public final class OpHibernateSchemaUpdater {
       List<String> result = new ArrayList<String>();
       if (statement != null) {
 
-         Iterator membersIt = prototype.getMembers();
+         Iterator membersIt = prototype.getMembers().iterator();
          while (membersIt.hasNext()) {
             OpMember member = (OpMember) membersIt.next();
             //relationships are not taken into account and only declared members are taken into account

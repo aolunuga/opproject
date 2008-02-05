@@ -61,8 +61,8 @@ public class OpPrototype extends OpType {
       return (OpMember) declaredMembers.get(name);
    }
 
-   public final Iterator<OpMember> getMembers() {
-      return members.values().iterator();
+   public final Collection<OpMember> getMembers() {
+      return members.values();
    }
 
    public final OpMember getMember(String name) {
@@ -86,7 +86,7 @@ public class OpPrototype extends OpType {
          size += superType.size;
 
          // First add resolved members of super-type to members (presume order)
-         Iterator super_members = superType.getMembers();
+         Iterator super_members = superType.getMembers().iterator();
          while (super_members.hasNext()) {
             OpMember member = (OpMember) (super_members.next());
             members.put(member.getName(), member);
@@ -108,7 +108,7 @@ public class OpPrototype extends OpType {
       if (backupDependencies == null) {
          backupDependencies = new ArrayList<OpPrototype>();
 
-         Iterator it = this.getMembers();
+         Iterator it = this.getMembers().iterator();
          while (it.hasNext()) {
             OpMember member = (OpMember) it.next();
             if (member instanceof OpRelationship) {

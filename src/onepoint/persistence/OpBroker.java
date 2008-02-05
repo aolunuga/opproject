@@ -27,7 +27,7 @@ public class OpBroker {
       // Constructor is only called by OpSourceManager
       default_source = OpSourceManager.getSource(sourceName);
       if (default_source != null) {
-         defaultConnection = default_source.newConnection();
+         defaultConnection = default_source.newConnection(this);
       }
    }
 
@@ -171,32 +171,57 @@ public class OpBroker {
    }
 
    /**
-       * Used for testing if a given object is of a given type.
-       * Throws an <code>UnsupportedOperationException</code> if the broker on witch we call the method is closed.
-       *
-       * @param id represents the object id
-       * @param objectType represents the type to witch we want to compare the object type
-       * @return returns <code>true</code> if the object with the specified id is of type <code>objectType</code> otherwise
-       * it returns <code>false</code>
-       */
-      public boolean isOfType(Long id, String objectType) {
-         if (!this.isValid()) {
-            throw new UnsupportedOperationException();
-         }
-         StringBuffer buffer = new StringBuffer("select obj.ID from ");
-         buffer.append(objectType);
-         buffer.append(" obj where obj.ID = :objID");
-         OpQuery query = this.newQuery(buffer.toString());
-         query.setLong("objID", id);
+    * @return
+    * @pre
+    * @post
+    */
+   public OpSource getSource() {
+      return default_source;
+   }
 
-         Iterator it = this.iterate(query);
-
-         if (it != null) {
-            return it.hasNext();
-         }
-
-         return false;
-      }
+   /**
+    * Sets the whole system to read only or read/write mode according the given parameter
+    * @param readOnly if true sets read only mode else sets read write mode.
+    */
+   public void setReadOnlyMode(boolean readOnly) {
+      defaultConnection.setReadOnlyMode(readOnly);
+   }
    
+   /**
+    * Gets the read only mode.
+    * @return true if the system is within read only mode, false otherwise.
+    */
+   public boolean isReadOnlyMode() {
+      return defaultConnection.isReadOnlyMode();
+   }
+
+   /**
+    * Used for testing if a given object is of a given type.
+    * Throws an <code>UnsupportedOperationException</code> if the broker on witch we call the method is closed.
+    *
+    * @param id represents the object id
+    * @param objectType represents the type to witch we want to compare the object type
+    * @return returns <code>true</code> if the object with the specified id is of type <code>objectType</code> otherwise
+    * it returns <code>false</code>
+    */
+   public boolean isOfType(Long id, String objectType) {
+      if (!this.isValid()) {
+         throw new UnsupportedOperationException();
+      }
+      StringBuffer buffer = new StringBuffer("select obj.ID from ");
+      buffer.append(objectType);
+      buffer.append(" obj where obj.ID = :objID");
+      OpQuery query = this.newQuery(buffer.toString());
+      query.setLong("objID", id);
+
+      Iterator it = this.iterate(query);
+
+      if (it != null) {
+         return it.hasNext();
+      }
+
+      return false;
+   }
+
 
 }
