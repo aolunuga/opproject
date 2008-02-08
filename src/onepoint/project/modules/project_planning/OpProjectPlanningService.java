@@ -78,6 +78,7 @@ public class OpProjectPlanningService extends OpProjectService {
       String projectId = (String) (request.getArgument(PROJECT_ID));
       boolean editMode = (Boolean) (request.getArgument(EDIT_MODE));
       byte[] file = (byte[]) (request.getArgument(BYTES_ARRAY_FIELD));
+      String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
 
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
@@ -97,7 +98,7 @@ public class OpProjectPlanningService extends OpProjectService {
       InputStream inFile = new ByteArrayInputStream(file);
       XComponent dataSet;
       try {
-         dataSet = OpMSProjectManager.importActivities(broker, inFile, projectPlan, session.getLocale());
+         dataSet = OpMSProjectManager.importActivities(broker, fileName, inFile, projectPlan, session.getLocale());
       }
       catch (IOException e) {
          broker.close();

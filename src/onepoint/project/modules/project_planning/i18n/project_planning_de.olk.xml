@@ -94,6 +94,8 @@
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
       <resource id="BaseEffortBelowActualErrorMessage">Der geplante Aufwand kann nicht unter dem tatsächlichen liegen.</resource>
+      <resource id="CannotMoveRootActivityErrorMessage">Der erste Vorgang kann nicht eingerückt werden.</resource>
+      <resource id="OutlineLevelInvalidErrorMessage">Ein Vorgang kann nicht weiter als eine Ebene unter seinem Sammelvorgang liegen.</resource>
 
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>

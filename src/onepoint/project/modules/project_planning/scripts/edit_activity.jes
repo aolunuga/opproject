@@ -194,12 +194,77 @@ function prepareBailOut(activity_set) {
 }
 // /FIXME OPP-456, OPP459...
 
+// prepare resources for data_cell id 26:
+function prepareResources(ass, resources_tab, ass_array) {
+  if (!resources_tab.isHidden()) {
+     ass_project = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
+     i = 0;
+     while (i < ass.getChildCount()) {
+        data_row = ass.getChild(i);
+        val = data_row.getChild(0).getStringValue();
+
+        id = XValidator.choiceID(val);
+        caption = XValidator.choiceCaption(val);
+        asigned = data_row.getChild(1).getDoubleValue();
+
+        available = 0;
+        j = 0;
+        while (j < ass_project.getChildCount()) {
+           res_data_row = ass_project.getChild(j);
+           available_data_cell = res_data_row.getChild(0);
+           available_res = available_data_cell.getDoubleValue();
+           idRes = XValidator.choiceID(res_data_row.getStringValue());
+           if (id == idRes) {
+              available = available_res;
+           }
+           j++;
+        }
+
+        available_s = XCalendar.localizedDoubleToString(available);
+        asigned_s = XCalendar.localizedDoubleToString(asigned);
+        if (available_s != asigned_s) {
+           caption = caption.concat(" ");
+           caption = caption.concat(asigned_s);
+           caption = caption.concat("%");
+        }
+
+        ass_array.add(XValidator.choice(id, caption));
+        i++;
+     }
+  }
+}
+
 function ok(event) {
+   MANDATORY_MASK = 1;
+   ALL_BITS = 2147483647; // 31 bits set (may the lord be with us)
 
    form = XDisplay.getActiveForm();
    //the project edit mode
    edit_mode = form.findComponent("EditModeField").getBooleanValue();
    if (edit_mode) {
+
+      fieldNames = new HashMap;
+      fieldNames.put(0, "Name");
+      // fieldNames.put(2, "Category");
+      fieldNames.put(3, "Complete");
+      fieldNames.put(4, "Start");
+      fieldNames.put(5, "End");
+      fieldNames.put(6, "Duration");
+      fieldNames.put(7, "BaseEffort");
+      fieldNames.put(8, "PredecessorSet");
+      fieldNames.put(11, "PersonnelCosts");
+      fieldNames.put(12, "TravelCosts");
+      fieldNames.put(13, "MaterialCosts");
+      fieldNames.put(14, "ExternalCosts");
+      fieldNames.put(15, "MiscellaneousCosts");
+      fieldNames.put(16, "Description");
+      fieldNames.put(18, "Mandatory");
+      fieldNames.put(23, "Priority");
+      fieldNames.put(26, "ResourcesTab");
+      fieldNames.put(27, "ResponsibleResource");
+      fieldNames.put(29, "Payment");
+
+      // several preparations:
       activity_row_index = form.findComponent("ActivityRowIndex").getIntValue();
       activity_set = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivitySet");
       activity_row = activity_set.getChild(activity_row_index);
@@ -207,98 +272,11 @@ function ok(event) {
       validator = activity_set.validator();
       validator.setContinuousAction(false); // enforce element on undo stack...  // FIXME OPP-456, OPP459
       validator.setContinuousAction(true);
-      // Update general values
-      name = form.findComponent("Name").getStringValue();
-      if (!activity_set.setDataCellValue(activity_row, 0, name, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
 
-      description = form.findComponent("Description").getStringValue();
-      if (!activity_set.setDataCellValue(activity_row, 16, description, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-
-      //complete
-      complete = form.findComponent("Complete").getDoubleValue();
-      validator.setDataCellValue(activity_row, 3, complete);
-
-      // no combine the changes to start, end, duration, effort and resources into one ArrayList
-      // so the GanttValidator can decide which values have changed and therefore update the project plan
-
-      array = new ArrayList;
-      start_field = form.findComponent("Start");
-      start = start_field.getDateValue();
-      array.add(start);
-
-      end_field = form.findComponent("End");
-      end = end_field.getDateValue();
-      array.add(end);
-
-      duration_field = form.findComponent("Duration");
-      duration = duration_field.getDoubleValue();
-
-      durationColumn = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
-      durationUnit = durationColumn.getDisplayUnit();
-      array.add(XCalendar.convertDurationFromUnit(duration, durationUnit));
-
-      effort_field = form.findComponent("BaseEffort");
-      effort = effort_field.getDoubleValue();
-      array.add(effort);
-
-      resources_tab = form.findComponent("ResourcesTab");
-      if (!resources_tab.isHidden()) {
-         ass = form.findComponent("AssignmentSet");
-         ass_project = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("AssignmentSet");
-         ass_array = new ArrayList;
-         i = 0;
-         while (i < ass.getChildCount()) {
-            data_row = ass.getChild(i);
-            val = data_row.getChild(0).getStringValue();
-
-            id = XValidator.choiceID(val);
-            caption = XValidator.choiceCaption(val);
-            asigned = data_row.getChild(1).getDoubleValue();
-
-            available = 0;
-            j = 0;
-            while (j < ass_project.getChildCount()) {
-               res_data_row = ass_project.getChild(j);
-               available_data_cell = res_data_row.getChild(0);
-               available_res = available_data_cell.getDoubleValue();
-               idRes = XValidator.choiceID(res_data_row.getStringValue());
-               if (id == idRes) {
-                  available = available_res;
-               }
-               j++;
-            }
-
-            available_s = XCalendar.localizedDoubleToString(available);
-            asigned_s = XCalendar.localizedDoubleToString(asigned);
-            if (available_s != asigned_s) {
-               caption = caption.concat(" ");
-               caption = caption.concat(asigned_s);
-               caption = caption.concat("%");
-            }
-
-            ass_array.add(XValidator.choice(id, caption));
-            i++;
-         }
-
-         //validator.setDataCellValue(activity_row, 10, ass_array);
-         array.add(ass_array);
-      }
-      else {
-         array.add(null);
-      }
-
-      // now update validator with combined values
-      if (!activity_set.updateDataCells(activity_row, array, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-
+      // overlay those special values...
+      fieldOverlay = new HashMap;
+      
+      // Predecessors
       pre = form.findComponent("PredecessorSet");
       pre_array = new ArrayList;
       i = 0;
@@ -310,51 +288,73 @@ function ok(event) {
          pre_array.add(Integer.parseInt(id));
          i++;
       }
+      fieldOverlay.put(8, pre_array);
 
-      if (!activity_set.setDataCellValue(activity_row, 8, pre_array, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
+      // Resources
+      resources_tab = form.findComponent("ResourcesTab");
+      ass_array = new ArrayList;
+      ass = form.findComponent("AssignmentSet");
+      prepareResources(ass, resources_tab, ass_array);
+      fieldOverlay.put(26, ass_array);
+
+      // Duration
+      duration = form.findComponent("Duration").getDoubleValue();
+      durationColumn = XDisplay.findFrame("ProjectContentFrame").currentForm().findComponent("ActivityTable").getChild(3).getChild(0).getChild(7);
+      durationUnit = durationColumn.getDisplayUnit();
+      fieldOverlay.put(6, XCalendar.convertDurationFromUnit(duration, durationUnit));
+      
+      // Mandatory
+      mandatory_field = form.findComponent("Mandatory");
+      if (mandatory_field.getEnabled()) {
+         mandatory = mandatory_field.getBooleanValue();
+         attributes = activity_row.getChild(18).getIntValue();
+         if ((mandatory == false) && ((attributes & 1) == 1)) {
+            attributes = attributes & ALL_BITS - MANDATORY_MASK;
+         }
+         else {
+            if ((mandatory == true) && ((attributes & 1) == 0)) {
+               attributes = attributes | 1;
+            }
+         }
+         fieldOverlay.put(18, attributes);
+      }
+      
+      // remember those changes:
+      fieldsToChange = new ArrayList;
+      valuesToSet = new ArrayList;
+      // setup row with changed values...
+      deltaDataRow = new ArrayList;
+      i = 0;
+      while (i < activity_row.getChildCount()) {
+        fieldName = fieldNames.get(i);
+        if (fieldName != null) {
+          Console.println("Checking for " + fieldName);
+          field = form.findComponent(fieldName);
+          // check whether we are enabled:
+	        if (field.getEnabled() && field.getVisible()) {
+	          // do we have pre-calculated overlays?
+	          value = fieldOverlay.get(i);
+	          if (value == null) {
+	            value = field.getValue();
+	          }
+            // only changed Values
+            if (value != activity_row.getChild(i).getValue()) {
+              Console.println("Changing value for " + fieldName);
+              fieldsToChange.add(i);
+              valuesToSet.add(value);
+			      }
+	        }
+	      }
+        i++;
       }
 
-      // Update costs
-      personnel = form.findComponent("PersonnelCosts").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 11, personnel, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-      travel = form.findComponent("TravelCosts").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 12, travel, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-      material = form.findComponent("MaterialCosts").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 13, material, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-      external = form.findComponent("ExternalCosts").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 14, external, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-      misc = form.findComponent("MiscellaneousCosts").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 15, misc, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-
-      //payment
-      payment = form.findComponent("Payment").getDoubleValue();
-      if (!activity_set.setDataCellValue(activity_row, 29, payment, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
-      }
-
-      // Update attachments
-      att_array = getAttachments();
-      if (!activity_set.setDataCellValue(activity_row, 17, att_array, form)) {
-         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-         return;
+      i = 0;
+      while (i < fieldsToChange.size()) {
+         if (!activity_set.setDataCellValue(activity_row, fieldsToChange[i], valuesToSet[i], form)) {
+            prepareBailOut(activity_set); // FIXME OPP-456, OPP459
+            return;
+         }
+         i++;
       }
 
       // Update category
@@ -366,43 +366,11 @@ function ok(event) {
          }
       }
 
-      // Update priority
-      priority_field = form.findComponent("Priority");
-      if (priority_field.getVisible() == true) {
-         priority = priority_field.getIntValue();
-         if (!activity_set.setDataCellValue(activity_row, 23, priority, form)) {
-            prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-            return;
-         }
-      }
-
-      // Update mandatory
-      mandatory_field = form.findComponent("Mandatory");
-      if (mandatory_field.getEnabled() == true) {
-         mandatory = mandatory_field.getBooleanValue();
-         attributes = activity_row.getChild(18).getIntValue();
-         valid = true;
-         if ((mandatory == false) && ((attributes & 1) == 1)) {
-            valid = activity_set.setDataCellValue(activity_row, 18, attributes + 1, form);
-         }
-         else {
-            if ((mandatory == true) && ((attributes & 1) == 0)) {
-               valid = activity_set.setDataCellValue(activity_row, 18, attributes - 1, form);
-            }
-         }
-         if (!valid) {
-            prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-            return;
-         }
-      }
-
-      // Update responsible resource
-      responsible = form.findComponent("ResponsibleResource").getStringValue();
-      if (responsible != null) {
-         if (!activity_set.setDataCellValue(activity_row, 27, responsible, form)) {
-            prepareBailOut(activity_set); // FIXME OPP-456, OPP459
-            return;
-         }
+      // Update attachments
+      att_array = getAttachments();
+      if (!activity_set.setDataCellValue(activity_row, 17, att_array, form)) {
+         prepareBailOut(activity_set); // FIXME OPP-456, OPP459
+         return;
       }
 
       validator.setContinuousAction(false);

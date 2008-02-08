@@ -331,7 +331,17 @@
 
    <!-- Creates the client-side jar files with the client libraries -->
    <target name="build.client.jars" depends="build" description="Create the opproject client jars">
-      <jar destfile="${jars.dir}/${opproject.client.open.jarname}">
+      <manifest file="${manifest}">
+         <attribute name="Built-By" value="Onepoint Software GmbH" />
+         <attribute name="Build-Date" value="${build.date}" />
+         <section name="Implementation">
+            <attribute name="Implementation-Title" value="${opproject.launchername} Open" />
+            <attribute name="Implementation-Version" value="${project.version}" />
+            <attribute name="Implementation-Vendor" value="Onepoint Software GmbH" />
+            <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at" />
+         </section>
+      </manifest>
+      <jar destfile="${jars.dir}/${opproject.client.open.jarname}" manifest="${manifest}">
          <fileset dir="${client.classes.dir}">
             <patternset refid="project.client.pathid"/>
          </fileset>

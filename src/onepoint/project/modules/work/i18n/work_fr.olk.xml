@@ -4,33 +4,33 @@
    </resource-map>
    <resource-map id="work.work_slips">
       <resource id="NewWorkSlip">Nouveau CRA</resource>
-      <resource id="Info">Propriétés</resource>
+      <resource id="Info">PropriÃ©tÃ©s</resource>
       <resource id="Delete">Supprimer</resource>
-      <resource id="Number">Numéro</resource>
+      <resource id="Number">NumÃ©ro</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Date">Date</resource>
       <resource id="TotalEffort">Total Effort</resource>
 
-      <resource id="NewWorkSlipTooltip">Créer un nouveau CRA</resource>
-      <resource id="InfoTooltip">Voir les meta information des CRA choisis</resource>
+      <resource id="NewWorkSlipTooltip">CrÃ©er un nouveau CRA</resource>
+      <resource id="InfoTooltip">Voir les informations des CRA choisis</resource>
       <resource id="DeleteTooltip">Supprimer les CRA choisis</resource>
 
-      <resource id="Time">Période De Temps</resource>
+      <resource id="Time">PÃ©riode De Temps</resource>
       <resource id="CurrentMonth">Mois courant</resource>
-      <resource id="PreviousMonth">Mois précédent</resource>
-      <resource id="CurrentYear">Année Courante</resource>
+      <resource id="PreviousMonth">Mois prÃ©cÃ©dent</resource>
+      <resource id="CurrentYear">AnnÃ©e Courante</resource>
       <resource id="All">Tout</resource>
 
    </resource-map>
    <resource-map id="work.new_work_slip">
       <resource id="NewWorkSlip">Nouveau CRA</resource>
       <resource id="Date">Date</resource>
-      <resource id="Task">Tâche</resource>
+      <resource id="Task">TÃ¢che</resource>
       <resource id="Project">Projet</resource>
-      <resource id="AssignmentEffort">Planifié</resource>
+      <resource id="AssignmentEffort">PlanifiÃ©</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Effort</resource>
-      <resource id="Costs">Coûts</resource>
+      <resource id="Costs">CoÃ»ts</resource>
       <resource id="Worktime">Effort</resource>
       <resource id="RemainingEffort">Obligatoire</resource>
       <resource id="Material">Materiel</resource>
@@ -38,29 +38,27 @@
       <resource id="External">Externe</resource>
       <resource id="Misc">Divers</resource>
       <resource id="Comment">Commentaire</resource>
-      <resource id="Completed">Terminée</resource>
+      <resource id="Completed">TerminÃ©e</resource>
+      <resource id="Hours">Heures</resource>
+      <resource id="AddHours">Ajouter rapport d'heures</resource>
+      <resource id="RemoveHours">Supprimer rapport d'heures</resource>
 
-      <resource id="Hours">Hours</resource>
-      <resource id="AddHours">Add Hours Record</resource>
-      <resource id="RemoveHours">Remove Hours Record</resource>
-      
-      <resource id="Time">Time</resource>
-      <resource id="Start">Start</resource>
-      <resource id="Finish">Finish</resource>
-      <resource id="Duration">Duration</resource>
-      <resource id="AddTime">Add Time Record</resource>
-      <resource id="RemoveTime">Remove Time Record</resource>
+      <resource id="Time">Temps</resource>
+      <resource id="Start">DÃ©but</resource>
+      <resource id="Finish">Fin</resource>
+      <resource id="Duration">DurÃ©e</resource>
+      <resource id="AddTime">Ajouter rapport de temps</resource>
+      <resource id="RemoveTime">Supprimer rapport de temps</resource>
 
-      <resource id="CostType">Cost Type</resource>
-      <resource id="BaseCost">Planned</resource>
-      <resource id="ActualCost">Actual</resource>
-      <resource id="RemainingCost">Remaining</resource>
-      <resource id="AddCost">Add Cost Record</resource>
-      <resource id="RemoveCosts">Remove Cost Record</resource>
-      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+      <resource id="CostType">Type de coÃ»t</resource>
+      <resource id="BaseCost">PrÃ©vu</resource>
+      <resource id="ActualCost">RÃ©el</resource>
+      <resource id="RemainingCost">Restant</resource>
+      <resource id="AddCost">Ajouter un rapport de coÃ»ts</resource>
+      <resource id="RemoveCosts">Supprimer un rapport de coÃ»ts</resource>
+      <resource id="ManageAttachmentTooltip">GÃ©rer les piÃ¨ces jointes</resource>
 
-
-      <resource id="StartBefore">Période De Temps</resource>
+      <resource id="StartBefore">PÃ©riode De Temps</resource>
       <resource id="All">Tout</resource>
       <resource id="Project">Projet</resource>
       <resource id="NextWeek">Semaine suivante</resource>
@@ -72,30 +70,31 @@
       <resource id="Cancel">Annuler</resource>
 
       <!--Errors-->
-      <resource id="ProjectNameException">Invalid Project Name</resource>
-      <resource id="ActivityNameException">Invalid Activity Name</resource>
-      <resource id="ResourceNameException">Invalid Resource Name</resource>
-      <resource id="StartValueException">Start value is invalid</resource>
-      <resource id="FinishValueException">Finish value is invalid</resource>
-      <resource id="DurationValueException">Duration value incorrect</resource>
-      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
-      <resource id="ActualEffortException">Actual effort is invalid</resource>
-      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
-      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
-      <resource id="CostTypeException">Cost type is invalid</resource>
-      <resource id="ActualCostException">Actual cost is invalid</resource>
-      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+      <resource id="ProjectNameException">Nom de projet incorrect</resource>
+      <resource id="ActivityNameException">Nom d'activitÃ© incorrect</resource>
+      <resource id="ResourceNameException">Nom de ressource incorrect</resource>
+      <resource id="StartValueException">Valeur de dÃ©but incorrect</resource>
+      <resource id="FinishValueException">Valeur de fin incorrect</resource>
+      <resource id="DurationValueException">Valeur de durÃ©e incorrect</resource>
+      <resource id="IntervalsOverlapException">Les intervalles de durÃ©e se chevauchent pour la mÃªme mission</resource>
+      <resource id="ActualEffortException">Effort rÃ©el incorrect</resource>
+      <resource id="RemainingEffortException">Effort restant incorrect</resource>
+      <resource id="DuplicateEffortException">il y a au moins deux rapports de travail sur la mÃªme mission</resource>
+      <resource id="CostTypeException">Type de coÃ»t incorrect</resource>
+      <resource id="ActualCostException">CoÃ»t rÃ©el incorrect</resource>
+      <resource id="RemainingCostException">CoÃ»t restant incorrect</resource>
 
    </resource-map>
+   
    <resource-map id="work.edit_work_slip">
       <resource id="EditWorkSlip">Modifier le CRA</resource>
       <resource id="Date">Date</resource>
-      <resource id="Task">Tâche</resource>
+      <resource id="Task">TÃ¢che</resource>
       <resource id="Project">Projet</resource>
-      <resource id="AssignmentEffort">Planifié</resource>
+      <resource id="AssignmentEffort">PlanifiÃ©</resource>
       <resource id="Resource">Ressource</resource>
       <resource id="Effort">Effort</resource>
-      <resource id="Costs">Coûts</resource>
+      <resource id="Costs">CoÃ»ts</resource>
       <resource id="Worktime">Effort</resource>
       <resource id="RemainingEffort">Obligatoire</resource>
       <resource id="Material">Materiel</resource>
@@ -103,56 +102,56 @@
       <resource id="External">Externe</resource>
       <resource id="Misc">Divers</resource>
       <resource id="Comment">Commentaire</resource>
-      <resource id="Completed">Terminée</resource>
+      <resource id="Completed">TerminÃ©e</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
-      <resource id="AddWorkSlipActivity">Choisir des Activités à ajouter</resource>
+      <resource id="AddWorkSlipActivity">Choisir des ActivitÃ©s Ã  ajouter</resource>
+      <resource id="Hours">Heures</resource>
+      <resource id="AddHours">Ajouter rapport d'heures</resource>
+      <resource id="RemoveHours">Supprimer rapport d'heures</resource>
 
-      <resource id="Hours">Hours</resource>
-      <resource id="AddHours">Add Hours Record</resource>
-      <resource id="RemoveHours">Remove Hours Record</resource>
+      <resource id="Time">Temps</resource>
+      <resource id="Start">DÃ©but</resource>
+      <resource id="Finish">Fin</resource>
+      <resource id="Duration">DurÃ©e</resource>
+      <resource id="AddTime">Ajouter rapport de temps</resource>
+      <resource id="RemoveTime">Supprimer rapport de temps</resource>
 
-      <resource id="Time">Time</resource>
-      <resource id="Start">Start</resource>
-      <resource id="Finish">Finish</resource>
-      <resource id="Duration">Duration</resource>
-      <resource id="AddTime">Add Time Record</resource>
-      <resource id="RemoveTime">Remove Time Record</resource>
-
-      <resource id="CostType">Cost Type</resource>
-      <resource id="BaseCost">Planned</resource>
-      <resource id="ActualCost">Actual</resource>
-      <resource id="RemainingCost">Remaining</resource>
-      <resource id="AddCost">Add Cost Record</resource>
-      <resource id="RemoveCosts">Remove Cost Record</resource>
-      <resource id="ManageAttachmentTooltip">Manage Attachments</resource>
+      <resource id="CostType">Type de coÃ»t</resource>
+      <resource id="BaseCost">PrÃ©vu</resource>
+      <resource id="ActualCost">RÃ©el</resource>
+      <resource id="RemainingCost">Restant</resource>
+      <resource id="AddCost">Ajouter un rapport de coÃ»ts</resource>
+      <resource id="RemoveCosts">Supprimer un rapport de coÃ»ts</resource>
+      <resource id="ManageAttachmentTooltip">GÃ©rer les piÃ¨ces jointes</resource>
 
       <!--Errors-->
-      <resource id="ProjectNameException">Invalid Project Name</resource>
-      <resource id="ActivityNameException">Invalid Activity Name</resource>
-      <resource id="ResourceNameException">Invalid Resource Name</resource>
-      <resource id="StartValueException">Start value is invalid</resource>
-      <resource id="FinishValueException">Finish value is invalid</resource>
-      <resource id="DurationValueException">Duration value incorrect</resource>
-      <resource id="IntervalsOverlapException">Duration intervals are overlaped for same assignment</resource>
-      <resource id="ActualEffortException">Actual effort is invalid</resource>
-      <resource id="RemainingEffortException">Remaining effort is invalid</resource>
-      <resource id="DuplicateEffortException">There are at least two work records on the same assignment</resource>
-      <resource id="CostTypeException">Cost type is invalid</resource>
-      <resource id="ActualCostException">Actual cost is invalid</resource>
-      <resource id="RemainingCostException">Remaining cost is invalid</resource>
+      <resource id="ProjectNameException">Nom de projet incorrect</resource>
+      <resource id="ActivityNameException">Nom d'activitÃ© incorrect</resource>
+      <resource id="ResourceNameException">Nom de ressource incorrect</resource>
+      <resource id="StartValueException">Valeur de dÃ©but incorrect</resource>
+      <resource id="FinishValueException">Valeur de fin incorrect</resource>
+      <resource id="DurationValueException">Valeur de durÃ©e incorrect</resource>
+      <resource id="IntervalsOverlapException">Les intervalles de durÃ©e se chevauchent pour la mÃªme mission</resource>
+      <resource id="ActualEffortException">Effort rÃ©el incorrect</resource>
+      <resource id="RemainingEffortException">Effort restant incorrect</resource>
+      <resource id="DuplicateEffortException">il y a au moins deux rapports de travail sur la mÃªme mission</resource>
+      <resource id="CostTypeException">Type de coÃ»t incorrect</resource>
+      <resource id="ActualCostException">CoÃ»t rÃ©el incorrect</resource>
+      <resource id="RemainingCostException">CoÃ»t restant incorrect</resource>
       
    </resource-map>
+   
    <resource-map id="work.Info">
       <resource id="WorkInfo">Information CRA</resource>
    </resource-map>
 
    <resource-map id="work.manage_attachments">
-      <resource id="ManageAttachments">Piéce jointe</resource>
+      <resource id="ManageAttachments">PiÃ©ce jointe</resource>
       <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
       <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
-      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
-      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piÃ©ce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piÃ©ces jointes</resource>
       <resource id="Title">Titre</resource>
       <resource id="Location">Lieu</resource>
       <resource id="OK">OK</resource>
@@ -160,39 +159,39 @@
    </resource-map>
 
    <resource-map id="work.error">
-      <resource id="DateMissing">La date du CRA n'a pas été indiquée</resource>
-      <resource id="DuplicateDate">Un CRA pour la date indiquée existe déjà</resource>
-      <resource id="CreatorMissing">The work slip creator was not specified (en)</resource>
-      <resource id="WorkRecordsMissing">The work slip has no valid work records (en)</resource>
-      <resource id="IncorrectActualEffort">Effort Actuel Invalide</resource>
-      <resource id="IncorrectRemainingEffort">Effort Obligatoire Invalide</resource>
-      <resource id="IncorrectMaterialCosts">Coûts Materiel Invalide</resource>
-      <resource id="IncorrectTravelCosts">Coûts de Voyage Invalide</resource>
-      <resource id="IncorrectExternalCosts">Coûts Externe Invalide</resource>
-      <resource id="IncorrectMiscellaneousCosts">Coûts Divers Invalide</resource>
-      <resource id="StartTimeIsNegative">Negative Start Time</resource>
-      <resource id="FinishTimeIsNegative">Negative Finish Time</resource>
-      <resource id="StartTimeIsTooLarge">Start Time is too large</resource>
-      <resource id="FinishTimeIsTooLarge">Finish Time is too large</resource>
-      <resource id="StartAfterFinish">Start Time must be before the Finish Time</resource>
-      <resource id="DurationNotValid">Duration is not valid regarding the Start Time and Finish Time</resource>
-      <resource id="ActualCostsNotValid">Incorrect Actual Costs</resource>
-      <resource id="RemainingCostsNotValid">Incorrect Remaining Costs</resource>
-      <resource id="CostTypeNotValid">Incorrect Cost Type</resource>
+      <resource id="DateMissing">La date du CRA n'a pas Ã©tÃ© indiquÃ©e</resource>
+      <resource id="DuplicateDate">Un CRA pour la date indiquÃ©e existe dÃ©jÃ </resource>
+      <resource id="CreatorMissing">Le crÃ©ateur du CRA n'a pas Ã©tÃ© indiquÃ©</resource>
+      <resource id="WorkRecordsMissing">Le CRA n'a pas de rapport d'activitÃ© valide</resource>
+      <resource id="IncorrectActualEffort">Effort rÃ©el incorrect</resource>
+      <resource id="IncorrectRemainingEffort">Effort restant incorrect</resource>
+      <resource id="IncorrectMaterialCosts">CoÃ»ts Materiel incorrect</resource>
+      <resource id="IncorrectTravelCosts">CoÃ»ts de Voyage incorrect</resource>
+      <resource id="IncorrectExternalCosts">CoÃ»ts Externe incorrect</resource>
+      <resource id="IncorrectMiscellaneousCosts">CoÃ»ts Divers incorrect</resource>
+      <resource id="StartTimeIsNegative">Temps de dÃ©but nÃ©gatif</resource>
+      <resource id="FinishTimeIsNegative">Temps de fin nÃ©gatif</resource>
+      <resource id="StartTimeIsTooLarge">Temps de dÃ©but trop grand</resource>
+      <resource id="FinishTimeIsTooLarge">Temps de fin trop grand</resource>
+      <resource id="StartAfterFinish">Le temps de dÃ©but doit Ãªtre avant le temps de fin</resource>
+      <resource id="DurationNotValid">La durÃ©e n'est pas valide compte tenu du temps de dÃ©but et de fin</resource>
+      <resource id="ActualCostsNotValid">CoÃ»ts rÃ©els incorrects</resource>
+      <resource id="RemainingCostsNotValid">CoÃ»ts restants incorrects</resource>
+      <resource id="CostTypeNotValid">Type de coÃ»t incorrect</resource>
    </resource-map>
    <resource-map id="work.delete">
       <resource id="ConfirmDelete">Supprimer les CRA</resource>
-      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs CRA à supprimer.</resource>
+      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs CRA Ã  supprimer.</resource>
       <resource id="ConfirmDeleteOneMessage">Voulez vous vraiment supprimer le CRA choisi ?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les CRA choisis ?</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
    <resource-map id="work.costTypes">
-      <resource id="TravelCost">Travel Cost({CurrencySymbol})</resource>
-      <resource id="MaterialCost">Material Cost({CurrencySymbol})</resource>
-      <resource id="ExternalCost">External Cost({CurrencySymbol})</resource>
-      <resource id="MiscellaneousCost">Miscellaneous Cost({CurrencySymbol})</resource>
+      <resource id="TravelCost">CoÃ»ts de Voyage({CurrencySymbol})</resource>
+      <resource id="MaterialCost">CoÃ»ts de Materiel({CurrencySymbol})</resource>
+      <resource id="ExternalCost">CoÃ»ts externes({CurrencySymbol})</resource>
+      <resource id="MiscellaneousCost">CoÃ»ts divers({CurrencySymbol})</resource>
    </resource-map>
 
 </language-kit>

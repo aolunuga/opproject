@@ -6,7 +6,7 @@
       <resource id="MyToolGroup">MOI</resource>
       <resource id="ReportsToolGroup">RAPPORTS</resource>
       <resource id="ResourcesToolGroup">RESSOURCES</resource>
-      <resource id="SystemToolGroup">SYSTÈME</resource>
+      <resource id="SystemToolGroup">SYSTÃME</resource>
 
       <resource id="ProjectsAdministrationTool">Administration</resource>
       <resource id="PlanningTool">Planification</resource>
@@ -14,47 +14,47 @@
    </resource-map>
 
    <resource-map id="template">
-      <resource id="NotificationMailSubject">Mise à jour De Projet</resource>
-      <resource id="NotificationMailBody">Le plan de projet pour le projet '$ProjectName$' a été changé.</resource>
+      <resource id="NotificationMailSubject">Mise Ã  jour De Projet</resource>
+      <resource id="NotificationMailBody">Le plan de projet pour le projet '$ProjectName$' a Ã©tÃ© changÃ©.</resource>
    </resource-map>
 
    <resource-map id="project.projects">
       <resource id="NewPortfolio">Nouveau portfolio</resource>
       <resource id="NewProject">Nouveau Projet</resource>
-      <resource id="Move">Déplacer</resource>
-      <resource id="Info">Propriétés</resource>
+      <resource id="Move">DÃ©placer</resource>
+      <resource id="Info">PropriÃ©tÃ©s</resource>
       <resource id="Delete">Effacer</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
-      <resource id="Start">Début</resource>
+      <resource id="Start">DÃ©but</resource>
       <resource id="End">Fin</resource>
-      <resource id="Activities">Activités</resource>
+      <resource id="Activities">ActivitÃ©s</resource>
       <resource id="Resources">Ressources</resource>
-      <resource id="Costs">Coûts</resource>
+      <resource id="Costs">CoÃ»ts</resource>
       <resource id="Status">Status</resource>
       <resource id="Priority">Priority</resource>
 
       <resource id="ProjectList">Projects</resource>
       <resource id="ProjectResources">Resources</resource>
-      <resource id="ProjectCosts">Costs</resource>
+      <resource id="ProjectCosts">CoÃ»ts</resource>
 
-      <resource id="Project">Project</resource>
+      <resource id="Project">Projet</resource>
       <resource id="BaseEffort">Base (h)</resource>
-      <resource id="ActualEffort">Actual (h)</resource>
-      <resource id="RemainingEffort">Rem. (h)</resource>
-      <resource id="ProjectedEffort">Expected (h)</resource>
+      <resource id="ActualEffort">RÃ©el (h)</resource>
+      <resource id="RemainingEffort">Restant (h)</resource>
+      <resource id="ProjectedEffort">PrÃ©vu (h)</resource>
       <resource id="DeviationEffort">Deviation (h)</resource>
       <resource id="PercentageDeviationEffort">Deviation (%)</resource>
       <resource id="BaseCosts">Base ({CurrencySymbol})</resource>
-      <resource id="ActualCosts">Actual ({CurrencySymbol})</resource>
-      <resource id="RemainingCosts">Rem. ({CurrencySymbol})</resource>
-      <resource id="ProjectedCosts">Expected ({CurrencySymbol})</resource>
+      <resource id="ActualCosts">RÃ©el ({CurrencySymbol})</resource>
+      <resource id="RemainingCosts">Restant ({CurrencySymbol})</resource>
+      <resource id="ProjectedCosts">PrÃ©vu ({CurrencySymbol})</resource>
       <resource id="DeviationCosts">Deviation ({CurrencySymbol})</resource>
       <resource id="PercentageDeviationCosts">Deviation (%)</resource>
 
-      <resource id="NewPortfolioTooltip">Créez un nouveau portfolio de projet</resource>
-      <resource id="NewProjectTooltip">Créez un nouveau projet</resource>
-      <resource id="MoveTooltip">Déplacez le projet ou le portfolio choisi à un portfolio différent</resource>
+      <resource id="NewPortfolioTooltip">CrÃ©ez un nouveau portfolio de projet</resource>
+      <resource id="NewProjectTooltip">CrÃ©ez un nouveau projet</resource>
+      <resource id="MoveTooltip">DÃ©placez le projet ou le portfolio choisi Ã  un portfolio diffÃ©rent</resource>
       <resource id="InfoTooltip">Regardez les informations pour le projet ou le portfolio choisi</resource>
       <resource id="DeleteTooltip">Effacer les projets et portfolios choisi</resource>
 
@@ -72,7 +72,7 @@
    <resource-map id="project.NewPortfolio">
       <resource id="NewPortfolio">Nouveau Portfolio</resource>
 
-      <resource id="General">Généralités</resource>
+      <resource id="General">GÃ©nÃ©ralitÃ©s</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
       <resource id="Permissions">Permissions</resource>
@@ -82,43 +82,43 @@
    <resource-map id="project.NewProject">
       <resource id="NewProject">Nouveau Projet</resource>
 
-      <resource id="General">Généralités</resource>
+      <resource id="General">GÃ©nÃ©ralitÃ©s</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
-      <resource id="Start">Début</resource>
+      <resource id="Start">DÃ©but</resource>
       <resource id="End">Fin</resource>
       <resource id="Budget">Budget ({CurrencySymbol})</resource>
-      <resource id="Priority">Priority</resource>
-      <resource id="Probability">Probability (%)</resource>
-      <resource id="Archived">Archived</resource>      
-      <resource id="Template">Modèle</resource>
+      <resource id="Priority">PrioritÃ©</resource>
+      <resource id="Probability">ProbabilitÃ© (%)</resource>
+      <resource id="Archived">ArchivÃ©</resource>      
+      <resource id="Template">ModÃ¨le</resource>
       <resource id="NotSelected">(Non choisi)</resource>
 
       <resource id="Goals">Objectifs</resource>
       <resource id="Subject">Sujet</resource>
-      <resource id="Priority">Priorité</resource>
+      <resource id="Priority">PrioritÃ©</resource>
 
-      <resource id="Tasks">Tâches</resource>
-      <resource id="DueTo">Echéance</resource>
+      <resource id="Tasks">TÃ¢ches</resource>
+      <resource id="DueTo">EchÃ©ance</resource>
 
       <resource id="Resources">Ressources</resource>
       <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AdjustRates">Taux ajustÃ©s</resource>
+      <resource id="InternalRate">Taux interne</resource>
+      <resource id="ExternalRate">Taux externe</resource>
 
       <resource id="Permissions">Permissions</resource>
 
-      <resource id="CalculationMode">Effort-based planning</resource>
+      <resource id="CalculationMode">Plannification Ã  base d'effort</resource>
       <resource id="ProgressTracked">Suivre l'avancement</resource>
       <resource id="Status">Statut du Projet</resource>
       <resource id="NoStatus">(Rien)</resource>
 
-      <resource id="Attachments">piéce jointe</resource>
+      <resource id="Attachments">piÃ©ce jointe</resource>
       <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
       <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
-      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
-      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piÃ©ce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piÃ©ces jointes</resource>
       <resource id="Title">Titre</resource>
       <resource id="Location">Lieu</resource>
 
@@ -127,52 +127,55 @@
    </resource-map>
 
    <resource-map id="project.EditProject">
-      <resource id="EditProject">Éditez le Projet</resource>
+      <resource id="EditProject">Ãditez le Projet</resource>
 
-      <resource id="General">Généralités</resource>
+      <resource id="General">GÃ©nÃ©ralitÃ©s</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
-      <resource id="Start">Début</resource>
+      <resource id="Start">DÃ©but</resource>
       <resource id="End">Fin</resource>
       <resource id="Budget">Budget ({CurrencySymbol})</resource>
-      <resource id="Template">Modèle</resource>
+      <resource id="Priority">PrioritÃ©</resource>
+      <resource id="Probability">ProbabilitÃ© (%)</resource>
+      <resource id="Archived">ArchivÃ©</resource>      
+      <resource id="Template">ModÃ¨le</resource>
       <resource id="NotSelected">(Non choisi)</resource>
 
       <resource id="Goals">Objectifs</resource>
       <resource id="Subject">Sujet</resource>
-      <resource id="Priority">Priorité</resource>
+      <resource id="Priority">PrioritÃ©</resource>
 
-      <resource id="Tasks">Tâches</resource>
-      <resource id="DueTo">Echéance</resource>
+      <resource id="Tasks">TÃ¢ches</resource>
+      <resource id="DueTo">EchÃ©ance</resource>
 
       <resource id="Versions">Versions</resource>
       <resource id="Version">Version</resource>
-      <resource id="CreatedBy">Créé Par</resource>
-      <resource id="CreatedOn">Créé le</resource>
+      <resource id="CreatedBy">CrÃ©Ã© Par</resource>
+      <resource id="CreatedOn">CrÃ©Ã© le</resource>
       <resource id="Baseline">Baseline Version</resource>
       <resource id="DeleteVersions">Effacer les versions</resource>
 
-      <resource id="WorkingVersion">Working Version</resource>
-      <resource id="ActualVersion">Most Current Version</resource>
+      <resource id="WorkingVersion">Version de travail</resource>
+      <resource id="ActualVersion">Version actuelle</resource>
 
       <resource id="Permissions">Permissions</resource>
 	   
-      <resource id="CalculationMode">Effort-based planning</resource>
+      <resource id="CalculationMode">Plannification Ã  base d'effort</resource>
       <resource id="ProgressTracked">Suivre l'avancement</resource>
 
       <resource id="Resources">Ressources</resource>
       <resource id="Resource">Resource</resource>
-      <resource id="AdjustRates">Adjust Rates</resource>
-      <resource id="InternalRate">Internal Rate</resource>
-      <resource id="ExternalRate">External Rate</resource>
+      <resource id="AdjustRates">Taux ajustÃ©s</resource>
+      <resource id="InternalRate">Taux interne</resource>
+      <resource id="ExternalRate">Taux externe</resource>
       <resource id="Status">Statut du Projet</resource>
       <resource id="NoStatus">(Sans Statut)</resource>
 
-      <resource id="Attachments">piéce jointe</resource>
+      <resource id="Attachments">piÃ©ce jointe</resource>
       <resource id="AddDocumentAttachmentTooltip">Joindre un document</resource>
       <resource id="AddLinkAttachmentTooltip">Joindre un lien</resource>
-      <resource id="RemoveAttachmentTooltip">Supprimer la piéce jointe</resource>
-      <resource id="ViewAttachmentTooltip">Voir les piéces jointes</resource>
+      <resource id="RemoveAttachmentTooltip">Supprimer la piÃ©ce jointe</resource>
+      <resource id="ViewAttachmentTooltip">Voir les piÃ©ces jointes</resource>
       <resource id="Title">Titre</resource>
       <resource id="Location">Lieu</resource>
 
@@ -181,14 +184,13 @@
    </resource-map>
 
    <resource-map id="project.Info">
-      <resource id="InfoProject">Priorité du Projet</resource>
-      <resource id="InfoPortfolio">Priorité du Portfolio</resource>
-      <resource id="InfoTemplate">Priorité du Modèle</resource>
+      <resource id="InfoProject">PrioritÃ© du Projet</resource>
+      <resource id="InfoPortfolio">PrioritÃ© du Portfolio</resource>
    </resource-map>
 
    <resource-map id="project.EditPortfolio">
       <resource id="EditPortfolio">Modifier le Portfolio</resource>
-      <resource id="General">Généralités</resource>
+      <resource id="General">GÃ©nÃ©ralitÃ©s</resource>
       <resource id="Name">Nom</resource>
       <resource id="Description">Description</resource>
       <resource id="Permissions">Permissions</resource>
@@ -205,43 +207,41 @@
 
    <resource-map id="project.objects">
       <resource id="RootProjectPortfolioName">Portfolio Projet Racine</resource>
-      <resource id="RootProjectPortfolioDescription">Le portfolio projet racine forme la racine de la hiérarchie de projet</resource>
+      <resource id="RootProjectPortfolioDescription">Le portfolio projet racine forme la racine de la hiÃ©rarchie de projet</resource>
    </resource-map>
 
    <resource-map id="project.error">
-      <resource id="ProjectNameMissing">Le nom de projet n'a pas été indiqué</resource>
-      <resource id="ProjectNameAlreadyUsed">Le nom de projet est déjà employé</resource>
-      <resource id="StartDateMissing">La date de début n'a pas été indiquée</resource>
+      <resource id="ProjectNameMissing">Le nom de projet n'a pas Ã©tÃ© indiquÃ©</resource>
+      <resource id="ProjectNameAlreadyUsed">Le nom de projet est dÃ©jÃ  employÃ©</resource>
+      <resource id="StartDateMissing">La date de dÃ©but n'a pas Ã©tÃ© indiquÃ©e</resource>
       <resource id="EndDateIncorrect">La date de fin est invalide</resource>
       <resource id="BudgetIncorrect">Le budjet est invalide</resource>
-      <resource id="PortfolioNameMissing">Le nom du Portfolio n'a pas été indiqué</resource>
-      <resource id="PortfolioNameAlreadyUsed">Le nom du Portfolio est déjà employé</resource>
-      <resource id="UpdateAccessDenied">Vous n'avez pas de droits suffisants pour éditer le projet ou le Portfolio</resource>
-      <resource id="ProjectNotSpecified">Le projet n'a pas été indiqué</resource>
-      <resource id="ProjectNotFound">Le projet n'a pas été trouvé</resource>
-      <resource id="TargetPortfolioNotSelected">Le Portfolio cible n'a pas été choisie</resource>
-      <resource id="ManagerAccessDenied">Vous avez besoin des droits de manager pour cette opération</resource>
-      <resource id="WorkRecordsStillExistError">The selected projects cannot be deleted, because there exist work slips which reference them</resource>
-      <resource id="WorkRecordsStillExistWarning">Not all selected projects could be deleted, because there existed work slips which referenced some of them</resource>
-      <resource id="ActivityAssignmentsExistError">The resource cannot be removed from the project because it is assigned to one or more of the project's activities</resource>
-      <resource id="ProjectLockedError">Project cannot be modified, because it is currently checked out</resource>
-      <resource id="GoalPriorityError">Certaines des priorités de but sont invalide (1-9)</resource>
-      <resource id="TodoPriorityError">Certaines des priorités des restes à faire sont invalide (1-9)</resource>
-      <resource id="LoopAssignmentError">This assignment would cause a loop</resource>
-      <resource id="InternalRateNotValid">The entered hourly rate is not valid</resource>
-      <resource id="ExternalRateNotValid">The entered external rate is not valid</resource>
-      <resource id="ProbabilityNotValid">The entered probability is not valid (0-100)</resource>
-      <resource id="PriorityNotValid">The entered priority is not valid (1-9)</resource>
-      <resource id="DuplicateBaselineError">Only one version can be chosen as baseline</resource>
-      <resource id="CannotRemovePermissionError">Cannot remove the permissions for a user while he is editing the project</resource>
-      <resource id="NoRightsChangingBudgetError">You need administrator privileges to change the project budget</resource>
-      <resource id="NoRightsChangingStatusError">You need administrator privileges to change the project status</resource>
+      <resource id="PortfolioNameMissing">Le nom du Portfolio n'a pas Ã©tÃ© indiquÃ©</resource>
+      <resource id="PortfolioNameAlreadyUsed">Le nom du Portfolio est dÃ©jÃ  employÃ©</resource>
+      <resource id="UpdateAccessDenied">Vous n'avez pas de droits suffisants pour Ã©diter le projet ou le Portfolio</resource>
+      <resource id="ProjectNotSpecified">Le projet n'a pas Ã©tÃ© indiquÃ©</resource>
+      <resource id="ProjectNotFound">Le projet n'a pas Ã©tÃ© trouvÃ©</resource>
+      <resource id="TargetPortfolioNotSelected">Le Portfolio cible n'a pas Ã©tÃ© choisie</resource>
+      <resource id="ManagerAccessDenied">Vous avez besoin des droits de manager pour cette opÃ©ration</resource>
+      <resource id="WorkRecordsStillExistError">Les projets choisis ne peuvent pas Ãªtre supprimÃ©s, parce qu'existent lÃ  les projets de travail qui leur font rÃ©fÃ©rence</resource>
+      <resource id="WorkRecordsStillExistWarning">L'ensemble des projets choisis ne pourront Ãªtre supprimÃ©s, parce qu'il y a les projets de travail qui font rÃ©fÃ©rence Ã  certains d'entre eux</resource>
+      <resource id="ActivityAssignmentsExistError">La ressource ne peut pas Ãªtre enlevÃ©e du projet parce qu'elle est assignÃ©e Ã  une ou plus des activitÃ©s du projet</resource>
+      <resource id="ProjectLockedError">Le projet ne peut pas Ãªtre modifiÃ©, car il est actuellement en cours vÃ©rification</resource>
+      <resource id="GoalPriorityError">Certaines des prioritÃ©s de but sont invalides (1-9)</resource>
+      <resource id="TodoPriorityError">Certaines des prioritÃ©s des restes Ã  faire sont invalides (1-9)</resource>
+      <resource id="LoopAssignmentError">Cette mission causerait une boucle</resource>
+      <resource id="InternalRateNotValid">Le taux horaire interne n'est pas valable</resource>
+      <resource id="ExternalRateNotValid">Le taux horaire externe n'est pas valable</resource>
+      <resource id="ProbabilityNotValid">La probabiliÃ© n'est pas valable (0-100)</resource>
+      <resource id="PriorityNotValid">La prioritÃ© n'est pas valable (1-9)</resource>
+      <resource id="DuplicateBaselineError">Seulement une version peut Ãªtre choisie comme rÃ©fÃ©rence</resource>
+      <resource id="CannotRemovePermissionError">Impossible d'enlever les permissions pour un utilisateur qui Ã©dite le projet</resource>      
    </resource-map>
 
    <resource-map id="project.delete">
       <resource id="ConfirmDelete">Supprimer les Projets ou Portfolios</resource>
       <resource id="ConfirmVersionDelete">Voulez vous vraiment supprimer les versions choisies ?</resource>
-      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs projets ou Portfolios qui devraient être supprimés.</resource>
+      <resource id="NoSelectionMessage">Veuillez choisir un ou plusieurs projets ou Portfolios qui devraient Ãªtre supprimÃ©s.</resource>
       <resource id="ConfirmDeleteOneMessage">Voulez vous vraiment supprimer le projet ou portfolio choisie?</resource>
       <resource id="ConfirmDeleteMultipleMessage">Voulez vous vraiment supprimer les projets et portfolios choisies?</resource>
       <resource id="OK">OK</resource>
@@ -249,17 +249,17 @@
    </resource-map>
 
    <resource-map id="project.startdate_future">
-      <resource id="ConfirmStartDateFuture">Deplacement de la date de début</resource>
-      <resource id="ConfirmStartDateFutureText">Le déplacement de la date de début dans le futur déplace également toutes les activités respectivement</resource>
+      <resource id="ConfirmStartDateFuture">Deplacement de la date de dÃ©but</resource>
+      <resource id="ConfirmStartDateFutureText">Le dÃ©placement de la date de dÃ©but dans le futur dÃ©place Ã©galement toutes les activitÃ©s respectivement</resource>
       <resource id="Ok">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
 
     <resource-map id="project.change">
-      <resource id="ConfirmChange">Modify Project</resource>      
-      <resource id="ConfirmChangeHR">Editing the hourly rate and/or external rate of the assignments might result in the recalculation of personnel costs and proceeds for this project plan.</resource>
+      <resource id="ConfirmChange">Projet modifiÃ©</resource>      
+      <resource id="ConfirmChangeHR">La modification du taux horaire et-ou du taux externe des missions pourrait aboutir au recalcul de dÃ©penses de personnel et des revenus pour ce plan de projet.</resource>
       <resource id="OK">OK</resource>
-      <resource id="Cancel">Cancel</resource>
+      <resource id="Cancel">AnnulÃ©</resource>
    </resource-map>
 
 </language-kit>

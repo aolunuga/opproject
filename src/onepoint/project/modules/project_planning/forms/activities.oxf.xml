@@ -18,6 +18,8 @@
    <data-field id="TaskExtraResourceException" text="${TaskExtraResourceErrorMessage}"/>
    <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
    <data-field id="BaseEffortBelowActualException" text="${BaseEffortBelowActualErrorMessage}"/>
+   <data-field id="CannotMoveRootActivityException" text="${CannotMoveRootActivityErrorMessage}"/>
+   <data-field id="OutlineLevelInvalidException" text="${OutlineLevelInvalidErrorMessage}"/>
 
    <data-field id="ImportProjectTitle" text="${ImportProjectTitle}"/>
    <data-field id="ExportProjectTitle" text="${ExportProjectTitle}"/>

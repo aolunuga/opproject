@@ -2,22 +2,22 @@
    <resource-map id="main.login">
       <resource id="Login">Nom d'utilisateur</resource>
       <resource id="Password">Mot de passe</resource>
-      <resource id="Remember">Remember me on this computer</resource>
+      <resource id="Remember">MÃ©moriser mon profil sur cet ordinateur</resource>
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="main.levels">
       <resource id="runLevel0">Impossible de charger le fichier de configuration</resource>
       <resource id="runLevel1">Impossible de charger les modules</resource>
-      <resource id="runLevel2">Impossible de configurer la persistance pour accéder à la base de données</resource>
-      <resource id="runLevel3">La structure du repository ne peut être initialisée</resource>
-      <resource id="runLevel4">Impossible de mettre à jour le schéma de base de données</resource>
-      <resource id="runLevel5">Impossible de lancer les modules enregistrés</resource>
+      <resource id="runLevel2">Impossible de configurer la persistance pour accÃ©der Ã  la base de donnÃ©es</resource>
+      <resource id="runLevel3">La structure du repository ne peut Ãªtre initialisÃ©e</resource>
+      <resource id="runLevel4">Impossible de mettre Ã  jour le schÃ©ma de base de donnÃ©es</resource>
+      <resource id="runLevel5">Impossible de lancer les modules enregistrÃ©s</resource>
    </resource-map>
    <resource-map id="main.header">
       <resource id="ClearResourceCache">Effacer le cache des ressources</resource>
       <resource id="ClearImageCache">Effacer le cache image</resource>
       <resource id="GetBandwidthInfo">Voir l'information sur la bande passante</resource>
-      <resource id="SignOff">Se déconnecter</resource>
+      <resource id="SignOff">Se dÃ©connecter</resource>
       <resource id="Quit">Quitter</resource>      
    </resource-map>
    <resource-map id="main.dock">
@@ -34,7 +34,7 @@
 
    <resource-map id="main.bandwidth">
       <resource id="OK">OK</resource>
-      <resource id="BandwidthInfo">Bande passante mesurée (Kb/s)</resource>
+      <resource id="BandwidthInfo">Bande passante mesurÃ©e (Kb/s)</resource>
       <resource id="MinVal">Minimum</resource>
       <resource id="MaxVal">Maximum</resource>
       <resource id="AvgVal">Moyenne</resource>
@@ -44,9 +44,9 @@
       <resource id="Error">Erreur</resource>
       <resource id="OK">OK</resource>
       <resource id="Warning">Alerte</resource>
-      <resource id="SessionExpired">Votre session utilisateur a expiré. Veuillez-vous réauthentifier.</resource>
-      <resource id="InsuficientViewPermissions">Vous n'avez pas les priviléges suffisant pour voir cette information</resource>
+      <resource id="SessionExpired">Votre session utilisateur a expirÃ©. Veuillez-vous rÃ©authentifier.</resource>
+      <resource id="InsuficientViewPermissions">Vous n'avez pas les privilÃ©ges suffisant pour voir cette information</resource>
       <resource id="InvalidSession">Vous devez vous authentifier pour visualiser cette information</resource>
-      <resource id="InvalidFileURL">Could not open file, because of an invalid request format</resource>
+      <resource id="InvalidFileURL">Impossible d'ouvrir le fichier, le format demandÃ© n'est pas valide</resource>
    </resource-map>
 </language-kit>
