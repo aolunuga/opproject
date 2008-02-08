@@ -135,6 +135,9 @@ public class OpGanttValidator extends XValidator {
    public final static String WORKRECORDS_EXIST_EXCEPTION = "WorkRecordsExistException";
    public final static String TASK_EXTRA_RESOURCE_EXCEPTION = "TaskExtraResourceException";
    public final static String INVALID_PRIORITY_EXCEPTION = "InvalidPriorityException";
+   public final static String BASE_EFFORT_BELOW_ACTUAL_EXCEPTION = "BaseEffortBelowActualException";
+   public final static String CANNOT_MOVE_ROOT_ACTIVITY_EXCEPTION = "CannotMoveRootActivityException";
+   public final static String OUTLINE_LEVEL_INVALID_EXCEPTION = "OutlineLevelInvalidException";
 
    public final static double INVALID_ASSIGNMENT = -1;
 
@@ -2358,7 +2361,7 @@ public class OpGanttValidator extends XValidator {
 
          case BASE_EFFORT_COLUMN_INDEX:
             double base_effort = ((Double) value).doubleValue();
-
+            
             //if the project is effort based, setting the effort will also affect the duration
             if (getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED) {
                preCheckSetEffortValue(data_row, base_effort);
@@ -3730,63 +3733,31 @@ public class OpGanttValidator extends XValidator {
 
       XComponent row;
       int outline_level;
-      boolean loops = false;
-      boolean scheduledMixed = false;
-      boolean rollback = false;
 
       List initialOutlineLevels = new ArrayList();
       addToUndo();
-      XValidationException exception = null;
-
-      for (int i = 0; i < data_rows.size(); i++) {
-         row = (XComponent) (data_rows.get(i));
-         initialOutlineLevels.add(new Integer(row.getOutlineLevel()));
-
-         // IF the outline change is possible...
-         boolean canChange;
-         try {
-            canChange = canChangeOutline(data_rows, i, offset);
+      try {
+         for (int i = 0; i < data_rows.size(); i++) {
+            row = (XComponent) (data_rows.get(i));
+            initialOutlineLevels.add(new Integer(row.getOutlineLevel()));
+   
+            // IF the outline change is possible...
+            canChangeOutline(data_rows, i, offset);
+   
+            // update the outline level value for the current row
+            outline_level = row.getOutlineLevel() + offset;
+   
+            // set up the row outline Level
+            row.setOutlineLevel(outline_level);
+   
          }
-         catch (XValidationException e) {
-            canChange = false;
-            exception = e;
-         }
-         if (!canChange) {
-            rollback = true;
-            break;
-         }
-
-         // update the outline level value for the current row
-         outline_level = row.getOutlineLevel() + offset;
-
-         // set up the row outline Level
-         row.setOutlineLevel(outline_level);
-
-         //temporary set the outline level for the rest of the columns as well
-         for (int j = i + 1; j < data_rows.size(); j++) {
-            XComponent dataRow = (XComponent) data_rows.get(j);
-            dataRow.setOutlineLevel(dataRow.getOutlineLevel() + offset);
-         }
-
+   
          // loop detection
          if (detectLoops()) {
-            rollback = true;
-            loops = true;
+            throw new OpActivityLoopException(LOOP_EXCEPTION);
          }
-
-         //revert changes made only for loop detection
-         for (int j = i + 1; j < data_rows.size(); j++) {
-            XComponent dataRow = (XComponent) data_rows.get(j);
-            dataRow.setOutlineLevel(dataRow.getOutlineLevel() - offset);
-         }
-
-         if (loops) {
-            break;
-         }
-      }
-
-      //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"
-      if (!rollback) {
+   
+         //<FIXME> author="Mihai Costin" description="Performance for this check could be improoved"
          for (int i = 0; i < data_rows.size(); i++) {
             row = (XComponent) (data_rows.get(i));
             //scheduled tasks can have only sub tasks
@@ -3795,68 +3766,37 @@ public class OpGanttValidator extends XValidator {
                List parentTasks = subTasks(parent);
                List parentActivities = subActivities(parent);
                if (parentTasks.size() != 0 && parentActivities.size() != 0) {
-                  rollback = true;
-                  scheduledMixed = true;
-                  break;
+                  throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
                }
                if (parentTasks.size() != 0 || parentActivities.size() != 0) {
                   //if the previous activity has assignments
-                  try {
-                     checkDeletedAssignmentsForWorkslips(parent, new ArrayList());
-                  }
-                  catch (XValidationException e) {
-                     exception = e;
-                     rollback = true;
-                     break;
-                  }
+                  checkDeletedAssignmentsForWorkslips(parent, new ArrayList());
                }
             }
 
             List subRows = subTasks(row);
             List subActivities = subActivities(row);
             if (subRows.size() != 0 && subActivities.size() != 0) {
-               rollback = true;
-               scheduledMixed = true;
-               break;
+               throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
             }
             //collections with resources on them
             if (subRows.size() != 0 || subActivities.size() != 0) {
                //if the previous activity has assignments
-               try {
-                  checkDeletedAssignmentsForWorkslips(row, new ArrayList());
-               }
-               catch (XValidationException e) {
-                  exception = e;
-                  rollback = true;
-                  break;
-               }
+               checkDeletedAssignmentsForWorkslips(row, new ArrayList());
             }
 
          }
+         //<FIXME>
       }
-      //<FIXME>
-
-      // rollback
-      if (rollback) {
+      catch (XValidationException e) {
          for (int i = 0; i < initialOutlineLevels.size(); i++) {
             row = (XComponent) (data_rows.get(i));
             int initial = ((Integer) initialOutlineLevels.get(i)).intValue();
             row.setOutlineLevel(initial);
          }
-         if (exception != null) {
-            throw exception;
-         }
-         if (loops) {
-            throw new OpActivityLoopException(LOOP_EXCEPTION);
-         }
-         if (scheduledMixed) {
-            throw new OpActivityLoopException(SCHEDULED_MIXED_EXCEPTION);
-         }
+         throw e;
       }
-      else {
-         // general update process for direct links...
-         validateDataSet();
-      }
+      validateDataSet();
    }
 
    /**
@@ -3878,12 +3818,12 @@ public class OpGanttValidator extends XValidator {
 
       // outline level can't be < 0
       if (newOutline < 0) {
-         return false;
+         throw new XValidationException(OUTLINE_LEVEL_INVALID_EXCEPTION);
       }
 
       // the first row can't have its outline level changed
       if (indexInDataSet == 0) {
-         return false;
+         throw new XValidationException(CANNOT_MOVE_ROOT_ACTIVITY_EXCEPTION);
       }
 
       // get previous row
@@ -3897,7 +3837,7 @@ public class OpGanttValidator extends XValidator {
 
       // if offset is + and diff from prev is > 1
       if ((offset > 0) && (newOutline - previousLevel > 1)) {
-         return false;
+         throw new XValidationException(OUTLINE_LEVEL_INVALID_EXCEPTION);
       }
 
       // if changed row is a milestone, offset -, current outline level of milestone == outline level of next row
@@ -5587,19 +5527,15 @@ public class OpGanttValidator extends XValidator {
    public static double calculateCompleteValue(double actualSum, double baseSum, double remainingSum) {
       double result = 0;
       double predictedSum = actualSum + remainingSum;
-      if (actualSum > 0) {
-         result = (predictedSum != 0) ? actualSum * 100 / predictedSum : 0;
+      if (predictedSum == 0.0) {
+         // TODO: check
+         result = (baseSum == 0) ? 1 : 0;
       }
       else {
-         if (remainingSum >= baseSum) {
-            // if there is more work that anticipated the complete sould be 0% not negative.
-            result = 0;
-         }
-         else {
-            result = (baseSum != 0) ? 100 * (baseSum - remainingSum) / baseSum : 0;
-         }
+         result = actualSum / predictedSum;
       }
-      return result;
+      
+      return result * 100;
    }
 
    /**

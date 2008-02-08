@@ -7,6 +7,8 @@ package onepoint.project.applet;
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
 import onepoint.express.applet.XExpressApplet;
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
 import onepoint.project.modules.project_planning.components.OpProjectComponentProxy;
 import onepoint.project.modules.work.components.OpWorkProxy;
 import onepoint.project.util.OpProjectConstants;
@@ -17,13 +19,26 @@ import onepoint.util.XCalendar;
 import onepoint.util.XCookieManager;
 
 import java.awt.*;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Applet used for the expander application.
  */
 public class OpOpenApplet extends XExpressApplet {
+
+   /**
+    * This class logger.
+    */
+   private static final XLog logger = XLogFactory.getClientLogger(OpOpenApplet.class);
 
    /**
     * Various applet constants.
@@ -35,14 +50,53 @@ public class OpOpenApplet extends XExpressApplet {
     */
    private final static String DEFAULT_CONTEXT_PATH = "opproject";
 
+   private String version;
+
+   private Date build;
+
    /**
     * Registers project proxies.
     */
    static {
       XComponent.registerProxy(new OpProjectComponentProxy());
-      XComponent.registerProxy(new OpWorkProxy());
+      XComponent.registerProxy(new OpWorkProxy());      
    }
 
+   /**
+    * 
+    */
+   public OpOpenApplet() {
+      super();
+      getManifestInfo();
+      logger.info(getClass().getName()+" constructed, version: "+(version == null ? "unknown" : version)+
+                  " build: "+(build == null ? "unknown" : new SimpleDateFormat("yyyyMMdd").format(build)));
+   }
+   /**
+    * 
+    * @pre
+    * @post
+    */
+   private void getManifestInfo() {
+      Manifest mf = getManifest();
+      if (mf != null) {
+         Attributes attr = mf.getAttributes("Implementation");
+         if (attr != null) {
+            version = attr.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+         }
+         attr = mf.getMainAttributes();
+         if (attr != null) {
+            String buildString = attr.getValue("Build-Date");
+            if (buildString != null) {
+               SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+               try {
+                  build = df.parse(buildString);
+               }
+               catch (ParseException exc) {
+               }
+            }
+         }
+      }
+   }
    /**
     * @see onepoint.express.applet.XExpressApplet#getAppletPath()
     */
@@ -125,6 +179,54 @@ public class OpOpenApplet extends XExpressApplet {
       g.setClip(bounds);
       g.setColor(Color.RED);
       g.drawString(APPLET_LOADED, 10, 10);
+   }
+
+   public void destroy() {
+      super.destroy();
+      logger.info(getClass().getName()+" destroyed");
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.express.applet.XExpressApplet#init()
+    */
+   public void init() {
+      super.init();
+      logger.info(getClass().getName()+" initialized");
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.express.applet.XExpressApplet#start()
+    */
+   public void start() {
+      super.start();
+      logger.info(getClass().getName()+" started");
+   }
+
+   /* (non-Javadoc)
+    * @see java.applet.Applet#stop()
+    */
+   public void stop() {
+      super.stop();
+      logger.info(getClass().getName()+" stopped");
+   }
+   
+   /**
+    * Returns the manifest this class is in
+    * @return the manifest this class is in
+    */
+   private static Manifest getManifest() {
+      // try reading infos from manifest
+      try {
+         URL url = OpOpenApplet.class.getResource("");
+         JarURLConnection jconn = (JarURLConnection) url.openConnection();
+         Manifest mf = jconn.getManifest();
+         return mf;
+      }
+      catch (IOException exc) {
+      }
+      catch (ClassCastException exc) {
+      }
+      return null;
    }
 }
 

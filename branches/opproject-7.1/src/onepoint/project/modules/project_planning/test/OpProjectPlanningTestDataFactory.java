@@ -36,11 +36,12 @@ public class OpProjectPlanningTestDataFactory extends OpTestDataFactory {
       return request;
    }
 
-   public static XMessage importActivitiesMsg(String projectNodeId, Boolean editMode, byte[] bytes) {
+   public static XMessage importActivitiesMsg(String projectNodeId, String fileName, Boolean editMode, byte[] bytes) {
       XMessage request = new XMessage();
       request.setArgument(OpProjectPlanningService.PROJECT_ID, projectNodeId);
       request.setArgument(OpProjectPlanningService.EDIT_MODE, editMode);
       request.setArgument(OpProjectPlanningService.BYTES_ARRAY_FIELD, bytes);
+      request.setArgument(OpProjectPlanningService.FILE_NAME_FIELD, fileName);
       return request;
    }
 

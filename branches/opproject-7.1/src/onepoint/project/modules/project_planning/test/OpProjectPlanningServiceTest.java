@@ -191,7 +191,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       transaction.commit();
       broker.close();
 
-      request = OpProjectPlanningTestDataFactory.importActivitiesMsg(projId, Boolean.FALSE, bytes);
+      request = OpProjectPlanningTestDataFactory.importActivitiesMsg(projId, actualFile, Boolean.FALSE, bytes);
       response = service.importActivities(session, request);
       assertNoError(response);
 
@@ -224,7 +224,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       assertError(response, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT);
 
       byte[] bytes = new byte[]{};
-      request = OpProjectPlanningTestDataFactory.importActivitiesMsg(rootPortfolioId, Boolean.FALSE, bytes);
+      request = OpProjectPlanningTestDataFactory.importActivitiesMsg(rootPortfolioId, fileName, Boolean.FALSE, bytes);
       response = service.importActivities(session, request);
       assertError(response, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT);
    }

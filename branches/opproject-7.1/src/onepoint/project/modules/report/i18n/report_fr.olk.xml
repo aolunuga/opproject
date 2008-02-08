@@ -1,37 +1,37 @@
 <language-kit locale="fr">
    <resource-map id="report.module">
-      <resource id="QueryTool">Requêtes</resource>
+      <resource id="QueryTool">RequÃªtes</resource>
    </resource-map>
    <resource-map id="report.report">
       <resource id="ReportNavigator">NAVIGATEUR DE RAPPORT</resource>
-      <resource id="RunQuery">Requêtes Rapides</resource>
-      <resource id="CreateReport">Creer Requêtes</resource>
-      <resource id="SendReport">Send Report</resource>      
-      <resource id="ResetQuery">Reinitialiser Requêtes</resource>
+      <resource id="RunQuery">RequÃªtes Rapides</resource>
+      <resource id="CreateReport">Creer Rapport</resource>
+      <resource id="SendReport">Envoyer Rapport</resource>      
+      <resource id="ResetQuery">Reinitialiser RequÃªtes</resource>
       <resource id="Print">Imprimer</resource>
       <resource id="ProjectEffort">Effort Projet</resource>
-      <resource id="ProjectCosts">Coûts Projet</resource>
+      <resource id="ProjectCosts">CoÃ»ts Projet</resource>
       <resource id="ResourceEfforts">Efforts Ressource</resource>
-      <resource id="ResourceCosts">Coûts Ressource</resource>
+      <resource id="ResourceCosts">CoÃ»ts Ressource</resource>
       <resource id="WorkHours">Heures de Travail</resource>
       <resource id="DaysPerProject">Jours par projet (R)</resource>
-      <resource id="ProjectProgress">Pogression Projet (R)</resource>
+      <resource id="ProjectProgress">Progression Projet (R)</resource>
 
-      <resource id="QuickQueryTooltip">Lancer une requête rapide</resource>
+      <resource id="QuickQueryTooltip">Lancer une requÃªte rapide</resource>
       <resource id="CreateReportTooltip">Creer et voir le rapport choisi</resource>
-      <resource id="ResetQueryTooltip">Reinitialiser le formulaire de requête</resource>
+      <resource id="ResetQueryTooltip">Reinitialiser le formulaire de requÃªte</resource>
       <resource id="PrintTooltip">Imprimer cette vue</resource>
-      <resource id="SendReportTooltip">Send Report</resource>      
+      <resource id="SendReportTooltip">Envoyer Report</resource>      
 
    </resource-map>
    <resource-map id="report.error">
       <resource id="ValueConversionException">Une exception de conversion de valeur s'est produite</resource>
-      <resource id="CouldNotExecuteReportSQL">Le rapport de la requête SQL n'a pas pu être exécuté</resource>
+      <resource id="CouldNotExecuteReportSQL">Le rapport de la requÃªte SQL n'a pas pu Ãªtre exÃ©cutÃ©</resource>
       <resource id="JasperCanNotBuildFilledReport">Japser n'a pu remplir le rapport</resource>
       <resource id="JasperCanNotExportReport">Jasper n'a pu exporter le rapport</resource>
-      <resource id="InvalidReportFormat">Requested report format is not supported</resource>
-      <resource id="CreateReportException">An error occured while trying to create the report</resource>
-      <resource id="SaveReportException">An error occured while trying to save the report</resource>
-      <resource id="SendReportException">An error occured while trying to send the report</resource>
+      <resource id="InvalidReportFormat">Le format du rapport demandÃ© n'est pas supportÃ©</resource>
+      <resource id="CreateReportException">Une erreur est apparue lors la crÃ©ation du rapport</resource>
+      <resource id="SaveReportException">Une erreur est apparue lors la sauvegarde du rapport</resource>
+      <resource id="SendReportException">Une erreur est apparue lors l'envoi du rapport</resource>
    </resource-map>
 </language-kit>

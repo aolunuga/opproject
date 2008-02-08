@@ -117,7 +117,7 @@ function importActivities(event) {
       return;
    }
    importProject = XDisplay.getActiveForm().findComponent("ImportProjectTitle").getText();
-   fileName = XDisplay.showFileDialog(importProject, true, null, "*.mpp,*.mpx", true);
+   fileName = XDisplay.showFileDialog(importProject, true, null, "*.xml,*.mpp,*.mpt,*.mpx", true);
    if (fileName == null) {
       return;
    }
@@ -677,6 +677,41 @@ function updateSum(mainDataSet, mainIndex, footerDataSet, footerIndex) {
 
 
 function updateSums(event) {
+  form = XDisplay.getActiveForm();
+  table = form.findComponent("ActivityTable");
+  
+  costSumCells = new ArrayList;
+  costSumCells.add(2);
+  costSumCells.add(3);
+  costSumCells.add(4);
+  costSumCells.add(5);
+  costSumCells.add(6);
+  costSumCells.add(7);
+  
+  effortSumCells = new ArrayList;
+  effortSumCells.add(7);
+  
+  updateSumsDataSet(table, effortSumCells, form.findComponent("ActivityListFooter"));
+
+
+}
+
+
+function updateSumsDataSet(table, footerCells, footerDataSet) {
+  header = table.getChild(3);
+  dataset = table.getDataSet();
+  i = 0;
+  while (i < footerCells.size()) {
+    // find index of corresponding main-dataset-column:
+    columnIndex = header.getDataColumnIndex();
+    updateSum(dataset, columnIndex, footerDataSet, footerCells.get(i));
+    i++;
+  }
+}
+
+function updateSums_old(event) {
+
+
    //base effort
    mainIndex = 7;
    updateEffortSum(mainIndex, 7);

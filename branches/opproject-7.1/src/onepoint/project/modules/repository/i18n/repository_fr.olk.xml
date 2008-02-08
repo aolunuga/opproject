@@ -1,32 +1,32 @@
 <language-kit locale="fr">
    <resource-map id="repository.module">
-      <resource id="RepositoryTool">Dépôt</resource>
+      <resource id="RepositoryTool">DÃ©pÃ´t</resource>
    </resource-map>
    <resource-map id="repository.main">
       <resource id="Backup">Sauvegarde</resource>
-      <resource id="BackupTooltip">Sauvegarde du Dépôt</resource>
+      <resource id="BackupTooltip">Sauvegarde du DÃ©pÃ´t</resource>
       <resource id="Restore">Restaurer</resource>
-      <resource id="RestoreTooltip">Restaurer le Dépôt</resource>
+      <resource id="RestoreTooltip">Restaurer le DÃ©pÃ´t</resource>
       <resource id="Reset">Nettoyer</resource>
-      <resource id="ResetTooltip">Nettoyer complétement le dépôt</resource>
+      <resource id="ResetTooltip">Nettoyer complÃ©tement le dÃ©pÃ´t</resource>
       <resource id="UserGroupsCount">Groupes d'utilisateurs :</resource>
       <resource id="UsersCount">Utilisateurs :</resource>
       <resource id="PortfoliosCount">Portfolios Projets :</resource>
-      <resource id="TemplatesCount">Modèles de Projet :</resource>
+      <resource id="TemplatesCount">ModÃ¨les de Projet :</resource>
       <resource id="ProjectsCount">Projets :</resource>
       <resource id="PoolsCount">Groupe de Ressource :</resource>
       <resource id="ResourcesCount">Ressources :</resource>
-      <resource id="ReportsCount">Rapports archivé :</resource>
+      <resource id="ReportsCount">Rapports archivÃ© :</resource>
    </resource-map>
    <resource-map id="repository.restore_file_list">
-      <resource id="RestoreFile">Choisir les fichier à restaurer</resource>
-      <resource id="RestoreConfirmationSuccessfull">La restauration est réussit. Appuyer syr OK pour redémarrer la session.</resource>
+      <resource id="RestoreFile">Choisir les fichier Ã  restaurer</resource>
+      <resource id="RestoreConfirmationSuccessfull">La restauration est rÃ©ussie. Appuyer sur OK pour redÃ©marrer la session.</resource>
       <resource id="OK">OK</resource>
       <resource id="Cancel">Annuler</resource>
    </resource-map>
    <resource-map id="repository.backup_confirmation">
-      <resource id="BackupConfirmation">Sauvegarde Terminée</resource>
-      <resource id="BackupConfirmationMessage">Sauvegarde réussit comme </resource>
+      <resource id="BackupConfirmation">Sauvegarde TerminÃ©e</resource>
+      <resource id="BackupConfirmationMessage">Sauvegarde rÃ©ussie</resource>
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="repository.success_confirmation">
@@ -34,26 +34,26 @@
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="repository.reset_confirmation">
-      <resource id="ResetConfirmation">Confirmez la réinitialisation</resource>
-      <resource id="ResetConfirmationSuccessfull">La réinitialisation de la base de données est terminée. Appuyer sur OK pour redémarrer toutes les sessions utilisateurs.</resource>
+      <resource id="ResetConfirmation">Confirmez la rÃ©initialisation</resource>
+      <resource id="ResetConfirmationSuccessfull">La rÃ©initialisation de la base de donnÃ©es est terminÃ©e. Appuyer sur OK pour redÃ©marrer toutes les sessions utilisateurs.</resource>
       <resource id="AdminPasswordRequest">Entrez le mot de passe administrateur : </resource>
-      <resource id="SimpleConfirmMessage">Êtes vous sûr de vouloir réinitialiser la base de données ?</resource>
+      <resource id="SimpleConfirmMessage">Ãtes vous sÃ»r de vouloir rÃ©initialiser la base de donnÃ©es ?</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="repository.restore_confirmation">
       <resource id="RestoreConfirmation">Confirmez la restauration</resource>
       <resource id="AdminPasswordRequest">Entrez le mot de passe administrateur : </resource>
-      <resource id="SimpleConfirmMessage">Êtes vous sûr de vouloir restaurer une sauvegarde ?</resource>
+      <resource id="SimpleConfirmMessage">Ãtes vous sÃ»r de vouloir restaurer une sauvegarde ?</resource>
       <resource id="Cancel">Annuler</resource>
       <resource id="OK">OK</resource>
    </resource-map>
    <resource-map id="repository.error">
-      <resource id="BackupError">Une erreur s'est produite pendant la sauvegarde. Veuillez examiner les fichiers de log pour les détails</resource>
-      <resource id="RestoreError">Une erreur s'est produite pendant la restauration. Veuillez examiner les fichiers de log pour les détails</resource>
-      <resource id="ResetError">Une erreur s'est produite pendant la réinitialisation. Veuillez examiner les fichiers de log pour les détails</resource>
-      <resource id="BackupDirectoryError">Impossible de créer ou d'accéder au répertoire de sauvegarde</resource>
-      <resource id="InsuficientPermissions">Vous n'avez pas de droits suffisant pour effectuer cette opération</resource>
+      <resource id="BackupError">Une erreur s'est produite pendant la sauvegarde. Veuillez examiner les fichiers de log pour les dÃ©tails</resource>
+      <resource id="RestoreError">Une erreur s'est produite pendant la restauration. Veuillez examiner les fichiers de log pour les dÃ©tails</resource>
+      <resource id="ResetError">Une erreur s'est produite pendant la rÃ©initialisation. Veuillez examiner les fichiers de log pour les dÃ©tails</resource>
+      <resource id="BackupDirectoryError">Impossible de crÃ©er ou d'accÃ©der au rÃ©pertoire de sauvegarde</resource>
+      <resource id="InsuficientPermissions">Vous n'avez pas de droits suffisant pour effectuer cette opÃ©ration</resource>
       <resource id="InvalidAdminPassword">Le mot de passe est invalide</resource>
    </resource-map>
 </language-kit>

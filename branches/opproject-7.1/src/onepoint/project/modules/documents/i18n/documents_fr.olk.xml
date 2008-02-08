@@ -1,6 +1,6 @@
 <language-kit locale="fr">
    <resource-map id="documents.error">
-      <resource id="OutOfMemory">The HTTP client doesn't support streaming. You cannot upload files larger than the HEAP size.</resource>
-      <resource id="FileNotFound">One or more of the files selected for upload could not be found or opened.</resource>
+      <resource id="OutOfMemory">Le client HHTP ne supporte pas ce flot de données. Vous ne pouvez pas télécharger de fichier plus volumineux que la taille autorisée.</resource>
+      <resource id="FileNotFound">Un ou plusieurs des fichiers sélectionnés pour le téléchargement n'existent pas ou sont ouverts.</resource>
    </resource-map>
 </language-kit>

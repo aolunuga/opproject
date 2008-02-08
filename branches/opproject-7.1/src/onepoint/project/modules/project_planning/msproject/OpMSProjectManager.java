@@ -8,6 +8,7 @@ import net.sf.mpxj.*;
 import net.sf.mpxj.mpp.MPPReader;
 import net.sf.mpxj.mpx.MPXReader;
 import net.sf.mpxj.mpx.MPXWriter;
+import net.sf.mpxj.mspdi.MSPDIReader;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
@@ -24,6 +25,7 @@ import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.resource.XLocale;
 import onepoint.util.XCalendar;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +40,10 @@ import java.util.*;
 public class OpMSProjectManager {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpMSProjectManager.class);
+   private static final String MPP_FORMAT = "MPP";
+   private static final String MPT_FORMAT = "MPT";
+   private static final String MPX_FORMAT = "MPX";
+   private static final String MSPDI_FORMAT = "XML";
 
    //utility class
    private OpMSProjectManager() {
@@ -45,14 +51,15 @@ public class OpMSProjectManager {
 
    /**
     * Fills the given data set with infor from the previously loaded ms project file.
+    * @param fileName 
     *
     * @return a dataset with all the saved activities
     */
-   public static XComponent importActivities(OpBroker broker, InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
+   public static XComponent importActivities(OpBroker broker, String fileName, InputStream sourceFile, OpProjectPlan projectPlan, XLocale xlocale)
         throws IOException {
 
       //read the tasks from the input stream
-      List<Task> msTasks = readMsTasks(sourceFile, xlocale);
+      List<Task> msTasks = readMsTasks(fileName, sourceFile, xlocale);
 
       //map: <name>,<locator>
       Map projectResources = new HashMap();
@@ -73,8 +80,10 @@ public class OpMSProjectManager {
       validator.setDataSet(dataSet);
 
       //populate the activity set
-      Map<Integer, XComponent> activityMap = populateActivitySet(msTasks, validator, projectResources, dataSet);
-      linkActivities(msTasks, activityMap);
+      Map<Integer, XComponent> uniqueIdMap = new HashMap<Integer, XComponent>();
+      Map<Integer, XComponent> idMap = new HashMap<Integer, XComponent>();
+      populateActivitySet(msTasks, validator, projectResources, dataSet, uniqueIdMap, idMap);
+      linkActivities(msTasks, uniqueIdMap, idMap);
       setVisualResources(dataSet, resourceAvailability);
 
       //validation after import
@@ -102,25 +111,37 @@ public class OpMSProjectManager {
    /**
     * Creates the successor/predecessor links as found in the ms project plan.
     * @param msTasks a <code>List(Task)</code>.
-    * @param activityMap a <code>Map(Integer, XComponent)</code>.
+    * @param uniqueIdMap a <code>Map(Integer, XComponent)</code>.
+    * @param idMap 
     */
-   private static void linkActivities(List<Task> msTasks, Map<Integer, XComponent> activityMap) {
+   private static void linkActivities(List<Task> msTasks, Map<Integer, XComponent> uniqueIdMap, Map<Integer, XComponent> idMap) {
       //successors - predecessors links.
       for (Task msTask : msTasks) {
-         XComponent activity = (XComponent) activityMap.get(msTask.getUniqueID());
+         XComponent activity = (XComponent) uniqueIdMap.get(msTask.getUniqueID());
          List successors = msTask.getSuccessors();
          if (successors != null) {
             for (Iterator iterator = successors.iterator(); iterator.hasNext();) {
                Relation link = (Relation) iterator.next();
-               Integer id = link.getTaskUniqueID();
-               if (id == null) {
-                  id = link.getTaskID();
+               Integer uniqueId = link.getTaskUniqueID();
+               Integer id = link.getTaskID();
+               
+               XComponent succActivity;
+               if (uniqueId != null) {
+                  succActivity = (XComponent) uniqueIdMap.get(uniqueId);
                }
-               XComponent succActivity = (XComponent) activityMap.get(id);
-               OpGanttValidator.addSuccessor(activity, succActivity.getIndex());
-               OpGanttValidator.addPredecessor(succActivity, activity.getIndex());
-               logger.info("Created link between activity \"" + OpGanttValidator.getName(activity) +
-                    "\" and \"" + OpGanttValidator.getName(succActivity) + "\"");
+               else {
+                  succActivity = (XComponent) idMap.get(id);
+               }
+               if (succActivity != null) {
+                  OpGanttValidator.addSuccessor(activity, succActivity.getIndex());
+                  OpGanttValidator.addPredecessor(succActivity, activity.getIndex());
+                  logger.info("Created link between activity \"" + OpGanttValidator.getName(activity) +
+                        "\" and \"" + OpGanttValidator.getName(succActivity) + "\"");
+               }
+               else {
+                  logger.error("Could not create link between activity \"" + OpGanttValidator.getName(activity) +
+                        "\" and \"" + OpGanttValidator.getName(succActivity) + "\"");
+               }
             }
          }
 
@@ -128,15 +149,27 @@ public class OpMSProjectManager {
          if (predecessors != null) {
             for (Iterator iterator = predecessors.iterator(); iterator.hasNext();) {
                Relation link = (Relation) iterator.next();
-               Integer id = link.getTaskUniqueID();
-               if (id == null) {
-                  id = link.getTaskID();
+               
+               Integer uniqueId = link.getTaskUniqueID();
+               Integer id = link.getTaskID();
+               
+               XComponent predActivity;
+               if (uniqueId != null) {
+                  predActivity = (XComponent) uniqueIdMap.get(uniqueId);
                }
-               XComponent predActivity = (XComponent) activityMap.get(id);
-               OpGanttValidator.addPredecessor(activity, predActivity.getIndex());
-               OpGanttValidator.addSuccessor(predActivity, activity.getIndex());
-               logger.info("Created link between activity \"" + OpGanttValidator.getName(predActivity) + "\" and \""
-                    + OpGanttValidator.getName(activity) + "\"");
+               else {
+                  predActivity = (XComponent) idMap.get(id);
+               }
+               if (predActivity != null) {
+                  OpGanttValidator.addPredecessor(activity, predActivity.getIndex());
+                  OpGanttValidator.addSuccessor(predActivity, activity.getIndex());
+                  logger.info("Created link between activity \"" + OpGanttValidator.getName(predActivity) + "\" and \""
+                        + OpGanttValidator.getName(activity) + "\"");
+               }
+               else {
+                  logger.error("Could not create link between activity \"" + OpGanttValidator.getName(predActivity) +
+                        "\" and \"" + OpGanttValidator.getName(activity) + "\"");
+               }
             }
          }
       }
@@ -150,13 +183,16 @@ public class OpMSProjectManager {
     * @param dataSet a <code>XComponent(DATA_SET)</code>.
     * @return a <code>Map</code> of <code>(Integer, XComponent)</code> values.
     */
-   private static Map<Integer, XComponent> populateActivitySet(List<Task> msTasks,
-        OpGanttValidator validator, Map projectResources, XComponent dataSet) {
-      Map<Integer, XComponent> activityMap = new HashMap<Integer, XComponent>();
+   private static void populateActivitySet(List<Task> msTasks,
+        OpGanttValidator validator, Map projectResources, XComponent dataSet, 
+        Map<Integer, XComponent> uniqueIdMap, Map<Integer, XComponent> idMap) {
       int index = 0;
       int firstOutlineLevel = 0;
 
       for (Task msTask : msTasks) {
+         if (msTask.getOutlineNumber() == null) { // may happen on import of xml
+            continue;
+         }
          XComponent activityRow = validator.newDataRow();
 
          OpGanttValidator.setName(activityRow, msTask.getName());
@@ -239,35 +275,46 @@ public class OpMSProjectManager {
          //add to data set
          dataSet.addChild(activityRow);
          //save activity in map for predecessors-successors links
-         activityMap.put(msTask.getUniqueID(), activityRow);
-
+         uniqueIdMap.put(msTask.getUniqueID(), activityRow);
+         idMap.put(msTask.getID(), activityRow);
          if (finish == null) {
             validator.updateDuration(activityRow, OpGanttValidator.getDuration(activityRow));
          }
          index++;
       }
-      return activityMap;
    }
 
    /**
     * Reads from the given input file the list of tasks as exported in the microsoft project file.
+    * @param fileName 
     *
     * @param sourceFile an <code>InputStream</code> for a MS Project file.
     * @return a <code>List(Task)</code>.
     */
-   private static List<Task> readMsTasks(InputStream sourceFile, XLocale applicationLocale)
+   private static List<Task> readMsTasks(String fileName, InputStream sourceFile, XLocale applicationLocale)
         throws IOException {
       ProjectFile msProject = null;
       //for mpp file format the first activity is the name of the project
-      boolean removeFirstActivity = false;
-      try {
-         msProject = new MPPReader().read(sourceFile);
-         removeFirstActivity = true;
+      String extension = "mpp";
+      int suffixPos = fileName.lastIndexOf('.');
+      if (suffixPos >= 0) {
+         extension = fileName.substring(suffixPos+1).toUpperCase();;
       }
-      catch (MPXJException e) {
+      
+      boolean removeFirstActivity = false;
+      if ((MPP_FORMAT.equals(extension)) || (MPT_FORMAT.equals(extension))) {
+         try {
+            msProject = new MPPReader().read(sourceFile);
+            removeFirstActivity = true;
+         }
+         catch (MPXJException e) {
+            throw new IOException("Unable to load the file " + fileName);
+         }         
+      }
+      
+      else if (MPX_FORMAT.equals(extension)) {
          // try set language
          try {
-            sourceFile.reset();
             MPXReader reader = new MPXReader();
             reader.setLocale(new Locale(applicationLocale.getID()));
             msProject = reader.read(sourceFile);
@@ -289,15 +336,31 @@ public class OpMSProjectManager {
                }
             }
             if (!read) {
-               throw new IOException("Unable to load the file " + sourceFile);
+               throw new IOException("Unable to load the file " + fileName);
             }
          }
       }
+      else if(MSPDI_FORMAT.equalsIgnoreCase(extension)) {
+         try {
+            MSPDIReader reader = new MSPDIReader();
+            msProject = reader.read(sourceFile);
+         }
+         catch (MPXJException exc) {
+            throw new IOException("Unable to load the file " + fileName);
+         }
+      }
+      else {
+         throw new IOException("Unable to load the file " + fileName);         
+      }
+      
       List<Task> msTasks = new ArrayList<Task>();
       if (msProject != null) {
          msTasks.addAll(msProject.getAllTasks());
          if (removeFirstActivity) {
-            msTasks.remove(0);
+            Integer integer = msTasks.get(0).getUniqueID();
+            if ((integer == null) || (integer.intValue() == 0)) {
+               msTasks.remove(0);
+            }
          }
       }
       return msTasks;
@@ -409,6 +472,7 @@ public class OpMSProjectManager {
             XComponent successorActivity = (XComponent) dataSet.getChild(succesorIndex.intValue());
             Task succesorTask = (Task) activityMap.get(successorActivity);
             Relation rel = succesorTask.addPredecessor(msTask);
+            succesorTask.setConstraintType(ConstraintType.AS_SOON_AS_POSSIBLE);            
 //            Relation rel = msTask.addSuccessor(succesorTask);
             if (succesorTask.getMilestone()) {
                rel.setType(RelationType.FINISH_START);
@@ -439,6 +503,7 @@ public class OpMSProjectManager {
       else {
          task = superActivity.addTask();
       }
+      task.setConstraintType(ConstraintType.MUST_START_ON); // will be changed if we find a predecessor
 
       //1) Name
       task.setName(OpGanttValidator.getName(activity));
