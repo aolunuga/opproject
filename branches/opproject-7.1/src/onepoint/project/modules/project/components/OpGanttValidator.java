@@ -1549,9 +1549,13 @@ public class OpGanttValidator extends XValidator {
          }
          else {
             double baseEffort = getBaseEffort(activity);
-            double actualEffort = getActualEffort(activity);
             double completeValue = getComplete(activity);
+            double actualEffort = getActualEffort(activity);
             double remainingEffort = calculateRemainingEffort(baseEffort, actualEffort, completeValue);
+            // FIXME: Hack! -> better solution: add remainingEffort Column to DataSet
+            if (!getProgressTracked().booleanValue() && actualEffort == 0) {
+               actualEffort = baseEffort - remainingEffort;
+            }
 
             actualSum += actualEffort;
             remainingSum += remainingEffort;
@@ -5516,7 +5520,21 @@ public class OpGanttValidator extends XValidator {
          return actualEffort * 100 / complete - actualEffort;
       }
    }
-
+   
+   public static double calculateActualEffort(double baseEffort, double remainingEffort, double complete) {
+      double actual = 0;
+      if (complete == 0) {
+         actual = 0;
+      }
+      if (remainingEffort == 0) {
+         actual = baseEffort * complete / 100;
+      }
+      else {
+         actual = remainingEffort * 100 / (100 - complete) - remainingEffort; 
+      }
+      return actual;
+   }
+   
    /**
     * Computes the %complete value of an activity (standard or collection) based on the given parameters.
     *
