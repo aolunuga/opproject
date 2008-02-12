@@ -85,9 +85,11 @@ public class OpProgressCalculator {
       // which is high enough in the hierarchy to also lock checkin, checkout, (and maybe backup, restore)...
       OpProjectNode n = work_record.getAssignment().getActivity().getProjectPlan().getProjectNode();
       OpTransactionLock.getInstance().writeLock(n.locator());
-      try {      
-         double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
-         updateActivity(broker, work_record, insert_mode, remainingEffortChange);
+      try {
+         work_record.getAssignment().handleWorkProgress(work_record, insert_mode, false);
+         
+         // double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
+         // updateActivity(broker, work_record, insert_mode, remainingEffortChange);
          //update cost values on work months
    
          //<FIXME author="Mihai Costin" description="Only the remaining values should be updated here... removed because of OPP-218">

@@ -1587,6 +1587,7 @@ public class OpGanttValidator extends XValidator {
 
       //base effort
       setBaseEffort(collection, baseSum);
+      setActualEffort(collection, actualSum);
 
       // set the costs
       setBasePersonnelCosts(collection, perCost);
