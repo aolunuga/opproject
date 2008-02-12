@@ -96,7 +96,7 @@
       <resource id="InvalidPriorityErrorMessage">The entered priority is not valid (1-9)</resource>
       <resource id="BaseEffortBelowActualErrorMessage">The planned effort should not be less than the actual effort.</resource>
       <resource id="CannotMoveRootActivityErrorMessage">The first activity cannot be moved in.</resource>
-      <resource id="OutlineLevelInvalidErrorMessage">An activity must be one level below its collection activity.</resource>
+      <resource id="OutlineLevelInvalidErrorMessage">Move would result in invalid avtivity hierarchy.</resource>
 
       <resource id="ImportProjectTitle">Import Project Plan</resource>
       <resource id="ExportProjectTitle">Export Project Plan</resource>

@@ -5,6 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.OpActivity.ProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
@@ -394,5 +395,24 @@ public class OpActivityVersion extends OpObject {
       }
 
       return dates;
+   }
+
+   /**
+    * Called from OpActivity whenever progress needs to be updated for the Working Version
+    * (for now, I cannot tell whether this is relevant, by maybe someone knows...)
+    * @param delta      delta information collected for activity/assignment...
+    * @param baseWeighting method of aggregation for super-ActivityVersions...
+    */
+   public void updateComplete(ProgressDelta delta, boolean baseWeighting) {
+      if (baseWeighting) {
+         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+      }
+      else {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
+      }
+      
+      if (getSuperActivityVersion() != null) {
+         getSuperActivityVersion().updateComplete(delta, baseWeighting);
+      }
    }
 }

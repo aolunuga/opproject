@@ -4,14 +4,21 @@
 
 package onepoint.project.modules.project;
 
+import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.work.OpWorkRecord;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class OpActivity extends OpObject {
 
@@ -125,6 +132,8 @@ public class OpActivity extends OpObject {
    private Set<OpActivityVersion> versions;
    private Set<OpActivityComment> comments;
    private boolean usesBaseline;
+
+   private Boolean progressTrackedCache;
 
    public OpActivity() {
    }
@@ -749,4 +758,227 @@ public class OpActivity extends OpObject {
    }
 
 
+   /**
+    * @author peter
+    * evil little helper for evil structured database ;-)
+    */
+   public static class ProgressDelta {
+      private double remainingEffort = 0.0;
+      private boolean insert = true;
+      private double weigthedCompleteDelta = 0.0;
+      private boolean latest = false;
+      
+      private double remainingMaterialCosts = 0.0;
+      private double remainingTravelCosts = 0.0;
+      private double remainingExternalCosts = 0.0;
+      private double remainingMiscCosts = 0.0;
+
+      ProgressDelta(double remainingEffort, boolean insert, double weigthedCompleteDelta, boolean latest) {
+         this.remainingEffort = remainingEffort;
+         this.insert = insert;
+         this.weigthedCompleteDelta = weigthedCompleteDelta;
+         this.latest = latest;
+      }
+
+      public void setWeigthedCompleteDelta(double weigthedCompleteDelta) {
+         this.weigthedCompleteDelta = weigthedCompleteDelta;
+      }
+
+      public void setRemainingMaterialCosts(double remainingMaterialCosts) {
+         this.remainingMaterialCosts = remainingMaterialCosts;
+      }
+
+      public void setRemainingTravelCosts(double remainingTravelCosts) {
+         this.remainingTravelCosts = remainingTravelCosts;
+      }
+
+      public void setRemainingExternalCosts(double remainingExternalCosts) {
+         this.remainingExternalCosts = remainingExternalCosts;
+      }
+
+      public void setRemainingMiscCosts(double remainingMiscCosts) {
+         this.remainingMiscCosts = remainingMiscCosts;
+      }
+
+      public double getRemainingEffort() {
+         return remainingEffort;
+      }
+
+      public boolean isInsert() {
+         return insert;
+      }
+
+      public double getWeigthedCompleteDelta() {
+         return weigthedCompleteDelta;
+      }
+
+      public boolean isLatest() {
+         return latest;
+      }
+
+      public double getRemainingMaterialCosts() {
+         return remainingMaterialCosts;
+      }
+
+      public double getRemainingTravelCosts() {
+         return remainingTravelCosts;
+      }
+
+      public double getRemainingExternalCosts() {
+         return remainingExternalCosts;
+      }
+
+      public double getRemainingMiscCosts() {
+         return remainingMiscCosts;
+      }
+   }
+   
+   /**
+    * TODO: optimize for performance, maybe even query?
+    * @param number       number of records in the past
+    * @param acceptEmpty  Do we accept empty records
+    * @return             The list of maxmum number records.
+    */
+   public List<OpWorkRecord> getLatestWorkRecords(OpWorkRecord current, int number, boolean acceptEmpty) {
+      // sort this stuff...
+      SortedSet<OpWorkRecord> wrSet= new TreeSet<OpWorkRecord>(new Comparator<OpWorkRecord>() {
+         public int compare(OpWorkRecord o1, OpWorkRecord o2) {
+            // reverse order:
+            int c = o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
+            c = c != 0 ? c : Long.signum(o2.getID() - o1.getID());
+            return o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
+         }});
+
+      for (OpAssignment a: assignments) {
+         if (current.getAssignment().getID() == a.getID()) {
+            wrSet.addAll(a.getLatestWorkRecords(current, number, acceptEmpty));
+         }
+         else {
+            wrSet.addAll(a.getLatestWorkRecords(null, number, acceptEmpty));
+         }
+      }
+      
+      List<OpWorkRecord> result = new ArrayList<OpWorkRecord>();
+      Iterator<OpWorkRecord> i = wrSet.iterator();
+      while (result.size() < number && i.hasNext()) {
+         OpWorkRecord wr = i.next();
+         if (!wr.isEmpty() || acceptEmpty) {
+            result.add(wr);
+         }
+      }
+      return result;
+   }
+   
+   private void updateActualStuff(OpWorkRecord workRecord, double factor) {
+      setActualEffort(getActualEffort() + factor * workRecord.getActualEffort());
+      setActualPersonnelCosts(getActualPersonnelCosts() + factor * workRecord.getPersonnelCosts());
+      setActualProceeds(getActualProceeds() + factor * workRecord.getActualProceeds());
+      setActualMaterialCosts(getActualMaterialCosts() + factor * workRecord.getMaterialCosts());
+      setActualTravelCosts(getActualTravelCosts() + factor * workRecord.getTravelCosts());
+      setActualExternalCosts(getActualExternalCosts() + factor * workRecord.getExternalCosts());
+      setActualMiscellaneousCosts(getActualMiscellaneousCosts() + factor * workRecord.getMiscellaneousCosts());
+   }
+   
+   private void applyDelta(ProgressDelta delta) {
+      setRemainingEffort(getRemainingEffort() + delta.getRemainingEffort());
+      
+      setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingExternalCosts());
+      setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingMaterialCosts());
+      setRemainingMiscellaneousCosts(getRemainingMiscellaneousCosts() + delta.getRemainingMiscCosts());
+      setRemainingTravelCosts(getRemainingTravelCosts() + delta.getRemainingTravelCosts());
+   }
+   
+   /**
+    * Propagate progress information from assignments (only leaf-elements has assigments)
+    * @param assigment
+    * @param workRecord
+    * @param delta
+    * @param baseWeighting 
+    */
+   public void handleAssigmentProgress(OpAssignment assigment,
+         OpWorkRecord workRecord, ProgressDelta delta, boolean baseWeighting) {
+      boolean progressTracked = getProjectPlan().getProgressTracked()
+            || getType() == OpActivity.ADHOC_TASK;
+      
+      double sign = delta.isInsert() ? 1.0 : -1.0;
+      
+      // update this:
+      updateActualStuff(workRecord, sign);
+      
+      // if we are the latest WR, find the new WR determining remaining stuff (otherwise,
+      // remaining will not change).
+      OpWorkRecord helper = null;
+      if (delta.isLatest()) {
+         List<OpWorkRecord> latestWRsOfActivity = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, false);
+         boolean latest = latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists!
+         if (latest) {
+            helper = delta.isInsert() ? workRecord
+                  : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
+                        : null;
+         }
+         
+         if (latest) {
+            // calculate the deltas of the remaining stuff (only, if we are latest for the assignment:
+            delta.setRemainingExternalCosts(getRemainingExternalCosts() - (helper == null ? getBaseExternalCosts() : sign * helper.getRemExternalCosts()));
+            delta.setRemainingMaterialCosts(getRemainingMaterialCosts() - (helper == null ? getBaseMaterialCosts() : sign * helper.getRemMaterialCosts()));
+            delta.setRemainingMaterialCosts(getRemainingMiscellaneousCosts() - (helper == null ? getBaseMiscellaneousCosts() : sign * helper.getRemMiscCosts()));
+            delta.setRemainingMaterialCosts(getRemainingTravelCosts() - (helper == null ? getBaseTravelCosts() : sign * helper.getRemTravelCosts()));
+         }
+      }
+      
+      applyDelta(delta);
+      
+      // now recalculate the dependend things...
+      if (baseWeighting) {
+         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+      }
+      else {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
+      }
+      
+      // for the next steps (the two recursions) the order
+      // is IMPORTANT: first the OpActivity, than the OpActivityVersions (they build upon each other...) 
+      if (getSuperActivity() != null) {
+         getSuperActivity().handleSubActivityProgress(this, workRecord, delta, baseWeighting);
+      }
+      
+      updateWorkingVersion(delta, baseWeighting);
+   }
+
+   private void handleSubActivityProgress(OpActivity subActivity, OpWorkRecord workRecord, ProgressDelta delta, boolean baseWeighting) {
+      // update this:
+      updateActualStuff(workRecord, delta.isInsert() ? 1.0 : -1.0);
+      
+      applyDelta(delta);
+
+      // now recalculate the dependend things...
+      if (baseWeighting) {
+         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+      }
+      else {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
+      }
+
+      // broker.updateObject(this);
+
+      if (getSuperActivity() != null) {
+         getSuperActivity().handleSubActivityProgress(this, workRecord, delta, baseWeighting);
+      }
+   }
+
+   /**
+    * Bridge to the working stuff...
+    * @param delta         our allKnowing-Mega-Complete Delta Object
+    * @param baseWeighting tell them how we do the calculations.
+    */
+   public void updateWorkingVersion(ProgressDelta delta, boolean baseWeighting) {
+      Iterator<OpActivityVersion> i = getVersions().iterator();
+      while (i.hasNext()) {
+         OpActivityVersion av = i.next();
+         if (av.getPlanVersion().getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            av.updateComplete(delta, baseWeighting);
+            break;
+         }
+      }
+   }
 }

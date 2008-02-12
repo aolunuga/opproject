@@ -676,7 +676,7 @@ function updateSum(mainDataSet, mainIndex, footerDataSet, footerIndex) {
 }
 
 
-function updateSums(event) {
+function updateSums_trial(event) {
   form = XDisplay.getActiveForm();
   table = form.findComponent("ActivityTable");
   
@@ -709,8 +709,7 @@ function updateSumsDataSet(table, footerCells, footerDataSet) {
   }
 }
 
-function updateSums_old(event) {
-
+function updateSums(event) {
 
    //base effort
    mainIndex = 7;
