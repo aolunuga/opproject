@@ -423,18 +423,41 @@ public class OpIncrementalValidator extends OpGanttValidator {
             if (node == null) {
                continue;
             }
-            //successors given by OpGanttValidator is an array of dataRow indexes
-            List successors = OpGanttValidator.getSuccessors(dataRow);
+            List successors = new ArrayList();
+            { // scoping
+               List succSubActivities = new ArrayList();
+               //successors given by OpGanttValidator is an array of dataRow indexes
+               for (int k = 0; k < OpGanttValidator.getSuccessors(dataRow).size(); k++) {
+                  succSubActivities.add((XComponent) data_set.getChild(((Integer) OpGanttValidator.getSuccessors(dataRow).get(k)).intValue()));
+                  successors.add((XComponent) data_set.getChild(((Integer) OpGanttValidator.getSuccessors(dataRow).get(k)).intValue()));
+               }
+               while (succSubActivities != null && succSubActivities.size() > 0) {
+                  List tmpSubActivities = new ArrayList();
+                  for (int j = 0; j < succSubActivities.size(); j++) {
+                     List subActOfElem = subActivities((XComponent) succSubActivities.get(j));
+                     successors.addAll(subActOfElem);
+                     tmpSubActivities.addAll(subActOfElem);
+                  }
+                  succSubActivities = tmpSubActivities;
+               }
+            }
             //add all links given by the successors of this data row to the graph
             for (int j = 0; j < successors.size(); j++) {
-               XComponent succ = (XComponent) data_set.getChild(((Integer)successors.get(j)).intValue());
+               XComponent succ = (XComponent) successors.get(j);
                Entry succNode = graph.getNode(succ);
                if (succNode != null) {
                   graph.addEdge(node, succNode);
                }
             }
             //predecessors given by OpGanttValidator is an array of dataRow indexes
-            List predecessors = OpGanttValidator.getPredecessors(dataRow);
+            List predecessors = new ArrayList();
+            { // scoping
+               XComponent act = dataRow;
+               while (act != null) {
+                  predecessors.addAll(OpGanttValidator.getPredecessors(dataRow));
+                  act = superActivity(act);
+               }
+            }
             //add all links given by the predecessors of this data row to the graph
             //a predecessor x for y <=> a successor y for x
             for (int j = 0; j < predecessors.size(); j++) {
@@ -445,22 +468,6 @@ public class OpIncrementalValidator extends OpGanttValidator {
                }
             }
          }
-
-         
-         
-//         graph = OpActivityGraphFactory.createBaseGraph(data_set);
-//
-//         Set entries = new HashSet();
-//         for (int i = 0; i < data_set.getChildCount(); i++) {
-//            XComponent activity = (XComponent) data_set.getChild(i);
-//            OpGraphNode node = graph.getNodeForKey(activity.getIndex());
-//            if (node != null) {
-//               List pred = node.getPredecessors();
-//               if ((pred != null) && (pred.isEmpty())) {
-//                  entries.add(node);
-//               }
-//            }
-//         }
 
          List ordered = graph.getTopologicOrder();
          //print(ordered);
@@ -649,45 +656,43 @@ public class OpIncrementalValidator extends OpGanttValidator {
          preds = entry.getBackEdges();
       }
 
-      if (!isCollectionType(dataRow)) {
-         //get the last end date from predecessors ( end = maxend(preds) )
-         for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
-            Entry pred = (Entry) iterator.next();
-            XComponent predDataRow = (XComponent) pred.getElem();
-            Date predEnd = OpGanttValidator.getEnd(predDataRow);
-            if (end == null) {
-               end = predEnd;
-            }
-            else {
-               end = end.before(predEnd) ? predEnd : end;
-            }
+      //get the last end date from predecessors ( end = maxend(preds) )
+      for (Iterator iterator = preds.iterator(); iterator.hasNext();) {
+         Entry pred = (Entry) iterator.next();
+         XComponent predDataRow = (XComponent) pred.getElem();
+         Date predEnd = OpGanttValidator.getEnd(predDataRow);
+         if (end == null) {
+            end = predEnd;
          }
+         else {
+            end = end.before(predEnd) ? predEnd : end;
+         }
+      }
 
-         if (end != null) {
-            Date start = (getType(dataRow) == MILESTONE) ? end : calendar.nextWorkDay(end);
-            Date oldStart = OpGanttValidator.getStart(dataRow);
-            if (!oldStart.equals(start)) {
-               //move the activity
-               OpGanttValidator.setStart(dataRow, start);
-            }
+      if (end != null) {
+         Date start = (getType(dataRow) == MILESTONE) ? end : calendar.nextWorkDay(end);
+         Date oldStart = OpGanttValidator.getStart(dataRow);
+         if (!oldStart.equals(start)) {
+            //move the activity
+            OpGanttValidator.setStart(dataRow, start);
          }
+      }
 
-         //check for the project start
-         Date start = OpGanttValidator.getStart(dataRow);
-         if (start != null) {
-            if (!calendar.isWorkDay(start)) {
-               start = calendar.nextWorkDay(start);
-               OpGanttValidator.setStart(dataRow, start);
-            }
-            if (getWorkingProjectStart() != null) {
-               if (start.before(getWorkingProjectStart())) {
-                  OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
-               }
-            }
-            updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
-            //update collection
-            updateCollectionTreeValues(dataRow);
+      //check for the project start
+      Date start = OpGanttValidator.getStart(dataRow);
+      if (start != null) {
+         if (!calendar.isWorkDay(start)) {
+            start = calendar.nextWorkDay(start);
+            OpGanttValidator.setStart(dataRow, start);
          }
+         if (getWorkingProjectStart() != null) {
+            if (start.before(getWorkingProjectStart())) {
+               OpGanttValidator.setStart(dataRow, getWorkingProjectStart());
+            }
+         }
+         updateDuration(dataRow, OpGanttValidator.getDuration(dataRow));
+         //update collection
+         updateCollectionTreeValues(dataRow);
       }
 
       //try to change the start/end of parent with new values of start/end

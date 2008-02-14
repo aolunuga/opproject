@@ -14,6 +14,7 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
@@ -618,9 +619,9 @@ public abstract class OpActivityVersionDataSetFactory {
       if (activityVersion == null) {
          // Insert a new activity
          activityVersion = new OpActivityVersion();
+
          activityVersion.setPlanVersion(planVersion);
          activityVersion.setTemplate(planVersion.getTemplate());
-
          // If activities is set this means that activity version does not yet exist
          // Therefore, set activity from activity locator in data-row
          if (activities != null) {
@@ -630,64 +631,65 @@ public abstract class OpActivityVersionDataSetFactory {
                dataRow.setStringValue(null);
             }
          }
-
-         activityVersion.setName(OpGanttValidator.getName(dataRow));
-         activityVersion.setDescription(OpGanttValidator.getDescription(dataRow));
-         activityVersion.setSequence(dataRow.getIndex());
-         activityVersion.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
-         activityVersion.setExpanded(dataRow.getExpanded());
-         activityVersion.setSuperActivityVersion(superActivity);
-         if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-            activityVersion.setStart(superActivity.getStart());
-            activityVersion.setFinish(superActivity.getFinish());
-         }
-         else {
-            if (OpGanttValidator.getStart(dataRow) == null) {
-               activityVersion.setStart(projectNode.getStart());
-            }
-            else {
-               activityVersion.setStart(OpGanttValidator.getStart(dataRow));
-            }
-            if (OpGanttValidator.getEnd(dataRow) == null) {
-               activityVersion.setFinish(projectNode.getFinish());
-            }
-            else {
-               activityVersion.setFinish(OpGanttValidator.getEnd(dataRow));
-            }
-         }
-         activityVersion.setDuration(OpGanttValidator.getDuration(dataRow));
-         activityVersion.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
-         activityVersion.setType((OpGanttValidator.getType(dataRow)));
-         if (categoryChoice != null) {
-            String categoryLocator = XValidator.choiceID(categoryChoice);
-            category = (OpActivityCategory) broker.getObject(categoryLocator);
-            activityVersion.setCategory(category);
-         }
-         if (responsibleResource != null) {
-            String resourceLocator = XValidator.choiceID(responsibleResource);
-            OpResource resource = (OpResource) broker.getObject(resourceLocator);
-            activityVersion.setResponsibleResource(resource);
-         }
-         // Set complete once (we assume that client-side complete value is correct)
-         activityVersion.setComplete(OpGanttValidator.getComplete(dataRow));
-         activityVersion.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
-         activityVersion.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
-         activityVersion.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-         activityVersion.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-         activityVersion.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-         activityVersion.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-         activityVersion.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
-         activityVersion.setPriority(priority);
-
-         //only milestone can have payments
-         if (activityVersion.getType() == OpGanttValidator.MILESTONE) {
-            activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
-         broker.makePersistent(activityVersion);
-
       }
-      else {
+      
+//         activityVersion.setName(OpGanttValidator.getName(dataRow));
+//         activityVersion.setDescription(OpGanttValidator.getDescription(dataRow));
+//         activityVersion.setSequence(dataRow.getIndex());
+//         activityVersion.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
+//         activityVersion.setExpanded(dataRow.getExpanded());
+//         activityVersion.setSuperActivityVersion(superActivity);
+//         if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
+//            activityVersion.setStart(superActivity.getStart());
+//            activityVersion.setFinish(superActivity.getFinish());
+//         }
+//         else {
+//            if (OpGanttValidator.getStart(dataRow) == null) {
+//               activityVersion.setStart(projectNode.getStart());
+//            }
+//            else {
+//               activityVersion.setStart(OpGanttValidator.getStart(dataRow));
+//            }
+//            if (OpGanttValidator.getEnd(dataRow) == null) {
+//               activityVersion.setFinish(projectNode.getFinish());
+//            }
+//            else {
+//               activityVersion.setFinish(OpGanttValidator.getEnd(dataRow));
+//            }
+//         }
+//         activityVersion.setDuration(OpGanttValidator.getDuration(dataRow));
+//         activityVersion.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
+//         activityVersion.setType((OpGanttValidator.getType(dataRow)));
+//         if (categoryChoice != null) {
+//            String categoryLocator = XValidator.choiceID(categoryChoice);
+//            category = (OpActivityCategory) broker.getObject(categoryLocator);
+//            activityVersion.setCategory(category);
+//         }
+//         if (responsibleResource != null) {
+//            String resourceLocator = XValidator.choiceID(responsibleResource);
+//            OpResource resource = (OpResource) broker.getObject(resourceLocator);
+//            activityVersion.setResponsibleResource(resource);
+//         }
+//         // Set complete once (we assume that client-side complete value is correct)
+//         activityVersion.setComplete(OpGanttValidator.getComplete(dataRow));
+//         activityVersion.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
+//         activityVersion.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
+//         activityVersion.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
+//         activityVersion.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
+//         activityVersion.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
+//         activityVersion.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
+//         activityVersion.setAttributes(OpGanttValidator.getAttributes(dataRow));
+//         byte priority = OpGanttValidator.getPriority(dataRow) != null ? OpGanttValidator.getPriority(dataRow).byteValue() : 0;
+//         activityVersion.setPriority(priority);
+//
+//         //only milestone can have payments
+//         if (activityVersion.getType() == OpGanttValidator.MILESTONE) {
+//            activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
+//         }
+//         broker.makePersistent(activityVersion);
+//
+//      }
+//      else {
 
          boolean update = false;
 
@@ -809,11 +811,28 @@ public abstract class OpActivityVersionDataSetFactory {
          }
 
          // Do not update complete from client-data: Calculated from work-slips (RemainingEffort)
-         //update complete if progress tracking is off
+         // update complete if progress tracking is off
          OpProjectPlan projectPlan = planVersion.getProjectPlan();
          boolean tracking = projectPlan.getProgressTracked();
+
+         /*
+          * complete again is something completely different:
+          * - for tracking, everything is clear except for collections. 
+          * - no tracking: always the same...
+          */
          double complete = OpGanttValidator.getComplete(dataRow);
-         if ((activityVersion.getComplete() != complete) && !tracking) {
+         if (tracking && !OpGanttValidator.isCollectionType(dataRow)) {
+            if (activityVersion.getActivity() == null) {
+               complete = 0;
+            }
+            else {
+               complete = OpGanttValidator.calculateCompleteValue(activityVersion
+                        .getActivity().getActualEffort(), activityVersion
+                        .getBaseEffort(), activityVersion.getActivity()
+                        .getRemainingEffort());
+            }
+         }
+         if (activityVersion.getComplete() != complete) {
             update = true;
             activityVersion.setComplete(complete);
          }
@@ -856,11 +875,13 @@ public abstract class OpActivityVersionDataSetFactory {
             update = true;
             activityVersion.setPayment(OpGanttValidator.getPayment(dataRow));
          }
+         
+         if (activityVersion.getID() == 0) {
+            broker.makePersistent(activityVersion);
+         }
          if (update) {
             broker.updateObject(activityVersion);
          }
-
-      }
 
       return activityVersion;
 

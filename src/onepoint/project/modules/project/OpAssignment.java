@@ -308,14 +308,14 @@ public class OpAssignment extends OpObject {
                return -1; // FIXME: only used for junit tests. Otherwise workrecords without a workslip should not exist!
             }
             int c = o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
-            c = c != 0 ? c : Long.signum(o2.getID() - o1.getID());
-            return o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
+            return c;
          }});
 
-      wrSet.addAll(this.getWorkRecords());
+      // first insert the current, so that the new one is in the set here (see javadoc for Set.add() for details)!
       if (current != null) {
          wrSet.add(current);
       }
+      wrSet.addAll(this.getWorkRecords());
       
       List<OpWorkRecord> result = new ArrayList<OpWorkRecord>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
@@ -399,8 +399,10 @@ public class OpAssignment extends OpObject {
          }
       }
       else {
-         setRemainingEffort(OpGanttValidator.calculateRemainingEffort(
-               getBaseEffort(), getActualEffort(), getComplete()));
+         // FIXME: move this into OpGanttValidator??? -> calculations-class ???
+         double remainingEffort = OpGanttValidator.calculateRemainingEffort(getBaseEffort(), getActualEffort(), getComplete());
+         remainingEffortDelta = remainingEffort - getRemainingEffort();
+         setRemainingEffort(remainingEffort);
       }
       
       // the magic number ;-)
@@ -409,7 +411,8 @@ public class OpAssignment extends OpObject {
       // in theory, we are through with this work-record and this assignment.
       // we need to update the activity:
       OpActivity.ProgressDelta delta = new OpActivity.ProgressDelta(
-            remainingEffortDelta, insert, weightedCompleteDelta, latest);
+            progressTracked, remainingEffortDelta, insert,
+            weightedCompleteDelta, latest);
 
       getActivity().handleAssigmentProgress(this, workRecord, delta,
             baseWeighting);
