@@ -1620,7 +1620,7 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected boolean isCollectionType(XComponent activity) {
+   public static boolean isCollectionType(XComponent activity) {
       return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK;
    }
 

@@ -408,7 +408,9 @@ public class OpActivityVersion extends OpObject {
          setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
       }
       else {
-         setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
+         if (delta.isProgressTracked() || getType() == OpActivity.COLLECTION || getType() == OpActivity.COLLECTION_TASK) {
+            setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
+         }
       }
       
       if (getSuperActivityVersion() != null) {

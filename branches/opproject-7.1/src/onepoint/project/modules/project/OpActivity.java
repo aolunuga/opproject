@@ -763,6 +763,7 @@ public class OpActivity extends OpObject {
     * evil little helper for evil structured database ;-)
     */
    public static class ProgressDelta {
+      private boolean progressTracked = false;
       private double remainingEffort = 0.0;
       private boolean insert = true;
       private double weigthedCompleteDelta = 0.0;
@@ -773,11 +774,16 @@ public class OpActivity extends OpObject {
       private double remainingExternalCosts = 0.0;
       private double remainingMiscCosts = 0.0;
 
-      ProgressDelta(double remainingEffort, boolean insert, double weigthedCompleteDelta, boolean latest) {
+      ProgressDelta(boolean progressTracked, double remainingEffort, boolean insert, double weigthedCompleteDelta, boolean latest) {
+         this.progressTracked = progressTracked;
          this.remainingEffort = remainingEffort;
          this.insert = insert;
          this.weigthedCompleteDelta = weigthedCompleteDelta;
          this.latest = latest;
+      }
+
+      public void setProgressTracked(boolean progressTracked) {
+         this.progressTracked = progressTracked;
       }
 
       public void setWeigthedCompleteDelta(double weigthedCompleteDelta) {
@@ -802,6 +808,10 @@ public class OpActivity extends OpObject {
 
       public double getRemainingEffort() {
          return remainingEffort;
+      }
+
+      public boolean isProgressTracked() {
+         return progressTracked;
       }
 
       public boolean isInsert() {
@@ -897,8 +907,7 @@ public class OpActivity extends OpObject {
     */
    public void handleAssigmentProgress(OpAssignment assigment,
          OpWorkRecord workRecord, ProgressDelta delta, boolean baseWeighting) {
-      boolean progressTracked = getProjectPlan().getProgressTracked()
-            || getType() == OpActivity.ADHOC_TASK;
+      boolean adHocTask = getType() == OpActivity.ADHOC_TASK;
       
       double sign = delta.isInsert() ? 1.0 : -1.0;
       
@@ -929,13 +938,21 @@ public class OpActivity extends OpObject {
       applyDelta(delta);
       
       // now recalculate the dependend things...
-      if (baseWeighting) {
-         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+      if (delta.isProgressTracked()) {
+         if (baseWeighting) {
+            setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+         }
+         else {
+            double complete = OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort());
+            if (adHocTask) {
+               complete = 0;
+               if (delta.isInsert()) {
+                  complete = helper != null && helper.getCompleted() ? 100 : 0;
+               }
+            }
+            setComplete(complete);
+         }
       }
-      else {
-         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
-      }
-      
       // for the next steps (the two recursions) the order
       // is IMPORTANT: first the OpActivity, than the OpActivityVersions (they build upon each other...) 
       if (getSuperActivity() != null) {
@@ -976,7 +993,7 @@ public class OpActivity extends OpObject {
       while (i.hasNext()) {
          OpActivityVersion av = i.next();
          if (av.getPlanVersion().getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
-            av.updateComplete(delta, baseWeighting);
+            av.updateComplete(delta, true);
             break;
          }
       }
