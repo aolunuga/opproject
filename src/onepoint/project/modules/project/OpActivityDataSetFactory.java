@@ -1061,14 +1061,16 @@ public abstract class OpActivityDataSetFactory {
       byte type = OpGanttValidator.getType(dataRow);
       boolean isCollection = (type == OpActivity.COLLECTION) || (type == OpActivity.COLLECTION_TASK) || (type == OpActivity.SCHEDULED_TASK);
       
+      boolean newActivity = false;
+      boolean update = false;
+
       if (activity == null) {
          // Insert a new activity
          activity = new OpActivity(OpGanttValidator.getType(dataRow));
          activity.setProjectPlan(projectPlan);
          activity.setTemplate(projectPlan.getTemplate());
+         newActivity = true;
       }
-
-      boolean update = false;
 
       if (!checkEquality(activity.getName(), OpGanttValidator.getName(dataRow))) {
          update = true;
@@ -1151,20 +1153,35 @@ public abstract class OpActivityDataSetFactory {
        * are tigthly linked are both entered via workrecords which could not be modified by the project Manager
        */
       if (!projectPlan.getProgressTracked()) {
-         double complete = OpGanttValidator.getComplete(dataRow);
          //if tracking is off, calculate the remaining
+         double complete = OpGanttValidator.getComplete(dataRow);
          if ((activity.getComplete() != complete)) {
             update = true;
             activity.setComplete(complete);
-            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), complete);
+         }
+         double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), complete);
+         if (activity.getRemainingEffort() != remainingEffort) {
+            update = true;
             activity.setRemainingEffort(remainingEffort);
          }
       }
       else {
-         double complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), activity.getBaseEffort(), activity.getRemainingEffort());
-         if ((activity.getComplete() != complete)) {
-            update = true;
-            activity.setComplete(complete);
+         if (newActivity) {
+            // new is something completely different...
+            // (remember: the dataset does not contain REMAINING EFFORT)
+            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), 0, 0);
+            if (activity.getRemainingEffort() != remainingEffort) {
+               update = true;
+               activity.setRemainingEffort(remainingEffort);
+            }
+         }
+         else {
+            double complete = 0;
+            complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), activity.getBaseEffort(), activity.getRemainingEffort());
+            if ((activity.getComplete() != complete)) {
+               update = true;
+               activity.setComplete(complete);
+            }
          }
       }
 
@@ -1273,8 +1290,12 @@ public abstract class OpActivityDataSetFactory {
          activity.setPayment(OpGanttValidator.getPayment(dataRow));
       }
       
-      if (activity.getID() == 0) {
+      // make facts:
+      if (newActivity) {
          broker.makePersistent(activity);
+      }
+      else if (update) {
+         broker.updateObject(activity);
       }
 
       // AFTER we ar ethrough with ourself, update the super-activity stuff!
@@ -1283,10 +1304,6 @@ public abstract class OpActivityDataSetFactory {
          //update actual effort and costs
          updateParentsActualValues(activity, superActivity, broker);
          activity.setSuperActivity(superActivity);
-      }
-
-      else if (update) {
-         broker.updateObject(activity);
       }
 
       return activity;
