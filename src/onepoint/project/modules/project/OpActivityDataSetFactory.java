@@ -1182,6 +1182,11 @@ public abstract class OpActivityDataSetFactory {
                update = true;
                activity.setComplete(complete);
             }
+            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), 0, 0);
+            if (activity.getRemainingEffort() != remainingEffort) {
+               update = true;
+               activity.setRemainingEffort(remainingEffort);
+            }
          }
       }
 
@@ -1391,6 +1396,10 @@ public abstract class OpActivityDataSetFactory {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
                   baseEffort = ((Double) resourceBaseEffortList.remove(i)).doubleValue();
+                  // FIXME: See OpActivityVersionDataSetFactory!
+                  if (Double.isNaN(baseEffort))
+                     baseEffort = 0;
+                  // /FIXME
                   assigned = OpGanttValidator.percentageAssigned(resourceChoice);
                   if (assigned == OpGanttValidator.INVALID_ASSIGNMENT) {
                      assigned = assignment.getResource().getAvailable();
@@ -1428,6 +1437,11 @@ public abstract class OpActivityDataSetFactory {
                      double complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), assignment.getBaseEffort(), assignment.getRemainingEffort());
                      if (complete != assignment.getComplete()) {
                         assignment.setComplete(complete);
+                        update = true;
+                     }
+                     double remaining = OpGanttValidator.calculateRemainingEffort(assignment.getBaseEffort(), assignment.getActualEffort(), complete);
+                     if (remaining != assignment.getRemainingEffort()) {
+                        assignment.setRemainingEffort(remaining);
                         update = true;
                      }
                   }

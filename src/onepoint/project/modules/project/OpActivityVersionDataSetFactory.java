@@ -864,6 +864,10 @@ public abstract class OpActivityVersionDataSetFactory {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
                   baseEffort = ((Double) resourceBaseEffortList.remove(i)).doubleValue();
+                  // FIXME: This is by far the ugliest hack ever, but finding the root of the problem is delayed for now...
+                  if (Double.isNaN(baseEffort))
+                     baseEffort = 0;
+                  // /FIXME
                   baseCosts = baseEffort * assignment.getResource().getHourlyRate();
                   assigned = OpGanttValidator.percentageAssigned(resourceChoice);
                   if (assigned == OpGanttValidator.INVALID_ASSIGNMENT) {
