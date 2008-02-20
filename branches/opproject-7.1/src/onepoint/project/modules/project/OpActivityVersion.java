@@ -5,7 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
-import onepoint.project.modules.project.OpActivity.ProgressDelta;
+import onepoint.project.modules.project.OpActivity.OpProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
@@ -403,18 +403,12 @@ public class OpActivityVersion extends OpObject {
     * @param delta      delta information collected for activity/assignment...
     * @param baseWeighting method of aggregation for super-ActivityVersions...
     */
-   public void updateComplete(ProgressDelta delta, boolean baseWeighting) {
-      if (baseWeighting) {
-         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / (getBaseEffort()));
+   public void updateComplete(OpProgressDelta delta) {
+      if (delta.isProgressTracked() || getType() == OpActivity.COLLECTION || getType() == OpActivity.COLLECTION_TASK) {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
       }
-      else {
-         if (delta.isProgressTracked() || getType() == OpActivity.COLLECTION || getType() == OpActivity.COLLECTION_TASK) {
-            setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
-         }
-      }
-      
       if (getSuperActivityVersion() != null) {
-         getSuperActivityVersion().updateComplete(delta, baseWeighting);
+         getSuperActivityVersion().updateComplete(delta);
       }
    }
 }

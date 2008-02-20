@@ -6,7 +6,7 @@ package onepoint.project.modules.project;
 
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObject;
-import onepoint.project.modules.project.OpActivity.ProgressDelta;
+import onepoint.project.modules.project.OpActivity.OpProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.work.OpWorkRecord;
@@ -315,7 +315,9 @@ public class OpAssignment extends OpObject {
       if (current != null) {
          wrSet.add(current);
       }
-      wrSet.addAll(this.getWorkRecords());
+      if (getWorkRecords() != null) {
+         wrSet.addAll(getWorkRecords());
+      }
       
       List<OpWorkRecord> result = new ArrayList<OpWorkRecord>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
@@ -334,7 +336,7 @@ public class OpAssignment extends OpObject {
     * @param insert      whether it is inserted or removed
     * @param baseWeighting 
     */
-   public void handleWorkProgress(OpWorkRecord workRecord, boolean insert, boolean baseWeighting) {
+   public void handleWorkProgress(OpWorkRecord workRecord, boolean insert) {
       // check, because this stll is somewhat weird:
       double sign = insert ? 1.0 : -1.0;
       if (workRecord.getAssignment() == null) {
@@ -365,6 +367,9 @@ public class OpAssignment extends OpObject {
       double remainingEffortDelta = 0;
       double oldCompleteValue = getComplete();
       boolean completed = false;
+      boolean completedOld = getComplete() == 100; // it was completed when we had 100% completed ;-)
+      // the magic number ;-)
+      double weightedCompleteDelta = 0d;
       if (progressTracked) {
          if (insert && latest) {
             remainingEffortDelta = workRecord.getRemainingEffort() - getRemainingEffort();
@@ -386,15 +391,18 @@ public class OpAssignment extends OpObject {
             }
          }
          switch (getActivity().getType()) {
-         case OpActivity.ADHOC_TASK:
+         // case OpActivity.ADHOC_TASK:
          case OpActivity.MILESTONE:
-         case OpActivity.TASK:
+         // case OpActivity.TASK:
             setComplete(completed ? 100.0 : 0);
+            weightedCompleteDelta = 0;
             break;
          default:
             setComplete(completed ? 100.0 : OpGanttValidator
                   .calculateCompleteValue(getActualEffort(), getBaseEffort(),
                         getRemainingEffort()));
+            weightedCompleteDelta = getBaseEffort()
+                  * (getComplete() - oldCompleteValue);
             break;
          }
       }
@@ -405,18 +413,92 @@ public class OpAssignment extends OpObject {
          setRemainingEffort(remainingEffort);
       }
       
-      // the magic number ;-)
-      double weightedCompleteDelta = getBaseEffort() * (getComplete() - oldCompleteValue);
-      
       // in theory, we are through with this work-record and this assignment.
       // we need to update the activity:
-      OpActivity.ProgressDelta delta = new OpActivity.ProgressDelta(
-            progressTracked, remainingEffortDelta, insert,
+      OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
+            progressTracked, remainingEffortDelta, insert, completed != completedOld,
             weightedCompleteDelta, latest);
 
-      getActivity().handleAssigmentProgress(this, workRecord, delta,
-            baseWeighting);
-      updateWorkingVersion(delta, baseWeighting);
+      getActivity().handleAssigmentProgress(this, workRecord, delta);
+      updateWorkingVersion(delta);
+   }
+   
+   /**
+    * Honour those different types of activities to get the complete value
+    * (very sick, I know, but do you know any better?)
+    * @return complete value for this assignment in case of progress tracking honoring type of activity it belongs to.
+    */
+   public double getCompleteFromTracking() {
+      
+      switch (getActivity().getType()) {
+      case OpActivity.MILESTONE:
+         List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+         if (latestWRs != null && latestWRs.size() > 0) {
+            return latestWRs.get(0).getCompleted() ? 100 : 0;
+         } else {
+            return 0;
+         }
+      default:
+         return OpGanttValidator.calculateCompleteValue(getActualEffort(),
+               getBaseEffort(), getRemainingEffort());
+      }
+   }
+   
+   /**
+    * Attaches an assignment to its activity in case of tracking values
+    * (we fake a delta object here to reuse the functionality already implemented
+    * for progress tracking - it's not so much of a difference...)
+    */
+   public void attachToActivity(OpActivity activity) {
+      if (activity == null) {
+         return;
+      }
+      
+      setActivity(activity);
+      activity.addAssignment(this);
+      
+      // prerequisites:
+      boolean progressTracked = getProjectPlan().getProgressTracked()
+            || getActivity().getType() == OpActivity.ADHOC_TASK;
+
+      double weightedCompleteDelta = getBaseEffort() * getComplete();
+      // goal: build a delta-object to get the right thing done here:
+      OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
+            progressTracked, getRemainingEffort(), true, getComplete() == 100d,
+            weightedCompleteDelta, true);
+
+      // NOT stored with assignemts ;-)
+      delta.setRemainingExternalCosts(0);
+      delta.setRemainingMaterialCosts(0);
+      delta.setRemainingMiscCosts(0);
+      delta.setRemainingTravelCosts(0);
+      
+      // remaining costs: find those latest WR for this assignment 
+      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+      getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
+   }
+   
+   public void detachFromActivity(OpActivity activity) {
+      if (activity == null) {
+         return;
+      }
+      
+      activity.getAssignments().remove(this);
+      setActivity(null);
+      
+      // prerequisites:
+      boolean progressTracked = getProjectPlan().getProgressTracked()
+            || getActivity().getType() == OpActivity.ADHOC_TASK;
+
+      double weightedCompleteDelta = -1d * getBaseEffort() * getComplete();
+      // goal: build a delta-object to get the right thing done here:
+      OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
+            progressTracked, getRemainingEffort(), true, getComplete() == 100d,
+            weightedCompleteDelta, true);
+
+      // remaining costs: find those latest WR for this assignment 
+      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+      getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
    }
    
    
@@ -426,7 +508,7 @@ public class OpAssignment extends OpObject {
     * @param delta
     * @param baseWeighting
     */
-   private void updateWorkingVersion(OpActivity.ProgressDelta delta, boolean baseWeighting) {
+   private void updateWorkingVersion(OpActivity.OpProgressDelta delta) {
       // this time, it's not as easy:
       // 1. get the activity
       // 2. get the working activity version
@@ -440,7 +522,7 @@ public class OpAssignment extends OpObject {
             while (j.hasNext()) {
                OpAssignmentVersion assV = j.next();
                if (assV.getResource().getID() == getResource().getID()) {
-                  assV.updateComplete(getActualEffort(), getRemainingEffort(), delta, baseWeighting);
+                  assV.updateComplete(getComplete(), getActualEffort(), getRemainingEffort(), delta);
                   break;
                }
             }
@@ -449,4 +531,25 @@ public class OpAssignment extends OpObject {
       }
       
    }
+   
+   public String toString() {
+      StringBuffer b = new StringBuffer();
+      b.append("OpActivity:{");
+      b.append(super.toString());
+      b.append(" ACT:");
+      b.append(getActivity() != null ? getActivity().getName() : "null");
+      b.append(" RSC:");
+      b.append(getResource() != null ? getResource().getName() : "null");
+      b.append(" B:");
+      b.append(getBaseEffort());
+      b.append(" A:");
+      b.append(getActualEffort());
+      b.append(" R:");
+      b.append(getRemainingEffort());
+      b.append(" C:");
+      b.append(getComplete());
+      b.append("}");
+      return b.toString();
+   }
+
 }

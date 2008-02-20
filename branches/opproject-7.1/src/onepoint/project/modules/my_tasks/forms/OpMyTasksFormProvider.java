@@ -12,7 +12,10 @@ import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.my_tasks.OpMyTasksServiceImpl;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityFilter;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResource;
@@ -81,7 +84,7 @@ public class OpMyTasksFormProvider implements XFormProvider {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
 
-      Map<String, List<String>> projectsResourcesMap = this.getProjectToResourcesViewMap(session);
+      Map<String, List<String>> projectsResourcesMap = OpProjectDataSetFactory.getProjectToResourceMap(session);
 
       //check the case when the current user doesn't  see any resources
       if (projectsResourcesMap.isEmpty()) {
@@ -162,46 +165,6 @@ public class OpMyTasksFormProvider implements XFormProvider {
 
       //rebuild the successors and predecessors indexes in the dataset
       OpActivityDataSetFactory.rebuildPredecessorsSuccessorsIndexes(dataSet, indexIdMap, idIndexMap);
-   }
-
-   /**
-    * Returns a map of projects and list of resources for each project, where the current user is
-    * at least observer on the project.
-    *
-    * @param session Current project session (used for db access and current user)
-    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
-    */
-   private Map<String, List<String>> getProjectToResourcesViewMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
-      OpBroker broker = session.newBroker();
-      long userId = session.getUserID();
-
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
-
-      //add only the responsible resources for the projects where the user is  OBSERVER, CONTRIBUTOR, ADMINISTRATOR or MANAGER
-      levels.add(OpPermission.OBSERVER);
-      levels.add(OpPermission.CONTRIBUTOR);
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      List<Long> projectIds = OpProjectDataSetFactory.getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> allResources = new ArrayList<String>();
-         for (OpProjectNodeAssignment assignment : project.getAssignments()) {
-            OpResource resource = assignment.getResource();
-            boolean isResponsible = resource.getUser() != null && resource.getUser().getID() == userId;
-            if (isResponsible || session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
-               allResources.add(XValidator.choice(resource.locator(), resource.getName()));
-            }
-         }
-         if (!allResources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), allResources);
-         }
-      }
-
-      broker.close();
-      return projectsMap;
    }
 
    /**

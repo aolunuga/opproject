@@ -114,4 +114,14 @@ public class OpObject {
       }
    }
 
+   @Override
+   public String toString() {
+      StringBuffer b = new StringBuffer();
+      b.append("OpObject{ID:");
+      b.append(getID());
+      b.append("}");
+      return b.toString();
+   }
+
+   
 }
