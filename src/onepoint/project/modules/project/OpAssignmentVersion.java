@@ -5,7 +5,7 @@
 package onepoint.project.modules.project;
 
 import onepoint.persistence.OpObject;
-import onepoint.project.modules.project.OpActivity.ProgressDelta;
+import onepoint.project.modules.project.OpActivity.OpProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 
@@ -107,12 +107,11 @@ public class OpAssignmentVersion extends OpObject {
       this.workMonthVersions = workMonthVersions;
    }
 
-   public void updateComplete(double actualEffort, double remainingEffort, ProgressDelta delta, boolean baseWeighting) {
-      if (baseWeighting) {
-         setComplete(getComplete() + delta.getWeigthedCompleteDelta() / getBaseEffort());
-      }
-      else {
+   public void updateComplete(double complete, double actualEffort, double remainingEffort, OpProgressDelta delta) {
+      if (delta.isProgressTracked())
          setComplete(OpGanttValidator.calculateCompleteValue(actualEffort, getBaseEffort(), remainingEffort));
+      else {
+         setComplete(complete);
       }
    }
 }

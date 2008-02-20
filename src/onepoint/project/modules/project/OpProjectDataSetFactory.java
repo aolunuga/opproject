@@ -215,7 +215,7 @@ public final class OpProjectDataSetFactory {
     *
     * @return a <code>XComponent(DATA_ROW)</code>.
     * @see OpProjectDataSetFactory#populateProjectNodeDataSet(onepoint.project.OpProjectSession,onepoint.persistence.OpBroker,
-    *onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
+    *      onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
     */
    private static XComponent createProjectNodeBasicRow(OpProjectSession session, OpBroker broker, OpProjectNode projectNode,
         XLocalizer localizer, boolean tabular, int outlineLevel) {
@@ -365,7 +365,7 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Returns all the projects located in the subtree (from the whole project hierarchy) for which the project (whose
-    *    id is passed as parameter) is the root.
+    * id is passed as parameter) is the root.
     *
     * @param session      - the <code>OpProjectSession</code> object.
     * @param projectId    - the id of the project whose subprojects are loaded.
@@ -404,7 +404,8 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Returns a list with the locators of all the project which are or aren't archived.
-    * @param session a <code>OpProjectSession</code> a server session.
+    *
+    * @param session  a <code>OpProjectSession</code> a server session.
     * @param archived a <code>boolean</code> indicating whether to search for archived or non-archived projects.
     * @return a <code>List(String)</code> a list of project locators.
     */
@@ -414,7 +415,7 @@ public final class OpProjectDataSetFactory {
       OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
       projectsQuery.setParameter("type", OpProjectNode.PROJECT);
       projectsQuery.setParameter("archived", archived);
-      for (Iterator it = broker.iterate(projectsQuery); it.hasNext(); ) {
+      for (Iterator it = broker.iterate(projectsQuery); it.hasNext();) {
          String locator = ((OpProjectNode) it.next()).locator();
          result.add(locator);
       }
@@ -596,7 +597,7 @@ public final class OpProjectDataSetFactory {
     *
     * @return a <code>XComponent(DATA_ROW)</code>.
     * @see OpProjectDataSetFactory#populateProjectNodeDataSet(onepoint.project.OpProjectSession,onepoint.persistence.OpBroker,
-    *onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
+    *      onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
     */
    private static XComponent createProjectNodeAdvancedRow(OpProjectSession session, OpBroker broker, OpProjectNode projectNode,
         XLocalizer localizer, boolean tabular, int outlineLevel) {
@@ -652,7 +653,7 @@ public final class OpProjectDataSetFactory {
          dataRow.addChild(dataCell);
 
          //for portofolios add empty cells for effors and costs and cells with values set to 0 for deviations
-         if(projectNode.getType() != OpProjectNode.PROJECT){
+         if (projectNode.getType() != OpProjectNode.PROJECT) {
             addPortofolioCostAndEffortCells(dataRow);
          }
          //for regular projects calculate the values of the cells
@@ -691,7 +692,7 @@ public final class OpProjectDataSetFactory {
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
       Object[] record;
-      for (Iterator completes = broker.iterate(query); completes.hasNext(); ) {
+      for (Iterator completes = broker.iterate(query); completes.hasNext();) {
          record = (Object[]) completes.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -724,7 +725,7 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      for (Iterator resources = broker.iterate(query); resources.hasNext(); ) {
+      for (Iterator resources = broker.iterate(query); resources.hasNext();) {
          Object[] record = (Object[]) resources.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -759,7 +760,7 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      for (Iterator costs = broker.iterate(query); costs.hasNext(); ) {
+      for (Iterator costs = broker.iterate(query); costs.hasNext();) {
          Object[] record = (Object[]) costs.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -983,49 +984,6 @@ public final class OpProjectDataSetFactory {
    }
 
    /**
-    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
-    * Contains all the resources from projects where the user has atleast MANAGER permissions and all the resources
-    * for which is reposnsible from projects where is CONTRIBUTOR.
-    *
-    * @param session Current project session (used for db access and current user)
-    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
-    */
-   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
-      OpBroker broker = session.newBroker();
-      long userId = session.getUserID();
-
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
-      //add all the projects the user has access to (at least CONTRIBUTOR)
-      levels.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, true);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
-      // add all the resources from project where the user has manager access
-      levels.clear();
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, false);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
-      broker.close();
-      return projectsMap;
-   }
-
-   /**
     * Get the list of reources linked to a given project
     *
     * @param project     the project node
@@ -1068,11 +1026,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Adds 12 cells to the dataRow parameter. These cells will contain information about the efforts and costs regarding
-    *    the project that is being represented by the dataRow parameter.
+    * the project that is being represented by the dataRow parameter.
     *
-    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
+    * @param dataRow       - the <code>XComponent</code> data row to which the cells are added
     * @param effortDataSet - the <code>XComponent</code> data set from which the information about the efforts is taken
-    * @param costDataSet - the <code>XComponent</code> data set from which the information about the costs is taken.
+    * @param costDataSet   - the <code>XComponent</code> data set from which the information about the costs is taken.
     */
    private static void addProjectCostAndEffortCells(XComponent dataRow, XComponent effortDataSet, XComponent costDataSet) {
       //11 - base effort
@@ -1149,6 +1107,7 @@ public final class OpProjectDataSetFactory {
    /**
     * Returns a map with the project locators and the ids of the baselines for those projects
     * which have a baseline set.
+    *
     * @param session a <code>OpProjectSession</code> a server session.
     * @return a <code>Map(String, Long)</code> with (projectLocator, baselineID) pairs.
     */
@@ -1170,7 +1129,7 @@ public final class OpProjectDataSetFactory {
    /**
     * Returns <code>true</code> if the <code>OpProjectNode</code> specified as parameter has locks or <code>false</code> otherwise.
     *
-    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
     * @param projectNode - the <code>OpProjectNode</code> object.
     * @return <code>true</code> if the <code>OpProjectNode</code> specified as parameter has locks or <code>false</code> otherwise.
     */
@@ -1186,10 +1145,10 @@ public final class OpProjectDataSetFactory {
       return false;
    }
 
-    /**
+   /**
     * Returns <code>true</code> if the <code>OpProjectPlan</code> specified as parameter has activities or <code>false</code> otherwise.
     *
-    * @param broker - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
     * @param projectPlan - the <code>OpProjectPlan</code> object.
     * @return <code>true</code> if the <code>OpProjectPlan</code> specified as parameter has activities or <code>false</code> otherwise.
     */
@@ -1225,7 +1184,7 @@ public final class OpProjectDataSetFactory {
    /**
     * Returns the number of project nodes for the <code>OpProjectStatus</code> specified as parameter.
     *
-    * @param broker      - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param broker        - the <code>OpBroker</code> object needed to perform DB operations.
     * @param projectStatus - the <code>OpProjectStatus</code> object.
     * @return the number of project nodes for the <code>OpProjectStatus</code> specified as parameter.
     */
@@ -1238,4 +1197,49 @@ public final class OpProjectDataSetFactory {
       }
       return 0;
    }
+
+   /**
+    * Returns a map of projects and list of resources for each project, where the current user is
+    * at least observer on the project. The resource will be the ones the user is responsible for or has at least
+    * manager permissions on them.
+    *
+    * @param session Current project session (used for db access and current user)
+    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
+    */
+   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
+      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
+      OpBroker broker = session.newBroker();
+      try {
+         long userId = session.getUserID();
+
+         // add all the resources for which is responsible from project where the user has contributer access
+         List<Byte> levels = new ArrayList<Byte>();
+
+         //add only the responsible resources (or at least manager permission) for the projects where the user is  OBSERVER, CONTRIBUTOR, ADMINISTRATOR or MANAGER
+         levels.add(OpPermission.OBSERVER);
+         levels.add(OpPermission.CONTRIBUTOR);
+         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(OpPermission.MANAGER);
+         List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
+         for (Long id : projectIds) {
+            OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
+            List<String> allResources = new ArrayList<String>();
+            for (OpProjectNodeAssignment assignment : project.getAssignments()) {
+               OpResource resource = assignment.getResource();
+               boolean isResponsible = resource.getUser() != null && resource.getUser().getID() == userId;
+               if (isResponsible || session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
+                  allResources.add(XValidator.choice(resource.locator(), resource.getName()));
+               }
+            }
+            if (!allResources.isEmpty()) {
+               projectsMap.put(XValidator.choice(project.locator(), project.getName()), allResources);
+            }
+         }
+      }
+      finally {
+         broker.close();
+      }
+      return projectsMap;
+   }
+
 }

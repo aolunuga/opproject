@@ -4996,12 +4996,11 @@ public class OpGanttValidator extends XValidator {
       List workPhaseFinishes = new ArrayList();
       List workPhaseEfforts = new ArrayList();
       int i = 0;
-      boolean effortBased = isEffortBasedProject();
       //the calculations have to be done using BigDecimals to avoid rounding errors.
       BigDecimal effortDecimal = new BigDecimal(effort);
 
       // *** Loop until effort is distributed
-      if (effortBased) {
+      if (isEffortBasedProject()) {
          while (effortDecimal.doubleValue() > ERROR_MARGIN) {
             if (calendar.isWorkDay(currentDate)) {
                if ((nextHoliday != null) && (time == nextHoliday.getTime())) {

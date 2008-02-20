@@ -86,7 +86,7 @@ public class OpProgressCalculator {
       OpProjectNode n = work_record.getAssignment().getActivity().getProjectPlan().getProjectNode();
       OpTransactionLock.getInstance().writeLock(n.locator());
       try {
-         work_record.getAssignment().handleWorkProgress(work_record, insert_mode, false);
+         work_record.getAssignment().handleWorkProgress(work_record, insert_mode);
          
          // double remainingEffortChange = updateAssignment(broker, work_record, insert_mode);
          // updateActivity(broker, work_record, insert_mode, remainingEffortChange);
