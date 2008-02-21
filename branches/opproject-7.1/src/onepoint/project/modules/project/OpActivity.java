@@ -955,10 +955,8 @@ public class OpActivity extends OpObject {
       
       // now recalculate the dependend things...
       if (delta.isProgressTracked()) {
-         switch (getType()) {
-         case OpActivity.ADHOC_TASK:
-         case OpActivity.TASK:
-         case OpActivity.MILESTONE:
+         if (getType() == OpActivity.ADHOC_TASK || getType() == OpActivity.TASK
+               || getType() == OpActivity.MILESTONE || isZeroActivity()) {
             // multiple assignments possible...
             // NOTE: the same code could be used for TASKS as well,
             // but we devided those cases for the sake of clearity.
@@ -977,11 +975,9 @@ public class OpActivity extends OpObject {
                   setComplete(completed ? 100 : 0);
                }
             }
-            break;
-         default:
+         } else {
             setComplete(OpGanttValidator.calculateCompleteValue(
                   getActualEffort(), getBaseEffort(), getRemainingEffort()));
-            break;
          }
       }
       // for the next steps (the two recursions) the order
@@ -1021,10 +1017,8 @@ public class OpActivity extends OpObject {
     */
    public double getCompleteFromTracking() {
       if (getProjectPlan().getProgressTracked()) {
-         switch (getType()) {
-         case OpActivity.ADHOC_TASK:
-         case OpActivity.TASK:
-         case OpActivity.MILESTONE:
+         if (getType() == OpActivity.ADHOC_TASK || getType() == OpActivity.TASK
+               || getType() == OpActivity.MILESTONE || isZeroActivity()) {
             boolean completed = !getAssignments().isEmpty();
             for (OpAssignment a : getAssignments()) {
                if (a.getCompleteFromTracking() != 100d) { // ugly!!!
@@ -1033,12 +1027,11 @@ public class OpActivity extends OpObject {
                }
             }
             return (completed ? 100 : 0);
-         default:
+         } else {
             return OpGanttValidator.calculateCompleteValue(getActualEffort(),
                   getBaseEffort(), getRemainingEffort());
          }
-      }
-      else {
+      } else {
          return OpGanttValidator.calculateCompleteValue(getActualEffort(),
                getBaseEffort(), getRemainingEffort());
       }
@@ -1110,7 +1103,11 @@ public class OpActivity extends OpObject {
       setRemainingPersonnelCosts(0d);
       setRemainingProceeds(0d);
       setRemainingTravelCosts(0d);
-    }
+   }
    
+   public boolean isZeroActivity() {
+      return getBaseEffort() == 0d && getActualEffort() == 0d
+            && getRemainingEffort() == 0d;
+   }
    
 }

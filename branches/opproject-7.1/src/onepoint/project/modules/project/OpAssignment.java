@@ -390,23 +390,18 @@ public class OpAssignment extends OpObject {
                completed = false;
             }
          }
-         switch (getActivity().getType()) {
-         // case OpActivity.ADHOC_TASK:
-         case OpActivity.MILESTONE:
-         // case OpActivity.TASK:
+         if (getActivity().getType() == OpActivity.MILESTONE
+               || isZeroAssignment()) {
             setComplete(completed ? 100.0 : 0);
             weightedCompleteDelta = 0;
-            break;
-         default:
+         } else {
             setComplete(completed ? 100.0 : OpGanttValidator
                   .calculateCompleteValue(getActualEffort(), getBaseEffort(),
                         getRemainingEffort()));
             weightedCompleteDelta = getBaseEffort()
                   * (getComplete() - oldCompleteValue);
-            break;
          }
-      }
-      else {
+      } else {
          // FIXME: move this into OpGanttValidator??? -> calculations-class ???
          double remainingEffort = OpGanttValidator.calculateRemainingEffort(getBaseEffort(), getActualEffort(), getComplete());
          remainingEffortDelta = remainingEffort - getRemainingEffort();
@@ -430,15 +425,15 @@ public class OpAssignment extends OpObject {
     */
    public double getCompleteFromTracking() {
       
-      switch (getActivity().getType()) {
-      case OpActivity.MILESTONE:
+      if (getActivity().getType() == OpActivity.MILESTONE
+            || isZeroAssignment()) {
          List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
          if (latestWRs != null && latestWRs.size() > 0) {
             return latestWRs.get(0).getCompleted() ? 100 : 0;
          } else {
             return 0;
          }
-      default:
+      } else {
          return OpGanttValidator.calculateCompleteValue(getActualEffort(),
                getBaseEffort(), getRemainingEffort());
       }
@@ -530,6 +525,11 @@ public class OpAssignment extends OpObject {
          }
       }
       
+   }
+
+   public boolean isZeroAssignment() {
+      return getBaseEffort() == 0d && getActualEffort() == 0d
+            && getRemainingEffort() == 0d;
    }
    
    public String toString() {
