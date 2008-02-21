@@ -735,6 +735,7 @@ public abstract class OpActivityDataSetFactory {
       while (it.hasNext()) {
          OpAssignment assignment = (OpAssignment) it.next();
          String resourceLocator = assignment.getResource().locator();
+         // FIXME: Room for Performance Improvement!!!
          Boolean hasWorkRecords = hasWorkRecords(broker, assignment);
          data.put(resourceLocator, hasWorkRecords);
       }
@@ -1516,6 +1517,8 @@ public abstract class OpActivityDataSetFactory {
                activity.getAssignments().remove(assignment);
                // FIXME: evil hack to honour removed assignments:
                // TODO: propagate remaining, base, etc from new assignment???
+               // ATTENTION: remaining, base, etc. is NOT changed here (remaining should
+               // be distributed to the existing assignments)
                activity.setComplete(activity.getCompleteFromTracking());
             }
          }
