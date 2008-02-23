@@ -579,7 +579,10 @@ public class OpActivity extends OpObject {
    }
 
    public double getPayment() {
-      return payment;
+      if (getType() == OpActivity.MILESTONE)
+         return payment;
+      else 
+         return 0d;
    }
 
    public void setPayment(Double payment) {
@@ -877,7 +880,7 @@ public class OpActivity extends OpObject {
          }});
 
       for (OpAssignment a: assignments) {
-         if (current.getAssignment().getID() == a.getID()) {
+         if (current != null && current.getAssignment().getID() == a.getID()) {
             wrSet.addAll(a.getLatestWorkRecords(current, number, acceptEmpty));
          }
          else {
@@ -917,25 +920,27 @@ public class OpActivity extends OpObject {
    
    /**
     * Propagate progress information from assignments (only leaf-elements has assigments)
-    * @param assigment
+    * @param assignment
     * @param workRecord
     * @param delta
     * @param baseWeighting 
     */
-   public void handleAssigmentProgress(OpAssignment assigment,
+   public void handleAssigmentProgress(OpAssignment assignment,
          OpWorkRecord workRecord, OpProgressDelta delta) {
       
       double sign = delta.isInsert() ? 1.0 : -1.0;
       
       // update this:
-      updateActualStuff(workRecord, sign);
+      if (workRecord != null) {
+         updateActualStuff(workRecord, sign);
+      }
       
       // if we are the latest WR, find the new WR determining remaining costs stuff (otherwise,
       // remaining will not change). This is because the remaining costs are handle COMPLETELY WEIRD!!!
       OpWorkRecord helper = null;
       if (delta.isLatest()) {
          List<OpWorkRecord> latestWRsOfActivity = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, false);
-         boolean latest = latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists!
+         boolean latest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists!
          if (latest) {
             helper = delta.isInsert() ? workRecord
                   : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
@@ -956,10 +961,8 @@ public class OpActivity extends OpObject {
       // now recalculate the dependend things...
       if (delta.isProgressTracked()) {
          if (getType() == OpActivity.ADHOC_TASK || getType() == OpActivity.TASK
-               || getType() == OpActivity.MILESTONE || isZeroActivity()) {
+               || getType() == OpActivity.MILESTONE || isZero()) {
             // multiple assignments possible...
-            // NOTE: the same code could be used for TASKS as well,
-            // but we devided those cases for the sake of clearity.
             if (delta.isCompletedChanged() && delta.isLatest()) {
                if (workRecord.getCompleted() && !delta.isInsert()) {
                   setComplete(0d);
@@ -998,7 +1001,9 @@ public class OpActivity extends OpObject {
     */
    private void handleSubActivityProgress(OpActivity subActivity, OpWorkRecord workRecord, OpProgressDelta delta) {
       // update this:
-      updateActualStuff(workRecord, delta.isInsert() ? 1.0 : -1.0);
+      if (workRecord != null) {
+         updateActualStuff(workRecord, delta.isInsert() ? 1.0 : -1.0);
+      }
       
       applyDelta(delta);
 
@@ -1018,7 +1023,7 @@ public class OpActivity extends OpObject {
    public double getCompleteFromTracking() {
       if (getProjectPlan().getProgressTracked()) {
          if (getType() == OpActivity.ADHOC_TASK || getType() == OpActivity.TASK
-               || getType() == OpActivity.MILESTONE || isZeroActivity()) {
+               || getType() == OpActivity.MILESTONE || isZero()) {
             boolean completed = !getAssignments().isEmpty();
             for (OpAssignment a : getAssignments()) {
                if (a.getCompleteFromTracking() != 100d) { // ugly!!!
@@ -1105,9 +1110,33 @@ public class OpActivity extends OpObject {
       setRemainingTravelCosts(0d);
    }
    
-   public boolean isZeroActivity() {
-      return getBaseEffort() == 0d && getActualEffort() == 0d
-            && getRemainingEffort() == 0d;
+   /**
+    * @return true whenever an activity has zero effort
+    */
+   public boolean isZero() {
+      return getActualEffort() == 0d && getRemainingEffort() == 0d;
    }
    
+   /**
+    * @return true, whenever nothing has been booked for an activity with non-zero base effort 
+    */
+   public boolean isVirgin() {
+      return getRemainingEffort() == getBaseEffort() && getActualEffort() == 0d;
+   }
+   
+   /**
+    * WARNING: slow! Uses Hibernate joins to find assignments AND work records!
+    * @return
+    */
+   public boolean hasWorkRecords() {
+      return getLatestWorkRecords(null, 1, true).size() > 0;
+   }
+   
+   public boolean isMilestone() {
+      return !getDeleted() && getType() == OpActivity.MILESTONE;
+   }
+   
+   public boolean isPlannedActivity() {
+      return !getDeleted() && getType() != OpActivity.ADHOC_TASK;
+   }
 }

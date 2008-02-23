@@ -846,7 +846,11 @@ public abstract class OpActivityDataSetFactory {
          plan.getActivities().removeAll(adhocTasks);
       }
 
-      HashMap activities = activities(plan);
+      logger.debug("storeActivityDataSet: " + System.currentTimeMillis());
+      HashMap activities = null;
+
+      activities = activities(plan);
+
       Date planStart = plan.getStart();
       Date planFinish = plan.getFinish();
 
@@ -997,6 +1001,7 @@ public abstract class OpActivityDataSetFactory {
       updateAdHocTasks(plan, dataRowsNr, adhocTasks, broker);
       //</FIXME>
 
+      logger.debug("/storeActivityDataSet: " + System.currentTimeMillis());
       broker.updateObject(plan);
 
    }
@@ -1190,16 +1195,27 @@ public abstract class OpActivityDataSetFactory {
          update = true;
          activity.setPriority(validatorPriority);
       }
-      if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
+      // Type again is something special:
+      // cannot be changed as soon as there are workrecords for this:
+      if (activity.getType() != OpGanttValidator.getType(dataRow)) {
+         if (activity.hasWorkRecords()) {
+            throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
+         }
+         activity.setType((OpGanttValidator.getType(dataRow)));
+      }
+
+      double payment = 0d;
+      if (activity.isMilestone()) {
+         payment = OpGanttValidator.getPayment(dataRow);
+      } else {
+         payment = 0d;
+      }
+
+      if (activity.getPayment() != payment) {
          update = true;
          activity.setPayment(OpGanttValidator.getPayment(dataRow));
       }
       
-      if (activity.getType() != OpGanttValidator.getType(dataRow)) {
-         update = true;
-         activity.setType((OpGanttValidator.getType(dataRow)));
-      }
-
       // ALL this is only relevant for LEAF-Activities:
       // tricky: remove from parent to enforce calculation!
       activity.setSuperActivity(null);
@@ -1330,7 +1346,7 @@ public abstract class OpActivityDataSetFactory {
    private static void updateParents(boolean progressTracking, OpActivity activity, OpActivity newParent) {
       OpActivity originalActivity = activity;
       //update old parents
-      while (activity.getSuperActivity() != null) {
+      if (activity.getSuperActivity() != null) {
          OpActivity oldParent = activity.getSuperActivity();
 
          oldParent.setBaseEffort(oldParent.getBaseEffort() - originalActivity.getBaseEffort());
@@ -1454,27 +1470,23 @@ public abstract class OpActivityDataSetFactory {
                      update = true;
                   }
 
-                  // remaining effort does not depend on tracking or not.
-                  // It is always required to redistribute the remaining effort
-                  // of the activity to ALL asignments. The factor to use is the base effort
-                  // of each activity here (This only works, as long as the base effort for both
-                  // assignment and activity is correct and do not change from now on)
-                  double assignmentRemaining = calculateAssignmentRemainingEffort(
-                        activity.getBaseEffort(), activity.getRemainingEffort(),
-                        baseEffort);
-                  if (assignmentRemaining != assignment.getRemainingEffort()) {
-                     assignment.setRemainingEffort(assignmentRemaining);
-                     update = true;
-                  }
-                  
-                  // percentage complete and remaining effort ONLY if tracking is off
                   if (!tracking) {
                      double complete = activity.getComplete();
                      if (complete != assignment.getComplete()) {
                         assignment.setComplete(complete);
                         update = true;
                      }
-                     // TODO: check whether this all matches (remaining is changed above, so beware!)
+                     // It is always required to redistribute the remaining effort
+                     // of the activity to ALL asignments. The factor to use is the base effort
+                     // of each activity here (This only works, as long as the base effort for both
+                     // assignment and activity is correct and do not change from now on)
+                     double assignmentRemaining = calculateAssignmentRemainingEffort(
+                           activity.getBaseEffort(), activity.getRemainingEffort(),
+                           baseEffort);
+                     if (assignmentRemaining != assignment.getRemainingEffort()) {
+                        assignment.setRemainingEffort(assignmentRemaining);
+                        update = true;
+                     }
                   }
                   else {
                      // in some rare cases, complete might differ here (replanning)
@@ -1482,6 +1494,16 @@ public abstract class OpActivityDataSetFactory {
                      if (complete != assignment.getComplete()) {
                         assignment.setComplete(complete);
                         update = true;
+                     }
+                     // adopt remaining as soon as there are no workrecords for this assignment
+                     if (activity.isVirgin()) {
+                        double assignmentRemaining = calculateAssignmentRemainingEffort(
+                              activity.getBaseEffort(), activity.getRemainingEffort(),
+                              baseEffort);
+                        if (assignment.getRemainingEffort() != assignmentRemaining) {
+                           update = true;
+                           assignment.setRemainingEffort(assignmentRemaining);
+                        }
                      }
                   }
                   
@@ -1508,13 +1530,13 @@ public abstract class OpActivityDataSetFactory {
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
                //check if the assignemnt still has work records - if so => error
-               if (hasWorkRecords(broker, assignment)) {
+               if (assignment.hasWorkRecords()) {
                   throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
                }
                reusableAssignments.add(assignment);
                //break links to activity
                OpActivity activity = assignment.getActivity();
-               activity.getAssignments().remove(assignment);
+               assignment.detachFromActivity(activity);
                // FIXME: evil hack to honour removed assignments:
                // TODO: propagate remaining, base, etc from new assignment???
                // ATTENTION: remaining, base, etc. is NOT changed here (remaining should
@@ -1599,21 +1621,16 @@ public abstract class OpActivityDataSetFactory {
          }
          else {
             assignment.setComplete(0);
-            double remainingForThisAssignment = calculateAssignmentRemainingEffort(
-                  activity.getBaseEffort(), activity.getRemainingEffort(),
-                  baseEffort);
-            assignment.setBaseEffort(remainingForThisAssignment);
-            assignment
-                  .setRemainingEffort(OpGanttValidator
-                        .calculateRemainingEffort(assignment.getBaseEffort(),
-                              assignment.getActualEffort(), assignment
-                                    .getComplete()));
+            double remainingForThisAssignment = 0;
+            if (activity.isVirgin()) {
+               remainingForThisAssignment = assignment.getBaseEffort();
+            }
+            assignment.setRemainingEffort(remainingForThisAssignment);
             // FIXME: evil hack to honour new assignments:
             // TODO: propagate remaining, base, etc from new assignment???
             // ATTENTION: if complete changes here, it is because our activity is of kind milestone
             // this will NEVER affect its parent!
             activity.setComplete(activity.getCompleteFromTracking());
-            
          }
          
          if (assignment.getID() == 0) {
@@ -1626,7 +1643,9 @@ public abstract class OpActivityDataSetFactory {
       }
    }
    
-   private static double calculateAssignmentRemainingEffort(double activityBaseEffort, double activityRemainingEffort, double assignmentBaseEffort) {
+   private static double calculateAssignmentRemainingEffort(
+         double activityBaseEffort, double activityRemainingEffort,
+         double assignmentBaseEffort) {
       double assignmentRemainigEffort = 0;
       if (activityBaseEffort > 0) {
          assignmentRemainigEffort = activityRemainingEffort * assignmentBaseEffort / activityBaseEffort;

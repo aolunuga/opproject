@@ -41,5 +41,7 @@ public class OpProjectErrorMap extends XErrorMap {
       registerErrorCode(OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR, OpProjectError.CANNOT_REMOVE_PERMISSION_ERROR_NAME);
       registerErrorCode(OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR_NAME);
       registerErrorCode(OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR_NAME);
+      
+      registerErrorCode(OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR_NAME);
    }
 }

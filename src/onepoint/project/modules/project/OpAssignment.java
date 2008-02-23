@@ -391,7 +391,7 @@ public class OpAssignment extends OpObject {
             }
          }
          if (getActivity().getType() == OpActivity.MILESTONE
-               || isZeroAssignment()) {
+               || isZero()) {
             setComplete(completed ? 100.0 : 0);
             weightedCompleteDelta = 0;
          } else {
@@ -426,7 +426,7 @@ public class OpAssignment extends OpObject {
    public double getCompleteFromTracking() {
       
       if (getActivity().getType() == OpActivity.MILESTONE
-            || isZeroAssignment()) {
+            || isZero()) {
          List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
          if (latestWRs != null && latestWRs.size() > 0) {
             return latestWRs.get(0).getCompleted() ? 100 : 0;
@@ -478,9 +478,6 @@ public class OpAssignment extends OpObject {
          return;
       }
       
-      activity.getAssignments().remove(this);
-      setActivity(null);
-      
       // prerequisites:
       boolean progressTracked = getProjectPlan().getProgressTracked()
             || getActivity().getType() == OpActivity.ADHOC_TASK;
@@ -488,12 +485,15 @@ public class OpAssignment extends OpObject {
       double weightedCompleteDelta = -1d * getBaseEffort() * getComplete();
       // goal: build a delta-object to get the right thing done here:
       OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
-            progressTracked, getRemainingEffort(), true, getComplete() == 100d,
+            progressTracked, -1d * getRemainingEffort(), false, getComplete() == 100d,
             weightedCompleteDelta, true);
 
       // remaining costs: find those latest WR for this assignment 
       List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
       getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
+
+      activity.getAssignments().remove(this);
+      setActivity(null);
    }
    
    
@@ -527,9 +527,16 @@ public class OpAssignment extends OpObject {
       
    }
 
-   public boolean isZeroAssignment() {
-      return getBaseEffort() == 0d && getActualEffort() == 0d
-            && getRemainingEffort() == 0d;
+   public boolean isZero() {
+      return getActualEffort() == 0d && getRemainingEffort() == 0d;
+   }
+   
+   /**
+    * WARNING: slow! Uses Hibernate joins to find assignments AND work records!
+    * @return
+    */
+   public boolean hasWorkRecords() {
+      return getLatestWorkRecords(null, 1, true).size() > 0;
    }
    
    public String toString() {

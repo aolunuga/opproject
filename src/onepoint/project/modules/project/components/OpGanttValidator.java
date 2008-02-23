@@ -5547,7 +5547,7 @@ public class OpGanttValidator extends XValidator {
       double predictedSum = actualSum + remainingSum;
       if (predictedSum == 0.0) {
          // TODO: check
-         result = (baseSum == 0) ? 1 : 0;
+         result = 0;
       }
       else {
          result = actualSum / predictedSum;
