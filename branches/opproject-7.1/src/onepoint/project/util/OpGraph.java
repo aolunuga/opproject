@@ -260,5 +260,10 @@ public class OpGraph {
      public Set getBackEdges() {
         return Collections.unmodifiableSet(backEdges);
      }
+
+      public String toString() {
+         return elem.toString();
+      }
+     
   }
 }

@@ -1448,8 +1448,9 @@ public abstract class OpActivityVersionDataSetFactory {
          }
       }
 
-      // Finally, delete project plan version object
+      logger.debug("deleteProjectPlanVersion: " + System.currentTimeMillis());
       broker.deleteObject(planVersion);
+      logger.debug("/deleteProjectPlanVersion: " + System.currentTimeMillis());
 
    }
 

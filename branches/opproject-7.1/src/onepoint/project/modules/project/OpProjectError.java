@@ -45,6 +45,9 @@ public interface OpProjectError {
    public final static int NO_RIGHTS_CHANGING_BUDGET_ERROR = 28;
    public final static int NO_RIGHTS_CHANGING_STATUS_ERROR = 29;
 
+   public final static int CANNOT_CHANGE_ACTIVITY_TYPE_ERROR = 16;
+   
+
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -74,4 +77,6 @@ public interface OpProjectError {
    public final static String CANNOT_REMOVE_PERMISSION_ERROR_NAME = "CannotRemovePermissionError";
    public final static String NO_RIGHTS_CHANGING_BUDGET_ERROR_NAME = "NoRightsChangingBudgetError";
    public final static String NO_RIGHTS_CHANGING_STATUS_ERROR_NAME = "NoRightsChangingStatusError";
+   
+   public final static String CANNOT_CHANGE_ACTIVITY_TYPE_ERROR_NAME = "CannotChangeActivityTypeError";
 }
