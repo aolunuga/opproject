@@ -786,6 +786,9 @@ public class OpActivity extends OpObject {
       private double remainingTravelCosts = 0.0;
       private double remainingExternalCosts = 0.0;
       private double remainingMiscCosts = 0.0;
+      
+      private double remainingPersonnelCosts = 0.0;
+      private double remainingProceeds = 0.0;
 
       OpProgressDelta(boolean progressTracked, double remainingEffort,
             boolean insert, boolean completedChanged, double weigthedCompleteDelta,
@@ -820,6 +823,22 @@ public class OpActivity extends OpObject {
 
       public void setRemainingMiscCosts(double remainingMiscCosts) {
          this.remainingMiscCosts = remainingMiscCosts;
+      }
+
+      public double getRemainingProceeds() {
+         return remainingProceeds;
+      }
+
+      public void setRemainingProceeds(double remainingProceeds) {
+         this.remainingProceeds = remainingProceeds;
+      }
+
+      public double getRemainingPersonnelCosts() {
+         return remainingPersonnelCosts;
+      }
+
+      public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
+         this.remainingPersonnelCosts = remainingPersonnelCosts;
       }
 
       public double getRemainingEffort() {
@@ -911,6 +930,8 @@ public class OpActivity extends OpObject {
    
    private void applyDelta(OpProgressDelta delta) {
       setRemainingEffort(getRemainingEffort() + delta.getRemainingEffort());
+      setRemainingPersonnelCosts(getRemainingPersonnelCosts() + delta.getRemainingPersonnelCosts());
+      setRemainingProceeds(getRemainingProceeds() + delta.getRemainingProceeds());
       
       setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingExternalCosts());
       setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingMaterialCosts());
@@ -938,29 +959,28 @@ public class OpActivity extends OpObject {
       // if we are the latest WR, find the new WR determining remaining costs stuff (otherwise,
       // remaining will not change). This is because the remaining costs are handle COMPLETELY WEIRD!!!
       OpWorkRecord helper = null;
-      if (delta.isLatest()) {
-         List<OpWorkRecord> latestWRsOfActivity = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, false);
-         boolean latest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists!
-         if (latest) {
-            helper = delta.isInsert() ? workRecord
-                  : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
-                        : null;
-         }
-         
-         if (latest) {
+
+      List<OpWorkRecord> latestWRsOfActivity = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, true);
+      boolean latest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists - error!
+      if (latest) {
+         helper = delta.isInsert() ? workRecord
+               : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
+                     : null;
+      }
+      
+      if (latest) {
          // calculate the deltas of the remaining stuff (only, if we are latest for the assignment:
-            delta.setRemainingExternalCosts(getRemainingExternalCosts() - (helper == null ? getBaseExternalCosts() : sign * helper.getRemExternalCosts()));
-            delta.setRemainingMaterialCosts(getRemainingMaterialCosts() - (helper == null ? getBaseMaterialCosts() : sign * helper.getRemMaterialCosts()));
-            delta.setRemainingMaterialCosts(getRemainingMiscellaneousCosts() - (helper == null ? getBaseMiscellaneousCosts() : sign * helper.getRemMiscCosts()));
-            delta.setRemainingMaterialCosts(getRemainingTravelCosts() - (helper == null ? getBaseTravelCosts() : sign * helper.getRemTravelCosts()));
-         }
+         delta.setRemainingExternalCosts((helper == null ? getBaseExternalCosts() : helper.getRemExternalCosts()) - getRemainingExternalCosts());
+         delta.setRemainingMaterialCosts((helper == null ? getBaseMaterialCosts() : helper.getRemMaterialCosts()) - getRemainingMaterialCosts());
+         delta.setRemainingMiscCosts((helper == null ? getBaseMiscellaneousCosts() : helper.getRemMiscCosts()) - getRemainingMiscellaneousCosts());
+         delta.setRemainingTravelCosts((helper == null ? getBaseTravelCosts() : helper.getRemTravelCosts()) - getRemainingTravelCosts());
       }
       
       applyDelta(delta);
       
       // now recalculate the dependend things...
       if (delta.isProgressTracked()) {
-         if (getType() == OpActivity.ADHOC_TASK || getType() == OpActivity.TASK
+         if (getType() == OpActivity.ADHOC_TASK
                || getType() == OpActivity.MILESTONE || isZero()) {
             // multiple assignments possible...
             if (delta.isCompletedChanged() && delta.isLatest()) {

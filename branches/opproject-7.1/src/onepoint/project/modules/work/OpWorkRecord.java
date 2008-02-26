@@ -332,44 +332,47 @@ public class OpWorkRecord extends OpObject {
     * @see onepoint.project.modules.work.OpCostRecord
     */
    public double calculateRemainingCostsOfType(byte type) {
-      double sum = 0;
+      // FIXME: this could not be implemented more complicated/confusing:
+      // and btw, it was OBVIOUSLY WRONG!!!
+      double maximum = 0;
       Set<OpCostRecord> costRecords = this.getCostRecordByType(type);
       if (!costRecords.isEmpty()) {
          for (OpCostRecord costRecord : costRecords) {
-            sum += costRecord.getRemainingCosts();
+            maximum = costRecord.getRemainingCosts() > maximum ? costRecord.getRemainingCosts() : maximum;
          }
       }
       switch (type) {
          case OpCostRecord.MATERIAL_COST: {
-            if (sum == 0) {
-               sum = this.getAssignment().getActivity().getRemainingMaterialCosts();
+            if (costRecords.isEmpty()) {
+               maximum = this.getAssignment().getActivity().getRemainingMaterialCosts();
             }
-            this.remMaterialCosts = sum;
+            this.remMaterialCosts = maximum;
             break;
          }
          case OpCostRecord.EXTERNAL_COST: {
-            if (sum == 0) {
-               sum = this.getAssignment().getActivity().getRemainingExternalCosts();
+            if (costRecords.isEmpty()) {
+               maximum = this.getAssignment().getActivity().getRemainingExternalCosts();
             }
-            this.remExternalCosts = sum;
+            this.remExternalCosts = maximum;
             break;
          }
          case OpCostRecord.MISCELLANEOUS_COST: {
-            if (sum == 0) {
-               sum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
+            if (costRecords.isEmpty()) {
+               maximum = this.getAssignment().getActivity().getRemainingMiscellaneousCosts();
             }
-            this.remMiscCosts = sum;
+            this.remMiscCosts = maximum;
             break;
          }
          case OpCostRecord.TRAVEL_COST: {
-            if (sum == 0) {
-               sum = this.getAssignment().getActivity().getRemainingTravelCosts();
+            if (costRecords.isEmpty()) {
+               maximum = this.getAssignment().getActivity().getRemainingTravelCosts();
             }
-            this.remTravelCosts = sum;
+            this.remTravelCosts = maximum;
             break;
          }
       }
-      return sum;
+      // /FIXME
+      return maximum;
    }
 
    /**
@@ -428,6 +431,7 @@ public class OpWorkRecord extends OpObject {
         throws OpEntityException {
 
       // Actual Efort
+      // FIXME: cant' be...
       if (getActualEffort() < 0 || (!getCompleted() && getActualEffort() == 0 && getCostRecords().isEmpty())) {
          throw new OpEntityException(OpWorkError.INCORRECT_ACTUAL_EFFORT);
       }
@@ -477,7 +481,6 @@ public class OpWorkRecord extends OpObject {
       for (OpTimeRecord timRecord : getTimeRecords()) {
          timRecord.validate();
       }
-
    }
 
 

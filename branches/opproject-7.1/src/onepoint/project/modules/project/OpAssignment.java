@@ -352,13 +352,12 @@ public class OpAssignment extends OpObject {
       boolean progressTracked = getProjectPlan().getProgressTracked()
             || getActivity().getType() == OpActivity.ADHOC_TASK;
 
+      // FIXME: the definition of "empty" work records is questionable at best
+      // we do NOT accept empty records for effort-calculations:
       List<OpWorkRecord> latestWRs = getLatestWorkRecords(workRecord, insert ? 1 : 2, false);
       // predetermined breaking point:
-      boolean latest = (insert && latestWRs.size() == 0)
-            || (!insert && latestWRs.get(0).getID() == workRecord.getID())
-            || latestWRs.get(0).getWorkSlip() == null || workRecord.getWorkSlip() == null // again, junit test problem...
-            || (insert && latestWRs.get(0).getWorkSlip().getDate().compareTo(
-                  workRecord.getWorkSlip().getDate()) <= 0);
+      boolean latest = latestWRs.size() > 0 && latestWRs.get(0).getID() == workRecord.getID();
+      
       // local calculations:
       setActualEffort(getActualEffort() + sign * workRecord.getActualEffort());
       setActualCosts(getActualCosts() + sign * workRecord.getPersonnelCosts());
@@ -371,13 +370,14 @@ public class OpAssignment extends OpObject {
       // the magic number ;-)
       double weightedCompleteDelta = 0d;
       if (progressTracked) {
+         // FIXME: again, those ugly empty work record shows up and
+         // asks for special treatment:
          if (insert && latest) {
             remainingEffortDelta = workRecord.getRemainingEffort() - getRemainingEffort();
             setRemainingEffort(workRecord.getRemainingEffort());
             completed = workRecord.getCompleted();
          }
          else if (!insert && latest) {
-            // latestWRs.get(0) should not be null here!
             if (latestWRs.size() > 1) {
                remainingEffortDelta = latestWRs.get(1).getRemainingEffort() - getRemainingEffort();
                setRemainingEffort(latestWRs.get(1).getRemainingEffort());
@@ -390,8 +390,8 @@ public class OpAssignment extends OpObject {
                completed = false;
             }
          }
-         if (getActivity().getType() == OpActivity.MILESTONE
-               || isZero()) {
+         if (getActivity().getType() == OpActivity.ADHOC_TASK
+               || getActivity().getType() == OpActivity.MILESTONE || isZero()) {
             setComplete(completed ? 100.0 : 0);
             weightedCompleteDelta = 0;
          } else {
@@ -427,7 +427,7 @@ public class OpAssignment extends OpObject {
       
       if (getActivity().getType() == OpActivity.MILESTONE
             || isZero()) {
-         List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+         List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
          if (latestWRs != null && latestWRs.size() > 0) {
             return latestWRs.get(0).getCompleted() ? 100 : 0;
          } else {
@@ -467,9 +467,13 @@ public class OpAssignment extends OpObject {
       delta.setRemainingMaterialCosts(0);
       delta.setRemainingMiscCosts(0);
       delta.setRemainingTravelCosts(0);
+
+      // stored with the assignment:
+      delta.setRemainingPersonnelCosts(getRemainingPersonnelCosts());
+      delta.setRemainingProceeds(getRemainingProceeds());
       
       // remaining costs: find those latest WR for this assignment 
-      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
       getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
    }
    
@@ -487,9 +491,19 @@ public class OpAssignment extends OpObject {
       OpActivity.OpProgressDelta delta = new OpActivity.OpProgressDelta(
             progressTracked, -1d * getRemainingEffort(), false, getComplete() == 100d,
             weightedCompleteDelta, true);
+      
+      // NOT stored with assignemts ;-)
+      delta.setRemainingExternalCosts(0);
+      delta.setRemainingMaterialCosts(0);
+      delta.setRemainingMiscCosts(0);
+      delta.setRemainingTravelCosts(0);
+
+      // stored with the assignment:
+      delta.setRemainingPersonnelCosts( - getRemainingPersonnelCosts());
+      delta.setRemainingProceeds( - getRemainingProceeds());
 
       // remaining costs: find those latest WR for this assignment 
-      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, false);
+      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
       getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
 
       activity.getAssignments().remove(this);
