@@ -79,7 +79,8 @@ public class OpAssignment extends OpObject {
    }
 
    public double getBaseEffort() {
-      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+      if (getActivity() != null && getActivity().isUsingBaselineValues()
+            && getActivity().getBaselineVersion() != null) {
          OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
          if (assignmentVersion == null) {
             return 0;
@@ -98,10 +99,12 @@ public class OpAssignment extends OpObject {
     */
    public OpAssignmentVersion getBaselineVersion() {
       OpAssignmentVersion assignmentVersion = null;
-      OpActivityVersion baselineVersion = getActivity().getBaselineVersion();
+      OpActivityVersion baselineVersion = getActivity() == null ? null : getActivity().getBaselineVersion();
       //<FIXME author="Haizea Florin" description="data loading problem: the getAssignmentVersions().isEmpty() statement
       // will load all the assignment versions of this activity version">
-      if (baselineVersion != null && baselineVersion.getAssignmentVersions() != null && !baselineVersion.getAssignmentVersions().isEmpty()) {
+      if (baselineVersion != null
+            && baselineVersion.getAssignmentVersions() != null
+            && !baselineVersion.getAssignmentVersions().isEmpty()) {
       //<FIXME>
          for (OpAssignmentVersion version : baselineVersion.getAssignmentVersions()) {
             if (version.getResource().getID() == this.getResource().getID()) {
@@ -140,7 +143,8 @@ public class OpAssignment extends OpObject {
     * @return base personnel costs
     */
    public double getBaseCosts() {
-      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+      if (getActivity() != null && getActivity().isUsingBaselineValues()
+            && getActivity().getBaselineVersion() != null) {
          OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
          if (assignmentVersion == null) {
             return 0;
@@ -164,7 +168,8 @@ public class OpAssignment extends OpObject {
     * @return base proceeds for this assignment.
     */
    public double getBaseProceeds() {
-      if (getActivity().isUsingBaselineValues() && getActivity().getBaselineVersion() != null) {
+      if (getActivity() != null && getActivity().isUsingBaselineValues()
+            && getActivity().getBaselineVersion() != null) {
          OpAssignmentVersion assignmentVersion = this.getBaselineVersion();
          if (assignmentVersion == null) {
             return 0;
