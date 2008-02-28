@@ -74,7 +74,7 @@ function addProjectAssignment(event){
    readonly_resource_data_set = XDisplay.getActiveForm().findComponent("ReadOnlyResourceDataSet");
    index = 0;
    while (index < readonly_resource_data_set.getChildCount()) {
-      resource_ids[i] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
+      resource_ids[j] = XValidator.choiceID(readonly_resource_data_set.getChild(index).getStringValue());
       j++;
       index++;
    }
