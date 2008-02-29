@@ -8,18 +8,23 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpWorkRecord;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import org.apache.derby.impl.sql.compile.HasNodeVisitor;
 
 public class OpActivity extends OpObject {
 
@@ -782,10 +787,7 @@ public class OpActivity extends OpObject {
       private double weigthedCompleteDelta = 0.0;
       private boolean latest = false;
       
-      private double remainingMaterialCosts = 0.0;
-      private double remainingTravelCosts = 0.0;
-      private double remainingExternalCosts = 0.0;
-      private double remainingMiscCosts = 0.0;
+      Map<Byte, Double> costs = new HashMap<Byte, Double>();
       
       private double remainingPersonnelCosts = 0.0;
       private double remainingProceeds = 0.0;
@@ -801,28 +803,22 @@ public class OpActivity extends OpObject {
          this.latest = latest;
       }
 
+      public void setRemainingCosts(Byte type, double value) {
+         costs.put(type, new Double(value));
+      }
+      
+      public double getRemainingCosts(Byte type) {
+         Double r = costs.get(type);
+         return (r != null ? r.doubleValue() : 0d);
+      }
+      
+      
       public void setProgressTracked(boolean progressTracked) {
          this.progressTracked = progressTracked;
       }
 
       public void setWeigthedCompleteDelta(double weigthedCompleteDelta) {
          this.weigthedCompleteDelta = weigthedCompleteDelta;
-      }
-
-      public void setRemainingMaterialCosts(double remainingMaterialCosts) {
-         this.remainingMaterialCosts = remainingMaterialCosts;
-      }
-
-      public void setRemainingTravelCosts(double remainingTravelCosts) {
-         this.remainingTravelCosts = remainingTravelCosts;
-      }
-
-      public void setRemainingExternalCosts(double remainingExternalCosts) {
-         this.remainingExternalCosts = remainingExternalCosts;
-      }
-
-      public void setRemainingMiscCosts(double remainingMiscCosts) {
-         this.remainingMiscCosts = remainingMiscCosts;
       }
 
       public double getRemainingProceeds() {
@@ -865,30 +861,9 @@ public class OpActivity extends OpObject {
          return latest;
       }
 
-      public double getRemainingMaterialCosts() {
-         return remainingMaterialCosts;
-      }
-
-      public double getRemainingTravelCosts() {
-         return remainingTravelCosts;
-      }
-
-      public double getRemainingExternalCosts() {
-         return remainingExternalCosts;
-      }
-
-      public double getRemainingMiscCosts() {
-         return remainingMiscCosts;
-      }
    }
    
-   /**
-    * TODO: optimize for performance, maybe even query?
-    * @param number       number of records in the past
-    * @param acceptEmpty  Do we accept empty records
-    * @return             The list of maxmum number records.
-    */
-   public List<OpWorkRecord> getLatestWorkRecords(OpWorkRecord current, int number, boolean acceptEmpty) {
+   public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(OpWorkRecord current, int number, Set<Byte> costTypes) {
       // sort this stuff...
       SortedSet<OpWorkRecord> wrSet= new TreeSet<OpWorkRecord>(new Comparator<OpWorkRecord>() {
          public int compare(OpWorkRecord o1, OpWorkRecord o2) {
@@ -898,21 +873,39 @@ public class OpActivity extends OpObject {
             return o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
          }});
 
+      // FIXME: make this one less ugly ;-)
       for (OpAssignment a: assignments) {
+         Map<Byte, List<OpWorkRecord>> tmp = null;
          if (current != null && current.getAssignment().getID() == a.getID()) {
-            wrSet.addAll(a.getLatestWorkRecords(current, number, acceptEmpty));
+            tmp = a.getLatestWorkRecords(current, number, costTypes);
          }
          else {
-            wrSet.addAll(a.getLatestWorkRecords(null, number, acceptEmpty));
+            tmp = a.getLatestWorkRecords(current, number, costTypes);
+         }
+         for (List<OpWorkRecord> l: tmp.values()) {
+            wrSet.addAll(l);
          }
       }
+      // /FIXME...
       
-      List<OpWorkRecord> result = new ArrayList<OpWorkRecord>();
+      Map<Byte, List<OpWorkRecord>> result = new HashMap<Byte, List<OpWorkRecord>>();
+      Set<Byte> completed = new HashSet<Byte>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
-      while (result.size() < number && i.hasNext()) {
+      while (costTypes.size() > completed.size() && i.hasNext()) {
          OpWorkRecord wr = i.next();
-         if (!wr.isEmpty() || acceptEmpty) {
-            result.add(wr);
+         for (Byte ct: costTypes) {
+            if ((ct.compareTo(OpAssignment.COST_TYPE_UNDEFINED) == 0 && !wr.isEmpty())
+                  || wr.hasCostRecordForType(ct.byteValue())) {
+               List<OpWorkRecord> r = result.get(ct);
+               if (r == null) {
+                  r = new ArrayList<OpWorkRecord>();
+                  result.put(ct, r);
+               }
+               r.add(wr);
+               if (r.size() == number) {
+                  completed.add(ct);
+               }
+            }
          }
       }
       return result;
@@ -933,10 +926,10 @@ public class OpActivity extends OpObject {
       setRemainingPersonnelCosts(getRemainingPersonnelCosts() + delta.getRemainingPersonnelCosts());
       setRemainingProceeds(getRemainingProceeds() + delta.getRemainingProceeds());
       
-      setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingExternalCosts());
-      setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingMaterialCosts());
-      setRemainingMiscellaneousCosts(getRemainingMiscellaneousCosts() + delta.getRemainingMiscCosts());
-      setRemainingTravelCosts(getRemainingTravelCosts() + delta.getRemainingTravelCosts());
+      setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_EXTERNAL));
+      setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_MATERIAL));
+      setRemainingMiscellaneousCosts(getRemainingMiscellaneousCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_MISC));
+      setRemainingTravelCosts(getRemainingTravelCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_TRAVEL));
    }
    
    /**
@@ -960,20 +953,50 @@ public class OpActivity extends OpObject {
       // remaining will not change). This is because the remaining costs are handle COMPLETELY WEIRD!!!
       OpWorkRecord helper = null;
 
-      List<OpWorkRecord> latestWRsOfActivity = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, true);
-      boolean latest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists - error!
-      if (latest) {
-         helper = delta.isInsert() ? workRecord
-               : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
-                     : null;
-      }
+      Set<Byte> wrTypes = new HashSet<Byte>();
+      wrTypes.add(OpAssignment.COST_TYPE_EXTERNAL);
+      wrTypes.add(OpAssignment.COST_TYPE_MATERIAL);
+      wrTypes.add(OpAssignment.COST_TYPE_MISC);
+      wrTypes.add(OpAssignment.COST_TYPE_TRAVEL);
       
-      if (latest) {
-         // calculate the deltas of the remaining stuff (only, if we are latest for the assignment:
-         delta.setRemainingExternalCosts((helper == null ? getBaseExternalCosts() : helper.getRemExternalCosts()) - getRemainingExternalCosts());
-         delta.setRemainingMaterialCosts((helper == null ? getBaseMaterialCosts() : helper.getRemMaterialCosts()) - getRemainingMaterialCosts());
-         delta.setRemainingMiscCosts((helper == null ? getBaseMiscellaneousCosts() : helper.getRemMiscCosts()) - getRemainingMiscellaneousCosts());
-         delta.setRemainingTravelCosts((helper == null ? getBaseTravelCosts() : helper.getRemTravelCosts()) - getRemainingTravelCosts());
+      Map<Byte, List<OpWorkRecord>> latestWRMap = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, wrTypes);
+      Iterator<Byte> ci = latestWRMap.keySet().iterator();
+      while(ci.hasNext()) {
+         Byte ct = ci.next();
+         List<OpWorkRecord> latestWRsOfActivity = latestWRMap.get(ct);
+         boolean isLatest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists - error!
+         if (isLatest) {
+            helper = delta.isInsert() ? workRecord
+                  : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
+                        : null;
+         switch (ct.byteValue()) {
+            case OpCostRecord.EXTERNAL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_EXTERNAL,
+                     (helper == null ? getBaseExternalCosts() : helper
+                           .getRemExternalCosts())
+                           - getRemainingExternalCosts());
+               break;
+            case OpCostRecord.MATERIAL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_MATERIAL,
+                     (helper == null ? getBaseMaterialCosts() : helper
+                           .getRemMaterialCosts())
+                           - getRemainingMaterialCosts());
+               break;
+            case OpCostRecord.MISCELLANEOUS_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_MISC,
+                     (helper == null ? getBaseMiscellaneousCosts() : helper
+                           .getRemMiscCosts())
+                           - getRemainingMiscellaneousCosts());
+               break;
+            case OpCostRecord.TRAVEL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_TRAVEL,
+                     (helper == null ? getBaseTravelCosts() : helper
+                           .getRemTravelCosts())
+                           - getRemainingTravelCosts());
+               break;
+            }
+         }
+         
       }
       
       applyDelta(delta);
@@ -1149,7 +1172,12 @@ public class OpActivity extends OpObject {
     * @return
     */
    public boolean hasWorkRecords() {
-      return getLatestWorkRecords(null, 1, true).size() > 0;
+      for (OpAssignment a: getAssignments()) {
+         if (!a.getWorkRecords().isEmpty()) {
+            return true;
+         }
+      }
+      return false;
    }
    
    public boolean isMilestone() {

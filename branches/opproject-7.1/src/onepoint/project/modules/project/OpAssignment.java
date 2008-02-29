@@ -9,13 +9,17 @@ import onepoint.persistence.OpObject;
 import onepoint.project.modules.project.OpActivity.OpProgressDelta;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpWorkRecord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -297,14 +301,13 @@ public class OpAssignment extends OpObject {
       }
    }
    
+   public final static Byte COST_TYPE_UNDEFINED = new Byte(OpCostRecord.COST_TYPE_UNDEFINED);
+   public final static Byte COST_TYPE_TRAVEL = new Byte(OpCostRecord.TRAVEL_COST);
+   public final static Byte COST_TYPE_MATERIAL = new Byte(OpCostRecord.MATERIAL_COST);
+   public final static Byte COST_TYPE_EXTERNAL = new Byte(OpCostRecord.EXTERNAL_COST);
+   public final static Byte COST_TYPE_MISC = new Byte(OpCostRecord.MISCELLANEOUS_COST);
    
-   /**
-    * TODO: optimize for performance, maybe even query?
-    * @param number       number of records in the past
-    * @param acceptEmpty  Do we accept empty records
-    * @return             The list of maxmum number records.
-    */
-   public List<OpWorkRecord> getLatestWorkRecords(OpWorkRecord current, int number, boolean acceptEmpty) {
+   public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(OpWorkRecord current, int number, Set<Byte> costTypes) {
       // sort this stuff...
       SortedSet<OpWorkRecord> wrSet= new TreeSet<OpWorkRecord>(new Comparator<OpWorkRecord>() {
          public int compare(OpWorkRecord o1, OpWorkRecord o2) {
@@ -324,15 +327,34 @@ public class OpAssignment extends OpObject {
          wrSet.addAll(getWorkRecords());
       }
       
-      List<OpWorkRecord> result = new ArrayList<OpWorkRecord>();
+      Map<Byte, List<OpWorkRecord>> result = new HashMap<Byte, List<OpWorkRecord>>();
+      Set<Byte> completed = new HashSet<Byte>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
-      while (result.size() < number && i.hasNext()) {
+      while (costTypes.size() > completed.size() && i.hasNext()) {
          OpWorkRecord wr = i.next();
-         if (!wr.isEmpty() || acceptEmpty) {
-            result.add(wr);
+         for (Byte ct: costTypes) {
+            if ((ct.compareTo(OpAssignment.COST_TYPE_UNDEFINED) == 0 && !wr.isEmpty())
+                  || wr.hasCostRecordForType(ct.byteValue())) {
+               List<OpWorkRecord> r = result.get(ct);
+               if (r == null) {
+                  r = new ArrayList<OpWorkRecord>();
+                  result.put(ct, r);
+               }
+               r.add(wr);
+               if (r.size() == number) {
+                  completed.add(ct);
+               }
+            }
          }
       }
       return result;
+   }
+   
+   private List<OpWorkRecord> getLatestWRsWithEffort(OpWorkRecord currentWR, int number) {
+      Set<Byte> EFFORT_WORK_RECORD_TYPES = new HashSet<Byte>();
+      EFFORT_WORK_RECORD_TYPES.add(OpAssignment.COST_TYPE_UNDEFINED);
+      return getLatestWorkRecords(currentWR, number, EFFORT_WORK_RECORD_TYPES)
+            .get(OpAssignment.COST_TYPE_UNDEFINED);
    }
    
    /**
@@ -357,11 +379,14 @@ public class OpAssignment extends OpObject {
       boolean progressTracked = getProjectPlan().getProgressTracked()
             || getActivity().getType() == OpActivity.ADHOC_TASK;
 
-      // FIXME: the definition of "empty" work records is questionable at best
-      // we do NOT accept empty records for effort-calculations:
-      List<OpWorkRecord> latestWRs = getLatestWorkRecords(workRecord, insert ? 1 : 2, false);
       // predetermined breaking point:
-      boolean latest = latestWRs.size() > 0 && latestWRs.get(0).getID() == workRecord.getID();
+      List<OpWorkRecord> latestWRs = getLatestWRsWithEffort(workRecord,
+            insert ? 1 : 2);
+
+      boolean latest = latestWRs != null
+            && latestWRs.size() > 0
+            && latestWRs.get(0).getID() == workRecord
+                  .getID();
       
       // local calculations:
       setActualEffort(getActualEffort() + sign * workRecord.getActualEffort());
@@ -432,7 +457,7 @@ public class OpAssignment extends OpObject {
       
       if (getActivity().getType() == OpActivity.MILESTONE
             || isZero()) {
-         List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
+         List<OpWorkRecord> latestWRs = getLatestWRsWithEffort(null, 1);
          if (latestWRs != null && latestWRs.size() > 0) {
             return latestWRs.get(0).getCompleted() ? 100 : 0;
          } else {
@@ -467,19 +492,11 @@ public class OpAssignment extends OpObject {
             progressTracked, getRemainingEffort(), true, getComplete() == 100d,
             weightedCompleteDelta, true);
 
-      // NOT stored with assignemts ;-)
-      delta.setRemainingExternalCosts(0);
-      delta.setRemainingMaterialCosts(0);
-      delta.setRemainingMiscCosts(0);
-      delta.setRemainingTravelCosts(0);
-
       // stored with the assignment:
       delta.setRemainingPersonnelCosts(getRemainingPersonnelCosts());
       delta.setRemainingProceeds(getRemainingProceeds());
       
-      // remaining costs: find those latest WR for this assignment 
-      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
-      getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
+      getActivity().handleAssigmentProgress(this, null, delta);
    }
    
    public void detachFromActivity(OpActivity activity) {
@@ -497,19 +514,12 @@ public class OpAssignment extends OpObject {
             progressTracked, -1d * getRemainingEffort(), false, getComplete() == 100d,
             weightedCompleteDelta, true);
       
-      // NOT stored with assignemts ;-)
-      delta.setRemainingExternalCosts(0);
-      delta.setRemainingMaterialCosts(0);
-      delta.setRemainingMiscCosts(0);
-      delta.setRemainingTravelCosts(0);
-
       // stored with the assignment:
       delta.setRemainingPersonnelCosts( - getRemainingPersonnelCosts());
       delta.setRemainingProceeds( - getRemainingProceeds());
 
       // remaining costs: find those latest WR for this assignment 
-      List<OpWorkRecord> latestWRs = getLatestWorkRecords(null, 1, true);
-      getActivity().handleAssigmentProgress(this, latestWRs.size() > 0 ? latestWRs.get(0) : null, delta);
+      getActivity().handleAssigmentProgress(this, null, delta);
 
       activity.getAssignments().remove(this);
       setActivity(null);
@@ -555,7 +565,7 @@ public class OpAssignment extends OpObject {
     * @return
     */
    public boolean hasWorkRecords() {
-      return getLatestWorkRecords(null, 1, true).size() > 0;
+      return !getWorkRecords().isEmpty();
    }
    
    public String toString() {

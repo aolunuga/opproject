@@ -493,4 +493,8 @@ public class OpWorkRecord extends OpObject {
          return super.toString();
       }
    }
+
+   public boolean hasCostRecordForType(byte costType) {
+      return !getCostRecordByType(costType).isEmpty();
+   }
 }
