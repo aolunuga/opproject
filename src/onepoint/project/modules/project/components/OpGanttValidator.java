@@ -99,6 +99,8 @@ public class OpGanttValidator extends XValidator {
    public final static int HAS_ATTACHMENTS = 4;
    public final static int HAS_COMMENTS = 8;
 
+   public final static double ACTIVITY_MAX_DURATION = 20800d; // hours?!?
+   
    //The id of the no category
    public static final String NO_CATEGORY_ID = "-1";
 
@@ -2354,7 +2356,7 @@ public class OpGanttValidator extends XValidator {
          case DURATION_COLUMN_INDEX:
             // Update end date
             double duration = ((Double) value).doubleValue();
-            preCheckSetDurationValue(data_row, duration);
+            duration = preCheckSetDurationValue(data_row, duration);
 
             addToUndo();
 
@@ -2621,19 +2623,21 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void preCheckSetDurationValue(XComponent data_row, double duration) {
+   protected double preCheckSetDurationValue(XComponent data_row, double duration) {
       if (isProjectMandatory(data_row) &&
            ((OpGanttValidator.getType(data_row) == MILESTONE && duration > 0) ||
                 (OpGanttValidator.getType(data_row) != MILESTONE && duration <= 0))) {
          throw new XValidationException(MANDATORY_EXCEPTION);
       }
-      if ((OpGanttValidator.getType(data_row) != MILESTONE && duration <= 0)) {
+      if ((OpGanttValidator.getType(data_row) != MILESTONE && duration <= 0) ||
+            (OpGanttValidator.getType(data_row) == MILESTONE && duration > 0)) {
          //activity that will become milestone
          if (subTasks(data_row).size() != 0) {
             throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
          }
          checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
       }
+      return duration > ACTIVITY_MAX_DURATION ? ACTIVITY_MAX_DURATION : duration;
    }
 
    protected void preCheckSetEndValue(XComponent data_row, Object value) {

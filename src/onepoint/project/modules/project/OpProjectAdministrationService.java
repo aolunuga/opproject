@@ -463,6 +463,8 @@ public class OpProjectAdministrationService extends OpProjectService {
       try {
          OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
 
+         OpTransactionLock.getInstance().writeLock(id_string);
+         
          if (project == null) {
             logger.warn("ERROR: Could not find object with ID " + id_string);
             reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
@@ -649,6 +651,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          logger.debug("/OpProjectAdministrationService.updateProject()");
       }
       finally {
+         OpTransactionLock.getInstance().unlock(id_string);
          finalizeSession(transaction, broker);
       }
 

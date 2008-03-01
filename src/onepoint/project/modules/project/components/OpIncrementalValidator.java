@@ -98,7 +98,7 @@ public class OpIncrementalValidator extends OpGanttValidator {
 
          case DURATION_COLUMN_INDEX:
             double duration = ((Double) value).doubleValue();
-            preCheckSetDurationValue(data_row, duration);
+            duration = preCheckSetDurationValue(data_row, duration);
 
             addToUndo();
 

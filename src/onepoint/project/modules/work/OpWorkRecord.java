@@ -497,4 +497,12 @@ public class OpWorkRecord extends OpObject {
    public boolean hasCostRecordForType(byte costType) {
       return !getCostRecordByType(costType).isEmpty();
    }
+
+   public Set<Byte> getCostTypes() {
+      Set<Byte> types = new HashSet<Byte>();
+      for (OpCostRecord cr: getCostRecords()) {
+         types.add(new Byte(cr.getType()));
+      }
+      return types;
+   }
 }
