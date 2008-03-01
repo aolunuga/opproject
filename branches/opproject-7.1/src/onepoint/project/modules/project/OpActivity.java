@@ -880,7 +880,7 @@ public class OpActivity extends OpObject {
             tmp = a.getLatestWorkRecords(current, number, costTypes);
          }
          else {
-            tmp = a.getLatestWorkRecords(current, number, costTypes);
+            tmp = a.getLatestWorkRecords(null, number, costTypes);
          }
          for (List<OpWorkRecord> l: tmp.values()) {
             wrSet.addAll(l);
@@ -891,7 +891,7 @@ public class OpActivity extends OpObject {
       Map<Byte, List<OpWorkRecord>> result = new HashMap<Byte, List<OpWorkRecord>>();
       Set<Byte> completed = new HashSet<Byte>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
-      while (costTypes.size() > completed.size() && i.hasNext()) {
+      while (costTypes != null && costTypes.size() > completed.size() && i.hasNext()) {
          OpWorkRecord wr = i.next();
          for (Byte ct: costTypes) {
             if ((ct.compareTo(OpAssignment.COST_TYPE_UNDEFINED) == 0 && !wr.isEmpty())
@@ -953,18 +953,15 @@ public class OpActivity extends OpObject {
       // remaining will not change). This is because the remaining costs are handle COMPLETELY WEIRD!!!
       OpWorkRecord helper = null;
 
-      Set<Byte> wrTypes = new HashSet<Byte>();
-      wrTypes.add(OpAssignment.COST_TYPE_EXTERNAL);
-      wrTypes.add(OpAssignment.COST_TYPE_MATERIAL);
-      wrTypes.add(OpAssignment.COST_TYPE_MISC);
-      wrTypes.add(OpAssignment.COST_TYPE_TRAVEL);
-      
-      Map<Byte, List<OpWorkRecord>> latestWRMap = getLatestWorkRecords(workRecord, delta.isInsert() ? 1 : 2, wrTypes);
+      Map<Byte, List<OpWorkRecord>> latestWRMap = getLatestWorkRecords(
+            workRecord, delta.isInsert() ? 1 : 2,
+            workRecord != null ? workRecord.getCostTypes() : null);
       Iterator<Byte> ci = latestWRMap.keySet().iterator();
       while(ci.hasNext()) {
          Byte ct = ci.next();
          List<OpWorkRecord> latestWRsOfActivity = latestWRMap.get(ct);
-         boolean isLatest = workRecord == null || latestWRsOfActivity.get(0).getID() == workRecord.getID(); // latest record always exists - error!
+         boolean isLatest = workRecord == null
+               || latestWRsOfActivity.get(0).getID() == workRecord.getID();
          if (isLatest) {
             helper = delta.isInsert() ? workRecord
                   : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
@@ -1151,6 +1148,8 @@ public class OpActivity extends OpObject {
       setRemainingPersonnelCosts(0d);
       setRemainingProceeds(0d);
       setRemainingTravelCosts(0d);
+      
+      setComplete(0d);
    }
    
    /**

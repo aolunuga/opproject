@@ -307,7 +307,8 @@ public class OpAssignment extends OpObject {
    public final static Byte COST_TYPE_EXTERNAL = new Byte(OpCostRecord.EXTERNAL_COST);
    public final static Byte COST_TYPE_MISC = new Byte(OpCostRecord.MISCELLANEOUS_COST);
    
-   public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(OpWorkRecord current, int number, Set<Byte> costTypes) {
+   public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(
+         OpWorkRecord current, int number, Set<Byte> costTypes) {
       // sort this stuff...
       SortedSet<OpWorkRecord> wrSet= new TreeSet<OpWorkRecord>(new Comparator<OpWorkRecord>() {
          public int compare(OpWorkRecord o1, OpWorkRecord o2) {
@@ -330,7 +331,7 @@ public class OpAssignment extends OpObject {
       Map<Byte, List<OpWorkRecord>> result = new HashMap<Byte, List<OpWorkRecord>>();
       Set<Byte> completed = new HashSet<Byte>();
       Iterator<OpWorkRecord> i = wrSet.iterator();
-      while (costTypes.size() > completed.size() && i.hasNext()) {
+      while (costTypes != null && costTypes.size() > completed.size() && i.hasNext()) {
          OpWorkRecord wr = i.next();
          for (Byte ct: costTypes) {
             if ((ct.compareTo(OpAssignment.COST_TYPE_UNDEFINED) == 0 && !wr.isEmpty())

@@ -46,19 +46,21 @@ public class OpReportListFormProvider implements XFormProvider {
    private static final String CURRENCY_FIELD = "Currency";
 
 
-   public void prepareForm(XSession session, XComponent form,
-        HashMap parameters) {
-      //first initialize some stuff...
+   public void prepareForm(XSession session, XComponent form, HashMap parameters) {
+
+
       OpProjectSession s = (OpProjectSession) session;
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(s.getLocale().getResourceMap(REPORT_RESOUCE));
       OpReportManager xrm = OpReportManager.getReportManager(s);
+
       // fill the data-set
       XComponent resultSet = form.findComponent(RESULT_SET);
       XComponent resultRow = null;
+
       //fill the currency field
       XComponent currencyField = form.findComponent(CURRENCY_FIELD);
-      currencyField.setStringValue(OpSettingsService.getService().get(OpSettings.CURRENCY_SYMBOL));    
+      currencyField.setStringValue(OpSettingsService.getService().get(OpSettings.CURRENCY_SYMBOL));
 
       //Now we deal with the jasper-stuff...
       String currLocale = s.getLocale().getID();
@@ -76,6 +78,7 @@ public class OpReportListFormProvider implements XFormProvider {
          sortValue.setStringValue(localizedReportName);
          resultRow.addChild(sortValue);
          resultSet.addChild(resultRow);
+
          //check for  previous query form existence
          if (lastSelectedReport != null && localizedReportName.equals(lastSelectedReport)) {
             resultRow.setSelected(true);
@@ -84,6 +87,7 @@ public class OpReportListFormProvider implements XFormProvider {
          }
       }
       resultSet.sort(0);
+
       //load query form
       if (queryFormName != null) {
          prepareQueryFormPresent(form, queryFormName.toString());
@@ -95,6 +99,7 @@ public class OpReportListFormProvider implements XFormProvider {
 
    /**
     * Prepares the report list form, when a query form doesn't exist.
+    *
     * @param form a <code>XComponent(FORM)</code> representing the report list form.
     */
    protected void prepareQueryFormAbsent(XComponent form) {
@@ -106,7 +111,7 @@ public class OpReportListFormProvider implements XFormProvider {
       if (sendReportEnabled) {
          form.findComponent(SEND_REPORT_BUTTON).setVisible(true);
          form.findComponent(SEND_REPORT_BUTTON).setEnabled(false);
-      } 
+      }
       else {
          form.findComponent(SEND_REPORT_BUTTON).setVisible(false);
       }
@@ -114,7 +119,8 @@ public class OpReportListFormProvider implements XFormProvider {
 
    /**
     * Prepares the report list form, when a query form exists.
-    * @param form a <code>XComponent(FORM)</code> representing the report list form.
+    *
+    * @param form          a <code>XComponent(FORM)</code> representing the report list form.
     * @param queryFormName a <code>String</code> representing the name of the query form.
     */
    protected void prepareQueryFormPresent(XComponent form, String queryFormName) {
@@ -125,14 +131,15 @@ public class OpReportListFormProvider implements XFormProvider {
       if (sendReportEnabled) {
          form.findComponent(SEND_REPORT_BUTTON).setVisible(true);
          form.findComponent(SEND_REPORT_BUTTON).setEnabled(true);
-      } 
+      }
       else {
          form.findComponent(SEND_REPORT_BUTTON).setVisible(false);
       }
    }
-   
+
    /**
     * Checks if report workflow is configured within configuration file.
+    *
     * @return true if report workflow is enabled within configuration file, false otherwise.
     */
    private boolean isSendReportEnabled() {

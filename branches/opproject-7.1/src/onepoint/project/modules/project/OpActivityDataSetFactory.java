@@ -40,6 +40,10 @@ public abstract class OpActivityDataSetFactory {
    private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
         "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId) and activity.Deleted = false";
 
+   private static final Date END_OF_TIME = new Date(Long.MAX_VALUE); 
+   private static final Date BEGINNING_OF_TIME = new Date(Long.MIN_VALUE); 
+   
+   
    public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
            .newQuery("select assignment.Resource from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ? order by assignment.Resource.Name asc");
@@ -1078,6 +1082,16 @@ public abstract class OpActivityDataSetFactory {
          newActivity = true;
       }
 
+      boolean wasCollection = activity.isCollection();
+      // Type again is something special:
+      // cannot be changed as soon as there are workrecords for this:
+      if (activity.getType() != OpGanttValidator.getType(dataRow)) {
+         if (activity.hasWorkRecords()) {
+            throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
+         }
+         activity.setType((OpGanttValidator.getType(dataRow)));
+      }
+      
       if (!checkEquality(activity.getName(), OpGanttValidator.getName(dataRow))) {
          update = true;
          activity.setName(OpGanttValidator.getName(dataRow));
@@ -1195,15 +1209,6 @@ public abstract class OpActivityDataSetFactory {
          update = true;
          activity.setPriority(validatorPriority);
       }
-      // Type again is something special:
-      // cannot be changed as soon as there are workrecords for this:
-      if (activity.getType() != OpGanttValidator.getType(dataRow)) {
-         if (activity.hasWorkRecords()) {
-            throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
-         }
-         activity.setType((OpGanttValidator.getType(dataRow)));
-      }
-
       double payment = 0d;
       if (activity.isMilestone()) {
          payment = OpGanttValidator.getPayment(dataRow);
@@ -1218,11 +1223,11 @@ public abstract class OpActivityDataSetFactory {
       
       // ALL this is only relevant for LEAF-Activities:
       // tricky: remove from parent to enforce calculation!
-      activity.setSuperActivity(null);
-      if (activity.isCollection()) {
-         activity.resetValues();
+      if (activity.getSuperActivity() != null) {
+         updateParents(projectPlan.getProgressTracked(), activity, null);
       }
-      else {
+      
+      if (!activity.isCollection()) {
          double baseEffort = OpGanttValidator.getBaseEffort(dataRow);
          double baseEffortDelta = 0;
          if (activity.getBaseEffort() != baseEffort) {
@@ -1313,13 +1318,10 @@ public abstract class OpActivityDataSetFactory {
       }
       
       // AFTER we ar ethrough with ourself, update the super-activity stuff!
-      if (activity.getSuperActivity() != superActivity) {
+      if (superActivity != null) {
          update = true;
          //update actual effort and costs
-         if (!activity.isCollection()) {
-            updateParents(projectPlan.getProgressTracked(), activity, superActivity);
-         }
-         activity.setSuperActivity(superActivity);
+         updateParents(projectPlan.getProgressTracked(), activity, superActivity);
       }
 
       // make facts:
@@ -1346,9 +1348,9 @@ public abstract class OpActivityDataSetFactory {
    private static void updateParents(boolean progressTracking, OpActivity activity, OpActivity newParent) {
       OpActivity originalActivity = activity;
       //update old parents
-      if (activity.getSuperActivity() != null) {
+      while (activity.getSuperActivity() != null) {
          OpActivity oldParent = activity.getSuperActivity();
-
+         
          oldParent.setBaseEffort(oldParent.getBaseEffort() - originalActivity.getBaseEffort());
          oldParent.setBaseExternalCosts(oldParent.getBaseExternalCosts() - originalActivity.getBaseExternalCosts());
          oldParent.setBaseMaterialCosts(oldParent.getBaseMaterialCosts() - originalActivity.getBaseMaterialCosts());
@@ -1376,10 +1378,33 @@ public abstract class OpActivityDataSetFactory {
          if (progressTracking) {
             oldParent.setComplete(OpGanttValidator.calculateCompleteValue(oldParent.getActualEffort(), oldParent.getBaseEffort(), oldParent.getRemainingEffort()));
          }
+         
          activity = oldParent;
       }
+
+      OpActivity oldParent = originalActivity.getSuperActivity();
+      if (oldParent != null) {
+         oldParent.getSubActivities().remove(originalActivity);
+   
+         if (oldParent.getSubActivities().isEmpty()) {
+            createStandardActivity(oldParent);
+         }
+      }
+      
+      originalActivity.setSuperActivity(newParent);
+
+      if (newParent != null) {
+         if (newParent.getSubActivities() == null || newParent.getSubActivities().isEmpty()) {
+            newParent.resetValues();
+            newParent.setSubActivities(new HashSet<OpActivity>());
+         }
+         newParent.getSubActivities().add(originalActivity);
+      }
+      
+      
       //update the new parents
       while (newParent != null) {
+
          newParent.setBaseEffort(newParent.getBaseEffort() + originalActivity.getBaseEffort());
          newParent.setBaseExternalCosts(newParent.getBaseExternalCosts() + originalActivity.getBaseExternalCosts());
          newParent.setBaseMaterialCosts(newParent.getBaseMaterialCosts() + originalActivity.getBaseMaterialCosts());
@@ -1408,8 +1433,21 @@ public abstract class OpActivityDataSetFactory {
             newParent.setComplete(OpGanttValidator.calculateCompleteValue(newParent.getActualEffort(), newParent.getBaseEffort(), newParent.getRemainingEffort()));
          }
 
+         if (newParent.getStart().compareTo(originalActivity.getStart()) > 0) {
+            newParent.setStart(originalActivity.getStart());
+         }
+         if (newParent.getFinish().compareTo(originalActivity.getFinish()) < 0) {
+            newParent.setFinish(originalActivity.getFinish());
+         }
+         
          newParent = newParent.getSuperActivity();
       }
+   }
+
+   private static void createStandardActivity(OpActivity oldParent) {
+      oldParent.resetValues();
+      oldParent.setBaseEffort(oldParent.getDuration());
+      oldParent.setRemainingEffort(oldParent.getBaseEffort());
    }
 
    private static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {
