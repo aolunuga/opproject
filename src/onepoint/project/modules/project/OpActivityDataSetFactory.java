@@ -1387,7 +1387,10 @@ public abstract class OpActivityDataSetFactory {
          oldParent.getSubActivities().remove(originalActivity);
    
          if (oldParent.getSubActivities().isEmpty()) {
-            createStandardActivity(oldParent);
+            OpActivity oldParentParent = oldParent.getSuperActivity();
+            updateParents(progressTracking, oldParent, null);
+            createEmptyStandardActivity(oldParent);
+            updateParents(progressTracking, oldParent, oldParentParent);
          }
       }
       
@@ -1395,8 +1398,12 @@ public abstract class OpActivityDataSetFactory {
 
       if (newParent != null) {
          if (newParent.getSubActivities() == null || newParent.getSubActivities().isEmpty()) {
+            // remove old thing...
+            OpActivity newParentParent = newParent.getSuperActivity();
+            updateParents(progressTracking, newParent, null);
             newParent.resetValues();
             newParent.setSubActivities(new HashSet<OpActivity>());
+            updateParents(progressTracking, newParent, newParentParent);
          }
          newParent.getSubActivities().add(originalActivity);
       }
@@ -1444,10 +1451,12 @@ public abstract class OpActivityDataSetFactory {
       }
    }
 
-   private static void createStandardActivity(OpActivity oldParent) {
-      oldParent.resetValues();
-      oldParent.setBaseEffort(oldParent.getDuration());
-      oldParent.setRemainingEffort(oldParent.getBaseEffort());
+   private static void createEmptyStandardActivity(OpActivity activity) {
+      activity.resetValues();
+      activity.setBaseEffort(activity.getDuration());
+      activity.setRemainingEffort(activity.getBaseEffort());
+      activity.setAssignments(new HashSet<OpAssignment>());
+      activity.setSubActivities(new HashSet<OpActivity>());
    }
 
    private static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {

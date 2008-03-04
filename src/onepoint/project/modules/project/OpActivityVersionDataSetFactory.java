@@ -768,10 +768,12 @@ public abstract class OpActivityVersionDataSetFactory {
             complete = 0;
          }
          else {
-            complete = OpGanttValidator.calculateCompleteValue(activityVersion
-                     .getActivity().getActualEffort(), activityVersion
-                     .getBaseEffort(), activityVersion.getActivity()
-                     .getRemainingEffort());
+            if (activityVersion.getType() == activityVersion.getActivity().getType()) {
+               complete = OpGanttValidator.calculateCompleteValue(activityVersion
+                        .getActivity().getActualEffort(), activityVersion
+                        .getBaseEffort(), activityVersion.getActivity()
+                        .getRemainingEffort());
+            }
          }
       }
       if (activityVersion.getComplete() != complete) {
@@ -1449,6 +1451,7 @@ public abstract class OpActivityVersionDataSetFactory {
       }
 
       logger.debug("deleteProjectPlanVersion: " + System.currentTimeMillis());
+      
       broker.deleteObject(planVersion);
       logger.debug("/deleteProjectPlanVersion: " + System.currentTimeMillis());
 

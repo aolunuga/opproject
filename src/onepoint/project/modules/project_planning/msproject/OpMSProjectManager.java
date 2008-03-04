@@ -528,8 +528,7 @@ public class OpMSProjectManager {
       int workingDays;
       //8) Base Effort - double
       double effort = OpGanttValidator.getBaseEffort(activity);
-      workingDays = (int) (effort / XCalendar.getDefaultCalendar().getWorkHoursPerDay());
-      task.setBaselineWork(Duration.getInstance(workingDays, TimeUnit.DAYS));
+      task.setBaselineWork(Duration.getInstance(effort, TimeUnit.HOURS));
 
       //7) Duration - double (wh)
       double duration = OpGanttValidator.getDuration(activity);
