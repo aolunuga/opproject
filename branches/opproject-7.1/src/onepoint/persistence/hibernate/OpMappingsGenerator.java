@@ -6,7 +6,15 @@ package onepoint.persistence.hibernate;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
+import onepoint.project.OpInitializer;
+import onepoint.project.OpInitializerFactory;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XResourceBroker;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 
 /**
@@ -376,6 +384,7 @@ public class OpMappingsGenerator {
             if (relationship.getInverse()) {
                buffer.append("\" inverse=\"true");
             }
+
             buffer.append("\" lazy=\"").append(lazy);
             if (cascadeMode != null) {
                buffer.append("\" cascade=\"").append(cascadeMode);
@@ -749,5 +758,70 @@ public class OpMappingsGenerator {
       }
       return generator;
    }
+   
+   public static void main(String[] args) {
+      if (args.length < 1) {
+         System.out.println("usage java -cp lib OpHibernateSource dbtype <outfile>");
+         System.out.println("  dbtype is one of derby, mysql_innodb, mysql, postgres, oracle, hsql or db2");
+         System.out.println("  outfile is the filename to write the mapping to, stdout is used if this argument is not given");
+         System.exit(-1);
+      }
+      int dbType = -1;
+      if (args[0].equalsIgnoreCase("derby")) {
+         dbType = OpHibernateSource.DERBY;
+      }
+      else if (args[0].equalsIgnoreCase("mysql_innodb")) {
+         dbType = OpHibernateSource.MYSQL_INNODB;
+      }
+      else if (args[0].equalsIgnoreCase("mysql")) {
+         dbType = OpHibernateSource.IBM_DB2;
+      }
+      else if (args[0].equalsIgnoreCase("postgres")) {
+         dbType = OpHibernateSource.POSTGRESQL;
+      }
+      else if (args[0].equalsIgnoreCase("oracle")) {
+         dbType = OpHibernateSource.ORACLE;
+      }
+      else if (args[0].equalsIgnoreCase("hsql")) {
+         dbType = OpHibernateSource.HSQLDB;
+      }
+      else if (args[0].equalsIgnoreCase("db2")) {
+         dbType = OpHibernateSource.IBM_DB2;
+      }
+      else {
+         System.err.println("ERROR unknown dbtype '" + args[0] + "'");
+         System.exit(-1);
+      }
+      PrintStream out = System.out;
+      if (args.length > 1) {
+         try {
+            File file = new File(args[1]);
+            if (file.exists()) {
+               file.delete();
+            }
+            file.createNewFile();
+            out = new PrintStream(file);
+         }
+         catch (IOException exc) {
+            System.err.println("ERROR could not create file '" + args[1] + "', error: " + exc.getLocalizedMessage());
+            System.exit(-1);
+         }
+      }
+
+      OpEnvironmentManager.setOnePointHome(System.getProperty("user.dir"));
+      XResourceBroker.setResourcePath("onepoint/project");
+      // initialize factory
+      OpInitializerFactory factory = OpInitializerFactory.getInstance();
+      factory.setInitializer(OpInitializer.class);
+
+      OpInitializer initializer = factory.getInitializer();
+      initializer.init(OpProjectConstants.OPEN_EDITION_CODE);
+      OpMappingsGenerator generator = new OpMappingsGenerator(dbType);
+      generator.init(OpTypeManager.getPrototypes());
+      String mapping = generator.generateMappings();
+      out.print(mapping);
+   }
+
+
 
 }
