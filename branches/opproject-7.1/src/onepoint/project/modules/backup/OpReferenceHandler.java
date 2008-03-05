@@ -49,16 +49,17 @@ public class OpReferenceHandler implements XNodeHandler {
    public void nodeFinished(XContext context, String name, Object node, Object parent) {
       // Members are always written in the same order as defined in the backup file header
       OpObject object = (OpObject) parent;
-      OpBackupMember backupMember = ((OpRestoreContext) context).nextBackupMember();
-      String valueString = ((StringBuffer) node).toString().trim();
       OpRestoreContext restoreContext = (OpRestoreContext) context;
+      OpBackupMember backupMember = restoreContext.nextBackupMember();
+      String valueString = ((StringBuffer) node).toString().trim();
 
       if (!valueString.equals(OpBackupManager.NULL)) {
          Long objectId = new Long(valueString);
          OpObject relationshipEnd = restoreContext.getRelationshipOwner(objectId);
          Object value = null;
          if (relationshipEnd == null) {
-            logger.error("Cannot restore relationship towards object with id:" + objectId.toString());
+            logger.warn("Cannot restore relationship towards object with id:" + objectId.toString());
+            restoreContext.putRelationDelayed(object, objectId, backupMember);
          }
          else {
             if (backupMember.relationship) {

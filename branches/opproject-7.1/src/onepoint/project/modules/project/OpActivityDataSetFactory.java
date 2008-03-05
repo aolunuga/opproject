@@ -26,6 +26,8 @@ import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public abstract class OpActivityDataSetFactory {
@@ -40,9 +42,21 @@ public abstract class OpActivityDataSetFactory {
    private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
         "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId) and activity.Deleted = false";
 
-   private static final Date END_OF_TIME = new Date(Long.MAX_VALUE); 
-   private static final Date BEGINNING_OF_TIME = new Date(Long.MIN_VALUE); 
+
+   // used as start points for date-iterations:
+   // move to OpGanttValidator eventually...
+   public static Date END_OF_TIME = null; 
+   public static Date BEGINNING_OF_TIME = null; 
    
+   static {
+      SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+      try {
+         END_OF_TIME = new Date(DATE_FORMAT.parse("3000-12-31").getTime());
+         BEGINNING_OF_TIME = new Date(DATE_FORMAT.parse("1900-01-01").getTime());
+      } catch (ParseException e) {
+         e.printStackTrace();
+      }
+   }
    
    public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
@@ -571,7 +585,7 @@ public abstract class OpActivityDataSetFactory {
       boolean isStandard = (activity.getType() == OpActivity.STANDARD);
       boolean isStrictlyTask = (activity.getType() == OpActivity.TASK);
       boolean isTask = isStrictlyTask || (activity.getType() == OpActivity.COLLECTION_TASK);
-      boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_TASK);
+      boolean isScheduledTask = (activity.getType() == OpActivity.SCHEDULED_COLLECTION_TASK);
       boolean isMilestone = (activity.getType() == OpActivity.MILESTONE);
       boolean isAdHocTask = (activity.getType() == OpActivity.ADHOC_TASK);
 
@@ -1068,11 +1082,8 @@ public abstract class OpActivityDataSetFactory {
       OpProjectNode projectNode = projectPlan.getProjectNode();
       String categoryChoice = OpGanttValidator.getCategory(dataRow);
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
-      byte type = OpGanttValidator.getType(dataRow);
-      boolean isCollection = (type == OpActivity.COLLECTION) || (type == OpActivity.COLLECTION_TASK) || (type == OpActivity.SCHEDULED_TASK);
       
       boolean newActivity = false;
-      boolean update = false;
 
       if (activity == null) {
          // Insert a new activity
@@ -1083,100 +1094,35 @@ public abstract class OpActivityDataSetFactory {
       }
 
       boolean wasCollection = activity.isCollection();
+
+      // TODO: thing about exceptions in checkIn/Save
       // Type again is something special:
       // cannot be changed as soon as there are workrecords for this:
-      if (activity.getType() != OpGanttValidator.getType(dataRow)) {
-         if (activity.hasWorkRecords()) {
-            throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
-         }
-         activity.setType((OpGanttValidator.getType(dataRow)));
-      }
+      // if (activity.getType() != OpGanttValidator.getType(dataRow) && activity.hasWorkRecords()) {
+      //    throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
+      // }
+      activity.setType((OpGanttValidator.getType(dataRow)));
       
-      if (!checkEquality(activity.getName(), OpGanttValidator.getName(dataRow))) {
-         update = true;
-         activity.setName(OpGanttValidator.getName(dataRow));
-      }
-      if (!checkEquality(activity.getDescription(), OpGanttValidator.getDescription(dataRow))) {
-         update = true;
-         activity.setDescription(OpGanttValidator.getDescription(dataRow));
-      }
-      if (activity.getSequence() != dataRow.getIndex()) {
-         update = true;
-         activity.setSequence(dataRow.getIndex());
-      }
-      if (activity.getOutlineLevel() != dataRow.getOutlineLevel()) {
-         update = true;
-         activity.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
-      }
-
-      // TODO: Maybe add a consistency check here (if super-activity is set we need outline-level > zero)
-      if (activity.getExpanded() != dataRow.getExpanded()) {
-         update = true;
-         activity.setExpanded(dataRow.getExpanded());
-      }
-      if ((activity.getStart() != null && !activity.getStart().equals(OpGanttValidator.getStart(dataRow)))
-           || (activity.getStart() == null)) {
-         Date newStart;
-         Date start = OpGanttValidator.getStart(dataRow);
-         if (start == null) {
-            if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-               newStart = superActivity.getStart();
-            }
-            else {
-               newStart = projectNode.getStart();
-            }
-         }
-         else {
-            newStart = start;
-         }
-         if (activity.getStart() == null || !activity.getStart().equals(newStart)) {
-            update = true;
-            activity.setStart(newStart);
-         }
-      }
-      if ((activity.getFinish() != null && !activity.getFinish().equals(OpGanttValidator.getEnd(dataRow)))
-           || (activity.getFinish() == null)) {
-
-         Date end = OpGanttValidator.getEnd(dataRow);
-         Date newEnd;
-         if (end == null) {
-            if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-               newEnd = superActivity.getFinish();
-            }
-            else {
-               newEnd = projectNode.getFinish();
-            }
-         }
-         else {
-            newEnd = end;
-         }
-
-         if (activity.getFinish() == null || !activity.getFinish().equals(newEnd)) {
-            update = true;
-            activity.setFinish(newEnd);
-         }
-      }
-      if (activity.getDuration() != OpGanttValidator.getDuration(dataRow)) {
-         update = true;
-         activity.setDuration(OpGanttValidator.getDuration(dataRow));
-      }
+      activity.setName(OpGanttValidator.getName(dataRow));
+      activity.setDescription(OpGanttValidator.getDescription(dataRow));
+      activity.setSequence(dataRow.getIndex());
+      activity.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
+      activity.setExpanded(dataRow.getExpanded());
+      activity.setDuration(OpGanttValidator.getDuration(dataRow));
       
+      updateStartFinish(activity, OpGanttValidator.getStart(dataRow), OpGanttValidator.getEnd(dataRow));
+
       //update the category
       categoryLocator = null;
       if (activity.getCategory() != null) {
          categoryLocator = activity.getCategory().locator();
       }
-
       if (categoryChoice != null) {
          String newCategoryLocator = XValidator.choiceID(categoryChoice);
-         if (!newCategoryLocator.equals(categoryLocator)) {
-            update = true;
-            category = (OpActivityCategory) broker.getObject(newCategoryLocator);
-            activity.setCategory(category);
-         }
+         category = (OpActivityCategory) broker.getObject(newCategoryLocator);
+         activity.setCategory(category);
       }
       else {
-         update = true;
          activity.setCategory(null);
       }
 
@@ -1185,278 +1131,198 @@ public abstract class OpActivityDataSetFactory {
       if (activity.getResponsibleResource() != null) {
          resourceLocator = activity.getResponsibleResource().locator();
       }
-
       if (responsibleResourceChoice != null) {
          String newResourceLocator = XValidator.choiceID(responsibleResourceChoice);
-         if (!newResourceLocator.equals(resourceLocator)) {
-            update = true;
-            OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(newResourceLocator));
-            activity.setResponsibleResource(resource);
-         }
+         OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(newResourceLocator));
+         activity.setResponsibleResource(resource);
       }
       else {
-         update = true;
          activity.setResponsibleResource(null);
       }
 
-      if (activity.getAttributes() != OpGanttValidator.getAttributes(dataRow)) {
-         update = true;
-         activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-      }
-      byte validatorPriority = OpGanttValidator.getPriority(dataRow) == null ? 0 : OpGanttValidator.getPriority(dataRow).byteValue();
-      if ((activity.getPriority() == 0 && validatorPriority != 0)
-           || !(activity.getPriority() == validatorPriority)) {
-         update = true;
-         activity.setPriority(validatorPriority);
-      }
-      double payment = 0d;
-      if (activity.isMilestone()) {
-         payment = OpGanttValidator.getPayment(dataRow);
-      } else {
-         payment = 0d;
-      }
+      activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
 
-      if (activity.getPayment() != payment) {
-         update = true;
-         activity.setPayment(OpGanttValidator.getPayment(dataRow));
-      }
-      
+      byte validatorPriority = OpGanttValidator.getPriority(dataRow) == null ? 0 : OpGanttValidator.getPriority(dataRow).byteValue();
+      activity.setPriority(validatorPriority);
+
       // ALL this is only relevant for LEAF-Activities:
       // tricky: remove from parent to enforce calculation!
-      if (activity.getSuperActivity() != null) {
-         updateParents(projectPlan.getProgressTracked(), activity, null);
+      if (activity.isCollection()) {
+         activity.resetValues();
       }
-      
-      if (!activity.isCollection()) {
+      else {
+         if (wasCollection) {
+            // if the activity was a collection before, we should reset the actual stuff, because
+            // the %complete and actual effort most likely will not match...
+            activity.resetActualValues();
+         }
+
+         double payment = 0d;
+         if (activity.isMilestone()) {
+            payment = OpGanttValidator.getPayment(dataRow);
+         } else {
+            payment = 0d;
+         }
+
+         activity.setPayment(OpGanttValidator.getPayment(dataRow));
+         
          double baseEffort = OpGanttValidator.getBaseEffort(dataRow);
          double baseEffortDelta = 0;
-         if (activity.getBaseEffort() != baseEffort) {
-            update = true;
-            baseEffortDelta = baseEffort - activity.getBaseEffort();
-            activity.setBaseEffort(baseEffort);
-         }
+         baseEffortDelta = baseEffort - activity.getBaseEffort();
+         activity.setBaseEffort(baseEffort);
    
-         /*
-          * TODO; check!
-          * percentage complete AND remaining effort will not be touched by the editing in case of tracking
-          * The reason for this is, that the completeness and the remaining effort 
-          * are tigthly linked are both entered via workrecords which could not be modified by the project Manager
-          */
-         if (!projectPlan.getProgressTracked()) {
-            //if tracking is off, calculate the remaining
-            double complete = OpGanttValidator.getComplete(dataRow);
-            if ((activity.getComplete() != complete)) {
-               update = true;
-               activity.setComplete(complete);
-            }
-            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), complete);
-            if (activity.getRemainingEffort() != remainingEffort) {
-               update = true;
-               activity.setRemainingEffort(remainingEffort);
-            }
+         activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
+         //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+         //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+         if (OpGanttValidator.getResources(dataRow).isEmpty()
+               && activity.getActualPersonnelCosts() == 0) {
+            activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
          }
-         else {
+         activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
+         // check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+         // remainingPersonnelCosts and remainingProceeds will be done by the assignments
+         if (OpGanttValidator.getResources(dataRow).isEmpty()
+               && activity.getActualProceeds() == 0) {
+            activity.setRemainingProceeds(activity.getBaseProceeds());
+         }
+         activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
+         if (activity.getActualTravelCosts() == 0) {
+            activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+         }
+         activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
+         if (activity.getActualMaterialCosts() == 0) {
+            activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
+         }
+         activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
+         if (activity.getActualExternalCosts() == 0) {
+            activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
+         }
+         activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
+         if (activity.getActualMiscellaneousCosts() == 0) {
+            activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+         }
+         
+         if (projectPlan.getProgressTracked()) {
             // remaining is only changed, if there is no actual effort yet:
             // percentage complete is never changed.
             if (activity.getActualEffort() == 0d) {
                // new is something completely different...
                // (remember: the dataset does not contain REMAINING EFFORT, so we have to fake things a little)
                double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), 0, 0);
-               if (activity.getRemainingEffort() != remainingEffort) {
-                  update = true;
-                  activity.setRemainingEffort(remainingEffort);
-               }
+               activity.setRemainingEffort(remainingEffort);
             }
          }
-   
-         if (activity.getBasePersonnelCosts() != OpGanttValidator.getBasePersonnelCosts(dataRow)) {
-            update = true;
-            activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
-            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
-            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualPersonnelCosts() == 0) {
-               activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
-            }
-         }
-         if (activity.getBaseProceeds() != OpGanttValidator.getBaseProceeds(dataRow)) {
-            update = true;
-            activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
-            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
-            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualProceeds() == 0) {
-               activity.setRemainingProceeds(activity.getBaseProceeds());
-            }
-         }
-         if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
-            update = true;
-            activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-            if (activity.getActualTravelCosts() == 0) {
-               activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
-            }
-         }
-         if (activity.getBaseMaterialCosts() != OpGanttValidator.getBaseMaterialCosts(dataRow)) {
-            update = true;
-            activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-            if (activity.getActualMaterialCosts() == 0) {
-               activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
-            }
-         }
-         if (activity.getBaseExternalCosts() != OpGanttValidator.getBaseExternalCosts(dataRow)) {
-            update = true;
-            activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-            if (activity.getActualExternalCosts() == 0) {
-               activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
-            }
-         }
-         if (activity.getBaseMiscellaneousCosts() != OpGanttValidator.getBaseMiscellaneousCosts(dataRow)) {
-            update = true;
-            activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-            if (activity.getActualMiscellaneousCosts() == 0) {
-               activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
-            }
+         else {
+            //if tracking is off, calculate the remaining
+            double complete = OpGanttValidator.getComplete(dataRow);
+            activity.setComplete(complete);
+            double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), complete);
+            activity.setRemainingEffort(remainingEffort);
          }
       }
       
-      // AFTER we ar ethrough with ourself, update the super-activity stuff!
-      if (superActivity != null) {
-         update = true;
-         //update actual effort and costs
-         updateParents(projectPlan.getProgressTracked(), activity, superActivity);
-      }
+      // AFTER we are through with ourself, update the super-activity stuff!
+      updateParents(projectPlan.getProgressTracked(), activity, superActivity);
 
       // make facts:
       if (newActivity) {
          broker.makePersistent(activity);
       }
-      else if (update) {
-         broker.updateObject(activity);
-      }
-
       return activity;
    }
-
-
+   
+   private static void updateStartFinish(OpActivity activity, Date start, Date finish) {
+      switch (activity.getType()) {
+      case OpActivity.STANDARD:
+      case OpActivity.SCHEDULED_COLLECTION_TASK:
+         activity.setStart(start);
+         activity.setFinish(finish);
+         break;
+      case OpActivity.MILESTONE:
+         activity.setStart(start);
+         activity.setFinish(activity.getStart());
+         activity.setDuration(0d);
+         break;
+      case OpActivity.TASK:
+         activity.setStart(activity.getProjectPlan().getProjectNode().getStart());
+         activity.setFinish(activity.getProjectPlan().getProjectNode().getFinish());
+         activity.setDuration(0d);
+         break;
+      case OpActivity.COLLECTION:
+      case OpActivity.COLLECTION_TASK:
+         activity.setStart(END_OF_TIME);
+         activity.setFinish(BEGINNING_OF_TIME);
+         break;
+      case OpActivity.ADHOC_TASK:
+         activity.setStart(start);
+         activity.setFinish(finish);
+         break;
+      }
+   }
+   
    /**
     * Updates all the fields which depend on the actual effort of an activity, for the new(or old) super activity of
     * that activity.
     *
     * @param activity  a <code>OpActivity</code> which has a new parent.
-    * @param newParent a <codE>OpActivity</code> representing the new parent. A value of <code>null</code> means
+    * @param currentParent a <codE>OpActivity</code> representing the new parent. A value of <code>null</code> means
     *                  that the activity has no current parent.
     * @param broker    a <code>OpBroker</code> used for performing business operations.
     */
    private static void updateParents(boolean progressTracking, OpActivity activity, OpActivity newParent) {
-      OpActivity originalActivity = activity;
-      //update old parents
-      while (activity.getSuperActivity() != null) {
-         OpActivity oldParent = activity.getSuperActivity();
-         
-         oldParent.setBaseEffort(oldParent.getBaseEffort() - originalActivity.getBaseEffort());
-         oldParent.setBaseExternalCosts(oldParent.getBaseExternalCosts() - originalActivity.getBaseExternalCosts());
-         oldParent.setBaseMaterialCosts(oldParent.getBaseMaterialCosts() - originalActivity.getBaseMaterialCosts());
-         oldParent.setBaseMiscellaneousCosts(oldParent.getBaseMiscellaneousCosts() - originalActivity.getBaseMiscellaneousCosts());
-         oldParent.setBasePersonnelCosts(oldParent.getBasePersonnelCosts() - originalActivity.getBasePersonnelCosts());
-         oldParent.setBaseProceeds(oldParent.getBaseProceeds() - originalActivity.getBaseProceeds());
-         oldParent.setBaseTravelCosts(oldParent.getBaseTravelCosts() - originalActivity.getBaseTravelCosts());
-         
-         oldParent.setActualEffort(oldParent.getActualEffort() - originalActivity.getActualEffort());
-         oldParent.setActualExternalCosts(oldParent.getActualExternalCosts() - originalActivity.getActualExternalCosts());
-         oldParent.setActualMaterialCosts(oldParent.getActualMaterialCosts() - originalActivity.getActualMaterialCosts());
-         oldParent.setActualMiscellaneousCosts(oldParent.getActualMiscellaneousCosts() - originalActivity.getActualMiscellaneousCosts());
-         oldParent.setActualPersonnelCosts(oldParent.getActualPersonnelCosts() - originalActivity.getActualPersonnelCosts());
-         oldParent.setActualProceeds(oldParent.getActualProceeds() - originalActivity.getActualProceeds());
-         oldParent.setActualTravelCosts(oldParent.getActualTravelCosts() - originalActivity.getActualTravelCosts());
+      
+      OpActivity currentActivity = activity;
+      OpActivity currentParent = newParent;
+      
+      activity.setSuperActivity(currentParent);
+      while (currentParent != null) {
 
-         oldParent.setRemainingEffort(oldParent.getRemainingEffort() - originalActivity.getRemainingEffort());
-         oldParent.setRemainingExternalCosts(oldParent.getRemainingExternalCosts() - originalActivity.getRemainingExternalCosts());
-         oldParent.setRemainingMaterialCosts(oldParent.getRemainingMaterialCosts() - originalActivity.getRemainingMaterialCosts());
-         oldParent.setRemainingMiscellaneousCosts(oldParent.getRemainingMiscellaneousCosts() - originalActivity.getRemainingMiscellaneousCosts());
-         oldParent.setRemainingPersonnelCosts(oldParent.getRemainingPersonnelCosts() - originalActivity.getRemainingPersonnelCosts());
-         oldParent.setRemainingProceeds(oldParent.getRemainingProceeds() - originalActivity.getRemainingProceeds());
-         oldParent.setRemainingTravelCosts(oldParent.getRemainingTravelCosts() - originalActivity.getRemainingTravelCosts());
+         currentParent.setBaseEffort(currentParent.getBaseEffort() + activity.getBaseEffort());
+         currentParent.setBaseExternalCosts(currentParent.getBaseExternalCosts() + activity.getBaseExternalCosts());
+         currentParent.setBaseMaterialCosts(currentParent.getBaseMaterialCosts() + activity.getBaseMaterialCosts());
+         currentParent.setBaseMiscellaneousCosts(currentParent.getBaseMiscellaneousCosts() + activity.getBaseMiscellaneousCosts());
+         currentParent.setBasePersonnelCosts(currentParent.getBasePersonnelCosts() + activity.getBasePersonnelCosts());
+         currentParent.setBaseProceeds(currentParent.getBaseProceeds() + activity.getBaseProceeds());
+         currentParent.setBaseTravelCosts(currentParent.getBaseTravelCosts() + activity.getBaseTravelCosts());
+         
+         currentParent.setActualEffort(currentParent.getActualEffort() + activity.getActualEffort());
+         currentParent.setActualExternalCosts(currentParent.getActualExternalCosts() + activity.getActualExternalCosts());
+         currentParent.setActualMaterialCosts(currentParent.getActualMaterialCosts() + activity.getActualMaterialCosts());
+         currentParent.setActualMiscellaneousCosts(currentParent.getActualMiscellaneousCosts() + activity.getActualMiscellaneousCosts());
+         currentParent.setActualPersonnelCosts(currentParent.getActualPersonnelCosts() + activity.getActualPersonnelCosts());
+         currentParent.setActualProceeds(currentParent.getActualProceeds() + activity.getActualProceeds());
+         currentParent.setActualTravelCosts(currentParent.getActualTravelCosts() + activity.getActualTravelCosts());
+
+         currentParent.setRemainingEffort(currentParent.getRemainingEffort() + activity.getRemainingEffort());
+         currentParent.setRemainingExternalCosts(currentParent.getRemainingExternalCosts() + activity.getRemainingExternalCosts());
+         currentParent.setRemainingMaterialCosts(currentParent.getRemainingMaterialCosts() + activity.getRemainingMaterialCosts());
+         currentParent.setRemainingMiscellaneousCosts(currentParent.getRemainingMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts());
+         currentParent.setRemainingPersonnelCosts(currentParent.getRemainingPersonnelCosts() + activity.getRemainingPersonnelCosts());
+         currentParent.setRemainingProceeds(currentParent.getRemainingProceeds() + activity.getRemainingProceeds());
+         currentParent.setRemainingTravelCosts(currentParent.getRemainingTravelCosts() + activity.getRemainingTravelCosts());
          
          if (progressTracking) {
-            oldParent.setComplete(OpGanttValidator.calculateCompleteValue(oldParent.getActualEffort(), oldParent.getBaseEffort(), oldParent.getRemainingEffort()));
+            currentParent.setComplete(OpGanttValidator.calculateCompleteValue(currentParent.getActualEffort(), currentParent.getBaseEffort(), currentParent.getRemainingEffort()));
+         }
+
+         if (currentParent.getType() == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
+            currentActivity.setStart(currentParent.getStart());
+            currentActivity.setFinish(currentParent.getFinish());
+         }
+         else {
+            // other direction:
+            if (currentParent.getStart().compareTo(currentActivity.getStart()) > 0) {
+               currentParent.setStart(currentActivity.getStart());
+            }
+            if (currentParent.getFinish().compareTo(currentActivity.getFinish()) < 0) {
+               currentParent.setFinish(currentActivity.getFinish());
+            }
          }
          
-         activity = oldParent;
+         currentActivity = currentParent;
+         currentParent = currentParent.getSuperActivity();
       }
 
-      OpActivity oldParent = originalActivity.getSuperActivity();
-      if (oldParent != null) {
-         oldParent.getSubActivities().remove(originalActivity);
-   
-         if (oldParent.getSubActivities().isEmpty()) {
-            OpActivity oldParentParent = oldParent.getSuperActivity();
-            updateParents(progressTracking, oldParent, null);
-            createEmptyStandardActivity(oldParent);
-            updateParents(progressTracking, oldParent, oldParentParent);
-         }
-      }
-      
-      originalActivity.setSuperActivity(newParent);
-
-      if (newParent != null) {
-         if (newParent.getSubActivities() == null || newParent.getSubActivities().isEmpty()) {
-            // remove old thing...
-            OpActivity newParentParent = newParent.getSuperActivity();
-            updateParents(progressTracking, newParent, null);
-            newParent.resetValues();
-            newParent.setSubActivities(new HashSet<OpActivity>());
-            updateParents(progressTracking, newParent, newParentParent);
-         }
-         newParent.getSubActivities().add(originalActivity);
-      }
-      
-      
-      //update the new parents
-      while (newParent != null) {
-
-         newParent.setBaseEffort(newParent.getBaseEffort() + originalActivity.getBaseEffort());
-         newParent.setBaseExternalCosts(newParent.getBaseExternalCosts() + originalActivity.getBaseExternalCosts());
-         newParent.setBaseMaterialCosts(newParent.getBaseMaterialCosts() + originalActivity.getBaseMaterialCosts());
-         newParent.setBaseMiscellaneousCosts(newParent.getBaseMiscellaneousCosts() + originalActivity.getBaseMiscellaneousCosts());
-         newParent.setBasePersonnelCosts(newParent.getBasePersonnelCosts() + originalActivity.getBasePersonnelCosts());
-         newParent.setBaseProceeds(newParent.getBaseProceeds() + originalActivity.getBaseProceeds());
-         newParent.setBaseTravelCosts(newParent.getBaseTravelCosts() + originalActivity.getBaseTravelCosts());
-         
-         newParent.setActualEffort(newParent.getActualEffort() + originalActivity.getActualEffort());
-         newParent.setActualExternalCosts(newParent.getActualExternalCosts() + originalActivity.getActualExternalCosts());
-         newParent.setActualMaterialCosts(newParent.getActualMaterialCosts() + originalActivity.getActualMaterialCosts());
-         newParent.setActualMiscellaneousCosts(newParent.getActualMiscellaneousCosts() + originalActivity.getActualMiscellaneousCosts());
-         newParent.setActualPersonnelCosts(newParent.getActualPersonnelCosts() + originalActivity.getActualPersonnelCosts());
-         newParent.setActualProceeds(newParent.getActualProceeds() + originalActivity.getActualProceeds());
-         newParent.setActualTravelCosts(newParent.getActualTravelCosts() + originalActivity.getActualTravelCosts());
-
-         newParent.setRemainingEffort(newParent.getRemainingEffort() + originalActivity.getRemainingEffort());
-         newParent.setRemainingExternalCosts(newParent.getRemainingExternalCosts() + originalActivity.getRemainingExternalCosts());
-         newParent.setRemainingMaterialCosts(newParent.getRemainingMaterialCosts() + originalActivity.getRemainingMaterialCosts());
-         newParent.setRemainingMiscellaneousCosts(newParent.getRemainingMiscellaneousCosts() + originalActivity.getRemainingMiscellaneousCosts());
-         newParent.setRemainingPersonnelCosts(newParent.getRemainingPersonnelCosts() + originalActivity.getRemainingPersonnelCosts());
-         newParent.setRemainingProceeds(newParent.getRemainingProceeds() + originalActivity.getRemainingProceeds());
-         newParent.setRemainingTravelCosts(newParent.getRemainingTravelCosts() + originalActivity.getRemainingTravelCosts());
-         
-         if (progressTracking) {
-            newParent.setComplete(OpGanttValidator.calculateCompleteValue(newParent.getActualEffort(), newParent.getBaseEffort(), newParent.getRemainingEffort()));
-         }
-
-         if (newParent.getStart().compareTo(originalActivity.getStart()) > 0) {
-            newParent.setStart(originalActivity.getStart());
-         }
-         if (newParent.getFinish().compareTo(originalActivity.getFinish()) < 0) {
-            newParent.setFinish(originalActivity.getFinish());
-         }
-         
-         newParent = newParent.getSuperActivity();
-      }
-   }
-
-   private static void createEmptyStandardActivity(OpActivity activity) {
-      activity.resetValues();
-      activity.setBaseEffort(activity.getDuration());
-      activity.setRemainingEffort(activity.getBaseEffort());
-      activity.setAssignments(new HashSet<OpAssignment>());
-      activity.setSubActivities(new HashSet<OpActivity>());
    }
 
    private static ArrayList updateOrDeleteAssignments(OpBroker broker, XComponent dataSet, Iterator assignments) {

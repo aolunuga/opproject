@@ -151,7 +151,7 @@ public class OpProjectPlanningServiceTest extends OpBaseOpenTestCase {
       projectAssignment.setProjectNode(project);
       broker.makePersistent(projectAssignment);
 
-      activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      activity = new OpActivity(OpActivity.SCHEDULED_COLLECTION_TASK);
       activity.setProjectPlan(plan);
       activity.setStart(new Date(date + 5000));
       activity.setComplete(0d);

@@ -341,9 +341,9 @@ public class OpProjectPlanningModule extends OpModule {
          int totalChildCount = OpActivityDataSetFactory.getSubactivitiesCount(broker, activity);
          int subTasksCount = ((Number) result[1]).intValue();
 
-         if (totalChildCount == subTasksCount && activityType != OpActivity.COLLECTION_TASK && activityType != OpActivity.SCHEDULED_TASK) {
+         if (totalChildCount == subTasksCount && activityType != OpActivity.COLLECTION_TASK && activityType != OpActivity.SCHEDULED_COLLECTION_TASK) {
             //<FIXME author="Horia Chiorean" description="Shouldn't we remove assignments and work-records ?">
-            activity.setType(OpActivity.SCHEDULED_TASK);
+            activity.setType(OpActivity.SCHEDULED_COLLECTION_TASK);
             broker.updateObject(activity);
             //<FIXME>
          }
@@ -402,9 +402,9 @@ public class OpProjectPlanningModule extends OpModule {
          int totalChildCount = OpActivityVersionDataSetFactory.getSubactivityVersionsCount(broker, activityVersion);
          int subTaskVersionsCount = ((Number) result[1]).intValue();
 
-         if (totalChildCount == subTaskVersionsCount && activityVersionType != OpActivity.COLLECTION_TASK && activityVersionType != OpActivity.SCHEDULED_TASK) {
+         if (totalChildCount == subTaskVersionsCount && activityVersionType != OpActivity.COLLECTION_TASK && activityVersionType != OpActivity.SCHEDULED_COLLECTION_TASK) {
             //<FIXME author="Horia Chiorean" description="Shouldn't we also remove assignments and work-records ?">
-            activityVersion.setType(OpActivity.SCHEDULED_TASK);
+            activityVersion.setType(OpActivity.SCHEDULED_COLLECTION_TASK);
             broker.updateObject(activityVersion);
             //<FIXME>
          }

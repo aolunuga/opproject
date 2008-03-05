@@ -9,6 +9,8 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.Pair;
+import onepoint.project.util.Triple;
 import onepoint.xml.XContext;
 
 import java.util.*;
@@ -23,7 +25,7 @@ public class OpRestoreContext extends XContext {
    /**
     * The maximum number of operations done per a transaction.
     */
-   private final static int MAX_INSERTS_PER_TRANSACTION = 300;
+   public final static int MAX_INSERTS_PER_TRANSACTION = 300;
 
    /**
     * This class's logger.
@@ -89,6 +91,9 @@ public class OpRestoreContext extends XContext {
     * Numbers of objects which have been added.
     */
    private int insertCount = 0;
+
+   private LinkedList<Triple<String, String, OpBackupMember>> delayedRelations = new LinkedList<Triple<String, String, OpBackupMember>>();
+   private LinkedList<Triple<OpObject, Long, OpBackupMember>> delayedRelationsPerTransaction = new LinkedList<Triple<OpObject, Long, OpBackupMember>>();
 
    /**
     * Creates a new restore context with the given broker.
@@ -260,6 +265,16 @@ public class OpRestoreContext extends XContext {
             broker.makePersistent(anObjectsToAdd);
          }
          t.commit();
+         ListIterator<Triple<OpObject, Long, OpBackupMember>> iter = delayedRelationsPerTransaction.listIterator();
+         Triple<OpObject, Long, OpBackupMember> triple;
+         while (iter.hasNext()) {
+            triple = iter.next();
+            OpObject destination = persistedObjectsMap.get(triple.getSecond());
+            if (destination != null) {
+               delayedRelations.add(new Triple<String, String, OpBackupMember>(triple.getFirst().locator(), destination.locator(), triple.getThird()));
+               iter.remove();
+            }
+         }
          broker.closeAndEvict();
          session.cleanupSession(true);
          logger.info("Objects persisted");
@@ -269,9 +284,10 @@ public class OpRestoreContext extends XContext {
       for (Long activeMapId : persistedObjectsMap.keySet()) {
          idToLocatorMap.put(activeMapId, persistedObjectsMap.get(activeMapId).locator());
       }
+      
       persistedObjectsMap.clear();
    }
-
+   
    /**
     * Retrieves an object from the database, using the back-up ID of the object before
     * it was inserted.
@@ -308,4 +324,20 @@ public class OpRestoreContext extends XContext {
       objectsToAdd.clear();
       objectsToAdd = null;
    }
+
+   /**
+    * @param locator
+    * @param id
+    * @param backupMember 
+    * @pre
+    * @post
+    */
+   public void putRelationDelayed(OpObject object, Long id, OpBackupMember backupMember) {
+      delayedRelationsPerTransaction.add(new Triple<OpObject, Long, OpBackupMember>(object, id, backupMember));
+   }
+
+   public Iterator<Triple<String, String, OpBackupMember>> relationDelayedIterator() {
+      return delayedRelations.iterator();
+   }
 }
+

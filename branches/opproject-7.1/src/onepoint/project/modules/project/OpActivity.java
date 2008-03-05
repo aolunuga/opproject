@@ -76,7 +76,7 @@ public class OpActivity extends OpObject {
    public final static byte COLLECTION = OpGanttValidator.COLLECTION;
    public final static byte TASK = OpGanttValidator.TASK;
    public final static byte COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
-   public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+   public final static byte SCHEDULED_COLLECTION_TASK = OpGanttValidator.SCHEDULED_COLLECTION_TASK;
    public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
    // Activity attributes
@@ -1102,7 +1102,9 @@ public class OpActivity extends OpObject {
     * @return true, if the activity is a collection activity.
     */
    public boolean isCollection() {
-      return getType() == OpActivity.COLLECTION || getType() == OpActivity.COLLECTION_TASK;
+      return getType() == OpActivity.COLLECTION
+            || getType() == OpActivity.COLLECTION_TASK
+            || getType() == OpActivity.SCHEDULED_COLLECTION_TASK;
    }
 
    public String toString() {
@@ -1119,8 +1121,32 @@ public class OpActivity extends OpObject {
       b.append(getRemainingEffort());
       b.append(" C:");
       b.append(getComplete());
+      b.append(" S:");
+      b.append(getStart());
+      b.append(" F:");
+      b.append(getFinish());
       b.append("}");
       return b.toString();
+   }
+   
+   public void resetActualValues() {
+      setActualEffort(0d);
+      setActualExternalCosts(0d);
+      setActualMaterialCosts(0d);
+      setActualMiscellaneousCosts(0d);
+      setActualPersonnelCosts(0d);
+      setActualProceeds(0d);
+      setActualTravelCosts(0d);
+      
+      setRemainingEffort(getBaseEffort());
+      setRemainingExternalCosts(getBaseExternalCosts());
+      setRemainingMaterialCosts(getBaseMaterialCosts());
+      setRemainingMiscellaneousCosts(getBaseMiscellaneousCosts());
+      setRemainingPersonnelCosts(getBasePersonnelCosts());
+      setRemainingProceeds(getBaseProceeds());
+      setRemainingTravelCosts(getBaseTravelCosts());
+      
+      setComplete(0d);
    }
    
    public void resetValues() {
@@ -1133,23 +1159,7 @@ public class OpActivity extends OpObject {
       setBaseProceeds(0d);
       setBaseTravelCosts(0d);
       
-      setActualEffort(0d);
-      setActualExternalCosts(0d);
-      setActualMaterialCosts(0d);
-      setActualMiscellaneousCosts(0d);
-      setActualPersonnelCosts(0d);
-      setActualProceeds(0d);
-      setActualTravelCosts(0d);
-      
-      setRemainingEffort(0d);
-      setRemainingExternalCosts(0d);
-      setRemainingMaterialCosts(0d);
-      setRemainingMiscellaneousCosts(0d);
-      setRemainingPersonnelCosts(0d);
-      setRemainingProceeds(0d);
-      setRemainingTravelCosts(0d);
-      
-      setComplete(0d);
+      resetActualValues();
    }
    
    /**

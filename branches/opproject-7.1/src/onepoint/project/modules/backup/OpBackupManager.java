@@ -59,6 +59,9 @@ public class OpBackupManager {
    public final static String TRUE = "true";
    public final static String FALSE = "false";
 
+   private static final String WHERE_STR = " where ";
+   private static final String AND_STR = " and ";
+
    /**
     * This class's logger
     */
@@ -610,6 +613,7 @@ public class OpBackupManager {
             if (!members[i].relationship && members[i].ordered && orderedBy == null) {
                orderedBy = members[i].name;
             }
+            
             else if (members[i].relationship && members[i].recursive && recursiveBy == null) {
                recursiveBy = members[i].name;
             }
@@ -766,17 +770,35 @@ public class OpBackupManager {
    private void removeObjectsWithPrototype(String prototypeName, OpProjectSession session) {
 
       logger.info("Remove objects with prototype: " + prototypeName);
+      
       OpPrototype prototype = prototypes.get(prototypeName);
-      OpRelationship recursiveRelationship = prototype.getRecursiveRelationship();
-      String backRelationshipName = null;
-      if (recursiveRelationship != null) {
-         OpRelationship backRelationship = recursiveRelationship.getBackRelationship();
+      List<OpRelationship> recursiveRelationship = prototype.getRecursiveRelationships();
+      List<String> backRelationshipNames = new LinkedList<String>();
+      for (OpRelationship relationship : recursiveRelationship) {
+         OpRelationship backRelationship = relationship.getBackRelationship();
          if (backRelationship != null) {
-            backRelationshipName = backRelationship.getName();
+//            String cascade = relationship.getCascadeMode();
+//            if (!OpRelationship.CASCADE_DELETE.equals(cascade) &&
+//                 !OpRelationship.CASCADE_ALL.equals(cascade)) {
+            backRelationshipNames.add(backRelationship.getName());
+//            }
          }
       }
 
-      String recursiveRelationshipCondition = (backRelationshipName != null) ? " where obj." + backRelationshipName + "  is empty" : "";
+      // calculate recursive relationship condition
+      StringBuffer recursiveRelationshipConditionBuffer = new StringBuffer();
+      for (String backRelationshipName : backRelationshipNames) {
+         if (recursiveRelationshipConditionBuffer.length() == 0) {
+            recursiveRelationshipConditionBuffer.append(WHERE_STR);
+         }
+         else {
+            recursiveRelationshipConditionBuffer.append(AND_STR);
+         }
+
+         recursiveRelationshipConditionBuffer.append("obj.").append(backRelationshipName).append(" is empty");
+      }
+
+      String recursiveRelationshipCondition = recursiveRelationshipConditionBuffer.toString();
 
       List objectIds = getObjectsWithPrototype(session, prototypeName);
       while (objectIds.size() > 0) {

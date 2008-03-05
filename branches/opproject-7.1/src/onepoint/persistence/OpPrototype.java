@@ -151,16 +151,16 @@ public class OpPrototype extends OpType {
 
    /**
     * Returns the recursive relationship this prototype has, or null if it doesn't have any (there shouldn't be prototypes with more than 1 recursive relationships)
-    *
     * @return a <code>OpRelationship</code> or <code>null</code>.
     */
-   public OpRelationship getRecursiveRelationship() {
+   public List<OpRelationship> getRecursiveRelationships() {
+      List<OpRelationship> ret = new LinkedList<OpRelationship>();
       for (OpMember member : members.values()) {
          if (member instanceof OpRelationship && ((OpRelationship) member).getRecursive()) {
-            return (OpRelationship) member;
+            ret.add((OpRelationship) member);
          }
       }
-      return null;
+      return ret;
    }
 
    /**

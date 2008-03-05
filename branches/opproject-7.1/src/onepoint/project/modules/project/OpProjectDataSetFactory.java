@@ -608,7 +608,7 @@ public final class OpProjectDataSetFactory {
          ArrayList activityTypes = new ArrayList();
          activityTypes.add(new Byte(OpActivity.STANDARD));
          activityTypes.add(new Byte(OpActivity.COLLECTION));
-         activityTypes.add(new Byte(OpActivity.SCHEDULED_TASK));
+         activityTypes.add(new Byte(OpActivity.SCHEDULED_COLLECTION_TASK));
          activityTypes.add(new Byte(OpActivity.TASK));
          activityTypes.add(new Byte(OpActivity.COLLECTION_TASK));
 

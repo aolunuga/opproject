@@ -130,7 +130,7 @@ public class OpProjectComponent extends XComponent {
    public final static byte MILESTONE_ACTIVITY = OpGanttValidator.MILESTONE;
    public final static byte TASK_ACTIVITY = OpGanttValidator.TASK;
    public final static byte COLLECTION_TASK_ACTIVITY = OpGanttValidator.COLLECTION_TASK;
-   public final static byte SCHEDULED_TASK_ACTIVITY = OpGanttValidator.SCHEDULED_TASK;
+   public final static byte SCHEDULED_TASK_ACTIVITY = OpGanttValidator.SCHEDULED_COLLECTION_TASK;
 
    // Drag modes
    public final static int DRAG_MOVE = 1;
@@ -1778,7 +1778,7 @@ public class OpProjectComponent extends XComponent {
                   x = (int) ((day_width * (double) (startDays + 1)) / (double) unitRatio) - grid_y / 2;
                }
             }
-            else if (OpGanttValidator.getType(data_row) == OpGanttValidator.SCHEDULED_TASK) {
+            else if (OpGanttValidator.getType(data_row) == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
                component.setActivityType(SCHEDULED_TASK_ACTIVITY);
             }
             else {
@@ -4361,7 +4361,7 @@ public class OpProjectComponent extends XComponent {
          }
          else {
             if (targetDataRow != null) {
-               if (OpGanttValidator.getType(targetDataRow) == OpGanttValidator.SCHEDULED_TASK) {
+               if (OpGanttValidator.getType(targetDataRow) == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
                   List taskChildren = validator.getChildren(targetDataRow);
                   //drop activity bellow the scheduled task and all its task children
                   offset += taskChildren.size();

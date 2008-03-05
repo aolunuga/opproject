@@ -72,7 +72,7 @@ public class OpMyTasksServiceImpl implements OpService {
    /**
     * Scheduled task type.
     */
-   public static final byte TYPE_SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+   public static final byte TYPE_SCHEDULED_TASK = OpGanttValidator.SCHEDULED_COLLECTION_TASK;
 
    /**
     * AdHoc task type.
