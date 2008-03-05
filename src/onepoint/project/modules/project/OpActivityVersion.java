@@ -55,7 +55,8 @@ public class OpActivityVersion extends OpObject {
    public final static byte COLLECTION = OpGanttValidator.COLLECTION;
    public final static byte TASK = OpGanttValidator.TASK;
    public final static byte COLLECTION_TASK = OpGanttValidator.COLLECTION_TASK;
-   public final static byte SCHEDULED_TASK = OpGanttValidator.SCHEDULED_TASK;
+   public final static byte SCHEDULED_COLLECTION_TASK = OpGanttValidator.SCHEDULED_COLLECTION_TASK;
+   public final static byte ADHOC_TASK = OpGanttValidator.ADHOC_TASK;
 
    // Activity attributes
    public final static int MANDATORY = OpGanttValidator.MANDATORY;
@@ -99,7 +100,33 @@ public class OpActivityVersion extends OpObject {
    private Set predecessorVersions;
    private Set attachmentVersions;
    private OpResource responsibleResource;
+   
+   
+   private static class ActualValues {
+      private double actualEffort = 0d;
+      private double remainingEffort = 0d;
+      
+      public ActualValues(double actualEffort, double remainingEffort) {
+         this.actualEffort = actualEffort;
+         this.remainingEffort = remainingEffort;
+      }
+      
+      public double getActualEffort() {
+         return actualEffort;
+      }
+      public void setActualEffort(double actualEffort) {
+         this.actualEffort = actualEffort;
+      }
+      public double getRemainingEffort() {
+         return remainingEffort;
+      }
+      public void setRemainingEffort(double remainingEffort) {
+         this.remainingEffort = remainingEffort;
+      }
+   }
 
+   private ActualValues actualValues = null;
+   
    public void setName(String name) {
       this.name = name;
    }
@@ -404,11 +431,76 @@ public class OpActivityVersion extends OpObject {
     * @param baseWeighting method of aggregation for super-ActivityVersions...
     */
    public void updateComplete(OpProgressDelta delta) {
-      if (delta.isProgressTracked() || getType() == OpActivity.COLLECTION || getType() == OpActivity.COLLECTION_TASK) {
-         setComplete(OpGanttValidator.calculateCompleteValue(getActivity().getActualEffort(), getBaseEffort(), getActivity().getRemainingEffort()));
+      if (delta.isProgressTracked() || isCollection()) {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
       }
       if (getSuperActivityVersion() != null) {
          getSuperActivityVersion().updateComplete(delta);
       }
+   }
+   
+   public boolean isCollection() {
+      return getType() == OpActivity.COLLECTION
+            || getType() == OpActivity.COLLECTION_TASK
+            || getType() == OpActivity.SCHEDULED_COLLECTION_TASK;
+   }
+
+   public void resetValues() {
+      setBaseEffort(0d);
+      setBaseExternalCosts(0d);
+      setBaseMaterialCosts(0d);
+      setBaseMiscellaneousCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBaseProceeds(0d);
+      setBaseTravelCosts(0d);
+      
+      actualValues = null;
+   }
+   
+   public void addActualEffort(double actualEffort) {
+      if (actualValues == null) {
+         actualValues = new ActualValues(actualEffort, 0d);
+      }
+      else {
+         actualValues.setActualEffort(actualValues.getActualEffort() + actualEffort);
+      }
+   }
+   
+   public void addRemainingEffort(double remainingEffort) {
+      if (actualValues == null) {
+         actualValues = new ActualValues(0d, remainingEffort);
+      }
+      else {
+         actualValues.setRemainingEffort(actualValues.getRemainingEffort() + remainingEffort);
+      }
+   }
+
+   public double getActualEffort() {
+      if (actualValues != null) {
+         return actualValues.getActualEffort();
+      }
+      else if (getActivity() != null) {
+         return getActivity().getActualEffort();
+      }
+      else {
+         return 0d;
+      }
+   }
+   
+   public double getRemainingEffort() {
+      if (actualValues != null) {
+         return actualValues.getRemainingEffort();
+      }
+      else if (getActivity() != null) {
+         return getActivity().getRemainingEffort();
+      }
+      else {
+         return getBaseEffort();
+      }
+   }
+   
+   public boolean isMilestone() {
+      return getType() == OpActivity.MILESTONE;
    }
 }

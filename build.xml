@@ -32,7 +32,6 @@
       <include name="**/applet/*.java"/>
       <include name="**/components/**/*.java"/>
       <include name="**/validators/**/*.java"/>
-      <include name="onepoint/project/util/*.java"/>
    </patternset>
 
    <!-- Pattern set for opproject.jar (depends on opexpress.jar) -->
@@ -606,9 +605,9 @@
       <echo file="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}" append="false">#!/bin/bash
          JAR=${project.basic.jarname}
          if [ -e "$JAVA_HOME" ]; then
-         $JAVA_HOME/bin/java -Xmx192m -jar $JAR
+         $JAVA_HOME/bin/java -Xmx512m -jar $JAR
          else
-         java -Xmx192m -jar $JAR
+         java -Xmx512m -XX:MaxPermSize=128m -jar $JAR
          fi
       </echo>
       <tar destfile="${dist.dir}/${basic.name}-linux.tar">
@@ -637,7 +636,7 @@
          <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
                  outfile="${dist.basic.dir}/${executable.file.tmp}" customProcName="false"
                  dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
-            <jre minVersion="1.5.0" maxheapsize="192"/>
+            <jre minVersion="1.5.0" maxheapsize="512"/>
             <versioninfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
                          copyright="Onepoint Software GmbH" productVersion="${version.mayor}.${version.minor}.0.0" txtProductVersion="${version}"
                          productName="Onepoint Projects" companyName="Onepoint Software GmbH"
@@ -660,7 +659,7 @@
                   shortname="${opproject.launchername}"
                   version="${version}"
                   jvmversion="1.5+"
-                  vmoptions="-Xmx192m"
+                  vmoptions="-Xmx512m -XX:MaxPermSize=128m"
                   stubfile="${opproject.launchername}"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">

@@ -177,7 +177,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
       OpResource resource = (OpResource) broker.getObject(resId);
 
-      OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      OpActivity activity = new OpActivity(OpActivity.SCHEDULED_COLLECTION_TASK);
       activity.setProjectPlan(plan);
       broker.makePersistent(activity);
 
@@ -208,7 +208,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       OpProjectPlan plan = (OpProjectPlan) broker.getObject(planId);
       OpResource resource = (OpResource) broker.getObject(resId);
 
-      OpActivity activity = new OpActivity(OpActivity.SCHEDULED_TASK);
+      OpActivity activity = new OpActivity(OpActivity.SCHEDULED_COLLECTION_TASK);
       activity.setProjectPlan(plan);
       broker.makePersistent(activity);
 
@@ -361,7 +361,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       OpResource resource = (OpResource) broker.getObject(resId);
 
       OpActivity activity = new OpActivity();
-      activity.setType(OpActivity.SCHEDULED_TASK);
+      activity.setType(OpActivity.SCHEDULED_COLLECTION_TASK);
       activity.setStart(new Date(1));
       broker.makePersistent(activity);
 
@@ -377,7 +377,7 @@ public class OpWorkServiceTest extends OpBaseOpenTestCase {
       List resources = new ArrayList();
       resources.add(new Long(resourceDataFactory.getResourceById(resId).getID()));
       List types = new ArrayList();
-      types.add(new Byte(OpActivity.SCHEDULED_TASK));
+      types.add(new Byte(OpActivity.SCHEDULED_COLLECTION_TASK));
       types.add(new Byte(OpActivity.COLLECTION_TASK));
       Date date = new Date(time);
       long id = projectDataFactory.getProjectById(projId).getID();

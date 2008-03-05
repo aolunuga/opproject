@@ -79,7 +79,7 @@ public class OpGanttValidator extends XValidator {
    public final static byte MILESTONE = 2;
    public final static byte TASK = 3;
    public final static byte COLLECTION_TASK = 4;
-   public final static byte SCHEDULED_TASK = 5;
+   public final static byte SCHEDULED_COLLECTION_TASK = 5;
    public final static byte ADHOC_TASK = 6;
 
    // Calculation modes
@@ -1214,8 +1214,8 @@ public class OpGanttValidator extends XValidator {
          return COLLECTION_TASK;
       }
       else if (isScheduledTask) {
-         updateType(activity, SCHEDULED_TASK);
-         return SCHEDULED_TASK;
+         updateType(activity, SCHEDULED_COLLECTION_TASK);
+         return SCHEDULED_COLLECTION_TASK;
       }
       else if (isCollection && !isTaskCollection) {
          updateType(activity, COLLECTION);
@@ -1373,7 +1373,7 @@ public class OpGanttValidator extends XValidator {
             }
             resetComplete(activity);
             break;
-         case SCHEDULED_TASK:
+         case SCHEDULED_COLLECTION_TASK:
             activity.getChild(START_COLUMN_INDEX).setEnabled(true);
             activity.getChild(END_COLUMN_INDEX).setEnabled(true);
             activity.getChild(VISUAL_RESOURCES_COLUMN_INDEX).setEnabled(false);
@@ -1623,7 +1623,7 @@ public class OpGanttValidator extends XValidator {
    }
 
    public static boolean isCollectionType(XComponent activity) {
-      return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_TASK;
+      return getType(activity) == COLLECTION || getType(activity) == COLLECTION_TASK || getType(activity) == SCHEDULED_COLLECTION_TASK;
    }
 
    private void _validateActivity(XComponent activity, XCalendar calendar, Date not_before, boolean child,
@@ -1760,7 +1760,7 @@ public class OpGanttValidator extends XValidator {
       }
 
       // update the values of effort, costs etc for a collection
-      if (OpGanttValidator.getType(activity) == OpGanttValidator.COLLECTION || OpGanttValidator.getType(activity) == OpGanttValidator.SCHEDULED_TASK) {
+      if (OpGanttValidator.getType(activity) == OpGanttValidator.COLLECTION || OpGanttValidator.getType(activity) == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
          //update duration for collection based on the new end
          updateFinish(activity, getEnd(activity));
          updateCollectionValues(activity);
@@ -3295,7 +3295,7 @@ public class OpGanttValidator extends XValidator {
          int childrenSize = 0;
          // it the dataRow is a last collection in the data set
          if (direction > 0 && (OpGanttValidator.getType(selectionStart) == COLLECTION ||
-              OpGanttValidator.getType(selectionStart) == OpGanttValidator.SCHEDULED_TASK ||
+              OpGanttValidator.getType(selectionStart) == OpGanttValidator.SCHEDULED_COLLECTION_TASK ||
               OpGanttValidator.getType(selectionStart) == OpGanttValidator.COLLECTION_TASK)) {
             /* calculate it's number of children */
             childrenSize = getChildren(selectionStart).size();
@@ -3549,7 +3549,7 @@ public class OpGanttValidator extends XValidator {
             rollbackMove(initalValues);
             throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
          }
-         if ((getType(row) == SCHEDULED_TASK) && (subActivities.size() != 0)) {
+         if ((getType(row) == SCHEDULED_COLLECTION_TASK) && (subActivities.size() != 0)) {
             rollbackMove(initalValues);
             throw new XValidationException(SCHEDULED_MIXED_EXCEPTION);
          }
@@ -4142,7 +4142,7 @@ public class OpGanttValidator extends XValidator {
          XComponent row = (XComponent) selectedRows.get(index);
          // add it to the filtered array
          filterRows.add(row);
-         if (OpGanttValidator.getType(row) == COLLECTION || OpGanttValidator.getType(row) == OpGanttValidator.SCHEDULED_TASK) {
+         if (OpGanttValidator.getType(row) == COLLECTION || OpGanttValidator.getType(row) == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
             // skip it's children
             index = index + getChildren(row).size();
          }
@@ -4897,7 +4897,7 @@ public class OpGanttValidator extends XValidator {
     */
    public boolean updateBaseEffort(XComponent data_row, double effort) {
 
-      if (OpGanttValidator.getType(data_row) == COLLECTION || OpGanttValidator.getType(data_row) == OpGanttValidator.SCHEDULED_TASK) {
+      if (OpGanttValidator.getType(data_row) == COLLECTION || OpGanttValidator.getType(data_row) == OpGanttValidator.SCHEDULED_COLLECTION_TASK) {
          //effort can't be changed for collections
          return false;
       }
@@ -5284,7 +5284,7 @@ public class OpGanttValidator extends XValidator {
          setWorkPhaseFinishes(data_row, workPhaseFinishes);
 
       }
-      else if (activityType == COLLECTION || activityType == SCHEDULED_TASK) {
+      else if (activityType == COLLECTION || activityType == SCHEDULED_COLLECTION_TASK) {
 
          setDuration(data_row, duration);
          while (durationDays > 0) {

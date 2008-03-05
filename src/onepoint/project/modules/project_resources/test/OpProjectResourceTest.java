@@ -101,7 +101,7 @@ public class OpProjectResourceTest extends OpBaseOpenTestCase {
       OpResource resource3 = (OpResource) broker.getObject(res3Id);
 
       OpActivity activity = new OpActivity();
-      activity.setType(OpActivity.SCHEDULED_TASK);
+      activity.setType(OpActivity.SCHEDULED_COLLECTION_TASK);
       activity.setStart(new Date(time));
       activity.setProjectPlan(plan);
       activity.setSubActivities(new HashSet());
