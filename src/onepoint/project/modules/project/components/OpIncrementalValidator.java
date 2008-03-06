@@ -112,9 +112,10 @@ public class OpIncrementalValidator extends OpGanttValidator {
          case BASE_EFFORT_COLUMN_INDEX:
             double base_effort = ((Double) value).doubleValue();
 
-            if (getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED) {
+            boolean effortBased = getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED;
+            base_effort = preCheckSetEffortValue(data_row, base_effort, effortBased);
+            if (effortBased) {
                //if the project is effort based, setting the effort will also affect the duration
-               preCheckSetEffortValue(data_row, base_effort);
                addToUndo();
                updateBaseEffort(data_row, base_effort);
                startPoints = new HashSet();
