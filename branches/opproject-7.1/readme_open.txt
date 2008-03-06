@@ -1,4 +1,4 @@
-Onepoint Project 7.1 (Update 3) Open Edition
+Onepoint Project 7.1 (Update 4) Open Edition
 
 =================================
 
@@ -48,7 +48,7 @@ System Requirements
 
 
 
-* MySQL 5.0.27 or later, PostgreSQL 8.2
+* MySQL 5.0.34 or later, PostgreSQL 8.2
 
 
 

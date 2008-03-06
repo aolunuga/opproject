@@ -100,6 +100,7 @@ public class OpGanttValidator extends XValidator {
    public final static int HAS_COMMENTS = 8;
 
    public final static double ACTIVITY_MAX_DURATION = 20800d; // hours?!?
+   public final static double ACTIVITY_MAX_EFFORT = 2080000d; // hours?!?
    
    //The id of the no category
    public static final String NO_CATEGORY_ID = "-1";
@@ -2370,9 +2371,8 @@ public class OpGanttValidator extends XValidator {
             double base_effort = ((Double) value).doubleValue();
             
             //if the project is effort based, setting the effort will also affect the duration
-            if (getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED) {
-               preCheckSetEffortValue(data_row, base_effort);
-            }
+            boolean effortBased = getCalculationMode() != null && getCalculationMode().byteValue() == EFFORT_BASED;
+            base_effort = preCheckSetEffortValue(data_row, base_effort, effortBased);
 
             addToUndo();
 
@@ -2606,21 +2606,24 @@ public class OpGanttValidator extends XValidator {
       }
    }
 
-   protected void preCheckSetEffortValue(XComponent data_row, double base_effort) {
-      if (isProjectMandatory(data_row)) {
-         if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
-              (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
-            throw new XValidationException(MANDATORY_EXCEPTION);
+   protected double preCheckSetEffortValue(XComponent data_row, double base_effort, boolean effortBased) {
+      if (effortBased) {
+         if (isProjectMandatory(data_row)) {
+            if ((OpGanttValidator.getType(data_row) == MILESTONE && base_effort > 0) ||
+                 (OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
+               throw new XValidationException(MANDATORY_EXCEPTION);
+            }
+         }
+   
+         if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
+            //activity that will become milestone
+            if (subTasks(data_row).size() != 0) {
+               throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
+            }
+            checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
          }
       }
-
-      if ((OpGanttValidator.getType(data_row) != MILESTONE && base_effort <= 0)) {
-         //activity that will become milestone
-         if (subTasks(data_row).size() != 0) {
-            throw new XValidationException(MILESTONE_COLLECTION_EXCEPTION);
-         }
-         checkDeletedAssignmentsForWorkslips(data_row, new ArrayList());
-      }
+      return base_effort > ACTIVITY_MAX_EFFORT ? ACTIVITY_MAX_EFFORT: base_effort;
    }
 
    protected double preCheckSetDurationValue(XComponent data_row, double duration) {

@@ -25,7 +25,6 @@ import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.resource.XLocale;
 import onepoint.util.XCalendar;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
