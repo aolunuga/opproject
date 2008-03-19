@@ -120,6 +120,9 @@ public class OpProjectComponent extends XComponent {
     */
    public final static Integer SHOW_COSTS = new Integer(310);
 
+   // Currently only use in OpAdvancedProjectComponent, but could be useful here too in the future
+   private final static Integer VIEW_TYPE = new Integer(311);
+
    /*start and finish index in the details time interval list */
    private final static int INTERVAL_START_INDEX = 0;
    private final static int INTERVAL_FINISH_INDEX = 1;
@@ -212,7 +215,13 @@ public class OpProjectComponent extends XComponent {
       DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.border_light = XStyle.DEFAULT_BORDER;
       DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.border_dark = XStyle.DEFAULT_BORDER_ALTERNATE;
       DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.background = XStyle.DEFAULT_FIELD;
-      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.alternate_background = XStyle.DEFAULT_BACKGROUND;
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.alternate_background = XStyle.DEFAULT_ROW_ALTERNATE;
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.selection_background = XStyle.DEFAULT_HIGHLIGHTING;
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.selection_alternate_background = XStyle.DEFAULT_HIGHLIGHTING_ALTERNATE;
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.selection_gradient = XDisplay.gradient(XStyle.LINEAR_GRADIENT, HORIZONTAL,
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.selection_background,
+      DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.selection_alternate_background);
+
       DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES.gap = 8; // Captions
       addDefaultStyle(DEFAULT_GANTT_CHART_STYLE, DEFAULT_GANTT_CHART_STYLE_ATTRIBUTES);
       // Default Gantt task style
@@ -840,6 +849,14 @@ public class OpProjectComponent extends XComponent {
       return categoryColorMap;
    }
 
+   public void setViewType(int viewType) {
+      setProperty(VIEW_TYPE, new Integer(viewType));
+   }
+
+   public int getViewType() {
+      return ((Integer) getProperty(VIEW_TYPE)).intValue();
+   }
+
    /**
     * Will open a caption Editor for this component (e.g. activity). Must be called in component context.
     */
@@ -1025,18 +1042,9 @@ public class OpProjectComponent extends XComponent {
       }
 
       if (getStart() == null) {
-         // Only start calculations if not already initialized
-
          XCalendar calendar = XDisplay.getDefaultDisplay().getCalendar();
 
-         int first_weekday = calendar.getCalendar().getFirstDayOfWeek();
-         int last_weekday = calendar.previousWeekday(first_weekday);
-         int first_workday = calendar.getFirstWorkday();
-         int last_workday = calendar.getLastWorkday();
-         int weekLength = 7;
-
-         // Start and end of chart is the minimum/maximum of activities
-         // start/end
+         // Start and end of chart is the minimum/maximum of activities start/end
          long chart_start_time = Long.MAX_VALUE;
          long chart_end_time = Long.MIN_VALUE;
          long start_time = chart_start_time;
@@ -1047,10 +1055,8 @@ public class OpProjectComponent extends XComponent {
          if (pcType == GANTT_CHART) {
             validator = (OpGanttValidator) (data_set.validator());
          }
-         // *** Check for data-set?
+
          XComponent data_row = null;
-         // *** TODO: Validation could keep track of max/min, i.e., start/end
-         // for Gantt
          for (int index = 0; index < data_set.getChildCount(); index++) {
             data_row = (XComponent) (data_set._getChild(index));
             if (!OpProjectConstants.DUMMY_ROW_ID.equals(data_row.getStringValue())) {
@@ -1061,7 +1067,6 @@ public class OpProjectComponent extends XComponent {
                   }
                   start_time = OpGanttValidator.getStart(data_row).getTime();
                   end_time = OpGanttValidator.getEnd(data_row).getTime();
-                  logger.debug("---START: " + OpGanttValidator.getStart(data_row));
                }
                else {
 
@@ -1130,15 +1135,8 @@ public class OpProjectComponent extends XComponent {
                   chart_start = OpGanttValidator.getDefaultTemplateStart();
                }
                else {
-                  //if the project is not a template set the start date to the start of the project
-                  Date projectStart;
-                  if (validator.getProjectStart() != null) {
-                     projectStart = validator.getProjectStart();
-                  }
-                  else {
-                     projectStart = XCalendar.today();
-                  }
-                  chart_start = calendar.workWeekStart(projectStart);
+                  //if the project is not a template set the start date around today
+                  chart_start = calendar.workWeekStart(XCalendar.today());
                }
             }
             else {
@@ -1154,7 +1152,7 @@ public class OpProjectComponent extends XComponent {
          int uiDaysToRight;
          double unitRatio = getUnitRatio(box.getTimeUnit());
 
-
+         int weekLength = 7;
          if (pcType == GANTT_CHART) {
             double dayWidth = box._dayWidth();
             int maxLeftCaption = box.getMaxLeftCaptionSize();
@@ -1203,17 +1201,14 @@ public class OpProjectComponent extends XComponent {
          setFirstMonthLength(first_month_length);
 
          int start_weekday = calendar.getCalendar().getFirstDayOfWeek();
-         logger.debug("---MONDAY = " + Calendar.MONDAY);
-         logger.debug("START date from cal " + calendar.getCalendar().get(Calendar.DAY_OF_MONTH));
-         logger.debug("START_WEEKDAY: " + start_weekday);
 
          // *** start-week-day-offset = 0
+         int first_workday = calendar.getFirstWorkday();
+         int last_workday = calendar.getLastWorkday();
          int work_week_length = 1 + last_workday - first_workday;
-         // logger.debug("*** WORK_WEEK_LENGTH " + work_week_length);
          setWorkWeekLength(work_week_length);
 
          int first_work_week_length = XDisplay.getDefaultDisplay().getCalendar().countWeekdays(start_weekday, last_workday);
-         logger.debug("FIRST_WORK_WEEK_LENGTH: " + first_work_week_length);
 
          int first_weekend_length = weekLength - work_week_length;
          if (first_work_week_length > work_week_length) {
@@ -1221,18 +1216,12 @@ public class OpProjectComponent extends XComponent {
             first_work_week_length = work_week_length;
             first_weekend_length = XDisplay.getDefaultDisplay().getCalendar().countWeekdays(start_weekday, calendar.previousWeekday(first_workday));
          }
-         // logger.debug("*** FIRST_WEEKEND_LENGTH " +
-         // first_weekend_length);
+
          setFirstWorkWeekLength(first_work_week_length);
          setFirstWeekendLength(first_weekend_length);
-         // *** Week-count is simply calculated and we don't need the
-         // Calendar class
-         // ==> Do we really need/want to store this information in a
-         // property?
          int week_count = (int) ((chart_end_time - chart_start_time) / XCalendar.MILLIS_PER_WEEK);
          setWeekCount(week_count);
 
-         // *** For months we would have to store a Vector of month-lengths?
          setStart(chart_start);
          setEnd(chart_end);
 
@@ -2007,6 +1996,30 @@ public class OpProjectComponent extends XComponent {
       initializeUtilizationChartTimeDimension();
    }
 
+   /**
+    * Sets the <code>last_value</code> on this scroll on the position for Today date.
+    * <code>last_value</code> is used by scrollSlidersToLastValue().
+    */
+   private void setScrollLastValueToToday() {
+      XComponent horizontal_scroll_bar = (XComponent) (_getChild(HORIZONTAL_SCROLL_BAR_INDEX));
+      int scrollMax = horizontal_scroll_bar.getMaximum();
+      if (!Boolean.TRUE.equals(horizontal_scroll_bar.getSliderWasMoved())) {
+         if (scrollMax != 0) {
+            OpProjectComponent chart = (OpProjectComponent) getBoxContent();
+            long startTime = chart.getStart().getTime();
+            long endTime = chart.getEnd().getTime();
+            long todayTime = XCalendar.today().getTime();
+            if (startTime > todayTime) {
+               horizontal_scroll_bar.setLastValue(0);
+            }
+            else {
+               long today = (todayTime - startTime) / ((endTime - startTime) / scrollMax);
+               horizontal_scroll_bar.setLastValue((double) today / (double) scrollMax);
+            }
+         }
+      }
+   }
+
    public void doLayout() {
       switch (pcType) {
          case GANTT_CHART:
@@ -2019,12 +2032,14 @@ public class OpProjectComponent extends XComponent {
          case GANTT_BOX:
             scrollSlidersToZero();
             doLayoutScrollBox();
+            setScrollLastValueToToday();
             scrollSlidersToLastValue();
             this.syncBoxUISelection();
             break;
          case UTILIZATION_BOX:
             scrollSlidersToZero();
             doLayoutScrollBox();
+            setScrollLastValueToToday();
             scrollSlidersToLastValue();
             break;
          case UTILIZATION_CHART:
@@ -2514,26 +2529,23 @@ public class OpProjectComponent extends XComponent {
 
    protected void _paintUtilizationChart(Graphics g, Rectangle clip_area) {
       _paintTimeChartBackground(g, clip_area);
+      // Paint today marker
+      paintProjectStartFinishLines(g, clip_area, false);
       paintChildren(g, clip_area);
    }
 
    /**
-    * Paints the start and end line for the project on the gantt chart.
+    * Paints the start, finish and today markers for GANTT and utilization chart
     *
     * @param g         Graphic context used for painting.
     * @param clip_area Paint clip area.
     */
-   protected void paintProjectStartFinishLines(Graphics g, Rectangle clip_area) {
+   protected void paintProjectStartFinishLines(Graphics g, Rectangle clip_area, boolean showStartFinish) {
       OpProjectComponent box = (OpProjectComponent) getContext();
       Rectangle bounds = getBounds();
       XComponent view_port = (XComponent) box.getViewPort();
       OpProjectComponent ganttChart = (OpProjectComponent) view_port.getChild(0);
 
-      XComponent data_set = box.getDataSetComponent();
-      OpGanttValidator validator = (OpGanttValidator) (data_set.validator());
-      if (validator == null) {
-         return;
-      }
 
       long chartStart = ganttChart.getStart().getTime();
       int x = 0;
@@ -2547,29 +2559,47 @@ public class OpProjectComponent extends XComponent {
       }
       long today = XCalendar.today().getTime();
       x = (int) ((today - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
-      g.setColor(getStyleAttributes().selection_background);
-      g.fillRect(x, 0, width, bounds.height);
-
-      if (validator.getProjectStart() == null) {
-         return;
+      XStyle style = getStyleAttributes();
+      g.setColor(style.selection_background);
+      if (style.selection_gradient != null) {
+         drawGradientImage(g, style.selection_gradient, x, 0, width, bounds.height);
+         g.drawRect(x, 0, width, bounds.height);
+      }
+      else {
+         g.fillRect(x, 0, width, bounds.height);
       }
 
-      long projectStart = validator.getProjectStart().getTime();
+      if (showStartFinish) {
 
-      // start bar
-      x = (int) ((projectStart - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
-      g.setColor(XStyle.DEFAULT_GREEN);
-      g.fillRect(x - 1, 0, 2, bounds.height);
+         XComponent data_set = box.getDataSetComponent();
+         OpGanttValidator validator = (OpGanttValidator) (data_set.validator());
+         if (validator == null) {
+            return;
+         }
 
-      // end bar
-      if (validator.getProjectFinish() == null) {
-         return;
+         if (validator.getProjectStart() == null) {
+            return;
+         }
+
+         long projectStart = validator.getProjectStart().getTime();
+
+         // start bar
+         x = (int) ((projectStart - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
+         g.setColor(XStyle.DEFAULT_GREEN);
+         g.fillRect(x - 1, 0, 2, bounds.height);
+
+         // end bar
+         if (validator.getProjectFinish() == null) {
+            return;
+         }
+         long projectFinish = validator.getProjectFinish().getTime();
+         projectFinish += XCalendar.MILLIS_PER_DAY; // add one day => draw the end line at the end of the previous day
+         x = (int) ((projectFinish - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
+         g.setColor(XStyle.DEFAULT_RED);
+         g.fillRect((int) x, 0, 2, bounds.height);
+
       }
-      long projectFinish = validator.getProjectFinish().getTime();
-      projectFinish += XCalendar.MILLIS_PER_DAY; // add one day => draw the end line at the end of the previous day
-      x = (int) ((projectFinish - chartStart) * dayWidth / (XCalendar.MILLIS_PER_DAY * unitRatio));
-      g.setColor(XStyle.DEFAULT_RED);
-      g.fillRect((int) x, 0, 2, bounds.height);
+
    }
 
    /**
@@ -2634,7 +2664,7 @@ public class OpProjectComponent extends XComponent {
          case GANTT_CHART:
             initializeCalendar();
             _paintTimeChartBackground(g, clip_area);
-            paintProjectStartFinishLines(g, clip_area);
+            paintProjectStartFinishLines(g, clip_area, true);
 
             // Paint activities and dependencies (in this order)
             insertLine = getGanttActivityLine();

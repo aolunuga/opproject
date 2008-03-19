@@ -83,100 +83,102 @@ public class OpEditAdhocTaskFormProvider implements XFormProvider {
       locatorField.setStringValue(activityLocator);
 
       OpBroker broker = session.newBroker();
-      OpActivity task = (OpActivity) broker.getObject(activityLocator);
-      XComponent nameField = form.findComponent(TASK_NAME);
-      nameField.setStringValue(task.getName());
-      XComponent descriptionField = form.findComponent(TASK_DESCRIPTION);
-      descriptionField.setStringValue(task.getDescription());
-      XComponent priorityField = form.findComponent(TASK_PRIORITY);
-      priorityField.setIntValue(task.getPriority());
-      XComponent dueField = form.findComponent(TASK_DUE_DATE);
-      dueField.setDateValue(task.getFinish());
+      try {
+         OpActivity task = (OpActivity) broker.getObject(activityLocator);
+         XComponent nameField = form.findComponent(TASK_NAME);
+         nameField.setStringValue(task.getName());
+         XComponent descriptionField = form.findComponent(TASK_DESCRIPTION);
+         descriptionField.setStringValue(task.getDescription());
+         XComponent priorityField = form.findComponent(TASK_PRIORITY);
+         priorityField.setIntValue(task.getPriority());
+         XComponent dueField = form.findComponent(TASK_DUE_DATE);
+         dueField.setDateValue(task.getFinish());
 
-      // set view mode if no write rights
-      editMode &= OpMyTasksServiceImpl.editGranted((OpProjectSession) s, task);
+         // set view mode if no write rights
+         editMode &= OpMyTasksServiceImpl.editGranted((OpProjectSession) s, broker, task);
 
-      //fill project data set
-      int index = 0;
-      int selectedIndex = 0;
-      List resources = new ArrayList();
-      for (Object o : projectsMap.keySet()) {
-         String choice = (String) o;
-         XComponent row = new XComponent(XComponent.DATA_ROW);
-         row.setStringValue(choice);
-         projectDataSet.addChild(row);
-         if (XValidator.choiceID(choice).equals(task.getProjectPlan().getProjectNode().locator())) {
-            selectedIndex = index;
-            resources = (List) projectsMap.get(choice);
+         //fill project data set
+         int index = 0;
+         int selectedIndex = 0;
+         List resources = new ArrayList();
+         for (Object o : projectsMap.keySet()) {
+            String choice = (String) o;
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            row.setStringValue(choice);
+            projectDataSet.addChild(row);
+            if (XValidator.choiceID(choice).equals(task.getProjectPlan().getProjectNode().locator())) {
+               selectedIndex = index;
+               resources = (List) projectsMap.get(choice);
+            }
+            index++;
          }
-         index++;
-      }
-      XComponent projectChooser = form.findComponent(TASK_PROJECT);
-      projectChooser.setSelectedIndex(selectedIndex);
+         XComponent projectChooser = form.findComponent(TASK_PROJECT);
+         projectChooser.setSelectedIndex(selectedIndex);
 
-      //fill resource data set
-      XComponent resourcetChooser = form.findComponent(TASK_RESOURCE);
-      OpResource resource = null;
-      Set assignments = task.getAssignments();
-      for (Object assignment1 : assignments) {
-         OpAssignment assignment = (OpAssignment) assignment1;
-         resource = assignment.getResource();
-      }
-      index = 0;
-      selectedIndex = 0;
-      for (Object resource1 : resources) {
-         String choice = (String) resource1;
-         XComponent row = new XComponent(XComponent.DATA_ROW);
-         row.setStringValue(choice);
-         resourceDataSet.addChild(row);
-         if (resource != null && XValidator.choiceID(choice).equals(resource.locator())) {
-            selectedIndex = index;
+         //fill resource data set
+         XComponent resourcetChooser = form.findComponent(TASK_RESOURCE);
+         OpResource resource = null;
+         Set assignments = task.getAssignments();
+         for (Object assignment1 : assignments) {
+            OpAssignment assignment = (OpAssignment) assignment1;
+            resource = assignment.getResource();
          }
-         index++;
+         index = 0;
+         selectedIndex = 0;
+         for (Object resource1 : resources) {
+            String choice = (String) resource1;
+            XComponent row = new XComponent(XComponent.DATA_ROW);
+            row.setStringValue(choice);
+            resourceDataSet.addChild(row);
+            if (resource != null && XValidator.choiceID(choice).equals(resource.locator())) {
+               selectedIndex = index;
+            }
+            index++;
+         }
+
+         resourcetChooser.setStringValue(((XComponent) resourceDataSet.getChild(selectedIndex)).getStringValue());
+
+         OpQuery query = broker.newQuery("from OpResource");
+
+         Iterator it = broker.iterate(query);
+
+         while (it.hasNext()) {
+            OpResource res = (OpResource) it.next();
+            XComponent dataRow = new XComponent(XComponent.DATA_ROW);
+            dataRow.setStringValue(res.locator()+"['"+res.getName()+"']");
+            allResources.addChild(dataRow);
+         }
+
+         form.findComponent(ALL_RESOURCES).setValue(allResources);
+
+         //fill attachement tab
+         Set<OpAttachment> attachments = task.getAttachments();
+         addAttachments(form, attachments);
+         XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(AD_HOC_RESOURCE_MAP);
+         OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
+         if (!editMode) {
+            //disable all fields
+            String title = session.getLocale().getResourceMap(RESOURCE_MAP).getResource(INFO_TITLE).getText();
+            form.setText(title);
+            form.findComponent(OK_BUTTON).setVisible(false);
+            form.findComponent(ADD_DOC_BUTTON).setEnabled(false);
+            form.findComponent(ADD_DOC_BUTTON).setVisible(false);
+            form.findComponent(ADD_URL_BUTTON).setEnabled(false);
+            form.findComponent(ADD_URL_BUTTON).setVisible(false);
+            form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(false);
+            form.findComponent(REMOVE_ATTACHMENT_BUTTON).setVisible(false);
+            form.findComponent(VIEW_ATTACHMENT_BUTTON).setEnabled(false);
+            form.findComponent(VIEW_ATTACHMENT_BUTTON).setVisible(false);
+            nameField.setEnabled(false);
+            descriptionField.setEnabled(false);
+            priorityField.setEnabled(false);
+            dueField.setEnabled(false);
+            projectChooser.setEnabled(false);
+            resourcetChooser.setEnabled(false);
+         }
       }
-
-      resourcetChooser.setStringValue(((XComponent) resourceDataSet.getChild(selectedIndex)).getStringValue());
-
-      OpQuery query = broker.newQuery("from OpResource");
-
-      Iterator it = broker.iterate(query);
-
-      while (it.hasNext()) {
-         OpResource res = (OpResource) it.next();
-         XComponent dataRow = new XComponent(XComponent.DATA_ROW);
-         dataRow.setStringValue(res.locator()+"['"+res.getName()+"']");
-         allResources.addChild(dataRow);
-      }
-
-      form.findComponent(ALL_RESOURCES).setValue(allResources);
-
-      //fill attachement tab
-      Set<OpAttachment> attachments = task.getAttachments();
-      addAttachments(form, attachments);
-      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(AD_HOC_RESOURCE_MAP);
-      OpEditActivityFormProvider.showComments(form, task, session, broker, resourceMap, true);
-
-      broker.close();
-
-      if (!editMode) {
-         //disable all fields
-         String title = session.getLocale().getResourceMap(RESOURCE_MAP).getResource(INFO_TITLE).getText();
-         form.setText(title);
-         form.findComponent(OK_BUTTON).setVisible(false);
-         form.findComponent(ADD_DOC_BUTTON).setEnabled(false);
-         form.findComponent(ADD_DOC_BUTTON).setVisible(false);
-         form.findComponent(ADD_URL_BUTTON).setEnabled(false);
-         form.findComponent(ADD_URL_BUTTON).setVisible(false);
-         form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(false);
-         form.findComponent(REMOVE_ATTACHMENT_BUTTON).setVisible(false);
-         form.findComponent(VIEW_ATTACHMENT_BUTTON).setEnabled(false);
-         form.findComponent(VIEW_ATTACHMENT_BUTTON).setVisible(false);
-         nameField.setEnabled(false);
-         descriptionField.setEnabled(false);
-         priorityField.setEnabled(false);
-         dueField.setEnabled(false);
-         projectChooser.setEnabled(false);
-         resourcetChooser.setEnabled(false);
+      finally {
+         broker.close();
       }
    }
 

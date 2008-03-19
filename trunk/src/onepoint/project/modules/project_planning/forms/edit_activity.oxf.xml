@@ -1,5 +1,6 @@
-<form layout="border" width="750" height="470" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
-      error-label-ref="ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes" provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
+<form layout="border" width="900" height="540" start-focus-ref="Name" default-button-ref="okButton" resource-map-ref="project_planning.EditActivity"
+      error-label-ref="ValidationErrorLabel" script="/modules/project_planning/scripts/edit_activity.jes" on-unload="clearContents"
+      provider-class="onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider">
    <panel layout="border">
 
       <data-set id="ActivityCategoryDataSet"/>
@@ -8,6 +9,7 @@
 
       <data-set id="ResourceAvailability"/>
       <data-field id="ActivityRowIndex"/>
+      <data-field id="SubjectIDField"/>
       <data-field id="ActivityIDField"/>
       <data-field id="EditModeField"/>
       <data-field id="ActivityDuration"/>
@@ -21,6 +23,9 @@
       <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
       <data-field id="AssignmentException" text="${AssignmentErrorMessage}"/>
       <data-field id="InvalidPaymentException" text="${InvalidPaymentErrorMessage}"/>
+      <data-field id="BaseEffortBelowActualException" text="${BaseEffortBelowActualErrorMessage}"/>
+
+      <data-field id="ViewedNewContents"/>
 
       <label id="EditStandardDialogTitle" text="${EditStandardActivity}" visible="false"/>
       <label id="EditCollectionDialogTitle" text="${EditCollectionActivity}" visible="false"/>
@@ -108,7 +113,7 @@
          <tab text="${Costs}" layout="table" id="CostsTab">
             <label x="0" y="0" width="2" text="${Personnel}"/>
             <double-field x="2" y="0" width="3" id="PersonnelCosts" enabled="false" decimals="2"/>
-            <label x="0" y="1" width="2" text="${Billable}"/>
+            <label x="0" y="1" width="2" text="${Billable}" id="EffortBillableLabel"/>
             <double-field x="2" y="1" width="3" id="EffortBillable" decimals="0"/>
             <label x="0" y="2" width="2" text="${Travel}"/>
             <double-field x="2" y="2" width="3" id="TravelCosts" decimals="2"/>
@@ -153,6 +158,12 @@
             <panel y="1" layout="flow" direction="east">
                <button style-ref="icon-button-default" icon="/icons/plus_s.png" on-button-pressed="addComment" id="AddCommentButton" enabled="false"/>
             </panel>
+         </tab>
+
+         <tab text="${CustomAttributes}" layout="border" id="customAttributesTab" parent-id="TabBoxId" hidden="true">
+            <scroll-box flexible="true" style-ref="tab-box-default" borderless="true">
+               <panel layout="table" flexible="true" borderless="true" id="customAttributes" />
+            </scroll-box>
          </tab>
 
       </tab-box>

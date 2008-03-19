@@ -9,9 +9,12 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
 import onepoint.resource.XLocalizer;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,12 +32,12 @@ public class OpReportDataSource implements JRDataSource {
    /**
     * The map of [reportFieldName, reportFieldIndex] pairs.
     */
-   private Map reportFields = null;
+   protected Map<String, Integer> reportFields = null;
 
    /**
     * An iterator over the results of a query.
     */
-   private Iterator queryIterator = null;
+   protected Iterator queryIterator = null;
 
    /**
     * A localizer user for i18n resources.
@@ -44,17 +47,37 @@ public class OpReportDataSource implements JRDataSource {
    /**
     * The current value of the iterator.
     */
-   private Object[] currentValue = null;
+   protected List currentValue = null;
+
+
+   protected Map parameters;
+   protected OpBroker broker;
+
+
+   public OpReportDataSource() {
+   }
+
+   public void setReportFields(Map reportFields) {
+      this.reportFields = reportFields;
+   }
+
+   public void setQueryIterator(Iterator queryIterator) {
+      this.queryIterator = queryIterator;
+   }
+
+   public void setLocalizer(XLocalizer localizer) {
+      this.localizer = localizer;
+   }
+
 
    /**
     * Creates a new report datasource.
-    * 
-    * @param reportFields a <code>Map</code> of [reportFieldName, reportFieldIndex] pairs, where the reportFieldName
-    * represents the name of the field (in the report) and reportFieldIndex represents the index of the field in the
-    * query result.
     *
+    * @param reportFields  a <code>Map</code> of [reportFieldName, reportFieldIndex] pairs, where the reportFieldName
+    *                      represents the name of the field (in the report) and reportFieldIndex represents the index of the field in the
+    *                      query result.
     * @param queryIterator a <code>Iterator</code> over the results of a query.
-    * @param localizer a <code>XLocalizer</code> object user for localizing strings.
+    * @param localizer     a <code>XLocalizer</code> object user for localizing strings.
     */
    public OpReportDataSource(Map reportFields, Iterator queryIterator, XLocalizer localizer) {
       this.reportFields = reportFields;
@@ -68,7 +91,7 @@ public class OpReportDataSource implements JRDataSource {
    public boolean next()
         throws JRException {
       if (queryIterator.hasNext()) {
-         currentValue = (Object[]) queryIterator.next();
+         currentValue = Arrays.asList(((Object[]) queryIterator.next()));
          return true;
       }
       return false;
@@ -88,14 +111,22 @@ public class OpReportDataSource implements JRDataSource {
          logger.error("Field " + jrField.getName() + " not found among report fields");
          return null;
       }
-      if (fieldIndex.intValue() >= currentValue.length) {
+      if (fieldIndex >= currentValue.size()) {
          logger.error("Field " + jrField.getName() + " not found in current row");
          return null;
       }
-      Object value = currentValue[fieldIndex.intValue()];
+      Object value = currentValue.get(fieldIndex);
       if (value instanceof String && localizer != null) {
          return localizer.localize((String) value);
       }
       return value;
+   }
+
+   public void setParameters(Map param) {
+      this.parameters = param;
+   }
+
+   public void setBroker(OpBroker broker) {
+      this.broker = broker;
    }
 }

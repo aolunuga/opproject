@@ -31,6 +31,7 @@ public class OpProjectComponentProxy extends XExpressProxy {
    private final static String GET_RESOURCE_NAME = "getResourceName".intern();
    private final static String CHANGE_TOOL = "changeTool".intern();
    private final static String RESET_CALENDAR = "resetCalendar".intern();
+   private final static String SET_VIEW_TYPE = "setViewType".intern();
 
    // Method names: SHA1
    private final static String CALCULATE_HASH = "calculateHash";
@@ -129,6 +130,16 @@ public class OpProjectComponentProxy extends XExpressProxy {
             }
             return null;
          }
+         else if (method_name == SET_VIEW_TYPE) {
+             if (arguments.length == 1) {
+                 ((OpProjectComponent) object).setViewType(((Integer) (arguments[0])).intValue());
+              }
+              else {
+                 throw new XInterpreterException("Wrong number of arguments for method " + object.getClass().getName() + "." + method_name);
+              }
+              return null;
+           }
+
          else {
             return super.invokeMethod(object, method_name, arguments);
          }

@@ -9,6 +9,7 @@
    <data-field id="ProjectToResourceMap"/>
    <data-field id="ActivityLocator"/>
    <data-field id="ActivityRowIndex"/>
+   <data-field id="ViewedNewContents"/>
 
    <data-field id="AllResources"/>
 

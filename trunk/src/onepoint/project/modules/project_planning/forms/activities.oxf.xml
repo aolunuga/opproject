@@ -17,6 +17,9 @@
    <data-field id="WorkRecordsExistException" text="${WorkRecordsExistErrorMessage}"/>
    <data-field id="TaskExtraResourceException" text="${TaskExtraResourceErrorMessage}"/>
    <data-field id="InvalidPriorityException" text="${InvalidPriorityErrorMessage}"/>
+   <data-field id="BaseEffortBelowActualException" text="${BaseEffortBelowActualErrorMessage}"/>
+   <data-field id="CannotMoveRootActivityException" text="${CannotMoveRootActivityErrorMessage}"/>
+   <data-field id="OutlineLevelInvalidException" text="${OutlineLevelInvalidErrorMessage}"/>
    <data-field id="InvalidPaymentException" text="${InvalidPaymentErrorMessage}"/>
 
    <data-field id="ImportProjectTitle" text="${ImportProjectTitle}"/>
@@ -28,6 +31,7 @@
    <data-field id="Total" text="${Total}"/>
    <data-field id="ShowResourceHours"/>
    <data-field id="ResourceAvailability"/>
+   
    <data-set id="ProjectNameSet"/>
    <data-set id="AssignmentSet" on-choice-editor-compare="compareChoiceResources"/>
    <data-set id="ProjectSettingsDataSet"/>
@@ -130,13 +134,13 @@
                           pop-up-menu-ref="activitiesPopupMenu" on-open-pop-up-menu="enableActivitiesPopUp" flexible="true"
                           stateful="true" on-double-click="editActivity"
                           on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities"
-                          footer-data-set-ref="ActivityListFooter">
+                          footer-data-set-ref="ActivityListFooter" row-height="20">
                   <table-column text="" width="0" hidden="true" data-column-index="1"
                                 row-font-styles="plain;bold;bold+italic;italic;italic;plain"/>
                   <!-- The list of columns to show could be editable and dynamic (form-provider) -->
                   <table-column text="" sortable="true" width="20" value-type="Index"/>
                   <table-column text="" width="35" data-column-index="18" value-type="IndicatorList" icon-set-ref="IndicatorIconSet"/>
-                  <table-column text="${Name}" sortable="true" width="180" data-column-index="0"/>
+                  <table-column text="${Name}" sortable="true" width="175" data-column-index="0"/>
                   <!-- category column should define row-foregrounds -->
                   <!-- note: Both columns should be hidden by default; special zero-width handling or hidden columns -->
                   <table-column id="PercentCompleteColumn" text="${PercentageFinished}" width="65" sortable="true" data-column-index="3"
@@ -217,13 +221,14 @@
             <tab layout="border" text="${CostsProjection}" id="CostsProjectionTab">
                <table-box id="CostTable" data-set-ref="ActivitySet" tree-column-index="2" sidebar-width="0" stateful="true"
                           on-double-click="editActivity" pop-up-menu-ref="costsPopupMenu" on-open-pop-up-menu="enableActivitiesPopUp"
-                          on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities" footer-data-set-ref="ActivityCostsFooter">
+                          on-copy="copyActivities" on-cut="cutActivities" on-paste="pasteActivities" footer-data-set-ref="ActivityCostsFooter"
+                          row-height="20">
                   <table-column text="" width="0" hidden="true" data-column-index="1"
                                 row-font-styles="plain;bold;bold+italic;italic;italic"/>
                   <table-column text="" sortable="true" width="20" value-type="Index"/>
-                  <table-column text="${Activity}" width="180" sortable="true" data-column-index="0" decimals="2"/>
+                  <table-column text="${Activity}" width="175" sortable="true" data-column-index="0" decimals="2"/>
                   <table-column text="${Personnel}" width="80" sortable="true" data-column-index="11" value-type="Double" decimals="2" on-value-changed="updatePersonnelSum"/>
-                  <table-column text="${Billable}" width="80" sortable="true" data-column-index="31" value-type="Double" decimals="2"/>
+                  <!-- <table-column text="${Billable}" width="80" sortable="true" data-column-index="31" value-type="Double" decimals="2"/>  -->
                   <table-column text="${Travel}" width="80" sortable="true" data-column-index="12" value-type="Double" decimals="2" on-value-changed="updateTravelSum"/>
                   <table-column text="${Material}" width="80" sortable="true" data-column-index="13" value-type="Double" decimals="2" on-value-changed="updateMaterialSum"/>
                   <table-column text="${External}" width="80" sortable="true" data-column-index="14" value-type="Double" decimals="2" on-value-changed="updateExternalSum"/>
@@ -250,7 +255,7 @@
          </tab-box>
       </panel>
 
-      <status-bar y="1"/>
+      <status-bar id="StatusBar" y="1"/>
 
    </panel>
 

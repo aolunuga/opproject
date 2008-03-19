@@ -4,18 +4,26 @@
 
 package onepoint.project.modules.project;
 
-import onepoint.persistence.OpObject;
-import onepoint.persistence.OpSubTypable;
-import onepoint.project.modules.project.components.OpGanttValidator;
-import onepoint.project.modules.resource.OpResource;
-
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-public class OpActivity extends OpObject implements OpSubTypable {
+import onepoint.persistence.OpObject;
+import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project_controlling.OpControllingRecord;
+import onepoint.project.modules.resource.OpResource;
+import onepoint.project.modules.work.OpCostRecord;
+import onepoint.project.modules.work.OpWorkRecord;
+
+public class OpActivity extends OpObject implements OpActivityIfc { //implements OpSubTypable {
 
    public final static String ACTIVITY = "OpActivity";
 
@@ -82,6 +90,8 @@ public class OpActivity extends OpObject implements OpSubTypable {
    public final static int START_DATE_LIST_INDEX = 0;
    public final static int END_DATE_LIST_INDEX = 1;
 
+   public static final double DEFAULT_BILLABLE = 100;
+
    private String name;
    private String description;
    private byte type = STANDARD;
@@ -131,6 +141,8 @@ public class OpActivity extends OpObject implements OpSubTypable {
    private Set<OpAttachment> attachments = new HashSet<OpAttachment>();
    private Set<OpActivityVersion> versions;
    private Set<OpActivityComment> comments;
+   private Set<OpControllingRecord> controllingRecords;
+
    private boolean usesBaseline;
 
    public OpActivity() {
@@ -471,6 +483,13 @@ public class OpActivity extends OpObject implements OpSubTypable {
       return assignments;
    }
 
+   public void addAssignment(OpAssignment a) {
+      if (getAssignments() == null) {
+         setAssignments(new HashSet<OpAssignment>());
+      }
+      getAssignments().add(a);
+  }
+   
    public void setWorkPeriods(Set<OpWorkPeriod> workPeriods) {
       this.workPeriods = workPeriods;
    }
@@ -585,7 +604,10 @@ public class OpActivity extends OpObject implements OpSubTypable {
    }
 
    public double getPayment() {
-      return payment;
+      if (getType() == OpActivity.MILESTONE)
+         return payment;
+      else 
+         return 0d;
    }
 
    public void setPayment(Double payment) {
@@ -777,10 +799,37 @@ public class OpActivity extends OpObject implements OpSubTypable {
       return remainingPersonnelCosts;
    }
 
-   public void setRemainingPersonnelCosts(Double remainingPersonnelCosts) {
-      this.remainingPersonnelCosts = remainingPersonnelCosts != null ? remainingPersonnelCosts : 0;
+    public void setRemainingPersonnelCosts(Double remainingPersonnelCosts) {
+       this.remainingPersonnelCosts = remainingPersonnelCosts != null ? remainingPersonnelCosts : 0;
    }
 
+   public Set<OpControllingRecord> getControllingRecords() {
+      return controllingRecords;
+   }
+
+   public void setControllingRecords(Set<OpControllingRecord> controllingRecords) {
+      this.controllingRecords = controllingRecords;
+   }
+
+   public void addControllingRecord(OpControllingRecord cr) {
+      if (cr.getActivity() == this) {
+         return;
+      }
+      else if (cr.getActivity() != null) {
+         throw new RuntimeException("Controlling records messed up for activity...");
+      }
+      if (controllingRecords == null) {
+         controllingRecords = new HashSet<OpControllingRecord>();
+      }
+      controllingRecords.add(cr);
+      cr.setActivity(this);
+   }
+   
+   public void removeControllingRecord(OpControllingRecord cr) {
+      if (controllingRecords != null && controllingRecords.remove(cr)) {
+         cr.setActivity(null);
+      }
+   }
    /**
     * Updates the remaining personnel costs on the activity and its super activities.
     *
@@ -814,12 +863,491 @@ public class OpActivity extends OpObject implements OpSubTypable {
       return (attributes & HAS_COMMENTS) == HAS_COMMENTS;
    }
 
-   public Double getEffortBillable() {
-      return effortBillable;
+   public double getEffortBillable() {
+      return effortBillable == null ? DEFAULT_BILLABLE : effortBillable.doubleValue();
    }
 
    public void setEffortBillable(Double billable) {
       this.effortBillable = billable;
+   }
+
+
+   /**
+    * @author peter
+    * evil little helper for evil structured database ;-)
+    */
+   public static class OpProgressDelta {
+      
+      private double remainingEffort = 0.0;
+      private boolean insert = true;
+      private boolean completedChanged = false;
+      private double weigthedCompleteDelta = 0.0;
+      private boolean latest = false;
+      
+      Map<Byte, Double> costs = new HashMap<Byte, Double>();
+      
+      private double remainingPersonnelCosts = 0.0;
+      private double remainingProceeds = 0.0;
+
+      OpProgressDelta(double remainingEffort,
+            boolean insert, boolean completedChanged, double weigthedCompleteDelta,
+            boolean latest) {
+         this.remainingEffort = remainingEffort;
+         this.insert = insert;
+         this.completedChanged = completedChanged;
+         this.weigthedCompleteDelta = weigthedCompleteDelta;
+         this.latest = latest;
+      }
+
+      public void setRemainingCosts(Byte type, double value) {
+         costs.put(type, new Double(value));
+      }
+      
+      public double getRemainingCosts(Byte type) {
+         Double r = costs.get(type);
+         return (r != null ? r.doubleValue() : 0d);
+      }
+      
+      
+      public void setWeigthedCompleteDelta(double weigthedCompleteDelta) {
+         this.weigthedCompleteDelta = weigthedCompleteDelta;
+      }
+
+      public double getRemainingProceeds() {
+         return remainingProceeds;
+      }
+
+      public void setRemainingProceeds(double remainingProceeds) {
+         this.remainingProceeds = remainingProceeds;
+      }
+
+      public double getRemainingPersonnelCosts() {
+         return remainingPersonnelCosts;
+      }
+
+      public void setRemainingPersonnelCosts(double remainingPersonnelCosts) {
+         this.remainingPersonnelCosts = remainingPersonnelCosts;
+      }
+
+      public double getRemainingEffort() {
+         return remainingEffort;
+      }
+
+      public boolean isInsert() {
+         return insert;
+      }
+
+      public boolean isCompletedChanged() {
+         return completedChanged;
+      }
+
+      public double getWeigthedCompleteDelta() {
+         return weigthedCompleteDelta;
+      }
+
+      public boolean isLatest() {
+         return latest;
+      }
+
+   }
+   
+   public Map<Byte, List<OpWorkRecord>> getLatestWorkRecords(OpWorkRecord current, int number, Set<Byte> costTypes) {
+      // sort this stuff...
+      SortedSet<OpWorkRecord> wrSet= new TreeSet<OpWorkRecord>(new Comparator<OpWorkRecord>() {
+         public int compare(OpWorkRecord o1, OpWorkRecord o2) {
+            // reverse order:
+            int c = o2.getWorkSlip().getDate().compareTo(o1.getWorkSlip().getDate());
+            c = c != 0 ? c : Long.signum(o2.getID() - o1.getID());
+            return c;
+         }});
+
+      // FIXME: make this one less ugly ;-)
+      for (OpAssignment a: assignments) {
+         Map<Byte, List<OpWorkRecord>> tmp = null;
+         if (current != null && current.getAssignment().getID() == a.getID()) {
+            tmp = a.getLatestWorkRecords(current, number, costTypes);
+         }
+         else {
+            tmp = a.getLatestWorkRecords(null, number, costTypes);
+         }
+         for (List<OpWorkRecord> l: tmp.values()) {
+            wrSet.addAll(l);
+         }
+      }
+      // /FIXME...
+      
+      Map<Byte, List<OpWorkRecord>> result = new HashMap<Byte, List<OpWorkRecord>>();
+      Set<Byte> completed = new HashSet<Byte>();
+      Iterator<OpWorkRecord> i = wrSet.iterator();
+      while (costTypes != null && costTypes.size() > completed.size() && i.hasNext()) {
+         OpWorkRecord wr = i.next();
+         for (Byte ct: costTypes) {
+            if ((ct.compareTo(OpAssignment.COST_TYPE_UNDEFINED) == 0 && !wr.isEmpty())
+                  || wr.hasCostRecordForType(ct.byteValue())) {
+               List<OpWorkRecord> r = result.get(ct);
+               if (r == null) {
+                  r = new ArrayList<OpWorkRecord>();
+                  result.put(ct, r);
+               }
+               r.add(wr);
+               if (r.size() == number) {
+                  completed.add(ct);
+               }
+            }
+         }
+      }
+      return result;
+   }
+   
+   private void updateActualStuff(OpWorkRecord workRecord, double factor) {
+      setActualEffort(getActualEffort() + factor * workRecord.getActualEffort());
+      setActualPersonnelCosts(getActualPersonnelCosts() + factor * workRecord.getPersonnelCosts());
+      setActualProceeds(getActualProceeds() + factor * workRecord.getActualProceeds());
+      setActualMaterialCosts(getActualMaterialCosts() + factor * workRecord.getMaterialCosts());
+      setActualTravelCosts(getActualTravelCosts() + factor * workRecord.getTravelCosts());
+      setActualExternalCosts(getActualExternalCosts() + factor * workRecord.getExternalCosts());
+      setActualMiscellaneousCosts(getActualMiscellaneousCosts() + factor * workRecord.getMiscellaneousCosts());
+   }
+   
+   private void applyDelta(OpProgressDelta delta) {
+      setRemainingEffort(getRemainingEffort() + delta.getRemainingEffort());
+      setRemainingPersonnelCosts(getRemainingPersonnelCosts() + delta.getRemainingPersonnelCosts());
+      setRemainingProceeds(getRemainingProceeds() + delta.getRemainingProceeds());
+      
+      setRemainingExternalCosts(getRemainingExternalCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_EXTERNAL));
+      setRemainingMaterialCosts(getRemainingMaterialCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_MATERIAL));
+      setRemainingMiscellaneousCosts(getRemainingMiscellaneousCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_MISC));
+      setRemainingTravelCosts(getRemainingTravelCosts() + delta.getRemainingCosts(OpAssignment.COST_TYPE_TRAVEL));
+   }
+   
+   /**
+    * Propagate progress information from assignments (only leaf-elements has assigments)
+    * @param assignment
+    * @param workRecord
+    * @param delta
+    * @param baseWeighting 
+    */
+   public void handleAssigmentProgress(OpAssignment assignment,
+         OpWorkRecord workRecord, OpProgressDelta delta) {
+      
+      double sign = delta.isInsert() ? 1.0 : -1.0;
+      
+      // update this:
+      if (workRecord != null) {
+         updateActualStuff(workRecord, sign);
+      }
+      
+      // if we are the latest WR, find the new WR determining remaining costs stuff (otherwise,
+      // remaining will not change). This is because the remaining costs are handle COMPLETELY WEIRD!!!
+      OpWorkRecord helper = null;
+
+      Map<Byte, List<OpWorkRecord>> latestWRMap = getLatestWorkRecords(
+            workRecord, delta.isInsert() ? 1 : 2,
+            workRecord != null ? workRecord.getCostTypes() : null);
+      Iterator<Byte> ci = latestWRMap.keySet().iterator();
+      while(ci.hasNext()) {
+         Byte ct = ci.next();
+         List<OpWorkRecord> latestWRsOfActivity = latestWRMap.get(ct);
+         boolean isLatest = workRecord == null
+               || latestWRsOfActivity.get(0).getID() == workRecord.getID();
+         if (isLatest) {
+            helper = delta.isInsert() ? workRecord
+                  : latestWRsOfActivity.size() > 1 ? latestWRsOfActivity.get(1)
+                        : null;
+            switch (ct.byteValue()) {
+            case OpCostRecord.EXTERNAL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_EXTERNAL,
+                     (helper == null ? getBaseExternalCosts() : helper
+                           .getRemExternalCosts())
+                           - getRemainingExternalCosts());
+               break;
+            case OpCostRecord.MATERIAL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_MATERIAL,
+                     (helper == null ? getBaseMaterialCosts() : helper
+                           .getRemMaterialCosts())
+                           - getRemainingMaterialCosts());
+               break;
+            case OpCostRecord.MISCELLANEOUS_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_MISC,
+                     (helper == null ? getBaseMiscellaneousCosts() : helper
+                           .getRemMiscCosts())
+                           - getRemainingMiscellaneousCosts());
+               break;
+            case OpCostRecord.TRAVEL_COST:
+               delta.setRemainingCosts(OpAssignment.COST_TYPE_TRAVEL,
+                     (helper == null ? getBaseTravelCosts() : helper
+                           .getRemTravelCosts())
+                           - getRemainingTravelCosts());
+               break;
+            }
+         }
+         
+      }
+      
+      applyDelta(delta);
+
+      double weigthedCompleteDelta = 0d;
+      // now recalculate the dependend things...
+      if (isProgressTracked()) {
+         if (isDiskreteActivity()) {
+            // multiple assignments possible...
+            double oldComplete = getComplete();
+            boolean completed = false;
+            if (getAssignments() != null) {
+               completed = !getAssignments().isEmpty();
+               for (OpAssignment a : getAssignments()) {
+                  if (a.getComplete() != 100d) {
+                     completed = false;
+                     break;
+                  }
+               }
+            }
+            setComplete(completed ? 100 : 0);
+            weigthedCompleteDelta = getComplete() - oldComplete;
+         } else {
+            setComplete(OpGanttValidator.calculateCompleteValue(
+                  getActualEffort(), getBaseEffort(), getRemainingEffort()));
+         }
+      }
+      // for the next steps (the two recursions) the order
+      // is IMPORTANT: first the OpActivity, than the OpActivityVersions (they build upon each other...) 
+      
+      delta.setWeigthedCompleteDelta(weigthedCompleteDelta);
+      if (getSuperActivity() != null) {
+         getSuperActivity().handleSubActivityProgress(this, workRecord, delta);
+      }
+      
+      // because thi smight be changed during update of the parent activites, restore it here:
+      delta.setWeigthedCompleteDelta(weigthedCompleteDelta);
+      updateWorkingVersion(getComplete(), delta);
+   }
+
+   /**
+    * Used to update those collections (only call recursively, cannot be called from outside because
+    * this cannot have any assignments and therefore no work records).
+    * @param subActivity
+    * @param workRecord
+    * @param delta
+    */
+   private void handleSubActivityProgress(OpActivity subActivity, OpWorkRecord workRecord, OpProgressDelta delta) {
+      // update this:
+      if (workRecord != null) {
+         updateActualStuff(workRecord, delta.isInsert() ? 1.0 : -1.0);
+      }
+      
+      applyDelta(delta);
+
+      // now recalculate the dependend things...
+      if (!isDiskreteActivity()) {
+         setComplete(OpGanttValidator.calculateCompleteValue(getActualEffort(), getBaseEffort(), getRemainingEffort()));
+      }
+      else {
+         // The Problem: the switch from none-diskrete to diskret eis determined by actual effort and remainig effort.
+         // So this might change anytime...
+         // step down one level and collect complete values (very ugly...)
+         double complete = 0d;
+         double oldComplete = getComplete();
+         if (getSubActivities() != null) {
+            double factor = getSubActivities().size();
+            for (OpActivity a: getSubActivities()) {
+               complete += a.getComplete();
+            }
+            complete = complete /factor;
+         }
+         setComplete(complete);
+         delta.setWeigthedCompleteDelta(getComplete() - oldComplete);
+      }
+
+      if (getSuperActivity() != null) {
+         getSuperActivity().handleSubActivityProgress(this, workRecord, delta);
+      }
+   }
+   
+   /**
+    * In case of progress tracking, we need to honour different types of activities because
+    * calculation of progress is significantly different here...
+    * @return
+    */
+   public double getCompleteFromTracking() {
+      if (isProgressTracked()) {
+         if (isDiskreteActivity()) {
+            if (!isCollection()) {
+               boolean completed = getAssignments() != null && !getAssignments().isEmpty();
+               if (completed) {
+                  for (OpAssignment a : getAssignments()) {
+                     if (a.getCompleteFromTracking() != 100d) { // ugly!!!
+                        completed = false;
+                        break;
+                     }
+                  }
+               }
+               return (completed ? 100 : 0);
+            }
+            else {
+               double complete = 0;
+               if (getSubActivities() != null) {
+                  double factor = getSubActivities().size();
+                  for (OpActivity a : getSubActivities()) {
+                     complete += a.getCompleteFromTracking() / factor;
+                  }
+               }
+               return complete;
+            }
+         } else {
+            return OpGanttValidator.calculateCompleteValue(getActualEffort(),
+                  getBaseEffort(), getRemainingEffort());
+         }
+      } else {
+         return getComplete();
+      }
+   }
+   
+   public boolean isDiskreteActivity() {
+      return getType() == OpActivity.ADHOC_TASK
+      || getType() == OpActivity.MILESTONE || isZero();
+   }
+
+   public OpActivityVersion getWorkingVersion() {
+      Iterator<OpActivityVersion> i = getVersions().iterator();
+      while (i.hasNext()) {
+         OpActivityVersion av = i.next();
+         if (av.getPlanVersion().getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            return av;
+         }
+      }
+      return null;
+   }
+
+   /**
+    * Bridge to the working stuff...
+    * @param delta         our allKnowing-Mega-Complete Delta Object
+    * @param baseWeighting tell them how we do the calculations.
+    */
+   public void updateWorkingVersion(double complete, OpProgressDelta delta) {
+      Iterator<OpActivityVersion> i = getVersions().iterator();
+      while (i.hasNext()) {
+         OpActivityVersion av = i.next();
+         if (av.getPlanVersion().getVersionNumber() == OpProjectPlan.WORKING_VERSION_NUMBER) {
+            av.updateComplete(delta);
+            break;
+         }
+      }
+   }
+
+   /**
+    * @return true, if the activity is a collection activity.
+    */
+   public boolean isCollection() {
+      return getType() == OpActivity.COLLECTION
+            || getType() == OpActivity.COLLECTION_TASK
+            || getType() == OpActivity.SCHEDULED_TASK;
+   }
+
+   public String toString() {
+      StringBuffer b = new StringBuffer();
+      b.append("OpActivity:{");
+      b.append(super.toString());
+      b.append(" N:");
+      b.append(getName());
+      b.append(" B:");
+      b.append(getBaseEffort());
+      b.append(" A:");
+      b.append(getActualEffort());
+      b.append(" R:");
+      b.append(getRemainingEffort());
+      b.append(" C:");
+      b.append(getComplete());
+      b.append(" S:");
+      b.append(getStart());
+      b.append(" F:");
+      b.append(getFinish());
+      b.append("}");
+      return b.toString();
+   }
+   
+   public void resetActualValues() {
+      setActualEffort(0d);
+      setActualExternalCosts(0d);
+      setActualMaterialCosts(0d);
+      setActualMiscellaneousCosts(0d);
+      setActualPersonnelCosts(0d);
+      setActualProceeds(0d);
+      setActualTravelCosts(0d);
+      
+      setRemainingEffort(getBaseEffort());
+      setRemainingExternalCosts(getBaseExternalCosts());
+      setRemainingMaterialCosts(getBaseMaterialCosts());
+      setRemainingMiscellaneousCosts(getBaseMiscellaneousCosts());
+      setRemainingPersonnelCosts(getBasePersonnelCosts());
+      setRemainingProceeds(getBaseProceeds());
+      setRemainingTravelCosts(getBaseTravelCosts());
+      
+      setComplete(0d);
+      setSubActivities(new HashSet<OpActivity>());
+   }
+   
+   public void resetValues() {
+      setBaseEffort(0d);
+      setBaseExternalCosts(0d);
+      setBaseMaterialCosts(0d);
+      setBaseMiscellaneousCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBasePersonnelCosts(0d);
+      setBaseProceeds(0d);
+      setBaseTravelCosts(0d);
+      
+      resetActualValues();
+   }
+   
+   /**
+    * @return true whenever an activity has zero effort
+    */
+   public boolean isZero() {
+      return getActualEffort() == 0d && getRemainingEffort() == 0d;
+   }
+   
+   /**
+    * @return true, whenever nothing has been booked for an activity with non-zero base effort 
+    */
+   public boolean isVirgin() {
+      return getRemainingEffort() == getBaseEffort() && getActualEffort() == 0d;
+   }
+   
+   /**
+    * WARNING: slow! Uses Hibernate joins to find assignments AND work records!
+    * @return
+    */
+   public boolean hasWorkRecords() {
+      if (getAssignments() == null) {
+         return false;
+      }
+      for (OpAssignment a: getAssignments()) {
+         if (!a.getWorkRecords().isEmpty()) {
+            return true;
+         }
+      }
+      return false;
+   }
+   
+   public boolean isMilestone() {
+      return !getDeleted() && getType() == OpActivity.MILESTONE;
+   }
+   
+   public boolean isPlannedActivity() {
+      return !getDeleted() && getType() != OpActivity.ADHOC_TASK;
+   }
+   
+   public boolean isProgressTracked() {
+      return getProjectPlan().getProgressTracked()
+            || getType() == OpActivity.ADHOC_TASK || isCollection();
+   }
+
+   public void addSubActivity(OpActivity a) {
+      if (getSubActivities() == null) {
+         setSubActivities(new HashSet<OpActivity>());
+      }
+      getSubActivities().add(a);
+      a.setSuperActivity(this);
    }
 
 }

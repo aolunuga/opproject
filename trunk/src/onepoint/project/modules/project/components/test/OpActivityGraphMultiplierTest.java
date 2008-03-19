@@ -17,10 +17,10 @@ import onepoint.xml.XLoader;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * @author mihai.costin
- *
  */
 public class OpActivityGraphMultiplierTest extends TestCase {
 
@@ -57,7 +57,7 @@ public class OpActivityGraphMultiplierTest extends TestCase {
       super.setUp();
 
       XDisplay display = new XDisplay(null);
-      display.getCalendar().configure(null, new XLocale("de", ""), null, null);
+      display.getCalendar().configure(null, new XLocale(Locale.GERMAN.getLanguage(), null, ""), null, null);
 
       XLoader xmlLoader = new XLoader(new XDocumentHandler(new XFormSchema()));
       InputStream testDataInputStream = this.getClass().getResourceAsStream(TEST_DATA_FILENAME);
@@ -385,7 +385,8 @@ public class OpActivityGraphMultiplierTest extends TestCase {
       result = false;
       try {
          validator.linksLoop(succ, new Integer(7), OpGanttValidator.SUCCESSORS_COLUMN_INDEX);
-      } catch(XValidationException e){
+      }
+      catch (XValidationException e) {
          result = true;
       }
 
@@ -398,7 +399,8 @@ public class OpActivityGraphMultiplierTest extends TestCase {
       result = false;
       try {
          validator.linksLoop(pred, new Integer(7), OpGanttValidator.PREDECESSORS_COLUMN_INDEX);
-      }catch(XValidationException e){
+      }
+      catch (XValidationException e) {
          result = true;
       }
       assertTrue("Loop of activity linked to itself was not found ", result);

@@ -6,15 +6,18 @@ package onepoint.project.modules.project.test;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
 import onepoint.persistence.OpTransaction;
-import onepoint.project.modules.project.*;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
+import onepoint.project.modules.project.OpActivityVersion;
+import onepoint.project.modules.project.OpAssignmentVersion;
+import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project.OpProjectModuleChecker;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanVersion;
 import onepoint.project.test.OpBaseOpenTestCase;
 import onepoint.project.test.OpTestDataFactory;
 import onepoint.service.XMessage;
 
 import java.sql.Date;
-import java.util.List;
 
 /**
  * Test class for the project module checker.
@@ -42,6 +45,7 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If setup process can not be successfuly finished
     */
+   @Override
    protected void setUp()
         throws Exception {
       super.setUp();
@@ -57,6 +61,7 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
     *
     * @throws Exception If tearDown process can not be successfuly finished
     */
+   @Override
    protected void tearDown()
         throws Exception {
       clean();
@@ -111,7 +116,6 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
       int afterCount = countAllDBObjects();
       assertEquals("OpProjectModuleCheker error", beforeCount, afterCount);
 
-      //check that the assignment versions were not deleted
       String idActivity1 = activityFactory.getActivityVersionId(ACTIVITY_VERSION_NAME1);
       OpActivityVersion activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
       String idActivity2 = activityFactory.getActivityVersionId(ACTIVITY_VERSION_NAME2);
@@ -135,14 +139,16 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
 
       //check the deletion of the unlinked assignment version object
       OpBroker broker = session.newBroker();
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersionID));
-      broker.close();
-      projectChecker.check(session);
-      broker = session.newBroker();
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersionID));
-      broker.close();
+      try {
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersionID));
+         projectChecker.check(session);
+         broker.clear();
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersionID));
+      }
+      finally {
+         broker.close();
+      }
 
-      //check that the linked assignment versions were not deleted
       String idActivity1 = activityFactory.getActivityVersionId(ACTIVITY_VERSION_NAME1);
       OpActivityVersion activityVersion1 = activityFactory.getActivityVersionById(idActivity1);
       String idActivity2 = activityFactory.getActivityVersionId(ACTIVITY_VERSION_NAME2);
@@ -169,14 +175,17 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
 
       //check the deletion of the unlinked assignment version objects
       OpBroker broker = session.newBroker();
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
-      broker.close();
-      projectChecker.check(session);
-      broker = session.newBroker();
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
-      broker.close();
+      try {
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
+         projectChecker.check(session);
+         broker.clear();
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
+      }
+      finally {
+         broker.close();
+      }
 
       //check that the linked assignment versions were not deleted
       String idActivity1 = activityFactory.getActivityVersionId(ACTIVITY_VERSION_NAME1);
@@ -196,7 +205,7 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
 
    /**
     * Test the project module checker when there are only assignment versions which have no links to any
-    *    activity versions.
+    * activity versions.
     *
     * @throws Exception if the test fails
     */
@@ -210,57 +219,19 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
 
       //check the deletion of the unlinked assignment version objects
       OpBroker broker = session.newBroker();
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
-      assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion3ID));
-      broker.close();
-      projectChecker.check(session);
-      broker = session.newBroker();
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
-      assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion3ID));
-      broker.close();     
-   }
-
-   /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
+      try {
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
+         assertNotNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion3ID));
+         broker.clear();
+         projectChecker.check(session);
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion1ID));
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion2ID));
+         assertNull(broker.getObject(OpAssignmentVersion.class, assignmentVersion3ID));
       }
-
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignmentVersion.ASSIGNMENT_VERSION);
-      deleteAllObjects(broker, OpProjectPlanVersion.PROJECT_PLAN_VERSION);
-      deleteAllObjects(broker, OpActivityVersion.ACTIVITY_VERSION);
-
-      List<OpProjectNode> projectList = dataFactory.getAllProjects(broker);
-      for (OpProjectNode project : projectList) {
-         broker.deleteObject(project);
+      finally {
+         broker.close();
       }
-
-      List<OpProjectNode> portofolioList = dataFactory.getAllPortofolios(broker);
-      for (OpProjectNode portofolio : portofolioList) {
-         if (portofolio.getName().equals(OpProjectNode.ROOT_PROJECT_PORTFOLIO_NAME)) {
-            continue;
-         }
-         broker.deleteObject(portofolio);
-      }
-
-      transaction.commit();
-      broker.close();
    }
 
    /**
@@ -270,12 +241,16 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
     */
    private int countAllDBObjects() {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(COUNT_ALL_OBJECTS_QUERY);
       Number result = 0;
-      for (Object o : broker.list(query)) {
-         result = (Number) o;
+      try {
+         OpQuery query = broker.newQuery(COUNT_ALL_OBJECTS_QUERY);
+         for (Object o : broker.list(query)) {
+            result = (Number) o;
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
 
       return result.intValue();
    }
@@ -298,7 +273,7 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
 
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = dataFactory.getProjectByName(broker, projectName);
+         OpProjectNode project = dataFactory.getProjectByName(projectName);
 
          OpTransaction t = broker.newTransaction();
 
@@ -357,14 +332,14 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
       OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
       String projectLocator = dataFactory.getProjectId(projectName);
 
+      OpProjectNode project = dataFactory.getProjectById(projectLocator);
+      OpProjectPlan projectPlan = dataFactory.getProjectPlanById(project.getPlan().locator());
+      for (OpProjectPlanVersion projectPlanVersion : projectPlan.getVersions()) {
+         planVersion = projectPlanVersion;
+      }
+
       OpBroker broker = session.newBroker();
       try {
-         OpProjectNode project = dataFactory.getProjectById(broker, projectLocator);
-         for (OpProjectPlanVersion projectPlanVersion : project.getPlan().getVersions()) {
-            planVersion = projectPlanVersion;
-         }
-
-//       OpBroker broker = session.newBroker();
          OpTransaction t = broker.newTransaction();
 
          OpAssignmentVersion assignmentVersion1 = new OpAssignmentVersion();
@@ -397,15 +372,19 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
       OpProjectPlanVersion planVersion = getSinglePlanVersionOfProject(projectName);
 
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      OpAssignmentVersion assignmentVersion1 = new OpAssignmentVersion();
-      assignmentVersion1.setPlanVersion(planVersion);
-      broker.makePersistent(assignmentVersion1);
+         OpAssignmentVersion assignmentVersion1 = new OpAssignmentVersion();
+         assignmentVersion1.setPlanVersion(planVersion);
+         broker.makePersistent(assignmentVersion1);
 
-      t.commit();
-      broker.close();
-      return assignmentVersion1.getID();
+         t.commit();
+         return assignmentVersion1.getID();
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -418,17 +397,11 @@ public class OpProjectModuleChekerTest extends OpBaseOpenTestCase {
    private OpProjectPlanVersion getSinglePlanVersionOfProject(String projectName) {
       OpProjectPlanVersion planVersion = new OpProjectPlanVersion();
       String projectLocator = dataFactory.getProjectId(projectName);
-      OpBroker broker = session.newBroker();
-      try {
-         OpProjectNode project = dataFactory.getProjectById(broker, projectLocator);
-         for (OpProjectPlanVersion projectPlanVersion : project.getPlan().getVersions()) {
-            planVersion = projectPlanVersion;
-         }
+      OpProjectNode project = dataFactory.getProjectById(projectLocator);
+      OpProjectPlan projectPlan = dataFactory.getProjectPlanById(project.getPlan().locator());
+      for (OpProjectPlanVersion projectPlanVersion : projectPlan.getVersions()) {
+         planVersion = projectPlanVersion;
       }
-      finally {
-         broker.close();
-      }
-
       return planVersion;
    }
 }

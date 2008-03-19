@@ -78,16 +78,16 @@
                <label x="0" y="11" width="2" text="${ResourceMaxAvailability}"/>
                <double-field x="2" y="11" width="3" id="ResourceMaxAvailability"/>
                <!-- Enable time tracking -->
-               <check-box x="2" y="13" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
+               <check-box x="2" y="14" width="3" id="EnableTimeTracking" text="${EnableTimeTracking}"/>
                <!-- Enable pulsing -->
-               <check-box x="2" y="14" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
+               <check-box x="2" y="15" width="3" id="EnablePulsing" text="${EnablePulsing}" on-value-changed="pulsingChanged"/>
                <!-- Pulsing (minutes) -->
-               <label x="0" y="15" width="2" text="${Pulsing}"/>
-               <int-field x="2" y="15" width="3" id="Pulsing" lower-limit="0"/>
+               <label x="0" y="16" width="2" text="${Pulsing}"/>
+               <int-field x="2" y="16" width="3" id="Pulsing" lower-limit="0"/>
                <!-- Hide manager features -->
-               <check-box x="2" y="16" width="3" id="HideManagerFeatures" text="${HideManagerFeatures}"/>
+               <check-box x="2" y="17" width="3" id="HideManagerFeatures" text="${HideManagerFeatures}"/>
                <!-- Allow empty passwords -->
-               <check-box x="2" y="17" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
+               <check-box x="2" y="18" width="3" id="AllowEmptyPassword" text="${AllowEmptyPassword}"/>
             </panel>
          </panel>
       </scroll-box>

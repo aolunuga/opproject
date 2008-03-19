@@ -74,7 +74,10 @@ public class OpToolHandler implements XNodeHandler {
             if (keyValDel > 0) {
                tool.addStartParam(pairs[pos].substring(0, keyValDel), 
                      pairs[pos].substring(keyValDel+KEY_VALUE_DELIM.length()));
-            }
+            } 
+            else {
+               tool.addStartParam(pairs[pos], "true"); 
+            }            
          }
       }
       value = attributes.get(GROUP_REF);

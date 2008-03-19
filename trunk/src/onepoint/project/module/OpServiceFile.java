@@ -22,4 +22,7 @@ public class OpServiceFile {
       return new XServiceLoader().loadService(service_file_name);
    }
 
+   public String getFileName() {
+      return fileName;
+   }
 }

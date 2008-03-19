@@ -1,9 +1,0 @@
-/*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
- */
-
-function clearContents(event) {
-   request = new XMessage;
-   request.setAction("DocumentsService.deleteZeroRefContents");
-   XDisplay.getClient().invokeMethod(request);
-}

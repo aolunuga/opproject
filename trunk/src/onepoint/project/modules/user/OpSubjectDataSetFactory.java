@@ -62,9 +62,13 @@ public final class OpSubjectDataSetFactory {
       localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
 
       OpBroker broker = session.newBroker();
-      addSubGroupRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
-      addUserRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
-      broker.close();
+      try {
+         addSubGroupRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
+         addUserRows(broker, dataSet, localizer, groupId, outlineLevel, simpleStructure, filteredSubjectIds);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -309,29 +313,32 @@ public final class OpSubjectDataSetFactory {
       }
 
       OpBroker broker = session.newBroker();
-      //add group's already assigned supergroups to result
-      if (groupIds.size() > 0) {
-         OpQuery query = broker.newQuery(GROUP_ASSIGNMENT_QUERY);
-         query.setCollection("groupIds", groupIds);
-         Iterator assignedSuperGroups = broker.iterate(query);
-         while (assignedSuperGroups.hasNext()) {
-            OpGroup group = (OpGroup) assignedSuperGroups.next();
-            result.add(OpLocator.locatorString(group));
+      try {
+         //add group's already assigned supergroups to result
+         if (groupIds.size() > 0) {
+            OpQuery query = broker.newQuery(GROUP_ASSIGNMENT_QUERY);
+            query.setCollection("groupIds", groupIds);
+            Iterator assignedSuperGroups = broker.iterate(query);
+            while (assignedSuperGroups.hasNext()) {
+               OpGroup group = (OpGroup) assignedSuperGroups.next();
+               result.add(OpLocator.locatorString(group));
+            }
+         }
+
+         //add user's already assigned groups to result
+         if (userIds.size() > 0) {
+            OpQuery query = broker.newQuery(USER_ASSIGNMENT_QUERY);
+            query.setCollection("userIds", userIds);
+            Iterator assignedGroups = broker.iterate(query);
+            while (assignedGroups.hasNext()) {
+               OpGroup group = (OpGroup) assignedGroups.next();
+               result.add(OpLocator.locatorString(group));
+            }
          }
       }
-
-      //add user's already assigned groups to result
-      if (userIds.size() > 0) {
-         OpQuery query = broker.newQuery(USER_ASSIGNMENT_QUERY);
-         query.setCollection("userIds", userIds);
-         Iterator assignedGroups = broker.iterate(query);
-         while (assignedGroups.hasNext()) {
-            OpGroup group = (OpGroup) assignedGroups.next();
-            result.add(OpLocator.locatorString(group));
-         }
+      finally {
+         broker.close();
       }
-      broker.close();
-
       return result;
    }
 
@@ -343,9 +350,9 @@ public final class OpSubjectDataSetFactory {
     * @return <code>true</code> if the app. is multiuser and hide manager features is set to true and the user is
     *         not manager and <code>false</code> otherwise.
     */
-   public static boolean shouldHideFromUser(OpUser user) {
+   public static boolean shouldHideFromUser(OpProjectSession session, OpUser user) {
       if (OpEnvironmentManager.isMultiUser()) {
-         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.HIDE_MANAGER_FEATURES));
+         Boolean hideManagerFeatures = Boolean.valueOf(OpSettingsService.getService().get(session, OpSettings.HIDE_MANAGER_FEATURES));
          if (hideManagerFeatures && user.getLevel() < OpUser.MANAGER_USER_LEVEL) {
             return true;
 

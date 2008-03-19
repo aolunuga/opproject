@@ -4,6 +4,11 @@
 
 package onepoint.project.modules.project_planning.forms;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import onepoint.express.XComponent;
 import onepoint.express.XExtendedComponent;
 import onepoint.express.server.XFormProvider;
@@ -11,20 +16,25 @@ import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityVersionDataSetFactory;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanVersion;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project_planning.components.OpProjectComponent;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
-import onepoint.project.modules.user.*;
+import onepoint.project.modules.user.OpLock;
+import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
+import onepoint.project.modules.user.OpPreference;
+import onepoint.project.modules.user.OpSubjectDataSetFactory;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpProjectConstants;
+import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class OpActivitiesFormProvider implements XFormProvider {
 
@@ -86,21 +96,29 @@ public class OpActivitiesFormProvider implements XFormProvider {
    private final static String RESOURCES_HOURLY_RATES_DATA_SET = "ResourcesHourlyRates";
 
    private final static String ACTIVITY_LIST_FOOTER_DATA_SET = "ActivityListFooter";
-   private final static int ACTIVITY_TABLE_COLUMNS = 11;
+   private final static int FOOTER_PERSONNEL_INDEX = 2;
+   private final static int FOOTER_TRAVEL_INDEX = 3;
+   private final static int FOOTER_MATERIAL_INDEX = 4;
+   private final static int FOOTER_EXTERNAL_INDEX = 5;
+   private final static int FOOTER_MISC_INDEX = 6;
+   private final static int FOOTER_PROCEEDS_INDEX = 7;
+   
    private final static int FOOTER_BASE_EFFORT_INDEX = 7;
 
-   private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
    private final static int COST_TABLE_COLUMNS = 9;
+   private final static int ACTIVITY_TABLE_COLUMNS = 11;
 
-   private final static int FOOTER_PERSONNEL_INDEX = 2;
-   private final static int FOOTER_BILLABLE_INDEX = 3;
-   private final static int FOOTER_TRAVEL_INDEX = 4;
-   private final static int FOOTER_MATERIAL_INDEX = 5;
-   private final static int FOOTER_EXTERNAL_INDEX = 6;
-   private final static int FOOTER_MISC_INDEX = 7;
-   private final static int FOOTER_PROCEEDS_INDEX = 8;
+   private final static String ACTIVITY_COST_FOOTER_DATA_SET = "ActivityCostsFooter";
+
+   // private final static int FOOTER_BILLABLE_INDEX = 3;
    
    private final static String COSTS_TAB = "CostsProjectionTab";
+   
+   private final static String STATUS_BAR = "StatusBar";
+   private final static String ACTIVITIES_RESOURCE_MAP = "project_planning.activities";
+   private final static String PROJECT_LOCKED_RESOURCE = "${ProjectLocked}";
+
+   private static final String CONTROLLING_SHEETS_EXIST_RESOURCE = "${ControllingSheetsExist}";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
 
@@ -127,176 +145,191 @@ public class OpActivitiesFormProvider implements XFormProvider {
       // TODO: Calendar should be stored as session-variable (locale-specific)
       // ==> XCalendar calendar =((OpProjectSession)session).getCalendar();
       OpBroker broker = session.newBroker();
-      // OpPath path = new OpPath().child("XProject");
-      XComponent project_name_set = form.findComponent(PROJECT_NAME_SET);
-      logger.debug("*** PIDS " + project_id_string);
-      boolean edit_mode = false;
-      OpUser currentUser = session.user(broker);
-      if (project_id_string != null) {
+      try {
+         // OpPath path = new OpPath().child("XProject");
+         XComponent project_name_set = form.findComponent(PROJECT_NAME_SET);
+         logger.debug("*** PIDS " + project_id_string);
+         boolean edit_mode = false;
+         OpUser currentUser = session.user(broker);
+         if (project_id_string != null) {
 
-         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string)); // two db-trips opproject and attachment
-         form.findComponent(PROJECT_TYPE_FIELD).setByteValue(project.getType());
-         logger.debug("after get-project: " + project.getID());
+            OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string)); // two db-trips opproject and attachment
+            form.findComponent(PROJECT_TYPE_FIELD).setByteValue(project.getType());
+            logger.debug("after get-project: " + project.getID());
 
-         //print title
-         form.findComponent(PRINT_TITLE).setStringValue(project.getName());
-         // Hide column "Resources" if this is a template plan
-         if (project.getType() == OpProjectNode.TEMPLATE) {
-            form.findComponent(RESOURCES_COLUMN).setHidden(true);
-            form.findComponent(COMPLETE_COLUMN).setHidden(true);
-         }
+            //print title
+            form.findComponent(PRINT_TITLE).setStringValue(project.getName());
+            // Hide column "Resources" if this is a template plan
+            if (project.getType() == OpProjectNode.TEMPLATE) {
+               form.findComponent(RESOURCES_COLUMN).setHidden(true);
+               form.findComponent(COMPLETE_COLUMN).setHidden(true);
+            }
 
-         //set show resource hours
-         String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
-         if (showHoursPref == null) {
-            showHoursPref = OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS);
-         }
-         Boolean showHours = Boolean.valueOf(showHoursPref);
-         form.findComponent(SHOW_RESOURCE_HOURS).setBooleanValue(showHours.booleanValue());
+            //set show resource hours
+            String showHoursPref = currentUser.getPreferenceValue(OpPreference.SHOW_ASSIGNMENT_IN_HOURS);
+            if (showHoursPref == null) {
+               showHoursPref = OpSettingsService.getService().get(session, OpSettings.SHOW_RESOURCES_IN_HOURS);
+            }
+            Boolean showHours = Boolean.valueOf(showHoursPref);
+            form.findComponent(SHOW_RESOURCE_HOURS).setBooleanValue(showHours.booleanValue());
 
-         setProjectRelatedSettings(form, project);
+            setProjectRelatedSettings(form, project);
 
-         addCategories(form, broker);
+            addCategories(form, broker);
 
-         // enable all buttons now beside the edit-mode related buttons
-         if (session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
-            form.findComponent(EDIT_BUTTON).setEnabled(true);
-            form.findComponent(IMPORT_BUTTON).setEnabled(project.getType() != OpProjectNode.TEMPLATE);
-         }
-         else {
-            form.findComponent(EDIT_BUTTON).setEnabled(false);
-            form.findComponent(IMPORT_BUTTON).setEnabled(false);
-         }
-         form.findComponent(SAVE_BUTTON).setEnabled(false);
-         form.findComponent(CHECK_IN_BUTTON).setEnabled(false);
-         form.findComponent(EXPORT_BUTTON).setEnabled(project.getType() != OpProjectNode.TEMPLATE);
-         form.findComponent(REVERT_BUTTON).setEnabled(false);
-         form.findComponent(PRINT_BUTTON).setEnabled(true);
-
-         // TODO: Try to write cleaner code when completing permission checks
-
-         logger.debug("project-locked?");
-         Set locks = project.getLocks();
-         if (locks.size() > 0) {
-            logger.debug("   *** project is locked");
-            // Currently only a single lock is allowed to exist
-            OpLock lock = (OpLock) locks.iterator().next();
-            if (lock.lockedByMe(session, broker)) {
-               edit_mode = true;
-               registerEventHandlersForButtons(form, activityDataSet);
-               enableComponentsWhenUserOwner(form);
+            // enable all buttons now beside the edit-mode related buttons
+            if (session.checkAccessLevel(broker, project.getID(), OpPermission.MANAGER)) {
+               form.findComponent(EDIT_BUTTON).setEnabled(true);
+               form.findComponent(IMPORT_BUTTON).setEnabled(project.getType() != OpProjectNode.TEMPLATE);
             }
             else {
-               // project locked, but the owner is not the user, user won't be able to edit, save or checkIn project
                form.findComponent(EDIT_BUTTON).setEnabled(false);
                form.findComponent(IMPORT_BUTTON).setEnabled(false);
-               form.findComponent(SAVE_BUTTON).setEnabled(false);
-               form.findComponent(CHECK_IN_BUTTON).setEnabled(false);
             }
-         }
-         //set up the project edit mode
-         form.findComponent(EDIT_MODE_FIELD).setBooleanValue(edit_mode);
+            form.findComponent(SAVE_BUTTON).setEnabled(false);
+            form.findComponent(CHECK_IN_BUTTON).setEnabled(false);
+            form.findComponent(REVERT_BUTTON).setEnabled(false);
+            form.findComponent(EXPORT_BUTTON).setEnabled(project.getType() != OpProjectNode.TEMPLATE);
+            form.findComponent(PRINT_BUTTON).setEnabled(true);
 
-         // if project is locked and user is not the owner || project is not locked
-         if (((locks.size() > 0) && !edit_mode) || (locks.size() == 0)) {
-            enableComponentsForProjectLocked(form);
-         }
+            // TODO: Try to write cleaner code when completing permission checks
 
-         //set default state to GanttToggleBar and Gant Chart
-         Map componentStateMap = session.getComponentStateMap(form.getID());
-
-         //set state for toogle bar
-         if (componentStateMap != null) {
-            componentStateMap.put(GANTT_CHART_TOGGLE_BAR, new Integer(0));
-            //set drawing tool state for gantt chart
-            List ganttChartState = (List) componentStateMap.get(ACTIVITY_GANTT_CHART);
-            ganttChartState.set(0, OpProjectComponent.DEFAULT_CURSOR);
-            ganttChartState.set(1, java.awt.Cursor.getDefaultCursor());
-         }
-
-         logger.debug("after-project-locked");
-         XComponent project_id_field = form.findComponent(PROJECT_ID_FIELD);
-         project_id_field.setStringValue(project.locator());
-
-         XComponent project_name_field = form.findComponent(PROJECT_NAME_FIELD);
-         project_name_field.setStringValue(project.getName());
-
-         String info = project.getName();
-         if (locks.size() > 0) {
-            info += " (wird bearbeitet)";
-         }
-         XComponent data_row = new XComponent(XComponent.DATA_ROW);
-         data_row.setStringValue(info);
-         project_name_set.addChild(data_row);
-         // *** TODO: Use string-constant
-         XComponent resourceDataSet = form.findComponent(ASSIGNMENT_SET);
-
-         // Retrieve data-set of resources assigned to the project node
-         logger.debug("before-project-resources");
-         OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, resourceDataSet);  //one DB-query only!
-         logger.debug("after-project-resources");
-
-         //fill the availability map
-         XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
-         Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker); //one DB-query only!
-         resourceAvailability.setValue(availabilityMap);
-
-         // Check if there is already a project plan
-         OpProjectPlan projectPlan = project.getPlan();
-         if (projectPlan != null) {
-
-            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-                 project.getPlan(), OpProjectPlan.WORKING_VERSION_NUMBER);  //one DB-query only
-            OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET)); //one DB-query only
-
-            if (edit_mode) {
-               // Show working plan version (if one exists already)
-               if (workingPlanVersion != null) {
-                  // Set working plan version ID
-                  form.findComponent(WORKING_PLAN_VERSION_ID_FIELD).setStringValue(workingPlanVersion.locator());
-                  activityDataSet.setValue(showHours);
-                  OpActivityVersionDataSetFactory.retrieveActivityVersionDataSet(broker, workingPlanVersion,
-                       activityDataSet, true);
+            logger.debug("project-locked?");
+            Set locks = project.getLocks();
+            if (locks.size() > 0) {
+               logger.debug("   *** project is locked");
+               // Currently only a single lock is allowed to exist
+               OpLock lock = (OpLock) locks.iterator().next();
+               if (lock.lockedByMe(session, broker)) {
+                  edit_mode = true;
+                  registerEventHandlersForButtons(form, activityDataSet);
+                  enableComponentsWhenUserOwner(form);
+                  
+                  // check for existing controlling sheets:
+                  OpProjectPlanVersion workingVersion = project.getPlan().getWorkingVersion();
+                  if (workingVersion != null
+                        && workingVersion.getControllingSheets() != null
+                        && !workingVersion.getControllingSheets().isEmpty()) {
+                     form.findComponent(CHECK_IN_BUTTON).setEnabled(false);
+                     form.findComponent(REVERT_BUTTON).setEnabled(false);
+                     XLocalizer localizer = new XLocalizer();
+                     localizer.setResourceMap(session.getLocale().getResourceMap(ACTIVITIES_RESOURCE_MAP));
+                     StringBuffer statusMessage = new StringBuffer(localizer.localize(CONTROLLING_SHEETS_EXIST_RESOURCE));
+                     form.findComponent(STATUS_BAR).setText(statusMessage.toString());
+                  }
                }
                else {
-                  // form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
-                  activityDataSet.setValue(showHours);
-                  OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, true);
+                  // project locked, but the owner is not the user, user won't be able to edit, save or checkIn project
+                  form.findComponent(EDIT_BUTTON).setEnabled(false);
+                  form.findComponent(IMPORT_BUTTON).setEnabled(false);
+                  form.findComponent(SAVE_BUTTON).setEnabled(false);
+                  form.findComponent(CHECK_IN_BUTTON).setEnabled(false);
+                  // Show who locked the project in the status bar
+                  XLocalizer localizer = new XLocalizer();
+                  localizer.setResourceMap(session.getLocale().getResourceMap(ACTIVITIES_RESOURCE_MAP));
+                  StringBuffer statusMessage = new StringBuffer(localizer.localize(PROJECT_LOCKED_RESOURCE));
+                  localizer.setResourceMap(session.getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
+                  statusMessage.append(": ");
+                  statusMessage.append(localizer.localize(lock.getOwner().getDisplayName()));
+                  form.findComponent(STATUS_BAR).setText(statusMessage.toString());
                }
             }
-            else {
-               form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
-               activityDataSet.setValue(showHours);
-               OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, false); //bad guy...
+            //set up the project edit mode
+            form.findComponent(EDIT_MODE_FIELD).setBooleanValue(edit_mode);
+
+            // if project is locked and user is not the owner || project is not locked
+            if (((locks.size() > 0) && !edit_mode) || (locks.size() == 0)) {
+               enableComponentsForProjectLocked(form);
+            }
+
+            //set default state to GanttToggleBar and Gant Chart
+            Map componentStateMap = session.getComponentStateMap(form.getID());
+
+            //set state for toogle bar
+            if (componentStateMap != null) {
+               componentStateMap.put(GANTT_CHART_TOGGLE_BAR, new Integer(0));
+               //set drawing tool state for gantt chart
+               List ganttChartState = (List) componentStateMap.get(ACTIVITY_GANTT_CHART);
+               ganttChartState.set(0, OpProjectComponent.DEFAULT_CURSOR);
+               ganttChartState.set(1, java.awt.Cursor.getDefaultCursor());
+            }
+
+            logger.debug("after-project-locked");
+            XComponent project_id_field = form.findComponent(PROJECT_ID_FIELD);
+            project_id_field.setStringValue(project.locator());
+
+            XComponent project_name_field = form.findComponent(PROJECT_NAME_FIELD);
+            project_name_field.setStringValue(project.getName());
+
+            String info = project.getName();
+            if (locks.size() > 0) {
+               info += " (wird bearbeitet)";
+            }
+            XComponent data_row = new XComponent(XComponent.DATA_ROW);
+            data_row.setStringValue(info);
+            project_name_set.addChild(data_row);
+            // *** TODO: Use string-constant
+            XComponent resourceDataSet = form.findComponent(ASSIGNMENT_SET);
+
+            // Retrieve data-set of resources assigned to the project node
+            logger.debug("before-project-resources");
+            OpActivityDataSetFactory.retrieveResourceDataSet(broker, project, resourceDataSet);  //one DB-query only!
+            logger.debug("after-project-resources");
+
+            //fill the availability map
+            XComponent resourceAvailability = form.findComponent(RESOURCE_AVAILABILITY);
+            Map<String, Double> availabilityMap = OpResourceDataSetFactory.createResourceAvailabilityMap(broker); //one DB-query only!
+            resourceAvailability.setValue(availabilityMap);
+
+            // Check if there is already a project plan
+            OpProjectPlan projectPlan = project.getPlan();
+            if (projectPlan != null) {
+
+               OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+                     project.getPlan(), OpProjectPlan.WORKING_VERSION_NUMBER);  //one DB-query only
+               OpActivityDataSetFactory.fillHourlyRatesDataSet(project, form.findComponent(RESOURCES_HOURLY_RATES_DATA_SET)); //one DB-query only
+
+               if (edit_mode) {
+                  activityDataSet.setValue(showHours);
+                  // Show working plan version (if one exists already)
+                  fillActivityDataSet(form, activityDataSet, broker, project,
+                        workingPlanVersion, WORKING_PLAN_VERSION_ID_FIELD);
+               }
+               else {
+                  form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
+                  activityDataSet.setValue(showHours);
+                  OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, false); //bad guy...
+               }
+
             }
 
          }
+         else {
+            // No open project
+            logger.debug("NO OPEN PROJECT");
+            XComponent data_row = new XComponent(XComponent.DATA_ROW);
+            // TODO: I18n
+            data_row.setStringValue("(Keine offenen Projekte)");
+            project_name_set.addChild(data_row);
+            enableComponentsForNoOpenProject(form);
+         }
 
-      }
-      else {
-         // No open project
-         logger.debug("NO OPEN PROJECT");
-         XComponent data_row = new XComponent(XComponent.DATA_ROW);
-         // TODO: I18n
-         data_row.setStringValue("(Keine offenen Projekte)");
-         project_name_set.addChild(data_row);
-         enableComponentsForNoOpenProject(form);
-      }
+         XComponent costsTab = form.findComponent(COSTS_TAB);
+         //hide costs tab and costs column for users that have only the customer level
+         if (currentUser.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
+            costsTab.setHidden(true);
+         }
 
-      XComponent costsTab = form.findComponent(COSTS_TAB);
-      //hide costs tab and costs column for users that have only the customer level
-      if (currentUser.getLevel() == OpUser.OBSERVER_CUSTOMER_USER_LEVEL) {
-         costsTab.setHidden(true);
+         //if the app. is multiuser and hide manager features is set to true and the user is not manager
+         if (OpSubjectDataSetFactory.shouldHideFromUser(session, currentUser)) {
+            //hide costs tab
+            costsTab.setHidden(true);
+            ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+         }
       }
-
-      //if the app. is multiuser and hide manager features is set to true and the user is not manager
-      if (OpSubjectDataSetFactory.shouldHideFromUser(currentUser)) {
-         //hide costs tab
-         costsTab.setHidden(true);
-         ((OpProjectComponent) form.findComponent(ACTIVITY_GANTT_CHART)).setShowCosts(false);
+      finally {
+         broker.close();
       }
-
-      broker.close();
 
       OpGanttValidator validator = (OpGanttValidator) activityDataSet.validator();
       if (validator != null) {
@@ -309,6 +342,28 @@ public class OpActivitiesFormProvider implements XFormProvider {
       setFooterData(form, activityDataSet);
       logger.debug("/OpActivitiesFormProvider.prepareForm()");
 
+   }
+
+   /**
+    * @param form
+    * @param activityDataSet
+    * @param broker
+    * @param project
+    * @param workingPlanVersion
+    */
+   public static void fillActivityDataSet(XComponent form, XComponent activityDataSet,
+         OpBroker broker, OpProjectNode project,
+         OpProjectPlanVersion workingPlanVersion, String workingPlanVersionFieldId) {
+      if (workingPlanVersion != null) {
+         // Set working plan version ID
+         form.findComponent(workingPlanVersionFieldId).setStringValue(workingPlanVersion.locator());
+         OpActivityVersionDataSetFactory.retrieveActivityVersionDataSet(broker, workingPlanVersion,
+               activityDataSet, true);
+      }
+      else {
+         // form.findComponent(EDIT_MODE_FIELD).setBooleanValue(false);
+         OpActivityDataSetFactory.retrieveActivityDataSet(broker, project.getPlan(), activityDataSet, true);
+      }
    }
 
    /**
@@ -346,8 +401,8 @@ public class OpActivitiesFormProvider implements XFormProvider {
       footerCell.setValue(sum);
 
       //billable effort
-      footerCell = (XComponent) costsFooterRow.getChild(FOOTER_BILLABLE_INDEX);
-      footerCell.setEnabled(false);
+      // footerCell = (XComponent) costsFooterRow.getChild(FOOTER_BILLABLE_INDEX);
+      // footerCell.setEnabled(false);
 
       //travel costs
       sum = activityDataSet.calculateDoubleSum(OpGanttValidator.BASE_TRAVEL_COSTS_COLUMN_INDEX, 0);
@@ -446,12 +501,12 @@ public class OpActivitiesFormProvider implements XFormProvider {
       //enable auto-grow feature for tables
       // *** Set table selection model to cell-based
       XExtendedComponent table_box = (XExtendedComponent) form.findComponent(ACTIVITY_TABLE);
-      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_ALTERNATE);
+      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
       table_box.setEditMode(true);
       table_box.setSelectionModel(XComponent.CELL_SELECTION);
 
       table_box = (XExtendedComponent) form.findComponent(COSTS_TABLE);
-      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_ALTERNATE);
+      table_box.setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
       table_box.setEditMode(true);
       table_box.setSelectionModel(XComponent.CELL_SELECTION);
       XComponent ganttChart = form.findComponent(ACTIVITY_GANTT_CHART);

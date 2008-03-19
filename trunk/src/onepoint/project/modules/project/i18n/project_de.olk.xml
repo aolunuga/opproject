@@ -70,6 +70,7 @@
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
       <resource id="Permissions">Berechtigungen</resource>
+      <resource id="SubType">Typ</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>
    </resource-map>
@@ -86,6 +87,7 @@
       <resource id="Priority">Priorität</resource>
       <resource id="Probability">Wahrscheinlichkeit (%)</resource>
       <resource id="Archived">Archiviert</resource>    
+      <resource id="SubType">Typ</resource>          
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -129,7 +131,8 @@
       <resource id="Budget">Budget ({CurrencySymbol})</resource>
       <resource id="Priority">Priorität</resource>
       <resource id="Probability">Wahrscheinlichkeit (%)</resource>
-      <resource id="Archived">Archiviert</resource>            
+      <resource id="Archived">Archiviert</resource>   
+      <resource id="SubType">Typ</resource>                   
       <resource id="Template">Vorlage</resource>
       <resource id="NotSelected">(Nicht ausgewählt)</resource>
 
@@ -146,11 +149,11 @@
       <resource id="Version">Version</resource>
       <resource id="CreatedBy">Erstellt von</resource>
       <resource id="CreatedOn">Erstellt am</resource>
-      <resource id="Baseline">Basisversion</resource>
+      <resource id="Baseline">Basisplan</resource>
       <resource id="DeleteVersions">Versionen löschen</resource>
 
       <resource id="WorkingVersion">Arbeitskopie</resource>
-      <resource id="ActualVersion">Aktuelle Version</resource>
+      <resource id="ActualVersion">Aktuell</resource>
 
       <resource id="Resources">Ressourcen</resource>
       <resource id="Resource">Ressource</resource>
@@ -183,6 +186,7 @@
       <resource id="General">Allgemein</resource>
       <resource id="Name">Name</resource>
       <resource id="Description">Beschreibung</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Permissions">Berechtigungen</resource>
       <resource id="Cancel">Abbrechen</resource>
       <resource id="OK">OK</resource>

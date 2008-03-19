@@ -119,26 +119,12 @@ public class OpReportTestDataFactory {
     */
    public List getAllReports() {
       OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery(SELECT_REPORTS_QUERY);
-      List groups = broker.list(query);
-      broker.close();
-
-      return groups;
-   }
-
-   /**
-    * This method returns all contents available into system database.
-    *
-    * @return a list of <code>OpContent</code> instances.
-    */
-   public List getAllContents() {
-      OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery(SELECT_CONTENTS_QUERY);
-      List groups = broker.list(query);
-      broker.close();
-
-      return groups;
+      try {
+         OpQuery query = broker.newQuery(SELECT_REPORTS_QUERY);
+         return  broker.list(query);
+      }
+      finally {
+         broker.close();
+      }
    }
 }

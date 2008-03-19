@@ -5,7 +5,6 @@ package onepoint.project.test;
 
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpQuery;
-import onepoint.persistence.OpTransaction;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.service.XMessage;
@@ -60,8 +59,8 @@ public class OpSessionTest extends OpBaseOpenTestCase {
    @Override
    protected void tearDown()
         throws Exception {
-      super.tearDown();
       clean();
+      super.tearDown();
    }
 
    /**
@@ -76,18 +75,22 @@ public class OpSessionTest extends OpBaseOpenTestCase {
       session.processFiles(message);
 
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpContent");
-      List<OpContent> list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(1, list.size());
-      OpContent content = list.get(0);
-      assertEquals(0, content.getRefCount());
-      assertEquals(FILE_SIZE, content.getSize());
-      assertEquals(OpContentManager.getFileMimeType(imgFile.getName()), content.getMediaType());
-      String contentId = content.locator();
-      Map newFileMap = (Map) message.getArgument("args");
-      assertEquals(contentId, newFileMap.get("file"));
-      broker.close();
+      try {
+         OpQuery query = broker.newQuery("from OpContent");
+         List<OpContent> list = broker.list(query);
+         assertNotNull(list);
+         assertEquals(1, list.size());
+         OpContent content = list.get(0);
+         assertEquals(0, content.getRefCount());
+         assertEquals(FILE_SIZE, content.getSize());
+         assertEquals(OpContentManager.getFileMimeType(imgFile.getName()), content.getMediaType());
+         String contentId = content.locator();
+         Map newFileMap = (Map) message.getArgument("args");
+         assertEquals(contentId, newFileMap.get("file"));
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -106,14 +109,18 @@ public class OpSessionTest extends OpBaseOpenTestCase {
       session.processFiles(message);
 
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpContent");
-      List<OpContent> list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(3, list.size());
-      Map newFileMap = (Map) message.getArgument("args");
-      assertEquals(newFileMap.get("file1"), newFileMap.get("file3"));
-      assertEquals(newFileMap.get("file2"), newFileMap.get("file5"));
-      broker.close();
+      try {
+         OpQuery query = broker.newQuery("from OpContent");
+         List<OpContent> list = broker.list(query);
+         assertNotNull(list);
+         assertEquals(3, list.size());
+         Map newFileMap = (Map) message.getArgument("args");
+         assertEquals(newFileMap.get("file1"), newFileMap.get("file3"));
+         assertEquals(newFileMap.get("file2"), newFileMap.get("file5"));
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -129,43 +136,17 @@ public class OpSessionTest extends OpBaseOpenTestCase {
       session.processFiles(message);
 
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpContent");
-      List<OpContent> list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(1, list.size());
-      Map newFileMap = (Map) message.getArgument("args");
-      assertNull(newFileMap.get("file2"));
-      broker.close();
-   }
-
-   /**
-    * Test the deletion of unrefered Contents
-    */
-   public void testDeleteUnreferedContens()
-        throws Exception {
-      Map<String, File> files = new HashMap<String, File>();
-      files.put("file1", imgFile);
-      files.put("file2", mp3File);
-      files.put("file3", pdfFile);
-      XMessage message = new XMessage("Service.Target");
-      message.setArgument("args", files);
-      session.processFiles(message);
-
-      OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpContent");
-      List<OpContent> list = broker.list(query);
-      assertNotNull(list);
-      assertEquals(3, list.size());
-      broker.close();
-
-      session.deleteUnreferedContents();
-
-      broker = session.newBroker();
-      query = broker.newQuery("from OpContent");
-      list = broker.list(query);
-      assertNotNull(list);
-      assertTrue(list.isEmpty());
-      broker.close();
+      try {
+         OpQuery query = broker.newQuery("from OpContent");
+         List<OpContent> list = broker.list(query);
+         assertNotNull(list);
+         assertEquals(1, list.size());
+         Map newFileMap = (Map) message.getArgument("args");
+         assertNull(newFileMap.get("file2"));
+      }
+      finally {
+         broker.close();
+      }
    }
 
    // ***** Helper Methods *****
@@ -173,7 +154,8 @@ public class OpSessionTest extends OpBaseOpenTestCase {
    /**
     * Clean database and file system for tests
     */
-   private void clean() {
+   protected void clean()
+        throws Exception {
       //delete temporary files
       File[] files = parent.listFiles(new FilenameFilter() {
          public boolean accept(File dir, String name) {
@@ -184,12 +166,7 @@ public class OpSessionTest extends OpBaseOpenTestCase {
          file.delete();
       }
 
-      //delete contents from DB
-      OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      deleteAllObjects(broker, OpContent.CONTENT);
-      t.commit();
-      broker.close();
+      super.clean();
    }
 
    /**

@@ -39,45 +39,48 @@ public class OpResourcesFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         // Fill resource data set with pool and resource data
+         XComponent dataSet = form.findComponent(RESOURCE_DATA_SET);
 
-      // Fill resource data set with pool and resource data
-      XComponent dataSet = form.findComponent(RESOURCE_DATA_SET);
+         //set the manager permissions
+         form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);
 
-      //set the manager permissions
-      form.findComponent("ManagerPermission").setByteValue(OpPermission.MANAGER);
+         //set the effective permissions of the root resource pool
+         OpResourcePool rootResourcePool = OpResourceService.findRootPool(broker);
+         byte rootPoolPermission = session.effectiveAccessLevel(broker, rootResourcePool.getID());
+         form.findComponent("RootPoolPermission").setByteValue(rootPoolPermission);
 
-      //set the effective permissions of the root resource pool
-      OpResourcePool rootResourcePool = OpResourceService.findRootPool(broker);
-      byte rootPoolPermission = session.effectiveAccessLevel(broker, rootResourcePool.getID());
-      broker.close();
-      form.findComponent("RootPoolPermission").setByteValue(rootPoolPermission);
+         //disable the selection buttons
+         disableSelectionButtons(form);
 
-      //disable the selection buttons
-      disableSelectionButtons(form);
-
-      //check button default button visibility
-      if (rootPoolPermission < OpPermission.MANAGER) {
-         form.findComponent(NEW_POOL_BUTTON).setEnabled(false);
-         form.findComponent(NEW_RESOURCE_BUTTON).setEnabled(false);
-         if (OpEnvironmentManager.isMultiUser()) {
-            form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
+         //check button default button visibility
+         if (rootPoolPermission < OpPermission.MANAGER) {
+            form.findComponent(NEW_POOL_BUTTON).setEnabled(false);
+            form.findComponent(NEW_RESOURCE_BUTTON).setEnabled(false);
+            if (OpEnvironmentManager.isMultiUser()) {
+               form.findComponent(IMPORT_USER_BUTTON).setEnabled(false);
+            }
          }
+
+         Map<Integer, Integer> columnsSelector = new HashMap<Integer, Integer>();
+         columnsSelector.put(0, OpResourceDataSetFactory.DESCRIPTOR);
+         columnsSelector.put(1, OpResourceDataSetFactory.NAME);
+         columnsSelector.put(2, OpResourceDataSetFactory.DESCRIPTION);
+         columnsSelector.put(3, OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS);
+
+         form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
+         form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
+
+         if (!OpEnvironmentManager.isMultiUser()) {
+            form.findComponent(IMPORT_USER_BUTTON).setVisible(false);
+         }
+
+         OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, columnsSelector, columnsSelector, null);
       }
-
-      Map<Integer, Integer> columnsSelector = new HashMap<Integer, Integer>();
-      columnsSelector.put(0, OpResourceDataSetFactory.DESCRIPTOR);
-      columnsSelector.put(1, OpResourceDataSetFactory.NAME);
-      columnsSelector.put(2, OpResourceDataSetFactory.DESCRIPTION);
-      columnsSelector.put(3, OpResourceDataSetFactory.EFFECTIVE_PERMISSIONS);
-
-      form.findComponent(POOL_SELECTOR).setValue(columnsSelector);
-      form.findComponent(RESOURCE_SELECTOR).setValue(columnsSelector);
-
-      if (!OpEnvironmentManager.isMultiUser()) {
-         form.findComponent(IMPORT_USER_BUTTON).setVisible(false);
+      finally {
+         broker.close();
       }
-
-      OpResourceDataSetFactory.retrieveFirstLevelsResourceDataSet(session, dataSet, columnsSelector, columnsSelector, null);
    }
 
    /**

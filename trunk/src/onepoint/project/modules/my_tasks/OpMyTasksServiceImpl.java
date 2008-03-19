@@ -4,6 +4,12 @@
 
 package onepoint.project.modules.my_tasks;
 
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
@@ -12,14 +18,16 @@ import onepoint.persistence.OpQuery;
 import onepoint.project.OpProjectSession;
 import onepoint.project.OpService;
 import onepoint.project.modules.documents.OpContent;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpAttachment;
+import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpUser;
 import onepoint.service.server.XServiceException;
-
-import java.util.*;
 
 /**
  * Service Implementation for MyTasks.
@@ -148,7 +156,7 @@ public class OpMyTasksServiceImpl implements OpService {
       OpActivity to_add;
       while (iter.hasNext()) {
          to_add = (OpActivity)iter.next();
-         if (readGranted(session, to_add)) {
+         if (readGranted(session, broker, to_add)) {
             Iterator<OpAssignment> assignmentIter = to_add.getAssignments().iterator();
             OpAssignment assignment;
             if (!assignmentIter.hasNext()) { // has no assignments
@@ -267,7 +275,7 @@ public class OpMyTasksServiceImpl implements OpService {
       if (parent == null) {
          return null;
       }
-      if (readGranted(session, parent)) {
+      if (readGranted(session, broker, parent)) {
          return parent;
       }
       return null;
@@ -313,7 +321,7 @@ public class OpMyTasksServiceImpl implements OpService {
       OpActivity to_add;
       while (iter.hasNext()) {
          to_add = iter.next();
-         if (readGranted(session, to_add)) {
+         if (readGranted(session, broker, to_add)) {
             Iterator<OpAssignment> assignmentIter = to_add.getAssignments().iterator();
             OpAssignment assignment;
             if (!assignmentIter.hasNext()) { // has no assignments
@@ -386,7 +394,7 @@ public class OpMyTasksServiceImpl implements OpService {
       }
 
       // check rights
-      if (!createGranted(session, activity)) {
+      if (!createGranted(session, broker, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
 
@@ -454,7 +462,7 @@ public class OpMyTasksServiceImpl implements OpService {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
       }
       // check rights
-      if (!deleteGranted(session, activity)) {
+      if (!deleteGranted(session, broker, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP,
               OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
@@ -465,7 +473,7 @@ public class OpMyTasksServiceImpl implements OpService {
 
       // cannot delete if work records exist
       for (OpAssignment assignment : activity.getAssignments()) {
-         if (OpActivityDataSetFactory.hasWorkRecords(broker, assignment)) {
+         if (OpActivityDataSetFactory.hasWorkRecords(assignment)) {
             throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.EXISTING_WORKSLIP_ERROR_CODE));
          }
       }
@@ -501,7 +509,7 @@ public class OpMyTasksServiceImpl implements OpService {
          throw new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.TASK_NOT_FOUND_ERROR_CODE));
       }
       // check rights
-      if (!editGranted(session, activity)) {
+      if (!editGranted(session, broker, activity)) {
          throw new XServiceException(session.newError(ERROR_MAP,
               OpMyTasksError.INSUFICIENT_PERMISSIONS_ERROR_CODE));
       }
@@ -551,7 +559,7 @@ public class OpMyTasksServiceImpl implements OpService {
    public OpActivity getTaskById(
         OpProjectSession session, OpBroker broker, long id) {
       OpActivity activity = (OpActivity) broker.getObject(OpActivity.class, id);
-      if (!readGranted(session, activity)) {
+      if (!readGranted(session, broker, activity)) {
          return null;
       }
       return activity;
@@ -568,17 +576,12 @@ public class OpMyTasksServiceImpl implements OpService {
    public OpActivity getTaskByIdString(
         OpProjectSession session, OpBroker broker, String idString) {
       OpActivity activity = (OpActivity) broker.getObject(idString);
-      if (!readGranted(session, activity)) {
+      if (!readGranted(session, broker, activity)) {
          return null;
       }
 
       return activity;
    }
-
-// public void insertMyAttachment(OpProjectSession session, OpBroker broker, OpAttachment attachment, OpActivity activity)
-// throws XServiceException {
-// OpActivityDataSetFactory.createAttachment(broker, activity, activity.getProjectPlan(), attachmentElement, null);
-// }
 
    /**
     * Deletes the given attachment from its corresponding task.
@@ -593,11 +596,6 @@ public class OpMyTasksServiceImpl implements OpService {
       broker.deleteObject(attachment);
    }
 
-// public void updateMyAttachment(
-//   OpProjectSession session, OpBroker broker, OpAttachment attachment)
-// throws XServiceException {
-// }
-
    /**
     * It check if the user is at least Observer on the project
     *
@@ -605,13 +603,13 @@ public class OpMyTasksServiceImpl implements OpService {
     * @param activity the activity to check
     * @return true if the user has rights to view adhoc task
     */
-   public static boolean readGranted(OpProjectSession session, OpActivity activity) {
+   public static boolean readGranted(OpProjectSession session, OpBroker broker, OpActivity activity) {
       // read rights include admin rights
       if (basicRightsCheck(session)) {
          return true;
       }
-      // no riths below OBSERVER
-      if (hasProjectRights(session, activity, OpPermission.OBSERVER)) {
+      // no rigths below OBSERVER
+      if (hasProjectRights(session, broker, activity, OpPermission.OBSERVER)) {
          return true;
       }
       else {
@@ -627,7 +625,7 @@ public class OpMyTasksServiceImpl implements OpService {
     * @param activity the activity to check
     * @return true if the user has rights to create adhoc task
     */
-   public static boolean createGranted(OpProjectSession session, OpActivity activity) {
+   public static boolean createGranted(OpProjectSession session, OpBroker broker, OpActivity activity) {
       if (session == null) {
          throw new IllegalArgumentException("session is null");
       }
@@ -644,7 +642,7 @@ public class OpMyTasksServiceImpl implements OpService {
          return true;
       }
       // no riths below CONTRIBUTOR
-      if (hasProjectRights(session, activity, OpPermission.CONTRIBUTOR)) {
+      if (hasProjectRights(session, broker, activity, OpPermission.CONTRIBUTOR)) {
          return true;
       }
       else {
@@ -660,31 +658,24 @@ public class OpMyTasksServiceImpl implements OpService {
     * @param activity the activity to check
     * @return true if the user has rights to edit adhoc tasks
     */
-   public static boolean editGranted(OpProjectSession session, OpActivity activity) {
+   public static boolean editGranted(OpProjectSession session, OpBroker broker, OpActivity activity) {
       // delete rights include admin rights
       if (basicRightsCheck(session)) {
          return true;
       }
       // no riths below MANAGER
-      if (hasProjectRights(session, activity, OpPermission.MANAGER)) {
+      if (hasProjectRights(session, broker, activity, OpPermission.MANAGER)) {
          return true;
       }
-      // be a responsible user
-      OpBroker broker = session.newBroker();
-      try {
-         for (OpAssignment assignment : activity.getAssignments()) {
-            OpResource resource = assignment.getResource();
-            if (resource == null) {
-               throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
-            }
-            // responsible user can create/update AdHoc Tasks
-            if (resource.getUser().getID() == session.getUserID()) {
-               return true;
-            }
+      for (OpAssignment assignment : activity.getAssignments()) {
+         OpResource resource = assignment.getResource();
+         if (resource == null) {
+            throw (new XServiceException(session.newError(ERROR_MAP, OpMyTasksError.NO_RESOURCE_ERROR_CODE)));
          }
-      }
-      finally {
-         broker.close();
+         // responsible user can create/update AdHoc Tasks
+         if (resource.getUser().getID() == session.getUserID()) {
+            return true;
+         }
       }
       LOGGER.debug("Insufficient Adhoc task edit permissions!");
       return false;
@@ -697,13 +688,13 @@ public class OpMyTasksServiceImpl implements OpService {
     * @param activity the activity to check
     * @return true if the user has rights to delete adhoc tasks
     */
-   public static boolean deleteGranted(OpProjectSession session, OpActivity activity) {
+   public static boolean deleteGranted(OpProjectSession session, OpBroker broker, OpActivity activity) {
       // delete rights include admin rights
       if (basicRightsCheck(session)) {
          return true;
       }
       // no riths below MANAGER
-      if (hasProjectRights(session, activity, OpPermission.MANAGER)) {
+      if (hasProjectRights(session, broker, activity, OpPermission.MANAGER)) {
          return true;
       }
       else {
@@ -736,18 +727,12 @@ public class OpMyTasksServiceImpl implements OpService {
     * @param reqLevel the required permission level
     * @return true if has the required permissions
     */
-   private static boolean hasProjectRights(OpProjectSession session, OpActivity activity, byte reqLevel) {
-      OpBroker broker = session.newBroker();
-      try {
-         // Project associated with AdHoc Tasks
-         OpProjectNode project = activity.getProjectPlan().getProjectNode();
-         byte level = session.effectiveAccessLevel(broker, project.getID());
-         if (level >= reqLevel) { // the required level
-            return true;
-         }
-      }
-      finally {
-         broker.close();
+   private static boolean hasProjectRights(OpProjectSession session, OpBroker broker, OpActivity activity, byte reqLevel) {
+      // Project associated with AdHoc Tasks
+      OpProjectNode project = activity.getProjectPlan().getProjectNode();
+      byte level = session.effectiveAccessLevel(broker, project.getID());
+      if (level >= reqLevel) { // the required level
+         return true;
       }
       return false;
    }

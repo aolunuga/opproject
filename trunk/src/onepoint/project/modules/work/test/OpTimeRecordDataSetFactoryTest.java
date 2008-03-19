@@ -11,10 +11,7 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
 import onepoint.project.modules.work.OpTimeRecord;
 import onepoint.project.modules.work.OpTimeRecordDataSetFactory;
 import onepoint.project.modules.work.OpWorkRecord;
@@ -22,7 +19,6 @@ import onepoint.project.modules.work.validators.OpWorkTimeValidator;
 import onepoint.project.test.OpBaseOpenTestCase;
 
 import java.sql.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,7 +33,6 @@ public class OpTimeRecordDataSetFactoryTest extends OpBaseOpenTestCase {
    private static final String RESOURCE_NAME = "resource";
 
    private OpWorkTestDataFactory dataFactory;
-   private OpProjectTestDataFactory projectFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -49,7 +44,6 @@ public class OpTimeRecordDataSetFactoryTest extends OpBaseOpenTestCase {
       super.setUp();
 
       dataFactory = new OpWorkTestDataFactory(session);
-      projectFactory = new OpProjectTestDataFactory(session);
    }
 
    /**
@@ -163,43 +157,6 @@ public class OpTimeRecordDataSetFactoryTest extends OpBaseOpenTestCase {
    }
 
    /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
-      }
-
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpResource.RESOURCE);
-      deleteAllObjects(broker, OpTimeRecord.TIME_RECORD);
-
-      List projectList = projectFactory.getAllProjects(broker);
-      for (Object aProjectList : projectList) {
-         OpProjectNode project = (OpProjectNode) aProjectList;
-         broker.deleteObject(project);
-      }
-
-      transaction.commit();
-      broker.close();
-   }
-
-   /**
     * Returns <code>true</code> if the data set has one row in which the cells contain the values of the <code>OpTimeRecord</code> entity attributes
     * or <code>false</code> otherwise
     *
@@ -271,50 +228,54 @@ public class OpTimeRecordDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private void prepareTest() {
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      //create the project node and the project plan
-      OpProjectNode project = new OpProjectNode();
-      project.setName(PROJECT_NAME);
-      project.setType(OpProjectNode.PROJECT);
-      project.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
-      OpProjectPlan projectPlan = new OpProjectPlan();
-      projectPlan.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
-      projectPlan.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
-      projectPlan.setProjectNode(project);
+         //create the project node and the project plan
+         OpProjectNode project = new OpProjectNode();
+         project.setName(PROJECT_NAME);
+         project.setType(OpProjectNode.PROJECT);
+         project.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+         OpProjectPlan projectPlan = new OpProjectPlan();
+         projectPlan.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+         projectPlan.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+         projectPlan.setProjectNode(project);
 
-      //create the activity - assignment - resource
-      OpActivity activity = new OpActivity();
-      activity.setName(ACTIVITY_NAME);
-      activity.setProjectPlan(projectPlan);
-      OpResource resource = new OpResource();
-      resource.setName(RESOURCE_NAME);
-      OpAssignment assignment = new OpAssignment();
-      assignment.setActivity(activity);
-      assignment.setResource(resource);
+         //create the activity - assignment - resource
+         OpActivity activity = new OpActivity();
+         activity.setName(ACTIVITY_NAME);
+         activity.setProjectPlan(projectPlan);
+         OpResource resource = new OpResource();
+         resource.setName(RESOURCE_NAME);
+         OpAssignment assignment = new OpAssignment();
+         assignment.setActivity(activity);
+         assignment.setResource(resource);
 
-      //create the workRecord
-      OpWorkRecord workRecord = new OpWorkRecord();
-      workRecord.setAssignment(assignment);
+         //create the workRecord
+         OpWorkRecord workRecord = new OpWorkRecord();
+         workRecord.setAssignment(assignment);
 
-      //create the OpTimeRecords
-      OpTimeRecord timeRecord1 = new OpTimeRecord();
-      OpWorkTestDataFactory.setFieldsOnTimeRecord(timeRecord1, 50, 100, 50);
-      timeRecord1.setWorkRecord(workRecord);
-      OpTimeRecord timeRecord2 = new OpTimeRecord();
-      OpWorkTestDataFactory.setFieldsOnTimeRecord(timeRecord2, 30, 35, 5);
-      timeRecord2.setWorkRecord(workRecord);
+         //create the OpTimeRecords
+         OpTimeRecord timeRecord1 = new OpTimeRecord();
+         OpWorkTestDataFactory.setFieldsOnTimeRecord(timeRecord1, 50, 100, 50);
+         timeRecord1.setWorkRecord(workRecord);
+         OpTimeRecord timeRecord2 = new OpTimeRecord();
+         OpWorkTestDataFactory.setFieldsOnTimeRecord(timeRecord2, 30, 35, 5);
+         timeRecord2.setWorkRecord(workRecord);
 
-      broker.makePersistent(project);
-      broker.makePersistent(projectPlan);
-      broker.makePersistent(activity);
-      broker.makePersistent(resource);
-      broker.makePersistent(assignment);
-      broker.makePersistent(workRecord);
-      broker.makePersistent(timeRecord1);
-      broker.makePersistent(timeRecord2);
+         broker.makePersistent(project);
+         broker.makePersistent(projectPlan);
+         broker.makePersistent(activity);
+         broker.makePersistent(resource);
+         broker.makePersistent(assignment);
+         broker.makePersistent(workRecord);
+         broker.makePersistent(timeRecord1);
+         broker.makePersistent(timeRecord2);
 
-      t.commit();
-      broker.close();
+         t.commit();
+      }
+      finally {
+         broker.close();
+      }
    }
 }

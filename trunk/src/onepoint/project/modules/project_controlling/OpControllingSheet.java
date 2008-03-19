@@ -24,19 +24,35 @@ public class OpControllingSheet extends OpObject {
    public final static int STATE_APPROVED = 2;
    
    private Date date;
+   private Date locked;
+   private Date approved;
    private Double totalEffortControlled;
    private int state;
    private String comment;
    private int rating;
+   private String notableIssues;
+   private int customerSatisfaction;
    private OpProjectPlanVersion planVersion;
    private OpUser creator;
    private Set<OpControllingRecord> records;
 
+   public Date getApproved() {
+      return approved;
+   }
+   public void setApproved(Date approved) {
+      this.approved = approved;
+   }
    public Date getDate() {
       return date;
    }
    public void setDate(Date date) {
       this.date = date;
+   }
+   public Date getLocked() {
+      return locked;
+   }
+   public void setLocked(Date approved) {
+      this.locked = approved;
    }
    public Double getTotalEffortControlled() {
       return totalEffortControlled;
@@ -62,6 +78,18 @@ public class OpControllingSheet extends OpObject {
    public void setRating(int rating) {
       this.rating = rating;
    }
+   public String getNotableIssues() {
+      return notableIssues;
+   }
+   public void setNotableIssues(String notableIssues) {
+      this.notableIssues = notableIssues;
+   }
+   public int getCustomerSatisfaction() {
+      return customerSatisfaction;
+   }
+   public void setCustomerSatisfaction(int customerSatisfaction) {
+      this.customerSatisfaction = customerSatisfaction;
+   }
    public OpProjectPlanVersion getPlanVersion() {
       return planVersion;
    }
@@ -77,14 +105,10 @@ public class OpControllingSheet extends OpObject {
    public Set<OpControllingRecord> getRecords() {
       return records;
    }
-   public void setRecords(Set<OpControllingRecord> records) {
+   private void setRecords(Set<OpControllingRecord> records) {
       this.records = records;
    }
    public void setRecordsAndCalculate(Set<OpControllingRecord> records) {
-      if (this.records != null)
-         for (OpControllingRecord cr: this.records) {
-            cr.setControllingSheet(null);
-         }
       this.records = records;
       this.totalEffortControlled = 0.0;
       if (records != null)

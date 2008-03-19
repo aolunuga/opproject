@@ -81,19 +81,30 @@ public class OpPrototypeHandler implements XNodeHandler {
                     + "." + backupMember.name);
             }
          }
-         // Cache accessor method
-         // (Note that we assume that persistent member names start with an upper-case letter)
-         try {
-            //we should be somewhat graceful. It may happen, that entities vanish...
-            if (prototype != null) {
-               backupMember.accessor = prototype.getInstanceClass().getMethod("set" + backupMember.name, accesorArgument);
+         //we should be somewhat graceful. It may happen, that entities vanish...
+         if (prototype != null) {
+            // Cache accessor method
+            // (Note that we assume that persistent member names start with an upper-case letter)
+            Class prototypeClass = prototype.getInstanceClass();
+            while (true) {
+               try {
+                  backupMember.accessor = prototypeClass.getDeclaredMethod("set" + backupMember.name, accesorArgument);
+                  backupMember.accessor.setAccessible(true);
+                  break;
+               }
+               catch (NoSuchMethodException e) {
+                  prototypeClass = prototypeClass.getSuperclass();
+                  if (prototypeClass == Object.class) {
+                     break;
+                  }
+               }
             }
-            else {
-               logger.error("cannot handle '" + prototypeName + "' as the corresponding prototype is missing in this version");
+            if (prototypeClass == Object.class) {
+               this.findAlternativeAccessors(prototype, backupMember);
             }
          }
-         catch (NoSuchMethodException e) {
-            this.findAlternativeAccessors(prototype, backupMember);
+         else {
+            logger.error("cannot handle '" + prototypeName + "' as the corresponding prototype is missing in this version");
          }
       }
    }
@@ -111,13 +122,21 @@ public class OpPrototypeHandler implements XNodeHandler {
       //try normal java types (for the set type id)
       Class accesorArgument = OpBackupTypeManager.getJavaType(backupMember.typeId);
       if (accesorArgument != null) {
-         try {
-            backupMember.accessor = prototype.getInstanceClass().getMethod(methodName, accesorArgument);
-            return;
+         Class prototypeClass = prototype.getInstanceClass();
+         while (true) {
+            try {
+               backupMember.accessor = prototypeClass.getDeclaredMethod(methodName, accesorArgument);
+               backupMember.accessor.setAccessible(true);
+               return;
+            }
+            catch (NoSuchMethodException e) {
+               prototypeClass = prototypeClass.getSuperclass();
+               if (prototypeClass == Object.class) {
+                  break;
+               }
+            }
          }
-         catch (NoSuchMethodException e) {
-            logger.debug("No accessor found using type " + accesorArgument);
-         }
+         logger.debug("No accessor found using type " + accesorArgument);
       }
 
       //try to see if we have a type change (and possibly a backup member change)
@@ -150,6 +169,6 @@ public class OpPrototypeHandler implements XNodeHandler {
          }
       }
 
-      logger.error("No accessor found for " + methodName + " in class " + prototype.getName());
+      logger.error("No accessor found for " + methodName + "("+(accesorArgument == null ? "" : accesorArgument.getName())+") in class " + prototype.getName());
    }
 }

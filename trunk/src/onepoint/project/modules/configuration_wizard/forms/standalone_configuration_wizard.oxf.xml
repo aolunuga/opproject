@@ -17,7 +17,7 @@
          <panel layout="table" style-ref="login-panel-default">
             <label x="0" y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
 
-            <label x="0" y="1" width="2" text="${DatabaseLocation}" style-ref="header-label-default"/>
+            <label x="0" y="1" width="2" text="${DatabaseLocation}" style-ref="wizard-label-default"/>
             <text-field x="2" y="1" width="2" id="DbPathTextField" enabled="false"/>
             <button x="4" y="1" width="1" id="selectButton" text="${Select}" on-button-pressed="selectFolder"/>
             <button x="2" y="3" width="2" id="okButton" text="${OK}" on-button-pressed="connect"/>

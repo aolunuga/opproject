@@ -61,10 +61,8 @@ function showAbout(event) {
 }
 
 function systemSettings(event) {
-//   client = XDisplay.findFrame(getClient();
    dockFrame = XDisplay.findFrame("DockFrame");
    category = dockFrame.currentForm().findComponent("category");
-//   mainFrame.showForm("adminForm")
    button = XDisplay.getActiveForm().findComponent("systemSettings_button");
    if (button.getSelected()) {
       button.setSelected(false);
@@ -79,7 +77,6 @@ function systemSettings(event) {
    naviBox.deselectNavigationItems();
    naviBox.selectNavigationItem(0,0);
    dockFrame.refreshForm(parameters);
-//   naviBox.repaint();
 }
 
 function bandwidthInfo(info) {

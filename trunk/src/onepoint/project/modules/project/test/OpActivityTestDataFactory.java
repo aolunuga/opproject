@@ -43,7 +43,6 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
       if (locator != null) {
          return getActivityById(locator);
       }
-
       return null;
    }
 
@@ -55,22 +54,12 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
     */
    public OpActivity getActivityById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpActivity activity = (OpActivity) broker.getObject(locator);
-      if (activity != null) {
-         // just to initialize the collection
-         activity.getAssignments().size();
-         activity.getAttachments().size();
-         activity.getComments().size();
-         activity.getPredecessorDependencies();
-         activity.getSubActivities().size();
-         activity.getSuccessorDependencies().size();
-         activity.getVersions().size();
-         activity.getWorkPeriods().size();
+      try {
+         return (OpActivity) broker.getObject(locator);
       }
-      broker.close();
-
-      return activity;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -81,20 +70,22 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
     */
    public OpActivityVersion getActivityVersionById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(locator);
-      if (activityVersion != null) {
-         // just to initialize the collection
-         activityVersion.getAssignmentVersions().size();
-         activityVersion.getAttachmentVersions().size();
-         activityVersion.getPredecessorVersions();
-         activityVersion.getSubActivityVersions().size();
-         activityVersion.getSuccessorVersions().size();
-         activityVersion.getWorkPeriodVersions().size();
+      try {
+         OpActivityVersion activityVersion = (OpActivityVersion) broker.getObject(locator);
+         if (activityVersion != null) {
+            // just to initialize the collection
+            activityVersion.getAssignmentVersions().size();
+            activityVersion.getAttachmentVersions().size();
+            activityVersion.getPredecessorVersions();
+            activityVersion.getSubActivityVersions().size();
+            activityVersion.getSuccessorVersions().size();
+            activityVersion.getWorkPeriodVersions().size();
+         }
+         return activityVersion;
       }
-      broker.close();
-
-      return activityVersion;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -105,18 +96,22 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
     */
    public String getActivityId(String activityName) {
       OpBroker broker = session.newBroker();
-      Long activityId = null;
+      try {
+         Long activityId = null;
 
-      OpQuery query = broker.newQuery(SELECT_ACTIVITY_ID_BY_NAME_QUERY);
-      query.setString(0, activityName);
-      Iterator activityIt = broker.iterate(query);
-      if (activityIt.hasNext()) {
-         activityId = (Long) activityIt.next();
+         OpQuery query = broker.newQuery(SELECT_ACTIVITY_ID_BY_NAME_QUERY);
+         query.setString(0, activityName);
+         Iterator activityIt = broker.iterate(query);
+         if (activityIt.hasNext()) {
+            activityId = (Long) activityIt.next();
+         }
+
+         if (activityId != null) {
+            return OpLocator.locatorString(OpActivity.ACTIVITY, Long.parseLong(activityId.toString()));
+         }
       }
-      broker.close();
-
-      if (activityId != null) {
-         return OpLocator.locatorString(OpActivity.ACTIVITY, Long.parseLong(activityId.toString()));
+      finally {
+         broker.close();
       }
       return null;
    }
@@ -129,19 +124,22 @@ public class OpActivityTestDataFactory extends OpTestDataFactory {
     */
    public String getActivityVersionId(String activityName) {
       OpBroker broker = session.newBroker();
-      Long activityId = null;
+      try {
+         Long activityId = null;
 
-      OpQuery query = broker.newQuery(SELECT_ACTIVITY_VERSION_ID_BY_NAME_QUERY);
-      query.setString(0, activityName);
-      Iterator activityIt = broker.iterate(query);
-      if (activityIt.hasNext()) {
-         activityId = (Long) activityIt.next();
+         OpQuery query = broker.newQuery(SELECT_ACTIVITY_VERSION_ID_BY_NAME_QUERY);
+         query.setString(0, activityName);
+         Iterator activityIt = broker.iterate(query);
+         if (activityIt.hasNext()) {
+            activityId = (Long) activityIt.next();
+         }
+         if (activityId != null) {
+            return OpLocator.locatorString(OpActivityVersion.ACTIVITY_VERSION, Long.parseLong(activityId.toString()));
+         }
+         return null;
       }
-      broker.close();
-
-      if (activityId != null) {
-         return OpLocator.locatorString(OpActivityVersion.ACTIVITY_VERSION, Long.parseLong(activityId.toString()));
+      finally {
+         broker.close();
       }
-      return null;
    }
 }

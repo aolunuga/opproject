@@ -36,6 +36,7 @@ public abstract class OpWorkError {
    public final static int TIME_RECORDS_OVERLAP = 23;
    public final static int WORK_SLIP_NOT_EDITABLE = 24;
    public final static int WORK_SLIP_IS_CONTROLLED = 25;
+   public static final int WORK_SLIP_PERMISSION_DENIED = 26;
 
    // Error names
    public final static String INCORRECT_ACTUAL_EFFORT_NAME = "IncorrectActualEffort";
@@ -61,4 +62,5 @@ public abstract class OpWorkError {
    public final static String TIME_RECORDS_OVERLAP_NAME = "TimeRecordsOverlap";
    public final static String WORK_SLIP_NOT_EDITABLE_NAME = "WorkSlipNotEditable";
    public final static String WORK_SLIP_IS_CONTROLLED_NAME = "WorkSlipIsControlled";
+   public final static String WORK_SLIP_PERMISSION_DENIED_NAME = "WorkSlipPermissionDenied";
 }

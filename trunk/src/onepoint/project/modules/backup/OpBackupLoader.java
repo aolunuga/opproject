@@ -4,12 +4,20 @@
 
 package onepoint.project.modules.backup;
 
+import onepoint.log.XLog;
+import onepoint.log.XLogFactory;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
+import onepoint.project.util.Triple;
 import onepoint.xml.XDocumentHandler;
 import onepoint.xml.XLoader;
 import onepoint.xml.XSchema;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
 
 /**
  * Class that restores a repository backup.
@@ -17,6 +25,11 @@ import java.io.InputStream;
 public class OpBackupLoader extends XLoader {
 
    // Does not use resource loading, because file name and location specified by user
+
+   /**
+    * This class's logger.
+    */
+   private static final XLog logger = XLogFactory.getServerLogger(OpReferenceHandler.class);
 
    /**
     * The schema that is used by the backup loader.
@@ -41,5 +54,38 @@ public class OpBackupLoader extends XLoader {
       OpRestoreContext context = new OpRestoreContext(session);
       context.setVariable(OpRestoreContext.WORKING_DIRECTORY, workingDirectory);
       loadObject(input_stream, context);
+      // complete all missing relations
+      Iterator<Triple<String, String, OpBackupMember>> iterator = context.relationDelayedIterator();
+      int count = 0;
+      OpBroker broker = session.newBroker();
+      OpTransaction t = broker.newTransaction();
+      try {
+         while (iterator.hasNext()) {
+            Triple<String, String, OpBackupMember> node = iterator.next();
+            try {
+               OpObject source = broker.getObject(node.getFirst());
+               OpObject destination = broker.getObject(node.getSecond());
+               node.getThird().accessor.invoke(source, destination);
+               count++;
+               if (count % OpRestoreContext.MAX_INSERTS_PER_TRANSACTION == 0) {
+                  t.commit();
+                  t = broker.newTransaction();
+               }
+            }
+            catch (IllegalAccessException e) {
+               logger.error("Cannot restore object relationship", e);
+            }
+            catch (InvocationTargetException e) {
+               logger.error("Cannot restore object relationship", e);
+            }
+         }
+         t.commit();
+      }
+      finally {
+         if (!t.wasCommited()) {
+            t.rollback();
+         }
+         broker.close();
+      }
    }
 }

@@ -1,16 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <language-kit locale="fr">
-   <resource-map id="report.project_progress">
-      <resource id="PrintTitle">Progression Projet</resource>
-      <resource id="Project">Projet</resource>
-      <resource id="Select">Choisir</resource>
-      <resource id="Activity">Activité</resource>
-      <resource id="PercentComplete">% Terminée.</resource>
-      <resource id="BaseEffort">Effort (B/h)</resource>
-      <resource id="ActualEffort">Effort (A/h)</resource>
-      <resource id="BaseCosts">Coûts (B/{CurrencySymbol})</resource>
-      <resource id="ActualCosts">Coûts (A/{CurrencySymbol})</resource>
-      <resource id="InvalidProject">Veuillez choisir un projet</resource>
-      <resource id="SaveCSV">Enregistrer en Tableau...</resource>
-      <resource id="SaveImage">Enregistrer en Image...</resource>
-   </resource-map>
+    <resource-map id="report.project_progress">
+        <resource id="Activity">Activité</resource>
+        <resource id="SaveCSV">Enregistrer en Tableau...</resource>
+        <resource id="Select">Choisir</resource>
+        <resource id="PercentComplete">% Terminée.</resource>
+        <resource id="PrintTitle">Progression Projet</resource>
+        <resource id="ActualCosts">Coûts (A/{CurrencySymbol})</resource>
+        <resource id="BaseCosts">Coûts (B/{CurrencySymbol})</resource>
+        <resource id="BaseEffort">Effort (B/h)</resource>
+        <resource id="ActualEffort">Effort (A/h)</resource>
+        <resource id="Project">Projet</resource>
+        <resource id="InvalidProject">Veuillez choisir un projet</resource>
+        <resource id="SaveImage">Enregistrer en Image...</resource>
+    </resource-map>
 </language-kit>

@@ -16,6 +16,8 @@ import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.tool.hbm2ddl.DatabaseMetadata;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 
 import java.lang.reflect.Method;
 import java.sql.Blob;
@@ -110,21 +112,46 @@ public class OpHibernateConnection extends OpConnection {
          return;
       }
       Statement statement = null;
-      OpTransaction t = newTransaction();
+      Connection connection = null;
+
+      connection = session.connection();
+      Boolean autoCommit = null;
       try {
-         Connection connection = session.connection();
+         autoCommit = connection.getAutoCommit();
+         connection.setAutoCommit(false);
+      }
+      catch (SQLException exc) {
+         logger.warn(exc);
+      }
+      try {
          for (int i = 0; i < script.length; i++) {
             statement = connection.createStatement();
             logger.info("Executing SQL: " + script[i]);
             statement.executeUpdate(script[i]);
          }
-         t.commit();
+         statement.close();
+         connection.commit();
       }
       catch (Exception e) {
-         t.rollback();
+         if (connection != null) {
+            try {
+               connection.rollback();
+            }
+            catch (SQLException exc) {
+               logger.error("Could not roll back DDL script: ", exc);
+            }
+         }
          logger.error("Could not execute DDL script: ", e);
       }
       finally {
+         if (autoCommit != null) {
+            try {
+               connection.setAutoCommit(autoCommit);
+            }
+            catch (SQLException exc) {
+               logger.error("Could not set back auto commit mode", exc);
+            }
+         }
          closeStatement(statement);
       }
    }
@@ -140,31 +167,57 @@ public class OpHibernateConnection extends OpConnection {
       }
       // Try each drop extra and issues only warnings if tables cannot be dropped
       Statement statement = null;
+      Connection connection = null;
+      Boolean autoCommit = null;
       try {
-         Connection connection = session.connection();
-         OpTransaction t = null;
+         connection = session.connection();
+         try {
+            autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+         }
+         catch (SQLException exc) {
+            logger.warn(exc);
+         }
          for (int i = 0; i < script.length; i++) {
             try {
-               t = newTransaction();
                statement = connection.createStatement();
-               logger.info("Executing SQL:" + script[i]);
+               logger.info("Soft Executing SQL:" + script[i]);
                statement.executeUpdate(script[i]);
                statement.close();
-               t.commit();
+               connection.commit();
             }
             catch (SQLException e) {
                logger.warn("Skipping drop statement because: ", e);
-               t.rollback();
+               try {
+                  connection.rollback();
+               }
+               catch (SQLException exc) {
+                  logger.error(exc);
+               }
                this.closeStatement(statement);
             }
             catch (Exception e) {
                logger.error("Could not execute drop statement: ", e);
-               t.rollback();
+               try {
+                  connection.rollback();
+               }
+               catch (SQLException exc) {
+                  logger.error(exc);
+               }
                break;
             }
          }
       }
       finally {
+         if ((autoCommit != null) && (connection != null)) {
+            try {
+               connection.setAutoCommit(autoCommit);
+            }
+            catch (SQLException exc) {
+               logger.error("Could not set back auto commit mode", exc);
+            }
+         }
+
          closeStatement(statement);
       }
    }
@@ -188,17 +241,23 @@ public class OpHibernateConnection extends OpConnection {
    public void createSchema() {
       // Create schema creation script
       OpHibernateSource source = ((OpHibernateSource) getSource());
-      Configuration configuration = source.getConfiguration();
-      String[] script = null;
-      try {
-         script = configuration.generateSchemaCreationScript(source.newHibernateDialect());
-      }
-      catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not generate schema creation script: ", e);
-         // *** TODO: Throw OpPersistenceException
-      }
-      // Execute schema creation script
-      executeDDLScript(script);
+      SchemaExport export = new SchemaExport(source.getConfiguration());
+      export.create(false, true);
+//      source.evict();
+
+//      Configuration configuration = source.getConfiguration();
+//      String[] script = null;
+//      try {
+//         script = configuration.generateSchemaCreationScript(source.newHibernateDialect());
+//      }
+//      catch (HibernateException e) {
+//         logger.error("OpHibernateConnection.persistObject(): Could not generate schema creation script: ", e);
+//         // *** TODO: Throw OpPersistenceException
+//      }
+//      // Execute schema creation script
+//      
+//      executeDDLScript(script);
+//      System.err.println("createSchema: length: "+Dialect.getDialect(source.getConfiguration().getProperties()));
 
       //for hypersonic, we need to switch of the default write delay, or things won't work.
       if (source.getDatabaseType() == OpHibernateSource.HSQLDB) {
@@ -206,6 +265,17 @@ public class OpHibernateConnection extends OpConnection {
       }
    }
 
+
+   public void updateDBSchema() {
+      OpHibernateSource source = ((OpHibernateSource) getSource());
+      SchemaUpdate update = new SchemaUpdate(source.getConfiguration());
+      update.execute(false, true);
+
+      //for hypersonic, we need to switch of the default write delay, or things won't work.
+      if (source.getDatabaseType() == OpHibernateSource.HSQLDB) {
+         initHsqlDB(source);
+      }
+   }
    /**
     * Performs HSQLDB custom initialization.
     *
@@ -288,6 +358,8 @@ public class OpHibernateConnection extends OpConnection {
          //first execute any custom drop statements (only for MySQL necessary at the moment)
          if (source.getDatabaseType() == OpHibernateSource.MYSQL_INNODB) {
             customDropScripts = customSchemaUpdater.generateDropConstraintScripts(connection.getMetaData());
+//            SchemaExport export = new SchemaExport(source.getConfiguration());
+//            export.drop(true, true);
             softExecuteDDLScript((String[]) customDropScripts.toArray(new String[]{}));
          }
 
@@ -304,7 +376,8 @@ public class OpHibernateConnection extends OpConnection {
             }
             cleanHibernateUpdateScripts.add(hibernateUpdateScript);
          }
-
+//         SchemaUpdate update = new SchemaUpdate(configuration);
+//         update.execute(true, true);
          executeDDLScript(cleanHibernateUpdateScripts.toArray(new String[]{}));
 
          //finally perform the custom update
@@ -320,20 +393,27 @@ public class OpHibernateConnection extends OpConnection {
     * Drop database schema.
     */
    public void dropSchema() {
-      // Create drop schema script
       OpHibernateSource source = ((OpHibernateSource) getSource());
-      OpHibernateSchemaUpdater customUpdater = new OpHibernateSchemaUpdater(source.getDatabaseType());
       Configuration configuration = source.getConfiguration();
-      try {
-         String[] hibernateDropScripts = configuration.generateDropSchemaScript(source.newHibernateDialect());
-         softExecuteDDLScript(hibernateDropScripts);
+      SchemaExport export = new SchemaExport(configuration);
+      export.drop(false, true);
 
-         String[] customDropScripts = (String[]) customUpdater.generateDropPredefinedTablesScripts().toArray(new String[]{});
-         softExecuteDDLScript(customDropScripts);
-      }
-      catch (HibernateException e) {
-         logger.error("OpHibernateConnection.persistObject(): Could not generate drop schema script: ", e);
-      }
+      
+//      // Create drop schema script
+//      OpHibernateSource source = ((OpHibernateSource) getSource());
+//      OpHibernateSchemaUpdater customUpdater = new OpHibernateSchemaUpdater(source.getDatabaseType());
+//      Configuration configuration = source.getConfiguration();
+//
+//      try {
+//         String[] hibernateDropScripts = configuration.generateDropSchemaScript(source.newHibernateDialect());
+//         softExecuteDDLScript(hibernateDropScripts);
+//
+//         String[] customDropScripts = (String[]) customUpdater.generateDropPredefinedTablesScripts().toArray(new String[]{});
+//         softExecuteDDLScript(customDropScripts);
+//      }
+//      catch (HibernateException e) {
+//         logger.error("OpHibernateConnection.persistObject(): Could not generate drop schema script: ", e);
+//      }
    }
 
 
@@ -438,8 +518,8 @@ public class OpHibernateConnection extends OpConnection {
          logger.error("Could not execute query: " + ((OpHibernateQuery) query).getQuery().getQueryString());
          logger.error("Exception: ", e);
          // *** TODO: Throw OpPersistenceException
+         return -1;
       }
-      return 0;
    }
 
    public void close() {
@@ -534,5 +614,15 @@ public class OpHibernateConnection extends OpConnection {
          return FLUSH_MODE_ALWAYS;
       }
       return (-1);
+   }
+
+   @Override
+   public void clear() {
+      session.clear();
+   }
+
+   @Override
+   public void refreshObject(OpObject object) {
+      session.refresh(object);
    }
 }

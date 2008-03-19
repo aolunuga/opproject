@@ -135,21 +135,25 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public String getWorkSlipId(String workSlipNumber) {
       OpBroker broker = session.newBroker();
-      Long workSlipId = null;
+      try {
+         Long workSlipId = null;
 
-      OpQuery query = broker.newQuery(SELECT_WORK_SLIP_ID_BY_NUMBER_QUERY);
-      query.setString(0, workSlipNumber);
-      Iterator workSlipIt = broker.iterate(query);
-      if (workSlipIt.hasNext()) {
-         workSlipId = (Long) workSlipIt.next();
+         OpQuery query = broker.newQuery(SELECT_WORK_SLIP_ID_BY_NUMBER_QUERY);
+         query.setString(0, workSlipNumber);
+         Iterator workSlipIt = broker.iterate(query);
+         if (workSlipIt.hasNext()) {
+            workSlipId = (Long) workSlipIt.next();
+         }
+
+         if (workSlipId != null) {
+            return OpLocator.locatorString(OpWorkSlip.WORK_SLIP, Long.parseLong(workSlipId.toString()));
+         }
+
+         return null;
       }
-      broker.close();
-
-      if (workSlipId != null) {
-         return OpLocator.locatorString(OpWorkSlip.WORK_SLIP, Long.parseLong(workSlipId.toString()));
+      finally {
+         broker.close();
       }
-
-      return null;
    }
 
    /**
@@ -160,14 +164,12 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public OpWorkSlip getResourceById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpWorkSlip workSlip = (OpWorkSlip) broker.getObject(locator);
-      if (workSlip != null) {
-         workSlip.getRecords().size();
+      try {
+         return (OpWorkSlip) broker.getObject(locator);
       }
-      broker.close();
-
-      return workSlip;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -176,17 +178,20 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     * @return - a <code>List</code> ontaining all the workslips in the database
     */
    public List<OpWorkSlip> getAllWorkSlips() {
-      List<OpWorkSlip> workSlips = new ArrayList<OpWorkSlip>();
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(SELECT_ALL_WORK_SLIPS);
+      try {
+         List<OpWorkSlip> workSlips = new ArrayList<OpWorkSlip>();
+         OpQuery query = broker.newQuery(SELECT_ALL_WORK_SLIPS);
 
-      Iterator it = broker.iterate(query);
-      while (it.hasNext()) {
-         workSlips.add((OpWorkSlip) it.next());
+         Iterator it = broker.iterate(query);
+         while (it.hasNext()) {
+            workSlips.add((OpWorkSlip) it.next());
+         }
+         return workSlips;
       }
-      broker.close();
-      
-      return workSlips;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -197,21 +202,25 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public String getWorkRecordId(String resourceName) {
       OpBroker broker = session.newBroker();
-      Long workRecordId = null;
+      try {
+         Long workRecordId = null;
 
-      OpQuery query = broker.newQuery(SELECT_WORK_RECORD_ID_BY_RESOURCE_NAME_QUERY);
-      query.setString(0, resourceName);
-      Iterator workRecordIt = broker.iterate(query);
-      if (workRecordIt.hasNext()) {
-         workRecordId = (Long) workRecordIt.next();
+         OpQuery query = broker.newQuery(SELECT_WORK_RECORD_ID_BY_RESOURCE_NAME_QUERY);
+         query.setString(0, resourceName);
+         Iterator workRecordIt = broker.iterate(query);
+         if (workRecordIt.hasNext()) {
+            workRecordId = (Long) workRecordIt.next();
+         }
+
+         if (workRecordId != null) {
+            return OpLocator.locatorString(OpWorkRecord.WORK_RECORD, Long.parseLong(workRecordId.toString()));
+         }
+
+         return null;
       }
-      broker.close();
-
-      if (workRecordId != null) {
-         return OpLocator.locatorString(OpWorkRecord.WORK_RECORD, Long.parseLong(workRecordId.toString()));
+      finally {
+         broker.close();
       }
-
-      return null;
    }
 
    /**
@@ -222,23 +231,25 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public OpWorkRecord getWorkRecordById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(locator);
-      if (workRecord != null) {
-         // just to inialize the collection
-         workRecord.getCostRecords().size();
-         workRecord.getTimeRecords().size();
-         workRecord.getAssignment().getActivity().getProjectPlan().getProjectNode().getName();
-         workRecord.getAssignment().getResource().getName();
-         if (!workRecord.getCostRecords().isEmpty()) {
-            for (OpCostRecord costRecord : workRecord.getCostRecords()) {
-               costRecord.getAttachments().size();
+      try {
+         OpWorkRecord workRecord = (OpWorkRecord) broker.getObject(locator);
+         if (workRecord != null) {
+            // just to inialize the collection
+            workRecord.getCostRecords().size();
+            workRecord.getTimeRecords().size();
+            workRecord.getAssignment().getActivity().getProjectPlan().getProjectNode().getName();
+            workRecord.getAssignment().getResource().getName();
+            if (!workRecord.getCostRecords().isEmpty()) {
+               for (OpCostRecord costRecord : workRecord.getCostRecords()) {
+                  costRecord.getAttachments().size();
+               }
             }
          }
+         return workRecord;
       }
-      broker.close();
-
-      return workRecord;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -249,21 +260,24 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public String getAttachmentId(Long costRecordId) {
       OpBroker broker = session.newBroker();
-      Long attachmentId = null;
+      try {
+         Long attachmentId = null;
 
-      OpQuery query = broker.newQuery(SELECT_ATTACHMENT_ID_BY_COST_RECORD_ID_QUERY);
-      query.setLong(0, costRecordId);
-      Iterator attachmentIt = broker.iterate(query);
-      if (attachmentIt.hasNext()) {
-         attachmentId = (Long) attachmentIt.next();
+         OpQuery query = broker.newQuery(SELECT_ATTACHMENT_ID_BY_COST_RECORD_ID_QUERY);
+         query.setLong(0, costRecordId);
+         Iterator attachmentIt = broker.iterate(query);
+         if (attachmentIt.hasNext()) {
+            attachmentId = (Long) attachmentIt.next();
+         }
+         if (attachmentId != null) {
+            return OpLocator.locatorString(OpAttachment.ATTACHMENT, Long.parseLong(attachmentId.toString()));
+         }
+
+         return null;
       }
-      broker.close();
-
-      if (attachmentId != null) {
-         return OpLocator.locatorString(OpAttachment.ATTACHMENT, Long.parseLong(attachmentId.toString()));
+      finally {
+         broker.close();
       }
-
-      return null;
    }
 
    /**
@@ -274,11 +288,12 @@ public class OpWorkTestDataFactory extends OpTestDataFactory {
     */
    public OpAttachment getAttachmentById(String locator) {
       OpBroker broker = session.newBroker();
-
-      OpAttachment attachment = (OpAttachment) broker.getObject(locator);
-      broker.close();
-
-      return attachment;
+      try {
+         return (OpAttachment) broker.getObject(locator);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**

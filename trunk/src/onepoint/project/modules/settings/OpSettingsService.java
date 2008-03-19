@@ -59,10 +59,11 @@ public class OpSettingsService extends OpProjectService {
       return (OpSettingsService) XServiceManager.getService(SETTINGS_SERVICE_NAME);
    }
 
-   protected OpSettings settings;
+   // Defines a map of settings (one instance of OpSettings for each source defined)
+   private Map<String, OpSettings> settingsMap;
 
    public OpSettingsService() {
-      settings = new OpSettings();
+      settingsMap = new HashMap<String, OpSettings>();
    }
 
 
@@ -93,8 +94,8 @@ public class OpSettingsService extends OpProjectService {
       Map<String, String> newSettings = new HashMap<String, String>();
 
       //user locale
-      String userLocale = (String) settings.get(OpSettings.USER_LOCALE);
-      newSettings.put(OpSettings.USER_LOCALE, userLocale);
+      String userLocaleId = (String) settings.get(OpSettings.USER_LOCALE_ID);
+      newSettings.put(OpSettings.USER_LOCALE_ID, userLocaleId);
 
       //first/last working day validation
       int firstWorkDay;
@@ -137,7 +138,7 @@ public class OpSettingsService extends OpProjectService {
          throw new OpSettingsException(session.newError(ERROR_MAP, OpSettingsError.WEEK_WORK_TIME_INCORRECT));
       }
 
-      String oldWeekWorkTime = get(OpSettings.CALENDAR_WEEK_WORK_TIME);
+      String oldWeekWorkTime = get(session, OpSettings.CALENDAR_WEEK_WORK_TIME);
       if (oldWeekWorkTime != null) {
          double oldDWeekWorkTime = Double.valueOf(oldWeekWorkTime).doubleValue();
          if (oldDWeekWorkTime != weekWorkTime) {
@@ -239,19 +240,24 @@ public class OpSettingsService extends OpProjectService {
 
    public void loadSettings(OpProjectSession session) {
       //load the holiday calendars
-      loadHolidayCalendars();
+      loadHolidayCalendars(session);
 
       // Clear cached settings, load from database and apply
+      OpSettings settings = getSettings(session);
       settings.clear();
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select setting from OpSetting as setting");
-      Iterator result = broker.iterate(query);
-      OpSetting setting = null;
-      while (result.hasNext()) {
-         setting = (OpSetting) result.next();
-         settings.put(setting.getName(), setting.getValue());
+      try {
+         OpQuery query = broker.newQuery("select setting from OpSetting as setting");
+         Iterator result = broker.iterate(query);
+         OpSetting setting = null;
+         while (result.hasNext()) {
+            setting = (OpSetting) result.next();
+            settings.put(setting.getName(), setting.getValue());
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       // Apply loaded settings
       applySettings(session);
    }
@@ -259,7 +265,7 @@ public class OpSettingsService extends OpProjectService {
    /**
     * Loads the holiday calendars into the <code>HolidayCalendarManager</code>.
     */
-   private void loadHolidayCalendars() {
+   private void loadHolidayCalendars(OpProjectSession session) {
       OpHolidayCalendarManager.clearHolidayCalendarsMap();
       List files = getAllHolidayCalendarFiles();
       if (files != null) {
@@ -276,7 +282,7 @@ public class OpSettingsService extends OpProjectService {
             loader.loadHolidays(input);
          }
       }
-      settings.setHolidayCalendars(OpHolidayCalendarManager.getHolidayCalendarsMap());
+      getSettings(session).setHolidayCalendars(OpHolidayCalendarManager.getHolidayCalendarsMap());
    }
 
    /**
@@ -309,8 +315,8 @@ public class OpSettingsService extends OpProjectService {
    }
 
    protected boolean applySettings(OpProjectSession session) {
-
       boolean refresh = false;
+      OpSettings settings = getSettings(session);
 
       // Apply settings to current environment
       settings.fillPlanningSettings();
@@ -323,11 +329,18 @@ public class OpSettingsService extends OpProjectService {
          refresh = true;
       }
 
-      XLocale newLocale = XLocaleManager.findLocale(get(OpSettings.USER_LOCALE));
-      boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
-      if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
-         session.setLocale(newLocale);
-         refresh = true;
+      XLocale newLocale = XLocaleManager.findLocale(get(session, OpSettings.USER_LOCALE_ID));
+      if (newLocale != null) {
+         if (session.getLocale() == null) {
+            session.setLocale(newLocale);
+         }
+         else {
+            boolean changedLanguage = !newLocale.getID().equals(session.getLocale().getID());
+            if (!OpEnvironmentManager.isMultiUser() && changedLanguage) {
+               session.setLocale(newLocale);
+               refresh = true;
+            }
+         }
       }
       return refresh;
    }
@@ -340,43 +353,65 @@ public class OpSettingsService extends OpProjectService {
     *                    as modified from the outside.
     */
    private void saveSettings(OpProjectSession session, Map<String, String> newSettings) {
+      OpSettings settings = getSettings(session);
+
       //update the settings map with the new settings
       settings.updateSettings(newSettings);
 
       // Copy settings and compare with stored settings
       Map<String, String> settingsClone = (Map<String, String>) ((HashMap) settings.getSettingsMap()).clone();
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
-      OpQuery query = broker.newQuery("select setting from OpSetting as setting");
-      Iterator result = broker.iterate(query);
-      while (result.hasNext()) {
-         OpSetting setting = (OpSetting) result.next();
-         String value = settingsClone.remove(setting.getName());
-         if (value == null) {
-            // Value has been removed: Delete setting from database
-            broker.deleteObject(setting);
+      try {
+         OpTransaction t = broker.newTransaction();
+         OpQuery query = broker.newQuery("select setting from OpSetting as setting");
+         Iterator result = broker.iterate(query);
+         while (result.hasNext()) {
+            OpSetting setting = (OpSetting) result.next();
+            String value = settingsClone.remove(setting.getName());
+            if (value == null) {
+               // Value has been removed: Delete setting from database
+               broker.deleteObject(setting);
+            }
+            else if (!setting.getValue().equals(value)) {
+               // Value has changed: Update in database
+               setting.setValue(value);
+               broker.updateObject(setting);
+            }
          }
-         else if (!setting.getValue().equals(value)) {
-            // Value has changed: Update in database
-            setting.setValue(value);
-            broker.updateObject(setting);
-         }
-      }
 
-      //persist the new settings
-      for (String newName : settingsClone.keySet()) {
-         String newValue = settingsClone.get(newName);
-         OpSetting setting = new OpSetting();
-         setting.setName(newName);
-         setting.setValue(newValue);
-         broker.makePersistent(setting);
+         //persist the new settings
+         for (String newName : settingsClone.keySet()) {
+            String newValue = settingsClone.get(newName);
+            OpSetting setting = new OpSetting(newName, newValue);
+            broker.makePersistent(setting);
+         }
+         t.commit();
       }
-      t.commit();
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
-   public String get(String name) {
-      return settings.get(name);
+   /**
+    * Returns value for a given key
+    *
+    * @param broker broker to use.
+    * @param name   name of the key
+    * @return value for the given key
+    */
+   public String get(OpBroker broker, String name) {
+      return getSettings(broker.getSource().getName()).get(name);
+   }
+
+   /**
+    * Returns value for a given key
+    *
+    * @param session session to use
+    * @param name    name of the key
+    * @return value for the given key
+    */
+   public String get(OpProjectSession session, String name) {
+      return getSettings(session).get(name);
    }
 
    public void configureServerCalendar(OpProjectSession session) {
@@ -388,15 +423,15 @@ public class OpSettingsService extends OpProjectService {
       XCalendar calendar = new XCalendar();
       XLanguageResourceMap calendarI18nMap = XLocaleManager.findResourceMap(locale.getID(), CALENDAR_RESOURCE_MAP_ID);
       XLocalizer localizer = XLocalizer.getLocalizer(calendarI18nMap);
-      calendar.configure(settings.getPlanningSettings(), locale, localizer, clientTimezone);
+      calendar.configure(getSettings(session).getPlanningSettings(), locale, localizer, clientTimezone);
       session.setCalendar(calendar);
    }
 
-   private Map<String, String> getI18NParameters() {
-      return settings.getI18NParameters();
+   private Map<String, String> getI18NParameters(OpProjectSession session) {
+      return getSettings(session).getI18NParameters();
    }
 
-   public static Map<String, String> getI18NParametersMap() {
+   public static Map<String, String> getI18NParametersMap(OpProjectSession session) {
       OpSettingsService settingsService = getService();
       Map<String, String> localizerParameters;
 
@@ -405,9 +440,43 @@ public class OpSettingsService extends OpProjectService {
          localizerParameters = defaultSettings.getI18NParameters();
       }
       else {
-         localizerParameters = settingsService.getI18NParameters();
+         localizerParameters = settingsService.getI18NParameters(session);
       }
       return localizerParameters;
    }
 
+   /**
+    * Returns settings for a given source (this was introduced especially for multi-site case).
+    *
+    * @param session session from where to get source name.
+    * @return an instance of <code>OpSettings</code>
+    */
+   private OpSettings getSettings(OpProjectSession session) {
+      return getSettings(session.getSourceName());
+   }
+
+   /**
+    * Returns settings for a given source (this was introduced especially for multi-site case).
+    *
+    * @param sourceName source name for which to get settings
+    * @return an instance of <code>OpSettings</code>
+    */
+   protected OpSettings getSettings(String sourceName) {
+      OpSettings settings = settingsMap.get(sourceName);
+      if (settings == null) {
+         settings = createNewSettingInstance();
+         settingsMap.put(sourceName, settings);
+      }
+
+      return settings;
+   }
+
+   /**
+    * Creates a new instance of settings that will be added into global map.
+    *
+    * @return a new instance.
+    */
+   protected OpSettings createNewSettingInstance() {
+      return new OpSettings();
+   }
 }

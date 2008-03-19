@@ -4,7 +4,7 @@
       <language-kit-path path="/modules/my_projects/i18n"/>
    </language-kit-paths>
    <tool-groups>
-      <tool-group name="my" caption="${MyToolGroup}" sequence="2"/>      
+      <tool-group name="my" caption="${MyToolGroup}" sequence="0"/>      
    </tool-groups>
    <tools>
       <tool name="my_projects" caption="${ProjectsTool}" group-ref="my"

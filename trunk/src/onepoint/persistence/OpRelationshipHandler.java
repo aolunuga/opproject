@@ -13,12 +13,6 @@ public class OpRelationshipHandler implements XNodeHandler {
 
    public final static String RELATIONSHIP = "relationship".intern();
 
-   /**
-    * Cascade mode possible values
-    */
-   private final static String CASCADE_DELETE = "delete";
-   private final static String CASCADE_SAVEUPDATE = "save-update";
-   private final static String CASCADE_ALL = "all";
 
    public Object newNode(XContext context, String name, HashMap attributes) {
       OpRelationship relationship = new OpRelationship();
@@ -74,7 +68,7 @@ public class OpRelationshipHandler implements XNodeHandler {
      value = attributes.get("cascade");
       if ((value != null) && (value instanceof String)) {
          String s = (String) value;
-         if (s.equals(CASCADE_DELETE) || s.equals(CASCADE_SAVEUPDATE) || s.equals(CASCADE_ALL)) {
+         if (s.equals(OpRelationship.CASCADE_DELETE) || s.equals(OpRelationship.CASCADE_SAVEUPDATE) || s.equals(OpRelationship.CASCADE_ALL)) {
             relationship.setCascadeMode(s);
          }
       }
@@ -89,6 +83,10 @@ public class OpRelationshipHandler implements XNodeHandler {
       value = attributes.get("order-by");
       if ((value != null) && (value instanceof String)) {
          relationship.setOrderBy((String) value);
+      }
+      value = attributes.get("transient");
+      if ((value != null) && (value instanceof String)) {
+         relationship.setTransient(((String) value).equals("true"));
       }
 
       return relationship;

@@ -4,31 +4,50 @@
 
 package onepoint.project.modules.project;
 
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpEntityException;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTypeManager;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.project.components.OpIncrementalValidator;
 import onepoint.project.modules.project_status.OpProjectStatusService;
+import onepoint.project.modules.report.OpReport;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceService;
-import onepoint.project.modules.user.*;
+import onepoint.project.modules.user.OpLock;
+import onepoint.project.modules.user.OpPermission;
+import onepoint.project.modules.user.OpPermissionDataSetFactory;
+import onepoint.project.modules.user.OpSubject;
+import onepoint.project.modules.user.OpUser;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.service.server.XService;
+import onepoint.service.server.XServiceException;
 import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
-
-import java.sql.Date;
-import java.util.*;
 
 
 public class OpProjectAdministrationService extends OpProjectService {
@@ -45,7 +64,6 @@ public class OpProjectAdministrationService extends OpProjectService {
    public final static String PORTFOLIO_ID = "portfolio_id";
    public final static String PORTFOLIO_IDS = "portfolio_ids";
    public final static String GOALS_SET = "goals_set";
-   public final static String ATTACHMENTS_LIST_SET = "attachments_list_set";
    public final static String EDIT_MODE = "edit_mode";
    public final static String NULL_ID = "null";
 
@@ -80,6 +98,7 @@ public class OpProjectAdministrationService extends OpProjectService {
     */
    public static final String SERVICE_NAME = "ProjectService";
 
+   private static final String UNEXPANDED_NODES = "unexpandedNodes";
 
    public XMessage insertProject(OpProjectSession session, XMessage request) {
 
@@ -101,157 +120,141 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
+      OpTransaction t = null;
+      try {
+         // check if project name is already used
+         OpQuery projectNameQuery = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
+         projectNameQuery.setString(0, project.getName());
+         Iterator projects = broker.iterate(projectNameQuery);
+         if (projects.hasNext()) {
+            error = session.newError(ERROR_MAP, OpProjectError.PROJECT_NAME_ALREADY_USED);
+            reply.setError(error);
+            return reply;
+         }
 
-      // check if project name is already used
-      OpQuery projectNameQuery = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
-      projectNameQuery.setString(0, project.getName());
-      Iterator projects = broker.iterate(projectNameQuery);
-      if (projects.hasNext()) {
-         error = session.newError(ERROR_MAP, OpProjectError.PROJECT_NAME_ALREADY_USED);
-         reply.setError(error);
-         broker.close();
-         return reply;
-      }
-
-      String portfolioLocator = (String) project_data.get(PORTFOLIO_LOCATOR);
-      logger.debug("PortfolioID='" + portfolioLocator + "'");
-      OpProjectNode portfolio;
-      if (portfolioLocator != null) {
-         portfolio = (OpProjectNode) broker.getObject(portfolioLocator);
-         if (portfolio == null) {
-            logger.warn("Portfolio is null. Project will be added to root portfolio");
+         String portfolioLocator = (String) project_data.get(PORTFOLIO_LOCATOR);
+         logger.debug("PortfolioID='" + portfolioLocator + "'");
+         OpProjectNode portfolio;
+         if (portfolioLocator != null) {
+            portfolio = (OpProjectNode) broker.getObject(portfolioLocator);
+            if (portfolio == null) {
+               logger.warn("Portfolio is null. Project will be added to root portfolio");
+               portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
+            }
+         }
+         else {
+            logger.warn("Given portfolio locator is null. Project will be added to root portfolio");
             portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
          }
-      }
-      else {
-         logger.warn("Given portfolio locator is null. Project will be added to root portfolio");
-         portfolio = OpProjectAdministrationService.findRootPortfolio(broker);
-      }
 
-      byte userAccessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
+         byte userAccessLevel = session.effectiveAccessLevel(broker, portfolio.getID());
 
-      if (userAccessLevel != OpPermission.ADMINISTRATOR) {
-         double budget = ((Double) project_data.get(OpProjectNode.BUDGET)).doubleValue();
+         if (userAccessLevel != OpPermission.ADMINISTRATOR) {
+            double budget = ((Double) project_data.get(OpProjectNode.BUDGET)).doubleValue();
+            String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+
+            if (budget != 0) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+
+            if (!statusLocator.equals(NULL_ID)) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+         }
+         project.setSuperNode(portfolio);
+
+         // Check manager access for portfolio
+         if (!session.checkAccessLevel(broker, project.getSuperNode().getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Insert access to portfolio denied; ID = " + project.getSuperNode().getID());
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
+
+         //project status
          String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
+         OpProjectStatus status = null;
+         if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
+            status = (OpProjectStatus) (broker.getObject(statusLocator));
+         }
+         else {
+            status = null;
+         }
+         if ((status == null && project.getStatus() != null) ||
+               (status != null && project.getStatus() == null) ||
+               (status != null && project.getStatus() != null && project.getStatus().getID() != status.getID())) {
 
-         if (budget != 0) {
-            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_BUDGET_ERROR);
-            reply.setError(error);
+            //check access level
+            if ((userAccessLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
+               error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
+               reply.setError(error);
+               return reply;
+            }
+            project.setStatus(status);
+         }
+
+         t = broker.newTransaction();
+
+         broker.makePersistent(project);
+
+         // Insert project plan including settings
+         OpProjectPlan projectPlan = new OpProjectPlan();
+         projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+         projectPlan.setProjectNode(project);
+         projectPlan.copyDatesFromProject();
+
+         // calculation Mode
+         Boolean calculationMode = (Boolean) project_data.get(OpProjectPlan.CALCULATION_MODE);
+         if (calculationMode != null && !calculationMode.booleanValue()) {
+            projectPlan.setCalculationMode(OpProjectPlan.INDEPENDENT);
+         }
+         else {
+            projectPlan.setCalculationMode(OpProjectPlan.EFFORT_BASED);
+         }
+
+         Boolean progressTracked = (Boolean) project_data.get(OpProjectPlan.PROGRESS_TRACKED);
+         if (progressTracked != null) {
+            projectPlan.setProgressTracked(progressTracked.booleanValue());
+         }
+         else {
+            projectPlan.setProgressTracked(true);
+         }
+         projectPlan.setActivities(new HashSet<OpActivity>());
+         project.setPlan(projectPlan);
+         broker.makePersistent(projectPlan);
+         
+         //allow a template to be set
+         this.insertProjectAdditional(session, broker, request, project_data, project);
+
+         // Insert goals
+         XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
+         reply = insertGoals(session, broker, project, goalsDataSet);
+         if (reply.getError() != null) {
             return reply;
          }
 
-         if (!statusLocator.equals(NULL_ID)) {
-            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
-            reply.setError(error);
+         //insert project assignments
+         XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
+         reply = insertProjectAssignments(session, broker, project, assignedResourcesSet);
+         if (reply.getError() != null) {
             return reply;
          }
-      }
-      project.setSuperNode(portfolio);
 
-      // Check manager access for portfolio
-      if (!session.checkAccessLevel(broker, project.getSuperNode().getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Insert access to portfolio denied; ID = " + project.getSuperNode().getID());
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
-
-      //project status
-      String statusLocator = (String) project_data.get(OpProjectNode.STATUS);
-      OpProjectStatus status = null;
-      if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
-         status = (OpProjectStatus) (broker.getObject(statusLocator));
-      }
-      else {
-         status = null;
-      }
-      if ((status == null && project.getStatus() != null) ||
-           (status != null && project.getStatus() == null) ||
-           (status != null && project.getStatus() != null && project.getStatus().getID() != status.getID())) {
-
-         //check access level
-         if ((userAccessLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
-            error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
-            reply.setError(error);
-            return reply;
-         }
-         project.setStatus(status);
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      //insert project attachments
-      XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
-      List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
-      List<OpAttachment> attachmentList = insertAttachments(broker, project, attachmentsList);
-
-      broker.makePersistent(project);
-
-      // Insert project plan including settings
-      OpProjectPlan projectPlan = new OpProjectPlan();
-      projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
-      projectPlan.setProjectNode(project);
-      projectPlan.copyDatesFromProject();
-
-      // calculation Mode
-      Boolean calculationMode = (Boolean) project_data.get(OpProjectPlan.CALCULATION_MODE);
-      if (calculationMode != null && !calculationMode.booleanValue()) {
-         projectPlan.setCalculationMode(OpProjectPlan.INDEPENDENT);
-      }
-      else {
-         projectPlan.setCalculationMode(OpProjectPlan.EFFORT_BASED);
-      }
-
-      Boolean progressTracked = (Boolean) project_data.get(OpProjectPlan.PROGRESS_TRACKED);
-      if (progressTracked != null) {
-         projectPlan.setProgressTracked(progressTracked.booleanValue());
-      }
-      else {
-         projectPlan.setProgressTracked(true);
-      }
-
-      broker.makePersistent(projectPlan);
-
-      //allow a template to be set
-      this.applyTemplate(broker, project_data, project, projectPlan, session.getCalendar());
-
-      // Insert goals
-      XComponent goalsDataSet = (XComponent) (request.getArgument(GOALS_SET));
-      reply = insertGoals(session, broker, project, goalsDataSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
-
-      //insert project assignments
-      XComponent assignedResourcesSet = (XComponent) request.getArgument(RESOURCE_SET);
-      reply = insertProjectAssignments(session, broker, project, assignedResourcesSet);
-      if (reply.getError() != null) {
-         finalizeSession(t, broker);
-         return reply;
-      }
-
-      XComponent permission_set = (XComponent) project_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
-      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, project, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
-         return reply;
-      }
-      //copy the permissions from the projects to the attachments belonging to the project
-      for (OpAttachment attachment : attachmentList) {
-         result = OpPermissionDataSetFactory.storePermissionSet(broker, session, attachment, permission_set);
+         XComponent permission_set = (XComponent) project_data.get(OpPermissionDataSetFactory.PERMISSION_SET);
+         XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, project, permission_set);
          if (result != null) {
             reply.setError(result);
-            broker.close();
             return reply;
-         }
+         }        
+         t.commit();
+         return reply;
       }
-
-      t.commit();
-      logger.debug("/OpProjectAdministrationService.insertProject()");
-      broker.close();
-      return reply;
+      finally {
+         finalizeSession(t, broker);
+      }
    }
 
    /**
@@ -293,25 +296,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          broker.makePersistent(goal);
       }
       return reply;
-   }
-
-   /**
-    * Inserts the attachments related to the project passed as a parameter.
-    *
-    * @param broker          - the <code>OpBroker</code> needed to perform the DB operations
-    * @param project         - the project for which the attachments are inserted
-    * @param attachmentsList - the <code>List</code> containing the information about the project attachments
-    * @return the <code>List</code> of newly inserted attachments.
-    */
-   private List<OpAttachment> insertAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
-      List<OpAttachment> attachmentList = new ArrayList<OpAttachment>();
-      if (attachmentsList != null && !attachmentsList.isEmpty()) {
-         for (List attachmentElement : attachmentsList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, project, attachmentElement, null);
-            attachmentList.add(attachment);
-         }
-      }
-      return attachmentList;
    }
 
    /**
@@ -399,13 +383,14 @@ public class OpProjectAdministrationService extends OpProjectService {
    /**
     * Template method for setting the template of a project. By default, doesn't do anything.
     *
-    * @param broker       an <code>OpBroker</code> used for performing business operations.
-    * @param project_data a <code>HashMap</code> representing the parameters.
-    * @param project      a <code>OpProjectNode</code> entity representing a project node.
-    * @param projectPlan  a <code>OpProjectPlan</code> entity representing a project plan.
-    * @param calendar     Current calendar to be used for working days calculations
+    * @param session - the <code>OpProjectSession</code> object.
+    * @param broker - the <code>OpBroker</code> used for performing business operations.
+    * @param request - the <code>XMessage</code> object representing the request.
+    * @param project_data - the <code>HashMap</code> representing the parameters.
+    * @param project - the <code>OpProjectNode</code> entity representing a project node.
     */
-   protected void applyTemplate(OpBroker broker, HashMap project_data, OpProjectNode project, OpProjectPlan projectPlan, XCalendar calendar) {
+   protected void insertProjectAdditional(OpProjectSession session, OpBroker broker, 
+         XMessage request, Map project_data, OpProjectNode project) {
       //do nothing here
    }
 
@@ -489,7 +474,7 @@ public class OpProjectAdministrationService extends OpProjectService {
          OpProjectStatus oldStatus = project.getStatus();
          if (statusLocator != null && !statusLocator.equals(NULL_ID)) {
             status = (OpProjectStatus) (broker.getObject(statusLocator));
-            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && !(status.equals(project.getStatus()))) {
+            if ((projectAccesssLevel != OpPermission.ADMINISTRATOR) && status.getID() != oldStatus.getID()) {
                error = session.newError(ERROR_MAP, OpProjectError.NO_RIGHTS_CHANGING_STATUS_ERROR);
                reply.setError(error);
                return reply;
@@ -533,11 +518,6 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
 
-         //Update attachments
-         XComponent attachmentsListSet = (XComponent) request.getArgument(ATTACHMENTS_LIST_SET);
-         List<List> attachmentsList = (List) ((XComponent) attachmentsListSet.getChild(0).getChild(0)).getValue();
-         updateAttachments(broker, project, attachmentsList);
-
          // update project plan versions (must be done before deleting the versions)
          XComponent versionDataSet = (XComponent) request.getArgument(VERSIONS_SET);
          List<OpProjectPlanVersion> versionsToDelete = updateProjectPlanVersions(session, broker, projectPlan, versionDataSet);
@@ -562,14 +542,12 @@ public class OpProjectAdministrationService extends OpProjectService {
             return reply;
          }
 
-         //update permissions for the attachments belonging to this project
-         for (OpAttachment attachment : project.getAttachments()) {
-            result = OpPermissionDataSetFactory.storePermissionSet(broker, session, attachment, permission_set);
-            if (result != null) {
-               reply.setError(result);
-               broker.close();
-               return reply;
-            }
+         try {
+            updateProjectAdditional(session, broker, request, project_data, project, permission_set);
+         } 
+         catch (XServiceException exc) {
+            exc.append(reply);
+            return reply;
          }
 
          XCalendar xCalendar = session.getCalendar();
@@ -624,6 +602,22 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       return null;
+   }
+
+   /**
+    * Updates additional parts of the project
+    *
+    * @param broker - the <code>OpBroker</code> needed to perform the DB operations.
+    * @param session - the <code>OpProjectSession</code> object.
+    * @param request - the <code>XMessage</code> object representing the request.
+    * @param project_data - the <code>Map</code> containing project information.
+    * @param project - the <code>OpProjectNode</code> objectt representing the project.
+    * @param permissionSet - an <code>XComponent</code> representing the permission set.
+    * @return an <code>XMessage</code> which contains the error if an error occured or an empty XMessage otherwise.
+    */
+   protected XMessage updateProjectAdditional(OpProjectSession session, OpBroker broker,
+         XMessage request, Map project_data, OpProjectNode project, XComponent permissionSet) {
+      return new XMessage();
    }
 
    /**
@@ -749,39 +743,6 @@ public class OpProjectAdministrationService extends OpProjectService {
          broker.deleteObject(goal);
       }
       return reply;
-   }
-
-   /**
-    * Update the attachments that belong to this <code>OpProjectNode</code> entity.
-    *
-    * @param broker          - the <code>OpBroker</code> needed to persist the attachments and contents.
-    * @param project         - the <code>OpProjectNode</code> for which the attachments are updated.
-    * @param attachmentsList - the <code>List</code> which contains the information about the attachments
-    *                        received from the client.
-    */
-   private void updateAttachments(OpBroker broker, OpProjectNode project, List<List> attachmentsList) {
-      //delete all attachments and decrement their content reference number
-      Iterator it = project.getAttachments().iterator();
-      while (it.hasNext()) {
-         OpAttachment attachment = (OpAttachment) it.next();
-         if (!attachment.getLinked()) {
-            OpContentManager.updateContent(attachment.getContent(), broker, false, false);
-            attachment.setContent(null);
-         }
-         it.remove();
-         broker.deleteObject(attachment);
-      }
-
-      //create new attachments from the client's attachment list
-      if (attachmentsList != null && !attachmentsList.isEmpty()) {
-         for (List attachmentElement : attachmentsList) {
-            OpAttachment attachment = OpActivityDataSetFactory.createAttachment(broker, project, attachmentElement, null);
-            OpPermissionDataSetFactory.updatePermissions(broker, project, attachment);
-         }
-      }
-
-      //delete all contents with reference count = 0
-      OpContentManager.deleteZeroRefContents(broker);
    }
 
    /**
@@ -1034,82 +995,104 @@ public class OpProjectAdministrationService extends OpProjectService {
       logger.debug("OpProjectAdministrationService.deleteProjects(): project_ids = " + id_strings);
 
       OpBroker broker = session.newBroker();
-      XMessage reply = new XMessage();
+      try {
+         XMessage reply = new XMessage();
 
-      List<Long> projectIds = new ArrayList<Long>();
-      for (String id_string : id_strings) {
-         projectIds.add(OpLocator.parseLocator(id_string).getID());
-      }
-      OpQuery query = broker.newQuery("select project.SuperNode.ID from OpProjectNode as project where project.ID in (:projectIds) and project.Type = (:projectType)");
-      query.setCollection("projectIds", projectIds);
-      query.setByte("projectType", OpProjectNode.PROJECT);
-      List portfolioIds = broker.list(query);
-
-      Set accessiblePortfolioIds = session.accessibleIds(broker, portfolioIds, OpPermission.MANAGER);
-      if (accessiblePortfolioIds.size() == 0) {
-         logger.warn("Manager access to portfolio " + portfolioIds + " denied");
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
-         broker.close();
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-      /*
-       * --- Not yet support by Hibernate (delete query against joined-subclass) query = broker.newQuery("delete from
-       * XProject where XProject.ID in (:projectIds) and XProject.Portfolio.ID in :(accessiblePortfolioIds)");
-       * broker.execute(query);
-       */
-      query = broker
-           .newQuery("select project from OpProjectNode as project where project.ID in (:projectIds) and project.SuperNode.ID in (:accessiblePortfolioIds)");
-      query.setCollection("projectIds", projectIds);
-      query.setCollection("accessiblePortfolioIds", accessiblePortfolioIds);
-
-      //check that there are no work-records for any of the actitivities in the project plan versions
-      boolean allInvalid = true;
-      boolean warningFound = false;
-
-      Iterator result = broker.iterate(query);
-      while (result.hasNext()) {
-         boolean canDelete = true;
-         OpProjectNode project = (OpProjectNode) result.next();
-
-         if (hasWorkRecords(project, broker)) {
-            warningFound = true;
-            canDelete = false;
+         List<Long> projectIds = new ArrayList<Long>();
+         for (String id_string : id_strings) {
+            projectIds.add(OpLocator.parseLocator(id_string).getID());
          }
-         else {
-            allInvalid = false;
+         OpQuery query = broker.newQuery("select project.SuperNode.ID from OpProjectNode as project where project.ID in (:projectIds) and project.Type = (:projectType)");
+         query.setCollection("projectIds", projectIds);
+         query.setByte("projectType", OpProjectNode.PROJECT);
+         List portfolioIds = broker.list(query);
+
+         Set accessiblePortfolioIds = session.accessibleIds(broker, portfolioIds, OpPermission.MANAGER);
+         if (accessiblePortfolioIds.size() == 0) {
+            logger.warn("Manager access to portfolio " + portfolioIds + " denied");
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
+            return reply;
          }
 
-         //check if we are deleting an active project
-         clearActiveProjectNodeSelection(project, session);
+         OpTransaction t = broker.newTransaction();
+         /*
+          * --- Not yet support by Hibernate (delete query against joined-subclass) query = broker.newQuery("delete from
+          * XProject where XProject.ID in (:projectIds) and XProject.Portfolio.ID in :(accessiblePortfolioIds)");
+          * broker.execute(query);
+          */
+         query = broker
+         .newQuery("select project from OpProjectNode as project where project.ID in (:projectIds) and project.SuperNode.ID in (:accessiblePortfolioIds)");
+         query.setCollection("projectIds", projectIds);
+         query.setCollection("accessiblePortfolioIds", accessiblePortfolioIds);
 
-         if (canDelete) {
-            //manage the contents of the attachments belonging to this project
-            OpAttachmentDataSetFactory.removeContents(broker, project.getAttachments());
-            broker.deleteObject(project);
+         //check that there are no work-records for any of the actitivities in the project plan versions
+         boolean allInvalid = true;
+         boolean warningFound = false;
+
+         List<OpProjectNode> projectsToDelete = new ArrayList<OpProjectNode>();
+         List<Long> deletableProjectIds = new ArrayList<Long>();
+         Iterator result = broker.iterate(query);
+         while (result.hasNext()) {
+            boolean canDelete = true;
+            OpProjectNode project = (OpProjectNode) result.next();
+
+            if (hasWorkRecords(project, broker)) {
+               warningFound = true;
+               canDelete = false;
+            }
+            else {
+               allInvalid = false;
+            }
+
+            //check if we are deleting an active project
+            clearActiveProjectNodeSelection(project, session);
+
+            if (canDelete) {
+               projectsToDelete.add(project);
+               deletableProjectIds.add(project.getID());
+            }
          }
-      }
-      t.commit();
 
-      if (allInvalid) {
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
+         deleteProjectAditional(broker, deletableProjectIds);
+
+         for (OpProjectNode proj : projectsToDelete) {
+            //delete the relation between project and reports
+            for(OpReport report : proj.getReports()) {
+               report.setProject(null);
+            }            
+            broker.deleteObject(proj);
+         }
+
+         t.commit();
+
+         if (allInvalid) {
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR));
+            return reply;
+         }
+         if (warningFound) {
+            reply.setArgument("warning", Boolean.TRUE);
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_WARNING));
+            return reply;
+         }
+
+         //if (accessiblePortfolioIds.size() < portfolioIds.size())
+         // TODO: Return ("informative") error if notAllAccessible
+
+      }
+      finally {
          broker.close();
-         return reply;
       }
-      if (warningFound) {
-         reply.setArgument("warning", Boolean.TRUE);
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_WARNING));
-         broker.close();
-         return reply;
-      }
-
-      //if (accessiblePortfolioIds.size() < portfolioIds.size())
-      // TODO: Return ("informative") error if notAllAccessible
-
-      broker.close();
       logger.debug("/OpProjectAdministrationService.deleteProjects()");
       return null;
+   }
+
+   /**
+    * Advanced functionality done when projects are deleted. Default behavior is NoOp.
+    *
+    * @param broker - the <code>OpBroker</code> object needed to perform the DB operations.
+    * @param deletableProjectIds - the <code>List<Long></code> containing the ids of the projects that can be deleted.
+    */
+   protected void deleteProjectAditional(OpBroker broker, List<Long> deletableProjectIds) {
    }
 
    /**
@@ -1161,55 +1144,62 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
+      try {
+         String superPortfolioLocator = (String) portfolioData.get("SuperPortfolioID");
+         logger.debug("SuperPortfolioID='" + superPortfolioLocator + "'");
+         OpProjectNode superPortfolio = null;
+         if (superPortfolioLocator != null) {
+            superPortfolio = (OpProjectNode) broker.getObject(superPortfolioLocator);
+         }
+         if (superPortfolio == null) {
+            superPortfolio = OpProjectAdministrationService.findRootPortfolio(broker);
+         }
 
-      String superPortfolioLocator = (String) portfolioData.get("SuperPortfolioID");
-      logger.debug("SuperPortfolioID='" + superPortfolioLocator + "'");
-      OpProjectNode superPortfolio = null;
-      if (superPortfolioLocator != null) {
-         superPortfolio = (OpProjectNode) broker.getObject(superPortfolioLocator);
-      }
-      if (superPortfolio == null) {
-         superPortfolio = OpProjectAdministrationService.findRootPortfolio(broker);
-      }
+         // Check manager access for super portfolio
+         if (!session.checkAccessLevel(broker, superPortfolio.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Insert access to super portfolio denied; ID = " + superPortfolio.getID());
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
 
-      // Check manager access for super portfolio
-      if (!session.checkAccessLevel(broker, superPortfolio.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Insert access to super portfolio denied; ID = " + superPortfolio.getID());
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+         portfolio.setSuperNode(superPortfolio);
+
+         // check if portfolio name is already used
+         OpQuery query = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
+         query.setString(0, portfolio.getName());
+         Iterator groups = broker.iterate(query);
+         if (groups.hasNext()) {
+            XError error = session.newError(ERROR_MAP, OpProjectError.PORTFOLIO_NAME_ALREADY_USED);
+            reply.setError(error);
+            return reply;
+         }
+         try {
+            insertProjectAdditional(session, broker, request, portfolioData, portfolio);
+         } 
+         catch (XServiceException exc) {
+            exc.append(reply);
+            return reply;
+         }
+
+         OpTransaction t = broker.newTransaction();
+
+         broker.makePersistent(portfolio);
+
+         XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
+         XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            return reply;
+         }
+
+         t.commit();
+
+         logger.debug("/OpProjectAdministrationService.insertPortfolio()");
          return reply;
       }
-
-      portfolio.setSuperNode(superPortfolio);
-
-      // check if portfolio name is already used
-      OpQuery query = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
-      query.setString(0, portfolio.getName());
-      Iterator groups = broker.iterate(query);
-      if (groups.hasNext()) {
-         XError error = session.newError(ERROR_MAP, OpProjectError.PORTFOLIO_NAME_ALREADY_USED);
-         reply.setError(error);
+      finally {
          broker.close();
-         return reply;
       }
-
-      OpTransaction t = broker.newTransaction();
-
-      broker.makePersistent(portfolio);
-
-      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
-      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
-         return reply;
-      }
-
-      t.commit();
-
-      logger.debug("/OpProjectAdministrationService.insertPortfolio()");
-      broker.close();
-      return reply;
    }
 
    public XMessage updatePortfolio(OpProjectSession session, XMessage request) {
@@ -1220,67 +1210,73 @@ public class OpProjectAdministrationService extends OpProjectService {
       XMessage reply = new XMessage();
 
       OpBroker broker = session.newBroker();
-
-      OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
-      //check if the given is valid
-      if (portfolio == null) {
-         logger.warn("ERROR: Could not find object with ID " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
-         return reply;
-      }
-      // Check manager access
-      if (!session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
-         logger.warn("ERROR: Udpate access to portfolio denied; ID = " + id_string);
-         broker.close();
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
-
-      boolean isRootPortfolio = findRootPortfolio(broker).getID() == portfolio.getID();
-
-      if (!isRootPortfolio) {
-         //set the fields from the request
-         try {
-            portfolio.fillProjectNode(portfolioData);
+      try {
+         OpProjectNode portfolio = (OpProjectNode) (broker.getObject(id_string));
+         //check if the given is valid
+         if (portfolio == null) {
+            logger.warn("ERROR: Could not find object with ID " + id_string);
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
+            return reply;
          }
-         catch (OpEntityException e) {
-            reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
-            broker.close();
+         // Check manager access
+         if (!session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
+            logger.warn("ERROR: Udpate access to portfolio denied; ID = " + id_string);
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
             return reply;
          }
 
-         // check if portfolio name is already used
-         OpQuery query = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
-         query.setString(0, portfolio.getName());
-         Iterator portfolios = broker.iterate(query);
-         while (portfolios.hasNext()) {
-            OpProjectNode other = (OpProjectNode) portfolios.next();
-            if (other.getID() != portfolio.getID()) {
-               XError error = session.newError(ERROR_MAP, OpProjectError.PORTFOLIO_NAME_ALREADY_USED);
-               reply.setError(error);
-               broker.close();
+         boolean isRootPortfolio = findRootPortfolio(broker).getID() == portfolio.getID();
+
+         if (!isRootPortfolio) {
+            //set the fields from the request
+            try {
+               portfolio.fillProjectNode(portfolioData);
+            }
+            catch (OpEntityException e) {
+               reply.setError(session.newError(ERROR_MAP, e.getErrorCode()));
                return reply;
             }
+
+            // check if portfolio name is already used
+            OpQuery query = broker.newQuery(PROJECT_NODE_NAME_QUERY_STRING);
+            query.setString(0, portfolio.getName());
+            Iterator portfolios = broker.iterate(query);
+            while (portfolios.hasNext()) {
+               OpProjectNode other = (OpProjectNode) portfolios.next();
+               if (other.getID() != portfolio.getID()) {
+                  XError error = session.newError(ERROR_MAP, OpProjectError.PORTFOLIO_NAME_ALREADY_USED);
+                  reply.setError(error);
+                  return reply;
+               }
+            }
          }
-      }
+         
+         try {
+            updateProjectAdditional(session, broker, request, portfolioData, portfolio, null);
+         } 
+         catch (XServiceException exc) {
+            exc.append(reply);
+            return reply;
+         }
 
-      OpTransaction t = broker.newTransaction();
-      broker.updateObject(portfolio);
+         OpTransaction t = broker.newTransaction();
+         broker.updateObject(portfolio);
 
-      XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
-      XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
-      if (result != null) {
-         reply.setError(result);
-         broker.close();
+         XComponent permission_set = (XComponent) portfolioData.get(OpPermissionDataSetFactory.PERMISSION_SET);
+         XError result = OpPermissionDataSetFactory.storePermissionSet(broker, session, portfolio, permission_set);
+         if (result != null) {
+            reply.setError(result);
+            return reply;
+         }
+         t.commit();
+
+         logger.debug("/OpProjectAdministrationService.updatePortfolio()");
+
          return reply;
       }
-      t.commit();
-
-      logger.debug("/OpProjectAdministrationService.updatePortfolio()");
-
-      broker.close();
-      return reply;
+      finally {
+         broker.close();
+      }
    }
 
    public XMessage deletePortfolios(OpProjectSession session, XMessage request) {
@@ -1288,59 +1284,62 @@ public class OpProjectAdministrationService extends OpProjectService {
       logger.debug("OpProjectAdministrationService.deletePortfolios(): portfolio_ids = " + id_strings);
 
       OpBroker broker = session.newBroker();
-      XMessage reply = new XMessage();
+      try {
+         XMessage reply = new XMessage();
 
-      List<Long> portfolioIds = new ArrayList<Long>();
-      for (int i = 0; i < id_strings.size(); i++) {
-         portfolioIds.add(new Long(OpLocator.parseLocator((String) id_strings.get(i)).getID()));
-      }
-      OpQuery query = broker.newQuery("select portfolio.SuperNode.ID from OpProjectNode as portfolio where portfolio.ID in (:portfolioIds) and portfolio.Type = (:projectType)");
-      query.setCollection("portfolioIds", portfolioIds);
-      query.setByte("projectType", OpProjectNode.PORTFOLIO);
-      List superPortfolioIds = broker.list(query);
-
-      Set accessibleSuperPortfolioIds = session.accessibleIds(broker, superPortfolioIds, OpPermission.MANAGER);
-      if (accessibleSuperPortfolioIds.size() == 0) {
-         logger.warn("Manager access to super portfolio " + superPortfolioIds + " denied");
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
-         broker.close();
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-      /*
-       * --- Not yet support by Hibernate (delete query against joined-subclass) query = broker.newQuery("delete from
-       * XPool where XPool.ID in (:poolIds) and XPool.SuperPool.ID in (:accessibleSuperPoolIds)");
-       * broker.execute(query);
-       */
-      query = broker
-           .newQuery("select portfolio from OpProjectNode as portfolio where portfolio.ID in (:portfolioIds) and portfolio.SuperNode.ID in (:accessibleSuperPortfolioIds)");
-      query.setCollection("portfolioIds", portfolioIds);
-      query.setCollection("accessibleSuperPortfolioIds", accessibleSuperPortfolioIds);
-      Iterator result = broker.iterate(query);
-      boolean warningFound = false;
-      while (result.hasNext()) {
-         OpProjectNode portfolio = (OpProjectNode) result.next();
-         boolean canDeletePortfolio = deletePortfolio(portfolio, broker, session);
-         if (!canDeletePortfolio) {
-            warningFound = true;
+         List<Long> portfolioIds = new ArrayList<Long>();
+         for (int i = 0; i < id_strings.size(); i++) {
+            portfolioIds.add(new Long(OpLocator.parseLocator((String) id_strings.get(i)).getID()));
          }
-      }
-      t.commit();
+         OpQuery query = broker.newQuery("select portfolio.SuperNode.ID from OpProjectNode as portfolio where portfolio.ID in (:portfolioIds) and portfolio.Type = (:projectType)");
+         query.setCollection("portfolioIds", portfolioIds);
+         query.setByte("projectType", OpProjectNode.PORTFOLIO);
+         List superPortfolioIds = broker.list(query);
 
-      if (warningFound) {
-         reply.setArgument("warning", Boolean.TRUE);
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_WARNING));
-         broker.close();
+         Set accessibleSuperPortfolioIds = session.accessibleIds(broker, superPortfolioIds, OpPermission.MANAGER);
+         if (accessibleSuperPortfolioIds.size() == 0) {
+            logger.warn("Manager access to super portfolio " + superPortfolioIds + " denied");
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
+            return reply;
+         }
+
+         OpTransaction t = broker.newTransaction();
+         /*
+          * --- Not yet support by Hibernate (delete query against joined-subclass) query = broker.newQuery("delete from
+          * XPool where XPool.ID in (:poolIds) and XPool.SuperPool.ID in (:accessibleSuperPoolIds)");
+          * broker.execute(query);
+          */
+         query = broker
+         .newQuery("select portfolio from OpProjectNode as portfolio where portfolio.ID in (:portfolioIds) and portfolio.SuperNode.ID in (:accessibleSuperPortfolioIds)");
+         query.setCollection("portfolioIds", portfolioIds);
+         query.setCollection("accessibleSuperPortfolioIds", accessibleSuperPortfolioIds);
+         Iterator result = broker.iterate(query);
+         boolean warningFound = false;
+         while (result.hasNext()) {
+            OpProjectNode portfolio = (OpProjectNode) result.next();
+            boolean canDeletePortfolio = deletePortfolio(portfolio, broker, session);
+            if (!canDeletePortfolio) {
+               warningFound = true;
+            }
+         }
+         
+         t.commit();
+
+         if (warningFound) {
+            reply.setArgument("warning", Boolean.TRUE);
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_WARNING));
+            return reply;
+         }
+
+         //if (accessibleSuperPortfolioIds.size() < superPortfolioIds.size())
+         // TODO: Return ("informative") error if notAllAccessible
+
+         logger.debug("/OpProjectAdministrationService.deletePortfolios()");
          return reply;
       }
-
-      //if (accessibleSuperPortfolioIds.size() < superPortfolioIds.size())
-      // TODO: Return ("informative") error if notAllAccessible
-
-      logger.debug("/OpProjectAdministrationService.deletePortfolios()");
-      broker.close();
-      return reply;
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -1365,6 +1364,15 @@ public class OpProjectAdministrationService extends OpProjectService {
             }
             else {
                clearActiveProjectNodeSelection(child, session);
+               //delete the relation between project and reports
+               for (OpReport report : child.getReports()) {
+                  report.setProject(null);
+               }
+               //delete the document nodes and contents related to the project node
+               List<Long> projectIdList = new ArrayList<Long>();
+               projectIdList.add(child.getID());
+               deleteProjectAditional(broker, projectIdList);
+               
                broker.deleteObject(child);
             }
          }
@@ -1387,39 +1395,42 @@ public class OpProjectAdministrationService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-
-      //get the portfolio
-      OpProjectNode portfolio = (OpProjectNode) broker.getObject(portfolioId);
-      // check manager access for new selected portfolio
-      if (!session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
-         logger.warn("Move access to portfolio denied; ID = " + portfolio.getID());
-         reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
-      }
-      else {
-         for (Iterator it = projectIds.iterator(); it.hasNext();) {
-            String projectNodeId = (String) it.next();
-            OpProjectNode projectNode = (OpProjectNode) broker.getObject(projectNodeId);
-
-            // check manager access for project node portfolio
-            if (!session.checkAccessLevel(broker, projectNode.getSuperNode().getID(), OpPermission.MANAGER)) {
-               logger.warn("Move access to portfolio denied; ID = " + projectNode.getSuperNode().getID());
-               reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
-               continue;
-            }
-
-            if (checkPortfolioAssignmentsForLoops(projectNode, portfolio)) {
-               reply.setError(session.newError(ERROR_MAP, OpProjectError.LOOP_ASSIGNMENT_ERROR));
-               continue;
-            }
-
-            projectNode.setSuperNode(portfolio);
-            broker.updateObject(projectNode);
+      try {
+         OpTransaction tx = broker.newTransaction();
+         //get the portfolio
+         OpProjectNode portfolio = (OpProjectNode) broker.getObject(portfolioId);
+         // check manager access for new selected portfolio
+         if (!session.checkAccessLevel(broker, portfolio.getID(), OpPermission.MANAGER)) {
+            logger.warn("Move access to portfolio denied; ID = " + portfolio.getID());
+            reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
          }
-      }
+         else {
+            for (Iterator it = projectIds.iterator(); it.hasNext();) {
+               String projectNodeId = (String) it.next();
+               OpProjectNode projectNode = (OpProjectNode) broker.getObject(projectNodeId);
 
-      tx.commit();
-      broker.close();
+               // check manager access for project node portfolio
+               if (!session.checkAccessLevel(broker, projectNode.getSuperNode().getID(), OpPermission.MANAGER)) {
+                  logger.warn("Move access to portfolio denied; ID = " + projectNode.getSuperNode().getID());
+                  reply.setError(session.newError(ERROR_MAP, OpProjectError.MANAGER_ACCESS_DENIED));
+                  continue;
+               }
+
+               if (checkPortfolioAssignmentsForLoops(projectNode, portfolio)) {
+                  reply.setError(session.newError(ERROR_MAP, OpProjectError.LOOP_ASSIGNMENT_ERROR));
+                  continue;
+               }
+
+               projectNode.setSuperNode(portfolio);
+               broker.updateObject(projectNode);
+            }
+         }
+
+         tx.commit();
+      }
+      finally {
+         broker.close();
+      }
       return reply;
    }
 
@@ -1475,7 +1486,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       return rootPortfolio;
    }
 
-   protected static void copyProjectPlan(XCalendar calendar, OpBroker broker, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
+   protected static void copyProjectPlan(OpProjectSession session, OpBroker broker, XCalendar calendar, OpProjectPlan projectPlan, OpProjectPlan newProjectPlan) {
       boolean asTemplate = newProjectPlan.getTemplate();
       // Get minimum activity start date from database (just to be sure)
       OpQuery query = broker
@@ -1553,7 +1564,7 @@ public class OpProjectAdministrationService extends OpProjectService {
       validator.validateEntireDataSet();
 
       // Store activity data-set helper updates plan start/finish values and activity template flags
-      OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, new HashMap(), newProjectPlan, null);
+      OpActivityDataSetFactory.getInstance().storeActivityDataSet(session, broker, dataSet, new HashMap(), newProjectPlan, null);
    }
 
    private static boolean isTaskActivity(XComponent dataRow) {
@@ -1665,108 +1676,112 @@ public class OpProjectAdministrationService extends OpProjectService {
       XComponent originalDataCell;
       XComponent newDataCell;
       OpBroker broker = s.newBroker();
-      boolean modified;
+      try {
+         boolean modified;
 
-      OpProjectNode project = (OpProjectNode) (broker.getObject(projectID));
-      OpProjectNodeAssignment projectAssignment = null;
+         OpProjectNode project = (OpProjectNode) (broker.getObject(projectID));
+         OpProjectNodeAssignment projectAssignment = null;
 
-      Double newInternalRate = -1d;
-      Double newExternalRate = -1d;
+         Double newInternalRate = -1d;
+         Double newExternalRate = -1d;
 
-      //obtain all the modified assignments
-      for (int i = 0; i < originalResourceSet.getChildCount(); i++) {
-         originalDataRow = (XComponent) originalResourceSet.getChild(i);
-         if (originalDataRow.getOutlineLevel() != 0) {
-            continue;
-         }
-
-         modified = false;
-         for (int j = 0; j < newResourceSet.getChildCount(); j++) {
-            newDataRow = (XComponent) newResourceSet.getChild(j);
-            if (!(newDataRow.getOutlineLevel() == 0
-                 && originalDataRow.getStringValue().equals(newDataRow.getStringValue()))) {
-               continue;
-            }
-            //check if any rates were changed
-            originalDataCell = (XComponent) originalDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX);
-            newDataCell = (XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX);
-            if ((originalDataCell.getValue() != null && newDataCell.getValue() == null)
-                 || (originalDataCell.getValue() == null && newDataCell.getValue() != null)
-                 || (originalDataCell.getValue() != null && newDataCell.getValue() != null
-                 && !originalDataCell.getValue().equals(newDataCell.getValue()))) {
-               modified = true;
-            }
-            originalDataCell = (XComponent) originalDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX);
-            newDataCell = (XComponent) newDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX);
-            if ((originalDataCell.getValue() != null && newDataCell.getValue() == null)
-                 || (originalDataCell.getValue() == null && newDataCell.getValue() != null)
-                 || (originalDataCell.getValue() != null && newDataCell.getValue() != null
-                 && !originalDataCell.getValue().equals(newDataCell.getValue()))) {
-               modified = true;
-            }
-
-            if (!modified) {
+         //obtain all the modified assignments
+         for (int i = 0; i < originalResourceSet.getChildCount(); i++) {
+            originalDataRow = (XComponent) originalResourceSet.getChild(i);
+            if (originalDataRow.getOutlineLevel() != 0) {
                continue;
             }
 
-            //if we introduced new rates/resource/project
-            if (((XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getValue() != null) {
-               newInternalRate = ((XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
-               newExternalRate = ((XComponent) newDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
-            }
-            //if we reseted the rates/resource/project
-            else {
-               newInternalRate = ((XComponent) originalDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
-               newExternalRate = ((XComponent) originalDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
-            }
-            OpResource resource = (OpResource) (broker.getObject(originalDataRow.getStringValue()));
-            for (OpProjectNodeAssignment resourceAssignment : resource.getProjectNodeAssignments()) {
-               for (OpProjectNodeAssignment projectNodeAssignment : project.getAssignments()) {
-                  if (resourceAssignment.getID() == projectNodeAssignment.getID()) {
-                     projectAssignment = projectNodeAssignment;
-                     break;
+            modified = false;
+            for (int j = 0; j < newResourceSet.getChildCount(); j++) {
+               newDataRow = (XComponent) newResourceSet.getChild(j);
+               if (!(newDataRow.getOutlineLevel() == 0
+                     && originalDataRow.getStringValue().equals(newDataRow.getStringValue()))) {
+                  continue;
+               }
+               //check if any rates were changed
+               originalDataCell = (XComponent) originalDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX);
+               newDataCell = (XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX);
+               if ((originalDataCell.getValue() != null && newDataCell.getValue() == null)
+                     || (originalDataCell.getValue() == null && newDataCell.getValue() != null)
+                     || (originalDataCell.getValue() != null && newDataCell.getValue() != null
+                           && !originalDataCell.getValue().equals(newDataCell.getValue()))) {
+                  modified = true;
+               }
+               originalDataCell = (XComponent) originalDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX);
+               newDataCell = (XComponent) newDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX);
+               if ((originalDataCell.getValue() != null && newDataCell.getValue() == null)
+                     || (originalDataCell.getValue() == null && newDataCell.getValue() != null)
+                     || (originalDataCell.getValue() != null && newDataCell.getValue() != null
+                           && !originalDataCell.getValue().equals(newDataCell.getValue()))) {
+                  modified = true;
+               }
+
+               if (!modified) {
+                  continue;
+               }
+
+               //if we introduced new rates/resource/project
+               if (((XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getValue() != null) {
+                  newInternalRate = ((XComponent) newDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
+                  newExternalRate = ((XComponent) newDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
+               }
+               //if we reseted the rates/resource/project
+               else {
+                  newInternalRate = ((XComponent) originalDataRow.getChild(INTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
+                  newExternalRate = ((XComponent) originalDataRow.getChild(EXTERNAL_PROJECT_RATE_COLUMN_INDEX)).getDoubleValue();
+               }
+               OpResource resource = (OpResource) (broker.getObject(originalDataRow.getStringValue()));
+               for (OpProjectNodeAssignment resourceAssignment : resource.getProjectNodeAssignments()) {
+                  for (OpProjectNodeAssignment projectNodeAssignment : project.getAssignments()) {
+                     if (resourceAssignment.getID() == projectNodeAssignment.getID()) {
+                        projectAssignment = projectNodeAssignment;
+                        break;
+                     }
                   }
                }
-            }
 
-            if (!resource.getAssignmentVersions().isEmpty() && projectAssignment != null) {
-               for (OpAssignmentVersion assignmentVersion : resource.getAssignmentVersions()) {
-                  if (assignmentVersion.getPlanVersion().getProjectPlan().getProjectNode().getID() ==
-                       projectAssignment.getProjectNode().getID()) {
-                     OpActivityVersion activityVersion = assignmentVersion.getActivityVersion();
-                     //TODO: I think this should not happen, but got activityVersion == null (maybe a good hook, to try healing?)
-                     //check if the resource's activity assignments are covered by hourly rates periods
-                     if (!isPeriodCoveredByHourlyRatesPeriod(activityVersion.getStart(), activityVersion.getFinish(), newResourceSet)
-                          //check if the rates have changed for this interval
-                          && isRateDifferentForPeriod(activityVersion.getStart(), activityVersion.getFinish(), resource,
-                          newInternalRate, newExternalRate)) {
-                        hasAssignments = true;
-                        xMessage.setArgument(HAS_ASSIGNMENTS, Boolean.valueOf(hasAssignments));
-                        return xMessage;
+               if (!resource.getAssignmentVersions().isEmpty() && projectAssignment != null) {
+                  for (OpAssignmentVersion assignmentVersion : resource.getAssignmentVersions()) {
+                     if (assignmentVersion.getPlanVersion().getProjectPlan().getProjectNode().getID() ==
+                        projectAssignment.getProjectNode().getID()) {
+                        OpActivityVersion activityVersion = assignmentVersion.getActivityVersion();
+                        //TODO: I think this should not happen, but got activityVersion == null (maybe a good hook, to try healing?)
+                        //check if the resource's activity assignments are covered by hourly rates periods
+                        if (!isPeriodCoveredByHourlyRatesPeriod(activityVersion.getStart(), activityVersion.getFinish(), newResourceSet)
+                              //check if the rates have changed for this interval
+                              && isRateDifferentForPeriod(activityVersion.getStart(), activityVersion.getFinish(), resource,
+                                    newInternalRate, newExternalRate)) {
+                           hasAssignments = true;
+                           xMessage.setArgument(HAS_ASSIGNMENTS, Boolean.valueOf(hasAssignments));
+                           return xMessage;
+                        }
+                     }
+                  }
+               }
+
+               if (!resource.getActivityAssignments().isEmpty() && projectAssignment != null) {
+                  for (OpAssignment assignment : resource.getActivityAssignments()) {
+                     if (assignment.getProjectPlan().getProjectNode().getID() == projectAssignment.getProjectNode().getID()) {
+                        OpActivity activity = assignment.getActivity();
+                        //check if the resource's activities are covered by hourly rates periods
+                        if (!isPeriodCoveredByHourlyRatesPeriod(activity.getStart(), activity.getFinish(), newResourceSet)
+                              //check if the rates have changed for this interval
+                              && isRateDifferentForPeriod(activity.getStart(), activity.getFinish(), resource,
+                                    newInternalRate, newExternalRate)) {
+                           hasAssignments = true;
+                           xMessage.setArgument(HAS_ASSIGNMENTS, Boolean.valueOf(hasAssignments));
+                           return xMessage;
+                        }
                      }
                   }
                }
             }
-
-            if (!resource.getActivityAssignments().isEmpty() && projectAssignment != null) {
-               for (OpAssignment assignment : resource.getActivityAssignments()) {
-                  if (assignment.getProjectPlan().getProjectNode().getID() == projectAssignment.getProjectNode().getID()) {
-                     OpActivity activity = assignment.getActivity();
-                     //check if the resource's activities are covered by hourly rates periods
-                     if (!isPeriodCoveredByHourlyRatesPeriod(activity.getStart(), activity.getFinish(), newResourceSet)
-                          //check if the rates have changed for this interval
-                          && isRateDifferentForPeriod(activity.getStart(), activity.getFinish(), resource,
-                          newInternalRate, newExternalRate)) {
-                        hasAssignments = true;
-                        xMessage.setArgument(HAS_ASSIGNMENTS, Boolean.valueOf(hasAssignments));
-                        return xMessage;
-                     }
-                  }
-               }
-            }
          }
+      } 
+      finally {
+         broker.close();
       }
-
       xMessage.setArgument(HAS_ASSIGNMENTS, Boolean.valueOf(hasAssignments));
       return xMessage;
    }
@@ -2065,5 +2080,34 @@ public class OpProjectAdministrationService extends OpProjectService {
          rates.add(OpGanttValidator.EXTERNAL_HOURLY_RATE_INDEX, assignment.getResource().getExternalRate());
       }
       return rates;
+   }
+
+   /**
+    * Returns a <code>XMessage</code> containing a <code>Map<String, List<XComponent>></code>. The map contains for each
+    *    entry (which is a project locator) a list of data rows. The data rows represent all the projects located in the
+    *    subtree (from the whole project hierarchy) for which the project is the root.
+    *
+    * @param projectSession - the <code>OpProjectSession</code> object.
+    * @param request - the <code>XMessage</code> containing the project locators for which the subprojects are retreived.
+    * @return a <code>XMessage</code> containing a <code>Map<String, List<XComponent>></code>. The map contains for each
+    *    entry (which is a project locator) a list of data rows. The data rows represent all the projects located in the
+    *    subtree (from the whole project hierarchy) for which the project is the root.
+    */
+   public XMessage loadAllRows(OpProjectSession projectSession, XMessage request) {
+      Map<String, Integer> unexpandedProjectNodes = (Map<String, Integer>) request.getArgument(UNEXPANDED_NODES);
+      Map<String, List<XComponent>> nodesMap = new HashMap<String, List<XComponent>>();
+      OpLocator locator;
+      if(unexpandedProjectNodes != null && !unexpandedProjectNodes.keySet().isEmpty()) {
+         for(String projectLocator : unexpandedProjectNodes.keySet()) {
+            locator =OpLocator.parseLocator(projectLocator);
+            List<XComponent> rowsList = OpProjectDataSetFactory.getAllSubprojects(projectSession, locator.getID(), 
+                 unexpandedProjectNodes.get(projectLocator));
+            nodesMap.put(projectLocator, rowsList);           
+         }
+      }
+
+      XMessage reply = new XMessage();
+      reply.setArgument(UNEXPANDED_NODES, nodesMap);
+      return reply;
    }
 }

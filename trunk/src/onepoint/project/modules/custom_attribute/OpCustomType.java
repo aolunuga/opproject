@@ -17,6 +17,18 @@ import onepoint.persistence.OpObject;
  *
  */
 public class OpCustomType extends OpObject {
+
+   
+   /**
+    * the general sub type for all sub types. 
+    */
+   public static final Byte GENERAL_SUB_TYPE = null;
+
+   /**
+    * the general custom sub type for all customizable sub types. 
+    */
+   public static final String GENERAL_CUSTOMIZABLE_SUB_TYPE = null;
+
    private String prototypeName;
    private String description;
    private String label;

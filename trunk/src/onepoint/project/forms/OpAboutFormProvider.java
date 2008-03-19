@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class OpAboutFormProvider implements XFormProvider {
    /**
     * The map of [product_code, description] for the different flavours of the application.
     */
-   private static final Map PRODUCT_CODES_DESCRIPTION;
+   private static final Map<String, String> PRODUCT_CODES_DESCRIPTION;
 
    private static final String UNKNOWN_VERSION_NUMBER = "N/A";
 
@@ -65,6 +66,7 @@ public class OpAboutFormProvider implements XFormProvider {
    private static final String VERSION_LABEL = "Version";
    private static final String CURRENT_VERSION_LABEL = "CurrentVersion";
    private static final String BUILD_LABEL = "Build";
+   private static final String HEADER_IMAGE_LABEL = "HeaderImage";
 
    /**
     * XML elements and attribute names.
@@ -73,15 +75,17 @@ public class OpAboutFormProvider implements XFormProvider {
    private final static String CODE = "code";
    private final static String PRODUCT = "product";
    private final static String BUILD = "build";
+   private final static int READ_TIMEOUT = 5000;
 
    /**
     * Initializer for the map of product codes.
     * <FIXME author="Horia Chiorean" description="Check if the product names should come from an i18n file">
     */
    static {
-      PRODUCT_CODES_DESCRIPTION = new HashMap();
+      PRODUCT_CODES_DESCRIPTION = new HashMap<String, String>();
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.BASIC_EDITION_CODE, "Onepoint Project Basic Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.PROFESSIONAL_EDITION_CODE, "Onepoint Project Professional Edition");
+      PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.STANDARD_EDITION_CODE, "Onepoint Project Standard Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.OPEN_EDITION_CODE, "Onepoint Project Open Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.TEAM_EDITION_CODE, "Onepoint Project Team Edition");
       PRODUCT_CODES_DESCRIPTION.put(OpProjectConstants.NETWORK_EDITION_CODE, "Onepoint Project Network Edition");
@@ -95,7 +99,9 @@ public class OpAboutFormProvider implements XFormProvider {
       Map versionsMap = Collections.EMPTY_MAP;
       try {
          URL versionUrl = new URL(PRODUCT_VERSIONS_URL);
-         InputStream inputStream = versionUrl.openStream();
+         URLConnection connection = versionUrl.openConnection();
+         connection.setReadTimeout(READ_TIMEOUT);
+         InputStream inputStream = connection.getInputStream();
          versionsMap = getProductVersionsMap(inputStream);
          inputStream.close();
       }
@@ -110,7 +116,7 @@ public class OpAboutFormProvider implements XFormProvider {
       if (currentVersion == null) {
          currentVersion = UNKNOWN_VERSION_NUMBER;
       }
-      String productName = (String) PRODUCT_CODES_DESCRIPTION.get(productCode);
+      String productName = PRODUCT_CODES_DESCRIPTION.get(productCode);
 
       form.findComponent(PRODUCT_NAME_LABEL).setText(productName);
 
@@ -153,6 +159,9 @@ public class OpAboutFormProvider implements XFormProvider {
            new java.sql.Date(build.getTime()));
       form.findComponent(BUILD_LABEL).setText(dateText);
       form.findComponent(CURRENT_VERSION_LABEL).setText(currentVersion);
+
+
+      form.findComponent(HEADER_IMAGE_LABEL).setIcon(OpEnvironmentManager.getAboutImage());
    }
 
    /**

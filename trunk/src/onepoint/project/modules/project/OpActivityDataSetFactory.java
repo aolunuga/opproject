@@ -4,12 +4,34 @@
 
 package onepoint.project.modules.project;
 
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
+
 import onepoint.error.XLocalizableException;
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpObjectOrderCriteria;
+import onepoint.persistence.OpQuery;
+import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
 import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.components.OpGanttValidator;
@@ -17,26 +39,69 @@ import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
-import onepoint.project.modules.work.OpProgressCalculator;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.service.server.XServiceManager;
 import onepoint.util.XCalendar;
 
-import java.sql.Date;
-import java.util.*;
-
-public abstract class OpActivityDataSetFactory {
+public class OpActivityDataSetFactory {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpActivityDataSetFactory.class);
-
    private static final String GET_WORK_RECORD_COUNT_FOR_ASSIGNMENT =
         "select count(workRecord.ID) from OpWorkRecord workRecord where workRecord.Assignment = (:assignmentId)";
+   private static final String GET_COMPLETED_WORK_RECORD_COUNT_FOR_ASSIGNMENT =
+      "select count(workRecord.ID) from OpWorkRecord workRecord where workRecord.Assignment = (:assignmentId) and workRecord.Completed = true";
    private static final String GET_HOURLY_RATES_PERIOD_COUNT_FOR_PROJECT_ASSIGNMENT =
         "select count(hourlyRates.ID) from OpHourlyRatesPeriod hourlyRates where hourlyRates.ProjectNodeAssignment = (:assignmentId)";
    private static final String GET_SUBACTIVITIES_COUNT_FOR_ACTIVITY =
         "select count(activity.ID) from OpActivity activity where activity.SuperActivity = (:activityId) and activity.Deleted = false";
 
-   public static synchronized HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
+   // used as start points for date-iterations:
+   // move to OpGanttValidator eventually...
+   public static Date END_OF_TIME = null; 
+   public static Date BEGINNING_OF_TIME = null;
+   private static OpActivityDataSetFactory instance = new OpActivityDataSetFactory();
+
+   static {
+      SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+      try {
+         END_OF_TIME = new Date(DATE_FORMAT.parse("3000-12-31").getTime());
+         BEGINNING_OF_TIME = new Date(DATE_FORMAT.parse("1900-01-01").getTime());
+      } catch (ParseException e) {
+         e.printStackTrace();
+      }
+   }
+   
+   /**
+    * Returns an instance of the OpProjectPlanningService
+    * 
+    * @return an instance of the OpProjectPlanningService
+    */
+   public static void register(OpActivityDataSetFactory dataSetFactory) {
+      instance = dataSetFactory;
+   }
+
+   /**
+    * Returns an instance of the data set factory
+    * 
+    * @return an instance of the data set factory
+    */
+   public static OpActivityDataSetFactory getInstance() {
+      return instance;
+   }
+
+   /**
+    * @param session
+    * @param broker
+    * @param activityVersion
+    * @param dataRow
+    * @pre
+    * @post
+    */
+   protected void addAdditionalAttributes(OpProjectSession session,
+         OpBroker broker, OpActivity activity, XComponent dataRow) {
+   }
+
+   public static HashMap resourceMap(OpBroker broker, OpProjectNode projectNode) {
       OpQuery query = broker
            .newQuery("select assignment.Resource from OpProjectNodeAssignment as assignment where assignment.ProjectNode.ID = ? order by assignment.Resource.Name asc");
       query.setLong(0, projectNode.getID());
@@ -171,7 +236,7 @@ public abstract class OpActivityDataSetFactory {
       //set also the visual resources (uses the value of the dataset as a value holder)
       Boolean showHours = (Boolean) dataSet.getValue();
       if (showHours == null) {
-         showHours = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+         showHours = Boolean.valueOf(OpSettingsService.getService().get(broker, OpSettings.SHOW_RESOURCES_IN_HOURS));
       }
       for (int i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
@@ -475,7 +540,7 @@ public abstract class OpActivityDataSetFactory {
       //set also the visual resources (uses the value of the dataset as a value holder)
       Boolean showHours = (Boolean) dataSet.getValue();
       if (showHours == null) {
-         showHours = Boolean.valueOf(OpSettingsService.getService().get(OpSettings.SHOW_RESOURCES_IN_HOURS));
+         showHours = Boolean.valueOf(OpSettingsService.getService().get(broker, OpSettings.SHOW_RESOURCES_IN_HOURS));
       }
       Iterator it = activityRowMap.values().iterator();
       while (it.hasNext()) {
@@ -717,9 +782,11 @@ public abstract class OpActivityDataSetFactory {
 
       // Priority (23); editable for tasks
       dataCell = new XComponent(XComponent.DATA_CELL);
-      dataCell.setEnabled(editable && isTask);
+      dataCell.setEnabled(editable && (isTask || isStandard));
+      if(!isMilestone) {
       Byte value = (activity.getPriority() == 0) ? null : new Byte(activity.getPriority());
       dataCell.setValue(value);
+      }
       dataRow.addChild(dataCell);
 
       //Workrecords (24): a map of [resourceLocator, hasWorkRecords]
@@ -731,7 +798,8 @@ public abstract class OpActivityDataSetFactory {
       while (it.hasNext()) {
          OpAssignment assignment = (OpAssignment) it.next();
          String resourceLocator = assignment.getResource().locator();
-         Boolean hasWorkRecords = hasWorkRecords(broker, assignment);
+         // FIXME: Room for Performance Improvement!!!
+         Boolean hasWorkRecords = hasWorkRecords(assignment);
          data.put(resourceLocator, hasWorkRecords);
       }
       dataCell.setValue(data);
@@ -777,13 +845,12 @@ public abstract class OpActivityDataSetFactory {
 
       // Effort Billable (31)
       dataCell = new XComponent(XComponent.DATA_CELL);
-      if (activity.getEffortBillable() != null) {
-         dataCell.setDoubleValue(activity.getEffortBillable());
-      }
-      else {
-         dataCell.setDoubleValue(100);
-      }
-      dataCell.setEnabled(editable && !isCollection);
+      dataCell.setDoubleValue(activity.getEffortBillable());
+      dataRow.addChild(dataCell);
+
+      // Custom Attributes (32) - add null here, custom attributes 
+      dataCell = new XComponent(XComponent.DATA_CELL);
+      dataCell.setValue(null);
       dataRow.addChild(dataCell);
 
       OpGanttValidator.updateAttachmentAttribute(dataRow);
@@ -837,7 +904,7 @@ public abstract class OpActivityDataSetFactory {
 
    }
 
-   public static synchronized void storeActivityDataSet(OpBroker broker, XComponent dataSet, HashMap resources, OpProjectPlan plan,
+   public synchronized void storeActivityDataSet(OpProjectSession session, OpBroker broker, XComponent dataSet, HashMap resources, OpProjectPlan plan,
         OpProjectPlanVersion workingPlanVersion) {
 
       // TODO: Maybe use "pure" IDs (Long values) for data-row values instead of locator strings (retrieve)
@@ -856,7 +923,11 @@ public abstract class OpActivityDataSetFactory {
          plan.getActivities().removeAll(adhocTasks);
       }
 
-      HashMap activities = activities(plan);
+      logger.debug("storeActivityDataSet: " + System.currentTimeMillis());
+      HashMap activities = null;
+
+      activities = activities(plan);
+
       Date planStart = plan.getStart();
       Date planFinish = plan.getFinish();
 
@@ -895,7 +966,7 @@ public abstract class OpActivityDataSetFactory {
          else {
             activity = null;
          }
-         activity = insertOrUpdateActivity(broker, dataRow, activity, plan, superActivity);
+         activity = getInstance().insertOrUpdateActivity(session, broker, dataRow, activity, plan, superActivity);
 
          // Set locator string value for newly created activity version data rows
          if (dataRow.getStringValue() == null) {
@@ -941,6 +1012,7 @@ public abstract class OpActivityDataSetFactory {
       for (i = 0; i < dataSet.getChildCount(); i++) {
          dataRow = (XComponent) dataSet.getChild(i);
          activity = (OpActivity) activityList.get(i);
+         
          // Only standard (work) activities may have assignments and work phases
          //task can also have assignments
          //milestones as well
@@ -954,6 +1026,7 @@ public abstract class OpActivityDataSetFactory {
          }
          insertActivityAttachments(broker, plan, dataRow, activity, reusableAttachments);
          insertActivityDependencies(broker, plan, dataSet, dataRow, activity, activityList, reusableDependencys);
+         addAdditionalAttributes(session, broker, activity, dataRow);
       }
 
       // Phase 4: Delete unused related objects
@@ -1007,7 +1080,7 @@ public abstract class OpActivityDataSetFactory {
       updateAdHocTasks(plan, dataRowsNr, adhocTasks, broker);
       //</FIXME>
 
-
+      logger.debug("/storeActivityDataSet: " + System.currentTimeMillis());
       broker.updateObject(plan);
 
    }
@@ -1061,7 +1134,7 @@ public abstract class OpActivityDataSetFactory {
       return adhocTasks;
    }
 
-   private static OpActivity insertOrUpdateActivity(OpBroker broker, XComponent dataRow, OpActivity activity,
+   private OpActivity insertOrUpdateActivity(OpProjectSession session, OpBroker broker, XComponent dataRow, OpActivity activity,
         OpProjectPlan projectPlan, OpActivity superActivity) {
 
       String categoryLocator = null;
@@ -1070,354 +1143,244 @@ public abstract class OpActivityDataSetFactory {
       OpProjectNode projectNode = projectPlan.getProjectNode();
       String categoryChoice = OpGanttValidator.getCategory(dataRow);
       String responsibleResourceChoice = OpGanttValidator.getResponsibleResource(dataRow);
-      byte type = OpGanttValidator.getType(dataRow);
-      boolean isCollection = (type == OpActivity.COLLECTION) || (type == OpActivity.COLLECTION_TASK) || (type == OpActivity.SCHEDULED_TASK);
+      
+      boolean newActivity = false;
       if (activity == null) {
          // Insert a new activity
          activity = new OpActivity(OpGanttValidator.getType(dataRow));
          activity.setProjectPlan(projectPlan);
-         projectPlan.addActivity(activity);
          activity.setTemplate(projectPlan.getTemplate());
+         newActivity = true;
+      }
+      boolean wasCollection = activity.isCollection();
 
-         activity.setName(OpGanttValidator.getName(dataRow));
-         activity.setDescription(OpGanttValidator.getDescription(dataRow));
-         activity.setSequence(dataRow.getIndex());
-         activity.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
-         activity.setExpanded(dataRow.getExpanded());
-         activity.setSuperActivity(superActivity);
-         if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-            activity.setStart(superActivity.getStart());
-            activity.setFinish(superActivity.getFinish());
-         }
-         else {
-            if (OpGanttValidator.getStart(dataRow) == null) {
-               activity.setStart(projectNode.getStart());
-            }
-            else {
-               activity.setStart(OpGanttValidator.getStart(dataRow));
-            }
-            if (OpGanttValidator.getEnd(dataRow) == null) {
-               activity.setFinish(projectNode.getFinish());
-            }
-            else {
-               activity.setFinish(OpGanttValidator.getEnd(dataRow));
-            }
-         }
-         activity.setDuration(OpGanttValidator.getDuration(dataRow));
-         activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
-         if (categoryChoice != null) {
-            category = (OpActivityCategory) broker.getObject(XValidator.choiceID(categoryChoice));
-            activity.setCategory(category);
-         }
-         if (responsibleResourceChoice != null) {
-            OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(responsibleResourceChoice));
-            activity.setResponsibleResource(resource);
-         }
-         activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
-         activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
-         activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-         activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-         activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-         activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-         activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         if (activity.getType() == OpGanttValidator.MILESTONE) {
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
-         if (OpGanttValidator.getPriority(dataRow) != null) {
-            activity.setPriority(OpGanttValidator.getPriority(dataRow).byteValue());
-         }
-         else {
-            activity.setPriority((byte) 0);
-         }
-         activity.setActualEffort(0);
+      // TODO: thing about exceptions in checkIn/Save
+      // Type again is something special:
+      // cannot be changed as soon as there are workrecords for this:
+      // if (activity.getType() != OpGanttValidator.getType(dataRow) && activity.hasWorkRecords()) {
+      //    throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.CANNOT_CHANGE_ACTIVITY_TYPE_ERROR);
+      // }
+      activity.setType((OpGanttValidator.getType(dataRow)));
+      
+      activity.setName(OpGanttValidator.getName(dataRow));
+      activity.setDescription(OpGanttValidator.getDescription(dataRow));
+      activity.setSequence(dataRow.getIndex());
+      activity.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
+      activity.setExpanded(dataRow.getExpanded());
+      activity.setDuration(OpGanttValidator.getDuration(dataRow));
+      
+      updateStartFinish(activity, OpGanttValidator.getStart(dataRow), OpGanttValidator.getEnd(dataRow));
 
-         double complete = OpGanttValidator.getComplete(dataRow);
-         activity.setComplete(complete);
-         double remaining = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(),
-              complete);
-         activity.setRemainingEffort(remaining);
-         //actual costs are 0 initially
-         activity.setActualPersonnelCosts(0);
-         //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-         //remainingPersonnelCosts and remainingProceeds will be done by the assignments
-         if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection) {
-            activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
-            activity.setRemainingProceeds(activity.getBaseProceeds());
-         }
-         activity.setActualTravelCosts(0);
-         activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
-         activity.setActualMaterialCosts(0);
-         activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
-         activity.setActualExternalCosts(0);
-         activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
-         activity.setActualMiscellaneousCosts(0);
-         activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
-         activity.setEffortBillable(OpGanttValidator.getEffortBillable(dataRow));
-         broker.makePersistent(activity);
-
+      activity.setEffortBillable(OpGanttValidator.getEffortBillable(dataRow));
+      
+      //update the category
+      categoryLocator = null;
+      if (activity.getCategory() != null) {
+         categoryLocator = activity.getCategory().locator();
+      }
+      if (categoryChoice != null) {
+         String newCategoryLocator = XValidator.choiceID(categoryChoice);
+         category = (OpActivityCategory) broker.getObject(newCategoryLocator);
+         activity.setCategory(category);
       }
       else {
+         activity.setCategory(null);
+      }
 
-         boolean update = false;
+      //update the responsible resource
+      String resourceLocator = null;
+      if (activity.getResponsibleResource() != null) {
+         resourceLocator = activity.getResponsibleResource().locator();
+      }
+      if (responsibleResourceChoice != null) {
+         String newResourceLocator = XValidator.choiceID(responsibleResourceChoice);
+         OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(newResourceLocator));
+         activity.setResponsibleResource(resource);
+      }
+      else {
+         activity.setResponsibleResource(null);
+      }
 
-         if (!checkEquality(activity.getName(), OpGanttValidator.getName(dataRow))) {
-            update = true;
-            activity.setName(OpGanttValidator.getName(dataRow));
-         }
-         if (!checkEquality(activity.getDescription(), OpGanttValidator.getDescription(dataRow))) {
-            update = true;
-            activity.setDescription(OpGanttValidator.getDescription(dataRow));
-         }
-         if (activity.getSequence() != dataRow.getIndex()) {
-            update = true;
-            activity.setSequence(dataRow.getIndex());
-         }
-         if (activity.getOutlineLevel() != dataRow.getOutlineLevel()) {
-            update = true;
-            activity.setOutlineLevel((byte) (dataRow.getOutlineLevel()));
-         }
-         // TODO: Maybe add a consistency check here (if super-activity is set we need outline-level > zero)
-         if (activity.getExpanded() != dataRow.getExpanded()) {
-            update = true;
-            activity.setExpanded(dataRow.getExpanded());
-         }
-         if (activity.getSuperActivity() != superActivity) {
-            update = true;
-            //update actual effort and costs
-            updateParentsActualValues(activity, superActivity, broker);
-            activity.setSuperActivity(superActivity);
-         }
-         if ((activity.getStart() != null && !activity.getStart().equals(OpGanttValidator.getStart(dataRow)))
-              || (activity.getStart() == null)) {
-            Date newStart;
-            Date start = OpGanttValidator.getStart(dataRow);
-            if (start == null) {
-               if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-                  newStart = superActivity.getStart();
-               }
-               else {
-                  newStart = projectNode.getStart();
-               }
-            }
-            else {
-               newStart = start;
-            }
-            if (activity.getStart() == null || !activity.getStart().equals(newStart)) {
-               update = true;
-               activity.setStart(newStart);
-            }
-         }
-         if ((activity.getFinish() != null && !activity.getFinish().equals(OpGanttValidator.getEnd(dataRow)))
-              || (activity.getFinish() == null)) {
+      activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
 
-            Date end = OpGanttValidator.getEnd(dataRow);
-            Date newEnd;
-            if (end == null) {
-               if (superActivity != null && superActivity.getType() == OpActivity.SCHEDULED_TASK) {
-                  newEnd = superActivity.getFinish();
-               }
-               else {
-                  newEnd = projectNode.getFinish();
-               }
-            }
-            else {
-               newEnd = end;
-            }
+      byte validatorPriority = OpGanttValidator.getPriority(dataRow) == null ? 0 : OpGanttValidator.getPriority(dataRow).byteValue();
+      activity.setPriority(validatorPriority);
 
-            if (activity.getFinish() == null || !activity.getFinish().equals(newEnd)) {
-               update = true;
-               activity.setFinish(newEnd);
+      // ALL this is only relevant for LEAF-Activities:
+      // tricky: remove from parent to enforce calculation!
+      if (activity.isCollection()) {
+         activity.resetValues();
+      }
+      else {
+         if (wasCollection) {
+            // if the activity was a collection before, we should reset the actual stuff, because
+            // the %complete and actual effort most likely will not match...
+            activity.resetActualValues();
+         }
+
+         double payment = 0d;
+         if (activity.isMilestone()) {
+            payment = OpGanttValidator.getPayment(dataRow);
+         } else {
+            payment = 0d;
+         }
+         activity.setPayment(payment);
+         
+         activity.setBaseEffort(OpGanttValidator.getBaseEffort(dataRow));
+   
+         activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
+         //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+         //remainingPersonnelCosts and remainingProceeds will be done by the assignments
+         if (OpGanttValidator.getResources(dataRow).isEmpty()
+               && activity.getActualPersonnelCosts() == 0) {
+            activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
+         }
+         activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
+         // check if the activity has any assignments and it is not a collection. If it has assignments the setting of
+         // remainingPersonnelCosts and remainingProceeds will be done by the assignments
+         if (OpGanttValidator.getResources(dataRow).isEmpty()
+               && activity.getActualProceeds() == 0) {
+            activity.setRemainingProceeds(activity.getBaseProceeds());
+         }
+         activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
+         if (activity.getActualTravelCosts() == 0) {
+            activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
+         }
+         activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
+         if (activity.getActualMaterialCosts() == 0) {
+            activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
+         }
+         activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
+         if (activity.getActualExternalCosts() == 0) {
+            activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
+         }
+         activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
+         if (activity.getActualMiscellaneousCosts() == 0) {
+            activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
+         }
+         
+         if (activity.isProgressTracked()) {
+            // remaining is only changed, if there is no actual effort yet:
+            // percentage complete is never changed.
+            if (!activity.hasWorkRecords()) {
+               // new is something completely different...
+               // (remember: the dataset does not contain REMAINING EFFORT, so we have to fake things a little)
+               double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), 0, 0);
+               activity.setRemainingEffort(remainingEffort);
             }
          }
-         if (activity.getDuration() != OpGanttValidator.getDuration(dataRow)) {
-            update = true;
-            activity.setDuration(OpGanttValidator.getDuration(dataRow));
-         }
-         double complete = OpGanttValidator.getComplete(dataRow);
-         //if tracking is off, calculate the remaining
-         if ((activity.getComplete() != complete)) {
-            update = true;
+         else {
+            //if tracking is off, calculate the remaining
+            double complete = OpGanttValidator.getComplete(dataRow);
             activity.setComplete(complete);
             double remainingEffort = OpGanttValidator.calculateRemainingEffort(activity.getBaseEffort(), activity.getActualEffort(), complete);
             activity.setRemainingEffort(remainingEffort);
          }
-
-         double baseEffort = OpGanttValidator.getBaseEffort(dataRow);
-         if (activity.getBaseEffort() != baseEffort) {
-            update = true;
-            activity.setBaseEffort(baseEffort);
-            if (activity.getProjectPlan().getProgressTracked()) {
-               activity.setRemainingEffort(activity.getBaseEffort());
-               complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), baseEffort, activity.getRemainingEffort());
-               activity.setComplete(complete);
-            }
-            else {
-               double remainingEffort = OpGanttValidator.calculateRemainingEffort(baseEffort, activity.getActualEffort(), activity.getComplete());
-               activity.setRemainingEffort(remainingEffort);
-            }
-         }
-
-         if (activity.getType() != OpGanttValidator.getType(dataRow)) {
-            update = true;
-            activity.setType((OpGanttValidator.getType(dataRow)));
-         }
-
-         //update the category
-         categoryLocator = null;
-         if (activity.getCategory() != null) {
-            categoryLocator = activity.getCategory().locator();
-         }
-
-         if (categoryChoice != null) {
-            String newCategoryLocator = XValidator.choiceID(categoryChoice);
-            if (!newCategoryLocator.equals(categoryLocator)) {
-               update = true;
-               category = (OpActivityCategory) broker.getObject(newCategoryLocator);
-               activity.setCategory(category);
-            }
-         }
-         else {
-            update = true;
-            activity.setCategory(null);
-         }
-
-         //update the responsible resource
-         String resourceLocator = null;
-         if (activity.getResponsibleResource() != null) {
-            resourceLocator = activity.getResponsibleResource().locator();
-         }
-
-         if (responsibleResourceChoice != null) {
-            String newResourceLocator = XValidator.choiceID(responsibleResourceChoice);
-            if (!newResourceLocator.equals(resourceLocator)) {
-               update = true;
-               OpResource resource = (OpResource) broker.getObject(XValidator.choiceID(newResourceLocator));
-               activity.setResponsibleResource(resource);
-            }
-         }
-         else {
-            update = true;
-            activity.setResponsibleResource(null);
-         }
-
-         // Do not update complete from client-data: Calculated from work-slips (RemainingEffort)
-         if (activity.getBasePersonnelCosts() != OpGanttValidator.getBasePersonnelCosts(dataRow)) {
-            update = true;
-            activity.setBasePersonnelCosts(OpGanttValidator.getBasePersonnelCosts(dataRow));
-            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
-            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualPersonnelCosts() == 0) {
-               activity.setRemainingPersonnelCosts(activity.getBasePersonnelCosts());
-            }
-         }
-         if (activity.getBaseProceeds() != OpGanttValidator.getBaseProceeds(dataRow)) {
-            update = true;
-            activity.setBaseProceeds(OpGanttValidator.getBaseProceeds(dataRow));
-            //check if the activity has any assignments and it is not a collection. If it has assignments the setting of
-            //remainingPersonnelCosts and remainingProceeds will be done by the assignments
-            if (OpGanttValidator.getResources(dataRow).isEmpty() && !isCollection && activity.getActualProceeds() == 0) {
-               activity.setRemainingProceeds(activity.getBaseProceeds());
-            }
-         }
-
-         if (activity.getBaseTravelCosts() != OpGanttValidator.getBaseTravelCosts(dataRow)) {
-            update = true;
-            activity.setBaseTravelCosts(OpGanttValidator.getBaseTravelCosts(dataRow));
-            if (activity.getActualTravelCosts() == 0) {
-               activity.setRemainingTravelCosts(activity.getBaseTravelCosts());
-            }
-         }
-         if (activity.getBaseMaterialCosts() != OpGanttValidator.getBaseMaterialCosts(dataRow)) {
-            update = true;
-            activity.setBaseMaterialCosts(OpGanttValidator.getBaseMaterialCosts(dataRow));
-            if (activity.getActualMaterialCosts() == 0) {
-               activity.setRemainingMaterialCosts(activity.getBaseMaterialCosts());
-            }
-         }
-         if (activity.getBaseExternalCosts() != OpGanttValidator.getBaseExternalCosts(dataRow)) {
-            update = true;
-            activity.setBaseExternalCosts(OpGanttValidator.getBaseExternalCosts(dataRow));
-            if (activity.getActualExternalCosts() == 0) {
-               activity.setRemainingExternalCosts(activity.getBaseExternalCosts());
-            }
-         }
-         if (activity.getBaseMiscellaneousCosts() != OpGanttValidator.getBaseMiscellaneousCosts(dataRow)) {
-            update = true;
-            activity.setBaseMiscellaneousCosts(OpGanttValidator.getBaseMiscellaneousCosts(dataRow));
-            if (activity.getActualMiscellaneousCosts() == 0) {
-               activity.setRemainingMiscellaneousCosts(activity.getBaseMiscellaneousCosts());
-            }
-         }
-         if (activity.getAttributes() != OpGanttValidator.getAttributes(dataRow)) {
-            update = true;
-            activity.setAttributes(OpGanttValidator.getAttributes(dataRow));
-         }
-         byte validatorPriority = OpGanttValidator.getPriority(dataRow) == null ? 0 : OpGanttValidator.getPriority(dataRow).byteValue();
-         if ((activity.getPriority() == 0 && validatorPriority != 0)
-              || !(activity.getPriority() == validatorPriority)) {
-            update = true;
-            activity.setPriority(validatorPriority);
-         }
-         if (activity.getPayment() != OpGanttValidator.getPayment(dataRow)) {
-            update = true;
-            activity.setPayment(OpGanttValidator.getPayment(dataRow));
-         }
-         if (activity.getEffortBillable() == null
-               || activity.getEffortBillable().doubleValue() != OpGanttValidator
-                     .getEffortBillable(dataRow)) {
-            update = true;
-            activity.setEffortBillable(new Double(OpGanttValidator.getEffortBillable(dataRow)));
-         }
-         if (update) {
-            broker.updateObject(activity);
-         }
-
       }
+      addAdditionalAttributes(session, broker, activity, dataRow);
+      // AFTER we are through with ourself, update the super-activity stuff!
+      updateParents(activity, superActivity);
 
+      // make facts:
+      if (newActivity) {
+         broker.makePersistent(activity);
+      }
       return activity;
-
    }
-
-
+   
+   private static void updateStartFinish(OpActivity activity, Date start, Date finish) {
+      switch (activity.getType()) {
+      case OpActivity.STANDARD:
+      case OpActivity.SCHEDULED_TASK:
+         activity.setStart(start);
+         activity.setFinish(finish);
+         break;
+      case OpActivity.MILESTONE:
+         activity.setStart(start);
+         activity.setFinish(activity.getStart());
+         activity.setDuration(0d);
+         break;
+      case OpActivity.TASK:
+         activity.setStart(activity.getProjectPlan().getProjectNode().getStart());
+         activity.setFinish(activity.getProjectPlan().getProjectNode().getFinish());
+         activity.setDuration(0d);
+         break;
+      case OpActivity.COLLECTION:
+      case OpActivity.COLLECTION_TASK:
+         activity.setStart(END_OF_TIME);
+         activity.setFinish(BEGINNING_OF_TIME);
+         break;
+      case OpActivity.ADHOC_TASK:
+         activity.setStart(start);
+         activity.setFinish(finish);
+         break;
+      }
+   }
+   
    /**
     * Updates all the fields which depend on the actual effort of an activity, for the new(or old) super activity of
     * that activity.
     *
     * @param activity  a <code>OpActivity</code> which has a new parent.
-    * @param newParent a <codE>OpActivity</code> representing the new parent. A value of <code>null</code> means
+    * @param currentParent a <codE>OpActivity</code> representing the new parent. A value of <code>null</code> means
     *                  that the activity has no current parent.
     * @param broker    a <code>OpBroker</code> used for performing business operations.
     */
-   private static void updateParentsActualValues(OpActivity activity, OpActivity newParent, OpBroker broker) {
-      OpActivity originalActivity = activity;
-      //update old parents
-      while (activity.getSuperActivity() != null) {
-         OpActivity oldParent = activity.getSuperActivity();
-         oldParent.setActualEffort(oldParent.getActualEffort() - originalActivity.getActualEffort());
-         oldParent.setActualExternalCosts(oldParent.getActualExternalCosts() - originalActivity.getActualExternalCosts());
-         oldParent.setActualMaterialCosts(oldParent.getActualMaterialCosts() - originalActivity.getActualMaterialCosts());
-         oldParent.setActualMiscellaneousCosts(oldParent.getActualMiscellaneousCosts() - originalActivity.getActualMiscellaneousCosts());
-         oldParent.setActualPersonnelCosts(oldParent.getActualPersonnelCosts() - originalActivity.getActualPersonnelCosts());
-         oldParent.setActualProceeds(oldParent.getActualProceeds() - originalActivity.getActualProceeds());
-         oldParent.setActualTravelCosts(oldParent.getActualTravelCosts() - originalActivity.getActualTravelCosts());
-         broker.updateObject(oldParent);
+   private static void updateParents(OpActivity activity, OpActivity newParent) {
 
-         activity = oldParent;
+      OpActivity currentActivity = activity;
+      OpActivity currentParent = newParent;
+      
+      if (newParent != null) {
+         newParent.addSubActivity(activity);  
       }
-      //update the new parents
-      activity = originalActivity;
-      while (newParent != null) {
-         newParent.setActualEffort(newParent.getActualEffort() + originalActivity.getActualEffort());
-         newParent.setActualExternalCosts(newParent.getActualExternalCosts() + originalActivity.getActualExternalCosts());
-         newParent.setActualMaterialCosts(newParent.getActualMaterialCosts() + originalActivity.getActualMaterialCosts());
-         newParent.setActualMiscellaneousCosts(newParent.getActualMiscellaneousCosts() + originalActivity.getActualMiscellaneousCosts());
-         newParent.setActualPersonnelCosts(newParent.getActualPersonnelCosts() + originalActivity.getActualPersonnelCosts());
-         newParent.setActualProceeds(newParent.getActualProceeds() + originalActivity.getActualProceeds());
-         newParent.setActualTravelCosts(newParent.getActualTravelCosts() + originalActivity.getActualTravelCosts());
-         broker.updateObject(newParent);
+      else {
+         activity.setSuperActivity(null);
+      }
+      while (currentParent != null) {
 
-         activity = newParent;
-         newParent = newParent.getSuperActivity();
+         currentParent.setBaseEffort(currentParent.getBaseEffort() + activity.getBaseEffort());
+         currentParent.setBaseExternalCosts(currentParent.getBaseExternalCosts() + activity.getBaseExternalCosts());
+         currentParent.setBaseMaterialCosts(currentParent.getBaseMaterialCosts() + activity.getBaseMaterialCosts());
+         currentParent.setBaseMiscellaneousCosts(currentParent.getBaseMiscellaneousCosts() + activity.getBaseMiscellaneousCosts());
+         currentParent.setBasePersonnelCosts(currentParent.getBasePersonnelCosts() + activity.getBasePersonnelCosts());
+         currentParent.setBaseProceeds(currentParent.getBaseProceeds() + activity.getBaseProceeds());
+         currentParent.setBaseTravelCosts(currentParent.getBaseTravelCosts() + activity.getBaseTravelCosts());
+         
+         currentParent.setActualEffort(currentParent.getActualEffort() + activity.getActualEffort());
+         currentParent.setActualExternalCosts(currentParent.getActualExternalCosts() + activity.getActualExternalCosts());
+         currentParent.setActualMaterialCosts(currentParent.getActualMaterialCosts() + activity.getActualMaterialCosts());
+         currentParent.setActualMiscellaneousCosts(currentParent.getActualMiscellaneousCosts() + activity.getActualMiscellaneousCosts());
+         currentParent.setActualPersonnelCosts(currentParent.getActualPersonnelCosts() + activity.getActualPersonnelCosts());
+         currentParent.setActualProceeds(currentParent.getActualProceeds() + activity.getActualProceeds());
+         currentParent.setActualTravelCosts(currentParent.getActualTravelCosts() + activity.getActualTravelCosts());
+
+         currentParent.setRemainingEffort(currentParent.getRemainingEffort() + activity.getRemainingEffort());
+         currentParent.setRemainingExternalCosts(currentParent.getRemainingExternalCosts() + activity.getRemainingExternalCosts());
+         currentParent.setRemainingMaterialCosts(currentParent.getRemainingMaterialCosts() + activity.getRemainingMaterialCosts());
+         currentParent.setRemainingMiscellaneousCosts(currentParent.getRemainingMiscellaneousCosts() + activity.getRemainingMiscellaneousCosts());
+         currentParent.setRemainingPersonnelCosts(currentParent.getRemainingPersonnelCosts() + activity.getRemainingPersonnelCosts());
+         currentParent.setRemainingProceeds(currentParent.getRemainingProceeds() + activity.getRemainingProceeds());
+         currentParent.setRemainingTravelCosts(currentParent.getRemainingTravelCosts() + activity.getRemainingTravelCosts());
+         
+         currentParent.setComplete(currentParent.getCompleteFromTracking());
+
+         if (currentParent.getType() == OpGanttValidator.SCHEDULED_TASK) {
+            currentActivity.setStart(currentParent.getStart());
+            currentActivity.setFinish(currentParent.getFinish());
+         }
+         else {
+            // other direction:
+            if (currentParent.getStart().compareTo(currentActivity.getStart()) > 0) {
+               currentParent.setStart(currentActivity.getStart());
+            }
+            if (currentParent.getFinish().compareTo(currentActivity.getFinish()) < 0) {
+               currentParent.setFinish(currentActivity.getFinish());
+            }
+         }
+         
+         currentActivity = currentParent;
+         currentParent = currentParent.getSuperActivity();
       }
    }
 
@@ -1456,57 +1419,66 @@ public abstract class OpActivityDataSetFactory {
                   // Assignment is present: Remove from resource list and check whether update is required
                   resourceList.remove(i);
                   baseEffort = ((Double) resourceBaseEffortList.remove(i)).doubleValue();
+                  // FIXME: See OpActivityVersionDataSetFactory!
+                  if (Double.isNaN(baseEffort))
+                     baseEffort = 0;
+                  // /FIXME
                   assigned = OpGanttValidator.percentageAssigned(resourceChoice);
                   if (assigned == OpGanttValidator.INVALID_ASSIGNMENT) {
                      assigned = assignment.getResource().getAvailable();
                   }
 
-                  OpActivity activity = assignment.getActivity();
-                  boolean tracking = activity.getProjectPlan().getProgressTracked();
                   boolean update = false;
-
-                  // update assignment if tracking is off
-                  double complete = activity.getComplete();
-                  if (complete != assignment.getComplete() && !tracking) {
-                     assignment.setComplete(complete);
-                     double remaining = OpGanttValidator.calculateRemainingEffort(assignment.getBaseEffort(), assignment.getActualEffort(), complete);
-                     assignment.setRemainingEffort(remaining);
-                     update = true;
-                  }
-
                   if (assignment.getAssigned() != assigned) {
                      assignment.setAssigned(assigned);
                      update = true;
                   }
 
-                  //<FIXME author="Horia Chiorean" description="Caused by double calculations in the OpGanntValidator...">
-                  if (Math.abs(assignment.getBaseEffort() - baseEffort) > OpGanttValidator.ERROR_MARGIN) {
-                     //<FIXME>
+                  OpActivity activity = assignment.getActivity();
+                  boolean tracking = activity.isProgressTracked();
+
+                  if (assignment.getBaseEffort() != baseEffort) {
                      assignment.setBaseEffort(baseEffort);
-                     if (tracking) {
-
-                        if (assignment.getActualEffort() == 0) {
-                           assignment.setRemainingEffort(baseEffort);
-                           assignment.setComplete(0);
-                        }
-                        else {
-
-                           //assignment remaining effort isn't changed becasue we have actual/remaining effort provided by the user
-                           complete = OpGanttValidator.calculateCompleteValue(assignment.getActualEffort(), baseEffort, assignment.getRemainingEffort());
-                           assignment.setComplete(complete);
-
-                           //update the remaining activity effort
-                           double effortToAdd = assignment.getRemainingEffort() - assignment.getBaseEffort();
-                           updateRemainingForActivities(broker, activity, effortToAdd);
-                        }
-                     }
-                     else {
-                        double remaining = OpGanttValidator.calculateRemainingEffort(baseEffort, assignment.getActualEffort(), assignment.getComplete());
-                        assignment.setRemainingEffort(remaining);
-                     }
                      update = true;
                   }
 
+                  if (!tracking) {
+                     double complete = activity.getComplete();
+                     if (complete != assignment.getComplete()) {
+                        assignment.setComplete(complete);
+                        update = true;
+                     }
+                     // It is always required to redistribute the remaining effort
+                     // of the activity to ALL asignments. The factor to use is the base effort
+                     // of each activity here (This only works, as long as the base effort for both
+                     // assignment and activity is correct and do not change from now on)
+                     double assignmentRemaining = calculateAssignmentRemainingEffort(
+                           activity.getBaseEffort(), activity.getRemainingEffort(),
+                           baseEffort);
+                     if (assignmentRemaining != assignment.getRemainingEffort()) {
+                        assignment.setRemainingEffort(assignmentRemaining);
+                        update = true;
+                     }
+                  }
+                  else {
+                     // in some rare cases, complete might differ here (replanning)
+                     double complete = assignment.getCompleteFromTracking();
+                     if (complete != assignment.getComplete()) {
+                        assignment.setComplete(complete);
+                        update = true;
+                     }
+                     // adopt remaining as soon as there are no workrecords for this assignment
+                     if (activity.isVirgin()) {
+                        double assignmentRemaining = calculateAssignmentRemainingEffort(
+                              activity.getBaseEffort(), activity.getRemainingEffort(),
+                              baseEffort);
+                        if (assignment.getRemainingEffort() != assignmentRemaining) {
+                           update = true;
+                           assignment.setRemainingEffort(assignmentRemaining);
+                        }
+                     }
+                  }
+                  
                   XCalendar calendar = XCalendar.getDefaultCalendar();
                   if (updateAssignmentCosts(assignment, calendar)) {
                      update = true;
@@ -1530,32 +1502,36 @@ public abstract class OpActivityDataSetFactory {
          if (reusable) {
             if (!(assignment.getActivity() != null && assignment.getActivity().getType() == OpActivity.ADHOC_TASK)) {
                //check if the assignemnt still has work records - if so => error
-               if (hasWorkRecords(broker, assignment)) {
+               if (assignment.hasWorkRecords()) {
                   throw new XLocalizableException(OpProjectAdministrationService.ERROR_MAP, OpProjectError.WORKRECORDS_STILL_EXIST_ERROR);
                }
                reusableAssignments.add(assignment);
                //break links to activity
                OpActivity activity = assignment.getActivity();
-               activity.getAssignments().remove(assignment);
-               broker.updateObject(activity);
+               assignment.detachFromActivity(activity);
+               // FIXME: evil hack to honour removed assignments:
+               // TODO: propagate remaining, base, etc from new assignment???
+               // ATTENTION: remaining, base, etc. is NOT changed here (remaining should
+               // be distributed to the existing assignments)
+               activity.setComplete(activity.getCompleteFromTracking());
             }
          }
       }
       return reusableAssignments;
    }
 
-   private static void updateRemainingForActivities(OpBroker broker, OpActivity activity, double effortToAdd) {
-      if (activity == null) {
-         return;
-      }
-
-      activity.setRemainingEffort(activity.getRemainingEffort() + effortToAdd);
-      double complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), activity.getBaseEffort(), activity.getRemainingEffort());
-      activity.setComplete(complete);
-      broker.updateObject(activity);
-
-      updateRemainingForActivities(broker, activity.getSuperActivity(), effortToAdd);
-   }
+//   private static void updateRemainingForActivities(OpBroker broker, OpActivity activity, double effortToAdd) {
+//      if (activity == null) {
+//         return;
+//      }
+//
+//      activity.setRemainingEffort(activity.getRemainingEffort() + effortToAdd);
+//      double complete = OpGanttValidator.calculateCompleteValue(activity.getActualEffort(), activity.getBaseEffort(), activity.getRemainingEffort());
+//      activity.setComplete(complete);
+//      broker.updateObject(activity);
+//
+//      updateRemainingForActivities(broker, activity.getSuperActivity(), effortToAdd);
+//   }
 
    private static void insertActivityAssignments(OpBroker broker, OpProjectPlan plan, XComponent dataRow,
         OpActivity activity, ArrayList reusableAssignments, HashMap resources) {
@@ -1590,6 +1566,8 @@ public abstract class OpActivityDataSetFactory {
          assignment.setProjectPlan(plan);
          plan.addAssignment(assignment);
          assignment.setActivity(activity);
+         activity.addAssignment(assignment);
+         
          resource = (OpResource) resources.get(new Long(OpLocator.parseLocator(resourceChoiceId).getID()));
          assignment.setResource(resource);
          double assigned = OpGanttValidator.percentageAssigned(resourceChoice);
@@ -1603,15 +1581,30 @@ public abstract class OpActivityDataSetFactory {
          updateAssignmentCosts(assignment, calendar);
 
          assignment.setActualEffort(0);
-         assignment.setRemainingEffort(baseEffort);
-         boolean tracking = activity.getProjectPlan().getProgressTracked();
+         boolean tracking = activity.isProgressTracked();
+         
          //update assignment if tracking is off
          if (!tracking) {
             double complete = activity.getComplete();
             assignment.setComplete(complete);
-            OpProgressCalculator.updateAssignmentBasedOnTracking(assignment, false, tracking);
+            assignment.setRemainingEffort(calculateAssignmentRemainingEffort(
+                  activity.getBaseEffort(), activity.getRemainingEffort(),
+                  baseEffort));
          }
-
+         else {
+            assignment.setComplete(0);
+            double remainingForThisAssignment = 0;
+            if (activity.isVirgin()) {
+               remainingForThisAssignment = assignment.getBaseEffort();
+            }
+            assignment.setRemainingEffort(remainingForThisAssignment);
+            // FIXME: evil hack to honour new assignments:
+            // TODO: propagate remaining, base, etc from new assignment???
+            // ATTENTION: if complete changes here, it is because our activity is of kind milestone
+            // this will NEVER affect its parent!
+            activity.setComplete(activity.getCompleteFromTracking());
+         }
+         
          if (assignment.getID() == 0) {
             broker.makePersistent(assignment);
          }
@@ -1620,6 +1613,16 @@ public abstract class OpActivityDataSetFactory {
          }
          updateWorkMonths(broker, assignment, calendar);
       }
+   }
+   
+   private static double calculateAssignmentRemainingEffort(
+         double activityBaseEffort, double activityRemainingEffort,
+         double assignmentBaseEffort) {
+      double assignmentRemainigEffort = 0;
+      if (activityBaseEffort > 0) {
+         assignmentRemainigEffort = activityRemainingEffort * assignmentBaseEffort / activityBaseEffort;
+      }
+      return assignmentRemainigEffort;
    }
 
    private static ArrayList updateOrDeleteWorkPeriods(OpBroker broker, XComponent dataSet, Iterator workPeriodsIt) {
@@ -1883,7 +1886,7 @@ public abstract class OpActivityDataSetFactory {
     * @param object - the <code>OpObject</code> entity for which the attachments is created
     *                   (it must be an <code>OpActivity</code>, a <code>OpProjectNode</code> or
     *                   a <code>OpCostRecord</code> object).
-    * @param attachmentElement - the <code>List</code> of attachment attributes
+    * @param attachmentElement   - the <code>List</code> of attachment attributes
     * @param reusableAttachments - the list of already created attachments that need to be updated
     * @return - the newly created/updated <code>OpAttachment</code> entity , could be <code>null</code> if the content id is not valid
     */
@@ -2478,7 +2481,7 @@ public abstract class OpActivityDataSetFactory {
       double actualEffort = assignment.getActualEffort();
       Set<OpWorkMonth> workMonths = assignment.getWorkMonths();
 
-      if (!OpActivityDataSetFactory.hasWorkRecords(broker, assignment)) {
+      if (!OpActivityDataSetFactory.hasWorkRecords(assignment)) {
          for (OpWorkMonth workMonth : workMonths) {
             workMonth.setRemainingPersonnel(workMonth.getLatestPersonnelCosts());
             workMonth.setRemainingProceeds(workMonth.getLatestProceeds());
@@ -2561,17 +2564,8 @@ public abstract class OpActivityDataSetFactory {
       double remainingProceedsChange = oldRemainingProceeds - assignment.getRemainingProceeds();
 
       //update the remaining personnel costs & remaining proceeds on the activity and its superactivities
-      activity.updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
-      activity.updateRemainingProceeds(remainingProceedsChange);
-      broker.updateObject(activity);
-
-      //update activity hierarchy
-      while (activity.getSuperActivity() != null) {
-         activity = activity.getSuperActivity();
-         broker.updateObject(activity);
-      }
-
-      broker.updateObject(assignment);
+      assignment.getActivity().updateRemainingPersonnelCosts(remainingPersonnelCostsChange);
+      assignment.getActivity().updateRemainingProceeds(remainingProceedsChange);
    }
 
    /**
@@ -2625,9 +2619,23 @@ public abstract class OpActivityDataSetFactory {
     * @param assignment - the <code>OpAssignment</code> object.
     * @return <code>true</code> if the assignment specified as parameter has any work records or <code>false</code> otherwise.
     */
-   public static boolean hasWorkRecords(OpBroker broker, OpAssignment assignment) {
+   public static boolean hasWorkRecords(OpAssignment assignment) {
       if (assignment.getWorkRecords() != null) {
-         OpQuery query = broker.newQuery(GET_WORK_RECORD_COUNT_FOR_ASSIGNMENT);
+         return assignment.getWorkRecords().size() > 0;
+      }
+      return false;
+   }
+
+   /**
+    * Returns <code>true</code> if the assignment specified as parameter has any work records with completed flag or <code>false</code> otherwise.
+    *
+    * @param broker     - the <code>OpBroker</code> object needed to perform DB operations.
+    * @param assignment - the <code>OpAssignment</code> object.
+    * @return <code>true</code> if the assignment specified as parameter has any work records with completed flag set or <code>false</code> otherwise.
+    */
+   public static boolean hasCompletedWorkRecord(OpBroker broker, OpAssignment assignment) {
+      if (assignment.getWorkRecords() != null) {
+         OpQuery query = broker.newQuery(GET_COMPLETED_WORK_RECORD_COUNT_FOR_ASSIGNMENT);
          query.setLong("assignmentId", assignment.getID());
          Number counter = (Number) broker.iterate(query).next();
          if (counter.intValue() > 0) {
@@ -2876,7 +2884,8 @@ public abstract class OpActivityDataSetFactory {
     * @return an <code>Iterator</code> over the collection of attachments which are set on the activities belonging
     *    to the <code>OpProjectPlan</code> passed as parameter.
     */
-   public static Iterator<OpAttachment> getAttachmentsFromProjectPlan(OpProjectPlan projectPlan) {
+   public static Iterator<OpAttachment> getAttachmentsFromProjectPlan(
+         OpProjectPlan projectPlan) {
       Map<String, OpAttachment> attachmentMap = new HashMap<String, OpAttachment>();
       for (OpActivity activity : projectPlan.getActivities()) {
          for (OpAttachment attachment : activity.getAttachments()) {

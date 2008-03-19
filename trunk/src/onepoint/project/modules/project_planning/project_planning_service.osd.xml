@@ -1,4 +1,5 @@
-<service name="PlanningService" class="onepoint.project.modules.project_planning.OpProjectPlanningService" interceptor="onepoint.project.OpServiceInterceptor">
+<service name="PlanningService" class="onepoint.project.modules.project_planning.OpProjectPlanningService"
+         interceptor="onepoint.project.modules.documents.OpContentCheckServiceInterceptor">
    <method name="importActivities">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="bytes_array" instance-class="java.lang.Object" mode="input"/>
@@ -11,20 +12,20 @@
    <method name="editActivities">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
    </method>
-   <method name="saveActivities">
+   <method name="saveActivities" contentCheck="true">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="working_plan_version_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="activity_set" instance-class="onepoint.express.XComponent" mode="input"/>
    </method>
-   <method name="checkInActivities">
+   <method name="checkInActivities" contentCheck="true">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="working_plan_version_id" instance-class="java.lang.String" mode="input"/>
       <parameter name="activity_set" instance-class="onepoint.express.XComponent" mode="input"/>
    </method>
-   <method name="revertActivities">
+   <method name="revertActivities" contentCheck="true">
       <parameter name="project_id" instance-class="java.lang.String" mode="input"/>
    </method>
-   <method name="prepareAttachment">
+   <method name="prepareAttachment" contentCheck="true">
       <parameter name="attachment_id" instance-class="java.lang.String" mode="input"/>
    </method>
    <method name="insertComment">
@@ -33,7 +34,7 @@
    <method name="deleteComment">
       <parameter name="comment_id" instance-class="java.lang.String" mode="input"/>
    </method>
-   <method name="createTemporaryFile">
+   <method name="createTemporaryFile" contentCheck="true">
       <parameter name="parameters" instance-class="java.util.HashMap" mode="input"/>
    </method>
    <method name="revalidateWorkingVersions" />

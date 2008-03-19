@@ -5,6 +5,7 @@
    <field name="InheritPoolRate" type="Boolean"/>
    <field name="HourlyRate" type="Double"/>
    <field name="ExternalRate" type="Double"/>
+   <relationship name="CustomType" type="OpCustomType" />
    <relationship name="User" type="OpUser" back-relationship="Resources"/>
    <relationship name="Pool" type="OpResourcePool" back-relationship="Resources"/>
    <relationship name="HourlyRatesPeriods" type="OpHourlyRatesPeriod" collection-type="Set" back-relationship="Resource" inverse="true" cascade="delete"/>

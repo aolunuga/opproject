@@ -1,41 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <language-kit locale="fr">
-   <resource-map id="resource_utilization.module">
-      <resource id="UtilizationTool">Utilisation</resource>
-   </resource-map>
-   <resource-map id="resource_utilization.overview">
-      <resource id="FrameTitle">Utilisation de Ressource</resource>
-      <resource id="Print">Imprimer</resource>
-      <resource id="PrintTooltip">Imprimer cette vue</resource>
-      <resource id="ChangeTimeUnit">Unité de temps</resource>
-      <resource id="Days">Jours</resource>
-      <resource id="Weeks">Semaines</resource>
-      <resource id="Months">Mois</resource>
-      <resource id="SaveImage">Enregistrer en Image...</resource>
-      <resource id="PrintTitle">Utilisation de Ressource</resource>
-
-      <resource id="HighlyUnderused">Fortement Peu utilisé ( (&lt; 0.5)</resource>
-      <resource id="Underused">Peu utilisé (&lt; 0.8)</resource>
-      <resource id="Normalused">Bonne utilisation (0.8 - 1.0)</resource>
-      <resource id="Overused">Trop utilisé (&gt; 1.0)</resource>
-      <resource id="HighlyOverused">Fortement Trop utilisé (&gt; 1.2)</resource>
-   </resource-map>
-
-   <resource-map id="resource_utilization.details">
-      <resource id="ProjectName">Projet</resource>
-      <resource id="ActivityName">Activité</resource>
-      <resource id="ActivitySequence">Nr.</resource>
-      <resource id="Start">Démarrer</resource>
-      <resource id="Finish">Terminer</resource>
-      <resource id="Assigned">% Assigné</resource>
-      <resource id="Effort">Effort (h)</resource>
-      <resource id="Total">TOTAL</resource>
-   </resource-map>
-
-   <resource-map id="pool_utilization.details">
-      <resource id="ResourceName">Ressource</resource>
-      <resource id="Assigned">% Assigné</resource>
-      <resource id="Effort">Effort (h)</resource>
-      <resource id="Total">TOTAL</resource>
-   </resource-map>
-
+    <resource-map id="resource_utilization.overview">
+        <resource id="HighlyUnderused">Fortement Peu utilisé ( (&lt; 0.5)</resource>
+        <resource id="Decided">Decided (100%)</resource>
+        <resource id="Upside">Upside (50%)</resource>
+        <resource id="Forecast">Forecast (99%)</resource>
+        <resource id="Days">Jours</resource>
+        <resource id="PrintTooltip">Imprimer cette vue</resource>
+        <resource id="SaveImage">Enregistrer en Image...</resource>
+        <resource id="Weeks">Semaines</resource>
+        <resource id="Overused">Trop utilisé (&gt; 1.0)</resource>
+        <resource id="Underused">Peu utilisé (&lt; 0.8)</resource>
+        <resource id="Months">Mois</resource>
+        <resource id="Project">Projet</resource>
+        <resource id="FrameTitle">Utilisation de Ressource</resource>
+        <resource id="Pipeline">Pipeline (75%)</resource>
+        <resource id="PrintTitle">Utilisation de Ressource</resource>
+        <resource id="HighlyOverused">Fortement Trop utilisé (&gt; 1.2)</resource>
+        <resource id="Normalused">Bonne utilisation (0.8 - 1.0)</resource>
+        <resource id="Print">Imprimer</resource>
+        <resource id="Probability">Probability</resource>
+        <resource id="All">All</resource>
+        <resource id="ChangeTimeUnit">Unité de temps</resource>
+    </resource-map>
+    <resource-map id="pool_utilization.details">
+        <resource id="Assigned">% Assigné</resource>
+        <resource id="Effort">Effort (h)</resource>
+        <resource id="Total">TOTAL</resource>
+        <resource id="ResourceName">Ressource</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.details">
+        <resource id="Start">Démarrer</resource>
+        <resource id="Assigned">Ass. (%)</resource>
+        <resource id="ProjectName">Projet</resource>
+        <resource id="Finish">Terminer</resource>
+        <resource id="Probability">Prob. (%)</resource>
+        <resource id="Effort">Effort (h)</resource>
+        <resource id="ActivitySequence">Nr.</resource>
+        <resource id="ActivityName">Activité</resource>
+        <resource id="Total">TOTAL</resource>
+    </resource-map>
+    <resource-map id="resource_utilization.module">
+        <resource id="UtilizationTool">Utilisation</resource>
+    </resource-map>
 </language-kit>

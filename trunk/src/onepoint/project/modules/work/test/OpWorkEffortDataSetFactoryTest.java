@@ -11,11 +11,7 @@ import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
 import onepoint.project.modules.project.OpProjectNode;
 import onepoint.project.modules.project.OpProjectPlan;
-import onepoint.project.modules.project.test.OpProjectTestDataFactory;
 import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.user.OpUser;
-import onepoint.project.modules.user.test.OpUserTestDataFactory;
-import onepoint.project.modules.work.OpCostRecord;
 import onepoint.project.modules.work.OpWorkEffortDataSetFactory;
 import onepoint.project.modules.work.OpWorkRecord;
 import onepoint.project.modules.work.validators.OpWorkEffortValidator;
@@ -35,7 +31,6 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
    private static final String RESOURCE_NAME = "resource";
 
    private OpWorkTestDataFactory dataFactory;
-   private OpProjectTestDataFactory projectFactory;
 
    /**
     * Base set-up.  By default authenticate Administrator user.
@@ -47,7 +42,6 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
       super.setUp();
 
       dataFactory = new OpWorkTestDataFactory(session);
-      projectFactory = new OpProjectTestDataFactory(session);
    }
 
    /**
@@ -129,11 +123,11 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setDoubleValue(workRecord.getRemainingEffort());
       dataRow.addChild(OpWorkEffortValidator.ORIGINAL_REMAINING_INDEX, dataCell);
-       //9 - activity type
+      //9 - activity type
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setIntValue(activity.getType());
       dataRow.addChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX, dataCell);
-       //10 - activity created
+      //10 - activity created
       dataCell = new XComponent(XComponent.DATA_CELL);
       dataCell.setBooleanValue(true);
       dataRow.addChild(OpWorkEffortValidator.ACTIVITY_CREATED_INDEX, dataCell);
@@ -144,47 +138,13 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
    }
 
    /**
-    * Cleans the database
-    *
-    * @throws Exception if deleting test artifacts fails
-    */
-   private void clean()
-        throws Exception {
-
-      OpUserTestDataFactory usrData = new OpUserTestDataFactory(session);
-      OpBroker broker = session.newBroker();
-      OpTransaction transaction = broker.newTransaction();
-
-      for (OpUser user : usrData.getAllUsers(broker)) {
-         if (user.getName().equals(OpUser.ADMINISTRATOR_NAME)) {
-            continue;
-         }
-         broker.deleteObject(user);
-      }
-
-      deleteAllObjects(broker, OpWorkRecord.WORK_RECORD);
-      deleteAllObjects(broker, OpProjectPlan.PROJECT_PLAN);
-      deleteAllObjects(broker, OpAssignment.ASSIGNMENT);
-      deleteAllObjects(broker, OpActivity.ACTIVITY);
-      deleteAllObjects(broker, OpResource.RESOURCE);
-      deleteAllObjects(broker, OpCostRecord.COST_RECORD);
-
-      for (OpProjectNode project : projectFactory.getAllProjects(broker)) {
-         broker.deleteObject(project);
-      }
-
-      transaction.commit();
-      broker.close();
-   }
-
-   /**
     * Returns <code>true</code> if the data row's cells contain the values of the <code>OpWorkRecord</code> entity attributes
     * or <code>false</code> otherwise
     *
     * @param workRecord - the <code>OpWorkRecord</code> entity whose values are checked against the data cells
     * @param dataRow    - the <code>XComponent</code> data row
     * @return <code>true</code> if the data row's cells contain the values of the <code>OpWorkRecord</code> entity attributes
-    *    or <code>false</code> otherwise
+    *         or <code>false</code> otherwise
     */
    public static boolean isEntityInDataRow(OpWorkRecord workRecord, XComponent dataRow) {
       OpAssignment assignment = workRecord.getAssignment();
@@ -193,12 +153,12 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
       OpProjectNode project = activity.getProjectPlan().getProjectNode();
       boolean completed = false;
       if (workRecord.getAssignment().getProjectPlan().getProgressTracked() || activity.getType() == OpActivity.ADHOC_TASK) {
-          if(((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getBooleanValue() ==
-                workRecord.getCompleted()){
-             completed = true;
-          }
+         if (((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getBooleanValue() ==
+              workRecord.getCompleted()) {
+            completed = true;
+         }
       }
-      else{
+      else {
          completed = true;
       }
 
@@ -216,7 +176,7 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
                 workRecord.getRemainingEffort() &&
            completed &&
            ((XComponent) dataRow.getChild(OpWorkEffortValidator.COMMENTS_INDEX)).getStringValue().
-                equals(workRecord.getComment())  &&
+                equals(workRecord.getComment()) &&
            (dataRow.getStringValue().equals(assignment.locator()))) {
          return true;
       }
@@ -234,7 +194,7 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
     * @return <code>true</code> if the data row's cells contain the values of the <code>OpWorkRecord</code> entity attributes
     *         or <code>false</code> otherwise
     */
-   public static boolean hasEntityFieldsInDataRow(OpWorkRecord workRecord, XComponent dataRow) {      
+   public static boolean hasEntityFieldsInDataRow(OpWorkRecord workRecord, XComponent dataRow) {
       boolean completed = false;
       if (((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getValue() != null) {
          if (((XComponent) dataRow.getChild(OpWorkEffortValidator.COMPLETED_INDEX)).getBooleanValue() ==
@@ -247,7 +207,7 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
       }
 
       if (((XComponent) dataRow.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX)).getDoubleValue() ==
-                workRecord.getActualEffort() &&
+           workRecord.getActualEffort() &&
            ((XComponent) dataRow.getChild(OpWorkEffortValidator.REMAINING_EFFORT_INDEX)).getDoubleValue() ==
                 workRecord.getRemainingEffort() &&
            completed &&
@@ -268,46 +228,50 @@ public class OpWorkEffortDataSetFactoryTest extends OpBaseOpenTestCase {
     */
    private void prepareTest() {
       OpBroker broker = session.newBroker();
-      OpTransaction t = broker.newTransaction();
+      try {
+         OpTransaction t = broker.newTransaction();
 
-      //create the project node and the project plan
-      OpProjectNode project = new OpProjectNode();
-      project.setName(PROJECT_NAME);
-      project.setType(OpProjectNode.PROJECT);
-      project.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
-      OpProjectPlan projectPlan = new OpProjectPlan();
-      projectPlan.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
-      projectPlan.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
-      projectPlan.setProgressTracked(true);
-      projectPlan.setProjectNode(project);
+         //create the project node and the project plan
+         OpProjectNode project = new OpProjectNode();
+         project.setName(PROJECT_NAME);
+         project.setType(OpProjectNode.PROJECT);
+         project.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+         OpProjectPlan projectPlan = new OpProjectPlan();
+         projectPlan.setStart(new Date(getCalendarWithExactDaySet(2007, 6, 10).getTimeInMillis()));
+         projectPlan.setFinish(new Date(getCalendarWithExactDaySet(2007, 6, 30).getTimeInMillis()));
+         projectPlan.setProgressTracked(true);
+         projectPlan.setProjectNode(project);
 
-      //create the activity - assignment - resource
-      OpActivity activity = new OpActivity();
-      activity.setName(ACTIVITY_NAME);
-      activity.setProjectPlan(projectPlan);
-      activity.setBaseTravelCosts(30d);
-      activity.setBaseMaterialCosts(50d);
-      activity.setType(OpActivity.STANDARD);
-      OpResource resource = new OpResource();
-      resource.setName(RESOURCE_NAME);
-      OpAssignment assignment = new OpAssignment();
-      assignment.setActivity(activity);
-      assignment.setResource(resource);
-      assignment.setProjectPlan(projectPlan);
+         //create the activity - assignment - resource
+         OpActivity activity = new OpActivity();
+         activity.setName(ACTIVITY_NAME);
+         activity.setProjectPlan(projectPlan);
+         activity.setBaseTravelCosts(30d);
+         activity.setBaseMaterialCosts(50d);
+         activity.setType(OpActivity.STANDARD);
+         OpResource resource = new OpResource();
+         resource.setName(RESOURCE_NAME);
+         OpAssignment assignment = new OpAssignment();
+         assignment.setActivity(activity);
+         assignment.setResource(resource);
+         assignment.setProjectPlan(projectPlan);
 
-      //create the workRecord
-      OpWorkRecord workRecord = new OpWorkRecord();
-      workRecord.setAssignment(assignment);
-      workRecord.setComment("Comment work record");
+         //create the workRecord
+         OpWorkRecord workRecord = new OpWorkRecord();
+         workRecord.setAssignment(assignment);
+         workRecord.setComment("Comment work record");
 
-      broker.makePersistent(project);
-      broker.makePersistent(projectPlan);
-      broker.makePersistent(activity);
-      broker.makePersistent(resource);
-      broker.makePersistent(assignment);
-      broker.makePersistent(workRecord);
+         broker.makePersistent(project);
+         broker.makePersistent(projectPlan);
+         broker.makePersistent(activity);
+         broker.makePersistent(resource);
+         broker.makePersistent(assignment);
+         broker.makePersistent(workRecord);
 
-      t.commit();
-      broker.close();
+         t.commit();
+      }
+      finally {
+         broker.close();
+      }
    }
 }

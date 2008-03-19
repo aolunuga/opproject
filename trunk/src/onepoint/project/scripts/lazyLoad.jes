@@ -23,6 +23,7 @@ function expandNode(dataRow, expandedDataCellIndex, serverRequest) {
    }
    wasExpandedCell = dataRow.getChild(expandedDataCellIndex);
    wasExpanded = wasExpandedCell.getBooleanValue();
+   children = null;
    if (!wasExpanded) {
       index = dataRow.getIndex();
 
@@ -54,4 +55,5 @@ function expandNode(dataRow, expandedDataCellIndex, serverRequest) {
       form.repaint();
       Console.println("Lazy loaded children");
    }
+   return children;
 }

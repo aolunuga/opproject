@@ -4,11 +4,13 @@
 
 package onepoint.project.modules.resource;
 
+import onepoint.persistence.OpCustomSubTypable;
 import onepoint.persistence.OpObject;
+import onepoint.project.modules.custom_attribute.OpCustomType;
 
 import java.util.Set;
 
-public class OpResourcePool extends OpObject {
+public class OpResourcePool extends OpObject implements OpCustomSubTypable {
 
    public final static String RESOURCE_POOL = "OpResourcePool";
 
@@ -32,6 +34,8 @@ public class OpResourcePool extends OpObject {
    private OpResourcePool superPool;
    private Set subPools;
    private Set resources;
+
+   private OpCustomType customType;
 
    public void setName(String name) {
       this.name = name;
@@ -95,5 +99,19 @@ public class OpResourcePool extends OpObject {
     */
    private void setExternalRateInternal(Double externalRate) {
       this.externalRate = (externalRate != null) ? externalRate : 0;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomSubTypable#getCustomType()
+    */
+   public OpCustomType getCustomType() {
+      return customType;
+   }
+
+   /* (non-Javadoc)
+    * @see onepoint.persistence.OpCustomSubTypable#setCustomType(onepoint.project.modules.custom_attribute.OpCustomType)
+    */
+   public void setCustomType(OpCustomType customType) {
+      this.customType = customType;
    }
 }

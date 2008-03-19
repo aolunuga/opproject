@@ -98,11 +98,15 @@ public class OpLock extends OpObject {
                      " from id "+getLockerID()+" to id "+session.getID());
                // have to be done as atomic call
                OpBroker lockBroker = session.newBroker();
-               OpTransaction t = lockBroker.newTransaction();
-               OpLock lock = (OpLock)lockBroker.getObject(OpLock.class, getID());
-               lock.setLockerID(new Long(session.getID()));
-               t.commit();
-               lockBroker.close();
+               try {
+                  OpTransaction t = lockBroker.newTransaction();
+                  OpLock lock = (OpLock)lockBroker.getObject(OpLock.class, getID());
+                  lock.setLockerID(new Long(session.getID()));
+                  t.commit();
+               }
+               finally {
+                  lockBroker.close();
+               }
 //               broker.makePersistent(lock);
             }
          }

@@ -10,6 +10,8 @@ import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.documents.OpContent;
+import onepoint.project.modules.documents.OpContentManager;
 import onepoint.project.modules.project.*;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
@@ -122,9 +124,9 @@ public class OpMyTasksService extends OpProjectService {
       HashMap arguments = (HashMap) request.getArgument(ADHOC_DATA);
 
       String locator = (String) arguments.get(ACTIVITY);
+      XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
       OpTransaction transaction = null;
-      XMessage reply = new XMessage();
       try {
          OpActivity activity = serviceImpl.getTaskByIdString(session, broker, locator);
          transaction = broker.newTransaction();
@@ -245,10 +247,20 @@ public class OpMyTasksService extends OpProjectService {
          OpBroker broker = session.newBroker();
          OpTransaction transaction = broker.newTransaction();
          try {
+            List<OpContent> contents = new ArrayList<OpContent>();
             for (XComponent row : selectedRows) {
                String locator = row.getStringValue();
                OpActivity activity = (OpActivity) broker.getObject(locator);
                serviceImpl.deleteAdhocTask(session, broker, activity);
+               //at this point the activity was marked for deletion, only not it's safe to add its contents for deletion
+               for(OpAttachment attachment : activity.getAttachments()) {
+                  if(attachment.getContent() != null) {
+                     contents.add(attachment.getContent());
+                  }
+               }
+            }
+            for(OpContent content : contents) {
+               OpContentManager.updateContent(content, broker, false, true);
             }
             transaction.commit();
          }

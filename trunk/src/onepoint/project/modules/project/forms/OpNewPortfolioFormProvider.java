@@ -26,43 +26,47 @@ public class OpNewPortfolioFormProvider implements XFormProvider {
    private final static String SUPER_PORTFOLIO_ID = "super_portfolio_id";
    private final static String PERMISSIONS_TAB = "PermissionsTab";
 
+   public final static String SUB_TYPE_FIELD = "SubTypeField";
+
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
 
       String superPortfolioLocator = (String) (parameters.get(SUPER_PORTFOLIO_ID));
 
       OpBroker broker = session.newBroker();
+      try {
+         if (superPortfolioLocator == null) {
+            superPortfolioLocator = OpProjectAdministrationService.findRootPortfolio(broker).locator();
+         }
+         form.findComponent(SUPER_PORTFOLIO_FIELD_ID).setStringValue(superPortfolioLocator);
+         Integer superPortfolioIndex = (Integer) parameters.get(SUPER_PORTFOLIO_INDEX);
+         if (superPortfolioIndex != null) {
+            form.findComponent(SUPER_PORTFOLIO_INDEX_FIELD).setIntValue(superPortfolioIndex.intValue());
+         }
 
-      if (superPortfolioLocator == null) {
-         superPortfolioLocator = OpProjectAdministrationService.findRootPortfolio(broker).locator();
-      }
-      form.findComponent(SUPER_PORTFOLIO_FIELD_ID).setStringValue(superPortfolioLocator);
-      Integer superPortfolioIndex = (Integer) parameters.get(SUPER_PORTFOLIO_INDEX);
-      if (superPortfolioIndex != null) {
-         form.findComponent(SUPER_PORTFOLIO_INDEX_FIELD).setIntValue(superPortfolioIndex.intValue());
-      }
+         OpProjectNode superPortfolio = (OpProjectNode) broker.getObject(superPortfolioLocator);
+         if (superPortfolio == null) {
+            broker.close();
+            return; // TODO: Show error on page that portfolio could not be found
+         }
+         byte superPortfolioAccesssLevel = session.effectiveAccessLevel(broker, superPortfolio.getID());
+         form.findComponent(SUB_TYPE_FIELD).setEnabled(false);
 
-      OpProjectNode superPortfolio = (OpProjectNode) broker.getObject(superPortfolioLocator);
-      if (superPortfolio == null) {
+         if (OpEnvironmentManager.isMultiUser()) {
+            // Locate permission data set in form
+            XComponent permissionSet = form.findComponent(PERMISSION_SET);
+            // Retrieve permission set of portfolio -- inheritance of permissions
+            OpPermissionDataSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
+                  OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
+            OpPermissionDataSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
+         }
+         else {
+            form.findComponent(PERMISSIONS_TAB).setHidden(true);
+         }
+      }
+      finally {
          broker.close();
-         return; // TODO: Show error on page that portfolio could not be found
       }
-      byte superPortfolioAccesssLevel = session.effectiveAccessLevel(broker, superPortfolio.getID());
-
-      if (OpEnvironmentManager.isMultiUser()) {
-         // Locate permission data set in form
-         XComponent permissionSet = form.findComponent(PERMISSION_SET);
-         // Retrieve permission set of portfolio -- inheritance of permissions
-         OpPermissionDataSetFactory.retrievePermissionSet(session, broker, superPortfolio.getPermissions(), permissionSet,
-              OpProjectModule.PORTFOLIO_ACCESS_LEVELS, session.getLocale());
-         OpPermissionDataSetFactory.administratePermissionTab(form, true, superPortfolioAccesssLevel);
-      }
-      else {
-         form.findComponent(PERMISSIONS_TAB).setHidden(true);
-      }
-
-      broker.close();
-
    }
 
 }

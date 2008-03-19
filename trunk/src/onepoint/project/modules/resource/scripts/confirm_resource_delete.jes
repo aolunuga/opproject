@@ -33,23 +33,23 @@ function ok(event) {
       }
 
       refreshNeeded = false;
-      if (pool_count > 0) {
+      if (resource_count > 0) {
          request = new XMessage;
-         request.setAction("ResourceService.deletePools");
-         request.setArgument("pool_ids", pool_ids);
+         request.setAction("ResourceService.deleteResources");
+         request.setArgument("resource_ids", resource_ids);
          response = XDisplay.getClient().invokeMethod(request);
-         if (handleResponse(response, null, null) == false) {
-            return; //fail fast
+         if (!handleResponse(response, null, null)) {
+            return;
          }
          else {
             refreshNeeded = true;
          }
       }
 
-      if (resource_count > 0) {
+      if (pool_count > 0) {
          request = new XMessage;
-         request.setAction("ResourceService.deleteResources");
-         request.setArgument("resource_ids", resource_ids);
+         request.setAction("ResourceService.deletePools");
+         request.setArgument("pool_ids", pool_ids);
          response = XDisplay.getClient().invokeMethod(request);
          if (handleResponse(response, null, null)) {
             refreshNeeded = true;

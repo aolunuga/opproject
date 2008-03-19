@@ -55,13 +55,15 @@ public class OpPoolUtilizationDetailsFormProvider implements XFormProvider {
       XComponent utilizationDataSet = form.findComponent(UTILIZATION_DATA_SET);
       String totalName = resourceMap.getResource(TOTAL).getText();
       OpBroker broker = session.newBroker();
+      try {
+         OpResourcePool resourcePool = (OpResourcePool) broker.getObject(locatorString);
 
-      OpResourcePool resourcePool = (OpResourcePool) broker.getObject(locatorString);
-
-      Set resources = getAllResources(resourcePool);
-      fillPoolDetails(resources, utilizationDataSet, totalName, startTime, finishTime);
-
-      broker.close();
+         Set resources = getAllResources(resourcePool);
+         fillPoolDetails(resources, utilizationDataSet, totalName, startTime, finishTime);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**

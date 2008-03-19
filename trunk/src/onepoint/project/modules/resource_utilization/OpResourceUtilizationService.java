@@ -14,6 +14,7 @@ import onepoint.service.XMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service class for resource utilization module.
@@ -43,25 +44,38 @@ public class OpResourceUtilizationService extends onepoint.project.OpProjectServ
    private final static String POOL_LOCATOR = "source_pool_locator";
    private final static String POOL_SELECTOR = "poolColumnsSelector";
    private final static String RESOURCE_SELECTOR = "resourceColumnsSelector";
-
+   public final static String PROBABILITY_CHOICE_ID = "probability_choice_id";
+   public static final String PROJECT_CHOICE_ID = "project_choice_id";
+   private final static String FILTERED_OUT_IDS = "FilteredOutIds";
 
    public XMessage expandResourcePool(OpProjectSession session, XMessage request) {
 
       XMessage reply = new XMessage();
+
+      String probabilityStr = (String) (request.getArgument(PROBABILITY_CHOICE_ID));
+      Integer probability = 0;
+      if (probabilityStr != null) {
+         probability = Integer.valueOf(probabilityStr);
+      }
 
       String targetPoolLocator = (String) request.getArgument(POOL_LOCATOR);
       Integer outline = (Integer) (request.getArgument(OUTLINE_LEVEL));
       XComponent dataSet = new XComponent(XComponent.DATA_SET);
       Map poolSelector = (Map) request.getArgument(POOL_SELECTOR);
       Map resourceSelector = (Map) request.getArgument(RESOURCE_SELECTOR);
-
+      String projectLocator = (String) (request.getArgument(PROJECT_CHOICE_ID));
+      Set<String> filterSet = (Set<String>) request.getArgument(FILTERED_OUT_IDS);
+      long projectId = -1;
+      if (projectLocator != null) {
+         projectId = OpLocator.parseLocator(projectLocator).getID();
+      }
       List resultList;
 
       if (targetPoolLocator != null && outline != null) {
 
          OpLocator locator = OpLocator.parseLocator(targetPoolLocator);
-         OpResourceDataSetFactory.retrieveResourceDataSet(session, dataSet, poolSelector, resourceSelector, locator.getID(), outline.intValue() + 1, null);
-         OpResourceUtilizationDataSetFactory.fillUtilizationValues(session, dataSet, targetPoolLocator);
+         OpResourceDataSetFactory.retrieveResourceDataSet(session, dataSet, poolSelector, resourceSelector, locator.getID(), outline + 1, filterSet);
+         OpResourceUtilizationDataSetFactory.fillUtilizationValues(session, dataSet, targetPoolLocator, probability, projectId);
 
          resultList = new ArrayList();
          for (int i = 0; i < dataSet.getChildCount(); i++) {

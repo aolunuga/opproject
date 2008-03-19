@@ -4,6 +4,14 @@
 
 package onepoint.project.module;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpPrototype;
@@ -15,8 +23,6 @@ import onepoint.resource.XLocaleManager;
 import onepoint.service.server.XService;
 import onepoint.service.server.XServiceManager;
 
-import java.util.*;
-
 public abstract class OpModule {
 
    /**
@@ -27,6 +33,7 @@ public abstract class OpModule {
    private String name;
    private String caption;
    private String version;
+   private String licenseOption;
    private List<OpPrototypeFile> prototypeFiles;
    private List<OpPrototype> prototypes;
    private List<OpServiceFile> serviceFiles;
@@ -82,6 +89,10 @@ public abstract class OpModule {
 
    public String getVersion() {
       return version;
+   }
+
+   public String getLicenseOption() {
+      return null;
    }
 
    final void setPrototypeFiles(List<OpPrototypeFile> prototype_files) {
@@ -283,6 +294,7 @@ public abstract class OpModule {
    private void loadServices() {
       logger.info("Loading services of module '" + this.getName() + "'...");
       for (OpServiceFile serviceFile : this.serviceFiles) {
+         logger.debug("Loading service file: " + serviceFile.getFileName());
          services.add(serviceFile.loadService());
       }
       logger.info("Services of module '" + this.getName() + "' loaded.");

@@ -28,6 +28,7 @@ public interface OpProjectError {
 
    public final static int PROJECT_LOCKED_ERROR = 18;
    public final static int GOAL_PRIORITY_ERROR = 19;
+   public final static int TODO_PRIORITY_ERROR = 20;
 
    public final static int LOOP_ASSIGNMENT_ERROR = 21;
 
@@ -43,7 +44,10 @@ public interface OpProjectError {
 
    public final static int NO_RIGHTS_CHANGING_BUDGET_ERROR = 28;
    public final static int NO_RIGHTS_CHANGING_STATUS_ERROR = 29;
+
+   public final static int CANNOT_CHANGE_ACTIVITY_TYPE_ERROR = 16;
    
+
    // Error names
    public final static String PROJECT_NAME_MISSING_NAME = "ProjectNameMissing";
    public final static String START_DATE_MISSING_NAME = "StartDateMissing";
@@ -63,6 +67,7 @@ public interface OpProjectError {
    public final static String WORKRECORDS_STILL_EXIST_WARNING_NAME = "WorkRecordsStillExistWarning";
    public final static String PROJECT_LOCKED_ERROR_NAME = "ProjectLockedError";
    public final static String GOAL_PRIORITY_ERROR_NAME = "GoalPriorityError";
+   public final static String TODO_PRIORITY_ERROR_NAME = "TodoPriorityError";
    public final static String LOOP_ASSIGNMENT_ERROR_NAME = "LoopAssignmentError";
    public final static String INTERNAL_RATE_NOT_VALID_NAME = "InternalRateNotValid";
    public final static String EXTERNAL_RATE_NOT_VALID_NAME = "ExternalRateNotValid";
@@ -72,4 +77,6 @@ public interface OpProjectError {
    public final static String CANNOT_REMOVE_PERMISSION_ERROR_NAME = "CannotRemovePermissionError";
    public final static String NO_RIGHTS_CHANGING_BUDGET_ERROR_NAME = "NoRightsChangingBudgetError";
    public final static String NO_RIGHTS_CHANGING_STATUS_ERROR_NAME = "NoRightsChangingStatusError";
+   
+   public final static String CANNOT_CHANGE_ACTIVITY_TYPE_ERROR_NAME = "CannotChangeActivityTypeError";
 }

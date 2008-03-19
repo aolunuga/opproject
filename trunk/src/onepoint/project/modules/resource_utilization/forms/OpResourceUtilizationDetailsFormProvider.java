@@ -60,18 +60,20 @@ public class OpResourceUtilizationDetailsFormProvider implements XFormProvider {
       XComponent utilizationDataSet = form.findComponent(UTILIZATION_DATA_SET);
       String totalName = resourceMap.getResource(TOTAL).getText();
       OpBroker broker = session.newBroker();
+      try {
+         // get the resource with locatorString
+         OpLocator locator = OpLocator.parseLocator(locatorString);
+         Class instanceClass = locator.getPrototype().getInstanceClass();
+         Map details;
 
-      // get the resource with locatorString
-      OpLocator locator = OpLocator.parseLocator(locatorString);
-      Class instanceClass = locator.getPrototype().getInstanceClass();
-      Map details;
-
-      OpResource resource = (OpResource) broker.getObject(locatorString);
-      details = new HashMap();
-      fillResourceRelatedDetails(resource, details, startTime, finishTime);
-      fillDataSet(utilizationDataSet, details, totalName);
-
-      broker.close();
+         OpResource resource = (OpResource) broker.getObject(locatorString);
+         details = new HashMap();
+         fillResourceRelatedDetails(resource, details, startTime, finishTime);
+         fillDataSet(utilizationDataSet, details, totalName);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -123,6 +125,10 @@ public class OpResourceUtilizationDetailsFormProvider implements XFormProvider {
          // assignment % assigned
          dataCell = new XComponent(XComponent.DATA_CELL);
          dataCell.setDoubleValue(totalAssigned);
+         totalRow.addChild(dataCell);
+         // probability %
+         dataCell = new XComponent(XComponent.DATA_CELL);
+         dataCell.setEnabled(false);
          totalRow.addChild(dataCell);
          details.put(totalName, totalRow);
          utilizationDataSet.addChild((XComponent) details.get(totalName));
@@ -205,6 +211,11 @@ public class OpResourceUtilizationDetailsFormProvider implements XFormProvider {
                dataCell = new XComponent(XComponent.DATA_CELL);
                assigned += assignment.getAssigned();
                dataCell.setDoubleValue(assigned);
+               dataRow.addChild(dataCell);
+
+               // project probability % 7
+               dataCell = new XComponent(XComponent.DATA_CELL);
+               dataCell.setDoubleValue(assignment.getProjectPlan().getProjectNode().getProbability());
                dataRow.addChild(dataCell);
 
                details.put(activity.locator(), dataRow);

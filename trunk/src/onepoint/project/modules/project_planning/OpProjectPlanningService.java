@@ -4,42 +4,61 @@
 
 package onepoint.project.modules.project_planning;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import onepoint.express.XComponent;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
-import onepoint.persistence.*;
+import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpLocator;
+import onepoint.persistence.OpObject;
+import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpTransaction;
+import onepoint.persistence.OpTransactionLock;
 import onepoint.project.OpProjectService;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.documents.OpContent;
-import onepoint.project.modules.mail.OpMailMessage;
-import onepoint.project.modules.mail.OpMailer;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpActivityComment;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpActivityVersion;
+import onepoint.project.modules.project.OpActivityVersionDataSetFactory;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
+import onepoint.project.modules.project.OpProjectError;
+import onepoint.project.modules.project.OpProjectErrorMap;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanValidator;
+import onepoint.project.modules.project.OpProjectPlanVersion;
+import onepoint.project.modules.project.components.OpActivityLoopException;
 import onepoint.project.modules.project.components.OpGanttValidator;
+import onepoint.project.modules.project_controlling.OpControllingSheet;
 import onepoint.project.modules.project_planning.forms.OpEditActivityFormProvider;
 import onepoint.project.modules.project_planning.msproject.OpMSProjectManager;
-import onepoint.project.modules.resource.OpResource;
-import onepoint.project.modules.settings.OpSettings;
-import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.modules.user.OpPermissionDataSetFactory;
-import onepoint.project.modules.user.OpUser;
 import onepoint.project.util.OpEnvironmentManager;
 import onepoint.resource.XLanguageResourceMap;
-import onepoint.resource.XLocale;
 import onepoint.resource.XLocalizer;
 import onepoint.service.XError;
 import onepoint.service.XMessage;
 import onepoint.util.XCalendar;
-import onepoint.util.XEncodingHelper;
-import onepoint.util.XEnvironmentManager;
-import onepoint.util.XIOHelper;
-
-import javax.mail.internet.AddressException;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
 
 /**
  * @author : mihai.costin
@@ -79,92 +98,99 @@ public class OpProjectPlanningService extends OpProjectService {
       String projectId = (String) (request.getArgument(PROJECT_ID));
       boolean editMode = (Boolean) (request.getArgument(EDIT_MODE));
       byte[] file = (byte[]) (request.getArgument(BYTES_ARRAY_FIELD));
+      String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
 
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
-      OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
-      if (project.getType() != OpProjectNode.PROJECT) {
-         broker.close();
-         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT));
-         return reply;
-      }
-      OpProjectPlan projectPlan = project.getPlan();
-
-      if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
-         broker.close();
-         throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST));
-      }
-
-      InputStream inFile = new ByteArrayInputStream(file);
-      XComponent dataSet;
       try {
-         dataSet = OpMSProjectManager.importActivities(broker, inFile, projectPlan, session.getLocale());
-      }
-      catch (IOException e) {
-         broker.close();
-         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
-         return reply;
-      }
-
-      //edit if !edit_mode
-      if (!editMode) {
-         reply = internalEditActivities(session, request);
-         if (reply.getError() != null) {
+         OpProjectNode project = (OpProjectNode) (broker.getObject(projectId));
+         if (project.getType() != OpProjectNode.PROJECT) {
+            reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_IMPORT));
             return reply;
          }
-      }
+         OpProjectPlan projectPlan = project.getPlan();
 
-      //save
-      request.setArgument(ACTIVITY_SET, dataSet);
-      reply = saveActivities(session, request);
-      if (reply != null && reply.getError() != null) {
-         broker.close();
-         return reply;
-      }
+         if (OpProjectAdministrationService.hasWorkRecords(project, broker)) {
+            throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.IMPORT_ERROR_WORK_RECORDS_EXIST));
+         }
 
-      //check in if !edit_mode
-      if (!editMode) {
-         reply = internalCheckInActivities(session, request);
+         InputStream inFile = new ByteArrayInputStream(file);
+         XComponent dataSet;
+         try {
+            dataSet = OpMSProjectManager.importActivities(broker, fileName, inFile, projectPlan, session.getLocale());
+         }
+         catch (OpActivityLoopException loopExc) {
+            reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
+            return reply;
+         }
+         catch (IOException e) {
+            reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_READ_ERROR));
+            return reply;
+         }
+
+         //edit if !edit_mode
+         if (!editMode) {
+            reply = internalEditActivities(session, request);
+            if (reply.getError() != null) {
+               return reply;
+            }
+         }
+
+         //save
+         request.setArgument(ACTIVITY_SET, dataSet);
+         reply = saveActivities(session, request);
          if (reply != null && reply.getError() != null) {
-            broker.close();
             return reply;
          }
+
+         //check in if !edit_mode
+         if (!editMode) {
+            reply = internalCheckInActivities(session, request);
+            if (reply != null && reply.getError() != null) {
+               return reply;
+            }
+         }
+         return reply;
       }
-      broker.close();
-      return reply;
+//      catch (Throwable t) {t.printStackTrace(); return null;}
+      finally {
+         broker.close();
+      }
    }
 
    public XMessage exportActivities(OpProjectSession session, XMessage request) {
       String projectId = (String) request.getArgument(PROJECT_ID);
       OpBroker broker = session.newBroker();
-      XMessage response = new XMessage();
-      OpProjectNode project = null;
-      if (projectId != null) {
-         project = (OpProjectNode) broker.getObject(projectId);
-         if (project.getType() != OpProjectNode.PROJECT) {
-            response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT));
+      try {
+         XMessage response = new XMessage();
+         OpProjectNode project = null;
+         if (projectId != null) {
+            project = (OpProjectNode) broker.getObject(projectId);
+            if (project.getType() != OpProjectNode.PROJECT) {
+               response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INVALID_PROJECT_NODE_TYPE_FOR_EXPORT));
+               return response;
+            }
+         }
+         XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
+         String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
+
+         ByteArrayOutputStream out = new ByteArrayOutputStream();
+         try {
+            fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale(), project);
+         }
+         catch (IOException e) {
+            response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
             return response;
          }
-      }
-      XComponent activitySet = (XComponent) request.getArgument(ACTIVITY_SET);
-      String fileName = (String) (request.getArgument(FILE_NAME_FIELD));
 
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      try {
-         fileName = OpMSProjectManager.exportActivities(fileName, out, activitySet, session.getLocale(), project);
-      }
-      catch (IOException e) {
-         response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.MSPROJECT_FILE_WRITE_ERROR));
+         byte[] outArray = out.toByteArray();
+         response.setArgument(BYTES_ARRAY_FIELD, outArray);
+         response.setArgument(FILE_NAME_FIELD, fileName);
          return response;
       }
       finally {
          broker.close();
       }
-
-      byte[] outArray = out.toByteArray();
-      response.setArgument(BYTES_ARRAY_FIELD, outArray);
-      response.setArgument(FILE_NAME_FIELD, fileName);
-      return response;
    }
 
    private XMessage setEditLock(OpBroker broker, OpProjectSession session, OpProjectNode project) {
@@ -413,65 +439,75 @@ public class OpProjectPlanningService extends OpProjectService {
 
          logger.debug("SAVE-ACTIVITIES " + dataSet.getChildCount());
 
+         XMessage response = new XMessage();
          broker = session.newBroker();
-         OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
+         try {
+            OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
-         // *** Check if current user has lock on project
-         if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
-            logger.error("Project is currently not being edited");
-            broker.close();
-            throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
-         }
-         OpLock lock = project.getLocks().iterator().next();
-         checkLock(session, broker, lock);
-         t = broker.newTransaction();
-
-         // Check if project plan already exists (create if not)
-         OpProjectPlan projectPlan = project.getPlan();
-         if (projectPlan == null) {
-            projectPlan = new OpProjectPlan();
-            projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
-            projectPlan.setProjectNode(project);
-            projectPlan.copyDatesFromProject();
-            projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
-            broker.makePersistent(projectPlan);
-         }
-
-         // Check if working plan version ID is correct (if it is set)
-         boolean fromProjectPlan = true;
-         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
-              projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
-         if (workingPlanVersionLocator != null) {
-            // It is important that fromProjectPlan is checked against workingPlanVersionLocator parameter
-            // (And not against existing working plan version in database, because client view might not have been
-            // reloaded)
-            fromProjectPlan = false;
-            if ((workingPlanVersion != null)
-                 && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
-               // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-               return null;
+            // *** Check if current user has lock on project
+            if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
+               logger.error("Project is currently not being edited");
+               broker.close();
+               throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
             }
+            OpLock lock = project.getLocks().iterator().next();
+            checkLock(session, broker, lock);
+            t = broker.newTransaction();
+
+            // Check if project plan already exists (create if not)
+            OpProjectPlan projectPlan = project.getPlan();
+            if (projectPlan == null) {
+               projectPlan = new OpProjectPlan();
+               projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+               projectPlan.setProjectNode(project);
+               projectPlan.copyDatesFromProject();
+               projectPlan.setTemplate(project.getType() == OpProjectNode.TEMPLATE);
+               broker.makePersistent(projectPlan);
+            }
+
+            // Check if working plan version ID is correct (if it is set)
+            boolean fromProjectPlan = true;
+            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker,
+                 projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
+            if (workingPlanVersionLocator != null) {
+               // It is important that fromProjectPlan is checked against workingPlanVersionLocator parameter
+               // (And not against existing working plan version in database, because client view might not have been
+               // reloaded)
+               fromProjectPlan = false;
+               if ((workingPlanVersion != null)
+                    && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
+                  // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
+                  return null;
+               }
+            }
+            // Create new working plan version object if it does not already exist
+            if (workingPlanVersion == null) {
+               workingPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session
+                    .user(broker), OpProjectPlan.WORKING_VERSION_NUMBER, false);
+            }
+
+            // Store working copy as project plan version
+            HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
+            OpActivityVersionDataSetFactory.getInstance().storeActivityVersionDataSet(session, broker, dataSet, workingPlanVersion, resourceMap,
+                  fromProjectPlan);
+
+            //update the working version calendar
+            workingPlanVersion.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+            response.setArgument(WORKING_PLAN_VERSION_ID, workingPlanVersion.locator());
+
+            broker.updateObject(workingPlanVersion);
+
+            t.commit();
          }
-         // Create new working plan version object if it does not already exist
-         if (workingPlanVersion == null) {
-            workingPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session
-                 .user(broker), OpProjectPlan.WORKING_VERSION_NUMBER, false);
+         catch (Exception exc) {
+            exc.printStackTrace();
          }
-
-         // Store working copy as project plan version
-         HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
-         OpActivityVersionDataSetFactory.storeActivityVersionDataSet(broker, dataSet, workingPlanVersion, resourceMap,
-              fromProjectPlan);
-
-         //update the working version calendar
-         workingPlanVersion.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
-         broker.updateObject(workingPlanVersion);
-
-         t.commit();
-         broker.close();
+         finally {
+            broker.close();
+         }
 
          logger.debug("/OpProjectAdministrationService.saveActivities");
-         return null;
+         return response;
       }
       finally {
          finalizeSession(t, broker);
@@ -489,7 +525,6 @@ public class OpProjectPlanningService extends OpProjectService {
         throws OpProjectPlanningException {
       if (!lock.lockedByMe(session, broker)) {
          logger.error("Project is locked by another user");
-         broker.close();
          throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_LOCKED_ERROR));
       }
    }
@@ -526,68 +561,83 @@ public class OpProjectPlanningService extends OpProjectService {
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
          if (project == null) {
-            broker.close();
             throw new OpProjectPlanningException(session.newError(PROJECT_ERROR_MAP, OpProjectError.PROJECT_NOT_FOUND));
          }
 
          // Check if project is locked and current user owns the lock
          if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is currently not being edited");
-            broker.close();
             throw new OpProjectPlanningException(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.PROJECT_CHECKED_IN_ERROR));
          }
-         OpLock lock = project.getLocks().iterator().next();
-         checkLock(session, broker, lock);
-
-         t = broker.newTransaction();
-
-         // The project will always have a plan attached
-         OpProjectPlan projectPlan = project.getPlan();
-         if (projectPlan.getVersionNumber() < 0) {
-            //first time the project is checked in => the actual version, so no project version has to be created
-            projectPlan.incrementVersionNumber();
-         }
-         else {
-            OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
-         }
-         projectPlan.setCreator(session.user(broker).getDisplayName());
-         broker.updateObject(projectPlan);
-
-         // Check if working plan version ID is correct (if it is set)
-         OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
-         if (workingPlanVersionLocator != null) {
-            if ((workingPlanVersion != null)
-                 && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
-               // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
-               return null;
+         // transaction lock...
+         OpTransactionLock.getInstance().writeLock(project.locator());
+         try {
+            OpLock lock = project.getLocks().iterator().next();
+            checkLock(session, broker, lock);
+   
+            t = broker.newTransaction();
+   
+            // The project will always have a plan attached
+            OpProjectPlanVersion newPlanVersion = null;
+            OpProjectPlan projectPlan = project.getPlan();
+            if (projectPlan.getVersionNumber() < 0) {
+               //first time the project is checked in => the actual version, so no project version has to be created
+               projectPlan.incrementVersionNumber();
             }
-         }
-
-         // Update project plan from client data-set ONLY if working plan version LOCATOR is set
-         // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
-         HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
-         if (workingPlanVersionLocator != null) {
-            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
-         }
-         else {
-            OpActivityDataSetFactory.storeActivityDataSet(broker, dataSet, resourceMap, projectPlan, null);
-            //update holiday calendar id
-            projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+            else {
+               newPlanVersion = OpActivityVersionDataSetFactory.newProjectPlanVersion(broker, projectPlan, session.user(broker), projectPlan.getVersionNumber(), true);
+            }
+            projectPlan.setCreator(session.user(broker).getDisplayName());
             broker.updateObject(projectPlan);
+   
+      
+            // Check if working plan version ID is correct (if it is set)
+            OpProjectPlanVersion workingPlanVersion = OpActivityVersionDataSetFactory.findProjectPlanVersion(broker, projectPlan, OpProjectPlan.WORKING_VERSION_NUMBER);
+            if (workingPlanVersionLocator != null) {
+               if ((workingPlanVersion != null)
+                    && (workingPlanVersion.getID() != OpLocator.parseLocator(workingPlanVersionLocator).getID())) {
+                  // TODO: Send INTERNAL_ERROR (should not happen during normal circumstances)?
+                  return null;
+               }
+            }
+   
+            // Update project plan from client data-set ONLY if working plan version LOCATOR is set
+            // (Working plan version might exist, but client-side data-set might still be an activity set -- not reloaded)
+            HashMap resourceMap = OpActivityDataSetFactory.resourceMap(broker, project);
+            if (workingPlanVersionLocator != null) {
+               OpActivityDataSetFactory.getInstance().storeActivityDataSet(session, broker, dataSet, resourceMap, projectPlan, workingPlanVersion);
+            }
+            else {
+               OpActivityDataSetFactory.getInstance().storeActivityDataSet(session, broker, dataSet, resourceMap, projectPlan, null);
+               //update holiday calendar id
+               projectPlan.setHolidayCalendar(session.getCalendar().getHolidayCalendarId());
+               broker.updateObject(projectPlan);
+            }
+   
+            // Delete working version (note: There is not necessarily a working version)
+            if (workingPlanVersion != null) {
+               // move the controllingsheets to the newly created plan-version:
+               Iterator i = workingPlanVersion.getControllingSheets().iterator();
+               while (i.hasNext()) {
+                  OpControllingSheet cs = (OpControllingSheet) i.next();
+                  cs.setPlanVersion(newPlanVersion);
+               }
+               workingPlanVersion.setControllingSheets(new HashSet());
+               if (newPlanVersion != null) {
+                  newPlanVersion.setControllingSheets(workingPlanVersion.getControllingSheets());
+                  broker.updateObject(newPlanVersion);
+               }
+               OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
+            }
+   
+            // 4. Finally, delete lock
+            broker.deleteObject(lock);
+   
+            t.commit();
          }
-
-         // Delete working version (note: There is not necessarily a working version)
-         if (workingPlanVersion != null) {
-            OpActivityVersionDataSetFactory.deleteProjectPlanVersion(broker, workingPlanVersion);
+         finally {
+            OpTransactionLock.getInstance().unlock(project.locator());
          }
-
-         // 4. Finally, delete lock
-         broker.deleteObject(lock);
-
-         // Send email notification to all project participants on project plan check-in
-         sendProjectNotification(session, project.getName(), resourceMap);
-
-         t.commit();
          broker.close();
          return null;
       }
@@ -599,15 +649,15 @@ public class OpProjectPlanningService extends OpProjectService {
    public XMessage revertActivities(OpProjectSession session, XMessage request) {
       logger.debug("OpProjectAdministrationService.revertActivities");
       OpBroker broker = null;
+      String project_id_string = (String) (request.getArgument(PROJECT_ID));
+      OpTransactionLock.getInstance().writeLock(project_id_string);
       try {
-         String project_id_string = (String) (request.getArgument(PROJECT_ID));
          broker = session.newBroker();
          OpProjectNode project = (OpProjectNode) (broker.getObject(project_id_string));
 
          // Check if project is locked and current user owns the lock
          if (!OpProjectDataSetFactory.hasLocks(broker, project)) {
             logger.error("Project is currently not being edited");
-            broker.close();
             // TODO: Error handling
             return null;
          }
@@ -643,121 +693,65 @@ public class OpProjectPlanningService extends OpProjectService {
          broker.close();
       }
       finally {
+         OpTransactionLock.getInstance().unlock(project_id_string);
          finalizeSession(null, broker);
       }
       return null;
-   }
-
-   private void sendProjectNotification(OpProjectSession session, String projectName, Map resourceMap) {
-      OpMailMessage message = new OpMailMessage();
-
-      // Add users email as cc to mail message
-      for (Object o : resourceMap.values()) {
-         OpResource resource = (OpResource) o;
-         OpUser user = resource.getUser();
-         if (user != null) {
-            String email = user.getContact().getEMail();
-            if (email != null && email.length() > 0) {
-               try {
-                  message.addCC(email, user.getDisplayName());
-               }
-               catch (UnsupportedEncodingException e) {
-                  logger.warn("Could not add email '" + email + "' for user '" + user.getDisplayName() + "'", e);
-               }
-            }
-         }
-      }
-      /*no available users to send email */
-      if (!message.getCCs().hasNext()) {
-         return;
-      }
-      /*get configuration form address  */
-      String fromEmailAddress = OpSettingsService.getService().get(OpSettings.EMAIL_NOTIFICATION_FROM_ADDRESS);
-      try {
-         message.setFrom(fromEmailAddress);
-      }
-      catch (AddressException e) {
-         logger.warn("Could not add from email " + fromEmailAddress, e);
-      }
-
-      /*default mail subject and body */
-      String mail_subject = "Project update";
-      String mail_body = "Project plan for project '$ProjectName$' has been changed!";
-
-      // load language resources for body and subject of email
-      XLocale locale = session.getLocale();
-      XLanguageResourceMap resource_map = locale.getResourceMap(TEMPLATE_MAP);
-      if (resource_map != null) {
-         mail_subject = resource_map.getResource("NotificationMailSubject").getText();
-         mail_body = resource_map.getResource("NotificationMailBody").getText();
-      }
-
-      message.setSubject(mail_subject);
-      projectName = projectName.replace('\\', '/');
-      /*alternative in jdk5 replace(CharSequence target,CharSequence replacement) */
-      mail_body = mail_body.replaceAll("\\$ProjectName\\$", projectName);
-      message.addContent(mail_body);
-
-      OpMailer.sendMessageAsynchronous(message);
    }
 
    public XMessage prepareAttachment(OpProjectSession session, XMessage request) {
       String id_string = (String) (request.getArgument(ATTACHMENT_ID));
 
       OpBroker broker = session.newBroker();
+      try {
+         OpObject object = broker.getObject(id_string);
+         if (object == null) {
+            logger.warn("Could not find attachment with ID " + id_string);
+            return null;
+         }
 
-      OpObject object = broker.getObject(id_string);
-      if (object == null) {
-         logger.warn("Could not find attachment with ID " + id_string);
-         broker.close();
+         XMessage response = new XMessage();
+         if (!session.checkAccessLevel(broker, object.getID(), OpPermission.OBSERVER)) {
+            response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS));
+            return response;
+         }
+
+         try {
+            // <FIXME author="Horia Chiorean" description="This code is here because we can have either OpAttachment or
+            // OpAttachmentVersion">
+            Method getContentMethod = object.getClass().getMethod("getContent");
+            OpContent content = (OpContent) getContentMethod.invoke(object);
+            Method getLocationMethod = object.getClass().getMethod("getLocation");
+            String location = (String) getLocationMethod.invoke(object);
+            // <FIXME>
+
+            //multi-user means remote
+            if (OpEnvironmentManager.isMultiUser()) {
+               response.setArgument(ATTACHMENT_URL, location);
+               response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
+            }
+            else {
+               String temporaryFileUrl = OpProjectDataSetFactory.createTemporaryAttachment(location, content.getStream(), logger);
+               response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
+            }
+
+            return response;
+         }
+         catch (NoSuchMethodException e) {
+            logger.error("Cannot access attachment", e);
+         }
+         catch (IllegalAccessException e) {
+            logger.error("Cannot access attachment", e);
+         }
+         catch (InvocationTargetException e) {
+            logger.error("Cannot access attachment", e);
+         }
+
          return null;
       }
-
-      XMessage response = new XMessage();
-      if (!session.checkAccessLevel(broker, object.getID(), OpPermission.OBSERVER)) {
-         response.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.INSUFICIENT_ATTACHMENT_PERMISSIONS));
-         return response;
-      }
-
-      try {
-         //set the stream member of the OpContent class to lazy=false so that it is loaded
-         OpContent.setStreamLazy(false);
-
-         // <FIXME author="Horia Chiorean" description="This code is here because we can have either OpAttachment or
-         // OpAttachmentVersion">
-         Method getContentMethod = object.getClass().getMethod("getContent");
-         OpContent content = (OpContent) getContentMethod.invoke(object);
-         Method getLocationMethod = object.getClass().getMethod("getLocation");
-         String location = (String) getLocationMethod.invoke(object);
-         // <FIXME>
-
-         //multi-user means remote
-         if (OpEnvironmentManager.isMultiUser()) {
-            response.setArgument(ATTACHMENT_URL, location);
-            response.setArgument(CONTENT_ID, OpLocator.locatorString(content));
-         }
-         else {
-            String temporaryFileUrl = createTemporaryAttachment(location, content.getStream());
-            response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
-         }
-
-         broker.close();
-         return response;
-      }
-      catch (NoSuchMethodException e) {
-         logger.error("Cannot access attachment", e);
-      }
-      catch (IllegalAccessException e) {
-         logger.error("Cannot access attachment", e);
-      }
-      catch (InvocationTargetException e) {
-         logger.error("Cannot access attachment", e);
-      }
       finally {
-         //reset the lazy loading of the stream member from OpContent
-         OpContent.setStreamLazy(true);
+         broker.close();
       }
-      return null;
    }
 
    /**
@@ -782,62 +776,21 @@ public class OpProjectPlanningService extends OpProjectService {
       //multi-user means remote
       if (OpEnvironmentManager.isMultiUser()) {
          response.setArgument(ATTACHMENT_URL, fileName);
-         response.setArgument(CONTENT_ID, contentId);
       }
       else {
-         //set the stream member of the OpContent class to lazy=false so that it is loaded
-         OpContent.setStreamLazy(false);
-
          OpBroker broker = s.newBroker();
-         OpTransaction t = broker.newTransaction();
-
-         OpContent content = (OpContent) broker.getObject(contentId);
-         String temporaryFileUrl = createTemporaryAttachment(fileName, content.getStream());
-         t.commit();
-         broker.close();
-         response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
-         s.deleteUnreferedContents(); // delete temporary contents (generated only for view mode)
-
-         //reset the lazy loading of the stream member from OpContent
-         OpContent.setStreamLazy(true);
+         try {
+            OpContent content = (OpContent) broker.getObject(contentId);
+            String temporaryFileUrl = OpProjectDataSetFactory.createTemporaryAttachment(fileName, content.getStream(), logger);
+            response.setArgument(ATTACHMENT_URL, temporaryFileUrl);
+         }
+         finally {
+            broker.close();
+         }
       }
+      response.setArgument(CONTENT_ID, contentId);
 
       return response;
-   }
-
-   /**
-    * Creates a temporary file with the content of an attachment.
-    *
-    * @param location a <code>String</code> representing the location of the real attachment object.
-    * @param content  <code>InputStream</code> representing the content of the attachment.
-    * @return a <code>String</code> representing an URL-like path to a temporary file that has the same content as the
-    *         attachment.
-    */
-   private String createTemporaryAttachment(String location, InputStream content) {
-      int extensionIndex = location.lastIndexOf(".");
-      String prefix = location;
-      String suffix = null;
-      if (extensionIndex != -1) {
-         prefix = location.substring(0, extensionIndex);
-         suffix = location.substring(extensionIndex, location.length());
-      }
-      if (prefix.length() < 3) {
-         prefix = "file" + prefix;
-      }
-
-      try {
-         File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
-         temporaryFile.deleteOnExit();
-         FileOutputStream fos = new FileOutputStream(temporaryFile);
-         XIOHelper.copy(content, fos);
-         fos.flush();
-         fos.close();
-         return XEncodingHelper.encodeValue(temporaryFile.getName());
-      }
-      catch (IOException e) {
-         logger.error("Cannot create temporary attachment file on server", e);
-      }
-      return null;
    }
 
    public XMessage insertComment(OpProjectSession session, XMessage request) {
@@ -856,70 +809,71 @@ public class OpProjectPlanningService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
-
-      String activityLocator = (String) comment_data.get(ACTIVITY_ID);
-      OpActivity activity = (OpActivity) broker.getObject(activityLocator);
-      if (activity == null) {
-         broker.close();
-         error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND);
-         reply.setError(error);
-         return reply;
-      }
-
-      // Check contributor access to activity
-      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.CONTRIBUTOR)) {
-         logger.warn("ERROR: Insert access to activity denied; ID = " + activity.getID());
-         broker.close();
-         reply.setError(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      // Query max-sequence
-      OpQuery query = broker.newQuery("select max(comment.Sequence) from OpActivityComment as comment where comment.Activity.ID = ?");
-      query.setLong(0, activity.getID());
-      Iterator result = broker.iterate(query);
-      int sequence = 1;
-      if (result.hasNext()) {
-         Integer maxSequence = (Integer) result.next();
-         if (maxSequence != null) {
-            sequence = maxSequence + 1;
+      try {
+         String activityLocator = (String) comment_data.get(ACTIVITY_ID);
+         OpActivity activity = (OpActivity) broker.getObject(activityLocator);
+         if (activity == null) {
+            error = session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND);
+            reply.setError(error);
+            return reply;
          }
-      }
 
-      OpActivityComment comment = new OpActivityComment();
-      comment.setName(commentName);
-      comment.setSequence(sequence);
-      comment.setText((String) comment_data.get(OpActivityComment.TEXT));
-      comment.setCreator(session.user(broker));
-      comment.setActivity(activity);
-      broker.makePersistent(comment);
+         // Check contributor access to activity
+         if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.CONTRIBUTOR)) {
+            logger.warn("ERROR: Insert access to activity denied; ID = " + activity.getID());
+            reply.setError(session.newError(PROJECT_ERROR_MAP, OpProjectError.UPDATE_ACCESS_DENIED));
+            return reply;
+         }
 
-      // Update activity.Attributes in order that activity has comments and all of its versions
-      if ((activity.getAttributes() & OpActivity.HAS_COMMENTS) == 0) {
-         activity.setAttributes(activity.getAttributes() + OpActivity.HAS_COMMENTS);
-         broker.updateObject(activity);
-         Iterator versions = activity.getVersions().iterator();
-         OpActivityVersion version;
-         while (versions.hasNext()) {
-            version = (OpActivityVersion) versions.next();
-            if ((version.getAttributes() & OpActivityVersion.HAS_COMMENTS) == 0) {
-               version.setAttributes(version.getAttributes() + OpActivityVersion.HAS_COMMENTS);
-               broker.updateObject(version);
+         OpTransaction t = broker.newTransaction();
+
+         // Query max-sequence
+         OpQuery query = broker.newQuery("select max(comment.Sequence) from OpActivityComment as comment where comment.Activity.ID = ?");
+         query.setLong(0, activity.getID());
+         Iterator result = broker.iterate(query);
+         int sequence = 1;
+         if (result.hasNext()) {
+            Integer maxSequence = (Integer) result.next();
+            if (maxSequence != null) {
+               sequence = maxSequence + 1;
             }
          }
+
+         OpActivityComment comment = new OpActivityComment();
+         comment.setName(commentName);
+         comment.setSequence(sequence);
+         comment.setText((String) comment_data.get(OpActivityComment.TEXT));
+         comment.setCreator(session.user(broker));
+         comment.setActivity(activity);
+         broker.makePersistent(comment);
+
+         // Update activity.Attributes in order that activity has comments and all of its versions
+         if ((activity.getAttributes() & OpActivity.HAS_COMMENTS) == 0) {
+            activity.setAttributes(activity.getAttributes() + OpActivity.HAS_COMMENTS);
+            broker.updateObject(activity);
+            Iterator versions = activity.getVersions().iterator();
+            OpActivityVersion version;
+            while (versions.hasNext()) {
+               version = (OpActivityVersion) versions.next();
+               if ((version.getAttributes() & OpActivityVersion.HAS_COMMENTS) == 0) {
+                  version.setAttributes(version.getAttributes() + OpActivityVersion.HAS_COMMENTS);
+                  broker.updateObject(version);
+               }
+            }
+         }
+
+         t.commit();
+
+         XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(OpEditActivityFormProvider.PROJECT_EDIT_ACTIVITY);
+         boolean canDelete = session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR);
+         reply = createActivityCommentPanel(session, comment, resourceMap, canDelete);
+
+         logger.debug("/OpProjectAdministrationService.insertComment()");
+         return reply;
       }
-
-      t.commit();
-
-      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(OpEditActivityFormProvider.PROJECT_EDIT_ACTIVITY);
-      boolean canDelete = session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR);
-      reply = createActivityCommentPanel(session, comment, resourceMap, canDelete);
-
-      broker.close();
-      logger.debug("/OpProjectAdministrationService.insertComment()");
-      return reply;
+      finally {
+         broker.close();
+      }
    }
 
    public XMessage deleteComment(OpProjectSession session, XMessage request) {
@@ -928,75 +882,76 @@ public class OpProjectPlanningService extends OpProjectService {
 
       XMessage reply = new XMessage();
       OpBroker broker = session.newBroker();
+      try {
+         OpActivityComment comment = (OpActivityComment) broker.getObject(comment_id);
 
-      OpActivityComment comment = (OpActivityComment) broker.getObject(comment_id);
-
-      if (comment == null) {
-         broker.close();
-         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND));
-         return reply;
-      }
-
-      OpActivity activity = comment.getActivity();
-      // Check administrator access to activity
-      if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR)) {
-         logger.warn("ERROR: Administrator access to activity denied; ID = " + activity.getID());
-         broker.close();
-         reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.ADMINISTRATOR_ACCESS_DENIED));
-         return reply;
-      }
-
-      OpTransaction t = broker.newTransaction();
-
-      OpQuery query = broker.newQuery("select comment from OpActivityComment as comment where comment.ID != (:commentId) and comment.Activity.ID = (:activityId) order by comment.Sequence");
-      query.setLong("commentId", comment.getID());
-      query.setLong("activityId", activity.getID());
-      List comments = broker.list(query);
-      //resource map
-      XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(OpEditActivityFormProvider.PROJECT_EDIT_ACTIVITY);
-      //the new comments panel
-      XComponent commentsPanel = new XComponent(XComponent.PANEL);
-
-      for (Object comment1 : comments) {
-         OpActivityComment activityComment = (OpActivityComment) comment1;
-         int sequence = activityComment.getSequence();
-         if (sequence > comment.getSequence()) {
-            activityComment.setSequence(--sequence);
+         if (comment == null) {
+            reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.COMMENT_NOT_FOUND));
+            return reply;
          }
-         reply = createActivityCommentPanel(session, activityComment, resourceMap, true);
-         commentsPanel.addChild((XComponent) reply.getArgument(ACTIVITY_COMMENT_PANEL));
-      }
-      //set up reply needed args
-      if (comments.isEmpty()) {
 
-         //update all the activity versions
-         Set<OpActivityVersion> activityVersions = activity.getVersions();
-         if (activityVersions != null && activityVersions.size() > 0) {
-            for (OpActivityVersion activityVersion : activityVersions) {
-               activityVersion.setAttributes(activityVersion.getAttributes() ^ OpActivity.HAS_COMMENTS);
-               broker.updateObject(activityVersion);
+         OpActivity activity = comment.getActivity();
+         // Check administrator access to activity
+         if (!session.checkAccessLevel(broker, activity.getProjectPlan().getProjectNode().getID(), OpPermission.ADMINISTRATOR)) {
+            logger.warn("ERROR: Administrator access to activity denied; ID = " + activity.getID());
+            reply.setError(session.newError(PLANNING_ERROR_MAP, OpProjectPlanningError.ADMINISTRATOR_ACCESS_DENIED));
+            return reply;
+         }
+
+         OpTransaction t = broker.newTransaction();
+
+         OpQuery query = broker.newQuery("select comment from OpActivityComment as comment where comment.ID != (:commentId) and comment.Activity.ID = (:activityId) order by comment.Sequence");
+         query.setLong("commentId", comment.getID());
+         query.setLong("activityId", activity.getID());
+         List comments = broker.list(query);
+         //resource map
+         XLanguageResourceMap resourceMap = session.getLocale().getResourceMap(OpEditActivityFormProvider.PROJECT_EDIT_ACTIVITY);
+         //the new comments panel
+         XComponent commentsPanel = new XComponent(XComponent.PANEL);
+
+         for (Object comment1 : comments) {
+            OpActivityComment activityComment = (OpActivityComment) comment1;
+            int sequence = activityComment.getSequence();
+            if (sequence > comment.getSequence()) {
+               activityComment.setSequence(--sequence);
             }
+            reply = createActivityCommentPanel(session, activityComment, resourceMap, true);
+            commentsPanel.addChild((XComponent) reply.getArgument(ACTIVITY_COMMENT_PANEL));
          }
+         //set up reply needed args
+         if (comments.isEmpty()) {
 
-         //mark activity flag becouse the last comment was deleted
-         int activityAtributes = activity.getAttributes();
-         activity.setAttributes(activityAtributes ^ OpActivity.HAS_COMMENTS);
-         broker.updateObject(activity);
+            //update all the activity versions
+            Set<OpActivityVersion> activityVersions = activity.getVersions();
+            if (activityVersions != null && activityVersions.size() > 0) {
+               for (OpActivityVersion activityVersion : activityVersions) {
+                  activityVersion.setAttributes(activityVersion.getAttributes() ^ OpActivity.HAS_COMMENTS);
+                  broker.updateObject(activityVersion);
+               }
+            }
 
-         //update all the versions of the activity
-         StringBuffer commentsBuffer = new StringBuffer();
-         commentsBuffer.append(comments.size());
-         commentsBuffer.append(' ');
-         commentsBuffer.append(resourceMap.getResource("CommentsSoFar").getText());
-         reply.setArgument(COMMENTS_LABEL_TEXT, commentsBuffer.toString());
+            //mark activity flag becouse the last comment was deleted
+            int activityAtributes = activity.getAttributes();
+            activity.setAttributes(activityAtributes ^ OpActivity.HAS_COMMENTS);
+            broker.updateObject(activity);
+
+            //update all the versions of the activity
+            StringBuffer commentsBuffer = new StringBuffer();
+            commentsBuffer.append(comments.size());
+            commentsBuffer.append(' ');
+            commentsBuffer.append(resourceMap.getResource("CommentsSoFar").getText());
+            reply.setArgument(COMMENTS_LABEL_TEXT, commentsBuffer.toString());
+         }
+         reply.setArgument(ACTIVITY_COMMENTS_PANEL, commentsPanel);
+
+         //finnaly delete comment
+         broker.deleteObject(comment);
+
+         t.commit();
       }
-      reply.setArgument(ACTIVITY_COMMENTS_PANEL, commentsPanel);
-
-      //finnaly delete comment
-      broker.deleteObject(comment);
-
-      t.commit();
-      broker.close();
+      finally {
+         broker.close();
+      }
       logger.debug("/OpProjectAdministrationService.deleteComments()");
       return reply;
    }
@@ -1034,22 +989,25 @@ public class OpProjectPlanningService extends OpProjectService {
       }
 
       OpBroker broker = session.newBroker();
-      //attach the project plan with a new session
-      projectPlan = (OpProjectPlan) broker.getObject(projectPlan.locator());
-      long newDateMillis = ((Date) request.getArgument("newDate")).getTime();
-      long oldDateMillis = projectPlan.getProjectNode().getStart().getTime();
-      XComponent newDataSet = shiftAndValidateWorkingVersion(projectPlan, broker, newDateMillis - oldDateMillis);
+      try {
+         //attach the project plan with a new session
+         projectPlan = (OpProjectPlan) broker.getObject(projectPlan.locator());
+         long newDateMillis = ((Date) request.getArgument("newDate")).getTime();
+         long oldDateMillis = projectPlan.getProjectNode().getStart().getTime();
+         XComponent newDataSet = shiftAndValidateWorkingVersion(projectPlan, broker, newDateMillis - oldDateMillis);
 
-      broker.close();
+         //check-in the working version
+         XMessage checkInRequest = new XMessage();
+         checkInRequest.setArgument(activitySetArg, newDataSet);
+         checkInRequest.setArgument(projectIdArg, projectId);
 
-      //check-in the working version
-      XMessage checkInRequest = new XMessage();
-      checkInRequest.setArgument(activitySetArg, newDataSet);
-      checkInRequest.setArgument(projectIdArg, projectId);
+         reply = this.internalCheckInActivities(session, checkInRequest);
 
-      reply = this.internalCheckInActivities(session, checkInRequest);
-
-      return reply;
+         return reply;
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -1061,14 +1019,18 @@ public class OpProjectPlanningService extends OpProjectService {
     */
    public XMessage revalidateWorkingVersions(OpProjectSession session, XMessage request) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("from OpProjectPlan  projectPlan");
-      Iterator it = broker.iterate(query);
-      while (it.hasNext()) {
-         OpProjectPlan projectPlan = (OpProjectPlan) it.next();
-         OpProjectPlanValidator planValidator = new OpProjectPlanValidator(projectPlan);
-         planValidator.validateProjectPlanWorkingVersion(broker, null, true);
+      try {
+         OpQuery query = broker.newQuery("from OpProjectPlan  projectPlan");
+         Iterator it = broker.iterate(query);
+         while (it.hasNext()) {
+            OpProjectPlan projectPlan = (OpProjectPlan) it.next();
+            OpProjectPlanValidator planValidator = new OpProjectPlanValidator(projectPlan);
+            planValidator.validateProjectPlanWorkingVersion(session, broker, null, true);
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return null;
    }
 

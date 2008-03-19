@@ -9,7 +9,10 @@ import onepoint.log.XLogFactory;
 import onepoint.persistence.*;
 import onepoint.persistence.hibernate.OpHibernateSource;
 import onepoint.project.OpProjectSession;
+import onepoint.project.modules.custom_attribute.OpCustomValuePage;
+import onepoint.project.util.OpGraph;
 import onepoint.service.XSizeInputStream;
+import onepoint.util.XCalendar;
 import onepoint.util.XEnvironmentManager;
 import onepoint.util.XIOHelper;
 import onepoint.xml.XDocumentWriter;
@@ -77,8 +80,8 @@ public class OpBackupManager {
    /**
     * Date format used for importing/exporting date values.
     */
-   final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd 'GMT'");
-   final static SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'GMT'");
+   static SimpleDateFormat DATE_FORMAT = null;
+   static SimpleDateFormat TIMESTAMP_FORMAT = null;
 
    /**
     * The map of prototypes (their load order is important).
@@ -101,11 +104,6 @@ public class OpBackupManager {
    private static final String SLASH_STRING = "/";
 
    /**
-    * Page size used when batch-deleting
-    */
-   private static final int DELETE_PAGE_SIZE = 200;
-
-   /**
     * The path to the dir where binary files will be stored
     */
    private String binaryDirPath = null;
@@ -115,10 +113,17 @@ public class OpBackupManager {
     */
    private String binaryDirName = null;
 
+   private static final String WHERE_STR = " where ";
+   private static final String AND_STR = " and ";
+
    /**
     * There should be only 1 instance of this class.
     */
    private OpBackupManager() {
+      DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+      DATE_FORMAT.setTimeZone(XCalendar.GMT_TIMEZONE);
+      TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      TIMESTAMP_FORMAT.setTimeZone(XCalendar.GMT_TIMEZONE);
    }
 
    /**
@@ -137,19 +142,42 @@ public class OpBackupManager {
     * Initializes the backup manager by registering all the prototypes in correct order.
     */
    public void initializeBackupManager() {
-      List toAddLast = new ArrayList();
-      OpPrototype superPrototype = OpTypeManager.getPrototypeByClassName(OpObject.class.getName());
+      OpGraph graph = new OpGraph();
+      OpGraph.Entry objectNode = graph.addNode(OpTypeManager.getPrototype("OpObject"));
       Iterator it = OpTypeManager.getPrototypes(); // unordered!
       while (it.hasNext()) {
-         OpPrototype startPoint = (OpPrototype) it.next();
-         if (!(startPoint.getID() == superPrototype.getID())) {
-            registerPrototypeForBackup(superPrototype, startPoint, toAddLast);
+         OpPrototype prototype = (OpPrototype) it.next();
+         OpGraph.Entry node = graph.addNode(prototype);
+         if (prototype.getInstanceClass() != OpObject.class) { // add dependency from whatever -> OpObject
+            graph.addEdge(node, objectNode);
          }
       }
-      it = toAddLast.iterator();
+      it = OpTypeManager.getPrototypes();
       while (it.hasNext()) {
-         OpPrototype pt = (OpPrototype) it.next();
-         addPrototype(pt);
+         OpPrototype prototype = (OpPrototype) it.next();
+         graph.addNode(prototype);
+         OpGraph.Entry prototypeNode = graph.getNode(prototype);
+         List dependencies = prototype.getSubsequentBackupDependencies();
+         Iterator iter = dependencies.iterator();
+         while (iter.hasNext()) {
+            OpPrototype dependency = (OpPrototype) iter.next();
+            OpGraph.Entry dependencyNode = (OpGraph.Entry) graph.getNode(dependency);
+            if (dependencyNode == null) {
+               dependencyNode = graph.addNode(dependency);
+            }
+            if (((OpPrototype) dependencyNode.getElem()).getInstanceClass() == OpObject.class) {
+               graph.removeEdge(prototypeNode, dependencyNode); // remove cyclic dependencies
+            }
+            graph.addEdge(dependencyNode, prototypeNode);
+         }
+      }
+
+      Iterator iter = graph.getTopologicOrder().iterator();
+      while (iter.hasNext()) {
+         OpGraph.Entry node = (OpGraph.Entry) iter.next();
+         if (!((OpPrototype)node.getElem()).subTypes().hasNext()) {
+            addPrototype((OpPrototype)node.getElem());            
+         }
       }
    }
 
@@ -199,7 +227,7 @@ public class OpBackupManager {
     * @param broker a <code>OpBroker</code> that executes the query agains a db.
     * @return a <code>Map</code> of [<code>String</code>, <code>Long</code>] pairs representing [name, id] pairs.
     */
-   public static Map querySystemObjectIdMap(OpBroker broker) {
+   public static Map<Long, String> querySystemObjectIdMap(OpBroker broker) {
       Map<Long, String> systemObjectIdMap = new HashMap<Long, String>();
       for (String name : systemObjectIdQueries.keySet()) {
          String queryString = (String) systemObjectIdQueries.get(name);
@@ -268,10 +296,7 @@ public class OpBackupManager {
       writer.writeStartElement(PROTOTYPES, null, false);
 
       Map<String, String> attributes = new HashMap<String, String>();
-      Iterator it = prototypes.values().iterator();
-      while (it.hasNext()) {
-         OpPrototype prototype = (OpPrototype) it.next();
-
+      for (OpPrototype prototype : prototypes.values()) {
          attributes.put(NAME, prototype.getName());
          writer.writeStartElement(PROTOTYPE, attributes, false);
          attributes.clear();
@@ -306,7 +331,8 @@ public class OpBackupManager {
                writer.writeStartElement(FIELD, attributes, true);
                attributes.clear();
             }
-            else if (member instanceof OpRelationship && !((OpRelationship) member).getInverse()) {
+            else if (member instanceof OpRelationship && !((OpRelationship) member).getInverse() && 
+                     !((OpRelationship) member).isTransient()) {
                // Attention: Only non-inverse relationships are backuped
                // Note: We have to check for *all* prototypes, because of abstract prototypes
                OpPrototype targetPrototype = OpTypeManager.getPrototypeByID(member.getTypeID());
@@ -435,13 +461,12 @@ public class OpBackupManager {
     * @param objects     a <code>List</code> of <code>OpObject</code> representing child objects in case of a recursive backup.
     * @see OpBackupManager#exportObjects(onepoint.project.OpProjectSession,onepoint.xml.XDocumentWriter,String,OpBackupMember[],java.util.Map)
     */
-   private void exportSubObjects(OpProjectSession session, XDocumentWriter writer, String prototypeName,
+   private void exportSubObjects(OpProjectSession session, OpBroker broker, XDocumentWriter writer, String prototypeName,
         OpBackupMember[] members, String orderedBy, String recursiveBy, List objects, Map systemIdMap)
         throws IOException {
       int pageSize = BACKUP_PAGE_SIZE;
       int startIndex = 0;
 
-      OpBroker broker = session.newBroker();
       Iterator result = null;
       if (objects != null) {
          result = objects.iterator();
@@ -451,17 +476,21 @@ public class OpBackupManager {
          logger.info("Backing up " + count + " " + prototypeName);
          if (count > pageSize) {
             while (startIndex < count) {
-               logger.info("Backing up objects between " + startIndex + " and " + (startIndex + pageSize));
+               logger.info("Backing up objects between " + startIndex + AND_STR + (startIndex + pageSize));
                OpBroker pagingBroker = session.newBroker();
-               result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, pageSize);
-               startIndex += pageSize;
-               pageSize = (startIndex + pageSize) < count ? pageSize : count - startIndex;
-               //export each object
-               List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy);
-               if ((recursiveBy != null) && (childObjects.size() > 0)) {
-                  exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
+               try {
+                  result = getObjectsToBackup(prototypeName, recursiveBy, orderedBy, pagingBroker, startIndex, pageSize);
+                  startIndex += pageSize;
+                  pageSize = (startIndex + pageSize) < count ? pageSize : count - startIndex;
+                  //export each object
+                  List childObjects = exportIteratedObjects(result, systemIdMap, writer, members, recursiveBy);
+                  if ((recursiveBy != null) && (childObjects.size() > 0)) {
+                     exportSubObjects(session, pagingBroker, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
+                  }
                }
-               pagingBroker.closeAndEvict();
+               finally {
+                  pagingBroker.closeAndEvict();
+               }
             }
             return;
          }
@@ -475,9 +504,8 @@ public class OpBackupManager {
 
       // Check for next recursion
       if ((recursiveBy != null) && (childObjects.size() > 0)) {
-         exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
+         exportSubObjects(session, broker, writer, prototypeName, members, orderedBy, recursiveBy, childObjects, systemIdMap);
       }
-      broker.closeAndEvict();
    }
 
    private List exportIteratedObjects(Iterator result, Map systemIdMap, XDocumentWriter writer, OpBackupMember[] members,
@@ -645,8 +673,13 @@ public class OpBackupManager {
             }
          }
       }
-
-      exportSubObjects(session, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
+      OpBroker broker = session.newBroker();
+      try {
+         exportSubObjects(session, broker, writer, prototypeName, members, orderedBy, recursiveBy, null, systemIdMap);
+      }
+      finally {
+         broker.closeAndEvict();
+      }
       writer.writeEndElement(OBJECTS);
       session.cleanupSession(true);
    }
@@ -733,16 +766,22 @@ public class OpBackupManager {
       List allMembers = exportPrototypes(writer);
 
       // Query system object ID ids and names before exporting objects
+      Map systemIdMap = null;
       OpBroker broker = session.newBroker();
-      Map systemIdMap = querySystemObjectIdMap(broker);
-      broker.closeAndEvict();
-
-      int memberIndex = 0;
-      for (OpPrototype prototype : prototypes.values()) {
-         exportObjects(session, writer, prototype.getName(), (OpBackupMember[]) allMembers.get(memberIndex), systemIdMap);
-         memberIndex++;
+      try {
+         systemIdMap = querySystemObjectIdMap(broker);
+      }
+      finally {
+         broker.closeAndEvict();
       }
 
+      int memberIndex = 0;
+      if (systemIdMap != null) {
+         for (OpPrototype prototype : prototypes.values()) {
+            exportObjects(session, writer, prototype.getName(), (OpBackupMember[]) allMembers.get(memberIndex), systemIdMap);
+            memberIndex++;
+         }
+      }
       writer.writeEndElement(OPP_BACKUP);
 
       // Important: Flushes and closes output stream
@@ -776,58 +815,149 @@ public class OpBackupManager {
     */
    public void removeAllObjects(OpProjectSession session) {
       logger.info("Removing all objects from the db ");
-      List<String> prototypeNames = new ArrayList<String>(prototypes.keySet());
-      Collections.reverse(prototypeNames);
-      //remove in reverse dependency order
-      for (String prototypeName : prototypeNames) {
-         removeObjectsWithPrototype(prototypeName, null, session);
+
+      // create the dependency graph
+      OpGraph graph = new OpGraph();
+
+      // complete all prototypes with missing super types
+      LinkedHashSet<OpPrototype> allPrototypes = new LinkedHashSet<OpPrototype>();
+      for (OpPrototype prototype : prototypes.values()) {
+         allPrototypes.add(prototype);
+         OpPrototype superType = prototype.getSuperType();
+         while (superType != null) {
+            if (!allPrototypes.add(superType)) {
+               break;
+            }
+            superType = superType.getSuperType();
+         }
+      }
+      for (OpPrototype prototype : allPrototypes) {
+         OpGraph.Entry node = graph.addNode(prototype);
+         // add super nodes
+         OpPrototype superType = prototype.getSuperType();
+         if (superType != null) {
+            OpGraph.Entry superNode = graph.addNode(superType);
+            graph.addEdge(node, superNode); // super type dependencies
+         }
+
+         for (OpPrototype dependent : prototype.getDeleteDependencies()) {
+            if (dependent != node.getElem()) { // no cycles
+               OpGraph.Entry dependentNode = graph.addNode(dependent);
+               graph.addEdge(dependentNode, node);
+            }
+         }
+         for (OpPrototype dependent : prototype.getNonInverseNonRecursiveDependencies()) {
+            if (dependent != node.getElem()) { // no cycles
+               OpGraph.Entry dependentNode = graph.addNode(dependent);
+               graph.addEdge(node, dependentNode);
+            }
+         }
+
+      }
+
+      List dependencies = graph.getTopologicOrder();
+
+      OpBroker broker = session.newBroker();
+      try {
+         // unset all custom value pages - this is required in order to avoid cyclic constraints
+         // note the problem is that OpObject references first custom value page, which should not be, but was the 
+         // only way to add fetch="join"
+         OpTransaction t = broker.newTransaction();
+         OpQuery query = broker.newQuery("update OpObject set CustomValuePage = null where CustomValuePage is not null");
+         broker.execute(query);
+         t.commit();
+         
+         Iterator i = dependencies.iterator();
+         while (i.hasNext()) {
+            OpGraph.Entry delete = (OpGraph.Entry) i.next();
+            logger.info("deleting all objects of type: " + ((OpPrototype) delete.getElem()).getName());
+            removeObjectsWithPrototype((OpPrototype) delete.getElem(), session, broker);
+         }
+      }
+      finally {
+         broker.closeAndEvict();
+      }
+   }
+
+
+   /**
+    * Removes all the objects with the given prototype name from the db.
+    * This takes into account the recursive relationship order. So it is guaranteed that
+    * if object A references B (e.g. as its parent) A is deleted prior to B.
+    *
+    * @param prototype prototype to delete.
+    * @param session   a <code>OpProjectSession</code> the server session.
+    */
+   private void removeObjectsWithPrototype(OpPrototype prototype, OpProjectSession session, OpBroker broker) {
+      String prototypeName = prototype.getName();
+
+      logger.info("Remove objects with prototype: " + prototypeName);
+
+      List<OpRelationship> recursiveRelationship = prototype.getRecursiveRelationships();
+      List<String> backRelationshipNames = new LinkedList<String>();
+      for (OpRelationship relationship : recursiveRelationship) {
+         OpRelationship backRelationship = relationship.getBackRelationship();
+         if (backRelationship != null) {
+            String cascade = relationship.getCascadeMode();
+            if (!OpRelationship.CASCADE_DELETE.equals(cascade) &&
+                 !OpRelationship.CASCADE_ALL.equals(cascade)) {
+               backRelationshipNames.add(backRelationship.getName());
+            }
+         }
+      }
+
+      // calculate recursive relationship condition
+      StringBuffer recursiveRelationshipConditionBuffer = new StringBuffer();
+      for (String backRelationshipName : backRelationshipNames) {
+         if (recursiveRelationshipConditionBuffer.length() == 0) {
+            recursiveRelationshipConditionBuffer.append(WHERE_STR);
+         }
+         else {
+            recursiveRelationshipConditionBuffer.append(AND_STR);
+         }
+
+         recursiveRelationshipConditionBuffer.append("obj.").append(backRelationshipName).append(" is empty");
+      }
+
+      String recursiveRelationshipCondition = recursiveRelationshipConditionBuffer.toString();
+
+      List objectIds = getObjectsWithPrototype(session, prototypeName);
+      while (objectIds.size() > 0) {
+         String whereClause = recursiveRelationshipCondition == null || recursiveRelationshipCondition.length() == 0 ?
+              WHERE_STR : recursiveRelationshipCondition + AND_STR;
+         whereClause += " obj.id in (:objectIDs)";
+
+         String query = "delete from OpObject as obj " + whereClause;
+         logger.info("Remove objects query: " + query);
+
+         OpQuery objectsQuery = broker.newQuery(query);
+         objectsQuery.setCollection("objectIDs", objectIds);
+
+         OpTransaction tx = broker.newTransaction();
+         broker.execute(objectsQuery);
+         tx.commit();
+
+         objectIds = getObjectsWithPrototype(session, prototypeName);
       }
    }
 
    /**
-    * Removes all the objects with the given prototype name from the db.
+    * Get the identifiers of the objects for a given prototype.
     *
-    * @param prototypeName             a <code>String</code> the name of a prototype.
-    * @param recursiveRelationshipName a <code>String</code> the name of an optional recursive
-    *                                  relationship for the prototype (if there isn't one, it may be <code>null</code>)
-    * @param session                   a <code>OpProjectSession</code> the server session.
+    * @param session       session to use
+    * @param prototypeName prototype for which to get the ids
+    * @return a <code>List<Long></code> of object identifiers
     */
-   private void removeObjectsWithPrototype(String prototypeName, String recursiveRelationshipName,
-        OpProjectSession session) {
-      logger.info("Remove objects with prototype: " + prototypeName);
-      if (recursiveRelationshipName == null) {
-         OpPrototype prototype = prototypes.get(prototypeName);
-         OpRelationship recursiveRelationship = prototype.getRecursiveRelationship();
-         if (recursiveRelationship != null) {
-            removeObjectsWithPrototype(prototypeName, recursiveRelationship.getName(), session);
-         }
-      }
-
-      String recursiveRelationshipCondition = (recursiveRelationshipName != null) ? " where obj." + recursiveRelationshipName + "  is not null" : "";
-      String countQueryString = "select count(obj) from " + prototypeName + " obj" + recursiveRelationshipCondition;
-
+   private List getObjectsWithPrototype(OpProjectSession session, String prototypeName) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery(countQueryString);
-      Number count = (Number) broker.iterate(query).next();
-      broker.closeAndEvict();
-
-      //<FIXME author="Horia Chiorean" description="count.intValue may not work for large recursive relationships">
-      int pageSize = recursiveRelationshipName == null ? DELETE_PAGE_SIZE : count.intValue();
-      //<FIXME>
-      for (int i = 0; i < count.longValue(); i += pageSize) {
-         broker = session.newBroker();
-         OpQuery objectsQuery = broker.newQuery("from " + prototypeName + " obj " + recursiveRelationshipCondition);
-         objectsQuery.setFetchSize(pageSize);
-         objectsQuery.setFirstResult(0);
-         objectsQuery.setMaxResults(pageSize);
-         OpTransaction tx = broker.newTransaction();
-         for (Iterator it = broker.iterate(objectsQuery); it.hasNext();) {
-            broker.deleteObject((OpObject) it.next());
-         }
-         tx.commit();
-         broker.closeAndEvict();
+      List<Long> results = new ArrayList<Long>();
+      String queryString = "select obj.id from " + prototypeName + " obj";
+      Iterator result = broker.iterate(broker.newQuery(queryString));
+      while (result.hasNext()) {
+         results.add((Long) result.next());
       }
-      session.cleanupSession(true);
+
+      return results;
    }
 
    /**
@@ -840,6 +970,28 @@ public class OpBackupManager {
       OpBackupLoader backupLoader = new OpBackupLoader();
       backupLoader.loadBackup(session, input, workingDirectory);
       long elapsedTimeSecs = (System.currentTimeMillis() - start) / 1000;
+      
+      // set all custom value pages - this is required in order to avoid cyclic constraints
+      // note the problem is that OpObject references first custom value page, which should not be, but was the 
+      // only way to add fetch="join"
+      OpBroker broker = session.newBroker();
+      try {
+         OpTransaction t = broker.newTransaction();
+         // FIXME(dfreis Feb 26, 2008 8:30:06 AM) {
+         // could be done a batch!!!
+         OpQuery query = broker.newQuery("from OpCustomValuePage cvp where cvp.Sequence = 0");
+         Iterator iter = broker.iterate(query);
+         while (iter.hasNext()) {
+            OpCustomValuePage page = (OpCustomValuePage) iter.next();
+            page.getObject().setCustomValuePage(page);
+         }
+         // }
+         t.commit();
+      }
+      finally {
+         broker.close();
+      }
+
       logger.info("Repository restore completed in " + elapsedTimeSecs + " seconds");
    }
 
@@ -909,6 +1061,7 @@ public class OpBackupManager {
          XIOHelper.copy(content, fileOutput);
          fileOutput.flush();
          fileOutput.close();
+         content.close();
       }
       catch (IOException e) {
          logger.error("ERROR: An I/O exception occured when trying to write binary file: ", e);
@@ -975,8 +1128,7 @@ public class OpBackupManager {
    private void registerPrototypeForBackup(OpPrototype superPrototype, OpPrototype startPoint, List<OpPrototype> lastPrototypesToRegister) {
       // FIXME(dfreis Oct 23, 2007 9:44:40 AM) wont work see also my comment on OPP-80
       // note lastPrototypesToRegister is a hack only!
-
-      List dependencies = startPoint.getBackupDependencies();
+      List dependencies = startPoint.getSubsequentBackupDependencies();
       logger.debug("start point is: " + startPoint.getName());
       for (Object dependency1 : dependencies) {
          OpPrototype dependency = (OpPrototype) dependency1;

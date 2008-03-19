@@ -43,21 +43,24 @@ public class OpImportUserFormProvider implements XFormProvider {
       logger.debug("OpImportUserFormProvider.prepareForm()");
 
       OpBroker broker = ((OpProjectSession) session).newBroker();
+      try {
+         //Localizer is used to localize name of root resource pool and administrator
+         XLocalizer localizer = new XLocalizer();
 
-      //Localizer is used to localize name of root resource pool and administrator
-      XLocalizer localizer = new XLocalizer();
+         //fill resources
+         localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpResourceDataSetFactory.RESOURCE_OBJECTS));
+         OpResourcePool selectedPool = getSelectedPool(parameters, broker);
+         this.fillPoolDataSet(form, broker, localizer, selectedPool.getID());
 
-      //fill resources
-      localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpResourceDataSetFactory.RESOURCE_OBJECTS));
-      OpResourcePool selectedPool = getSelectedPool(parameters, broker);
-      this.fillPoolDataSet(form, broker, localizer, selectedPool.getID());
+         //fill users
+         localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
+         this.fillUsersDataSet(form, broker, localizer);
 
-      //fill users
-      localizer.setResourceMap(((OpProjectSession) session).getLocale().getResourceMap(OpPermissionDataSetFactory.USER_OBJECTS));
-      this.fillUsersDataSet(form, broker, localizer);
-
-      this.prepareHourlyRateFields(form, selectedPool, broker);
-      broker.close();
+         this.prepareHourlyRateFields(form, selectedPool, broker);
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**

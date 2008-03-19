@@ -48,6 +48,8 @@ public abstract class OpConnection {
 
    public abstract void dropSchema();
 
+   public abstract void updateDBSchema();
+
    public abstract void persistObject(OpObject object);
 
    public abstract <C extends OpObject> C getObject(Class<C> c, long id);
@@ -55,6 +57,8 @@ public abstract class OpConnection {
    public abstract void updateObject(OpObject object);
 
    public abstract void deleteObject(OpObject object);
+
+   public abstract void refreshObject(OpObject object);
 
    public abstract List list(OpQuery query);
 
@@ -81,4 +85,7 @@ public abstract class OpConnection {
    public abstract void setFlushMode(int flushMode);
 
    public abstract int getFlushMode();
+
+   public abstract void clear();
+
 }

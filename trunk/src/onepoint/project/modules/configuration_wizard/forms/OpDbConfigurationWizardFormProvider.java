@@ -1,5 +1,5 @@
 /*
- * Copyright(c) OnePoint Software GmbH 2007. All Rights Reserved.
+ * Copyright(c) Onepoint Software GmbH 2008. All Rights Reserved.
  */
 
 package onepoint.project.modules.configuration_wizard.forms;
@@ -13,6 +13,8 @@ import onepoint.project.OpInitializerFactory;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.configuration_wizard.OpConfigurationWizardService;
 import onepoint.project.modules.configuration_wizard.OpDbConfigurationWizardError;
+import onepoint.project.util.OpEnvironmentManager;
+import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLanguageResourceMap;
 import onepoint.resource.XLocaleManager;
 import onepoint.resource.XLocalizer;
@@ -96,26 +98,32 @@ public class OpDbConfigurationWizardFormProvider implements XFormProvider {
     * @param dataSet <code>XComponent.DATA_SET</code>
     */
    private void fillDbTypeDataSet(XComponent dataSet) {
+      String productCode = OpEnvironmentManager.getProductCode();
       XComponent dataRow;
-      //MySQL
-      dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MYSQL_INNO_DB_DISPLAY));
-      dataSet.addChild(dataRow);
-      //Oracle
-      dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationWizardService.ORACLE_DISPLAY));
-      dataSet.addChild(dataRow);
-      //IBM DB/2
-      dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationWizardService.IBM_DB_DISPLAY));
-      dataSet.addChild(dataRow);
       //PostrgeSQL
       dataRow = new XComponent(XComponent.DATA_ROW);
       dataRow.setStringValue(XValidator.choice("jdbc:postgresql://localhost:5432/opproject", OpConfigurationWizardService.POSTGRE_DISPLAY));
       dataSet.addChild(dataRow);
-      //MSSQL
+      //MySQL
       dataRow = new XComponent(XComponent.DATA_ROW);
-      dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
+      dataRow.setStringValue(XValidator.choice("jdbc:mysql://localhost:3306/opproject", OpConfigurationWizardService.MYSQL_INNO_DB_DISPLAY));
       dataSet.addChild(dataRow);
+      //<FIXME author="Mihai Costin" description="Normally, this should be done by extending the form provider in the closed module,
+      //    not by checking the product code.">
+      if (!productCode.equals(OpProjectConstants.OPEN_EDITION_CODE)) {
+         //Oracle
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(XValidator.choice("jdbc:oracle:thin:@localhost:1521", OpConfigurationWizardService.ORACLE_DISPLAY));
+         dataSet.addChild(dataRow);
+         //IBM DB/2
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(XValidator.choice("jdbc:db2://localhost:446/opproject", OpConfigurationWizardService.IBM_DB_DISPLAY));
+         dataSet.addChild(dataRow);
+         //MSSQL
+         dataRow = new XComponent(XComponent.DATA_ROW);
+         dataRow.setStringValue(XValidator.choice("jdbc:jtds:sqlserver://localhost:1433/opproject", OpConfigurationWizardService.MSSQL_DISPLAY));
+         dataSet.addChild(dataRow);
+      }
+      //<FIXME>
    }
 }

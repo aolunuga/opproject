@@ -6,6 +6,6 @@
       <service-file file-name="/modules/my_tasks/my_tasks_service.osd.xml"/>
    </service-files>
    <tools>
-      <tool name="my_tasks" caption="${TasksTool}" group-ref="my" icon="/modules/my_tasks/icons/my_tasks_tool.png" start-form="/modules/my_tasks/forms/my_tasks.oxf.xml"/>
+      <tool name="my_tasks" caption="${TasksTool}" group-ref="my" icon="/modules/my_tasks/icons/my_tasks_tool.png" start-form="/modules/my_tasks/forms/my_tasks.oxf.xml" selected="true"/>
    </tools>
 </module>

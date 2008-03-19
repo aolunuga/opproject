@@ -1,0 +1,9 @@
+<prototype name="OpDocumentNode" instance-class="onepoint.project.modules.documents.OpDocumentNode" super-type="OpObject">
+   <field name="Name" type="String" mandatory="true"/>
+   <field name="Description" type="String"/>
+   <field name="Linked" type="Boolean"/>
+   <field name="Location" type="String"/>
+   <relationship name="Content" type="OpContent" back-relationship="DocumentNodes"/>
+   <relationship name="Creator" type="OpUser" />
+   <relationship name="Folder" type="OpFolder" back-relationship="DocumentNodes"/>
+</prototype>

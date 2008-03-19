@@ -27,6 +27,8 @@
    <data-field id="EditMode"/>
    <data-set id="WorkRecordSet"/>
 
+   <data-field id="ViewedNewContents"/>
+
    <data-set id="TimeActivitySet"/>
    <data-set id="TimeResourceSet"/>
    <data-set id="TimeProjectSet"/>

@@ -29,6 +29,7 @@
       <resource id="Permissions">Permissions</resource>
       <resource id="NewPool">New Pool</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Description">Description</resource>
       <resource id="HourlyRate">Internal hourly rate</resource>
       <resource id="ExternalRate">External hourly rate</resource>      
@@ -40,6 +41,7 @@
       <resource id="General">General</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Description">Description</resource>
       <resource id="HourlyRate">Internal hourly rate</resource>
       <resource id="ExternalRate">External hourly rate</resource>
@@ -56,10 +58,11 @@
       <resource id="Projects">Projects</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Description">Description</resource>
       <resource id="Available">Available (%)</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
-      <resource id="ResponsibleUser">Responsible user</resource>
+      <resource id="ResponsibleUser">Linked user</resource>
       <resource id="SelectUser">Choose</resource>
       <resource id="Pool">Pool</resource>
       <resource id="HourlyRate">Internal hourly rate</resource>
@@ -73,12 +76,13 @@
       <resource id="Projects">Projects</resource>
       <resource id="Permissions">Permissions</resource>
       <resource id="Name">Name</resource>
+      <resource id="SubType">Type</resource>
       <resource id="Description">Description</resource>
       <resource id="Available">Available (%)</resource>
       <resource id="HourlyRate">Internal hourly rate</resource>
       <resource id="ExternalRate">External hourly rate</resource>
       <resource id="InheritPoolRate">Override hourly rates of pool</resource>
-      <resource id="ResponsibleUser">Responsible user</resource>
+      <resource id="ResponsibleUser">Linked user</resource>
       <resource id="SelectUser">Choose</resource>
       <resource id="Pool">Pool</resource>
       <resource id="OK">OK</resource>

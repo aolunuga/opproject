@@ -42,18 +42,23 @@ public class OpUserModuleChecker implements OpModuleChecker {
     * @param session project session
     */
    private void assignAdministratorPermission(OpProjectSession session) {
+      List objectWithPermissions = null;
       OpBroker broker = session.newBroker();
-
-      OpQuery query = broker.newQuery("select obj.ID from OpObject obj inner join obj.Permissions permission where permission.Subject.Name='" + OpUser.ADMINISTRATOR_NAME + "'");
-      List objectWithPermissions = broker.list(query);
-      broker.closeAndEvict();
-
-      addPermissionsForPrototype(session, objectWithPermissions, "OpResource");
-      addPermissionsForPrototype(session, objectWithPermissions, "OpResourcePool");
-      addPermissionsForPrototype(session, objectWithPermissions, "OpProjectNode");
-      addPermissionsForPrototype(session, objectWithPermissions, "OpProjectPlan");
-      addPermissionsForPrototype(session, objectWithPermissions, "OpProjectPlanVersion");
-      addPermissionsForPrototype(session, objectWithPermissions, "OpAttachment");
+      try {
+         OpQuery query = broker.newQuery("select obj.ID from OpObject obj inner join obj.Permissions permission where permission.Subject.Name='" + OpUser.ADMINISTRATOR_NAME + "'");
+         objectWithPermissions = broker.list(query);
+      }
+      finally {
+         broker.closeAndEvict();
+      }
+      if (objectWithPermissions != null) {
+         addPermissionsForPrototype(session, objectWithPermissions, "OpResource");
+         addPermissionsForPrototype(session, objectWithPermissions, "OpResourcePool");
+         addPermissionsForPrototype(session, objectWithPermissions, "OpProjectNode");
+         addPermissionsForPrototype(session, objectWithPermissions, "OpProjectPlan");
+         addPermissionsForPrototype(session, objectWithPermissions, "OpProjectPlanVersion");
+         addPermissionsForPrototype(session, objectWithPermissions, "OpAttachment");
+      }
    }
 
    /**
@@ -65,25 +70,38 @@ public class OpUserModuleChecker implements OpModuleChecker {
     */
    private void addPermissionsForPrototype(OpProjectSession session, List objectWithPermissions, String prototype) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select obj from " + prototype + " obj where obj.ID not in (:adminObjects)");
-      query.setCollection("adminObjects", objectWithPermissions);
-      Iterator iterator = broker.iterate(query);
-      if (iterator.hasNext()) {
-         OpUser user = session.administrator(broker);
-         OpTransaction transaction = broker.newTransaction();
-         while (iterator.hasNext()) {
-            OpObject object = (OpObject) iterator.next();
-            OpPermission permission = new OpPermission();
-            permission.setObject(object);
-            permission.setSubject(user);
-            permission.setAccessLevel(OpPermission.ADMINISTRATOR);
-            broker.makePersistent(permission);
-            logger.info("Adding Administrator permission for object " + prototype + " with ID " + object.getID());
+      try {
+         String queryStr = "select obj from " + prototype + " obj";
+         OpQuery query = null;
+         
+         if (objectWithPermissions == null || objectWithPermissions.size() == 0) {
+            query = broker.newQuery(queryStr);
          }
-         transaction.commit();
+         else {
+            query = broker.newQuery(queryStr + " where obj.ID not in (:adminObjects)");
+            query.setCollection("adminObjects", objectWithPermissions);
+         }
+
+         Iterator iterator = broker.iterate(query);
+         if (iterator.hasNext()) {
+            OpUser user = session.administrator(broker);
+            OpTransaction transaction = broker.newTransaction();
+            while (iterator.hasNext()) {
+               OpObject object = (OpObject) iterator.next();
+               OpPermission permission = new OpPermission();
+               permission.setObject(object);
+               permission.setSubject(user);
+               permission.setAccessLevel(OpPermission.ADMINISTRATOR);
+               broker.makePersistent(permission);
+               logger.info("Adding Administrator permission for object " + prototype + " with ID " + object.getID());
+            }
+            transaction.commit();
+         }
       }
-      broker.closeAndEvict();
-      session.cleanupSession(false);
+      finally {
+         broker.closeAndEvict();
+         session.cleanupSession(false);
+      }
    }
 
 }

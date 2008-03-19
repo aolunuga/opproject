@@ -96,16 +96,25 @@ function sendReport(event) {
  */
 function invokeReportRequest(request, queryForm) {
    //get the report query - must be a map with: [queryString:String, queryParams:List]
-   query = queryForm.invokeFunction("getReportQuery");
-   request.setArgument("query", query);
+   queryFunction = "getReportQuery";
+   if (queryForm.hasFunction(queryFunction)) {
+      query = queryForm.invokeFunction(queryFunction);
+      request.setArgument("query", query);
+   }
 
    //get the report fields - must be a map with [fieldName:String, fieldIndex]
-   fields = queryForm.invokeFunction("getReportFields");
-   request.setArgument("fields", fields);
+   fieldsFunction = "getReportFields";
+   if (queryForm.hasFunction(fieldsFunction)) {
+      fields = queryForm.invokeFunction(fieldsFunction);
+      request.setArgument("fields", fields);
+   }
 
    //the id of the resource map id that the report may use
-   resourceMapId = queryForm.invokeFunction("getResourceMapId");
-   request.setArgument("resourceMapId", resourceMapId);
+   resourceFunction = "getResourceMapId";
+   if (queryForm.hasFunction(resourceFunction)) {
+      resourceMapId = queryForm.invokeFunction("getResourceMapId");
+      request.setArgument("resourceMapId", resourceMapId);
+   }
 
    //the subreport data - if any. This function is not mandatory. Only reports with subreports should implement it.
    //The expected return type should be a map with the following structure:
@@ -120,6 +129,20 @@ function invokeReportRequest(request, queryForm) {
    if (queryForm.hasFunction(subreportFunctionName)) {
       subReportData = queryForm.invokeFunction(subreportFunctionName);
       request.setArgument("subReportData", subReportData);
+   }
+
+   //parameters, if available
+   paramFunctionName = "getReportParameters";
+   if (queryForm.hasFunction(paramFunctionName)) {
+      paramMap = queryForm.invokeFunction(paramFunctionName);
+      request.setArgument("reportParameters", paramMap);
+   }
+
+   //custom data source, if available
+   dataSourceFunctionName = "getCustomDataSource";
+   if (queryForm.hasFunction(dataSourceFunctionName)) {
+      dataSourceName = queryForm.invokeFunction(dataSourceFunctionName);
+      request.setArgument("customDataSource", dataSourceName);
    }
 
    response = XDisplay.getClient().invokeMethod(request);

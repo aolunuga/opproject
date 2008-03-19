@@ -6,6 +6,7 @@ package onepoint.project.modules.project;
 
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
+import onepoint.log.XLog;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.persistence.OpObjectOrderCriteria;
@@ -18,7 +19,14 @@ import onepoint.project.modules.user.OpLock;
 import onepoint.project.modules.user.OpPermission;
 import onepoint.project.util.OpProjectConstants;
 import onepoint.resource.XLocalizer;
+import onepoint.util.XEncodingHelper;
+import onepoint.util.XEnvironmentManager;
+import onepoint.util.XIOHelper;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public final class OpProjectDataSetFactory {
@@ -215,7 +223,7 @@ public final class OpProjectDataSetFactory {
     *
     * @return a <code>XComponent(DATA_ROW)</code>.
     * @see OpProjectDataSetFactory#populateProjectNodeDataSet(onepoint.project.OpProjectSession,onepoint.persistence.OpBroker,
-    *onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
+    *      onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
     */
    private static XComponent createProjectNodeBasicRow(OpProjectSession session, OpBroker broker, OpProjectNode projectNode,
         XLocalizer localizer, boolean tabular, int outlineLevel) {
@@ -324,83 +332,109 @@ public final class OpProjectDataSetFactory {
    public static void retrieveProjectDataSetRootHierarchy(OpProjectSession session, XComponent dataSet, int types,
         boolean tabular, List idsToFilter) {
       OpBroker broker = session.newBroker();
+      try {
+         // Localizer is used in order to localize name and description of root project portfolio
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
 
+         Map projectNodes = getProjectNodes(types, broker, -1);
+         OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
+         Iterator it = session.accessibleObjects(broker, projectNodes.keySet(), OpPermission.OBSERVER, order);
+         while (it.hasNext()) {
+            OpProjectNode projectNode = (OpProjectNode) it.next();
+            String locatorString = OpLocator.locatorString(projectNode);
+            if (idsToFilter != null && idsToFilter.contains(locatorString)) {
+               continue;
+            }
+
+            XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, tabular, 0);
+            dataSet.addChild(dataRow);
+
+            long childCount = ((Number) projectNodes.get(new Long(projectNode.getID()))).longValue();
+            boolean childrenAdded = false;
+            if (childCount > 0) {
+               List firstLevelChildren = retrieveProjectNodeChildren(session, dataRow, types, tabular, idsToFilter);
+               for (int i = 0; i < firstLevelChildren.size(); i++) {
+                  XComponent child = (XComponent) firstLevelChildren.get(i);
+                  dataSet.addChild(child);
+                  childrenAdded = true;
+               }
+            }
+
+            if (childrenAdded) {
+               //mark the level 0 nodes as expanded (if they show any children)
+               XComponent expandedDataCell = new XComponent(XComponent.DATA_CELL);
+               expandedDataCell.setBooleanValue(true);
+               dataRow.addChild(expandedDataCell);
+            }
+         }
+      }
+      finally {
+         broker.close();
+      }
+   }
+
+   /**
+    * Returns all the projects located in the subtree (from the whole project hierarchy) for which the project (whose
+    * id is passed as parameter) is the root.
+    *
+    * @param session      - the <code>OpProjectSession</code> object.
+    * @param projectId    - the id of the project whose subprojects are loaded.
+    * @param outlineLevel - the outline level of the project.
+    * @return all the projects located in the subtree (from the whole project hierarchy) for which the project (whose
+    *         id is passed as parameter) is the root.
+    */
+   public static List<XComponent> getAllSubprojects(OpProjectSession session, Long projectId, Integer outlineLevel) {
       // Localizer is used in order to localize name and description of root project portfolio
       XLocalizer localizer = new XLocalizer();
       localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
 
-      Map projectNodes = getProjectNodes(types, broker, -1);
+      List<XComponent> subProjectRows = new ArrayList<XComponent>();
+      OpBroker broker = session.newBroker();
+      Map projectNodes = getProjectNodes(ALL_TYPES, broker, projectId);
       OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
       Iterator it = session.accessibleObjects(broker, projectNodes.keySet(), OpPermission.OBSERVER, order);
       while (it.hasNext()) {
          OpProjectNode projectNode = (OpProjectNode) it.next();
-         String locatorString = OpLocator.locatorString(projectNode);
-         if (idsToFilter != null && idsToFilter.contains(locatorString)) {
-            continue;
-         }
-
-         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, tabular, 0);
-         dataSet.addChild(dataRow);
+         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, true, outlineLevel + 1);
+         subProjectRows.add(dataRow);
 
          long childCount = ((Number) projectNodes.get(new Long(projectNode.getID()))).longValue();
-         boolean childrenAdded = false;
          if (childCount > 0) {
-            List firstLevelChildren = retrieveProjectNodeChildren(session, dataRow, types, tabular, idsToFilter);
-            for (int i = 0; i < firstLevelChildren.size(); i++) {
-               XComponent child = (XComponent) firstLevelChildren.get(i);
-               dataSet.addChild(child);
-               childrenAdded = true;
-            }
-         }
+            List<XComponent> nodeChildren = getAllSubprojects(session, projectNode.getID(), outlineLevel + 1);
+            subProjectRows.addAll(nodeChildren);
 
-         if (childrenAdded) {
-            //mark the level 0 nodes as expanded (if they show any children)
+            //mark the data row as expanded (because it has children)
             XComponent expandedDataCell = new XComponent(XComponent.DATA_CELL);
             expandedDataCell.setBooleanValue(true);
             dataRow.addChild(expandedDataCell);
          }
       }
-      broker.close();
-   }
-
-   /**
-    * Retrieves all projects from the db and fills the <code>XComponent</code> data set passed as paramenter with
-    *    the data belonging to these projects.
-    *
-    * @param session     a <code>OpProjectSession</code> representing the server session.
-    */
-   public static void retrieveAllProjects(OpProjectSession session, XComponent projectsDataSet) {
-      ArrayList<String> projectsLocators = retrieveArchivedProjects(session, false);
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
-      OpBroker broker = session.newBroker();
-
-      for(String locator : projectsLocators) {
-         OpProjectNode projectNode = (OpProjectNode) broker.getObject(locator);
-
-         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, true, 0);
-         projectsDataSet.addChild(dataRow);
-      }
-      broker.close();
+      return subProjectRows;
    }
 
    /**
     * Returns a list with the locators of all the project which are or aren't archived.
-    * @param session a <code>OpProjectSession</code> a server session.
+    *
+    * @param session  a <code>OpProjectSession</code> a server session.
     * @param archived a <code>boolean</code> indicating whether to search for archived or non-archived projects.
     * @return a <code>List(String)</code> a list of project locators.
     */
    public static ArrayList<String> retrieveArchivedProjects(OpProjectSession session, boolean archived) {
       ArrayList<String> result = new ArrayList<String>();
       OpBroker broker = session.newBroker();
-      OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
-      projectsQuery.setParameter("type", OpProjectNode.PROJECT);
-      projectsQuery.setParameter("archived", archived);
-      for (Iterator it = broker.iterate(projectsQuery); it.hasNext(); ) {
-         String locator = ((OpProjectNode) it.next()).locator();
-         result.add(locator);
+      try {
+         OpQuery projectsQuery = broker.newQuery("from OpProjectNode projectNode where projectNode.Type=:type and projectNode.Archived=:archived");
+         projectsQuery.setParameter("type", OpProjectNode.PROJECT);
+         projectsQuery.setParameter("archived", archived);
+         for (Iterator it = broker.iterate(projectsQuery); it.hasNext();) {
+            String locator = ((OpProjectNode) it.next()).locator();
+            result.add(locator);
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return result;
    }
 
@@ -421,34 +455,37 @@ public final class OpProjectDataSetFactory {
          return result;
       }
       OpBroker broker = session.newBroker();
+      try {
+         XLocalizer localizer = new XLocalizer();
+         localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
 
-      XLocalizer localizer = new XLocalizer();
-      localizer.setResourceMap(session.getLocale().getResourceMap(PROJECT_OBJECTS));
+         String parentLocator = tabular ? parentNode.getStringValue() : XValidator.choiceID(parentNode.getStringValue());
+         long parentId = OpLocator.parseLocator(parentLocator).getID();
 
-      String parentLocator = tabular ? parentNode.getStringValue() : XValidator.choiceID(parentNode.getStringValue());
-      long parentId = OpLocator.parseLocator(parentLocator).getID();
+         Map projectNodes = getProjectNodes(types, broker, parentId);
+         OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
+         Iterator it = session.accessibleObjects(broker, projectNodes.keySet(), OpPermission.OBSERVER, order);
 
-      Map projectNodes = getProjectNodes(types, broker, parentId);
-      OpObjectOrderCriteria order = new OpObjectOrderCriteria(OpProjectNode.PROJECT_NODE, OpProjectNode.NAME, OpObjectOrderCriteria.ASCENDING);
-      Iterator it = session.accessibleObjects(broker, projectNodes.keySet(), OpPermission.OBSERVER, order);
+         int outlineLevel = parentNode.getOutlineLevel() + 1;
+         while (it.hasNext()) {
+            OpProjectNode projectNode = (OpProjectNode) it.next();
+            String locatorString = OpLocator.locatorString(projectNode);
+            if (idsToFilter != null && idsToFilter.contains(locatorString)) {
+               continue;
+            }
 
-      int outlineLevel = parentNode.getOutlineLevel() + 1;
-      while (it.hasNext()) {
-         OpProjectNode projectNode = (OpProjectNode) it.next();
-         String locatorString = OpLocator.locatorString(projectNode);
-         if (idsToFilter != null && idsToFilter.contains(locatorString)) {
-            continue;
-         }
-
-         XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, tabular, outlineLevel);
-         result.add(dataRow);
-         int childCount = ((Number) projectNodes.get(new Long(projectNode.getID()))).intValue();
-         if (projectNode.getType() == OpProjectNode.PORTFOLIO && childCount > 0 && hasNonFilteredChildren(projectNode, idsToFilter)) {
-            XComponent dummyChild = createDummyChild(dataRow);
-            result.add(dummyChild);
+            XComponent dataRow = createProjectNodeAdvancedRow(session, broker, projectNode, localizer, tabular, outlineLevel);
+            result.add(dataRow);
+            int childCount = ((Number) projectNodes.get(new Long(projectNode.getID()))).intValue();
+            if (projectNode.getType() == OpProjectNode.PORTFOLIO && childCount > 0 && hasNonFilteredChildren(projectNode, idsToFilter)) {
+               XComponent dummyChild = createDummyChild(dataRow);
+               result.add(dummyChild);
+            }
          }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return result;
    }
 
@@ -578,7 +615,7 @@ public final class OpProjectDataSetFactory {
     *
     * @return a <code>XComponent(DATA_ROW)</code>.
     * @see OpProjectDataSetFactory#populateProjectNodeDataSet(onepoint.project.OpProjectSession,onepoint.persistence.OpBroker,
-    *onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
+    *      onepoint.persistence.OpQuery,onepoint.resource.XLocalizer,boolean,int,onepoint.express.XComponent)
     */
    private static XComponent createProjectNodeAdvancedRow(OpProjectSession session, OpBroker broker, OpProjectNode projectNode,
         XLocalizer localizer, boolean tabular, int outlineLevel) {
@@ -634,7 +671,7 @@ public final class OpProjectDataSetFactory {
          dataRow.addChild(dataCell);
 
          //for portofolios add empty cells for effors and costs and cells with values set to 0 for deviations
-         if(projectNode.getType() != OpProjectNode.PROJECT){
+         if (projectNode.getType() != OpProjectNode.PROJECT) {
             addPortofolioCostAndEffortCells(dataRow);
          }
          //for regular projects calculate the values of the cells
@@ -673,7 +710,7 @@ public final class OpProjectDataSetFactory {
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
       Object[] record;
-      for (Iterator completes = broker.iterate(query); completes.hasNext(); ) {
+      for (Iterator completes = broker.iterate(query); completes.hasNext();) {
          record = (Object[]) completes.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -706,7 +743,7 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      for (Iterator resources = broker.iterate(query); resources.hasNext(); ) {
+      for (Iterator resources = broker.iterate(query); resources.hasNext();) {
          Object[] record = (Object[]) resources.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -741,7 +778,7 @@ public final class OpProjectDataSetFactory {
       OpQuery query = broker.newQuery(queryBuffer.toString());
       query.setLong("projectId", projectId);
       query.setCollection("activityTypes", activityTypes);
-      for (Iterator costs = broker.iterate(query); costs.hasNext(); ) {
+      for (Iterator costs = broker.iterate(query); costs.hasNext();) {
          Object[] record = (Object[]) costs.next();
          Double sum1 = (Double) record[0];
          Double sum2 = (Double) record[1];
@@ -965,49 +1002,6 @@ public final class OpProjectDataSetFactory {
    }
 
    /**
-    * Creates a map of projects->resources for the current session user taking into account his permissions over the projects.
-    * Contains all the resources from projects where the user has atleast MANAGER permissions and all the resources
-    * for which is reposnsible from projects where is CONTRIBUTOR.
-    *
-    * @param session Current project session (used for db access and current user)
-    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
-    */
-   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
-      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
-      OpBroker broker = session.newBroker();
-      long userId = session.getUserID();
-
-      // add all the resources for which is responsible from project where the user has contributer access
-      List<Byte> levels = new ArrayList<Byte>();
-      //add all the projects the user has access to (at least CONTRIBUTOR)
-      levels.add(OpPermission.CONTRIBUTOR);
-      List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, true);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
-      // add all the resources from project where the user has manager access
-      levels.clear();
-      levels.add(OpPermission.ADMINISTRATOR);
-      levels.add(OpPermission.MANAGER);
-      projectIds = getProjectsByPermissions(session, broker, levels);
-      for (Long id : projectIds) {
-         OpProjectNode project = (OpProjectNode) broker.getObject(OpProjectNode.class, id);
-         List<String> resources = getProjectResources(project, userId, false);
-         if (!resources.isEmpty()) {
-            projectsMap.put(XValidator.choice(project.locator(), project.getName()), resources);
-         }
-      }
-
-      broker.close();
-      return projectsMap;
-   }
-
-   /**
     * Get the list of reources linked to a given project
     *
     * @param project     the project node
@@ -1050,11 +1044,11 @@ public final class OpProjectDataSetFactory {
 
    /**
     * Adds 12 cells to the dataRow parameter. These cells will contain information about the efforts and costs regarding
-    *    the project that is being represented by the dataRow parameter.
+    * the project that is being represented by the dataRow parameter.
     *
-    * @param dataRow - the <code>XComponent</code> data row to which the cells are added
+    * @param dataRow       - the <code>XComponent</code> data row to which the cells are added
     * @param effortDataSet - the <code>XComponent</code> data set from which the information about the efforts is taken
-    * @param costDataSet - the <code>XComponent</code> data set from which the information about the costs is taken.
+    * @param costDataSet   - the <code>XComponent</code> data set from which the information about the costs is taken.
     */
    private static void addProjectCostAndEffortCells(XComponent dataRow, XComponent effortDataSet, XComponent costDataSet) {
       //11 - base effort
@@ -1071,7 +1065,7 @@ public final class OpProjectDataSetFactory {
 
       //13 - predicted effort
       dataCell = new XComponent(XComponent.DATA_CELL);
-      double predictedEffort = predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
+      double predictedEffort = effortDataSet.calculateDoubleSum(OpProjectResourceDataSetFactory.PREDICTED_COLUMN_INDEX, 0);
       dataCell.setDoubleValue(predictedEffort);
       dataRow.addChild(dataCell);
 
@@ -1131,21 +1125,26 @@ public final class OpProjectDataSetFactory {
    /**
     * Returns a map with the project locators and the ids of the baselines for those projects
     * which have a baseline set.
+    *
     * @param session a <code>OpProjectSession</code> a server session.
     * @return a <code>Map(String, Long)</code> with (projectLocator, baselineID) pairs.
     */
    public static Map<String, Long> getProjectsWithBaseline(OpProjectSession session) {
       Map<String, Long> result = new HashMap<String, Long>();
       OpBroker broker = session.newBroker();
-      String projectsQueryString = "select planVersion from OpProjectNode project inner join  project.Plan plan inner join plan.Versions planVersion where planVersion.Baseline=true";
-      OpQuery query = broker.newQuery(projectsQueryString);
-      Iterator<OpProjectPlanVersion> it = broker.iterate(query);
-      while (it.hasNext()) {
-         OpProjectPlanVersion baseline = it.next();
-         OpProjectNode project = baseline.getProjectPlan().getProjectNode();
-         result.put(project.locator(), baseline.getID());
+      try {
+         String projectsQueryString = "select planVersion from OpProjectNode project inner join  project.Plan plan inner join plan.Versions planVersion where planVersion.Baseline=true";
+         OpQuery query = broker.newQuery(projectsQueryString);
+         Iterator<OpProjectPlanVersion> it = broker.iterate(query);
+         while (it.hasNext()) {
+            OpProjectPlanVersion baseline = it.next();
+            OpProjectNode project = baseline.getProjectPlan().getProjectNode();
+            result.put(project.locator(), baseline.getID());
+         }
       }
-      broker.close();
+      finally {
+         broker.close();
+      }
       return result;
    }
 
@@ -1219,5 +1218,86 @@ public final class OpProjectDataSetFactory {
          return counter.intValue();
       }
       return 0;
+   }
+
+   /**
+    * Creates a temporary file with the content of an attachment or a document.
+    *
+    * @param location a <code>String</code> representing the location of the real attachment/document object.
+    * @param content  <code>InputStream</code> representing the content of the attachment/document.
+    * @param logger   <code>XLog</code> needed to log the possible errors.
+    * @return a <code>String</code> representing an URL-like path to a temporary file that has the same content as the
+    *         attachment/document.
+    */
+   public static String createTemporaryAttachment(String location, InputStream content, XLog logger) {
+      int extensionIndex = location.lastIndexOf(".");
+      String prefix = location;
+      String suffix = null;
+      if (extensionIndex != -1) {
+         prefix = location.substring(0, extensionIndex);
+         suffix = location.substring(extensionIndex, location.length());
+      }
+      if (prefix.length() < 3) {
+         prefix = "file" + prefix;
+      }
+
+      try {
+         File temporaryFile = File.createTempFile(prefix, suffix, new File(XEnvironmentManager.TMP_DIR));
+         temporaryFile.deleteOnExit();
+         FileOutputStream fos = new FileOutputStream(temporaryFile);
+         XIOHelper.copy(content, fos);
+         fos.flush();
+         fos.close();
+         content.close();
+         return XEncodingHelper.encodeValue(temporaryFile.getName());
+      }
+      catch (IOException e) {
+         logger.error("Cannot create temporary attachment or document file on server", e);
+      }
+      return null;
+   }
+
+   /**
+    * Returns a map of projects and list of resources for each project, where the current user is
+    * at least observer on the project. The resource will be the ones the user is responsible for or has at least
+    * manager permissions on them.
+    *
+    * @param session Current project session (used for db access and current user)
+    * @return Map of key: project_locator/project_name choice -> value: List of resource_locator/resource_name choices
+    */
+   public static Map<String, List<String>> getProjectToResourceMap(OpProjectSession session) {
+      Map<String, List<String>> projectsMap = new HashMap<String, List<String>>();
+      OpBroker broker = session.newBroker();
+      try {
+         long userId = session.getUserID();
+
+         // add all the resources for which is responsible from project where the user has contributer access
+         List<Byte> levels = new ArrayList<Byte>();
+
+         //add only the responsible resources (or at least manager permission) for the projects where the user is  OBSERVER, CONTRIBUTOR, ADMINISTRATOR or MANAGER
+         levels.add(OpPermission.OBSERVER);
+         levels.add(OpPermission.CONTRIBUTOR);
+         levels.add(OpPermission.ADMINISTRATOR);
+         levels.add(OpPermission.MANAGER);
+         List<Long> projectIds = getProjectsByPermissions(session, broker, levels);
+         for (Long id : projectIds) {
+            OpProjectNode project = broker.getObject(OpProjectNode.class, id);
+            List<String> allResources = new ArrayList<String>();
+            for (OpProjectNodeAssignment assignment : project.getAssignments()) {
+               OpResource resource = assignment.getResource();
+               boolean isResponsible = resource.getUser() != null && resource.getUser().getID() == userId;
+               if (isResponsible || session.checkAccessLevel(broker, resource.getID(), OpPermission.MANAGER)) {
+                  allResources.add(XValidator.choice(resource.locator(), resource.getName()));
+               }
+            }
+            if (!allResources.isEmpty()) {
+               projectsMap.put(XValidator.choice(project.locator(), project.getName()), allResources);
+            }
+         }
+      }
+      finally {
+         broker.close();
+      }
+      return projectsMap;
    }
 }

@@ -4,13 +4,27 @@
 
 package onepoint.project.modules.project.forms;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
 import onepoint.express.XComponent;
 import onepoint.express.XValidator;
 import onepoint.express.server.XFormProvider;
 import onepoint.persistence.OpBroker;
 import onepoint.persistence.OpLocator;
 import onepoint.project.OpProjectSession;
-import onepoint.project.modules.project.*;
+import onepoint.project.modules.project.OpActivityDataSetFactory;
+import onepoint.project.modules.project.OpGoal;
+import onepoint.project.modules.project.OpProjectAdministrationService;
+import onepoint.project.modules.project.OpProjectDataSetFactory;
+import onepoint.project.modules.project.OpProjectModule;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectNodeAssignment;
+import onepoint.project.modules.project.OpProjectPlan;
+import onepoint.project.modules.project.OpProjectPlanVersion;
+import onepoint.project.modules.project.OpProjectStatus;
 import onepoint.project.modules.resource.OpResource;
 import onepoint.project.modules.resource.OpResourceDataSetFactory;
 import onepoint.project.modules.user.OpPermission;
@@ -20,9 +34,9 @@ import onepoint.resource.XLocalizer;
 import onepoint.service.server.XSession;
 import onepoint.util.XCalendar;
 
-import java.util.*;
-
 public class OpEditProjectFormProvider implements XFormProvider {
+
+   protected final static String SUB_TYPE_FIELD = "SubTypeField";
 
    /**
     * Form field ids and parameter ids.
@@ -42,7 +56,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String ORIGINAL_START_DATE = "OriginalStartDate";
    private final static String GOALS_SET = "GoalsSet";
    private final static String PERMISSION_SET = "PermissionSet";
-   private final static String ATTACHMENTS_SET = "AttachmentSet";
    private final static String PROJECT_STATUS_DATA_SET = "ProjectStatusDataSet";
    private final static String PROJECT_STATUS_CHOICE = "StatusChoice";
    private final static String PROJECT_INFO = "project.Info";
@@ -67,10 +80,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
    private final static String PROJECT_INFO_RESOURCE = "InfoProject";
    private final static String MODIFIED_RATES = "ModifiedRates";
 
-   private final static String ADD_DOCUMENT_BUTTON = "AddDocumentButton";
-   private final static String ADD_URL_BUTTON = "AddURLButton";
-   private final static String REMOVE_ATTACHMENT_BUTTON = "RemoveAttachmentButton";
-   private final static String ATTACHMENTS_TOOL_PANEL = "AttachmentsToolPanel";
    private final static Integer SORT_DATA_CELL_INDEX = 0;
 
    /**
@@ -79,28 +88,33 @@ public class OpEditProjectFormProvider implements XFormProvider {
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         form.findComponent(MODIFIED_RATES).setBooleanValue(false);
+         // Find project in database
+         String id_string = (String) (parameters.get(OpProjectAdministrationService.PROJECT_ID));
+         OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
+         form.findComponent(PROJECT_ID).setStringValue(id_string);
 
-      form.findComponent(MODIFIED_RATES).setBooleanValue(false);
-      // Find project in database
-      String id_string = (String) (parameters.get(OpProjectAdministrationService.PROJECT_ID));
-      OpProjectNode project = (OpProjectNode) (broker.getObject(id_string));
-      form.findComponent(PROJECT_ID).setStringValue(id_string);
+         // Downgrade edit mode to view mode if no manager access
+         Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
+         byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
+         if (editMode && (accessLevel < OpPermission.CONTRIBUTOR)) {
+            editMode = Boolean.FALSE;
+         }
+         form.findComponent(EDIT_MODE).setBooleanValue(editMode);
 
-      // Downgrade edit mode to view mode if no manager access
-      Boolean editMode = (Boolean) parameters.get(OpProjectAdministrationService.EDIT_MODE);
-      byte accessLevel = session.effectiveAccessLevel(broker, project.getID());
-      if (editMode && (accessLevel < OpPermission.CONTRIBUTOR)) {
-         editMode = Boolean.FALSE;
+         // disable sub types
+         form.findComponent(SUB_TYPE_FIELD).setEnabled(false);
+
+         //update components which are not project-related
+         this.updateComponentsProjectUnrelated(session, broker, form, editMode, project, parameters);
+
+         //update components which are project related
+         this.fillDataFromProject(form, project, broker, session, editMode, parameters);
       }
-      form.findComponent(EDIT_MODE).setBooleanValue(editMode);
-
-      //update components which are not project-related
-      this.updateComponentsProjectUnrelated(session, broker, form, editMode, project, parameters);
-
-      //update components which are project related
-      this.fillDataFromProject(form, project, broker, session, editMode, parameters);
-
-      broker.close();
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -188,9 +202,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
 
       //fill permissions
       this.fillPermissions(session, broker, form, project, hasUserPermissions(session, broker, project, parameters, OpPermission.MANAGER));
-
-      //fill attachments
-      this.fillAttachments(form, project, editMode);
    }
 
    /**
@@ -250,12 +261,13 @@ public class OpEditProjectFormProvider implements XFormProvider {
       dataSet.sort(1);
 
       form.findComponent(GOALS_TABLE_BOX).setEditMode(editMode);
+      form.findComponent(GOALS_TABLE_BOX).setSelectionModel(XComponent.CELL_SELECTION);
       form.findComponent(GOALS_TABLE_BOX).setEnabled(editMode);
       form.findComponent(GOALS_TOOLS_PANEL).setVisible(editMode);
    }
 
    /**
-    * Fills the edit form with projec versions.
+    * Fills the edit form with project versions.
     *
     * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
     * @param editMode a <code>boolean</code> indicating whether it's and edit or view operation.
@@ -411,6 +423,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          versionsDataSet.addChild(rowsMap.get(versionNumber));
       }
       form.findComponent(VERSIONS_TABLE).setEditMode(true);
+      form.findComponent(VERSIONS_TABLE).setSelectionModel(XComponent.CELL_SELECTION);
    }
 
    /**
@@ -499,28 +512,6 @@ public class OpEditProjectFormProvider implements XFormProvider {
       //</FIXME>
 
       return dataRow;
-   }
-
-
-   /**
-    * Fills the attachments for the edited project.
-    *
-    * @param form     a <code>XComponent(FORM)</code> representing the edit project form.
-    * @param project  a <code>OpProjectNode</code> representing the project being edited.
-    * @param editMode a <code>boolean</code> indicating whether an edit or view is performed.
-    */
-   private void fillAttachments(XComponent form, OpProjectNode project, boolean editMode) {
-
-      List<List> attachmentList = new ArrayList<List>();
-      OpActivityDataSetFactory.retrieveAttachments(project.getAttachments(), attachmentList);
-
-      XComponent attachmentSet = form.findComponent(ATTACHMENTS_SET);
-      OpAttachmentDataSetFactory.fillAttachmentsDataSet(attachmentList, attachmentSet);
-
-      form.findComponent(ADD_DOCUMENT_BUTTON).setEnabled(editMode);
-      form.findComponent(ADD_URL_BUTTON).setEnabled(editMode);
-      form.findComponent(REMOVE_ATTACHMENT_BUTTON).setEnabled(editMode);
-      form.findComponent(ATTACHMENTS_TOOL_PANEL).setVisible(editMode);
    }
 
    /**
@@ -619,6 +610,7 @@ public class OpEditProjectFormProvider implements XFormProvider {
          dataSet.sort(SORT_DATA_CELL_INDEX);
       }
       form.findComponent(RESOURCES_TABLE).setEditMode(editMode);
+      form.findComponent(RESOURCES_TABLE).setSelectionModel(XComponent.CELL_SELECTION);
       form.findComponent(RESOURCE_TOOL_PANEL).setVisible(editMode);
    }
 

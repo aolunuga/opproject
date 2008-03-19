@@ -4,8 +4,8 @@
 
 // Open activity details script
 
-require
-"onepoint/project/modules/project_planning/scripts/add_resource.jes";
+require "onepoint/project/modules/project_planning/scripts/add_resource.jes";
+require "onepoint/project/team/modules/custom_attribute/scripts/custom_attributes_helper.jes";
 
 import
 onepoint.project.modules.project.components.OpGanttValidator;
@@ -113,6 +113,7 @@ function editActivity(event) {
          hiddenTabsIds[0] = "PredecessorTab";
 
          addAlwaysDisableFields(disabledFieldsIds);
+
          baseEditActivity(titleComponentId, edit_mode, is_template, disabledFieldsIds, hiddenFieldsIds, hiddenTabsIds, false);
       }
       if (activity_type == 4) {
@@ -485,7 +486,6 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       resourceAvailabilityMap = XDisplay.getActiveForm().findComponent("ResourceAvailability");
       dialogAvailabilityMap = dialog_form.findComponent("ResourceAvailability");
       dialogAvailabilityMap.setValue(resourceAvailabilityMap.getValue());
-
       //predecessor tab
       if (!shouldHideTab("PredecessorTab", hiddenTabsIds, dialog_form)) {
          // Fill predecessors tab: Reuse activity data-set from activities form
@@ -521,8 +521,10 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
       if (!shouldHideTab("CostsTab", hiddenTabsIds, dialog_form)) {
          //personnel costs (edit mode false by default)
          data_cell = data_row.getChild(11);
+
          field_id = "PersonnelCosts";
          if (!shouldHideField(field_id, hiddenFieldIds, dialog_form)) {
+
             personnel_costs_field = dialog_form.findComponent(field_id);
             personnel_costs_field.setDoubleValue(data_cell.getDoubleValue());
             setFieldEditMode(edit_mode, personnel_costs_field, disabledFieldsIds);
@@ -563,7 +565,6 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
             miscellaneous_costs_field.setDoubleValue(data_cell.getDoubleValue());
             setFieldEditMode(edit_mode, miscellaneous_costs_field, disabledFieldsIds);
          }
-
          //proceeds costs
          data_cell = data_row.getChild(30);
          field_id = "ProceedsCosts";
@@ -629,6 +630,7 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
             attachment_set.addDataRow(data_row);
             i++;
          }
+
          // addURL/addDocument/remove/view attachements buttons visibility according to edit mode
          add_document_button = dialog_form.findComponent("AddDocumentButton");
          setButtonVisibleMode(edit_mode, add_document_button);
@@ -640,12 +642,29 @@ function baseEditActivity(titleComponentId, edit_mode, is_template, disabledFiel
          setButtonVisibleMode(edit_mode, view_button);
       }
 
+      // FIXME (dfreis) should be done for team edition only
+      // custom attributes
+      
+      data_cell = data_row.getChild(32);
+      field_id = "customAttributes";
+      customAttributesField = dialog_form.findComponent(field_id);
+      if (data_cell.getValue() != null) { // only if we have current edited, unsaved values
+         // lazy load custom attributes
+         setCustomValues(dialog_form, data_cell.getValue());
+      }
+      else {
+         // get stored values
+         updateCustomAttributes(dialog_form, "SubjectIDField", "onepoint.project.modules.project.OpActivity", null, false, edit_mode);
+      }
+      customAttributesField.setValue(data_cell.getValue());
+
       //cancel button visibility according to project edit mode
       cancel_button = dialog_form.findComponent("cancelButton");
       setButtonVisibleMode(edit_mode, cancel_button);
 
       // Show form
       dialog.open();
+
    }
 }
 

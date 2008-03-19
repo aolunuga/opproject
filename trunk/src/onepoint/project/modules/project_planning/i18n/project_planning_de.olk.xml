@@ -4,6 +4,8 @@
    </resource-map>
 
    <resource-map id="project_planning.activities">
+      <resource id="ProjectLocked">Projektplan wird derzeit bearbeitet von</resource>
+      <resource id="ControllingSheetsExist">Es existiert ein Controlling-Blatt zu dieser Arbeitskopie</resource>
       <resource id="EditPlan">Bearbeiten</resource>
       <resource id="Save">Speichern</resource>
       <resource id="CheckIn">Freigeben</resource>
@@ -94,6 +96,9 @@
       <resource id="TaskExtraResourceErrorMessage">Aufgaben erlauben nur eine einzelne Ressourcenzuweisung</resource>
       <resource id="InvalidPriorityErrorMessage">Die Priorität ist außerhalb des gültigen Wertebereichs (1-9)</resource>
       <resource id="InvalidPaymentErrorMessage">Entered payment value is not valid</resource>
+      <resource id="BaseEffortBelowActualErrorMessage">The planned effort should not be less than the actual effort.</resource>
+      <resource id="CannotMoveRootActivityErrorMessage">Der erste Vorgang kann nicht eingerückt werden.</resource>
+      <resource id="OutlineLevelInvalidErrorMessage">Diese Veränderung würde ein ungültige Vorgangshierarchie erzeugen</resource>
 
       <resource id="ImportProjectTitle">Projektplan importieren</resource>
       <resource id="ExportProjectTitle">Projektplan exportieren</resource>
@@ -156,6 +161,7 @@
 
       <resource id="Costs">Kosten</resource>
       <resource id="Personnel">Personal ({CurrencySymbol})</resource>
+      <resource id="Billable">% Verrechenbar</resource>
       <resource id="Travel">Reise ({CurrencySymbol})</resource>
       <resource id="Material">Material ({CurrencySymbol})</resource>
       <resource id="External">Externe ({CurrencySymbol})</resource>

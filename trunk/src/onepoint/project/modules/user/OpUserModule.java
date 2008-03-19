@@ -26,18 +26,21 @@ public class OpUserModule extends OpModule {
    public void start(OpProjectSession session) {
       // Check if hard-wired group object "Everyone" exists (if not create it)
       OpBroker broker = session.newBroker();
-      if (session.administrator(broker) == null) {
-         OpUserService.createAdministrator(broker);
-      }
-      if (session.everyone(broker) == null) {
-         OpUserService.createEveryone(broker);
-      }
+      try {
+         if (session.administrator(broker) == null) {
+            OpUserService.createAdministrator(broker);
+         }
+         if (session.everyone(broker) == null) {
+            OpUserService.createEveryone(broker);
+         }
 
-      //register system objects with Backup manager
-      OpBackupManager.addSystemObjectIDQuery(OpUser.ADMINISTRATOR_NAME, OpUser.ADMINISTRATOR_ID_QUERY);
-      OpBackupManager.addSystemObjectIDQuery(OpGroup.EVERYONE_NAME, OpGroup.EVERYONE_ID_QUERY);
-
-      broker.closeAndEvict();
+         //register system objects with Backup manager
+         OpBackupManager.addSystemObjectIDQuery(OpUser.ADMINISTRATOR_NAME, OpUser.ADMINISTRATOR_ID_QUERY);
+         OpBackupManager.addSystemObjectIDQuery(OpGroup.EVERYONE_NAME, OpGroup.EVERYONE_ID_QUERY);
+      }
+      finally {
+         broker.closeAndEvict();
+      }
    }
 
    /**
@@ -46,11 +49,15 @@ public class OpUserModule extends OpModule {
     */
    public void upgradeToVersion12(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpTransaction t =  broker.newTransaction();
-      updateSystemObjectsName(session, broker);
-      updateSubjectsSourceFlag(broker);
-      t.commit();
-      broker.closeAndEvict();
+      try {
+         OpTransaction t =  broker.newTransaction();
+         updateSystemObjectsName(session, broker);
+         updateSubjectsSourceFlag(broker);
+         t.commit();
+      }
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -89,16 +96,20 @@ public class OpUserModule extends OpModule {
     */
    public void upgradeToVersion3(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpQuery query = broker.newQuery("select user from OpUser as user");
-      Iterator result = broker.iterate(query);
-      OpTransaction transaction  = broker.newTransaction();
-      while (result.hasNext()) {
-         OpUser user = (OpUser) result.next();
-         user.setLevel(OpUser.MANAGER_USER_LEVEL);
-         broker.updateObject(user);
+      try {
+         OpQuery query = broker.newQuery("select user from OpUser as user");
+         Iterator result = broker.iterate(query);
+         OpTransaction transaction  = broker.newTransaction();
+         while (result.hasNext()) {
+            OpUser user = (OpUser) result.next();
+            user.setLevel(OpUser.MANAGER_USER_LEVEL);
+            broker.updateObject(user);
+         }
+         transaction.commit();
       }
-      transaction.commit();
-      broker.closeAndEvict();
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
 

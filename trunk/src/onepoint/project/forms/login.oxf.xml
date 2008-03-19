@@ -6,12 +6,12 @@
       <panel layout="border" icon="/icons/login.png" flexible="false">
          <panel layout="table" width="5" style-ref="login-panel-default">
             <label x="0" y="0" width="5" id="ErrorLabel" visible="false" style-ref="label-error-default"/>
-            <label x="0" y="1" width="2" text="${Login}" style-ref="header-label-default"/>
+            <label x="0" y="1" width="2" text="${Login}" style-ref="wizard-label-default"/>
             <text-field x="2" y="1" width="3" id="Login"/>
             <!-- should be pop-up referencing UserDataSet instead of text field -->
-            <label x="0" y="2" width="2" text="${Password}" style-ref="header-label-default"/>
+            <label x="0" y="2" width="2" text="${Password}" style-ref="wizard-label-default"/>
             <text-field x="2" y="2" width="3" id="Password" secret="true"/>
-            <check-box x="2" y="3" width="3" id="Remember" text="${Remember}" boolean-value="false"/>
+            <check-box x="2" y="3" width="3" id="Remember" text="${Remember}" boolean-value="false" style-ref="wizard-label-default"/>
             <!-- should be password-field instead of text-field (not showing chars) -->
             <button x="2" y="4" id="okButton" text="${OK}" on-button-pressed="ok"/>
             <!-- layouting bug: Default button style is center/center but filled -->

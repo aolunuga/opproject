@@ -22,51 +22,71 @@ import java.util.Set;
  */
 public class OpTimeRecordDataSetFactory {
 
-    /**
+   /**
     * Creates a <code>XComponent</code> data row with the cell's values set from the <code>OpTimeRecord</code> entity
     *
     * @param timeRecord - the <code>OpTimeRecord</code> entity whose atributes will be set on the data row
     * @return a data row with the cell's values set from the <code>OpTimeRecord</code> entity
     */
-    private static XComponent createTimeRow(OpTimeRecord timeRecord) {
-       OpWorkTimeValidator timeValidator = new OpWorkTimeValidator();
-       XComponent dataRow = timeValidator.newDataRow();
-       XComponent dataCell;
+   private static XComponent createTimeRow(OpTimeRecord timeRecord) {
+      OpAssignment assignment = timeRecord.getWorkRecord().getAssignment();
+      return createRow(timeRecord, assignment);
+   }
 
-       OpActivity activity = timeRecord.getActivity();
-       OpProjectNode project = activity.getProjectPlan().getProjectNode();
-       OpResource resource = timeRecord.getWorkRecord().getAssignment().getResource();
+   private static XComponent createRow(OpTimeRecord timeRecord, OpAssignment assignment) {
+      OpActivity activity = assignment.getActivity();
+      OpProjectNode project = activity.getProjectPlan().getProjectNode();
+      OpResource resource = assignment.getResource();
 
-       //0 - set the name of the project
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.PROJECT_NAME_INDEX);
-       dataCell.setStringValue(XValidator.choice(project.locator(), project.getName()));
+      OpWorkTimeValidator timeValidator = new OpWorkTimeValidator();
+      XComponent dataRow = timeValidator.newDataRow();
+      XComponent dataCell;
 
-       //1 - set the name of the activity
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.ACTIVITY_NAME_INDEX);
-       String activityName = OpWorkSlipDataSetFactory.generateActivityName(activity);
-       dataCell.setStringValue(XValidator.choice(activity.locator(), activityName));
+      //0 - set the name of the project
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.PROJECT_NAME_INDEX);
+      dataCell.setStringValue(XValidator.choice(project.locator(), project.getName()));
 
-       //2 - set the name of the resource
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.RESOURCE_NAME_INDEX);
-       dataCell.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
+      //1 - set the name of the activity
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.ACTIVITY_NAME_INDEX);
+      String activityName = OpWorkSlipDataSetFactory.generateActivityName(activity);
+      dataCell.setStringValue(XValidator.choice(activity.locator(), activityName));
 
-       //3 - set the start time
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.START_INDEX);
-       dataCell.setIntValue(timeRecord.getStart());
+      //2 - set the name of the resource
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.RESOURCE_NAME_INDEX);
+      dataCell.setStringValue(XValidator.choice(resource.locator(), resource.getName()));
 
-       //4 - set the finish time
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.FINISH_INDEX);
-       dataCell.setIntValue(timeRecord.getFinish());
+      //3 - set the start time
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.START_INDEX);
+      if (timeRecord != null) {
+         dataCell.setIntValue(timeRecord.getStart());
+      }
+      else {
+         dataCell.setIntValue(0);
+      }
 
-       //5 - set the duration
-       dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.DURATION_INDEX);
-       dataCell.setIntValue(timeRecord.getDuration());
+      //4 - set the finish time
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.FINISH_INDEX);
+      if (timeRecord != null) {
+         dataCell.setIntValue(timeRecord.getFinish());
+      }
+      else {
+         dataCell.setIntValue(0);
+      }
 
-       //set the activity's assignment on the dataRow
-       dataRow.setValue(timeRecord.getWorkRecord().getAssignment().locator());
+      //5 - set the duration
+      dataCell = (XComponent) dataRow.getChild(OpWorkTimeValidator.DURATION_INDEX);
+      if (timeRecord != null) {
+         dataCell.setIntValue(timeRecord.getDuration());
+      }
+      else {
+         dataCell.setIntValue(0);
+      }
 
-       return dataRow;
-    }
+      //set the activity's assignment on the dataRow
+      dataRow.setValue(assignment.locator());
+
+      return dataRow;
+   }
 
    /**
     * Creates an <code>OpTimeRecord</code> entity from the data row's cell's values
@@ -78,10 +98,10 @@ public class OpTimeRecordDataSetFactory {
       OpTimeRecord timeRecord = new OpTimeRecord();
 
       //the work record will not be set on the timeRecord
-      timeRecord.setStart(((XComponent)dataRow.getChild(OpWorkTimeValidator.START_INDEX)).getIntValue());
-      timeRecord.setFinish(((XComponent)dataRow.getChild(OpWorkTimeValidator.FINISH_INDEX)).getIntValue());
-      timeRecord.setDuration(((XComponent)dataRow.getChild(OpWorkTimeValidator.DURATION_INDEX)).getIntValue());
-      
+      timeRecord.setStart(((XComponent) dataRow.getChild(OpWorkTimeValidator.START_INDEX)).getIntValue());
+      timeRecord.setFinish(((XComponent) dataRow.getChild(OpWorkTimeValidator.FINISH_INDEX)).getIntValue());
+      timeRecord.setDuration(((XComponent) dataRow.getChild(OpWorkTimeValidator.DURATION_INDEX)).getIntValue());
+
       return timeRecord;
    }
 
@@ -111,13 +131,13 @@ public class OpTimeRecordDataSetFactory {
     *
     * @param timeDataSet - the <code>XComponent</code> data set whose rows will form the list of time periods
     * @return a <code>List</code> of <code>OpTimePeriod</code> entities, each entity corresponding to a row in the
-    * data set.
+    *         data set.
     */
    public static Set<OpTimeRecord> createTimeRecords(XComponent timeDataSet) {
       Set<OpTimeRecord> timeRecords = new HashSet<OpTimeRecord>();
       OpTimeRecord timeRecord;
 
-      for(int i = 0; i < timeDataSet.getChildCount(); i++)  {
+      for (int i = 0; i < timeDataSet.getChildCount(); i++) {
          timeRecord = createTimeEntity((XComponent) timeDataSet.getChild(i));
          timeRecords.add(timeRecord);
       }
@@ -131,16 +151,16 @@ public class OpTimeRecordDataSetFactory {
     * The activity choice set rows will contain a data cell with the type of activity and a data cell with
     * the list of costs for that activity.
     *
-    * @param choiceProjectSet    - the <code>XComponent</code> choice project set
-    * @param choiceActivitySet   - the <code>XComponent</code> choice activity set
-    * @param choiceResourceSet   - the <code>XComponent</code> choice resource set
-    * @param assignmentList - the <code>List</code> of assignments.
+    * @param choiceProjectSet  - the <code>XComponent</code> choice project set
+    * @param choiceActivitySet - the <code>XComponent</code> choice activity set
+    * @param choiceResourceSet - the <code>XComponent</code> choice resource set
+    * @param assignmentList    - the <code>List</code> of assignments.
     */
    public static void fillChoiceDataSets(XComponent choiceProjectSet, XComponent choiceActivitySet, XComponent choiceResourceSet,
         List<OpAssignment> assignmentList) {
       OpActivity activity;
 
-      for(OpAssignment assignment : assignmentList) {
+      for (OpAssignment assignment : assignmentList) {
          activity = assignment.getActivity();
 
          //filter out milestones
@@ -154,5 +174,16 @@ public class OpTimeRecordDataSetFactory {
       //sort the project & resources data-sets ascending after name
       choiceProjectSet.sort();
       choiceResourceSet.sort();
+   }
+
+   /**
+    *
+    * Creates a <code>XComponent</code> data row with time information
+    *
+    * @param assignment - the assignment whose atributes will be set on the data row
+    * @return a data row with the cell's values set from the given entity
+    */
+   public static XComponent createTimeRowFromAssignment(OpAssignment assignment) {
+      return createRow(null, assignment);
    }
 }

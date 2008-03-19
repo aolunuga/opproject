@@ -8,7 +8,7 @@ require "onepoint/project/scripts/error.jes";
 require "onepoint/project/modules/work/scripts/work_time.jes";
 require "onepoint/project/modules/work/scripts/work_effort.jes";
 require "onepoint/project/modules/work/scripts/work_cost.jes";
-require "onepoint/project/modules/documents/scripts/documents.jes";
+require "onepoint/project/modules/documents/scripts/content.jes";
 
 import onepoint.express.XComponent;
 import onepoint.express.XDisplay;
@@ -81,7 +81,6 @@ function manageAttachments(event) {
 }
 
 function cancel(event) {
-   clearContents(event);
    XDisplay.getActiveWindow().close();
 }
 

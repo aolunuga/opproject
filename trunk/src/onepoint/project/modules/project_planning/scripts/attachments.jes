@@ -80,6 +80,21 @@ function view(event) {
 
             attachmentUrl = response.getArgument("attachmentUrl");
             contentId = response.getArgument("contentId");
+
+            //add the content id to the component that contains all the ids of the newly created and viewed contents
+            viewedContents = form.findComponent("ViewedNewContents");
+            if(viewedContents != null) {
+               if(viewedContents.getValue() == null) {
+                  viewedContentsList = new ArrayList;
+                  viewedContents.setListValue(viewedContentsList);
+               }
+               viewedContentsList = viewedContents.getValue();
+               if (!viewedContentsList.contains(contentId)) {
+                  viewedContentsList.add(contentId);
+               }
+            }
+
+            row.getChild(3).setValue(contentId);
             XDisplay.showDocument(attachmentUrl, contentId);
          }
       }

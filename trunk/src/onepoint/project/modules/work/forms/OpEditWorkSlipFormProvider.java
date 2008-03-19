@@ -12,7 +12,6 @@ import onepoint.persistence.OpObjectOrderCriteria;
 import onepoint.project.OpProjectSession;
 import onepoint.project.modules.project.OpActivity;
 import onepoint.project.modules.project.OpAssignment;
-import onepoint.project.modules.project.components.OpGanttValidator;
 import onepoint.project.modules.settings.OpSettings;
 import onepoint.project.modules.settings.OpSettingsService;
 import onepoint.project.modules.work.*;
@@ -60,92 +59,102 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
    private final static String ADD_COST_BUTTON = "AddCostButton";
    private final static String REMOVE_COST_BUTTON = "RemoveCostButton";
    private final static String ATTACHMENT_BUTTON = "AttachmentButton";
+   private final static String PRE_FILLED = "activitiesToFill";
 
    public void prepareForm(XSession s, XComponent form, HashMap parameters) {
       OpProjectSession session = (OpProjectSession) s;
       OpBroker broker = session.newBroker();
+      try {
+         boolean editMode = (Boolean) parameters.get("edit_mode");
+         form.findComponent("EditMode").setBooleanValue(editMode);
+         String workSlipLocator = (String) parameters.get(WORK_SLIP_ID);
+         // TODO: Error handling (not set)
 
-      boolean editMode = (Boolean) parameters.get("edit_mode");
-      form.findComponent("EditMode").setBooleanValue(editMode);
-      String workSlipLocator = (String) parameters.get(WORK_SLIP_ID);
-      // TODO: Error handling (not set)
+         OpWorkSlip workSlip = (OpWorkSlip) broker.getObject(workSlipLocator);
+         // TODO: Error handling (not found, access denied)
 
-      OpWorkSlip workSlip = (OpWorkSlip) broker.getObject(workSlipLocator);
-      // TODO: Error handling (not found, access denied)
+         form.findComponent("WorkSlipIDField").setStringValue(workSlipLocator);
+         XComponent dateField = form.findComponent(DATE_FIELD);
+         dateField.setDateValue(workSlip.getDate());
+         //date field always disabled for edit mode
+         dateField.setEnabled(false);
 
-      form.findComponent("WorkSlipIDField").setStringValue(workSlipLocator);
-      XComponent dateField = form.findComponent(DATE_FIELD);
-      dateField.setDateValue(workSlip.getDate());
-      //date field always disabled for edit mode
-      dateField.setEnabled(false);
+         //Get the effort, time and cost data sets
+         XComponent workEffortDataSet = form.findComponent(WORK_EFFORT_RECORD_SET);
+         XComponent workTimeDataSet = form.findComponent(WORK_TIME_RECORD_SET);
+         XComponent workCostDataSet = form.findComponent(WORK_COST_RECORD_SET);
 
-      //Get the effort, time and cost data sets
-      XComponent workEffortDataSet = form.findComponent(WORK_EFFORT_RECORD_SET);
-      XComponent workTimeDataSet = form.findComponent(WORK_TIME_RECORD_SET);
-      XComponent workCostDataSet = form.findComponent(WORK_COST_RECORD_SET);
-
-      Iterator workRecords = workSlip.getRecords().iterator();
-      List<OpWorkRecord> workRecordList = new ArrayList<OpWorkRecord>();
-      OpWorkRecord workRecord;
-      while (workRecords.hasNext()) {
-         workRecord = (OpWorkRecord) (workRecords.next());
-         workRecordList.add(workRecord);
-      }
-
-      //fill the three data sets
-      List<XComponent> dataSetList = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecordList, session, broker);
-      workEffortDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX));
-      workTimeDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.TIME_RECORD_SET_INDEX));
-      workCostDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.COST_RECORD_SET_INDEX));
-
-      //fill the list of resource ids
-      List resourceIds = OpWorkSlipDataSetFactory.getListOfSubordinateResourceIds(session, broker);
-      if (resourceIds.isEmpty()) {
-         return; //Maybe display a message that no resources are available?
-      }
-
-      List<Byte> activityTypes = new ArrayList<Byte>();
-      activityTypes.add(OpActivity.STANDARD);
-      activityTypes.add(OpActivity.MILESTONE);
-      activityTypes.add(OpActivity.TASK);
-      activityTypes.add(OpActivity.ADHOC_TASK);
-
-      OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
-      Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, orderCriteria, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, true);
-      List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
-      Object[] record;
-      while (result.hasNext()) {
-         record = (Object[]) result.next();
-         assignmentList.add((OpAssignment) record[0]);
-      }
-
-      //add the completed assignments from the work records of this work slip
-      for (OpWorkRecord wr : workSlip.getRecords()) {
-         if (wr.getAssignment().getComplete() == 100) {
-            assignmentList.add(wr.getAssignment());
+         Iterator workRecords = workSlip.getRecords().iterator();
+         List<OpWorkRecord> workRecordList = new ArrayList<OpWorkRecord>();
+         OpWorkRecord workRecord;
+         while (workRecords.hasNext()) {
+            workRecord = (OpWorkRecord) (workRecords.next());
+            workRecordList.add(workRecord);
          }
+
+         //fill the three data sets
+         List<XComponent> dataSetList = OpWorkSlipDataSetFactory.formDataSetsFromWorkRecords(workRecordList, session, broker);
+         workEffortDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.WORK_RECORD_SET_INDEX));
+         workTimeDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.TIME_RECORD_SET_INDEX));
+         workCostDataSet.copyAllChildren(dataSetList.get(OpWorkSlipDataSetFactory.COST_RECORD_SET_INDEX));
+
+         // activitiesToFill
+         List<XComponent> activityRows = (List<XComponent>) parameters.get(PRE_FILLED);
+         if (activityRows != null) {
+            OpWorkSlipDataSetFactory.addPrefilledAssignments(broker, activityRows, workEffortDataSet, workTimeDataSet);
+         }
+
+         //fill the list of resource ids
+         List resourceIds = OpWorkSlipDataSetFactory.getListOfSubordinateResourceIds(session, broker);
+         if (resourceIds.isEmpty()) {
+            return; //Maybe display a message that no resources are available?
+         }
+
+         List<Byte> activityTypes = new ArrayList<Byte>();
+         activityTypes.add(OpActivity.STANDARD);
+         activityTypes.add(OpActivity.MILESTONE);
+         activityTypes.add(OpActivity.TASK);
+         activityTypes.add(OpActivity.ADHOC_TASK);
+
+         OpObjectOrderCriteria orderCriteria = OpWorkSlipDataSetFactory.createActivityOrderCriteria();
+         Iterator result = OpWorkSlipDataSetFactory.getAssignments(broker, resourceIds, activityTypes, null, orderCriteria, OpWorkSlipDataSetFactory.ALL_PROJECTS_ID, true);
+         List<OpAssignment> assignmentList = new ArrayList<OpAssignment>();
+         Object[] record;
+         while (result.hasNext()) {
+            record = (Object[]) result.next();
+            assignmentList.add((OpAssignment) record[0]);
+         }
+
+         //add the completed assignments from the work records of this work slip
+         for (OpWorkRecord wr : workSlip.getRecords()) {
+            if (wr.getAssignment().getComplete() == 100) {
+               assignmentList.add(wr.getAssignment());
+            }
+         }
+
+         //check time tracking
+         boolean timeTrackingEnabled = setTimeTracking(form, workEffortDataSet, session);
+
+         //pulsing
+         String pulsingSetting = OpSettingsService.getService().get(session, OpSettings.PULSING);
+         if (pulsingSetting != null) {
+            Integer pulsing = Integer.valueOf(pulsingSetting);
+            form.findComponent(PULSING).setValue(pulsing);
+         }
+
+         fillChoiceSets(broker, form, assignmentList, timeTrackingEnabled);
+
+         //fill the assignmentMapDataField
+         form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.createAssignmentMap(assignmentList));
+
+         //fill the cost types for the costs tab
+         XComponent costTypesDataSet = form.findComponent(COST_TYPES_SET);
+         OpCostRecordDataSetFactory.fillCostTypesDataSet(session, costTypesDataSet);
+
       }
-
-      //check time tracking
-      boolean timeTrackingEnabled = setTimeTracking(form, workEffortDataSet);
-
-      //pulsing
-      String pulsingSetting = OpSettingsService.getService().get(OpSettings.PULSING);
-      if (pulsingSetting != null) {
-         Integer pulsing = Integer.valueOf(pulsingSetting);
-         form.findComponent(PULSING).setValue(pulsing);
+      finally {
+         broker.close();
       }
-
-      fillChoiceSets(broker, form, assignmentList, timeTrackingEnabled);
-
-      //fill the assignmentMapDataField
-      form.findComponent(ASSIGNMENT_MAP).setValue(OpWorkSlipDataSetFactory.createAssignmentMap(assignmentList));
-
-      //fill the cost types for the costs tab
-      XComponent costTypesDataSet = form.findComponent(COST_TYPES_SET);
-      OpCostRecordDataSetFactory.fillCostTypesDataSet(session, costTypesDataSet);
-
-      broker.close();
 
       Boolean paramEditMode = (Boolean) (parameters.get(EDIT_MODE));
       updateFormComponents(session, form, paramEditMode);
@@ -164,33 +173,19 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.setText(title);
    }
 
-   private boolean setTimeTracking(XComponent form, XComponent workEffortDataSet) {
+   private boolean setTimeTracking(XComponent form, XComponent workEffortDataSet, OpProjectSession session) {
       boolean timeTrackingEnabled = false;
-      String timeTracking = OpSettingsService.getService().get(OpSettings.ENABLE_TIME_TRACKING);
+      String timeTracking = OpSettingsService.getService().get(session, OpSettings.ENABLE_TIME_TRACKING);
       if (timeTracking != null) {
          timeTrackingEnabled = Boolean.valueOf(timeTracking);
       }
-      if (!timeTrackingEnabled) {
+      if (timeTrackingEnabled) {
+         OpWorkEffortDataSetFactory.disableDataSetForTimeTracking(workEffortDataSet);
+      }
+      else {
          //if time tracking is off hide the time tab and select hours tab
          form.findComponent(TIME_TAB).setHidden(true);
          form.findComponent(TAB_BOX).selectDifferentTab(1);
-      }
-      else {
-         //disable non-milestone activities on data set
-         for (int i = 0; i < workEffortDataSet.getChildCount(); i++) {
-            XComponent row = (XComponent) workEffortDataSet.getChild(i);
-            if (!((XComponent) row.getChild(OpWorkEffortValidator.ACTIVITY_TYPE_INDEX)).getValue().equals(OpGanttValidator.MILESTONE)) {
-               ((XComponent) row.getChild(OpWorkEffortValidator.ENABLED_INDEX)).setValue(Boolean.FALSE);
-            }
-
-            //<FIXME author="Mihai Costin" description="This is hiding a milestone related bug! This code should be inside the previous if">
-            row.getChild(OpWorkEffortValidator.PROJECT_NAME_INDEX).setEnabled(false);
-            row.getChild(OpWorkEffortValidator.ACTIVITY_NAME_INDEX).setEnabled(false);
-            row.getChild(OpWorkEffortValidator.RESOURCE_NAME_INDEX).setEnabled(false);
-            row.getChild(OpWorkEffortValidator.ACTUAL_EFFORT_INDEX).setEnabled(false);
-            //</FIXME>
-
-         }
       }
 
       form.findComponent(TIME_TRACKING).setValue(timeTrackingEnabled);
@@ -231,7 +226,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent(ADD_HOURS_BUTTON).setVisible(effortHasChildren);
       form.findComponent(REMOVE_HOURS_BUTTON).setVisible(effortHasChildren);
       if (effortHasChildren) {
-         ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          XExtendedComponent tableBox = ((XExtendedComponent) form.findComponent(EFFORT_TABLE));
+          tableBox.setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          tableBox.setSelectionModel(XComponent.CELL_SELECTION);
       }
       else {
          ((XExtendedComponent) form.findComponent(EFFORT_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
@@ -240,7 +237,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent(ADD_TIME_BUTTON).setVisible(timeHasChildren);
       form.findComponent(REMOVE_TIME_BUTTON).setVisible(timeHasChildren);
       if (timeHasChildren) {
-         ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          XExtendedComponent tableBox = ((XExtendedComponent) form.findComponent(TIME_TABLE));
+          tableBox.setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          tableBox.setSelectionModel(XComponent.CELL_SELECTION);
       }
       else {
          ((XExtendedComponent) form.findComponent(TIME_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);
@@ -250,7 +249,9 @@ public class OpEditWorkSlipFormProvider implements XFormProvider {
       form.findComponent(REMOVE_COST_BUTTON).setVisible(costHasChildren);
       form.findComponent(ATTACHMENT_BUTTON).setVisible(costHasChildren);
       if (costHasChildren) {
-         ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          XExtendedComponent tableBox = ((XExtendedComponent) form.findComponent(COST_TABLE));
+          tableBox.setAutoGrow(XExtendedComponent.AUTO_GROW_CONSECUTIVE);
+          tableBox.setSelectionModel(XComponent.CELL_SELECTION);
       }
       else {
          ((XExtendedComponent) form.findComponent(COST_TABLE)).setAutoGrow(XExtendedComponent.AUTO_GROW_NONE);

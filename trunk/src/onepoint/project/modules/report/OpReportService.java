@@ -430,108 +430,143 @@ public class OpReportService extends OpProjectService {
 
       //create the report query
       OpBroker broker = session.newBroker();
-
-      if (parameters != null) {
-         Map subReportData = (Map) request.getArgument(SUBREPORT_DATA);
-         if (subReportData != null) {
-            putSubreportParameters(subReportData, parameters, broker, session);
-         }
-         //make sure the day work time is taken from the system settings
-         String dayWorkTime = (String) parameters.remove(DAY_WORK_TIME);
-         if (dayWorkTime != null) {
-            parameters.put(DAY_WORK_TIME, new Double(OpSettingsService.getService().get(OpSettings.CALENDAR_DAY_WORK_TIME)));
-         }
-      }
-
-
-      Map queryMap = (Map) request.getArgument(QUERY_MAP);
-      if (queryMap == null || queryMap.size() == 0) {
-         logger.error("Cannot get main report query map from request");
-         return null;
-      }
-      OpQuery reportQuery = createReportQuery(broker, queryMap);
-      if (reportQuery == null) {
-         logger.error("Cannot create the report query");
-         return null;
-      }
-
-      //get the report fields
-      Map reportFields = (Map) request.getArgument(FIELDS);
-
-      //get the resource map for the report
-      String resourceMapId = (String) request.getArgument(RESOURCE_MAP_ID);
-      XLocalizer localizer = null;
-      if (resourceMapId != null) {
-         localizer = new XLocalizer();
-         localizer.setResourceMap(session.getLocale().getResourceMap(resourceMapId));
-      }
-
-      //create the report data-source
-      OpReportDataSource ds = new OpReportDataSource(reportFields, broker.iterate(reportQuery), localizer);
-
-      JasperReport jasperReport = null;
-      OpReportManager xrm = OpReportManager.getReportManager(session);
-      String jasperFileName = xrm.getJasperFileName(name);
-      if (jasperFileName == null) {
-         //something badly went wrong. At least it means, that our reportsCache is corrupt.
-         logger.info("got problems with report '" + name + "'. Will try to straighten Cache (fileName).");
-         xrm.updateReportCacheEntry(name);
-         jasperFileName = xrm.getJasperFileName(name);
-         if (jasperFileName == null) {
-            //now we give up!!!
-            logger.error("could not fix problems with report '" + name + "'. Deleted from Cache (fileName)..");
-            xrm.removeReportFromCache(name);
-         }
-      }
-
       try {
-         InputStream is = new FileInputStream(jasperFileName);
-         ObjectInputStream ois = new ObjectInputStream(is);
-         jasperReport = (JasperReport) ois.readObject();
-      }
-      catch (Exception e) {
-         //at least we will give it another try. Most probably, the Jasper-file somehow is corrupt (e.g. wrong jasper-version)
-         logger.info("got problems with report '" + name + "'. Will try to straighten Cache (jasperReport).");
-         xrm.updateReportCacheEntry(name);
-         jasperFileName = xrm.getJasperFileName(name);
+         if (parameters != null) {
+            Map subReportData = (Map) request.getArgument(SUBREPORT_DATA);
+            if (subReportData != null) {
+               putSubreportParameters(subReportData, parameters, broker, session);
+            }
+            //make sure the day work time is taken from the system settings
+            String dayWorkTime = (String) parameters.remove(DAY_WORK_TIME);
+            if (dayWorkTime != null) {
+               parameters.put(DAY_WORK_TIME, new Double(OpSettingsService.getService().get(session, OpSettings.CALENDAR_DAY_WORK_TIME)));
+            }
+         }
+
+
+         Map queryMap = (Map) request.getArgument(QUERY_MAP);
+         OpQuery reportQuery = null;
+         if (queryMap != null) {
+            reportQuery = createReportQuery(broker, queryMap);
+            if (reportQuery == null) {
+               logger.error("Cannot create the report query");
+               return null;
+            }
+         }
+
+         //get the report fields
+         Map reportFields = (Map) request.getArgument(FIELDS);
+
+         //get the resource map for the report
+         String resourceMapId = (String) request.getArgument(RESOURCE_MAP_ID);
+         XLocalizer localizer = null;
+         if (resourceMapId != null) {
+            localizer = new XLocalizer();
+            localizer.setResourceMap(session.getLocale().getResourceMap(resourceMapId));
+         }
+
+         Map reportParam = (Map) request.getArgument("reportParameters");
+
+         //create the report data-source
+         OpReportDataSource ds;
+         String dataSourceClass = (String) request.getArgument("customDataSource");
+         if (dataSourceClass == null) {
+            //defauld data source
+            ds = new OpReportDataSource();
+         }
+         else {
+            //custom data source
+            OpReportManager xrm = OpReportManager.getReportManager(session);
+            ds = xrm.getDataSourceClass(dataSourceClass);
+            if (ds == null) {
+               logger.error("Cannot load the provided data source class");
+               return null;
+
+            }
+         }
+
+         ds.setBroker(broker);
+
+         if (reportFields != null) {
+            ds.setReportFields(reportFields);
+         }
+
+         if (reportQuery != null) {
+            ds.setQueryIterator(broker.iterate(reportQuery));
+         }
+
+         if (localizer != null) {
+            ds.setLocalizer(localizer);
+         }
+
+         if (reportParam != null) {
+            ds.setParameters(reportParam);
+         }
+
+
+         JasperReport jasperReport = null;
+         OpReportManager xrm = OpReportManager.getReportManager(session);
+         String jasperFileName = xrm.getJasperFileName(name);
+         if (jasperFileName == null) {
+            //something badly went wrong. At least it means, that our reportsCache is corrupt.
+            logger.info("got problems with report '" + name + "'. Will try to straighten Cache (fileName).");
+            xrm.updateReportCacheEntry(name);
+            jasperFileName = xrm.getJasperFileName(name);
+            if (jasperFileName == null) {
+               //now we give up!!!
+               logger.error("could not fix problems with report '" + name + "'. Deleted from Cache (fileName)..");
+               xrm.removeReportFromCache(name);
+            }
+         }
+
          try {
             InputStream is = new FileInputStream(jasperFileName);
             ObjectInputStream ois = new ObjectInputStream(is);
             jasperReport = (JasperReport) ois.readObject();
          }
-         catch (Exception ee) {
-            //nothing to do.
-            logger.fatal("could not get valid Jasper-file for '" + name + "'. Please inform the Administrator");
+         catch (Exception e) {
+            //at least we will give it another try. Most probably, the Jasper-file somehow is corrupt (e.g. wrong jasper-version)
+            logger.info("got problems with report '" + name + "'. Will try to straighten Cache (jasperReport).");
+            xrm.updateReportCacheEntry(name);
+            jasperFileName = xrm.getJasperFileName(name);
+            try {
+               InputStream is = new FileInputStream(jasperFileName);
+               ObjectInputStream ois = new ObjectInputStream(is);
+               jasperReport = (JasperReport) ois.readObject();
+            }
+            catch (Exception ee) {
+               //nothing to do.
+               logger.fatal("could not get valid Jasper-file for '" + name + "'. Please inform the Administrator");
+            }
          }
-      }
-      finally {
-         if (jasperReport == null) {
-            //somehow we got here without catching an exception earlier ???
-            //Nevertheless, we are broken now and do not go on.
-            logger.fatal("could not get valid Jasper-file for '" + name + "'. Please inform the Administrator (finally)");
-            broker.close();
-            return null;
+         finally {
+            if (jasperReport == null) {
+               //somehow we got here without catching an exception earlier ???
+               //Nevertheless, we are broken now and do not go on.
+               logger.fatal("could not get valid Jasper-file for '" + name + "'. Please inform the Administrator (finally)");
+               return null;
+            }
          }
-      }
 
-      // Now rewrite the Parameter-Map. The potentially thrown IllegalArgumentException it passed through
-      JRParameter[] defParams = jasperReport.getParameters();
-      if (parameters == null) {
-         parameters = new HashMap();
-      }
-      Map cleanedReportParameters;
+         // Now rewrite the Parameter-Map. The potentially thrown IllegalArgumentException it passed through
+         JRParameter[] defParams = jasperReport.getParameters();
+         if (parameters == null) {
+            parameters = new HashMap();
+         }
+         Map cleanedReportParameters;
 
-      try {
-         cleanedReportParameters = updateParameterValues(session, parameters, defParams);
-         // some initializing stuff
-         URL reportLocation = new File(xrm.getJasperDirName(name)).toURL();
-         return OpJasperReportBuilder.buildDatasourceReport(jasperReport, cleanedReportParameters, session, reportLocation, ds);
-      }
-      catch (OpReportException e) {
-         logger.error("Cannot generate report", e);
-      }
-      catch (MalformedURLException e) {
-         logger.error("Cannot generate report", e);
+         try {
+            cleanedReportParameters = updateParameterValues(session, parameters, defParams);
+            // some initializing stuff
+            URL reportLocation = new File(xrm.getJasperDirName(name)).toURL();
+            return OpJasperReportBuilder.buildDatasourceReport(jasperReport, cleanedReportParameters, session, reportLocation, ds);
+         }
+         catch (OpReportException e) {
+            logger.error("Cannot generate report", e);
+         }
+         catch (MalformedURLException e) {
+            logger.error("Cannot generate report", e);
+         }
       }
       finally {
          broker.close();
@@ -628,7 +663,7 @@ public class OpReportService extends OpProjectService {
       String mimeType = OpContentManager.getFileMimeType('.' + contentType);
 
       XSizeInputStream stream = new XSizeInputStream(new ByteArrayInputStream(content), content.length);
-      OpContent reportContent = OpContentManager.newContent(stream, mimeType);
+      OpContent reportContent = OpContentManager.newContent(stream, mimeType, 0);
 
       broker.makePersistent(reportContent);
       return reportContent;

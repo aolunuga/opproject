@@ -16,7 +16,7 @@ public class OpSettings {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpSettings.class);
    // Available settings
-   public static final String USER_LOCALE = "User_Locale";
+   public static final String USER_LOCALE_ID = "User_Locale";
 
    public static final String CALENDAR_FIRST_WORKDAY = "Calendar_FirstWorkday";
    public static final String CALENDAR_LAST_WORKDAY = "Calendar_LastWorkday";
@@ -52,6 +52,8 @@ public class OpSettings {
     */
    private final static String CURRENCY_SYMBOL_I18N_PARAMETER = "CurrencySymbol";
 
+   public static final String SETTING = "OpSetting";
+
    protected Map<String, String> defaults = new HashMap<String, String>();
    public Map<String, String> settings = new HashMap<String, String>();
 
@@ -67,7 +69,7 @@ public class OpSettings {
 
    public OpSettings() {
       // Set defaults
-      defaults.put(USER_LOCALE, XLocaleManager.DEFAULT_LOCALE.getLanguage());
+      defaults.put(USER_LOCALE_ID, XLocaleManager.getDefaultLocale().getID());
       defaults.put(CALENDAR_FIRST_WORKDAY, CALENDAR_FIRST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_LAST_WORKDAY, CALENDAR_LAST_WORKDAY_DEFAULT);
       defaults.put(CALENDAR_DAY_WORK_TIME, CALENDAR_DAY_WORK_TIME_DEFAULT);

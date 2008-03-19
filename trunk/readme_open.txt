@@ -1,4 +1,4 @@
-Onepoint Project 7.1 Open Edition
+Onepoint Project 8.0 Open Edition
 
 =================================
 
@@ -44,11 +44,11 @@ System Requirements
 
 
 
-* Java Runtime Environment (JRE) version 5 or later
+* Java Runtime Environment (JRE) version 5 Update 7 or later
 
 
 
-* MySQL 5.0.27 or later, PostgreSQL 8.2
+* MySQL 5.0.34 or later or PostgreSQL 8.3
 
 
 

@@ -15,7 +15,7 @@ public class OpScheduleModule extends OpModule {
 	}
 	
 	public void stop() {
-		OpScheduler.start();
+		OpScheduler.stop();
 	}
 
 }

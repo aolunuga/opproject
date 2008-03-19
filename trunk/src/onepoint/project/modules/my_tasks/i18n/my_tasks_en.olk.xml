@@ -42,7 +42,7 @@
       <resource id="Next2Months">Next 2 Months</resource>
 
       <resource id="Resources">Resources</resource>
-      <resource id="Responsible">Responsible</resource>
+      <resource id="Responsible">Linked</resource>
       <resource id="Managed">Managed</resource>
 
       <resource id="SaveCSV">Save as Table...</resource>

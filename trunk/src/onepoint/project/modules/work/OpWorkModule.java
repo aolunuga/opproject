@@ -7,12 +7,19 @@ package onepoint.project.modules.work;
 import onepoint.log.XLog;
 import onepoint.log.XLogFactory;
 import onepoint.persistence.OpBroker;
+import onepoint.persistence.OpEntityEventListener;
+import onepoint.persistence.OpEvent;
 import onepoint.persistence.OpQuery;
+import onepoint.persistence.OpSource;
+import onepoint.persistence.OpSourceManager;
 import onepoint.persistence.OpTransaction;
 import onepoint.project.OpProjectSession;
 import onepoint.project.module.OpModule;
 import onepoint.project.module.OpModuleChecker;
 import onepoint.project.modules.project.OpActivity;
+import onepoint.project.modules.project.OpAssignment;
+import onepoint.project.modules.project.OpProjectNode;
+import onepoint.project.modules.project.OpProjectPlan;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,10 +27,31 @@ import java.util.List;
 /**
  * Class representing the work module.
  */
-public class OpWorkModule extends OpModule {
+public class OpWorkModule extends OpModule implements OpEntityEventListener {
 
    private static final XLog logger = XLogFactory.getServerLogger(OpWorkModule.class);
 
+   @Override
+   public void start(OpProjectSession session) {
+      // register listeners for OpProjectNode and OpProjectPlan
+      for (OpSource source : OpSourceManager.getAllSources()) {
+         source.addEntityEventListener(OpAssignment.class, this);
+      }
+   }
+
+   @Override
+   public void stop(OpProjectSession session) {
+      // register listeners for OpProjectNode and OpProjectPlan
+      for (OpSource source : OpSourceManager.getAllSources()) {
+         source.removeEntityEventListener(OpAssignment.class, this);
+      }
+   }
+
+   public void entityChangedEvent(OpEvent opevent) {
+      // TODO Auto-generated method stub
+      logger.debug ("Event received for class: " + opevent.getSource().getClass().getName() + " " + opevent.getAction()); 
+   }
+   
    /**
     * Upgrades the module to version 5 (internal schema version) via reflection.
     *
@@ -31,11 +59,15 @@ public class OpWorkModule extends OpModule {
     */
    public void upgradeToVersion5(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-      this.upgradeWorkRecordsCosts(broker);
-      this.upgradeActivityRemainingCosts(broker);
-      tx.commit();
-      broker.closeAndEvict();
+      try {
+         OpTransaction tx = broker.newTransaction();
+         this.upgradeWorkRecordsCosts(broker);
+         this.upgradeActivityRemainingCosts(broker);
+         tx.commit();
+      }
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -45,10 +77,14 @@ public class OpWorkModule extends OpModule {
     */
    public void upgradeToVersion13(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-      this.upgradeWorkSlipTotalActualEffort(broker);
-      tx.commit();
-      broker.closeAndEvict();
+      try {
+         OpTransaction tx = broker.newTransaction();
+         this.upgradeWorkSlipTotalActualEffort(broker);
+         tx.commit();
+      }
+      finally {
+         broker.closeAndEvict();         
+      }
    }
 
    /**
@@ -58,10 +94,14 @@ public class OpWorkModule extends OpModule {
     */
    public void upgradeToVersion50(OpProjectSession session) {
       OpBroker broker = session.newBroker();
-      OpTransaction tx = broker.newTransaction();
-      this.upgradeWorkSlipState(broker);
-      tx.commit();
-      broker.close();
+      try {
+         OpTransaction tx = broker.newTransaction();
+         this.upgradeWorkSlipState(broker);
+         tx.commit();
+      }
+      finally {
+         broker.close();         
+      }
    }
 
 
@@ -238,5 +278,5 @@ public class OpWorkModule extends OpModule {
       checkers.add(new OpWorkModuleChecker());
       return checkers;
    }
-   
+
 }

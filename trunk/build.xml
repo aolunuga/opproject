@@ -1,4 +1,4 @@
-<project name="opproject - Open" basedir="." default="dist.war">
+<project name="Opproject 8.0 - Open" basedir="." default="dist.war">
 
    <!-- Sets property references that are used throught the build file -->
    <property file="build.properties"/>
@@ -38,7 +38,6 @@
       <include name="**/applet/*.java"/>
       <include name="**/components/**/*.java"/>
       <include name="**/validators/**/*.java"/>
-      <include name="onepoint/project/util/*.java"/>
    </patternset>
 
    <!-- Pattern set for opproject.jar (depends on opexpress.jar) -->
@@ -134,6 +133,8 @@
       <exclude name="*_client*.*"/>
       <exclude name="*ant-contrib*.jar"/>
       <exclude name="*commons-cli*.jar"/>
+      <exclude name="*ant.jar"/>
+      <exclude name="*ant-launcher.jar"/>
       <!-- at the moment only used within ldap, but may be of general perpose -->
       <exclude name="*ws-commons-util*.jar"/>
       <!-- used for sending reports (icomedias) -->
@@ -163,6 +164,8 @@
       <exclude name="*jcookie*.*"/>
       <exclude name="svn*.*"/>
       <exclude name="*sqljdbc*.*"/>
+      <exclude name="*ant.jar"/>
+      <exclude name="*ant-launcher.jar"/>
    </patternset>
 
    <!-- Pattern set for the lib files of the applet -->
@@ -196,10 +199,6 @@
       </delete>
    </target>
 
-   <target name="clean.tests" description="Cleans the test results">
-      <delete dir="${tests.dir}" failonerror="false"/>
-   </target>
-
    <!-- Creates directories where compiled files will be placed -->
    <target name="init" description="Creates output directories">
       <mkdir dir="${classes.dir}"/>
@@ -215,6 +214,7 @@
 
    <target name="build.express4j.jars" if="express4j.present" description="Build the express lib and copy the jars if present">
       <ant target="dist" antfile="build.xml" inheritall="false" dir="${express4j.dir}/"/>
+
       <!-- Copy express4j libs -->
       <copy todir="${lib.dir}" failonerror="false" overwrite="true">
          <fileset dir="${express4j.dir}/${dist.dir}">
@@ -226,6 +226,14 @@
 
    <!-- Copies all the forms, images and other resources needed for the web application -->
    <target name="copy.resources" depends="init,build.express4j.jars" description="Copies all the resource files necessary for the application">
+      <antcall target="copy.resources.no.init"/>
+   </target>
+
+   <target name="copy.resources.no.express4j.jars" depends="init" description="Copies all the resource files necessary for the application">
+      <antcall target="copy.resources.no.init"/>
+   </target>
+
+   <target name="copy.resources.no.init" description="Copies all the resource files necessary for the application">
       <property name="project.dir" value="${rootpackage.dir}/project"/>
       <property name="persistence.dir" value="${rootpackage.dir}/persistence"/>
       <copy todir="${classes.dir}/${project.dir}">
@@ -348,7 +356,17 @@
 
    <!-- Creates the client-side jar files with the client libraries -->
    <target name="build.client.jars" depends="build" description="Create the opproject client jars">
-      <jar destfile="${jars.dir}/${opproject.client.open.jarname}">
+      <manifest file="${manifest}">
+         <attribute name="Built-By" value="Onepoint Software GmbH" />
+         <attribute name="Build-Date" value="${build.date}" />
+         <section name="Implementation">
+            <attribute name="Implementation-Title" value="${opproject.launchername} Open" />
+            <attribute name="Implementation-Version" value="${project.version}" />
+            <attribute name="Implementation-Vendor" value="Onepoint Software GmbH" />
+            <attribute name="Implementation-Vendor-URL" value="http://www.onepoint.at" />
+         </section>
+      </manifest>
+      <jar destfile="${jars.dir}/${opproject.client.open.jarname}" manifest="${manifest}">
          <fileset dir="${client.classes.dir}">
             <patternset refid="project.client.pathid"/>
          </fileset>
@@ -364,6 +382,9 @@
    <!-- be self-explaning. For new language-translations, just insert new    -->
    <!-- locales -->
    <target name="jar.reports" depends="build" description="creates the necessary Jars for the JasperReports...">
+      <antcall target="jar.reports.no.build"></antcall>
+   </target>
+   <target name="jar.reports.no.build" description="creates the necessary Jars for the JasperReports...">
       <property name="reportBase" value="${classes.dir}/${reports.dir}"/>
       <copy todir="${reportBase}">
          <fileset dir="${src.dir}/${reports.dir}">
@@ -613,9 +634,9 @@
       <echo file="${dist.basic.dir}/${dist.main.folder}/${opproject.linux.launcher}" append="false">#!/bin/bash
          JAR=${project.basic.jarname}
          if [ -e "$JAVA_HOME" ]; then
-         $JAVA_HOME/bin/java -Xmx192m -jar $JAR
+         $JAVA_HOME/bin/java -Xmx512m -jar $JAR
          else
-         java -Xmx192m -jar $JAR
+         java -Xmx512m -XX:MaxPermSize=128m -jar $JAR
          fi
       </echo>
       <tar destfile="${dist.dir}/${basic.name}-linux.tar">
@@ -644,7 +665,7 @@
          <config headerType="gui" jar="${dist.basic.dir}/${dist.main.folder}/${project.basic.jarname}"
                  outfile="${dist.basic.dir}/${executable.file.tmp}" customProcName="false"
                  dontWrapJar="false" icon="${build.dir}/${webimages.dir}/${opproject.windows.icon}">
-            <jre minVersion="1.5.0" maxheapsize="192"/>
+            <jre minVersion="1.5.0" maxheapsize="512"/>
             <versioninfo fileVersion="1.0.0.0" txtFileVersion="1.0.0.0" fileDescription="Onepoint Software"
                          copyright="Onepoint Software GmbH" productVersion="${version.mayor}.${version.minor}.0.0" txtProductVersion="${version}"
                          productName="Onepoint Projects" companyName="Onepoint Software GmbH"
@@ -661,13 +682,13 @@
            description="Generates Mac Os executable file">
       <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
                classpath="${op.jarbundler.classpath}"/>
-      <jarbundler dir="${dist.basic.dir}/${dist.main.folder}" verbose="true" infostring="Onepoint Project, copyright Onepoint Software GmbH 2007"
+      <jarbundler dir="${dist.basic.dir}/${dist.main.folder}" verbose="true" infostring="Onepoint Project, copyright Onepoint Software GmbH 2008"
                   name="${opproject.launchername}"
                   icon="${build.dir}/${webimages.dir}/${opproject.macosx.icon}"
                   shortname="${opproject.launchername}"
                   version="${version}"
                   jvmversion="1.5+"
-                  vmoptions="-Xmx192m"
+                  vmoptions="-Xmx512m -XX:MaxPermSize=128m"
                   stubfile="${opproject.launchername}"
                   mainclass="onepoint.project.application.OpBasicSplasher">
          <jarfileset dir="${jars.dir}">
@@ -704,7 +725,7 @@
             <include name="**/license/license.oxl.xml"/>
          </fileset>
       </copy>
-      <ant antfile="build.xml" target="jar.reports"/>
+      <ant antfile="build.xml" target="jar.reports.no.build"/>
       <mkdir dir="${tests.onepoint.home}/${reportsjar}"/>
       <copy todir="${tests.onepoint.home}/${reportsjar}">
          <fileset dir="${reportjars.dir}">
@@ -714,6 +735,7 @@
       <copy todir="${tests.onepoint.home}">
          <fileset dir="${src.dir}/onepoint/project/test">
             <include name="**/*.xml"/>
+            <include name="**/*.bin"/>
          </fileset>
          <fileset dir="${src.dir}/onepoint/project/configuration">
             <include name="configuration.xsd"/>
@@ -722,7 +744,7 @@
    </target>
 
    <!-- Compiles the tests source code of the application -->
-   <target name="build.tests" depends="build,copy.resources,copy.test.resources" description="Compiles the test source code">
+   <target name="build.tests" depends="clean,build,copy.test.resources" description="Compiles the test source code">
       <javac srcdir="${src.dir}" destdir="${classes.dir}"
              classpathref="op.tests.classpath" debug="${debug}"
              target="${jdk.target}" source="${jdk.source}"
@@ -732,7 +754,7 @@
    </target>
 
    <!--Executes OnePoint unit tests and generates html report files-->
-   <target name="run.tests" depends="clean.tests, clean, build.tests" description="Executes the Onepoint unit tests and generates report">
+   <target name="run.tests" depends="build.tests" description="Executes the Onepoint unit tests and generates report">
       <junit printsummary="on" reloading="false" fork="on" forkmode="once" failureproperty="junit_test_failed">
          <formatter type="xml"/>
          <classpath>
@@ -744,6 +766,7 @@
             </fileset>
          </batchtest>
       </junit>
+
       <!--generate html test reports-->
       <junitreport todir="${tests.dir}">
          <fileset dir="${tests.dir}">
@@ -751,10 +774,11 @@
          </fileset>
          <report format="frames" todir="${tests.dir}/html-report"/>
       </junitreport>
+      
       <antcall target="create.fail.dir"/>
    </target>
 
-   <target name="create.fail.dir" if="junit_test_failed">
+   <target name="create.fail.dir" if="junit_test_failed" description="Creates a new folder if tests failed">
       <mkdir dir="testFailed"/>
    </target>
 

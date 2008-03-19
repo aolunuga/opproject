@@ -36,8 +36,12 @@ public final class OpPersistenceManager {
     */
    public static void createSchema() {
       OpBroker broker = newBroker();
-      broker.getConnection().createSchema();
-      broker.close();
+      try {
+         broker.getConnection().createSchema();
+      } 
+      finally {  
+         broker.close();
+      }
    }
 
    /**
@@ -45,8 +49,12 @@ public final class OpPersistenceManager {
     */
    public static void updateSchema() {
       OpBroker broker = newBroker();
-      broker.getConnection().updateSchema();
-      broker.close();
+      try {
+         broker.getConnection().updateSchema();
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
@@ -54,7 +62,26 @@ public final class OpPersistenceManager {
     */
    public static void dropSchema() {
       OpBroker broker = newBroker();
-      broker.getConnection().dropSchema();
-      broker.close();
+      try {
+         broker.getConnection().dropSchema();
+      }
+      finally {
+         broker.close();
+      }
+   }
+
+   /**
+    * 
+    * @pre
+    * @post
+    */
+   public static void updateDBSchema() {
+      OpBroker broker = newBroker();
+      try {
+         broker.getConnection().updateDBSchema();
+      }
+      finally {
+         broker.close();
+      }
    }
 }

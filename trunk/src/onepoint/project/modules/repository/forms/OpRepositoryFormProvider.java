@@ -132,17 +132,19 @@ public class OpRepositoryFormProvider implements XFormProvider {
     */
    private void setFormFields(XComponent form, OpProjectSession projectSession) {
       OpBroker broker = projectSession.newBroker();
-
-      form.findComponent(USER_GROUPS_COUNT_ID).setIntValue(projectSession.countEntity(OpGroup.GROUP, broker));
-      form.findComponent(USERS_COUNT_ID).setIntValue(projectSession.countEntity(OpUser.USER, broker));
-      form.findComponent(PORTFOLIOS_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.PORTFOLIO, broker));
-      form.findComponent(TEMPLATES_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.TEMPLATE, broker));
-      form.findComponent(PROJECTS_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.PROJECT, broker));
-      form.findComponent(POOLS_COUNT_ID).setIntValue(projectSession.countEntity(OpResourcePool.RESOURCE_POOL, broker));
-      form.findComponent(RESOURCES_COUNT_ID).setIntValue(projectSession.countEntity(OpResource.RESOURCE, broker));
-      form.findComponent(REPORTS_COUNT_ID).setIntValue(projectSession.countEntity(OpReport.REPORT, broker));
-
-      broker.close();
+      try {
+         form.findComponent(USER_GROUPS_COUNT_ID).setIntValue(projectSession.countEntity(OpGroup.GROUP, broker));
+         form.findComponent(USERS_COUNT_ID).setIntValue(projectSession.countEntity(OpUser.USER, broker));
+         form.findComponent(PORTFOLIOS_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.PORTFOLIO, broker));
+         form.findComponent(TEMPLATES_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.TEMPLATE, broker));
+         form.findComponent(PROJECTS_COUNT_ID).setIntValue(OpProjectDataSetFactory.countProjectNode(OpProjectNode.PROJECT, broker));
+         form.findComponent(POOLS_COUNT_ID).setIntValue(projectSession.countEntity(OpResourcePool.RESOURCE_POOL, broker));
+         form.findComponent(RESOURCES_COUNT_ID).setIntValue(projectSession.countEntity(OpResource.RESOURCE, broker));
+         form.findComponent(REPORTS_COUNT_ID).setIntValue(projectSession.countEntity(OpReport.REPORT, broker));
+      }
+      finally {
+         broker.close();
+      }
    }
 
    /**
